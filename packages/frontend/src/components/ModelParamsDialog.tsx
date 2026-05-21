@@ -165,48 +165,42 @@ const ModelParamsDialog: Component<Props> = (props) => {
   );
 
   const SliderRow = (spec: ProviderParamSpec) => {
-    let sliderRef: HTMLDivElement | undefined;
+    let startX = 0;
+    let startValue = 0;
     const min = () => spec.range?.min ?? 0;
     const max = () => spec.range?.max ?? 100;
     const value = () => numericValue(spec);
-    const progress = () => {
-      const span = max() - min();
-      if (span <= 0) return 0;
-      return clampNumber(((value() - min()) / span) * 100, 0, 0, 100);
-    };
-    const setSliderValue = (next: number) => {
+    const setSliderVal = (next: number) => {
       if (isDisabled(spec)) return;
       setValue(spec, sliderValue(next, spec));
     };
-    const setFromPointer = (clientX: number) => {
-      if (!sliderRef) return;
-      const rect = sliderRef.getBoundingClientRect();
-      const ratio = clampNumber((clientX - rect.left) / rect.width, 0, 0, 1);
-      setSliderValue(min() + ratio * (max() - min()));
+    const pixelsPerUnit = () => {
+      const span = max() - min();
+      if (span <= 0) return 1;
+      return 120 / span;
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isDisabled(spec)) return;
       const step = sliderStep(spec);
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setSliderValue(value() - step);
+        setSliderVal(value() - step);
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         e.preventDefault();
-        setSliderValue(value() + step);
+        setSliderVal(value() + step);
       } else if (e.key === 'Home') {
         e.preventDefault();
-        setSliderValue(min());
+        setSliderVal(min());
       } else if (e.key === 'End') {
         e.preventDefault();
-        setSliderValue(max());
+        setSliderVal(max());
       }
     };
 
     return (
-      <div class="model-params__range">
+      <div class="model-params__scrub-field" classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}>
         <div
-          ref={sliderRef}
-          class="model-params__slider"
+          class="model-params__scrub"
           role="slider"
           tabIndex={isDisabled(spec) ? -1 : 0}
           aria-label={spec.label}
@@ -215,28 +209,28 @@ const ModelParamsDialog: Component<Props> = (props) => {
           aria-valuenow={value()}
           aria-valuetext={String(value())}
           aria-disabled={isDisabled(spec)}
-          style={`--model-params-slider-progress: ${progress()}%;`}
           onPointerDown={(e) => {
             if (isDisabled(spec)) return;
             e.preventDefault();
+            startX = e.clientX;
+            startValue = value();
             e.currentTarget.setPointerCapture?.(e.pointerId);
-            setFromPointer(e.clientX);
           }}
           onPointerMove={(e) => {
             if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) return;
-            setFromPointer(e.clientX);
+            const delta = (e.clientX - startX) / pixelsPerUnit();
+            setSliderVal(startValue + delta);
           }}
           onPointerUp={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
           onPointerCancel={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
           onKeyDown={handleKeyDown}
         >
-          <span class="model-params__slider-track" aria-hidden="true">
-            <span class="model-params__slider-fill" />
-          </span>
-          <span class="model-params__slider-thumb" aria-hidden="true" />
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 3a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 17a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7.33 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4" />
+          </svg>
         </div>
         <input
-          class="model-params__slider-input"
+          class="model-params__scrub-input"
           type="number"
           min={min()}
           max={max()}
@@ -244,7 +238,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
           value={value()}
           disabled={isDisabled(spec)}
           aria-label={`${spec.label} value`}
-          onInput={(e) => setSliderValue(Number.parseFloat(e.currentTarget.value))}
+          onInput={(e) => setSliderVal(Number.parseFloat(e.currentTarget.value))}
         />
       </div>
     );
@@ -330,18 +324,18 @@ const ModelParamsDialog: Component<Props> = (props) => {
         class="model-params__row"
         classList={{ 'model-params__row--disabled': !isApplicable(spec()) }}
       >
-        <div class="model-params__label">
+        <div class="model-params__row-top">
           <div class="model-params__label-title">
             <span>{spec().label}</span>
             <code class="model-params__param-key">{spec().path}</code>
           </div>
-          <div class="model-params__label-hint">
-            {isApplicable(spec())
-              ? `Provider default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
-              : 'Unavailable with selected parameters'}
-          </div>
+          {renderControl(spec())}
         </div>
-        {renderControl(spec())}
+        <div class="model-params__label-hint">
+          {isApplicable(spec())
+            ? `Default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
+            : 'Unavailable with selected parameters'}
+        </div>
       </div>
     );
   };
@@ -350,13 +344,15 @@ const ModelParamsDialog: Component<Props> = (props) => {
     <Show when={props.open}>
       <div
         class="modal-overlay"
+        draggable={false}
         onClick={(e) => {
           if (e.target === e.currentTarget && !saving()) props.onClose();
         }}
+        onDragStart={(e) => e.preventDefault()}
       >
         <div
           class="modal-card"
-          style="max-width: 460px;"
+          style="max-width: 460px; user-select: none;"
           role="dialog"
           aria-modal="true"
           aria-labelledby="model-params-dialog-title"

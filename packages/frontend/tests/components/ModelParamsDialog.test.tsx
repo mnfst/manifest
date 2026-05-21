@@ -181,33 +181,25 @@ describe('ModelParamsDialog', () => {
     expect(input.value).toBe('1');
   });
 
-  it('updates slider controls from pointer input', () => {
+  it('updates scrub controls from pointer drag', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
 
-    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLDivElement;
+    const scrub = screen.getByRole('slider', { name: 'Temperature' }) as HTMLDivElement;
     const input = screen.getByLabelText('Temperature value') as HTMLInputElement;
-    vi.spyOn(slider, 'getBoundingClientRect').mockReturnValue({
-      left: 0,
-      right: 100,
-      top: 0,
-      bottom: 20,
-      width: 100,
-      height: 20,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    });
-    slider.setPointerCapture = vi.fn();
-    slider.hasPointerCapture = vi.fn(() => true);
-    slider.releasePointerCapture = vi.fn();
+    scrub.setPointerCapture = vi.fn();
+    scrub.hasPointerCapture = vi.fn(() => true);
+    scrub.releasePointerCapture = vi.fn();
 
-    fireEvent(slider, pointerEvent('pointerdown', 50));
+    // Default temperature is 1. pixelsPerUnit = 120 / (1 - 0) = 120.
+    // pointerdown at 100 sets startX=100, startValue=1.
+    fireEvent(scrub, pointerEvent('pointerdown', 100));
+    expect(input.value).toBe('1');
+
+    // pointermove to 40: delta = (40-100)/120 = -0.5, value = 1 + -0.5 = 0.5
+    fireEvent(scrub, pointerEvent('pointermove', 40));
     expect(input.value).toBe('0.5');
-
-    fireEvent(slider, pointerEvent('pointermove', 20));
-    expect(input.value).toBe('0.2');
   });
 
   it('stores integer number controls as parsed numeric values', async () => {
