@@ -285,8 +285,14 @@
   color: hsl(var(--foreground));
 }
 
-.provider-detail__last-refreshed {
-  margin-top: 2px;
+.provider-detail__models-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: 16px;
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
 }

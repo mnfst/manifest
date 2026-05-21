@@ -172,29 +172,11 @@
   line-height: 1.5;
 }
 
-/* ── Routing cards (4-column grid) ─────────────────── */
+/* ── Routing cards (responsive grid) ───────────────── */
 .routing-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
-}
-
-@media (max-width: 1200px) {
-  .routing-cards {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .routing-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .routing-cards {
-    grid-template-columns: 1fr;
-  }
 }
 
 .routing-cards--wide {
@@ -203,7 +185,8 @@
 
 .routing-cards--centered {
   grid-template-columns: 1fr;
-  max-width: calc(25% - 9px);
+  max-width: 340px;
+  min-width: 280px;
   margin: 0 auto;
 }
 
@@ -213,15 +196,10 @@
   border-radius: var(--radius);
 }
 
-@media (max-width: 1024px) {
-  .routing-cards--centered {
-    max-width: calc(50% - 6px);
-  }
-}
-
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .routing-cards--centered {
     max-width: 100%;
+    min-width: 0;
   }
 }
 
@@ -887,6 +865,11 @@
   opacity: 0.3;
 }
 
+.fallback-list__card--swapping {
+  border-color: transparent;
+  background: transparent;
+}
+
 /* Drop indicator — always present as a spacer, highlights when active */
 .fallback-list__drop-indicator {
   height: 8px;
@@ -1119,17 +1102,7 @@
 }
 
 /* ── Responsive ──────────────────────────────────── */
-@media (max-width: 1024px) {
-  .routing-cards:not(.routing-cards--wide) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .routing-cards {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 700px) {
   .routing-section__header--with-control {
     flex-direction: column;
     align-items: stretch;

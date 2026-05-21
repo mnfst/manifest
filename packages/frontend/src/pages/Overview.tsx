@@ -232,7 +232,7 @@ const Overview: Component = () => {
   });
 
   return (
-    <div class="container--md">
+    <div class="container--lg">
       <Show when={explainerOpen()}>
         <SavingsExplainer baselineModelName={null} onClose={() => setExplainerOpen(false)} />
       </Show>
