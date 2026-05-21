@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
+
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 import { getModelParamSpecs } from '../../src/services/api/model-params.js';
 
 const mockSetFallbacks = vi.fn();

@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 const mockResetHeaderTier = vi.fn();
 const mockSetHeaderTierFallbacks = vi.fn();
 const mockClearHeaderTierFallbacks = vi.fn();

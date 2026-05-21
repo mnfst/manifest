@@ -82,7 +82,7 @@
   border: 1px solid hsl(var(--border));
   padding: 6px 10px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--tooltip-font-size);
   line-height: 1.4;
   white-space: nowrap;
   z-index: 20;
@@ -595,10 +595,74 @@
 }
 
 .model-params__group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 0 2px;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+.model-params__group-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: hsl(var(--muted-foreground) / 0.5);
+  cursor: default;
+  transition: color var(--transition-fast);
+}
+
+.model-params__group-info:hover {
+  color: hsl(var(--muted-foreground));
+}
+
+.model-params__group-tooltip {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -4px;
+  width: 280px;
+  padding: 10px 12px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  font-size: var(--tooltip-font-size);
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: normal;
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08);
+  z-index: 10;
+}
+
+.model-params__group-info:hover .model-params__group-tooltip {
+  display: flex;
+}
+
+.model-params__tooltip-intro {
+  color: hsl(var(--muted-foreground));
+}
+
+.model-params__tooltip-param {
+  display: block;
+}
+
+.model-params__tooltip-param strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.model-params__tooltip-range {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.45);
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 3px;
+  padding: 0 4px;
 }
 
 .model-params__group .model-params__row {
@@ -787,7 +851,7 @@
   transform: translateX(-50%) scale(0.95);
   background: #fff;
   color: #1a1a1a;
-  font-size: 11px;
+  font-size: var(--tooltip-font-size);
   font-weight: 500;
   padding: 4px 8px;
   border-radius: 6px;

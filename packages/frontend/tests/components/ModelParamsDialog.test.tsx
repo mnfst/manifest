@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
@@ -153,7 +158,7 @@ describe('ModelParamsDialog', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
-    expect(screen.getByText('Max tokens')).toBeTruthy();
+    expect(screen.getAllByText('Max tokens').length).toBeGreaterThan(0);
     expect(screen.getByText('max_tokens')).toBeTruthy();
   });
 
