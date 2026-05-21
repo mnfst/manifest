@@ -1,0 +1,19 @@
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_f4324a4d768783::t_869f4a96c03082 241-256,258-262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "a764018eefef7a7e3a049e3371b9f8d605522b9b",
+  "prompts": {},
+  "sessions": {
+    "s_f4324a4d768783": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e49ce-f37f-7610-adcb-d27b445a02f6",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
