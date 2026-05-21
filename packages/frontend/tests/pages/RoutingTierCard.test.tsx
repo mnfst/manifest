@@ -296,8 +296,8 @@ describe('RoutingTierCard', () => {
 
   it('opens the dropdown when the change button is clicked', () => {
     const onDropdownOpen = vi.fn();
-    const { container } = render(() => <RoutingTierCard {...makeProps({ onDropdownOpen })} />);
-    fireEvent.click(container.querySelector('.routing-card__chip-action') as HTMLButtonElement);
+    const { getByRole } = render(() => <RoutingTierCard {...makeProps({ onDropdownOpen })} />);
+    fireEvent.click(getByRole('button', { name: 'Change model for Simple' }));
     expect(onDropdownOpen).toHaveBeenCalledWith('simple');
   });
 
@@ -1257,12 +1257,9 @@ describe('providerIdForModel route-provider attribution', () => {
     expect(id).toBe('openai');
   });
 
-  // Exercise the affordance JSX with a provider that has a registered param
-  // spec (deepseek). Solid lazily evaluates each JSX prop expression, so the
-  // affordance Show block's inner attributes (provider, authType, model,
-  // slotLabel, getParams, setParams) only fire when the child renders. With
-  // openai (no specs) the child returns null and those attributes stay
-  // unevaluated — a deepseek tier triggers them all.
+  // Exercise the save path with a provider that has a registered param spec.
+  // Solid lazily evaluates each JSX prop expression, so `setParams` is only
+  // read after the affordance opens and the dialog saves.
   it('renders the params affordance on the primary chip and forwards saves through setModelParams', async () => {
     const setModelParams = vi.fn().mockResolvedValue(undefined);
     const deepseekTier = {

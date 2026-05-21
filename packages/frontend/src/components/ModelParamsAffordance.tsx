@@ -31,7 +31,8 @@ const ModelParamsAffordance: Component<Props> = (props) => {
 
   const specs = () =>
     getProviderParamSpecs(props.specCatalog, props.provider, props.authType, props.model);
-  const supports = () => props.provider !== undefined && specs().length > 0;
+  const canOpen = () =>
+    props.provider !== undefined && props.authType !== undefined && props.authType !== 'local';
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -40,8 +41,21 @@ const ModelParamsAffordance: Component<Props> = (props) => {
 
   const configured = () => current() !== null;
 
+  const requestUrl = () => {
+    if (!props.provider || !props.authType) return undefined;
+    const authTypeLabel = props.authType === 'subscription' ? 'Subscription' : 'API key';
+    const params = new URLSearchParams({
+      template: 'parameter-request.yml',
+      title: `${props.provider}/${props.model}: parameter coverage`,
+      provider: props.provider,
+      model: props.model,
+      'auth-type': authTypeLabel,
+    });
+    return `https://github.com/mnfst/modelparams.dev/issues/new?${params.toString()}`;
+  };
+
   return (
-    <Show when={supports() && props.authType}>
+    <Show when={canOpen()}>
       <button
         type="button"
         class="routing-card__chip-action"
@@ -86,6 +100,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           slotLabel={props.slotLabel}
           current={current()}
           specs={specs()}
+          requestParamsUrl={requestUrl()}
           onSave={(next) =>
             props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
           }

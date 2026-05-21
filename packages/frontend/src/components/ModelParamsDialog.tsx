@@ -16,6 +16,7 @@ interface Props {
   slotLabel: string;
   current: RequestParamDefaults | null;
   specs: readonly ProviderParamSpec[];
+  requestParamsUrl?: string;
   onSave: (paramDefaults: RequestParamDefaults | null) => Promise<unknown>;
   onClose: () => void;
 }
@@ -91,6 +92,7 @@ const numberDefault = (spec: ProviderParamSpec): number =>
 const ModelParamsDialog: Component<Props> = (props) => {
   const [draft, setDraft] = createSignal<DraftState>(stateFromCurrent(props.specs, props.current));
   const [saving, setSaving] = createSignal(false);
+  const hasSpecs = () => props.specs.length > 0;
 
   createEffect(() => {
     if (props.open) setDraft(stateFromCurrent(props.specs, props.current));
@@ -198,7 +200,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
     };
 
     return (
-      <div class="model-params__scrub-field" classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}>
+      <div
+        class="model-params__scrub-field"
+        classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}
+      >
         <div
           class="model-params__scrub"
           role="slider"
@@ -225,7 +230,14 @@ const ModelParamsDialog: Component<Props> = (props) => {
           onPointerCancel={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
           onKeyDown={handleKeyDown}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M5 3a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 17a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7.33 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4" />
           </svg>
         </div>
@@ -351,8 +363,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
         onDragStart={(e) => e.preventDefault()}
       >
         <div
-          class="modal-card"
-          style="max-width: 460px; user-select: none;"
+          class="modal-card model-params-modal"
+          classList={{ 'model-params-modal--empty': !hasSpecs() }}
+          style="user-select: none;"
           role="dialog"
           aria-modal="true"
           aria-labelledby="model-params-dialog-title"
@@ -362,34 +375,72 @@ const ModelParamsDialog: Component<Props> = (props) => {
           <h2 class="modal-card__title" id="model-params-dialog-title">
             Model parameters
           </h2>
-          <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
+          <p class="modal-card__desc">
+            {hasSpecs()
+              ? `Defaults for ${props.slotLabel}. Client requests override.`
+              : `No parameter controls are published for ${props.slotLabel} yet.`}
+          </p>
 
-          <For each={groupSpecs(props.specs)}>
-            {(group) => (
-              <div class="model-params__group">
-                <div class="model-params__group-header">{GROUP_LABELS[group.group]}</div>
-                <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
+          <Show
+            when={hasSpecs()}
+            fallback={
+              <div class="model-params__empty">
+                <Show when={props.requestParamsUrl}>
+                  <a
+                    class="btn btn--outline btn--sm model-params__empty-link"
+                    href={props.requestParamsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Request model parameters for ${props.slotLabel}`}
+                  >
+                    Request parameters for this model
+                  </a>
+                </Show>
               </div>
-            )}
-          </For>
+            }
+          >
+            <For each={groupSpecs(props.specs)}>
+              {(group) => (
+                <div class="model-params__group">
+                  <div class="model-params__group-header">{GROUP_LABELS[group.group]}</div>
+                  <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
+                </div>
+              )}
+            </For>
+          </Show>
 
-          <div class="modal-card__footer">
-            <button
-              class="btn btn--ghost btn--sm"
-              onClick={props.onClose}
-              disabled={saving()}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn--primary btn--sm"
-              onClick={handleSave}
-              disabled={saving()}
-              type="button"
-            >
-              {saving() ? <span class="spinner" /> : 'Save'}
-            </button>
+          <div class="modal-card__footer model-params__footer">
+            <Show when={hasSpecs() && props.requestParamsUrl}>
+              <a
+                class="model-params__request-link"
+                href={props.requestParamsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Request parameters for ${props.slotLabel}`}
+              >
+                Request
+              </a>
+            </Show>
+            <div class="model-params__footer-actions">
+              <button
+                class="btn btn--ghost btn--sm"
+                onClick={props.onClose}
+                disabled={saving()}
+                type="button"
+              >
+                {hasSpecs() ? 'Cancel' : 'Close'}
+              </button>
+              <Show when={hasSpecs()}>
+                <button
+                  class="btn btn--primary btn--sm"
+                  onClick={handleSave}
+                  disabled={saving()}
+                  type="button"
+                >
+                  {saving() ? <span class="spinner" /> : 'Save'}
+                </button>
+              </Show>
+            </div>
           </div>
         </div>
       </div>

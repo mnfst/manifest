@@ -1128,7 +1128,7 @@ describe('FallbackList', () => {
       });
     });
 
-    it("does NOT render the affordance when the row's provider has no known param key", () => {
+    it("renders the affordance when the row's provider has no known param key", async () => {
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
@@ -1142,7 +1142,15 @@ describe('FallbackList', () => {
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
       );
-      expect(btn).toBeUndefined();
+      expect(btn).toBeDefined();
+
+      fireEvent.click(btn!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('No parameter controls are published for gpt-4o yet.'),
+        ).toBeTruthy();
+      });
     });
 
     it('does NOT render the affordance when the params callbacks are undefined', () => {
