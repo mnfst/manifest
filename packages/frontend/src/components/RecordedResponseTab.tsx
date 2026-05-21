@@ -58,9 +58,9 @@ export function ToolsList(props: {
       <For each={props.tools}>
         {(tool) => (
           <div class="recorded-modal__tool-def">
-            <span class="recorded-modal__mono">{tool.function?.name ?? 'unknown'}</span>
+            <div class="recorded-modal__tool-def-name">{tool.function?.name ?? 'unknown'}</div>
             <Show when={tool.function?.description}>
-              <span class="recorded-modal__muted">{tool.function?.description}</span>
+              <div class="recorded-modal__tool-def-desc">{tool.function?.description}</div>
             </Show>
           </div>
         )}
@@ -83,12 +83,12 @@ export function ResponseTab(props: { responseBody: ResponseBody }): JSX.Element 
         const rb = props.responseBody!;
         if (rb.type === 'stream') {
           return (
-            <>
-              <div class="recorded-modal__muted">
-                Streaming response &mdash; raw Server-Sent Events below.
-              </div>
+            <div>
+              <p style="margin: 0 0 var(--gap-sm); font-size: var(--font-size-sm); font-family: var(--font-family); color: hsl(var(--muted-foreground));">
+                This response was streamed. Raw Server-Sent Events are shown below.
+              </p>
               <CodeBlock code={rb.raw_sse ?? ''} language="plaintext" />
-            </>
+            </div>
           );
         }
         const body = (rb as { body?: unknown }).body;

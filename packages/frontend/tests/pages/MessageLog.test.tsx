@@ -1041,7 +1041,7 @@ describe("MessageLog", () => {
       expect(chip.classList.contains("msg-recorded-filter--active")).toBe(true);
     });
 
-    it("opens the recorded-message modal when the row dot icon is clicked", async () => {
+    it("opens the recorded-message modal when the row is clicked", async () => {
       const withRecording = {
         ...messagesData,
         items: [{ ...messagesData.items[0], recorded: true }, messagesData.items[1]],
@@ -1068,11 +1068,11 @@ describe("MessageLog", () => {
       });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.querySelector(".msg-recorded-btn")).not.toBeNull();
+        expect(container.querySelector(".msg-row--clickable")).not.toBeNull();
       });
-      fireEvent.click(container.querySelector(".msg-recorded-btn") as HTMLElement);
+      fireEvent.click(container.querySelector(".msg-row--clickable") as HTMLElement);
       await vi.waitFor(() => {
-        expect(document.body.textContent).toContain("Recorded message");
+        expect(document.body.textContent).toContain("Message log");
       });
     });
 
@@ -1104,18 +1104,22 @@ describe("MessageLog", () => {
       mockDeleteMessageRecording.mockResolvedValue(undefined);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
-        expect(container.querySelector(".msg-recorded-btn")).not.toBeNull();
+        expect(container.querySelector(".msg-row--clickable")).not.toBeNull();
       });
-      // Open the recording modal
-      fireEvent.click(container.querySelector(".msg-recorded-btn") as HTMLElement);
+      // Open the recording modal by clicking the row
+      fireEvent.click(container.querySelector(".msg-row--clickable") as HTMLElement);
       await vi.waitFor(() => {
-        expect(document.body.textContent).toContain("Recorded message");
+        expect(document.body.textContent).toContain("Message log");
       });
       // Open the overflow menu so the delete affordance is in the DOM.
+      // The overflow menu is now inside the DrawerHeader (the "More actions" button).
       await vi.waitFor(() => {
-        expect(document.querySelector(".recorded-drawer__overflow-btn")).not.toBeNull();
+        const moreBtn = Array.from(document.querySelectorAll('button[aria-label="More actions"]'));
+        expect(moreBtn.length).toBeGreaterThan(0);
       });
-      fireEvent.click(document.querySelector(".recorded-drawer__overflow-btn") as HTMLElement);
+      fireEvent.click(
+        Array.from(document.querySelectorAll('button[aria-label="More actions"]'))[0] as HTMLElement,
+      );
       await vi.waitFor(() => {
         const btn = Array.from(document.querySelectorAll("button")).find(
           (b) => b.textContent?.trim() === "Delete recording",
@@ -1129,16 +1133,16 @@ describe("MessageLog", () => {
       ) as HTMLButtonElement;
       expect(deleteBtn).not.toBeUndefined();
       fireEvent.click(deleteBtn);
-      // Confirm the delete
+      // Confirm the delete — now it's a modal with "Delete recording" confirm button
       await vi.waitFor(() => {
         const confirmBtn = Array.from(document.querySelectorAll("button")).find(
-          (b) => b.textContent?.trim() === "Confirm delete",
+          (b) => b.textContent?.trim() === "Delete recording" && b.classList.contains("btn--danger"),
         );
         expect(confirmBtn).not.toBeUndefined();
       });
       fireEvent.click(
         Array.from(document.querySelectorAll("button")).find(
-          (b) => b.textContent?.trim() === "Confirm delete",
+          (b) => b.textContent?.trim() === "Delete recording" && b.classList.contains("btn--danger"),
         ) as HTMLButtonElement,
       );
       // deleteMessageRecording should have been called and MessageLog should refetch

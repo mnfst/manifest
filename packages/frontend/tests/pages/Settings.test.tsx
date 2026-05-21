@@ -529,8 +529,8 @@ describe("Settings", () => {
     });
   });
 
-  describe("Recording toggle", () => {
-    it("shows the recording card with toggle off by default", async () => {
+  describe("Logging toggle (danger zone buttons)", () => {
+    it("shows Enable logs button when logging is off", async () => {
       mockGetAgentInfo.mockResolvedValue({
         agent_name: "test-agent",
         agent_category: "personal",
@@ -539,18 +539,16 @@ describe("Settings", () => {
       });
       const { container } = render(() => <Settings />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain("Recording");
-        expect(container.textContent).toContain("Record messages");
+        expect(container.textContent).toContain("Enable message logs");
+        expect(container.textContent).toContain("Enable logs");
       });
-      const toggle = container.querySelector(
-        '[aria-label="Toggle message recording"] input[type="checkbox"]',
-      ) as HTMLInputElement;
-      expect(toggle).not.toBeNull();
-      expect(toggle.checked).toBe(false);
-      expect(container.querySelector(".recording-status-pill")).toBeNull();
+      const enableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Enable logs",
+      );
+      expect(enableBtn).not.toBeUndefined();
     });
 
-    it("shows the pulsing pill and a checked toggle when recording is on", async () => {
+    it("shows Disable logs button when logging is on", async () => {
       mockGetAgentInfo.mockResolvedValue({
         agent_name: "test-agent",
         agent_category: "personal",
@@ -559,15 +557,12 @@ describe("Settings", () => {
       });
       const { container } = render(() => <Settings />);
       await vi.waitFor(() => {
-        expect(container.querySelector(".recording-status-pill")).not.toBeNull();
+        expect(container.textContent).toContain("Disable message logs");
+        expect(container.textContent).toContain("Disable logs");
       });
-      const toggle = container.querySelector(
-        '[aria-label="Toggle message recording"] input[type="checkbox"]',
-      ) as HTMLInputElement;
-      expect(toggle.checked).toBe(true);
     });
 
-    it("calls updateAgent and shows enable toast when toggled on", async () => {
+    it("calls updateAgent when Enable logs is clicked", async () => {
       mockGetAgentInfo.mockResolvedValue({
         agent_name: "test-agent",
         agent_category: "personal",
@@ -576,14 +571,12 @@ describe("Settings", () => {
       });
       const { container } = render(() => <Settings />);
       await vi.waitFor(() => {
-        expect(
-          container.querySelector('[aria-label="Toggle message recording"] input'),
-        ).not.toBeNull();
+        expect(container.textContent).toContain("Enable logs");
       });
-      const toggle = container.querySelector(
-        '[aria-label="Toggle message recording"] input[type="checkbox"]',
-      ) as HTMLInputElement;
-      fireEvent.click(toggle);
+      const enableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Enable logs",
+      )!;
+      fireEvent.click(enableBtn);
       await vi.waitFor(() => {
         expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
           record_messages: true,
@@ -591,7 +584,7 @@ describe("Settings", () => {
       });
     });
 
-    it("handles toggle errors gracefully", async () => {
+    it("handles enable logs errors gracefully", async () => {
       mockGetAgentInfo.mockResolvedValue({
         agent_name: "test-agent",
         agent_category: "personal",
@@ -601,20 +594,18 @@ describe("Settings", () => {
       mockUpdateAgent.mockRejectedValueOnce(new Error("boom"));
       const { container } = render(() => <Settings />);
       await vi.waitFor(() => {
-        expect(
-          container.querySelector('[aria-label="Toggle message recording"] input'),
-        ).not.toBeNull();
+        expect(container.textContent).toContain("Enable logs");
       });
-      const toggle = container.querySelector(
-        '[aria-label="Toggle message recording"] input[type="checkbox"]',
-      ) as HTMLInputElement;
-      fireEvent.click(toggle);
+      const enableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Enable logs",
+      )!;
+      fireEvent.click(enableBtn);
       await vi.waitFor(() => {
         expect(mockUpdateAgent).toHaveBeenCalled();
       });
     });
 
-    it("calls updateAgent and shows disable toast when toggled off", async () => {
+    it("opens confirmation modal and calls updateAgent when Disable logs is confirmed", async () => {
       mockGetAgentInfo.mockResolvedValue({
         agent_name: "test-agent",
         agent_category: "personal",
@@ -624,64 +615,56 @@ describe("Settings", () => {
       const { toast } = await import("../../src/services/toast-store.js");
       const { container } = render(() => <Settings />);
       await vi.waitFor(() => {
-        expect(
-          container.querySelector('[aria-label="Toggle message recording"] input'),
-        ).not.toBeNull();
+        expect(container.textContent).toContain("Disable logs");
       });
-      const toggle = container.querySelector(
-        '[aria-label="Toggle message recording"] input[type="checkbox"]',
-      ) as HTMLInputElement;
-      // Refetch returns "off" so the UI reflects the new state and subsequent
-      // toggles behave correctly, matching what the API would report.
-      mockGetAgentInfo.mockResolvedValueOnce({
-        agent_name: "test-agent",
-        agent_category: "personal",
-        agent_platform: "openclaw",
-        record_messages: false,
+      const disableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      )!;
+      fireEvent.click(disableBtn);
+      // Confirmation modal should appear
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Disable logs");
       });
-      fireEvent.click(toggle);
+      // Click the confirm "Disable logs" button inside the modal
+      const modalDisableBtn = Array.from(document.querySelectorAll(".modal-overlay .btn--danger")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      ) as HTMLButtonElement;
+      expect(modalDisableBtn).not.toBeUndefined();
+      fireEvent.click(modalDisableBtn);
       await vi.waitFor(() => {
         expect(mockUpdateAgent).toHaveBeenCalledWith("test-agent", {
           record_messages: false,
         });
       });
       await vi.waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith(
-          "Recording disabled. Existing recordings are kept.",
-        );
+        expect(toast.success).toHaveBeenCalledWith("Logs disabled");
       });
     });
 
-    it("ignores rapid repeated toggle clicks while a save is in flight", async () => {
+    it("does not call updateAgent when Disable logs modal is cancelled", async () => {
       mockGetAgentInfo.mockResolvedValue({
         agent_name: "test-agent",
         agent_category: "personal",
         agent_platform: "openclaw",
-        record_messages: false,
+        record_messages: true,
       });
-      // Pending update so togglingRecording() stays true for the guard test
-      let resolveUpdate: (v: unknown) => void;
-      mockUpdateAgent.mockReturnValue(
-        new Promise((r) => {
-          resolveUpdate = r;
-        }),
-      );
       const { container } = render(() => <Settings />);
       await vi.waitFor(() => {
-        expect(
-          container.querySelector('[aria-label="Toggle message recording"] input'),
-        ).not.toBeNull();
+        expect(container.textContent).toContain("Disable logs");
       });
-      const toggle = container.querySelector(
-        '[aria-label="Toggle message recording"] input[type="checkbox"]',
-      ) as HTMLInputElement;
-      fireEvent.click(toggle);
-      // The input is now disabled; simulating a programmatic click on the
-      // underlying onChange handler should short-circuit on togglingRecording().
-      fireEvent.change(toggle, { target: { checked: true } });
-      // Only one API call should have been made
-      expect(mockUpdateAgent).toHaveBeenCalledTimes(1);
-      resolveUpdate!({});
+      const disableBtn = Array.from(container.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Disable logs",
+      )!;
+      fireEvent.click(disableBtn);
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Disable logs");
+      });
+      // Click Cancel inside the modal
+      const cancelBtn = Array.from(document.querySelectorAll(".modal-overlay .btn--primary")).find(
+        (b) => b.textContent?.trim() === "Cancel",
+      ) as HTMLButtonElement;
+      fireEvent.click(cancelBtn);
+      expect(mockUpdateAgent).not.toHaveBeenCalled();
     });
   });
 

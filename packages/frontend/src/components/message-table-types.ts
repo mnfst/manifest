@@ -43,16 +43,17 @@ export type MessageColumnKey =
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'feedback',
   'date',
+  'status',
   'model',
   'message',
   'cost',
   'totalTokens',
-  'status',
 ];
 
 export const DETAILED_COLUMNS: MessageColumnKey[] = [
   'feedback',
   'date',
+  'status',
   'model',
   'message',
   'cost',
@@ -61,5 +62,4 @@ export const DETAILED_COLUMNS: MessageColumnKey[] = [
   'output',
   'cache',
   'duration',
-  'status',
 ];
