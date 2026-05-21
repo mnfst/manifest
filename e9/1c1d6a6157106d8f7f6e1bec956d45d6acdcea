@@ -1,0 +1,50 @@
+packages/backend/src/routing/copilot.controller.ts
+  s_2a22c521aed263::t_b3b35b515d1c79 34,41-42
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_2a22c521aed263::t_62c5138eb0b49c 184
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_2a22c521aed263::t_933fa5f761e9d9 53,56-57,62,92,95,126-128,137-143,211,265-273,275
+packages/backend/src/routing/copilot.controller.spec.ts
+  s_2a22c521aed263::t_a2d0742add5611 23,83-107
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_2a22c521aed263::t_933fa5f761e9d9 46,49-50,55,72,83-84,92,114-116,125-131,199,269-277,279
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_2a22c521aed263::t_95ef0036738af6 26,437
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_2a22c521aed263::t_45738e73c9f58f 78-83,455
+  s_2a22c521aed263::t_63cddd24ecd94d 461
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_2a22c521aed263::t_c098ee45d53f91 376
+packages/frontend/src/services/provider-key-labels.ts
+  s_2a22c521aed263::t_95ef0036738af6 1-8
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_2a22c521aed263::t_933fa5f761e9d9 22,62,65-67,72,87,97,100-101,218-219,290-298,301,390-398,400
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_2a22c521aed263::t_e62f15daf03b89 234-254
+packages/frontend/tests/components/CopilotDeviceLogin.test.tsx
+  s_2a22c521aed263::t_870a8d6e9d8026 218,222-227,229-230,233,235-236,238-241,245-246,248,250-251,255-256,258,260-262
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_2a22c521aed263::t_dca4828e6d2aab 144
+  s_2a22c521aed263::t_a4b16042d09bba 1,8,29,38,50-54,137-140,181-250
+  s_2a22c521aed263::t_63cddd24ecd94d 32
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_2a22c521aed263::t_f7d58089aabf08 538
+.changeset/tidy-subscription-accounts.md
+  s_2a22c521aed263::t_6f266a519769c8 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "e91c1d6a6157106d8f7f6e1bec956d45d6acdcea",
+  "prompts": {},
+  "sessions": {
+    "s_2a22c521aed263": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4988-c505-73d0-a41e-f15bc309f083",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
