@@ -1,46 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
-import {
-  applyRequestParamDefaults,
-  filterParamDefaultsForProvider,
-  manifestThinkingParamDefaults,
-} from 'manifest-shared';
+import type { AuthType, ModelRoute } from 'manifest-shared';
+import { applyRequestParamDefaults } from 'manifest-shared';
+import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 
 /**
- * Inputs needed to recompute the param-defaults merge per attempt. Threaded
- * through tryFallbacks/tryForwardToProvider so each iteration applies the
- * filter and Manifest opinion against the iteration's *own* provider —
- * otherwise a DeepSeek-shaped `thinking` field would leak onto an Anthropic
- * fallback target.
+ * Context for the per-attempt param-defaults merge. Carries the agentId so
+ * `applyParamMerge` can ask the model-params service for the configuration
+ * that belongs to this attempt's (provider, auth_type, model) tuple — not
+ * the primary route's. Storage is model-scoped on the new
+ * `agent_model_params` table, so cross-provider leak is structurally
+ * impossible; we no longer need a provider-keyed filter, and Manifest's
+ * old tier-aware opinion layer is gone too (only the user's explicit
+ * config and the provider's natural default participate).
  */
 export interface ParamMergeContext {
-  userDefaults: RequestParamDefaults | null | undefined;
-  tier: string | undefined;
-  isSpecificity: boolean;
+  agentId: string;
+  scopeKey: string;
 }
 
-function applyParamMerge(
-  body: Record<string, unknown>,
-  ctx: ParamMergeContext | undefined,
-  provider: string,
-): Record<string, unknown> {
-  if (!ctx) return body;
-  const compatibleUser = filterParamDefaultsForProvider(ctx.userDefaults, provider);
-  const manifestDefaults = ctx.isSpecificity
-    ? null
-    : manifestThinkingParamDefaults(provider, ctx.tier);
-  return applyRequestParamDefaults(
-    applyRequestParamDefaults(body, compatibleUser),
-    manifestDefaults,
-  );
-}
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -54,6 +40,7 @@ import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
@@ -87,10 +74,42 @@ export class ProxyFallbackService {
     private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly anthropicOauth: AnthropicOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
+
+  /**
+   * Per-attempt merge: look up the user's saved params for this
+   * (agent, provider, auth_type, model) tuple and fold them into the
+   * outbound body. Returns the original body unchanged when no config
+   * exists — the provider's natural default applies in that case.
+   *
+   * Async because saved values still live in the route-scoped params table;
+   * the service caches the agent's full row set, so steady-state cost is a
+   * Map lookup, not a query. The MPS catalog itself is static/fetched metadata.
+   */
+  private async applyParamMerge(
+    body: Record<string, unknown>,
+    ctx: ParamMergeContext | undefined,
+    provider: string,
+    authType: AuthType | string | undefined,
+    model: string,
+  ): Promise<Record<string, unknown>> {
+    if (!ctx || !authType) return body;
+    const modelParams = await this.modelParamsService.get(
+      ctx.agentId,
+      ctx.scopeKey,
+      provider,
+      authType as AuthType,
+      model,
+    );
+    const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
+    return applyRequestParamDefaults(body, modelParams, specs);
+  }
 
   async tryFallbacks(
     agentId: string,
@@ -196,6 +215,7 @@ export class ProxyFallbackService {
         userId,
         this.openaiOauth,
         this.minimaxOauth,
+        this.anthropicOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -318,13 +338,26 @@ export class ProxyFallbackService {
       signatureLookup,
       thinkingLookup,
     } = opts;
-    // Recompute the param-defaults merge against *this* iteration's provider,
-    // not whatever the primary route happened to be. Without this, DeepSeek's
-    // `thinking` payload would leak into an Anthropic fallback request and
-    // 400 the upstream.
-    const body = applyParamMerge(opts.body, opts.paramMergeContext, provider);
+    // Per-attempt merge: ask the model-params service for this iteration's
+    // (provider, auth_type, model) config. Storage is model-scoped on the
+    // new agent_model_params table, so a primary OpenAI route with a
+    // DeepSeek fallback no longer needs the old per-provider filter —
+    // OpenAI's lookup returns null, DeepSeek's returns its own row.
+    const body = await this.applyParamMerge(
+      opts.body,
+      opts.paramMergeContext,
+      provider,
+      authType,
+      opts.model,
+    );
     const chatBody = opts.chatBody
-      ? applyParamMerge(opts.chatBody, opts.paramMergeContext, provider)
+      ? await this.applyParamMerge(
+          opts.chatBody,
+          opts.paramMergeContext,
+          provider,
+          authType,
+          opts.model,
+        )
       : undefined;
 
     const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
@@ -343,6 +376,21 @@ export class ProxyFallbackService {
       forwardModel = forwardModel.substring('copilot/'.length);
     }
 
+    // Strip the "minimax/" prefix for MiniMax subscription routes. Vendor-
+    // prefixed model IDs can come in from OpenRouter pricing fallbacks
+    // (e.g. `minimax/MiniMax-M2.7`), and when we set a custom endpoint below
+    // for the CN region the request would otherwise reach MiniMax with the
+    // prefix intact and 404. The provider-endpoint resolver normally strips
+    // it for `minimax-subscription`, but a `customEndpoint` short-circuits
+    // that and ProviderClient.stripModelPrefix leaves `custom` keys alone.
+    if (
+      provider.toLowerCase() === 'minimax' &&
+      authType === 'subscription' &&
+      forwardModel.toLowerCase().startsWith('minimax/')
+    ) {
+      forwardModel = forwardModel.substring('minimax/'.length);
+    }
+
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
       const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
@@ -352,12 +400,25 @@ export class ProxyFallbackService {
       }
     } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
       customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
-      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
-      if (minimaxBaseUrl) {
-        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
-      } else {
-        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax') {
+      // OAuth-issued tokens carry the chosen region inside the JSON blob's
+      // resource_url (resourceUrl). Pasted Coding Plan tokens (`sk-cp-`)
+      // don't — for those we read the persisted region column. We only
+      // build a custom endpoint when the region is CN; global already
+      // matches the built-in `minimax-subscription` endpoint base URL, and
+      // overriding it would shift the route through the `custom` endpoint
+      // key, which preserves vendor-prefixed model IDs that this provider
+      // would otherwise strip and reject.
+      if (resourceUrl) {
+        const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+        if (minimaxBaseUrl) {
+          customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+        } else {
+          this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+        }
+      } else if (providerRegion === 'cn') {
+        const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
+        customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
       }
     }
 
@@ -395,6 +456,7 @@ export async function resolveApiKey(
   userId: string,
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
+  anthropicOauth: AnthropicOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -405,6 +467,10 @@ export async function resolveApiKey(
     if (lower === 'minimax') {
       const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId);
       if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
+    }
+    if (lower === 'anthropic') {
+      const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
     }
   }
   return { apiKey };

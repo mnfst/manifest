@@ -33,6 +33,7 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
+import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
@@ -55,6 +56,7 @@ const MessageLog: Component = () => {
   const columns = () =>
     isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
   const [providerFilter, setProviderFilter] = createSignal('');
+  const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
   const [recordedOnly, setRecordedOnly] = createSignal(false);
@@ -156,12 +158,15 @@ const MessageLog: Component = () => {
   };
 
   createEffect(
-    on([providerFilter, costMin, costMax, recordedOnly], () => pager.resetPage(), { defer: true }),
+    on([providerFilter, tierFilter, costMin, costMax, recordedOnly], () => pager.resetPage(), {
+      defer: true,
+    }),
   );
 
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
+      tier: tierFilter(),
       costMin: costMin(),
       costMax: costMax(),
       recordedOnly: recordedOnly(),
@@ -173,6 +178,7 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.provider) q.provider = p.provider;
+      if (p.tier) q.routing_tier = p.tier;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.recordedOnly) q.recorded = 'true';
@@ -193,7 +199,7 @@ const MessageLog: Component = () => {
   );
 
   const hasActiveFilters = () =>
-    providerFilter() !== '' || costMin() !== '' || costMax() !== '' || recordedOnly();
+    providerFilter() !== '' || tierFilter() !== '' || costMin() !== '' || costMax() !== '' || recordedOnly();
 
   const hasNoData = () => {
     const d = data();
@@ -206,10 +212,16 @@ const MessageLog: Component = () => {
 
   const clearFilters = () => {
     setProviderFilter('');
+    setTierFilter('');
     setCostMin('');
     setCostMax('');
     setRecordedOnly(false);
   };
+
+  const tierOptions = [
+    { label: 'All tiers', value: '' },
+    ...ALL_TIERS.map((t) => ({ label: TIER_LABELS_ALL[t], value: t })),
+  ];
 
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
@@ -258,6 +270,7 @@ const MessageLog: Component = () => {
               onChange={setProviderFilter}
               options={providerOptions()}
             />
+            <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions} />
             <button
               type="button"
               class={`msg-recorded-filter${recordedOnly() ? ' msg-recorded-filter--active' : ''}`}

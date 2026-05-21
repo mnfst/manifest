@@ -493,21 +493,33 @@ describe('ModelsDevSyncService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('should call refreshCache on module init', async () => {
+    it('kicks off refreshCache without blocking', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({}),
       });
 
-      await service.onModuleInit();
+      // Fire-and-forget (must not block boot — see #1894); whenInitialized()
+      // resolves once the startup fetch has settled.
+      service.onModuleInit();
+      await service.whenInitialized();
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should not throw when fetch fails during init', async () => {
-      fetchSpy.mockRejectedValue(new Error('Network error'));
+    it('does not reject when refreshCache rejects', async () => {
+      // Reject refreshCache itself (not just fetch, which it swallows internally)
+      // to exercise onModuleInit's .catch handler.
+      jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('Network error'));
 
-      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      service.onModuleInit();
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('whenInitialized', () => {
+    it('resolves immediately when onModuleInit has not run', async () => {
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
     });
   });
 

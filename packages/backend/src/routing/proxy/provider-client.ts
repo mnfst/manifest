@@ -173,6 +173,11 @@ export class ProviderClient {
     if (resolved === 'openai' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
       resolved = 'openai-responses';
     }
+    // Copilot serves Codex variants only at /responses; /chat/completions returns
+    // "Unsupported API for model" (gh issue mnfst/manifest#1849).
+    if (resolved === 'copilot' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
+      resolved = 'copilot-responses';
+    }
     if (resolved === 'opencode-go') {
       // OpenCode Go uses two different API formats depending on the model:
       // MiniMax models use Anthropic /v1/messages, all others use OpenAI /v1/chat/completions.
@@ -235,23 +240,36 @@ export class ProviderClient {
     }
 
     if (endpoint.format === 'chatgpt') {
+      const requestBody =
+        ctx.apiMode === 'responses'
+          ? // ChatGPT subscription tokens hit the Codex Responses backend, which
+            // requires instruction text, list-shaped input, and upstream SSE even
+            // when Manifest returns a non-streaming JSON response to the caller.
+            // It also rejects sampling/metadata/cache fields the OpenAI SDK
+            // routinely sends, so we drop those before forwarding.
+            toNativeResponsesRequest(body, bareModel, {
+              defaultInstructions: endpointKey === 'openai-subscription',
+              inputList: endpointKey === 'openai-subscription',
+              forceStream: endpointKey === 'openai-subscription',
+              stripCodexUnsupported: endpointKey === 'openai-subscription',
+            })
+          : toResponsesRequest(requestSource, bareModel, {
+              // The ChatGPT subscription backend rejects max_output_tokens with
+              // unsupported_parameter; only opt in for the API-key paths.
+              mapMaxOutputTokens:
+                endpointKey === 'openai-responses' || endpointKey === 'copilot-responses',
+            });
+      // Force upstream streaming for copilot-responses so the SSE collector in
+      // handleNonStreamResponse stays the single source of truth. Without this,
+      // an explicit `stream: false` from the caller could hand us a plain JSON
+      // body that our SSE parser would silently drop (mnfst/manifest#1849).
+      if (endpointKey === 'copilot-responses') {
+        requestBody.stream = true;
+      }
       return {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody:
-          ctx.apiMode === 'responses'
-            ? // ChatGPT subscription tokens hit the Codex Responses backend, which
-              // requires instruction text, list-shaped input, and upstream SSE even
-              // when Manifest returns a non-streaming JSON response to the caller.
-              // It also rejects sampling/metadata/cache fields the OpenAI SDK
-              // routinely sends, so we drop those before forwarding.
-              toNativeResponsesRequest(body, bareModel, {
-                defaultInstructions: endpointKey === 'openai-subscription',
-                inputList: endpointKey === 'openai-subscription',
-                forceStream: endpointKey === 'openai-subscription',
-                stripCodexUnsupported: endpointKey === 'openai-subscription',
-              })
-            : toResponsesRequest(requestSource, bareModel),
+        requestBody,
       };
     }
 

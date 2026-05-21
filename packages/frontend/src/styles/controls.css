@@ -702,20 +702,6 @@
   min-width: 0;
 }
 
-.wingman-drawer__badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.7px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white;
-  text-transform: uppercase;
-  line-height: 1;
-}
-
 .wingman-drawer__title strong {
   font-size: 13px;
   color: hsl(var(--foreground));

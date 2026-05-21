@@ -8,8 +8,16 @@ export {
   platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
-export { TIERS, TIER_SLOTS, DEFAULT_TIER_SLOT, TIER_LABELS, TIER_DESCRIPTIONS } from './tiers';
-export type { Tier, TierSlot, DefaultTierSlot } from './tiers';
+export {
+  TIERS,
+  TIER_SLOTS,
+  DEFAULT_TIER_SLOT,
+  TIER_LABELS,
+  TIER_DESCRIPTIONS,
+  ALL_TIERS,
+  TIER_LABELS_ALL,
+} from './tiers';
+export type { Tier, TierSlot, DefaultTierSlot, MessageTier } from './tiers';
 export { TIER_COLORS, DEFAULT_TIER_COLOR } from './tier-colors';
 export type { TierColor } from './tier-colors';
 export { SPECIFICITY_CATEGORIES } from './specificity';
@@ -24,18 +32,42 @@ export {
   routeToLegacy,
 } from './model-route';
 export type { ModelRoute, LegacyOverrideTriple } from './model-route';
-export { applyRequestParamDefaults, REQUEST_PARAM_KEYS } from './request-params';
-export type { RequestParamDefaults, RequestParamKey } from './request-params';
+export { applyRequestParamDefaults } from './request-params';
+export type { JsonValue, RequestParamDefaults } from './request-params';
 export { snapshotRequestParams } from './request-params-snapshot';
 export type { RequestParamsSnapshotInput } from './request-params-snapshot';
 export {
-  PROVIDER_THINKING_DEFAULTS,
-  providerThinkingDefault,
-  manifestThinkingDefault,
-  manifestThinkingParamDefaults,
-  filterParamDefaultsForProvider,
-} from './thinking-defaults';
-export type { ThinkingState } from './thinking-defaults';
+  compareProviderParamSpecs,
+  deleteProviderParamValue,
+  expandConfiguredParamDefaults,
+  getProviderParamValue,
+  getProviderParamSpecs,
+  isParamApplicability,
+  isProviderParamPath,
+  omitProviderInapplicableParams,
+  pickProviderCompatibleParams,
+  providerParamIsApplicable,
+  providerParamValueIsValid,
+  setProviderParamValue,
+} from './provider-params-spec';
+export type {
+  ModelParamGroup,
+  ModelParamDefinition,
+  ModelParamRange,
+  ModelParamType,
+  ParamApplicability,
+  ParamApplicabilityMatch,
+  ProviderModelParamSpec,
+  ProviderParamSpec,
+  ProviderParamSpecCatalog,
+} from './provider-params-spec';
+export {
+  modelParamsScopeForHeaderTier,
+  modelParamsScopeForRouting,
+  modelParamsScopeForSpecificity,
+  modelParamsScopeForTier,
+} from './model-params-scope';
+export type { ModelParamsRoutingScopeInput } from './model-params-scope';
 export { API_KEY_PREFIX } from './api-key';
 export {
   FALLBACK_KEY_DELIMITER,
@@ -72,3 +104,11 @@ export {
   normalizeRole,
 } from './chat-message';
 export type { ChatMessage, ChatTool, RequestBodyFormat, Role, ToolCall } from './chat-message';
+export type {
+  PlaygroundMetrics,
+  PlaygroundRunResult,
+  PlaygroundStreamEvent,
+  PlaygroundHistoryColumn,
+  PlaygroundHistoryRunSummary,
+  PlaygroundHistoryRunDetail,
+} from './playground';

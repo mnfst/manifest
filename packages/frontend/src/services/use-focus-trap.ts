@@ -1,73 +1,4 @@
-import { createEffect, onCleanup } from 'solid-js';
-
-/**
- * Trap focus inside an element while it is open and restore focus to the
- * previously-active element on close. Designed for drawers/modals — the
- * benchmark and recorded-message surfaces all dropped focus to <body> on
- * close before this util.
- *
- * Usage:
- *   const [el, setEl] = createSignal<HTMLElement | undefined>();
- *   useFocusTrap(el, () => props.open);
- *
- * The trap activates only while `isOpen()` returns true and the element
- * has been mounted; it is a no-op otherwise.
- */
-export function useFocusTrap(
-  containerRef: () => HTMLElement | undefined,
-  isOpen: () => boolean,
-  options?: { initialFocus?: () => HTMLElement | undefined },
-): void {
-  createEffect(() => {
-    if (!isOpen()) return;
-    const container = containerRef();
-    if (!container) return;
-
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-
-    // Focus the requested element, the first focusable child, or the
-    // container itself (with tabindex=-1 set transiently). This guarantees
-    // keyboard users land somewhere predictable on open.
-    const initial = options?.initialFocus?.() ?? firstFocusable(container) ?? container;
-    if (initial === container && container.tabIndex < 0) {
-      container.setAttribute('tabindex', '-1');
-    }
-    initial.focus();
-
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') return;
-      const focusables = listFocusable(container);
-      if (focusables.length === 0) {
-        event.preventDefault();
-        return;
-      }
-      const first = focusables[0]!;
-      const last = focusables[focusables.length - 1]!;
-      const active = document.activeElement as HTMLElement | null;
-      if (event.shiftKey) {
-        if (active === first || !container.contains(active)) {
-          event.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (active === last || !container.contains(active)) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', onKey);
-    onCleanup(() => {
-      document.removeEventListener('keydown', onKey);
-      // Restore focus to the element that opened the surface, but only if
-      // it's still in the DOM and wasn't superseded by another focus shift.
-      if (previouslyFocused && document.contains(previouslyFocused)) {
-        previouslyFocused.focus();
-      }
-    });
-  });
-}
+import { createEffect, onCleanup, type Accessor } from 'solid-js';
 
 const FOCUSABLE_SELECTOR = [
   'a[href]',
@@ -78,12 +9,70 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
-function listFocusable(container: HTMLElement): HTMLElement[] {
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
-    (el) => !el.hasAttribute('aria-hidden') && el.offsetParent !== null,
-  );
-}
+/**
+ * Trap Tab focus inside `container` while `open()` is true and restore focus
+ * to the previously-focused element on close.
+ *
+ * `aria-modal="true"` tells screen readers a dialog traps focus, but keyboard
+ * users can still Tab their way out without this — so we wrap focus
+ * imperatively at the first/last focusable element.
+ */
+export function useFocusTrap(
+  open: Accessor<boolean>,
+  container: Accessor<HTMLElement | undefined>,
+  options?: { initialFocus?: () => HTMLElement | undefined },
+) {
+  let previouslyFocused: HTMLElement | null = null;
 
-function firstFocusable(container: HTMLElement): HTMLElement | undefined {
-  return listFocusable(container)[0];
+  createEffect(() => {
+    if (!open()) return;
+    const root = container();
+    if (!root) return;
+
+    previouslyFocused = (document.activeElement as HTMLElement | null) ?? null;
+
+    // Move focus into the dialog on open. Prefer the caller-specified initial
+    // focus element, then the first focusable child, then the container itself
+    // with tabindex=-1 so the dialog still captures focus even if it has no
+    // focusable controls yet.
+    const initial = options?.initialFocus?.();
+    if (initial) {
+      initial.focus();
+    } else {
+      const focusables = root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusables.length > 0) {
+        focusables[0]!.focus();
+      } else if (root.tabIndex >= 0 || root.hasAttribute('tabindex')) {
+        root.focus();
+      }
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const list = root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (list.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = list[0]!;
+      const last = list[list.length - 1]!;
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    root.addEventListener('keydown', onKeyDown);
+
+    onCleanup(() => {
+      root.removeEventListener('keydown', onKeyDown);
+      if (previouslyFocused && document.contains(previouslyFocused)) {
+        previouslyFocused.focus();
+      }
+      previouslyFocused = null;
+    });
+  });
 }

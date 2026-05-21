@@ -204,12 +204,15 @@ export class MinimaxOauthService {
       e: toAbsoluteExpiryTimestamp(payload.expired_in),
       u: resourceUrl,
     };
+    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'minimax');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
       'minimax',
       JSON.stringify(blob),
       'subscription',
+      undefined,
+      label,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);

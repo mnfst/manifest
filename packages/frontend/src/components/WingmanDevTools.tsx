@@ -39,17 +39,11 @@ const WingmanDevTools: Component = () => {
   const [heightVh, setHeightVh] = createSignal(readStoredHeight());
   const [resizing, setResizing] = createSignal(false);
 
-  // Wingman lives at "backend port + 1" by convention. The single exception
-  // is the Vite dev frontend (`:3000`) — the backend is on `:3001` and
-  // Wingman on `:3002`, so map :3000 → :3002 directly. A build-time override
-  // (`VITE_WINGMAN_URL`) wins over both.
-  const deriveWingmanBase = (): string => {
-    if (__WINGMAN_URL__) return __WINGMAN_URL__;
-    if (typeof window === 'undefined') return 'http://localhost:3002';
-    const { protocol, hostname, port } = window.location;
-    const wingmanPort = port === '3000' ? '3002' : String(Number(port || '3001') + 1);
-    return `${protocol}//${hostname}:${wingmanPort}`;
-  };
+  // Wingman is a hosted SPA at wingman.manifest.build. A build-time
+  // `VITE_WINGMAN_URL` override still wins so contributors can point the
+  // drawer at a locally-running Wingman build.
+  const HOSTED_WINGMAN_URL = 'https://wingman.manifest.build';
+  const deriveWingmanBase = (): string => __WINGMAN_URL__ || HOSTED_WINGMAN_URL;
 
   const iframeSrc = () =>
     `${deriveWingmanBase()}?baseUrl=${encodeURIComponent(window.location.origin)}`;
@@ -144,7 +138,6 @@ const WingmanDevTools: Component = () => {
           />
           <header class="wingman-drawer__head">
             <div class="wingman-drawer__title">
-              <span class="wingman-drawer__badge">DEV</span>
               <strong>Wingman</strong>
             </div>
             <div class="wingman-drawer__actions">

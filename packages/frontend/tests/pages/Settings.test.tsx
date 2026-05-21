@@ -90,7 +90,7 @@ vi.mock("manifest-shared", () => ({
     return icons[plat];
   },
   CATEGORY_LABELS: {
-    personal: "Personal AI Agent",
+    personal: "AI agents",
     app: "App AI SDK",
     coding: "Coding Assistant",
   },
@@ -426,7 +426,7 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("OpenClaw");
-      expect(container.textContent).toContain("Personal AI Agent");
+      expect(container.textContent).toContain("AI agents");
     });
   });
 

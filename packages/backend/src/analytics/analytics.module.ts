@@ -12,6 +12,7 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { MessageRecording } from '../entities/message-recording.entity';
+import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -49,6 +50,7 @@ import { SavingsQueryService } from './services/savings-query.service';
       SpecificityAssignment,
       HeaderTier,
       MessageRecording,
+      AgentModelParams,
     ]),
     OtlpModule,
     RoutingCoreModule,

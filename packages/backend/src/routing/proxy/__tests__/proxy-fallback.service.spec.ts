@@ -8,9 +8,32 @@ import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
+
+const specCatalog: ProviderParamSpecCatalog = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-flash',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
+  },
+];
 
 describe('ProxyFallbackService', () => {
   let service: ProxyFallbackService;
@@ -18,9 +41,12 @@ describe('ProxyFallbackService', () => {
   let customProviderRepo: jest.Mocked<Repository<CustomProvider>>;
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
+  let anthropicOauth: jest.Mocked<AnthropicOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
+  let modelParamsService: jest.Mocked<AgentModelParamsService>;
+  let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -43,6 +69,10 @@ describe('ProxyFallbackService', () => {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<MinimaxOauthService>;
 
+    anthropicOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<AnthropicOauthService>;
+
     providerClient = {
       forward: jest.fn(),
     } as unknown as jest.Mocked<ProviderClient>;
@@ -55,14 +85,31 @@ describe('ProxyFallbackService', () => {
       getByModel: jest.fn().mockReturnValue(null),
     } as unknown as jest.Mocked<ModelPricingCacheService>;
 
+    modelParamsService = {
+      get: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue([]),
+      set: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as jest.Mocked<AgentModelParamsService>;
+
+    providerParamSpecs = {
+      getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
+        getProviderParamSpecs(specCatalog, provider, authType as 'api_key' | 'subscription', model),
+      ),
+      list: jest.fn().mockResolvedValue(specCatalog),
+    } as unknown as jest.Mocked<ProviderParamSpecService>;
+
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
       openaiOauth,
       minimaxOauth,
+      anthropicOauth,
       providerClient,
       copilotToken,
       pricingCache,
+      modelParamsService,
+      providerParamSpecs,
     );
   });
 
@@ -120,13 +167,14 @@ describe('ProxyFallbackService', () => {
       ).rejects.toThrow('boom');
     });
 
-    it("merges Manifest's tier-aware default into the body before calling providerClient (DeepSeek + standard tier)", async () => {
+    it('merges the per-route saved params into the outbound body when the attempt has a configured row', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'disabled' } });
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -135,9 +183,17 @@ describe('ProxyFallbackService', () => {
         body: { messages: [{ role: 'user', content: 'hi' }] },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: false },
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
+      expect(modelParamsService.get).toHaveBeenCalledWith(
+        'agent-1',
+        'tier:default',
+        'deepseek',
+        'api_key',
+        'deepseek-v4-flash',
+      );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ thinking: { type: 'disabled' } }),
@@ -145,17 +201,18 @@ describe('ProxyFallbackService', () => {
       );
     });
 
-    it("re-merges per attempt — does not leak DeepSeek's thinking onto an Anthropic fallback", async () => {
+    it('per-attempt lookup leaves other providers untouched (no cross-provider leak)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: true,
         isChatGpt: false,
       });
+      // Anthropic has no row in agent_model_params, so the lookup returns null
+      // and the body passes through unmodified — no provider filter needed
+      // because storage is already route-scoped.
+      modelParamsService.get.mockResolvedValueOnce(null);
 
-      // Same context (originally resolved against DeepSeek) but the iteration
-      // is firing against Anthropic. The filter must drop `thinking` because
-      // Anthropic doesn't consume that field shape.
       await service.tryForwardToProvider({
         provider: 'anthropic',
         apiKey: 'sk-anthropic',
@@ -163,24 +220,22 @@ describe('ProxyFallbackService', () => {
         body: { messages: [{ role: 'user', content: 'hi' }] },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: {
-          userDefaults: { thinking: { type: 'disabled' } },
-          tier: 'standard',
-          isSpecificity: false,
-        },
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
       expect(forwarded.body.thinking).toBeUndefined();
     });
 
-    it('respects the inbound body field by presence (client wins over Manifest default)', async () => {
+    it('respects the inbound body field by presence (client wins over saved per-route params)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'disabled' } });
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -192,14 +247,15 @@ describe('ProxyFallbackService', () => {
         },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: false },
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
       expect(forwarded.body.thinking).toEqual({ type: 'enabled' });
     });
 
-    it('skips the tier-aware Manifest default for specificity contexts', async () => {
+    it('skips the lookup when paramMergeContext is omitted (e.g. legacy callers)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -214,11 +270,10 @@ describe('ProxyFallbackService', () => {
         body: { messages: [{ role: 'user', content: 'hi' }] },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: true },
+        authType: 'api_key',
       });
 
-      const forwarded = providerClient.forward.mock.calls[0][0];
-      expect(forwarded.body.thinking).toBeUndefined();
+      expect(modelParamsService.get).not.toHaveBeenCalled();
     });
 
     it('rethrows when signal is aborted', async () => {
@@ -433,6 +488,85 @@ describe('ProxyFallbackService', () => {
         stream: false,
         authType: 'subscription',
       });
+    });
+
+    it('falls back to providerRegion=cn for pasted minimax subscription tokens', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-cp-cn-token',
+        model: 'MiniMax-M2.5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'cn',
+        // resourceUrl is intentionally absent — paste-token path has no OAuth blob
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://api.minimaxi.com/anthropic',
+            format: 'anthropic',
+          }),
+        }),
+      );
+    });
+
+    it('strips the minimax/ vendor prefix on subscription routes (custom endpoint or not)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-cp-cn-token',
+        model: 'minimax/MiniMax-M2.7',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'cn',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'MiniMax-M2.7',
+        }),
+      );
+    });
+
+    it('does NOT override the endpoint for global region (built-in minimax-subscription already targets api.minimax.io)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-cp-global-token',
+        model: 'MiniMax-M2.5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'global',
+      });
+
+      const call = providerClient.forward.mock.calls[0][0];
+      expect(call.customEndpoint).toBeUndefined();
     });
   });
 
@@ -801,6 +935,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -823,6 +958,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
@@ -838,6 +974,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -855,25 +992,63 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('blob');
     });
 
-    it('does not unwrap for non-OpenAI/MiniMax subscription', async () => {
+    it('unwraps Anthropic subscription token via the OAuth blob path', async () => {
+      anthropicOauth.unwrapToken.mockResolvedValue('access-claude');
+
       const result = await resolveApiKey(
         'anthropic',
-        'sk-ant',
+        'blob',
         'subscription',
         'agent-1',
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
-      expect(result.apiKey).toBe('sk-ant');
+      expect(result.apiKey).toBe('access-claude');
+      expect(anthropicOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+    });
+
+    it('returns the original key when Anthropic unwrap returns null', async () => {
+      anthropicOauth.unwrapToken.mockResolvedValue(null);
+
+      const result = await resolveApiKey(
+        'anthropic',
+        'sk-ant-legacy',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+      );
+
+      expect(result.apiKey).toBe('sk-ant-legacy');
+    });
+
+    it('does not unwrap for non-OAuth subscription providers (e.g. Qwen)', async () => {
+      const result = await resolveApiKey(
+        'qwen',
+        'qwen-key',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+      );
+
+      expect(result.apiKey).toBe('qwen-key');
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -887,6 +1062,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -901,12 +1077,14 @@ describe('ProxyFallbackService', () => {
         'user-1',
         openaiOauth,
         minimaxOauth,
+        anthropicOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
       expect(result.resourceUrl).toBeUndefined();
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
     });
   });
 });

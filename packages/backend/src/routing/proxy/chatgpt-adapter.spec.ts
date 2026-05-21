@@ -158,6 +158,64 @@ describe('chatgpt-adapter', () => {
       // — OpenAI's /v1/responses endpoint rejects or ignores them.
       expect(req).not.toHaveProperty('messages');
       expect(req).not.toHaveProperty('max_tokens');
+      // Default: max_output_tokens is NOT mapped (ChatGPT subscription rejects it).
+      expect(req).not.toHaveProperty('max_output_tokens');
+    });
+
+    it('does not map max_tokens to max_output_tokens by default (subscription safe)', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 4096,
+      };
+
+      const req = toResponsesRequest(body, 'gpt-5-codex');
+
+      expect(req).not.toHaveProperty('max_output_tokens');
+      expect(req).not.toHaveProperty('max_tokens');
+    });
+
+    it('maps max_tokens to max_output_tokens when mapMaxOutputTokens is true', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 4096,
+      };
+
+      const req = toResponsesRequest(body, 'gpt-5-codex', { mapMaxOutputTokens: true });
+
+      expect(req.max_output_tokens).toBe(4096);
+      expect(req).not.toHaveProperty('max_tokens');
+    });
+
+    it('maps max_completion_tokens to max_output_tokens when mapMaxOutputTokens is true', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        max_completion_tokens: 2048,
+      };
+
+      const req = toResponsesRequest(body, 'gpt-5-codex', { mapMaxOutputTokens: true });
+
+      expect(req.max_output_tokens).toBe(2048);
+      expect(req).not.toHaveProperty('max_completion_tokens');
+    });
+
+    it('prefers max_completion_tokens over max_tokens when both present', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 4096,
+        max_completion_tokens: 2048,
+      };
+
+      const req = toResponsesRequest(body, 'gpt-5-codex', { mapMaxOutputTokens: true });
+
+      expect(req.max_output_tokens).toBe(2048);
+    });
+
+    it('omits max_output_tokens when caller did not specify a cap', () => {
+      const body = { messages: [{ role: 'user', content: 'hi' }] };
+
+      const req = toResponsesRequest(body, 'gpt-5-codex', { mapMaxOutputTokens: true });
+
+      expect(req).not.toHaveProperty('max_output_tokens');
     });
   });
 

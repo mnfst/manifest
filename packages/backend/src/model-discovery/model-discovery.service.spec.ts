@@ -1253,6 +1253,49 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('routes pasted-token MiniMax CN subscription discovery to the CN host', async () => {
+      // Pasted sk-cp- token: not a JSON blob, region=cn stored alongside
+      mockDecrypt.mockReturnValue('sk-cp-cn-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'cn',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'sk-cp-cn-token',
+        'subscription',
+        'https://api.minimaxi.com/anthropic',
+      );
+    });
+
+    it('leaves discovery on the default host for pasted-token MiniMax global subscription', async () => {
+      mockDecrypt.mockReturnValue('sk-cp-global-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'global',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'sk-cp-global-token',
+        'subscription',
+        undefined,
+      );
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);
@@ -1889,9 +1932,11 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
 
       // gpt-5.2 is covered by gpt-5.2-codex prefix, gpt-5.1-codex covered by gpt-5.1-codex-max prefix
-      expect(result.length).toBe(4);
+      expect(result.length).toBe(7);
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex');
+      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
       expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
       expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-max');
       // All zero-cost subscription models
@@ -1924,10 +1969,12 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      // 1 discovered + 4 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
-      expect(result.length).toBe(5);
+      // 1 discovered + 7 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
+      expect(result.length).toBe(8);
       expect(result[0].id).toBe('gpt-oss-120b');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
+      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
       expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
     });
 
