@@ -139,6 +139,31 @@ describe('ProviderParamSpecService', () => {
     );
   });
 
+  it('keeps the previous ETag when a 200 response has an invalid body', async () => {
+    mockRemoteCatalog('"v1"');
+    const service = new ProviderParamSpecService();
+    await service.refreshCache(); // adopts "v1"
+
+    // 200 with a NEW ETag but an unparseable catalog — the new tag must not be
+    // committed, or a later 304 under it would strand us on the stale cache.
+    fetchSpy.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      headers: { get: () => '"v2-bad"' },
+      json: async () => ({ models: 'not-an-array' }),
+    } as unknown as Response);
+    await service.refreshCache(); // invalid → keep cache and keep "v1"
+
+    // The next conditional request still carries "v1", proving "v2-bad" was
+    // never adopted.
+    mockRemoteCatalog('"v3"');
+    await service.refreshCache();
+    expect(fetchSpy).toHaveBeenLastCalledWith(
+      'https://modelparams.dev/api/v1/models.json',
+      expect.objectContaining({ headers: { 'If-None-Match': '"v1"' } }),
+    );
+  });
+
   it('stays empty when the initial remote fetch fails', async () => {
     fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);
     const service = new ProviderParamSpecService();

@@ -59,7 +59,7 @@ export class ProviderParamSpecService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async refreshCache(): Promise<number> {
-    const { notModified, data } = await this.fetchModelParametersData();
+    const { notModified, data, etag } = await this.fetchModelParametersData();
     if (notModified) {
       // 304 from the conditional GET — the catalog is byte-for-byte unchanged,
       // so the cached copy stays authoritative. Record the check, skip re-parse.
@@ -75,6 +75,9 @@ export class ProviderParamSpecService implements OnModuleInit {
     }
 
     this.specs = freezeCatalog(catalog);
+    // Adopt the ETag only now that the body parsed cleanly, so a malformed-but-new
+    // 200 can't suppress a future re-fetch under the same ETag.
+    if (etag) this.etag = etag;
     this.lastFetchedAt = new Date();
     this.logger.log(`modelparams.dev MPS catalog loaded: ${this.specs.length} models`);
     return catalog.length;
@@ -99,6 +102,7 @@ export class ProviderParamSpecService implements OnModuleInit {
   private async fetchModelParametersData(): Promise<{
     notModified: boolean;
     data: unknown | null;
+    etag: string | null;
   }> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -109,17 +113,22 @@ export class ProviderParamSpecService implements OnModuleInit {
       // 304 Not Modified: nothing changed since the last successful fetch, so
       // the daily refresh costs a round-trip with no body transfer as the
       // catalog grows.
-      if (res.status === 304) return { notModified: true, data: null };
+      if (res.status === 304) return { notModified: true, data: null, etag: null };
       if (!res.ok) {
         this.logger.warn(`modelparams.dev API returned ${res.status}`);
-        return { notModified: false, data: null };
+        return { notModified: false, data: null, etag: null };
       }
-      const tag = res.headers.get('etag');
-      if (tag) this.etag = tag;
-      return { notModified: false, data: (await res.json()) as unknown };
+      // Return the candidate ETag without committing it — refreshCache adopts it
+      // only after the body parses, so an invalid 200 can't poison the
+      // conditional request and strand us on the stale cache.
+      return {
+        notModified: false,
+        data: (await res.json()) as unknown,
+        etag: res.headers.get('etag'),
+      };
     } catch (err) {
       this.logger.warn(`Failed to fetch modelparams.dev data: ${err}`);
-      return { notModified: false, data: null };
+      return { notModified: false, data: null, etag: null };
     } finally {
       clearTimeout(timeout);
     }
