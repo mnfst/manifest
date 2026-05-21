@@ -2,6 +2,7 @@ import {
   Show,
   createSignal,
   createMemo,
+  createEffect,
   type Component,
   type Accessor,
   type Setter,
@@ -40,6 +41,7 @@ export interface ProviderDetailViewProps {
   onBack: () => void;
   onUpdate: () => void;
   onClose: () => void;
+  initialAddKey?: boolean;
 }
 
 const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
@@ -96,6 +98,10 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const isOllama = provDef.noKeyRequired;
 
   const [addKeyOpen, setAddKeyOpen] = createSignal(false);
+
+  createEffect(() => {
+    if (props.initialAddKey) setAddKeyOpen(true);
+  });
 
   const supportsMultiKey = () => props.selectedAuthType() !== 'local';
 
@@ -237,10 +243,20 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
             <button
               type="button"
               class="btn btn--sm"
-              style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs);"
+              style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs); display: inline-flex; align-items: center; gap: 4px;"
               onClick={() => setAddKeyOpen(true)}
             >
-              Add another key
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M4 11h11v2H4zm0-5h16v2H4zm0 10h8v2H4zm15-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
+              </svg>
+              {isSubMode() ? 'Add connection' : 'Add another key'}
             </button>
           </Show>
         </div>
