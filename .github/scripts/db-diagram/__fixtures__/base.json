@@ -1,0 +1,53 @@
+{
+  "tables": {
+    "tenants": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "name", "type": "varchar", "nullable": false },
+        { "name": "created_at", "type": "timestamp without time zone", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": []
+    },
+    "agents": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "name", "type": "varchar", "nullable": false },
+        { "name": "tenant_id", "type": "varchar", "nullable": false },
+        { "name": "legacy_flag", "type": "boolean", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": [
+        { "column": "tenant_id", "toTable": "tenants", "toColumn": "id" }
+      ]
+    },
+    "agent_api_keys": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "agent_id", "type": "varchar", "nullable": false },
+        { "name": "key", "type": "varchar(64)", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": []
+    },
+    "legacy_metrics": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "value", "type": "integer", "nullable": true }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": []
+    },
+    "provider_keys": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "agent_id", "type": "varchar", "nullable": false },
+        { "name": "region", "type": "varchar", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": [
+        { "column": "agent_id", "toTable": "agents", "toColumn": "id" }
+      ]
+    }
+  }
+}

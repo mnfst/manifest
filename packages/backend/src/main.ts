@@ -76,9 +76,11 @@ export async function bootstrap() {
   //
   // `credentials: false` is deliberate — Wingman uses bearer keys, never
   // cookies, and keeping credentials off the cross-origin path means a
-  // misconfigured allow-list can't leak session cookies. `allowedHeaders`
-  // is the minimum set the dashboard / Wingman send: bearer auth, JSON
-  // bodies, and the legacy `X-API-Key` header used by some operators.
+  // misconfigured allow-list can't leak session cookies. We omit
+  // `allowedHeaders` on purpose so the cors middleware reflects the
+  // request's `Access-Control-Request-Headers`: Wingman replays real SDK
+  // fingerprints (e.g. the OpenAI/Stainless `X-Stainless-*` family), and a
+  // fixed allow-list silently fails those preflights.
   if (isDev) {
     const configuredOrigin = process.env['CORS_ORIGIN'] || 'http://localhost:3000';
     const allowedOrigins = buildDevAllowedOrigins({
@@ -95,7 +97,6 @@ export async function bootstrap() {
     app.enableCors({
       origin: createCorsOriginHandler(allowedOrigins),
       credentials: false,
-      allowedHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
     });
   }
 

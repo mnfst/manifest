@@ -148,6 +148,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--gap-lg);
+  cursor: default;
   animation: fadeIn 150ms ease-out;
 }
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import { MessageRecording } from '../../entities/message-recording.entity';
 import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
@@ -11,6 +12,7 @@ import { OAuthModule } from '../oauth/oauth.module';
 import { ResolveModule } from '../resolve/resolve.module';
 import { CustomProviderModule } from '../custom-provider/custom-provider.module';
 import { HeaderTiersModule } from '../header-tiers/header-tiers.module';
+import { MessageRecordingService } from '../../analytics/services/message-recording.service';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
 import { ProxyFallbackService } from './proxy-fallback.service';
@@ -26,7 +28,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, CustomProvider]),
+    TypeOrmModule.forFeature([AgentMessage, CustomProvider, MessageRecording]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,
@@ -50,6 +52,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ThoughtSignatureCache,
     ThinkingBlockCache,
     ProxyExceptionFilter,
+    MessageRecordingService,
   ],
   exports: [ProviderClient],
 })

@@ -1,6 +1,8 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
 import type { AuthType } from './routing.js';
-import type { RequestParamDefaults } from 'manifest-shared';
+import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
+
+export type { ProviderParamSpec } from 'manifest-shared';
 
 /**
  * Per-route saved request body defaults. The frontend fetches the full set
@@ -8,10 +10,46 @@ import type { RequestParamDefaults } from 'manifest-shared';
  * affordance reads from that map without per-row fetches.
  */
 export interface AgentModelParamsRow {
+  scope: string;
   provider: string;
   authType: AuthType;
   model: string;
   params: RequestParamDefaults;
+}
+
+/**
+ * Specs for a single route, fetched on demand when the user opens that model's
+ * parameter dialog. Replaces a full-catalog download on Routing-page boot, so
+ * the payload stays flat (~1 model) as the MPS catalog grows. Returns `[]` when
+ * the model has no configurable parameters.
+ */
+export function getModelParamSpecs(
+  agentName: string,
+  provider: string,
+  authType: AuthType,
+  model: string,
+) {
+  return fetchJson<ProviderParamSpec[]>(routingPath(agentName, 'model-param-specs/by-model'), {
+    provider,
+    authType,
+    model,
+  });
+}
+
+/** Route identity of a model that has configurable params (no param metadata). */
+export interface ModelParamSpecId {
+  provider: string;
+  authType: AuthType;
+  model: string;
+}
+
+/**
+ * Lightweight identities of every model that has configurable specs. Loaded
+ * once on Routing page boot so each row can decide whether to show the params
+ * affordance — far cheaper than the full catalog since it omits param details.
+ */
+export function listModelParamSpecIndex(agentName: string) {
+  return fetchJson<ModelParamSpecId[]>(routingPath(agentName, 'model-param-specs/index'));
 }
 
 export function listModelParams(agentName: string) {
@@ -20,7 +58,13 @@ export function listModelParams(agentName: string) {
 
 export function setModelParams(
   agentName: string,
-  input: { provider: string; authType: AuthType; model: string; params: RequestParamDefaults },
+  input: {
+    scope: string;
+    provider: string;
+    authType: AuthType;
+    model: string;
+    params: RequestParamDefaults;
+  },
 ) {
   return fetchMutate<AgentModelParamsRow>(routingPath(agentName, 'model-params'), {
     method: 'PUT',
@@ -31,7 +75,7 @@ export function setModelParams(
 
 export function deleteModelParams(
   agentName: string,
-  input: { provider: string; authType: AuthType; model: string },
+  input: { scope: string; provider: string; authType: AuthType; model: string },
 ) {
   return fetchMutate<{ ok: true }>(routingPath(agentName, 'model-params'), {
     method: 'DELETE',
@@ -41,10 +85,15 @@ export function deleteModelParams(
 }
 
 /**
- * Stable key for indexing `AgentModelParamsRow[]` in a Map. Provider is
- * lowercased so case differences between save and lookup don't break the
- * index — the backend stores provider lowercase too.
+ * Stable key for indexing `AgentModelParamsRow[]` in a Map. Scope separates
+ * complexity, task-specific, and custom tiers; provider is lowercased so case
+ * differences between save and lookup don't break the index.
  */
-export function modelParamsKey(provider: string, authType: AuthType, model: string): string {
-  return `${provider.toLowerCase()}::${authType}::${model}`;
+export function modelParamsKey(
+  scope: string,
+  provider: string,
+  authType: AuthType,
+  model: string,
+): string {
+  return `${scope}::${provider.toLowerCase()}::${model}::${authType}`;
 }

@@ -15,6 +15,7 @@ import FallbackList from '../components/FallbackList.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import { modelParamsScopeForTier } from 'manifest-shared';
 import type {
   TierAssignment,
   AvailableModel,
@@ -110,6 +111,7 @@ export interface RoutingTierCardProps {
    * other slot that resolves to the same `(provider, authType, model)`.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
@@ -119,11 +121,13 @@ export interface RoutingTierCardProps {
    * and the local cache update; the card just threads the callback down.
    */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const effectiveRoute = (
@@ -537,6 +541,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               authType={effectiveAuth() ?? undefined}
                               model={modelName()}
                               slotLabel={labelFor(modelName())}
+                              scope={modelParamsScopeForTier(props.stage.id)}
+                              agentName={props.agentName()}
+                              modelHasParams={props.modelHasParams}
                               getParams={props.getModelParams!}
                               setParams={props.setModelParams!}
                               disabled={props.changingTier() === props.stage.id}
@@ -607,6 +614,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               getModelParams={props.getModelParams}
               setModelParams={props.setModelParams}
               swappingIndex={swappingFbIndex()}
+              modelHasParams={props.modelHasParams}
+              modelParamsScope={modelParamsScopeForTier(props.stage.id)}
             />
           </div>
         </Show>

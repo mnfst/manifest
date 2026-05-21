@@ -23,6 +23,7 @@ import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import { toast } from '../services/toast-store.js';
+import { modelParamsScopeForHeaderTier } from 'manifest-shared';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -58,16 +59,19 @@ interface Props {
    * had no params support at all.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -332,6 +336,9 @@ const HeaderTierCard: Component<Props> = (props) => {
                       authType={(effectiveAuth() as AuthType) ?? undefined}
                       model={modelName()}
                       slotLabel={modelLabel() || modelName()}
+                      scope={modelParamsScopeForHeaderTier(props.tier.id)}
+                      agentName={props.agentName}
+                      modelHasParams={props.modelHasParams}
                       getParams={props.getModelParams!}
                       setParams={props.setModelParams!}
                     />
@@ -388,6 +395,8 @@ const HeaderTierCard: Component<Props> = (props) => {
             }
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
+            modelHasParams={props.modelHasParams}
+            modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }

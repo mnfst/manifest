@@ -1,157 +1,173 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
+import type { ProviderParamSpec } from 'manifest-shared';
 import ModelParamsAffordance from '../../src/components/ModelParamsAffordance';
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
+}));
+
+const mockGetSpecs = vi.mocked(getModelParamSpecs);
+
+const specs: ProviderParamSpec[] = [
+  {
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    description: 'Controls whether DeepSeek thinking mode is enabled.',
+    default: 'enabled',
+    values: ['enabled', 'disabled'],
+    group: 'reasoning',
+  },
+];
+
+const baseProps = {
+  agentName: 'demo',
+  provider: 'deepseek',
+  authType: 'api_key' as const,
+  model: 'deepseek-v4',
+  slotLabel: 'deepseek-v4',
+  scope: 'tier:default',
+  modelHasParams: () => true,
+  getParams: vi.fn(() => null),
+  setParams: vi.fn().mockResolvedValue(undefined),
+};
+
+const findButton = (container: HTMLElement) =>
+  container.querySelector('button[aria-label^="Configure model parameters"]');
 
 describe('ModelParamsAffordance', () => {
-  it('renders the button when the route provider consumes a known param key', () => {
-    const { container } = render(() => (
-      <ModelParamsAffordance
-        provider="deepseek"
-        authType="api_key"
-        model="deepseek-v4"
-        slotLabel="deepseek-v4-flash"
-        getParams={() => null}
-        setParams={vi.fn()}
-      />
-    ));
-    const btn = container.querySelector('button[aria-label^="Configure model parameters"]');
-    expect(btn).not.toBeNull();
+  beforeEach(() => {
+    mockGetSpecs.mockReset();
+    mockGetSpecs.mockResolvedValue(specs);
   });
 
-  it('does NOT render the button when the provider has no known param key', () => {
-    const { container } = render(() => (
-      <ModelParamsAffordance
-        provider="openai"
-        authType="api_key"
-        model="gpt-4o"
-        slotLabel="gpt-4o"
-        getParams={() => null}
-        setParams={vi.fn()}
-      />
-    ));
-    expect(container.querySelector('button[aria-label^="Configure model parameters"]')).toBeNull();
+  it('renders the button when the index reports the model has params', () => {
+    const { container } = render(() => <ModelParamsAffordance {...baseProps} />);
+    expect(findButton(container)).not.toBeNull();
   });
 
-  it('does NOT render the button when authType is missing (can not call the endpoint)', () => {
+  it('does not render the button when the index reports no params for the model', () => {
+    // The lightweight index (modelHasParams) gates the affordance, and no
+    // per-model fetch happens until the dialog is opened.
+    const { container } = render(() => (
+      <ModelParamsAffordance {...baseProps} modelHasParams={() => false} />
+    ));
+    expect(findButton(container)).toBeNull();
+    expect(mockGetSpecs).not.toHaveBeenCalled();
+  });
+
+  it('does not render the button when authType is missing', () => {
+    // Explicit props (no spread): Solid's mergeProps skips `undefined`
+    // overrides, so spreading baseProps would keep the truthy value.
     const { container } = render(() => (
       <ModelParamsAffordance
+        agentName="demo"
         provider="deepseek"
         authType={undefined}
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:default"
         getParams={() => null}
         setParams={vi.fn()}
       />
     ));
-    expect(container.querySelector('button[aria-label^="Configure model parameters"]')).toBeNull();
+    expect(findButton(container)).toBeNull();
   });
 
-  it('does NOT render the button when provider is undefined', () => {
+  it('does not render the button when provider is undefined', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
+        agentName="demo"
         provider={undefined}
         authType="api_key"
         model="deepseek-v4"
         slotLabel="deepseek-v4"
+        scope="tier:default"
         getParams={() => null}
         setParams={vi.fn()}
       />
     ));
-    expect(container.querySelector('button[aria-label^="Configure model parameters"]')).toBeNull();
+    expect(findButton(container)).toBeNull();
   });
 
   it('flips the configured class when getParams returns a non-null value', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
-        provider="deepseek"
-        authType="api_key"
-        model="deepseek-v4"
-        slotLabel="deepseek-v4"
+        {...baseProps}
         getParams={() => ({ thinking: { type: 'disabled' } })}
-        setParams={vi.fn()}
       />
     ));
-    const btn = container.querySelector(
-      'button[aria-label^="Configure model parameters"]',
-    ) as HTMLButtonElement;
+    const btn = findButton(container) as HTMLButtonElement;
     expect(btn.classList.contains('routing-card__chip-action--configured')).toBe(true);
   });
 
-  it('opens the dialog on click and calls setParams with the new value on save', async () => {
+  it('fetches specs on open and saves through the scoped params callback', async () => {
     const setParams = vi.fn().mockResolvedValue(undefined);
     const { container, getByRole } = render(() => (
-      <ModelParamsAffordance
-        provider="deepseek"
-        authType="api_key"
-        model="deepseek-v4"
-        slotLabel="deepseek-v4"
-        getParams={() => null}
-        setParams={setParams}
-      />
+      <ModelParamsAffordance {...baseProps} setParams={setParams} />
     ));
-    const btn = container.querySelector(
-      'button[aria-label^="Configure model parameters"]',
-    ) as HTMLButtonElement;
-    fireEvent.click(btn);
+    fireEvent.click(findButton(container) as HTMLButtonElement);
 
-    // Dialog mounts. Flip the thinking toggle to `disabled` (provider default
-    // is `enabled` so the dialog seeded that), then save.
-    const toggle = await waitFor(() => getByRole('button', { name: /Thinking mode/ }));
-    fireEvent.click(toggle);
-    const save = getByRole('button', { name: 'Save' });
-    fireEvent.click(save);
+    fireEvent.click(await waitFor(() => getByRole('button', { name: /Thinking mode/ })));
+    fireEvent.click(getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(setParams).toHaveBeenCalledWith('deepseek', 'api_key', 'deepseek-v4', {
+      expect(setParams).toHaveBeenCalledWith('tier:default', 'deepseek', 'api_key', 'deepseek-v4', {
         thinking: { type: 'disabled' },
       });
     });
+    expect(mockGetSpecs).toHaveBeenCalledWith('demo', 'deepseek', 'api_key', 'deepseek-v4');
   });
 
-  it('calls setParams with null when the chosen value collapses back to the provider default', async () => {
+  it('saves null when the chosen value collapses back to the spec default', async () => {
     const setParams = vi.fn().mockResolvedValue(undefined);
     const { container, getByRole } = render(() => (
       <ModelParamsAffordance
-        provider="deepseek"
-        authType="api_key"
-        model="deepseek-v4"
-        slotLabel="deepseek-v4"
+        {...baseProps}
         getParams={() => ({ thinking: { type: 'disabled' } })}
         setParams={setParams}
       />
     ));
-    const btn = container.querySelector(
-      'button[aria-label^="Configure model parameters"]',
-    ) as HTMLButtonElement;
-    fireEvent.click(btn);
+    fireEvent.click(findButton(container) as HTMLButtonElement);
 
-    // Saved as disabled. Toggle back to enabled (the provider default), then
-    // save — the dialog passes `null` so the parent deletes the row.
-    const toggle = await waitFor(() => getByRole('button', { name: /Thinking mode/ }));
-    fireEvent.click(toggle);
-    const save = getByRole('button', { name: 'Save' });
-    fireEvent.click(save);
+    fireEvent.click(await waitFor(() => getByRole('button', { name: /Thinking mode/ })));
+    fireEvent.click(getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
-      expect(setParams).toHaveBeenCalledWith('deepseek', 'api_key', 'deepseek-v4', null);
+      expect(setParams).toHaveBeenCalledWith(
+        'tier:default',
+        'deepseek',
+        'api_key',
+        'deepseek-v4',
+        null,
+      );
     });
   });
 
-  it('button is disabled when the parent says so', () => {
-    const { container } = render(() => (
-      <ModelParamsAffordance
-        provider="deepseek"
-        authType="api_key"
-        model="deepseek-v4"
-        slotLabel="deepseek-v4"
-        getParams={() => null}
-        setParams={vi.fn()}
-        disabled
-      />
+  it('shows an empty state when the model has no configurable params', async () => {
+    mockGetSpecs.mockResolvedValue([]);
+    const { container, findByText, queryByRole } = render(() => (
+      <ModelParamsAffordance {...baseProps} />
     ));
-    const btn = container.querySelector(
-      'button[aria-label^="Configure model parameters"]',
-    ) as HTMLButtonElement;
+    fireEvent.click(findButton(container) as HTMLButtonElement);
+
+    expect(await findByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(queryByRole('button', { name: 'Save' })).toBeNull();
+  });
+
+  it('swallows a fetch error and shows the empty state', async () => {
+    mockGetSpecs.mockRejectedValue(new Error('boom'));
+    const { container, findByText } = render(() => <ModelParamsAffordance {...baseProps} />);
+    fireEvent.click(findButton(container) as HTMLButtonElement);
+
+    expect(await findByText('This model has no configurable parameters.')).toBeTruthy();
+  });
+
+  it('button is disabled when the parent says so', () => {
+    const { container } = render(() => <ModelParamsAffordance {...baseProps} disabled />);
+    const btn = findButton(container) as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
   });
 });

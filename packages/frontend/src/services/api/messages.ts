@@ -34,6 +34,14 @@ export interface MessageDetailLog {
   span_id: string | null;
 }
 
+export interface MessageRecording {
+  request_body: Record<string, unknown> | null;
+  response_body: { type: 'json'; body?: unknown } | { type: 'stream'; raw_sse?: string } | null;
+  response_headers: Record<string, string> | null;
+  size_bytes: number | null;
+  created_at: string;
+}
+
 export interface MessageDetailResponse {
   message: {
     id: string;
@@ -68,19 +76,11 @@ export interface MessageDetailResponse {
     feedback_tags: string[] | null;
     feedback_details: string | null;
     request_headers: Record<string, string> | null;
-    /**
-     * Per-message snapshot of effective model parameters merged into the
-     * outbound provider request (today: `{ thinking: { type: 'enabled' |
-     * 'disabled' } }` for DeepSeek; future provider knobs append here as
-     * keys are added to `RequestParamDefaults` in `manifest-shared`). The
-     * `unknown` value type lets the dashboard render arbitrary shapes
-     * (incl. forthcoming user-defined custom-provider params) without a
-     * frontend release per knob.
-     */
     request_params: { [key: string]: unknown } | null;
     header_tier_id: string | null;
     header_tier_name: string | null;
     header_tier_color: string | null;
+    recorded: boolean;
     caller_attribution: {
       sdk?: string;
       sdkVersion?: string;
@@ -94,6 +94,7 @@ export interface MessageDetailResponse {
       categories?: string[];
     } | null;
   };
+  recording: MessageRecording | null;
   llm_calls: MessageDetailLlmCall[];
   tool_executions: MessageDetailToolExecution[];
   agent_logs: MessageDetailLog[];
@@ -109,6 +110,7 @@ export function getMessages(
     agent_name?: string;
     cost_min?: string;
     cost_max?: string;
+    recorded?: string;
     routing_tier?: string;
   } = {},
 ) {
@@ -117,6 +119,12 @@ export function getMessages(
 
 export function getMessageDetails(id: string) {
   return fetchJson<MessageDetailResponse>(`/messages/${encodeURIComponent(id)}/details`);
+}
+
+export function deleteMessageRecording(id: string) {
+  return fetchMutate<void>(`/messages/${encodeURIComponent(id)}/recording`, {
+    method: 'DELETE',
+  });
 }
 
 export function setMessageFeedback(

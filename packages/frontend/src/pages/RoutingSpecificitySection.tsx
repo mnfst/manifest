@@ -165,17 +165,20 @@ export interface RoutingSpecificitySectionProps {
    * state without per-row fetches.
    */
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   /** Persist new params for a single route. */
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -270,6 +273,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 }
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
+                modelHasParams={props.modelHasParams}
               />
             )}
           </For>

@@ -957,4 +957,39 @@ describe('MessagesQueryService', () => {
 
     expect(result.items[0]).toHaveProperty('specificity_category', 'coding');
   });
+
+  describe('recorded filter', () => {
+    it('adds a recorded = true where clause when the flag is set', async () => {
+      const repo = (
+        service as unknown as {
+          turnRepo: { createQueryBuilder: jest.Mock };
+        }
+      ).turnRepo;
+      const qb = repo.createQueryBuilder();
+      const andWhereCalls = () => qb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+
+      await service.getMessages({
+        userId: 'test-user',
+        limit: 10,
+        recorded: true,
+      });
+
+      expect(andWhereCalls()).toContain('at.recorded = true');
+    });
+
+    it('does not apply the recorded filter when the flag is omitted', async () => {
+      const repo = (
+        service as unknown as {
+          turnRepo: { createQueryBuilder: jest.Mock };
+        }
+      ).turnRepo;
+      const qb = repo.createQueryBuilder();
+
+      await service.getMessages({ userId: 'test-user', limit: 10 });
+
+      expect(qb.andWhere.mock.calls.map((c: unknown[]) => c[0])).not.toContain(
+        'at.recorded = true',
+      );
+    });
+  });
 });

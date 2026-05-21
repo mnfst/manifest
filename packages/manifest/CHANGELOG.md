@@ -1,5 +1,23 @@
 # manifest
 
+## 6.6.0
+
+### Minor Changes
+
+- 400c195: Add opt-in per-agent message recording. Toggle in Settings → Recording captures the full request body, response body, and response headers for subsequent proxy calls. Recorded rows show a record-dot icon in the Messages log; clicking it opens a formatted modal with Parameters, Conversation turns, Tool calls, Reply, Usage pills, and Headers. Payloads capped at 2 MB and kept out of the hot message-list query via a separate `message_recordings` table. Defaults off; never included in anonymous telemetry.
+
+## 6.5.1
+
+### Patch Changes
+
+- 3b345e7: Fix provider disconnect cleanup so removing an OAuth subscription clears routes pinned to that auth type even when an API-key credential for the same provider remains connected.
+- 492cf46: Preserve provider key labels and priorities when duplicating agents.
+- 045907d: Preserve native Google `generationConfig` fields when routing requests to Gemini, while keeping existing OpenAI-compatible generation aliases as explicit overrides.
+- 9438035: Serve model parameter specs from the MPS catalog API and support scoped per-route defaults.
+- 4e780be: Make saved Manifest model parameters authoritative over overlapping client request parameters while preserving client parameters that Manifest does not configure.
+- bea267e: Fetch model parameter specs per-model on demand instead of downloading the full MPS catalog on every Routing-page load, and add an ETag conditional GET to the catalog refresh. Keeps the dashboard payload flat as the catalog grows.
+- 680feca: Stop slow startup model-catalog syncs from stalling boot past the deploy healthcheck. The OpenRouter, models.dev, GitHub, and modelparameters.dev fetches now run in the background instead of blocking `app.listen()`, and the two that lacked a timeout (OpenRouter, GitHub) now abort after 10s. The pricing cache still warms up with real data once those fetches land.
+
 ## 6.5.0
 
 ### Minor Changes

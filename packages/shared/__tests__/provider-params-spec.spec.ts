@@ -1,98 +1,386 @@
 import {
-  PROVIDER_PARAM_SPECS,
+  compareProviderParamSpecs,
+  deleteProviderParamValue,
+  expandConfiguredParamDefaults,
+  getProviderParamValue,
   getProviderParamSpecs,
+  isParamApplicability,
+  isProviderParamPath,
+  omitProviderInapplicableParams,
   pickProviderCompatibleParams,
-  providerParamDefault,
-  providerSupportsParam,
+  providerParamIsApplicable,
+  providerParamValueIsValid,
+  setProviderParamValue,
+  type ProviderParamSpecCatalog,
 } from '../src/provider-params-spec';
 
-describe('provider-params-spec', () => {
-  describe('PROVIDER_PARAM_SPECS registry', () => {
-    it('declares DeepSeek thinking with the right control shape + default', () => {
-      const specs = PROVIDER_PARAM_SPECS.deepseek;
-      expect(specs).toBeDefined();
-      expect(specs).toHaveLength(1);
-      expect(specs![0].key).toBe('thinking');
-      expect(specs![0].control).toEqual({
-        kind: 'toggle',
+const catalog: ProviderParamSpecCatalog = [
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    params: [
+      {
+        path: 'thinking.budget_tokens',
+        type: 'integer',
+        label: 'Thinking budget',
+        description: 'Maximum Anthropic extended thinking token budget.',
+        default: 4096,
+        range: { min: 1024, max: 32768, step: 1024 },
+        group: 'reasoning',
+        applicability: { only: { 'thinking.type': 'enabled' } },
+      },
+      {
+        path: 'thinking.type',
+        type: 'enum',
         label: 'Thinking mode',
-        values: ['enabled', 'disabled'],
-        default: 'enabled',
-      });
-    });
-  });
+        description: 'Controls Anthropic thinking mode.',
+        default: 'disabled',
+        values: ['disabled', 'adaptive', 'enabled'],
+        group: 'reasoning',
+      },
+      {
+        path: 'temperature',
+        type: 'number',
+        label: 'Temperature',
+        description: 'Controls sampling randomness.',
+        default: 1,
+        range: { min: 0, max: 1, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
+      },
+      {
+        path: 'top_p',
+        type: 'number',
+        label: 'Top P',
+        description: 'Controls nucleus sampling.',
+        default: 1,
+        range: { min: 0, max: 1, step: 0.01 },
+        group: 'sampling',
+        applicability: {
+          except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+        },
+      },
+    ],
+  },
+  {
+    provider: 'openai',
+    authType: 'api_key',
+    model: 'gpt-5',
+    params: [
+      {
+        path: 'reasoning_effort',
+        type: 'enum',
+        label: 'Reasoning effort',
+        description: 'Controls OpenAI reasoning effort.',
+        default: 'medium',
+        values: ['minimal', 'low', 'medium', 'high'],
+        group: 'reasoning',
+      },
+    ],
+  },
+];
 
+const anthropicSpecs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
+const thinkingBudgetSpec = anthropicSpecs.find((spec) => spec.path === 'thinking.budget_tokens')!;
+const thinkingTypeSpec = anthropicSpecs.find((spec) => spec.path === 'thinking.type')!;
+const temperatureSpec = anthropicSpecs.find((spec) => spec.path === 'temperature')!;
+const topPSpec = anthropicSpecs.find((spec) => spec.path === 'top_p')!;
+
+describe('provider-params-spec', () => {
   describe('getProviderParamSpecs', () => {
-    it('returns the provider entries case-insensitively', () => {
-      expect(getProviderParamSpecs('deepseek')).toHaveLength(1);
-      expect(getProviderParamSpecs('DeepSeek')).toHaveLength(1);
+    it('returns only exact provider/auth/model matches', () => {
+      expect(
+        getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6'),
+      ).toHaveLength(4);
+      expect(
+        getProviderParamSpecs(catalog, 'anthropic', 'subscription', 'claude-sonnet-4-6'),
+      ).toEqual([]);
+      expect(getProviderParamSpecs(catalog, 'openai', 'api_key', 'gpt-5')).toHaveLength(1);
+      expect(getProviderParamSpecs(catalog, undefined, 'api_key', 'gpt-5')).toEqual([]);
+      expect(getProviderParamSpecs(catalog, 'openai', undefined, 'gpt-5')).toEqual([]);
+      expect(getProviderParamSpecs(catalog, 'openai', 'api_key', undefined)).toEqual([]);
     });
 
-    it('returns empty for unknown providers + missing input', () => {
-      expect(getProviderParamSpecs('openai')).toEqual([]);
-      expect(getProviderParamSpecs(undefined)).toEqual([]);
-      expect(getProviderParamSpecs('')).toEqual([]);
+    it('is provider-case-insensitive and keeps nested model ids literal', () => {
+      expect(
+        getProviderParamSpecs(catalog, 'Anthropic', 'api_key', 'claude-sonnet-4-6'),
+      ).toHaveLength(4);
+      expect(getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude:sonnet/4-6')).toEqual(
+        [],
+      );
     });
 
-    it('returns empty for object prototype keys', () => {
-      expect(getProviderParamSpecs('__proto__')).toEqual([]);
-      expect(getProviderParamSpecs('constructor')).toEqual([]);
+    it('orders semantic groups and dependency type params before dependent siblings', () => {
+      const paths = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6').map(
+        (spec) => spec.path,
+      );
+      expect(paths).toEqual(['temperature', 'top_p', 'thinking.type', 'thinking.budget_tokens']);
+    });
+
+    it('falls back to lexical path ordering for otherwise equivalent specs', () => {
+      expect(
+        compareProviderParamSpecs(
+          { ...thinkingBudgetSpec, path: 'thinking.alpha' },
+          thinkingBudgetSpec,
+        ),
+      ).toBeLessThan(0);
     });
   });
 
-  describe('providerSupportsParam', () => {
-    it('is true for declared (provider, key) pairs', () => {
-      expect(providerSupportsParam('deepseek', 'thinking')).toBe(true);
+  describe('providerParamIsApplicable', () => {
+    it('supports only constraints', () => {
+      const spec = thinkingBudgetSpec;
+      expect(providerParamIsApplicable(spec, { thinking: { type: 'enabled' } })).toBe(true);
+      expect(providerParamIsApplicable(spec, { thinking: { type: 'adaptive' } })).toBe(false);
     });
 
-    it('is false for providers whose spec does not declare the key', () => {
-      expect(providerSupportsParam('openai', 'thinking')).toBe(false);
-      expect(providerSupportsParam(undefined, 'thinking')).toBe(false);
+    it('supports except constraints', () => {
+      const spec = temperatureSpec;
+      expect(providerParamIsApplicable(spec, { thinking: { type: 'disabled' } })).toBe(true);
+      expect(providerParamIsApplicable(spec, { thinking: { type: 'adaptive' } })).toBe(false);
+      expect(providerParamIsApplicable(spec, { thinking: { type: 'enabled' } })).toBe(false);
+    });
+
+    it('supports negated except constraints', () => {
+      const spec = topPSpec;
+      expect(providerParamIsApplicable(spec, {})).toBe(true);
+      expect(providerParamIsApplicable(spec, { temperature: 1 })).toBe(true);
+      expect(providerParamIsApplicable(spec, { temperature: 0.2 })).toBe(false);
+    });
+
+    it('treats defensive undefined conditions as matching only undefined values', () => {
+      const spec = {
+        ...temperatureSpec,
+        applicability: { except: { temperature: undefined } },
+      } as unknown as typeof temperatureSpec;
+
+      expect(providerParamIsApplicable(spec, { temperature: undefined })).toBe(false);
+      expect(providerParamIsApplicable(spec, { temperature: 1 })).toBe(true);
+    });
+
+    it('does not match primitive conditions against object values', () => {
+      expect(providerParamIsApplicable(topPSpec, { temperature: { value: 1 } })).toBe(false);
     });
   });
 
-  describe('providerParamDefault', () => {
-    it('returns the control.default of the matching entry', () => {
-      expect(providerParamDefault('deepseek', 'thinking')).toBe('enabled');
+  describe('isParamApplicability', () => {
+    it('accepts the canonical availability schema', () => {
+      expect(
+        isParamApplicability({
+          except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+        }),
+      ).toBe(true);
+      expect(isParamApplicability({ only: { 'thinking.type': 'enabled' } })).toBe(true);
     });
 
-    it('returns undefined when the provider/key pair is not in the spec', () => {
-      expect(providerParamDefault('openai', 'thinking')).toBeUndefined();
-      expect(providerParamDefault(undefined, 'thinking')).toBeUndefined();
+    it('rejects unknown fields and malformed conditions', () => {
+      expect(isParamApplicability(null)).toBe(false);
+      expect(isParamApplicability({ conflictsWith: ['temperature'] })).toBe(false);
+      expect(isParamApplicability({ only: { temperature: { nope: 1 } } })).toBe(false);
+      expect(isParamApplicability({ except: { temperature: { not: 1, value: 0 } } })).toBe(false);
+      expect(isParamApplicability({ except: [] })).toBe(false);
+      expect(isParamApplicability({ except: ['temperature'] })).toBe(false);
+      expect(isParamApplicability({ except: { temperature: undefined } })).toBe(false);
+      expect(isParamApplicability({ except: { temperature: { value: 0 } } })).toBe(false);
+      expect(isParamApplicability({})).toBe(false);
+    });
+
+    it('rejects prototype-polluting applicability paths', () => {
+      expect(isParamApplicability({ except: { '__proto__.polluted': true } })).toBe(false);
+      expect(isParamApplicability({ except: { 'constructor.prototype.polluted': true } })).toBe(
+        false,
+      );
+      expect(isParamApplicability({ except: { 'thinking.prototype': true } })).toBe(false);
+    });
+  });
+
+  describe('isProviderParamPath', () => {
+    it('accepts dot paths and rejects unsafe path segments', () => {
+      expect(isProviderParamPath('thinking.budget_tokens')).toBe(true);
+      expect(isProviderParamPath('')).toBe(false);
+      expect(isProviderParamPath('thinking.')).toBe(false);
+      expect(isProviderParamPath('__proto__.polluted')).toBe(false);
+      expect(isProviderParamPath('constructor.prototype.polluted')).toBe(false);
     });
   });
 
   describe('pickProviderCompatibleParams', () => {
-    it('keeps keys the provider consumes', () => {
+    const specs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
+
+    it('keeps only declared paths', () => {
       expect(
-        pickProviderCompatibleParams('deepseek', { thinking: { type: 'disabled' } }),
-      ).toEqual({ thinking: { type: 'disabled' } });
+        pickProviderCompatibleParams(
+          { temperature: 0.2, max_tokens: 1000, thinking: { type: 'disabled' }, top_p: 0.7 },
+          specs,
+        ),
+      ).toEqual({ temperature: 0.2, thinking: { type: 'disabled' } });
     });
 
-    it('drops keys the provider does not consume (e.g. thinking on OpenAI)', () => {
-      // Cast through unknown: the input shape is wider than the curated
-      // RequestParamDefaults at runtime — callers may hand us a stale blob
-      // and the function must trim it, not trust the static type.
+    it('keeps a conflicted param when the conflict path is still default', () => {
+      expect(pickProviderCompatibleParams({ temperature: 1, top_p: 0.7 }, specs)).toEqual({
+        temperature: 1,
+        top_p: 0.7,
+      });
+    });
+
+    it('omits params that become unavailable under selected values', () => {
       expect(
-        pickProviderCompatibleParams('openai', { thinking: { type: 'disabled' } }),
-      ).toEqual({});
+        pickProviderCompatibleParams(
+          { temperature: 0.2, thinking: { type: 'enabled', budget_tokens: 8192 } },
+          specs,
+        ),
+      ).toEqual({ thinking: { type: 'enabled', budget_tokens: 8192 } });
     });
 
-    it('returns an empty object when the input has no keys at all', () => {
-      expect(pickProviderCompatibleParams('deepseek', {})).toEqual({});
+    it('fills applicable nested sibling defaults for configured nested roots', () => {
+      expect(pickProviderCompatibleParams({ thinking: { type: 'enabled' } }, specs)).toEqual({
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
     });
+  });
 
-    it('handles undefined provider + missing keys without crashing', () => {
-      expect(pickProviderCompatibleParams(undefined, { thinking: { type: 'enabled' } })).toEqual(
-        {},
+  describe('providerParamValueIsValid', () => {
+    it('validates enum membership and numeric ranges', () => {
+      expect(providerParamValueIsValid(thinkingTypeSpec, 'enabled')).toBe(true);
+      expect(providerParamValueIsValid(thinkingTypeSpec, 'unsupported')).toBe(false);
+      expect(providerParamValueIsValid(temperatureSpec, 0.2)).toBe(true);
+      expect(providerParamValueIsValid(temperatureSpec, 1.2)).toBe(false);
+      expect(providerParamValueIsValid(thinkingBudgetSpec, 2048)).toBe(true);
+      expect(providerParamValueIsValid(thinkingBudgetSpec, 2048.5)).toBe(false);
+      expect(providerParamValueIsValid(thinkingBudgetSpec, 512)).toBe(false);
+      expect(providerParamValueIsValid({ ...thinkingTypeSpec, values: undefined }, 'enabled')).toBe(
+        false,
       );
+      expect(
+        providerParamValueIsValid({ ...thinkingTypeSpec, type: 'unknown' as 'enum' }, 'enabled'),
+      ).toBe(false);
     });
 
-    it('does not mutate the input', () => {
-      const input = { thinking: { type: 'enabled' as const } };
-      const out = pickProviderCompatibleParams('deepseek', input);
-      expect(out).not.toBe(input);
-      expect(input.thinking).toEqual({ type: 'enabled' });
+    it('keeps boolean values as booleans', () => {
+      const booleanSpec = {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test-model',
+        path: 'logprobs',
+        type: 'boolean',
+        label: 'Token log probabilities',
+        description: 'Controls whether token log probabilities are requested.',
+        default: false,
+        group: 'observability',
+      } as const;
+      expect(providerParamValueIsValid(booleanSpec, true)).toBe(true);
+      expect(providerParamValueIsValid(booleanSpec, 'true')).toBe(false);
+    });
+
+    it('keeps string values as strings', () => {
+      const stringSpec = {
+        ...thinkingTypeSpec,
+        path: 'metadata.user',
+        type: 'string',
+        label: 'User',
+        description: 'Provider metadata user id.',
+        default: '',
+        values: undefined,
+      } as const;
+
+      expect(providerParamValueIsValid(stringSpec, 'user-1')).toBe(true);
+      expect(providerParamValueIsValid(stringSpec, 123)).toBe(false);
+    });
+  });
+
+  describe('omitProviderInapplicableParams', () => {
+    const specs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
+
+    it('returns the same object when every configured param is still applicable', () => {
+      const params = { temperature: 1 };
+      expect(omitProviderInapplicableParams(params, specs)).toBe(params);
+    });
+
+    it('removes inapplicable nested values and prunes empty parents', () => {
+      expect(
+        omitProviderInapplicableParams(
+          { thinking: { budget_tokens: 8192 }, temperature: 0.2 },
+          specs,
+        ),
+      ).toEqual({ temperature: 0.2 });
+    });
+
+    it('removes inapplicable flat values', () => {
+      expect(
+        omitProviderInapplicableParams({ thinking: { type: 'enabled' }, temperature: 0.2 }, specs),
+      ).toEqual({ thinking: { type: 'enabled' } });
+    });
+  });
+
+  describe('expandConfiguredParamDefaults', () => {
+    it('does not add nested defaults when the root is not configured', () => {
+      expect(expandConfiguredParamDefaults({ temperature: 0.5 }, anthropicSpecs)).toEqual({
+        temperature: 0.5,
+      });
+    });
+
+    it('adds only applicable nested defaults under configured roots', () => {
+      expect(
+        expandConfiguredParamDefaults({ thinking: { type: 'disabled' } }, anthropicSpecs),
+      ).toEqual({
+        thinking: { type: 'disabled' },
+      });
+      expect(
+        expandConfiguredParamDefaults({ thinking: { type: 'enabled' } }, anthropicSpecs),
+      ).toEqual({
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
+    });
+  });
+
+  describe('getProviderParamValue', () => {
+    it('returns undefined for empty values and reads nested paths', () => {
+      expect(getProviderParamValue(null, 'thinking.type')).toBeUndefined();
+      expect(getProviderParamValue({ thinking: { type: 'enabled' } }, 'thinking.type')).toBe(
+        'enabled',
+      );
+      expect(getProviderParamValue({ thinking: 'enabled' }, 'thinking.type')).toBeUndefined();
+    });
+  });
+
+  describe('deleteProviderParamValue', () => {
+    it('removes flat and nested values without mutating the input', () => {
+      const params = { temperature: 0.2, thinking: { type: 'enabled', budget_tokens: 4096 } };
+
+      expect(deleteProviderParamValue(params, 'temperature')).toEqual({
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
+      expect(deleteProviderParamValue(params, 'thinking.budget_tokens')).toEqual({
+        temperature: 0.2,
+        thinking: { type: 'enabled' },
+      });
+      expect(deleteProviderParamValue({ thinking: 'enabled' }, 'thinking.budget_tokens')).toEqual({
+        thinking: 'enabled',
+      });
+      expect(params).toEqual({
+        temperature: 0.2,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      });
+    });
+  });
+
+  describe('setProviderParamValue', () => {
+    it('sets nested values without mutating the input', () => {
+      const params = { temperature: 0.2 };
+
+      expect(setProviderParamValue(params, 'thinking.type', 'enabled')).toEqual({
+        temperature: 0.2,
+        thinking: { type: 'enabled' },
+      });
+      expect(params).toEqual({ temperature: 0.2 });
+    });
+
+    it('rejects unsafe paths without polluting prototypes', () => {
+      expect(() => setProviderParamValue({}, '__proto__.polluted', true)).toThrow(
+        'Invalid provider param path',
+      );
+      expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
     });
   });
 });

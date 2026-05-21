@@ -1,18 +1,73 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Put } from '@nestjs/common';
-import { pickProviderCompatibleParams, type RequestParamDefaults } from 'manifest-shared';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Put,
+  Query,
+} from '@nestjs/common';
+import {
+  getProviderParamValue,
+  pickProviderCompatibleParams,
+  providerParamValueIsValid,
+  type AuthType,
+  type ProviderParamSpec,
+  type RequestParamDefaults,
+} from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { AgentModelParamsService } from './routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { AgentNameParamDto } from './dto/routing.dto';
-import { DeleteModelParamsBodyDto, SetModelParamsBodyDto } from './dto/model-params.dto';
+import {
+  DeleteModelParamsBodyDto,
+  ModelParamSpecsQueryDto,
+  SetModelParamsBodyDto,
+} from './dto/model-params.dto';
 
 @Controller('api/v1/routing')
 export class ModelParamsController {
   constructor(
     private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly resolveAgentService: ResolveAgentService,
   ) {}
+
+  /**
+   * Specs for a single route, fetched on demand when the user opens a model's
+   * parameter dialog. The Routing page used to download the entire catalog on
+   * boot just to answer "does this model have configurable params?" for every
+   * row; serving one model keeps that payload flat as the catalog grows.
+   * Provider/auth/model travel as query params because model names contain
+   * slashes (e.g. `anthropic/claude-…`).
+   */
+  @Get(':agentName/model-param-specs/by-model')
+  async specsByModel(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
+    @Query() query: ModelParamSpecsQueryDto,
+  ): Promise<readonly ProviderParamSpec[]> {
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    return this.providerParamSpecs.getSpecs(query.provider, query.authType, query.model);
+  }
+
+  /**
+   * Identities (no params/descriptions) of every model that has configurable
+   * specs. The Routing page loads this once on boot so it can show the params
+   * affordance only on rows that actually have something to configure, without
+   * pulling the full catalog.
+   */
+  @Get(':agentName/model-param-specs/index')
+  async specsIndex(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
+  ): Promise<Array<{ provider: string; authType: AuthType; model: string }>> {
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    return this.providerParamSpecs.listModelIds();
+  }
 
   /**
    * Full list for the agent. The frontend calls this once on Routing page
@@ -27,6 +82,7 @@ export class ModelParamsController {
       provider: r.provider,
       authType: r.auth_type,
       model: r.model_name,
+      scope: r.scope_key,
       params: r.params,
     }));
   }
@@ -49,10 +105,16 @@ export class ModelParamsController {
     @Body() body: SetModelParamsBodyDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const sanitized = this.assertCompatibleParams(body.provider, body.params);
+    const sanitized = await this.assertCompatibleParams(
+      body.provider,
+      body.authType,
+      body.model,
+      body.params,
+    );
     const saved = await this.modelParamsService.set(
       agent.id,
       user.id,
+      body.scope,
       body.provider,
       body.authType,
       body.model,
@@ -62,6 +124,7 @@ export class ModelParamsController {
       provider: saved.provider,
       authType: saved.auth_type,
       model: saved.model_name,
+      scope: saved.scope_key,
       params: saved.params,
     };
   }
@@ -78,13 +141,19 @@ export class ModelParamsController {
     @Body() body: DeleteModelParamsBodyDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.modelParamsService.delete(agent.id, body.provider, body.authType, body.model);
+    await this.modelParamsService.delete(
+      agent.id,
+      body.scope,
+      body.provider,
+      body.authType,
+      body.model,
+    );
     return { ok: true };
   }
 
   /**
    * Provider/key compatibility gate, driven by the single
-   * `PROVIDER_PARAM_SPECS` registry in `manifest-shared`. Returns the
+   * MPS provider parameter catalog. Returns the
    * params trimmed to the keys the provider actually consumes — a partially
    * incompatible payload still saves the compatible part rather than
    * throwing, matching the proxy's lenient merge behavior.
@@ -93,24 +162,33 @@ export class ModelParamsController {
    * compatible with the provider — those are user errors the UI should
    * surface, not silently swallow.
    *
-   * Adding a new provider knob is one entry in `PROVIDER_PARAM_SPECS`;
+   * Adding a new provider knob is one MPS entry;
    * this method does not need to change.
    */
-  private assertCompatibleParams(
+  private async assertCompatibleParams(
     provider: string,
+    authType: AuthType,
+    model: string,
     params: RequestParamDefaults,
-  ): RequestParamDefaults {
+  ): Promise<RequestParamDefaults> {
     const keys = Object.keys(params).filter(
       (k) => (params as Record<string, unknown>)[k] !== undefined,
     );
     if (keys.length === 0) {
       throw new BadRequestException('params must contain at least one configurable field');
     }
-    const out = pickProviderCompatibleParams(provider, params);
+    const specs = await this.providerParamSpecs.getSpecs(provider, authType, model);
+    const out = pickProviderCompatibleParams(params, specs);
     if (Object.keys(out).length === 0) {
       throw new BadRequestException(
         `Provider "${provider}" does not consume any of the supplied params`,
       );
+    }
+    for (const spec of specs) {
+      const value = getProviderParamValue(out, spec.path);
+      if (value !== undefined && !providerParamValueIsValid(spec, value)) {
+        throw new BadRequestException(`Invalid value for param "${spec.path}"`);
+      }
     }
     return out;
   }

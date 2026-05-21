@@ -30,16 +30,19 @@ export interface RoutingHeaderTiersSectionProps {
   externalMutate?: (mutator: (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined) => void;
   embedded?: boolean;
   getModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
   ) => RequestParamDefaults | null;
   setModelParams?: (
+    scope: string,
     provider: string,
     authType: AuthType,
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 type Props = RoutingHeaderTiersSectionProps;
@@ -184,6 +187,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 onDisable={() => handleToggle(tier.id, false)}
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
+                modelHasParams={props.modelHasParams}
               />
             )}
           </For>

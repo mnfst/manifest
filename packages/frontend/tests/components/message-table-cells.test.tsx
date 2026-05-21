@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { FallbackIcon, HeartbeatIcon, ModelCell } from '../../src/components/message-table-cells';
+import { FallbackIcon, HeartbeatIcon, ModelCell, RecordedIcon } from '../../src/components/message-table-cells';
 import type { MessageRow } from '../../src/components/message-table-types';
 
 vi.mock('@solidjs/router', () => ({
@@ -71,6 +71,17 @@ describe('HeartbeatIcon', () => {
     const svg = container.querySelector('svg');
     expect(svg).not.toBeNull();
     expect(svg!.getAttribute('aria-hidden')).toBe('true');
+  });
+});
+
+describe('RecordedIcon', () => {
+  it('renders RecordedIcon with two circles', () => {
+    const { container } = render(() => <RecordedIcon />);
+    const svg = container.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg!.getAttribute('aria-hidden')).toBe('true');
+    const circles = container.querySelectorAll('circle');
+    expect(circles.length).toBe(2);
   });
 });
 
