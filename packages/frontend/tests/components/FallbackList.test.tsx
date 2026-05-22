@@ -72,7 +72,6 @@ const defaultProps = {
   ] as any[],
   onUpdate: vi.fn(),
   onAddFallback: vi.fn(),
-  modelHasParams: () => true,
 };
 
 const modelParamSpecs: ProviderParamSpecCatalog = [
@@ -1140,11 +1139,9 @@ describe('FallbackList', () => {
       });
     });
 
-    it('renders the affordance optimistically and shows the empty state for a model with no params', async () => {
-      // The affordance no longer pre-checks specs at render time; it renders for
-      // any resolved route and surfaces "no configurable parameters" on open.
+    it('renders the affordance and shows the request empty state for a model with no params', async () => {
       vi.mocked(getModelParamSpecs).mockResolvedValue([]);
-      const { container, findByText } = render(() => (
+      const { container } = render(() => (
         <FallbackList
           {...defaultProps}
           fallbacks={['gpt-4o']}
@@ -1158,7 +1155,12 @@ describe('FallbackList', () => {
       );
       expect(btn).toBeDefined();
       fireEvent.click(btn!);
-      expect(await findByText('This model has no configurable parameters.')).toBeTruthy();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('No parameter controls are published for gpt-4o yet.'),
+        ).toBeTruthy();
+      });
     });
 
     it('does NOT render the affordance when the params callbacks are undefined', () => {

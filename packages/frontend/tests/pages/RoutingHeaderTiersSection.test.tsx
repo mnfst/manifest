@@ -31,7 +31,6 @@ vi.mock("../../src/components/HeaderTierCard.js", () => ({
       props.connectedProviders,
       props.getModelParams,
       props.setModelParams,
-      props.modelHasParams,
     ];
     void _read;
     return (

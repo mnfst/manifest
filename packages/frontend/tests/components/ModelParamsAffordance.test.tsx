@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent, waitFor } from '@solidjs/testing-library';
+import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpec } from 'manifest-shared';
 
 vi.mock('solid-js/web', async (importOriginal) => {
@@ -35,7 +35,6 @@ const baseProps = {
   model: 'deepseek-v4',
   slotLabel: 'deepseek-v4',
   scope: 'tier:default',
-  modelHasParams: () => true,
   getParams: vi.fn(() => null),
   setParams: vi.fn().mockResolvedValue(undefined),
 };
@@ -49,19 +48,69 @@ describe('ModelParamsAffordance', () => {
     mockGetSpecs.mockResolvedValue(specs);
   });
 
-  it('renders the button when the index reports the model has params', () => {
+  it('renders the button for non-local routes', () => {
     const { container } = render(() => <ModelParamsAffordance {...baseProps} />);
     expect(findButton(container)).not.toBeNull();
   });
 
-  it('does not render the button when the index reports no params for the model', () => {
-    // The lightweight index (modelHasParams) gates the affordance, and no
-    // per-model fetch happens until the dialog is opened.
+  it('opens a model with no parameters and links to the request template', async () => {
+    mockGetSpecs.mockResolvedValue([]);
     const { container } = render(() => (
-      <ModelParamsAffordance {...baseProps} modelHasParams={() => false} />
+      <ModelParamsAffordance {...baseProps} provider="openai" model="gpt-4o" slotLabel="gpt-4o" />
     ));
-    expect(findButton(container)).toBeNull();
-    expect(mockGetSpecs).not.toHaveBeenCalled();
+    const btn = container.querySelector(
+      'button[aria-label="Configure model parameters for gpt-4o"]',
+    ) as HTMLButtonElement;
+    expect(btn).not.toBeNull();
+
+    fireEvent.click(btn);
+
+    // Wait for specs to finish loading — the link only appears after loading is
+    // done. The desc text shows immediately but the empty-state link is gated
+    // behind Show when={!loading}.
+    const link = (await waitFor(() =>
+      screen.getByRole('link', { name: 'Request model parameters for gpt-4o' }),
+    )) as HTMLAnchorElement;
+    expect(screen.getByText('No parameter controls are published for gpt-4o yet.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
+    expect(link.textContent).toBe('Request parameters for this model');
+    const url = new URL(link.href);
+    expect(`${url.origin}${url.pathname}`).toBe(
+      'https://github.com/mnfst/modelparams.dev/issues/new',
+    );
+    expect(url.searchParams.get('template')).toBe('parameter-request.yml');
+    expect(url.searchParams.get('title')).toBe('openai/gpt-4o: parameter coverage');
+    expect(url.searchParams.get('provider')).toBe('openai');
+    expect(url.searchParams.get('model')).toBe('gpt-4o');
+    expect(url.searchParams.get('auth-type')).toBe('API key');
+  });
+
+  it('prefills subscription auth type in the request template', async () => {
+    mockGetSpecs.mockResolvedValue([]);
+    const { container } = render(() => (
+      <ModelParamsAffordance
+        {...baseProps}
+        authType="subscription"
+        provider="anthropic"
+        model="claude-sonnet-4-6"
+        slotLabel="Claude Sonnet 4.6"
+      />
+    ));
+
+    fireEvent.click(
+      container.querySelector(
+        'button[aria-label="Configure model parameters for Claude Sonnet 4.6"]',
+      ) as HTMLButtonElement,
+    );
+
+    const link = (await waitFor(() =>
+      screen.getByRole('link', {
+        name: 'Request model parameters for Claude Sonnet 4.6',
+      }),
+    )) as HTMLAnchorElement;
+    const url = new URL(link.href);
+    expect(url.searchParams.get('title')).toBe('anthropic/claude-sonnet-4-6: parameter coverage');
+    expect(url.searchParams.get('auth-type')).toBe('Subscription');
   });
 
   it('does not render the button when authType is missing', () => {
@@ -98,6 +147,11 @@ describe('ModelParamsAffordance', () => {
     expect(findButton(container)).toBeNull();
   });
 
+  it('does not render the button for local routes', () => {
+    const { container } = render(() => <ModelParamsAffordance {...baseProps} authType="local" />);
+    expect(container.querySelector('button[aria-label^="Configure model parameters"]')).toBeNull();
+  });
+
   it('flips the configured class when getParams returns a non-null value', () => {
     const { container } = render(() => (
       <ModelParamsAffordance
@@ -117,6 +171,7 @@ describe('ModelParamsAffordance', () => {
     fireEvent.click(findButton(container) as HTMLButtonElement);
 
     fireEvent.click(await waitFor(() => getByRole('button', { name: /Thinking mode/ })));
+    expect(getByRole('link', { name: 'Request parameters for deepseek-v4' })).toBeTruthy();
     fireEvent.click(getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {
@@ -159,7 +214,7 @@ describe('ModelParamsAffordance', () => {
     ));
     fireEvent.click(findButton(container) as HTMLButtonElement);
 
-    expect(await findByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(await findByText('No parameter controls are published for deepseek-v4 yet.')).toBeTruthy();
     expect(queryByRole('button', { name: 'Save' })).toBeNull();
   });
 
@@ -168,7 +223,7 @@ describe('ModelParamsAffordance', () => {
     const { container, findByText } = render(() => <ModelParamsAffordance {...baseProps} />);
     fireEvent.click(findButton(container) as HTMLButtonElement);
 
-    expect(await findByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(await findByText('No parameter controls are published for deepseek-v4 yet.')).toBeTruthy();
   });
 
   it('button is disabled when the parent says so', () => {

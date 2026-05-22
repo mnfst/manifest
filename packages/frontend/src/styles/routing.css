@@ -601,12 +601,86 @@
   color: hsl(var(--muted-foreground));
 }
 
+.model-params-modal {
+  max-width: 600px;
+}
+
+.model-params-modal--empty {
+  max-width: 360px;
+  padding: 28px;
+}
+
+.model-params-modal--empty .modal-card__title,
+.model-params-modal--empty .modal-card__desc {
+  text-align: center;
+}
+
+.model-params-modal--empty .modal-card__desc {
+  margin-bottom: 18px;
+}
+
 .model-params__group {
   padding: 0;
 }
 
 .model-params__group + .model-params__group {
   margin-top: 16px;
+}
+
+.model-params__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  text-align: center;
+}
+
+.model-params__empty-link {
+  align-self: center;
+  text-decoration: none;
+}
+
+.model-params__empty-link:hover {
+  text-decoration: none;
+}
+
+.model-params__footer {
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.model-params__footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.model-params__request-link {
+  align-self: flex-start;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 2rem;
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--border));
+  text-underline-offset: 3px;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.model-params__request-link:hover {
+  color: hsl(var(--foreground));
+  text-decoration-color: currentColor;
+}
+
+.model-params__request-link:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .model-params__group-header {
@@ -1483,6 +1557,29 @@
 }
 
 /* ── Responsive ──────────────────────────────────── */
+@media (max-width: 1024px) {
+  .routing-cards:not(.routing-cards--wide) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .model-params__footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .model-params__footer-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .model-params__footer-actions .btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+}
+
 @media (max-width: 700px) {
   .routing-section__header--with-control {
     flex-direction: column;
@@ -1491,5 +1588,11 @@
 
   .provider-toggle__expand {
     padding-left: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .routing-cards {
+    grid-template-columns: 1fr;
   }
 }

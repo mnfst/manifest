@@ -77,7 +77,6 @@ interface FallbackListProps {
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
   swappingIndex?: number | null;
-  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
   modelParamsScope?: string;
 }
 
@@ -460,7 +459,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                           slotLabel={modelLabel(model())}
                           scope={modelParamsScope()}
                           agentName={props.agentName}
-                          modelHasParams={props.modelHasParams}
                           getParams={props.getModelParams!}
                           setParams={props.setModelParams!}
                         />
