@@ -306,8 +306,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
       }
       const parsed = Number.parseFloat(normalized);
       if (!Number.isFinite(parsed)) return;
-      const clamped = clampNumber(parsed, numberDefault(spec), spec.range?.min, spec.range?.max);
-      setValue(spec, spec.type === 'integer' ? Math.trunc(clamped) : clamped);
+      setValue(spec, sliderValue(parsed, spec));
     };
 
     return (

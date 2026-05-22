@@ -265,6 +265,24 @@ describe('ModelParamsDialog', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.6 }));
   });
 
+  it('snaps companion number input values to the slider step before saving', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const numberInput = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '0.36' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.4 }));
+  });
+
   it('keeps integer slider values truncated when the number input is edited', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const integerSliderSpec: readonly ProviderParamSpec[] = [
