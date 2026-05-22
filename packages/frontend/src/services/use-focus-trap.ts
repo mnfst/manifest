@@ -20,6 +20,7 @@ const FOCUSABLE_SELECTOR = [
 export function useFocusTrap(
   open: Accessor<boolean>,
   container: Accessor<HTMLElement | undefined>,
+  options?: { initialFocus?: () => HTMLElement | undefined },
 ) {
   let previouslyFocused: HTMLElement | null = null;
 
@@ -30,14 +31,20 @@ export function useFocusTrap(
 
     previouslyFocused = (document.activeElement as HTMLElement | null) ?? null;
 
-    // Move focus into the dialog on open. Prefer the first focusable child;
-    // fall back to the container itself with tabindex=-1 so the dialog still
-    // captures focus even if it has no focusable controls yet.
-    const focusables = root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    if (focusables.length > 0) {
-      focusables[0]!.focus();
-    } else if (root.tabIndex >= 0 || root.hasAttribute('tabindex')) {
-      root.focus();
+    // Move focus into the dialog on open. Prefer the caller-specified initial
+    // focus element, then the first focusable child, then the container itself
+    // with tabindex=-1 so the dialog still captures focus even if it has no
+    // focusable controls yet.
+    const initial = options?.initialFocus?.();
+    if (initial) {
+      initial.focus();
+    } else {
+      const focusables = root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusables.length > 0) {
+        focusables[0]!.focus();
+      } else if (root.tabIndex >= 0 || root.hasAttribute('tabindex')) {
+        root.focus();
+      }
     }
 
     const onKeyDown = (event: KeyboardEvent) => {

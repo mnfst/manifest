@@ -6,6 +6,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { AgentLog } from '../../entities/agent-log.entity';
+import { MessageRecording } from '../../entities/message-recording.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 function mockQb(result: unknown = null) {
@@ -27,6 +28,7 @@ describe('MessageDetailsService', () => {
   let llmQb: ReturnType<typeof mockQb>;
   let toolQb: ReturnType<typeof mockQb>;
   let logQb: ReturnType<typeof mockQb>;
+  let recordingFindOne: jest.Mock;
 
   const baseMessage = {
     id: 'msg-1',
@@ -61,6 +63,9 @@ describe('MessageDetailsService', () => {
     request_headers: null,
     request_params: null,
     caller_attribution: null,
+    recorded: false,
+    specificity_category: null,
+    specificity_miscategorized: false,
   };
 
   beforeEach(async () => {
@@ -88,6 +93,10 @@ describe('MessageDetailsService', () => {
         {
           provide: getRepositoryToken(AgentLog),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(logQb) },
+        },
+        {
+          provide: getRepositoryToken(MessageRecording),
+          useValue: { findOne: (recordingFindOne = jest.fn().mockResolvedValue(null)) },
         },
         {
           provide: TenantCacheService,
@@ -244,6 +253,9 @@ describe('MessageDetailsService', () => {
       request_headers: null,
       request_params: null,
       caller_attribution: null,
+      recorded: false,
+      specificity_category: null,
+      specificity_miscategorized: false,
     });
   });
 
@@ -262,11 +274,6 @@ describe('MessageDetailsService', () => {
   });
 
   it('returns request_params when stored on the message', async () => {
-    // Per-message effective parameter snapshot — drives the dashboard's
-    // Model Parameters accordion. Today only DeepSeek's `thinking` knob
-    // ships, but the JSONB column accepts any shape so future provider
-    // models and user-defined custom params land here without a schema
-    // migration; the projection just round-trips whatever is stored.
     const params = { thinking: { type: 'disabled' } };
     msgQb.getOne.mockResolvedValue({ ...baseMessage, request_params: params });
     const result = await service.getDetails('msg-1', 'u1');
@@ -274,9 +281,6 @@ describe('MessageDetailsService', () => {
   });
 
   it('round-trips arbitrary multi-key request_params shapes (forward-compat)', async () => {
-    // The detail endpoint must not silently drop unfamiliar keys — that
-    // would break the future "users define their own custom-provider
-    // params" UI. Anything the proxy stores has to come back through.
     const future = {
       thinking: { type: 'enabled' },
       reasoning_effort: 'high',
@@ -285,6 +289,38 @@ describe('MessageDetailsService', () => {
     msgQb.getOne.mockResolvedValue({ ...baseMessage, request_params: future });
     const result = await service.getDetails('msg-1', 'u1');
     expect(result.message.request_params).toEqual(future);
+  });
+
+  it('returns the captured recording when recorded=true', async () => {
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, recorded: true });
+    recordingFindOne.mockResolvedValue({
+      message_id: 'msg-1',
+      request_body: { messages: [{ role: 'user', content: 'hi' }] },
+      response_body: { type: 'json', body: { choices: [] } },
+      response_headers: { 'content-type': 'application/json' },
+      size_bytes: 123,
+      created_at: '2026-02-16 10:00:00',
+    });
+
+    const result = await service.getDetails('msg-1', 'u1');
+
+    expect(result.message.recorded).toBe(true);
+    expect(result.recording).toEqual(
+      expect.objectContaining({
+        request_body: { messages: [{ role: 'user', content: 'hi' }] },
+        response_body: { type: 'json', body: { choices: [] } },
+        response_headers: { 'content-type': 'application/json' },
+        size_bytes: 123,
+      }),
+    );
+    expect(recordingFindOne).toHaveBeenCalledWith({ where: { message_id: 'msg-1' } });
+  });
+
+  it('does not look up a recording when recorded=false', async () => {
+    msgQb.getOne.mockResolvedValue({ ...baseMessage, recorded: false });
+    const result = await service.getDetails('msg-1', 'u1');
+    expect(result.recording).toBeNull();
+    expect(recordingFindOne).not.toHaveBeenCalled();
   });
 
   it('splits feedback_tags into an array when present', async () => {

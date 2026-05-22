@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-  listModelParamSpecs,
+  getModelParamSpecs,
+  listModelParamSpecIndex,
   listModelParams,
   setModelParams,
   deleteModelParams,
@@ -28,15 +29,30 @@ describe('model-params API client', () => {
     );
   });
 
-  it('listModelParamSpecs GETs the MPS catalog', async () => {
+  it('getModelParamSpecs GETs the by-model specs with URL-encoded query params', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       status: 200,
       json: () => Promise.resolve([]),
     } as unknown as Response);
-    await listModelParamSpecs('demo');
+    await getModelParamSpecs('demo', 'anthropic', 'api_key', 'anthropic/claude-opus-4-7');
+    const [url] = vi.mocked(fetch).mock.calls[0];
+    expect(String(url)).toContain('/routing/demo/model-param-specs/by-model');
+    expect(String(url)).toContain('provider=anthropic');
+    expect(String(url)).toContain('authType=api_key');
+    // Model names contain slashes, so they must be encoded in the query string.
+    expect(String(url)).toContain('model=anthropic%2Fclaude-opus-4-7');
+  });
+
+  it('listModelParamSpecIndex GETs the spec identity index', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([]),
+    } as unknown as Response);
+    await listModelParamSpecIndex('demo');
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/routing/demo/model-param-specs'),
+      expect.stringContaining('/routing/demo/model-param-specs/index'),
       expect.anything(),
     );
   });

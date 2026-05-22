@@ -79,13 +79,37 @@ describe('applyRequestParamDefaults', () => {
     });
   });
 
-  it('lets the request body win by presence, including nested values', () => {
+  it('lets configured Manifest params win over request body values at the same path', () => {
     const body: Record<string, unknown> = {
       messages: [],
-      thinking: { budget_tokens: 8192 },
+      temperature: 0.4,
     };
-    const merged = applyRequestParamDefaults(body, { thinking: { type: 'enabled' } }, specs);
-    expect(merged.thinking).toEqual({ type: 'enabled', budget_tokens: 8192 });
+    const merged = applyRequestParamDefaults(body, { temperature: 0.8 }, specs);
+    expect(merged).toEqual({ messages: [], temperature: 0.8 });
+  });
+
+  it('keeps request body params that are not configured in Manifest', () => {
+    const body: Record<string, unknown> = {
+      messages: [],
+      temperature: 0.4,
+      max_tokens: 2048,
+    };
+    const merged = applyRequestParamDefaults(body, { thinking: { type: 'disabled' } }, specs);
+    expect(merged).toEqual({
+      messages: [],
+      temperature: 0.4,
+      max_tokens: 2048,
+      thinking: { type: 'disabled' },
+    });
+  });
+
+  it('lets configured nested Manifest params win while preserving unconfigured nested siblings', () => {
+    const body: Record<string, unknown> = {
+      messages: [],
+      thinking: { type: 'enabled', vendor_note: 'client-only' },
+    };
+    const merged = applyRequestParamDefaults(body, { thinking: { type: 'disabled' } }, specs);
+    expect(merged.thinking).toEqual({ type: 'disabled', vendor_note: 'client-only' });
   });
 
   it('omits defaults that are unavailable under selected values', () => {

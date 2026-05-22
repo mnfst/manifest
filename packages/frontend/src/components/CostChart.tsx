@@ -24,9 +24,22 @@ interface CostChartProps {
 const CostChart: Component<CostChartProps> = (props) => {
   let el!: HTMLDivElement;
 
+  const buildData = (): uPlot.AlignedData => {
+    const isHourly = props.range === '24h';
+    const filled = fillDailyGaps(
+      props.data,
+      props.range ?? '',
+      isHourly ? 'hour' : 'date',
+      (key) => (isHourly ? { hour: key, cost: 0 } : { date: key, cost: 0 }),
+    );
+    return [parseTimestamps(filled), sanitizeNumbers(filled.map((d) => d.cost))];
+  };
+
   useChartLifecycle({
     el: () => el,
     data: () => props.data,
+    buildData,
+    structureKey: () => props.range,
     buildChart() {
       if (!el) return null;
       const w = el.clientWidth || el.getBoundingClientRect().width;
@@ -66,16 +79,7 @@ const CostChart: Component<CostChartProps> = (props) => {
             },
           ],
         },
-        (() => {
-          const isHourly = props.range === '24h';
-          const filled = fillDailyGaps(
-            props.data,
-            props.range ?? '',
-            isHourly ? 'hour' : 'date',
-            (key) => (isHourly ? { hour: key, cost: 0 } : { date: key, cost: 0 }),
-          );
-          return [parseTimestamps(filled), sanitizeNumbers(filled.map((d) => d.cost))];
-        })(),
+        buildData(),
         el,
       );
     },

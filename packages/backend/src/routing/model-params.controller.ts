@@ -1,10 +1,19 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Put } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Put,
+  Query,
+} from '@nestjs/common';
 import {
   getProviderParamValue,
   pickProviderCompatibleParams,
   providerParamValueIsValid,
   type AuthType,
-  type ProviderParamSpecCatalog,
+  type ProviderParamSpec,
   type RequestParamDefaults,
 } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -13,7 +22,11 @@ import { AgentModelParamsService } from './routing-core/agent-model-params.servi
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { AgentNameParamDto } from './dto/routing.dto';
-import { DeleteModelParamsBodyDto, SetModelParamsBodyDto } from './dto/model-params.dto';
+import {
+  DeleteModelParamsBodyDto,
+  ModelParamSpecsQueryDto,
+  SetModelParamsBodyDto,
+} from './dto/model-params.dto';
 
 @Controller('api/v1/routing')
 export class ModelParamsController {
@@ -23,13 +36,37 @@ export class ModelParamsController {
     private readonly resolveAgentService: ResolveAgentService,
   ) {}
 
-  @Get(':agentName/model-param-specs')
-  async specs(
+  /**
+   * Specs for a single route, fetched on demand when the user opens a model's
+   * parameter dialog. The Routing page used to download the entire catalog on
+   * boot just to answer "does this model have configurable params?" for every
+   * row; serving one model keeps that payload flat as the catalog grows.
+   * Provider/auth/model travel as query params because model names contain
+   * slashes (e.g. `anthropic/claude-…`).
+   */
+  @Get(':agentName/model-param-specs/by-model')
+  async specsByModel(
     @CurrentUser() user: AuthUser,
     @Param() params: AgentNameParamDto,
-  ): Promise<ProviderParamSpecCatalog> {
+    @Query() query: ModelParamSpecsQueryDto,
+  ): Promise<readonly ProviderParamSpec[]> {
     await this.resolveAgentService.resolve(user.id, params.agentName);
-    return this.providerParamSpecs.list();
+    return this.providerParamSpecs.getSpecs(query.provider, query.authType, query.model);
+  }
+
+  /**
+   * Identities (no params/descriptions) of every model that has configurable
+   * specs. The Routing page loads this once on boot so it can show the params
+   * affordance only on rows that actually have something to configure, without
+   * pulling the full catalog.
+   */
+  @Get(':agentName/model-param-specs/index')
+  async specsIndex(
+    @CurrentUser() user: AuthUser,
+    @Param() params: AgentNameParamDto,
+  ): Promise<Array<{ provider: string; authType: AuthType; model: string }>> {
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    return this.providerParamSpecs.listModelIds();
   }
 
   /**

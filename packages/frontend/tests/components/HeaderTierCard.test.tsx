@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 const mockResetHeaderTier = vi.fn();
 const mockSetHeaderTierFallbacks = vi.fn();
 const mockClearHeaderTierFallbacks = vi.fn();
@@ -8,6 +13,10 @@ vi.mock('../../src/services/api/header-tiers.js', () => ({
   resetHeaderTier: (...args: unknown[]) => mockResetHeaderTier(...args),
   setHeaderTierFallbacks: (...args: unknown[]) => mockSetHeaderTierFallbacks(...args),
   clearHeaderTierFallbacks: (...args: unknown[]) => mockClearHeaderTierFallbacks(...args),
+}));
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
 }));
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
@@ -61,6 +70,9 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.models,
       props.customProviders,
       props.connectedProviders,
+      props.getModelParams,
+      props.setModelParams,
+      props.modelHasParams,
     ];
     void _read;
     return (
@@ -156,6 +168,7 @@ vi.mock('../../src/components/HeaderTierSnippetModal.js', () => ({
 
 import HeaderTierCard from '../../src/components/HeaderTierCard';
 import type { ProviderParamSpecCatalog } from 'manifest-shared';
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
 import type { HeaderTier } from '../../src/services/api/header-tiers';
 import type { AvailableModel, CustomProviderData, RoutingProvider } from '../../src/services/api';
 
@@ -1157,7 +1170,7 @@ describe('HeaderTierCard', () => {
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
         setModelParams={vi.fn().mockResolvedValue(undefined)}
-        modelParamSpecs={() => modelParamSpecs}
+        modelHasParams={() => true}
       />
     ));
     expect(
@@ -1169,6 +1182,7 @@ describe('HeaderTierCard', () => {
   // getter is evaluated by the affordance (Solid props are lazy — `setParams`
   // is only read when the affordance calls `props.setParams(...)` on save).
   it('threads setModelParams through the affordance save flow', async () => {
+    vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
     const setModelParams = vi.fn().mockResolvedValue(undefined);
     const tierDeepseek = {
       ...baseTier,
@@ -1211,7 +1225,7 @@ describe('HeaderTierCard', () => {
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
         setModelParams={setModelParams}
-        modelParamSpecs={() => modelParamSpecs}
+        modelHasParams={() => true}
       />
     ));
     const btn = container.querySelector(

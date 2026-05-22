@@ -28,6 +28,7 @@ import { UserCacheInterceptor } from '../../common/interceptors/user-cache.inter
 import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { slugify } from '../../common/utils/slugify';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -38,6 +39,7 @@ export class AgentsController {
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly tenantCache: TenantCacheService,
     private readonly eventBus: IngestEventBusService,
+    private readonly recordingCache: AgentRecordingCacheService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -182,6 +184,17 @@ export class AgentsController {
       });
       if (body.agent_category !== undefined) result['agent_category'] = body.agent_category;
       if (body.agent_platform !== undefined) result['agent_platform'] = body.agent_platform;
+    }
+
+    if (body.record_messages !== undefined) {
+      const effectiveName = body.name ? slugify(body.name)! : agentName;
+      const { agentId } = await this.lifecycle.setRecordMessages(
+        user.id,
+        effectiveName,
+        body.record_messages,
+      );
+      this.recordingCache.invalidate(agentId);
+      result['record_messages'] = body.record_messages;
     }
 
     await this.cacheManager.del(this.agentListCacheKey(user.id));

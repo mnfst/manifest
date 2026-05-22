@@ -252,6 +252,7 @@ describe('ProviderDetailView', () => {
         has_api_key: true,
         connected_at: '2025-01-01',
         models_fetched_at: '2026-04-12T09:55:00Z',
+        cached_model_count: 12,
       },
     ];
 
@@ -269,7 +270,7 @@ describe('ProviderDetailView', () => {
       });
       render(() => <ProviderDetailView {...props} />);
       expect(screen.getByLabelText('Refresh models from Anthropic')).toBeDefined();
-      expect(screen.getByText('Models last refreshed 5m ago')).toBeDefined();
+      expect(screen.getByText(/12 models – last refreshed: 5m ago/)).toBeDefined();
     });
 
     it('calls refreshProviderModels with the provider and auth type and shows a success toast', async () => {

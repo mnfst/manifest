@@ -21,11 +21,26 @@ interface UseChartLifecycleOptions<T> {
   el: () => HTMLDivElement;
   data: Accessor<T[] | undefined>;
   buildChart: () => uPlot | null;
+  /**
+   * Optional builder for the chart's aligned data. When provided, a data change
+   * that does not alter the chart structure (see `structureKey`) updates the
+   * existing uPlot instance in place via `setData` instead of destroying and
+   * recreating it — far cheaper on every refetch/range-unchanged update.
+   */
+  buildData?: () => uPlot.AlignedData;
+  /**
+   * Identifies the chart's structural configuration (e.g. the selected range,
+   * which drives axes/scales). When it changes between data updates the chart
+   * is rebuilt; when it stays the same `setData` is used. Defaults to a constant
+   * so charts without structural variation always reuse the instance.
+   */
+  structureKey?: () => unknown;
 }
 
 export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
   let chart: uPlot | null = null;
   let ro: ResizeObserver | null = null;
+  let lastStructureKey: unknown = opts.structureKey?.();
 
   const CHART_HEIGHT = 260;
 
@@ -57,6 +72,14 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
     on(
       opts.data,
       () => {
+        const key = opts.structureKey?.();
+        const sameStructure = key === lastStructureKey;
+        lastStructureKey = key;
+
+        if (chart && opts.buildData && sameStructure) {
+          chart.setData(opts.buildData());
+          return;
+        }
         if (chart) {
           chart.destroy();
           chart = null;

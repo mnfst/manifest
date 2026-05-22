@@ -12,6 +12,7 @@ const MIGRATION_FILES = [
   'packages/backend/src/database/migrations/1779000000000-AddRoutingTiers.ts',
   'packages/backend/src/database/migrations/1779100000000-RefactorAgents.ts',
   'packages/backend/src/database/migrations/1779200000000-DropLegacyMetrics.ts',
+  'packages/backend/src/database/migrations/1779300000000-RekeyProviderKeys.ts',
 ].join('\n');
 
 const result = spawnSync(

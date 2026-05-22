@@ -45,6 +45,7 @@ export class MessagesQueryService {
     cursor?: string;
     agent_name?: string;
     status?: MessageStatusFilter;
+    recorded?: boolean;
     routing_tier?: string;
   }) {
     const tenantId = (await this.tenantCache.resolve(params.userId)) ?? undefined;
@@ -107,6 +108,7 @@ export class MessagesQueryService {
       cost_max?: number;
       agent_name?: string;
       status?: MessageStatusFilter;
+      recorded?: boolean;
       routing_tier?: string;
     },
     tenantId: string | undefined,
@@ -140,6 +142,10 @@ export class MessagesQueryService {
       qb.andWhere('at.status IN (:...errorStatuses)', { errorStatuses: ERROR_STATUSES });
     } else if (params.status) {
       qb.andWhere('at.status = :statusFilter', { statusFilter: params.status });
+    }
+
+    if (params.recorded) {
+      qb.andWhere('at.recorded = true');
     }
 
     if (params.routing_tier) {
@@ -294,6 +300,7 @@ export class MessagesQueryService {
     cost_min?: number;
     cost_max?: number;
     status?: MessageStatusFilter;
+    recorded?: boolean;
     routing_tier?: string;
   }): string {
     return [
@@ -305,6 +312,7 @@ export class MessagesQueryService {
       params.cost_min ?? '',
       params.cost_max ?? '',
       params.status ?? '',
+      params.recorded ? '1' : '',
       params.routing_tier ?? '',
     ].join(':');
   }

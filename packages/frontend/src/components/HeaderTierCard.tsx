@@ -4,7 +4,6 @@ import type {
   AvailableModel,
   CustomProviderData,
   ModelRoute,
-  ProviderParamSpecCatalog,
   RequestParamDefaults,
   RoutingProvider,
 } from '../services/api.js';
@@ -72,7 +71,7 @@ interface Props {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelParamSpecs?: () => ProviderParamSpecCatalog;
+  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -338,7 +337,8 @@ const HeaderTierCard: Component<Props> = (props) => {
                       model={modelName()}
                       slotLabel={modelLabel() || modelName()}
                       scope={modelParamsScopeForHeaderTier(props.tier.id)}
-                      specCatalog={props.modelParamSpecs?.() ?? []}
+                      agentName={props.agentName}
+                      modelHasParams={props.modelHasParams}
                       getParams={props.getModelParams!}
                       setParams={props.setModelParams!}
                     />
@@ -395,7 +395,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             }
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
-            modelParamSpecs={props.modelParamSpecs}
+            modelHasParams={props.modelHasParams}
             modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)

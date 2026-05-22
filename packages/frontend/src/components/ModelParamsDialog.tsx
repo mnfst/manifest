@@ -1,4 +1,3 @@
-import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
 import {
   compareProviderParamSpecs,
   getProviderParamValue,
@@ -8,6 +7,8 @@ import {
   type ModelParamGroup,
   type ProviderParamSpec,
 } from 'manifest-shared';
+import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import type { RequestParamDefaults } from '../services/api.js';
 import Select from './Select.jsx';
 
@@ -16,6 +17,9 @@ interface Props {
   slotLabel: string;
   current: RequestParamDefaults | null;
   specs: readonly ProviderParamSpec[];
+  // True while the per-model specs are still being fetched (dialog opens
+  // immediately, specs arrive async).
+  loading?: boolean;
   onSave: (paramDefaults: RequestParamDefaults | null) => Promise<unknown>;
   onClose: () => void;
 }
@@ -30,6 +34,57 @@ const GROUP_LABELS: Record<ModelParamGroup, string> = {
   output_format: 'Output format',
   observability: 'Observability',
   provider_metadata: 'Provider metadata',
+};
+
+const GROUP_INTROS: Record<ModelParamGroup, string> = {
+  generation_length: 'Controls how much text the model can produce in a single response.',
+  sampling: 'Adjusts randomness and diversity in the generated output.',
+  reasoning: 'Controls extended thinking where the model reasons before answering.',
+  tooling: 'Configures how the model calls external tools and functions.',
+  output_format: 'Constrains the shape of the response.',
+  observability: 'Metadata fields for tracing and debugging requests.',
+  provider_metadata: 'Provider-specific options outside standard categories.',
+};
+
+const PARAM_HINTS: Record<string, string> = {
+  temperature:
+    'Low values give focused, deterministic answers. High values give more creative, varied responses.',
+  top_p:
+    'Limits token choices to the most probable ones whose cumulative probability reaches this threshold. Lower values make output more focused.',
+  top_k:
+    'Limits token choices to the top K most probable tokens at each step. Lower values make output more predictable.',
+  max_tokens:
+    'The model stops when it finishes or reaches this limit. A higher value allows longer answers but does not force them.',
+  'thinking.type':
+    'When enabled, the model reasons step by step before answering. Uses more tokens but improves accuracy on complex tasks.',
+  'thinking.budget_tokens':
+    'Maximum number of tokens the model can spend on its internal reasoning before producing the final answer.',
+  reasoning_effort:
+    'How much effort the model puts into reasoning. Lower values are faster and cheaper, higher values are more thorough.',
+  frequency_penalty:
+    'Penalizes tokens that already appeared in the output. Higher values reduce repetition.',
+  presence_penalty:
+    'Penalizes tokens that appeared at all in the conversation. Higher values encourage the model to cover new topics.',
+  tool_choice:
+    'Controls whether the model must call a tool, can optionally call one, or is prevented from calling tools.',
+  parallel_tool_use:
+    'When enabled, the model can call multiple tools in a single turn instead of one at a time.',
+  response_format: 'Forces the model to produce output in a specific format, such as valid JSON.',
+  stream:
+    'When enabled, the response arrives incrementally as it is generated instead of all at once.',
+  store: 'When enabled, the request and response are stored by the provider for later inspection.',
+  service_tier: 'Selects between standard and priority processing tiers offered by the provider.',
+};
+
+const paramHint = (spec: ProviderParamSpec): string => PARAM_HINTS[spec.path] ?? spec.description;
+
+const rangeLabel = (spec: ProviderParamSpec): string | null => {
+  if (!spec.range) return null;
+  const { min, max } = spec.range;
+  if (min !== undefined && max !== undefined) return `${min}–${max}`;
+  if (min !== undefined) return `min ${min}`;
+  if (max !== undefined) return `max ${max}`;
+  return null;
 };
 
 const GROUP_ORDER: readonly ModelParamGroup[] = [
@@ -198,7 +253,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
     };
 
     return (
-      <div class="model-params__scrub-field" classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}>
+      <div
+        class="model-params__scrub-field"
+        classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}
+      >
         <div
           class="model-params__scrub"
           role="slider"
@@ -225,7 +283,14 @@ const ModelParamsDialog: Component<Props> = (props) => {
           onPointerCancel={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
           onKeyDown={handleKeyDown}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path d="M5 3a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 17a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7.33 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4" />
           </svg>
         </div>
@@ -342,59 +407,118 @@ const ModelParamsDialog: Component<Props> = (props) => {
   };
 
   return (
-    <Show when={props.open}>
-      <div
-        class="modal-overlay"
-        draggable={false}
-        onClick={(e) => {
-          if (e.target === e.currentTarget && !saving()) props.onClose();
-        }}
-        onDragStart={(e) => e.preventDefault()}
-      >
+    <Portal>
+      <Show when={props.open}>
         <div
-          class="modal-card"
-          style="max-width: 460px; user-select: none;"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="model-params-dialog-title"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={handleKeyDown}
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !saving()) props.onClose();
+          }}
         >
-          <h2 class="modal-card__title" id="model-params-dialog-title">
-            Model parameters
-          </h2>
-          <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
+          <div
+            class="modal-card"
+            style="max-width: 460px; user-select: none;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="model-params-dialog-title"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+          >
+            <h2 class="modal-card__title" id="model-params-dialog-title">
+              Model parameters
+            </h2>
+            <p class="modal-card__desc">Manifest parameters for {props.slotLabel}.</p>
 
-          <For each={groupSpecs(props.specs)}>
-            {(group) => (
-              <div class="model-params__group">
-                <div class="model-params__group-header">{GROUP_LABELS[group.group]}</div>
-                <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
-              </div>
-            )}
-          </For>
+            <Show
+              when={!props.loading}
+              fallback={
+                <div class="model-params__status">
+                  <span class="spinner" />
+                  <span>Loading parameters…</span>
+                </div>
+              }
+            >
+              <Show
+                when={props.specs.length > 0}
+                fallback={
+                  <p class="model-params__status">This model has no configurable parameters.</p>
+                }
+              >
+                <For each={groupSpecs(props.specs)}>
+                  {(group) => (
+                    <div class="model-params__group">
+                      <div class="model-params__group-header">
+                        <span>{GROUP_LABELS[group.group]}</span>
+                        <span class="model-params__group-info">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="13"
+                            height="13"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 16v-4" />
+                            <path d="M12 8h.01" />
+                          </svg>
+                          <span class="model-params__group-tooltip">
+                            <span class="model-params__tooltip-intro">
+                              {GROUP_INTROS[group.group]}
+                            </span>
+                            <For each={group.specs}>
+                              {(spec) => (
+                                <span class="model-params__tooltip-param">
+                                  <strong>{spec.label}</strong>
+                                  <Show when={rangeLabel(spec)}>
+                                    {' '}
+                                    <span class="model-params__tooltip-range">
+                                      {rangeLabel(spec)}
+                                    </span>
+                                  </Show>
+                                  <br />
+                                  {paramHint(spec)}
+                                </span>
+                              )}
+                            </For>
+                          </span>
+                        </span>
+                      </div>
+                      <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
+                    </div>
+                  )}
+                </For>
+              </Show>
+            </Show>
 
-          <div class="modal-card__footer">
-            <button
-              class="btn btn--ghost btn--sm"
-              onClick={props.onClose}
-              disabled={saving()}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn--primary btn--sm"
-              onClick={handleSave}
-              disabled={saving()}
-              type="button"
-            >
-              {saving() ? <span class="spinner" /> : 'Save'}
-            </button>
+            <div class="modal-card__footer">
+              <button
+                class="btn btn--ghost btn--sm"
+                onClick={props.onClose}
+                disabled={saving()}
+                type="button"
+              >
+                {!props.loading && props.specs.length > 0 ? 'Cancel' : 'Close'}
+              </button>
+              <Show when={!props.loading && props.specs.length > 0}>
+                <button
+                  class="btn btn--primary btn--sm"
+                  onClick={handleSave}
+                  disabled={saving()}
+                  type="button"
+                >
+                  {saving() ? <span class="spinner" /> : 'Save'}
+                </button>
+              </Show>
+            </div>
           </div>
         </div>
-      </div>
-    </Show>
+      </Show>
+    </Portal>
   );
 };
 

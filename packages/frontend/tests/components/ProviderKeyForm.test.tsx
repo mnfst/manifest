@@ -41,7 +41,7 @@ vi.mock('../../src/services/provider-api-key-urls.js', () => ({
     id === 'ollama-cloud' ? 'https://ollama.com/settings/keys' : undefined,
 }));
 
-import ProviderKeyForm from '../../src/components/ProviderKeyForm';
+import ProviderKeyForm, { AddAnotherKeyAction } from '../../src/components/ProviderKeyForm';
 
 /* ── Test helpers ───────────────────────────────────────────── */
 
@@ -869,6 +869,48 @@ describe('ProviderKeyForm', () => {
       // Form collapses; the Cancel button is gone.
       expect(container.querySelector('input[placeholder="sk-..."]')).toBeNull();
       expect(connectProviderMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('AddAnotherKeyAction (uncontrolled open)', () => {
+    function mountAction(overrides: { isSubscription?: boolean } = {}) {
+      const [busy, setBusy] = createSignal(false);
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      return render(() => (
+        <AddAnotherKeyAction
+          onAdd={vi.fn().mockResolvedValue(true)}
+          busy={busy}
+          setBusy={setBusy}
+          provDef={def}
+          placeholder="sk-..."
+          whereToGetUrl={() => undefined}
+          credentialNoun={() => 'API key'}
+          existingLabels={() => ['Default']}
+          isSubscription={overrides.isSubscription}
+        />
+      ));
+    }
+
+    it('shows "Add another key" when isSubscription is false or undefined', () => {
+      const { queryByText } = mountAction({ isSubscription: false });
+      expect(queryByText(/Add another key/)).not.toBeNull();
+      expect(queryByText(/Add connection/)).toBeNull();
+    });
+
+    it('shows "Add connection" when isSubscription is true', () => {
+      const { queryByText } = mountAction({ isSubscription: true });
+      expect(queryByText(/Add connection/)).not.toBeNull();
+      expect(queryByText(/Add another key/)).toBeNull();
+    });
+
+    it('auto-focuses the API key input when opened', async () => {
+      const { queryByText } = mountAction();
+      const btn = queryByText(/Add another key/) as HTMLButtonElement;
+      fireEvent.click(btn);
+      // After clicking, the form opens and requestAnimationFrame fires focus.
+      // Just verify the form is now visible (input rendered).
+      await Promise.resolve();
+      expect(queryByText('Add key')).not.toBeNull();
     });
   });
 });

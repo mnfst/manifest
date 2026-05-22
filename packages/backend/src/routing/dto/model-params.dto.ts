@@ -70,6 +70,22 @@ export class DeleteModelParamsBodyDto {
   model!: string;
 }
 
+// Query params for the per-model spec lookup. Provider/auth/model identify one
+// route's configurable parameters; the UI fetches this on dialog open instead
+// of downloading the whole catalog on page boot.
+export class ModelParamSpecsQueryDto {
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsIn(AUTH_TYPES)
+  authType!: AuthType;
+
+  @IsString()
+  @IsNotEmpty()
+  model!: string;
+}
+
 function isJsonObject(value: unknown, depth = 0): value is Record<string, unknown> {
   if (depth > MAX_REQUEST_PARAM_DEPTH) return false;
   return isRecord(value) && Object.values(value).every((item) => isJsonValue(item, depth + 1));

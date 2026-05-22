@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
@@ -136,6 +141,12 @@ describe('ModelParamsDialog', () => {
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
   });
 
+  it('describes params as Manifest-owned rather than client-overridden defaults', () => {
+    render(() => <ModelParamsDialog {...baseProps} slotLabel="GPT-5 Nano" />);
+    expect(screen.getByText('Manifest parameters for GPT-5 Nano.')).toBeTruthy();
+    expect(screen.queryByText(/Client requests override/)).toBeNull();
+  });
+
   it('reflects the configured override when present', () => {
     render(() => <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
@@ -147,7 +158,7 @@ describe('ModelParamsDialog', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
-    expect(screen.getByText('Max tokens')).toBeTruthy();
+    expect(screen.getAllByText('Max tokens').length).toBeGreaterThan(0);
     expect(screen.getByText('max_tokens')).toBeTruthy();
     expect(screen.getByText('Maximum number of output tokens.')).toBeTruthy();
     expect(screen.getByText('Default: 4096')).toBeTruthy();

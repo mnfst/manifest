@@ -107,6 +107,9 @@ export class AgentMessage {
   @Column('boolean', { default: false })
   specificity_miscategorized!: boolean;
 
+  @Column('boolean', { default: false })
+  recorded!: boolean;
+
   @Column('simple-json', { nullable: true })
   caller_attribution!: CallerAttribution | null;
 

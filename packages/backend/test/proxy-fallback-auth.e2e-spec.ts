@@ -10,12 +10,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import {
-  createTestApp,
-  TEST_AGENT_ID,
-  TEST_OTLP_KEY,
-  TEST_TENANT_ID,
-} from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_TENANT_ID } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
@@ -24,6 +19,7 @@ import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.s
 let app: INestApplication;
 let originalFetch: typeof global.fetch;
 const calls: { url: string; status: number }[] = [];
+let primaryStatus = 503;
 
 const PRIMARY_MODEL = 'claude-sonnet-4';
 const FALLBACK_MODEL = 'gpt-4o-mini';
@@ -139,11 +135,7 @@ beforeAll(async () => {
   originalFetch = global.fetch;
   global.fetch = (async (input, init) => {
     const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : input.url;
+      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
     let hostname = '';
     try {
       hostname = new URL(url).hostname;
@@ -151,9 +143,9 @@ beforeAll(async () => {
       // Non-absolute URL — fall through to the real fetch.
     }
     if (PRIMARY_HOSTS.has(hostname)) {
-      calls.push({ url, status: 503 });
+      calls.push({ url, status: primaryStatus });
       return new Response(JSON.stringify({ error: { message: 'overloaded' } }), {
-        status: 503,
+        status: primaryStatus,
         headers: { 'content-type': 'application/json' },
       });
     }
@@ -203,10 +195,14 @@ afterAll(async () => {
 });
 
 describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', () => {
+  beforeEach(() => {
+    primaryStatus = 503;
+    calls.length = 0;
+  });
+
   it('records fallback auth_type=subscription and cost_usd=0 on subscription fallback success', async () => {
     const ds = app.get(DataSource);
     await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
-    calls.length = 0;
 
     // The seeder + auto-assign warm the routing cache before the test's DB
     // writes, so flush it now or the resolver keeps using the stale tier.
@@ -246,5 +242,23 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
     expect(primaryFailure).toBeDefined();
     expect(primaryFailure.auth_type).toBe('api_key');
     expect(primaryFailure.model).toBe(PRIMARY_MODEL);
+  });
+
+  it('falls back when the primary upstream returns 401', async () => {
+    primaryStatus = 401;
+
+    // The seeder + auto-assign warm the routing cache before the test's DB
+    // writes, so flush it now or the resolver keeps using the stale tier.
+    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+
+    const res = await request(app.getHttpServer())
+      .post('/v1/chat/completions')
+      .set('Authorization', `Bearer ${TEST_OTLP_KEY}`)
+      .send({ messages: [{ role: 'user', content: 'hello' }] })
+      .expect(200);
+
+    expect(res.headers['x-manifest-fallback-from']).toBe(PRIMARY_MODEL);
+    expect(res.headers['x-manifest-fallback-index']).toBe('0');
+    expect(calls.map((c) => c.status)).toEqual([401, 200]);
   });
 });
