@@ -72,6 +72,24 @@ const ModelPickerModal: Component<Props> = (props) => {
   const [search, setSearch] = createSignal('');
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
   const [refreshingProvId, setRefreshingProvId] = createSignal<string | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = createSignal<Set<string>>(new Set());
+
+  const groupCollapseKey = (provId: string) => `${activeTab()}:${provId}`;
+  const groupPanelId = (provId: string) =>
+    `routing-modal-models-${groupCollapseKey(provId).replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  const isGroupCollapsed = (provId: string) => collapsedGroups().has(groupCollapseKey(provId));
+  const toggleGroupCollapsed = (provId: string) => {
+    const key = groupCollapseKey(provId);
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   const handleRefreshGroup = async (provId: string, displayName: string) => {
     if (!props.agentName) return;
@@ -526,44 +544,81 @@ const ModelPickerModal: Component<Props> = (props) => {
                       </svg>
                     </button>
                   </Show>
-                </div>
-                <For each={group.models}>
-                  {(model) => (
-                    <button
-                      class="routing-modal__model"
-                      onClick={() =>
-                        props.onSelect(props.tierId, model.value, group.provId, activeTab())
-                      }
+                  <button
+                    type="button"
+                    class="routing-modal__group-toggle"
+                    aria-expanded={!isGroupCollapsed(group.provId)}
+                    aria-controls={groupPanelId(group.provId)}
+                    aria-label={`${isGroupCollapsed(group.provId) ? 'Show' : 'Hide'} ${group.name} models`}
+                    title={`${isGroupCollapsed(group.provId) ? 'Show' : 'Hide'} ${group.name} models`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleGroupCollapsed(group.provId);
+                    }}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
                     >
-                      <span class="routing-modal__model-label">
-                        {model.label}
-                        <Show when={isRecommended(model.value, group.provId, activeTab())}>
-                          <span class="routing-modal__recommended"> (recommended)</span>
-                        </Show>
-                        <Show when={modelRole(model.value, group.provId, activeTab())}>
-                          {(role) => <span class="routing-modal__role-tag">{role()}</span>}
-                        </Show>
-                      </span>
                       <Show
-                        when={isPaid()}
-                        fallback={
-                          <span class="routing-modal__model-id routing-modal__model-id--subscription">
-                            {isLocal() ? 'Runs on your machine' : 'Included in subscription'}
-                          </span>
+                        when={isGroupCollapsed(group.provId)}
+                        fallback={<path d="m18 15-6-6-6 6" />}
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </Show>
+                    </svg>
+                  </button>
+                </div>
+                <div
+                  id={groupPanelId(group.provId)}
+                  class="routing-modal__group-models"
+                  hidden={isGroupCollapsed(group.provId)}
+                >
+                  <For each={group.models}>
+                    {(model) => (
+                      <button
+                        class="routing-modal__model"
+                        onClick={() =>
+                          props.onSelect(props.tierId, model.value, group.provId, activeTab())
                         }
                       >
-                        <Show when={model.pricing}>
-                          {(p) => (
-                            <span class="routing-modal__model-id">
-                              {pricePerM(p().input_price_per_token)} in ·{' '}
-                              {pricePerM(p().output_price_per_token)} out per 1M
+                        <span class="routing-modal__model-label">
+                          {model.label}
+                          <Show when={isRecommended(model.value, group.provId, activeTab())}>
+                            <span class="routing-modal__recommended"> (recommended)</span>
+                          </Show>
+                          <Show when={modelRole(model.value, group.provId, activeTab())}>
+                            {(role) => <span class="routing-modal__role-tag">{role()}</span>}
+                          </Show>
+                        </span>
+                        <Show
+                          when={isPaid()}
+                          fallback={
+                            <span class="routing-modal__model-id routing-modal__model-id--subscription">
+                              {isLocal() ? 'Runs on your machine' : 'Included in subscription'}
                             </span>
-                          )}
+                          }
+                        >
+                          <Show when={model.pricing}>
+                            {(p) => (
+                              <span class="routing-modal__model-id">
+                                {pricePerM(p().input_price_per_token)} in ·{' '}
+                                {pricePerM(p().output_price_per_token)} out per 1M
+                              </span>
+                            )}
+                          </Show>
                         </Show>
-                      </Show>
-                    </button>
-                  )}
-                </For>
+                      </button>
+                    )}
+                  </For>
+                </div>
               </div>
             )}
           </For>
