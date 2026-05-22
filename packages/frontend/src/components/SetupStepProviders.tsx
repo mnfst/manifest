@@ -12,12 +12,12 @@ const SetupStepProviders: Component<Props> = (props) => {
       <h3 class="setup-step__heading">Connect your LLM providers</h3>
       <p class="setup-step__desc">
         Manifest routes each request to the best model for the job. Connect at least one provider so{' '}
-        <code class="api-key-display__code">manifest/auto</code> can resolve requests.
+        <code class="api-key-display__code">auto</code> can resolve requests.
       </p>
 
       <div class="api-key-display__warning" style="margin-bottom: 16px;">
-        Without a connected provider, requests to{' '}
-        <code class="api-key-display__code">manifest/auto</code> will return an error.
+        Without a connected provider, requests to <code class="api-key-display__code">auto</code>{' '}
+        will return an error.
       </div>
 
       <div style="display: flex; align-items: center; gap: 12px;">

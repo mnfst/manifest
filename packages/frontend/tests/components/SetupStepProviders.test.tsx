@@ -27,11 +27,11 @@ describe("SetupStepProviders", () => {
     expect(container.textContent).toContain("will return an error");
   });
 
-  it("mentions manifest/auto", () => {
+  it("mentions auto", () => {
     const { container } = render(() => (
       <SetupStepProviders agentName="test-agent" onGoToRouting={onGoToRouting} />
     ));
-    expect(container.textContent).toContain("manifest/auto");
+    expect(container.textContent).toContain("auto");
   });
 
   it("renders connect a provider button", () => {
