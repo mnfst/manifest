@@ -203,6 +203,19 @@ describe('ModelParamsDialog', () => {
     expect(screen.getByText('max_tokens')).toBeTruthy();
   });
 
+  it('renders descriptions from the published parameter specs', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    expect(screen.getByText('Controls sampling randomness.')).toBeTruthy();
+    expect(
+      screen.queryByText(
+        'Low values give focused, deterministic answers. High values give more creative, varied responses.',
+      ),
+    ).toBeNull();
+  });
+
   it('renders derived select, slider, and number controls from specs', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />

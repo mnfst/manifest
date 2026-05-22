@@ -39,38 +39,6 @@ const GROUP_LABELS: Record<ModelParamGroup, string> = {
 
 const trimTrailingPunct = (text: string): string => text.replace(/[.\s]+$/, '');
 
-const PARAM_HINTS: Record<string, string> = {
-  temperature:
-    'Low values give focused, deterministic answers. High values give more creative, varied responses.',
-  top_p:
-    'Limits token choices to the most probable ones whose cumulative probability reaches this threshold. Lower values make output more focused.',
-  top_k:
-    'Limits token choices to the top K most probable tokens at each step. Lower values make output more predictable.',
-  max_tokens:
-    'The model stops when it finishes or reaches this limit. A higher value allows longer answers but does not force them.',
-  'thinking.type':
-    'When enabled, the model reasons step by step before answering. Uses more tokens but improves accuracy on complex tasks.',
-  'thinking.budget_tokens':
-    'Maximum number of tokens the model can spend on its internal reasoning before producing the final answer.',
-  reasoning_effort:
-    'It defines how much effort the model puts into reasoning. Lower values are faster and cheaper, higher values are more thorough.',
-  frequency_penalty:
-    'Penalizes tokens that already appeared in the output. Higher values reduce repetition.',
-  presence_penalty:
-    'Penalizes tokens that appeared at all in the conversation. Higher values encourage the model to cover new topics.',
-  tool_choice:
-    'Controls whether the model must call a tool, can optionally call one, or is prevented from calling tools.',
-  parallel_tool_use:
-    'When enabled, the model can call multiple tools in a single turn instead of one at a time.',
-  response_format: 'Forces the model to produce output in a specific format, such as valid JSON.',
-  stream:
-    'When enabled, the response arrives incrementally as it is generated instead of all at once.',
-  store: 'When enabled, the request and response are stored by the provider for later inspection.',
-  service_tier: 'Selects between standard and priority processing tiers offered by the provider.',
-};
-
-const paramHint = (spec: ProviderParamSpec): string => PARAM_HINTS[spec.path] ?? spec.description;
-
 const GROUP_ORDER: readonly ModelParamGroup[] = [
   'generation_length',
   'sampling',
@@ -436,7 +404,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
 
   const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
     const spec = () => rowProps.spec;
-    const description = () => trimTrailingPunct(paramHint(spec())) + '.';
+    const description = () => trimTrailingPunct(spec().description) + '.';
     const defaultLabel = () => (spec().default === undefined ? 'unset' : String(spec().default));
     return (
       <div
