@@ -71,7 +71,7 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
     return {
       prompt_tokens: promptTokens,
       completion_tokens: typeof u.output_tokens === 'number' ? u.output_tokens : 0,
-      cache_read_tokens: cacheRead || undefined,
+      cache_read_tokens: isAnthropicNative ? nativeCacheRead : cacheRead || undefined,
       cache_creation_tokens: nativeCacheCreation,
     };
   }
@@ -164,6 +164,7 @@ export async function pipePassthrough(
   source: ReadableStream<Uint8Array>,
   dest: ExpressResponse,
   tap: (parsedEvent: string) => string | null,
+  onClientChunk?: (text: string) => void,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
@@ -180,7 +181,9 @@ export async function pipePassthrough(
         // Write the upstream bytes through unchanged so the client sees
         // intact SSE framing.
         dest.write(Buffer.from(result.value));
-        sseBuffer += decoder.decode(result.value, { stream: !done });
+        const text = decoder.decode(result.value, { stream: !done });
+        if (onClientChunk) onClientChunk(text);
+        sseBuffer += text;
         if (sseBuffer.length > MAX_SSE_BUFFER_SIZE) {
           throw new Error('SSE buffer overflow: provider sent data without event boundaries');
         }

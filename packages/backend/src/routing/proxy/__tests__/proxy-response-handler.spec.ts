@@ -476,7 +476,7 @@ describe('proxy-response-handler', () => {
       } = {},
     ) {
       return {
-        response: { body: { getReader: jest.fn() } },
+        response: { body: { getReader: jest.fn() }, headers: new Headers() },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
@@ -601,9 +601,44 @@ describe('proxy-response-handler', () => {
       // Dispatched to pipePassthrough, not pipeStream. Tap is the Anthropic
       // stream transformer so thinking-block extraction + OpenAI-shape
       // usage parsing still happen as a side effect.
-      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap);
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap, undefined);
       expect(pipeStreamSpy).not.toHaveBeenCalled();
       expect(usage).toBeNull();
+    });
+
+    it('apiMode=messages + Anthropic upstream forwards raw stream chunks to capture', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isAnthropic: true });
+      const tap = jest.fn();
+      const client = mockProviderClient();
+      client.createAnthropicStreamTransformer.mockReturnValue(tap);
+      const capture = {
+        setHeaders: jest.fn(),
+        appendRaw: jest.fn(),
+      };
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        makeMeta(),
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+        capture as any,
+      );
+
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        tap,
+        expect.any(Function),
+      );
+      const onClientChunk = pipePassthroughSpy.mock.calls[0][3];
+      onClientChunk('event: message_start\n\n');
+      expect(capture.appendRaw).toHaveBeenCalledWith('event: message_start\n\n');
     });
 
     it('apiMode=messages + Anthropic upstream returns the usage that pipePassthrough captured', async () => {

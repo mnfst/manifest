@@ -338,7 +338,7 @@ export async function handleStreamResponse(
     // transformer runs purely as a tap — thinking-block cache via callback
     // and OpenAI-shape usage parsed off its return value by pipePassthrough.
     if (apiMode === 'messages') {
-      return pipePassthrough(forward.response.body!, res, anthropicTransformer);
+      return pipePassthrough(forward.response.body!, res, anthropicTransformer, onClient);
     }
     return pipeStream(
       forward.response.body!,

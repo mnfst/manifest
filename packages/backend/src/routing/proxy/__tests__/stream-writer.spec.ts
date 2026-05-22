@@ -691,6 +691,21 @@ describe('pipePassthrough', () => {
     expect(written.join('')).toBe(raw);
   });
 
+  it('passes raw upstream text to the capture callback', async () => {
+    const { res } = mockResponse();
+    const chunks = [
+      'event: message_start\ndata: {"type":"message_start"}\n\n',
+      'event: content_block_delta\ndata: {"type":"content_block_delta"}\n\n',
+    ];
+    const stream = createReadableStream(chunks);
+    const onClientChunk = jest.fn();
+
+    await pipePassthrough(stream, res as never, () => null, onClientChunk);
+
+    expect(onClientChunk).toHaveBeenCalledTimes(2);
+    expect(onClientChunk.mock.calls.map(([chunk]) => chunk).join('')).toBe(chunks.join(''));
+  });
+
   it('runs the tap on each parsed event for telemetry side effects', async () => {
     const { res } = mockResponse();
     const stream = createReadableStream([
