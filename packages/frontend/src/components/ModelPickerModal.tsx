@@ -261,6 +261,10 @@ const ModelPickerModal: Component<Props> = (props) => {
   };
 
   const totalVisibleModels = () => groupedModels().reduce((sum, g) => sum + g.models.length, 0);
+  const allVisibleGroupsCollapsed = () => {
+    const groups = groupedModels();
+    return groups.length > 0 && groups.every((group) => isGroupCollapsed(group.provId));
+  };
 
   /** Total models available (ignoring search) — used to decide whether to show search bar */
   const totalAvailableModels = () => {
@@ -482,7 +486,10 @@ const ModelPickerModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        <div class="routing-modal__list">
+        <div
+          class="routing-modal__list"
+          classList={{ 'routing-modal__list--all-collapsed': allVisibleGroupsCollapsed() }}
+        >
           <For each={groupedModels()}>
             {(group) => (
               <div class="routing-modal__group">

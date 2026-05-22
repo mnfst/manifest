@@ -107,9 +107,14 @@
   overflow-y: auto;
   flex: 1;
   min-height: 0;
-  padding: 12px 0 0;
+  padding: 0;
   background: hsl(var(--card));
   border-top: 1px solid hsl(var(--border));
+}
+
+.routing-modal__list--all-collapsed {
+  flex: 0 0 auto;
+  overflow-y: visible;
 }
 
 .routing-modal__group {
@@ -124,7 +129,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px 6px;
+  padding: 12px 24px;
   position: sticky;
   top: 0;
   background: hsl(var(--card));
