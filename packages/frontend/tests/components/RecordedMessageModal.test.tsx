@@ -148,6 +148,47 @@ describe("RecordedMessageModal (drawer)", () => {
     });
   });
 
+  it("surfaces OpenAI Responses input in the conversation turns", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            model: "gpt-5.4-mini",
+            instructions: "Be concise.",
+            input: [
+              {
+                role: "user",
+                content: [
+                  { type: "input_text", text: "look at this" },
+                  { type: "input_image", image_url: "https://example.test/image.png" },
+                ],
+              },
+              { role: "assistant", content: [{ type: "output_text", text: "noted" }] },
+            ],
+          },
+          response_body: { type: "json", body: { id: "resp_1", output: [] } },
+          response_headers: {},
+          size_bytes: 120,
+          created_at: "",
+        },
+      }),
+    );
+
+    render(() => <RecordedMessageModal open={true} messageId="msg-responses" onClose={vi.fn()} />);
+
+    await vi.waitFor(() => {
+      const tab = document.querySelector('[role="tab"][aria-selected="true"]');
+      expect(tab?.textContent).toContain("Conversation");
+      expect(tab?.textContent).toContain("3");
+      expect(document.querySelectorAll(".recorded-modal__turn").length).toBe(3);
+      expect(document.body.textContent).toContain("Be concise.");
+      expect(document.body.textContent).toContain("look at this");
+      expect(document.body.textContent).toContain("[image]");
+      expect(document.body.textContent).toContain("noted");
+    });
+    expect(document.body.textContent).not.toContain("Unrecognised request body shape");
+  });
+
   it("switches tabs when tab buttons are clicked", async () => {
     render(() => <RecordedMessageModal open={true} messageId="msg-1" onClose={vi.fn()} />);
     await vi.waitFor(() => {
