@@ -713,7 +713,7 @@
 
 .msg-detail__meta-label {
   color: hsl(var(--muted-foreground));
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-family);
   font-weight: 500;
 }
 
@@ -725,7 +725,7 @@
   border-radius: 4px;
   background: transparent;
   color: hsl(var(--muted-foreground));
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-family);
   font-size: var(--font-size-xs);
   cursor: pointer;
   transition:

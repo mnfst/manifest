@@ -153,6 +153,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
+  const [swappingFbIndex, setSwappingFbIndex] = createSignal<number | null>(null);
 
   const handlePrimaryDragStart = (e: DragEvent) => {
     setPrimaryDragging(true);
@@ -193,6 +194,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!tier) return;
     const currentModel = eff();
     if (!currentModel) return;
+    setSwappingFbIndex(slot > 0 ? slot - 1 : 0);
     // Carry the full primary route through the swap. Without this, the same
     // model name on a different auth (subscription vs api_key) collapses back
     // to "first match in discovery" when the backend rebuilds fallback_routes
@@ -204,7 +206,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     const newFallbacks = [...fallbacks];
     newFallbacks.splice(slot, 0, currentModel);
     const newPrimary = newFallbacks.shift()!;
-    if (newPrimary === currentModel && slot === 0) return; // no-op
+    if (newPrimary === currentModel && slot === 0) {
+      setSwappingFbIndex(null);
+      return;
+    } // no-op
     // Build the parallel route list when we have full coverage. The route
     // shape carries `keyLabel`, so multi-key pins ride along with the swap
     // automatically — primary→fallback or fallback→primary keeps the same
@@ -237,16 +242,21 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     } catch {
       props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
       toast.error('Failed to update fallbacks');
+      setSwappingFbIndex(null);
       return;
     }
     const provId = newPrimaryRoute?.provider ?? providerIdForModel(newPrimary, props.models());
-    props.onOverride(
-      props.stage.id,
-      newPrimary,
-      provId ?? '',
-      newPrimaryRoute?.authType,
-      newPrimaryRoute?.keyLabel ?? undefined,
-    );
+    try {
+      await props.onOverride(
+        props.stage.id,
+        newPrimary,
+        provId ?? '',
+        newPrimaryRoute?.authType,
+        newPrimaryRoute?.keyLabel ?? undefined,
+      );
+    } finally {
+      setSwappingFbIndex(null);
+    }
   };
 
   const swapPrimaryWithFallback = async (fbIndex: number) => {
@@ -254,10 +264,14 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!tier) return;
     const currentModel = eff();
     if (!currentModel) return;
+    setSwappingFbIndex(fbIndex);
     const currentRoute = effectiveRoute(tier);
     const fallbacks = props.getFallbacksFor(props.stage.id);
     const fbModel = fallbacks[fbIndex];
-    if (!fbModel) return;
+    if (!fbModel) {
+      setSwappingFbIndex(null);
+      return;
+    }
     const fallbackRoutes = tier.fallback_routes ?? null;
     const fbRoute = fallbackRoutes?.[fbIndex] ?? null;
     // Swap: fallback model goes to primary, current primary takes its place.
@@ -279,16 +293,21 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     } catch {
       props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
       toast.error('Failed to update fallbacks');
+      setSwappingFbIndex(null);
       return;
     }
     const provId = fbRoute?.provider ?? providerIdForModel(fbModel, props.models());
-    props.onOverride(
-      props.stage.id,
-      fbModel,
-      provId ?? '',
-      fbRoute?.authType,
-      fbRoute?.keyLabel ?? undefined,
-    );
+    try {
+      await props.onOverride(
+        props.stage.id,
+        fbModel,
+        provId ?? '',
+        fbRoute?.authType,
+        fbRoute?.keyLabel ?? undefined,
+      );
+    } finally {
+      setSwappingFbIndex(null);
+    }
   };
 
   const modelInfo = (modelName: string): AvailableModel | undefined => {
@@ -362,11 +381,20 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         when={!props.tiersLoading}
         fallback={
           <div class="routing-card__body">
-            <div class="skeleton skeleton--text" style="width: 160px; height: 14px;" />
-            <div
-              class="skeleton skeleton--text"
-              style="width: 200px; height: 12px; margin-top: 6px;"
-            />
+            <div class="routing-card__model-chip">
+              <div class="routing-card__chip-main">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div
+                    class="skeleton"
+                    style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                  />
+                  <div class="skeleton skeleton--text" style="width: 120px;" />
+                </div>
+              </div>
+              <div class="routing-card__chip-footer">
+                <div class="skeleton skeleton--text" style="width: 150px; height: 12px;" />
+              </div>
+            </div>
           </div>
         }
       >
@@ -388,13 +416,29 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                 if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
                 return null;
               };
+              const isSwapping = () =>
+                swappingFbIndex() !== null || props.changingTier() === props.stage.id;
               return (
                 <>
                   <Show
-                    when={props.changingTier() !== props.stage.id}
+                    when={!isSwapping()}
                     fallback={
                       <div class="routing-card__model-chip">
-                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                        <div class="routing-card__chip-main">
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <div
+                              class="skeleton"
+                              style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                            />
+                            <div class="skeleton skeleton--text" style="width: 120px;" />
+                          </div>
+                        </div>
+                        <div class="routing-card__chip-footer">
+                          <div
+                            class="skeleton skeleton--text"
+                            style="width: 150px; height: 12px;"
+                          />
+                        </div>
                       </div>
                     }
                   >
@@ -569,6 +613,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               persistClearFallbacks={props.persistClearFallbacks}
               getModelParams={props.getModelParams}
               setModelParams={props.setModelParams}
+              swappingIndex={swappingFbIndex()}
               modelHasParams={props.modelHasParams}
               modelParamsScope={modelParamsScopeForTier(props.stage.id)}
             />

@@ -129,9 +129,9 @@ describe('RoutingFooter', () => {
 });
 
 describe('RoutingLoadingSkeleton', () => {
-  it('renders one skeleton card per STAGES entry', () => {
+  it('renders four skeleton cards', () => {
     const { container } = render(() => <RoutingLoadingSkeleton />);
-    expect(container.querySelectorAll('.routing-card').length).toBe(2);
+    expect(container.querySelectorAll('.routing-card').length).toBe(4);
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
   });
 });
