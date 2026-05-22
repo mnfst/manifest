@@ -488,6 +488,7 @@ describe('proxy-response-handler', () => {
       return {
         convertGoogleStreamChunk: jest.fn(),
         createAnthropicStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
+        createReasoningContentStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
         convertChatGptStreamChunk: jest.fn(),
       };
     }
@@ -951,6 +952,47 @@ describe('proxy-response-handler', () => {
 
       // Should not throw — just drops the signatures silently.
       expect(() => capturedTransform!('{}')).not.toThrow();
+    });
+
+    it('caches reasoning_content from compatible OpenAI-compatible streams', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-chat' });
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-reasoning-stream';
+      const transformer = jest.fn((chunk: string) => `data: ${chunk}\n\n`);
+      client.createReasoningContentStreamTransformer.mockReturnValue(transformer);
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        undefined,
+        reasoningCache as any,
+      );
+
+      const callback = client.createReasoningContentStreamTransformer.mock.calls[0][0];
+      expect(typeof callback).toBe('function');
+      callback('call_1', 'streamed reasoning');
+      expect(reasoningCache.store).toHaveBeenCalledWith(
+        'sess-reasoning-stream',
+        'call_1',
+        'streamed reasoning',
+      );
+      expect(pipeStreamSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        expect.any(Function),
+        undefined,
+        undefined,
+      );
     });
   });
 
@@ -1496,6 +1538,89 @@ describe('proxy-response-handler', () => {
       // _extractedSignatures should be deleted from the response body
       const sentBody = res.json.mock.calls[0][0];
       expect(sentBody._extractedSignatures).toBeUndefined();
+    });
+
+    it('caches reasoning_content from compatible non-stream responses with tool calls', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+      const sessionKey = 'sess-reasoning-json';
+      const body = {
+        id: 'chatcmpl-1',
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: '',
+              reasoning_content: 'I should call the tool.',
+              tool_calls: [
+                {
+                  id: 'call_1',
+                  type: 'function',
+                  function: { name: 'lookup', arguments: '{}' },
+                },
+              ],
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta({ provider: 'deepseek', model: 'deepseek-chat' });
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        sessionKey,
+        undefined,
+        'chat_completions',
+        undefined,
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).toHaveBeenCalledWith(
+        'sess-reasoning-json',
+        'call_1',
+        'I should call the tool.',
+      );
+      expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('does not cache reasoning_content from strict provider responses', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = { store: jest.fn() };
+      const body = {
+        choices: [
+          {
+            message: {
+              reasoning_content: 'unsupported',
+              tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta({ provider: 'mistral', model: 'mistral-large' });
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess-strict',
+        undefined,
+        'chat_completions',
+        undefined,
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).not.toHaveBeenCalled();
     });
   });
 

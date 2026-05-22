@@ -18,6 +18,7 @@ import type { LimitCheckService } from '../../../notifications/services/limit-ch
 import type { ProxyFallbackService } from '../proxy-fallback.service';
 import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
+import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
 
@@ -82,6 +83,7 @@ describe('ProxyService — orchestration', () => {
   let configService: ConfigService;
   let signatureCache: ThoughtSignatureCache;
   let thinkingCache: ThinkingBlockCache;
+  let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let svc: ProxyService;
@@ -117,6 +119,9 @@ describe('ProxyService — orchestration', () => {
       retrieve: jest.fn().mockReturnValue(null),
     } as unknown as ThoughtSignatureCache;
     thinkingCache = { retrieve: jest.fn().mockReturnValue(null) } as unknown as ThinkingBlockCache;
+    reasoningCache = {
+      retrieve: jest.fn().mockReturnValue(null),
+    } as unknown as ReasoningContentCache;
 
     modelParamsService = {
       get: jest.fn().mockResolvedValue(null),
@@ -144,6 +149,7 @@ describe('ProxyService — orchestration', () => {
       configService,
       signatureCache,
       thinkingCache,
+      reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
     );
@@ -1069,7 +1075,7 @@ describe('ProxyService — orchestration', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
     });
 
-    it('exercises the per-request signature and thinking lookup closures', async () => {
+    it('exercises the per-request signature, thinking, and reasoning lookup closures', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -1082,6 +1088,7 @@ describe('ProxyService — orchestration', () => {
         // Invoke the lookups so coverage hits the closure bodies.
         opts.signatureLookup?.('tool-call-1');
         opts.thinkingLookup?.('first-use-1');
+        opts.reasoningContentLookup?.('reasoning-call-1');
         return {
           response: okResponse(),
           isGoogle: false,
@@ -1093,6 +1100,7 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(signatureCache.retrieve).toHaveBeenCalledWith('sess-1', 'tool-call-1');
       expect(thinkingCache.retrieve).toHaveBeenCalledWith('sess-1', 'first-use-1');
+      expect(reasoningCache.retrieve).toHaveBeenCalledWith('sess-1', 'reasoning-call-1');
     });
 
     it('strips system / developer roles when scoring', async () => {
