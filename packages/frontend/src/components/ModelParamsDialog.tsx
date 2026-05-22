@@ -36,15 +36,7 @@ const GROUP_LABELS: Record<ModelParamGroup, string> = {
   provider_metadata: 'Provider metadata',
 };
 
-const GROUP_INTROS: Record<ModelParamGroup, string> = {
-  generation_length: 'Controls how much text the model can produce in a single response.',
-  sampling: 'Adjusts randomness and diversity in the generated output.',
-  reasoning: 'Controls extended thinking where the model reasons before answering.',
-  tooling: 'Configures how the model calls external tools and functions.',
-  output_format: 'Constrains the shape of the response.',
-  observability: 'Metadata fields for tracing and debugging requests.',
-  provider_metadata: 'Provider-specific options outside standard categories.',
-};
+const trimTrailingPunct = (text: string): string => text.replace(/[.\s]+$/, '');
 
 const PARAM_HINTS: Record<string, string> = {
   temperature:
@@ -60,7 +52,7 @@ const PARAM_HINTS: Record<string, string> = {
   'thinking.budget_tokens':
     'Maximum number of tokens the model can spend on its internal reasoning before producing the final answer.',
   reasoning_effort:
-    'How much effort the model puts into reasoning. Lower values are faster and cheaper, higher values are more thorough.',
+    'It defines how much effort the model puts into reasoning. Lower values are faster and cheaper, higher values are more thorough.',
   frequency_penalty:
     'Penalizes tokens that already appeared in the output. Higher values reduce repetition.',
   presence_penalty:
@@ -77,15 +69,6 @@ const PARAM_HINTS: Record<string, string> = {
 };
 
 const paramHint = (spec: ProviderParamSpec): string => PARAM_HINTS[spec.path] ?? spec.description;
-
-const rangeLabel = (spec: ProviderParamSpec): string | null => {
-  if (!spec.range) return null;
-  const { min, max } = spec.range;
-  if (min !== undefined && max !== undefined) return `${min}–${max}`;
-  if (min !== undefined) return `min ${min}`;
-  if (max !== undefined) return `max ${max}`;
-  return null;
-};
 
 const GROUP_ORDER: readonly ModelParamGroup[] = [
   'generation_length',
@@ -152,6 +135,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
   });
 
   const valueFor = (spec: ProviderParamSpec): JsonValue | undefined => {
+    if (!providerParamIsApplicable(spec, draft())) {
+      return spec.default as JsonValue | undefined;
+    }
     const value = getProviderParamValue(draft(), spec.path);
     return (value === undefined ? spec.default : value) as JsonValue | undefined;
   };
@@ -163,6 +149,63 @@ const ModelParamsDialog: Component<Props> = (props) => {
   const isApplicable = (spec: ProviderParamSpec): boolean =>
     providerParamIsApplicable(spec, draft());
   const isDisabled = (spec: ProviderParamSpec): boolean => saving() || !isApplicable(spec);
+
+  const labelForPath = (path: string): string =>
+    props.specs.find((s) => s.path === path)?.label ?? path;
+
+  const formatValueList = (values: readonly JsonValue[]): string => {
+    const quoted = values.map((v) => `"${String(v)}"`);
+    if (quoted.length === 1) return quoted[0]!;
+    if (quoted.length === 2) return `${quoted[0]} or ${quoted[1]}`;
+    return `${quoted.slice(0, -1).join(', ')}, or ${quoted[quoted.length - 1]}`;
+  };
+
+  const describeBlocker = (spec: ProviderParamSpec): string | null => {
+    if (!spec.applicability) return null;
+    const { only, except } = spec.applicability;
+    if (only) {
+      const rules = Array.isArray(only) ? only : [only];
+      const rule = rules[0];
+      if (!rule) return null;
+      const parts = Object.entries(rule).map(([path, value]) => {
+        const label = labelForPath(path);
+        const list = Array.isArray(value) ? (value as readonly JsonValue[]) : [value as JsonValue];
+        return `set ${label} to ${formatValueList(list)}`;
+      });
+      return `To configure this parameter, ${parts.join(' and ')}.`;
+    }
+    if (except) {
+      const draftSnapshot = draft();
+      const rules = Array.isArray(except) ? except : [except];
+      const active = rules.find((rule) =>
+        Object.entries(rule).every(([path, value]) => {
+          const current = getProviderParamValue(draftSnapshot, path);
+          if (Array.isArray(value))
+            return (value as readonly JsonValue[]).includes(current as JsonValue);
+          if (value !== null && typeof value === 'object' && 'not' in value) {
+            const notVal = (value as { not: JsonValue | readonly JsonValue[] }).not;
+            if (Array.isArray(notVal))
+              return !(notVal as readonly JsonValue[]).includes(current as JsonValue);
+            return current !== notVal;
+          }
+          return current === value;
+        }),
+      );
+      if (!active) return null;
+      const parts = Object.entries(active).map(([path, value]) => {
+        const label = labelForPath(path);
+        if (Array.isArray(value)) {
+          return `${label} is ${formatValueList(value as readonly JsonValue[])}`;
+        }
+        if (value !== null && typeof value === 'object' && 'not' in value) {
+          return `${label} is set to a custom value`;
+        }
+        return `${label} is "${String(value)}"`;
+      });
+      return `Unavailable while ${parts.join(' and ')}.`;
+    }
+    return null;
+  };
 
   const stringValue = (spec: ProviderParamSpec): string => {
     const value = valueFor(spec);
@@ -220,19 +263,12 @@ const ModelParamsDialog: Component<Props> = (props) => {
   );
 
   const SliderRow = (spec: ProviderParamSpec) => {
-    let startX = 0;
-    let startValue = 0;
     const min = () => spec.range?.min ?? 0;
     const max = () => spec.range?.max ?? 100;
     const value = () => numericValue(spec);
     const setSliderVal = (next: number) => {
       if (isDisabled(spec)) return;
       setValue(spec, sliderValue(next, spec));
-    };
-    const pixelsPerUnit = () => {
-      const span = max() - min();
-      if (span <= 0) return 1;
-      return 120 / span;
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isDisabled(spec)) return;
@@ -252,59 +288,74 @@ const ModelParamsDialog: Component<Props> = (props) => {
       }
     };
 
+    let numberInputRef: HTMLInputElement | undefined;
+    createEffect(() => {
+      const next = value();
+      if (numberInputRef && document.activeElement !== numberInputRef) {
+        numberInputRef.value = String(next);
+      }
+    });
+
+    const commitFromText = (raw: string) => {
+      if (isDisabled(spec)) return;
+      const normalized = raw.replace(',', '.').trim();
+      if (normalized === '' || normalized === '-' || normalized === '.' || normalized === '-.') {
+        return;
+      }
+      const parsed = Number.parseFloat(normalized);
+      if (!Number.isFinite(parsed)) return;
+      const clamped = clampNumber(parsed, numberDefault(spec), spec.range?.min, spec.range?.max);
+      setValue(spec, spec.type === 'integer' ? Math.trunc(clamped) : clamped);
+    };
+
     return (
       <div
-        class="model-params__scrub-field"
-        classList={{ 'model-params__scrub-field--disabled': isDisabled(spec) }}
+        class="model-params__slider-control"
+        classList={{ 'model-params__slider-field--disabled': isDisabled(spec) }}
       >
-        <div
-          class="model-params__scrub"
-          role="slider"
-          tabIndex={isDisabled(spec) ? -1 : 0}
-          aria-label={spec.label}
-          aria-valuemin={min()}
-          aria-valuemax={max()}
-          aria-valuenow={value()}
-          aria-valuetext={String(value())}
-          aria-disabled={isDisabled(spec)}
-          onPointerDown={(e) => {
-            if (isDisabled(spec)) return;
-            e.preventDefault();
-            startX = e.clientX;
-            startValue = value();
-            e.currentTarget.setPointerCapture?.(e.pointerId);
-          }}
-          onPointerMove={(e) => {
-            if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) return;
-            const delta = (e.clientX - startX) / pixelsPerUnit();
-            setSliderVal(startValue + delta);
-          }}
-          onPointerUp={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
-          onPointerCancel={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
-          onKeyDown={handleKeyDown}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M5 3a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 10a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4M5 17a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4m7.33 0a2 2 0 1 0 0 4 2 2 0 1 0 0-4" />
-          </svg>
-        </div>
         <input
-          class="model-params__scrub-input"
-          type="number"
-          min={min()}
-          max={max()}
-          step={sliderStep(spec)}
-          value={value()}
+          ref={(el) => {
+            numberInputRef = el;
+            if (el) el.value = String(value());
+          }}
+          type="text"
+          inputmode="decimal"
+          class="model-params__number model-params__number--slider"
           disabled={isDisabled(spec)}
           aria-label={`${spec.label} value`}
-          onInput={(e) => setSliderVal(Number.parseFloat(e.currentTarget.value))}
+          onBlur={(e) => (e.currentTarget.value = String(value()))}
+          onInput={(e) => commitFromText(e.currentTarget.value)}
         />
+        <div class="model-params__slider-field">
+          <div class="model-params__slider-track-wrapper">
+            <div class="model-params__slider-track-bg" />
+            <For each={[0, 25, 50, 75, 100]}>
+              {(pct) => (
+                <span
+                  class="model-params__slider-tick"
+                  style={`left: calc(6px + (100% - 12px) * ${pct} / 100)`}
+                />
+              )}
+            </For>
+            <input
+              type="range"
+              class="model-params__slider"
+              min={min()}
+              max={max()}
+              step={sliderStep(spec)}
+              value={value()}
+              disabled={isDisabled(spec)}
+              aria-label={spec.label}
+              aria-disabled={isDisabled(spec)}
+              onInput={(e) => setSliderVal(Number.parseFloat(e.currentTarget.value))}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          <div class="model-params__slider-bounds">
+            <span class="model-params__slider-bound">{min()}</span>
+            <span class="model-params__slider-bound">{max()}</span>
+          </div>
+        </div>
       </div>
     );
   };
@@ -384,23 +435,42 @@ const ModelParamsDialog: Component<Props> = (props) => {
 
   const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
     const spec = () => rowProps.spec;
+    const description = () => trimTrailingPunct(paramHint(spec())) + '.';
+    const defaultLabel = () => (spec().default === undefined ? 'unset' : String(spec().default));
     return (
       <div
         class="model-params__row"
         classList={{ 'model-params__row--disabled': !isApplicable(spec()) }}
       >
-        <div class="model-params__row-top">
+        <div class="model-params__row-text">
           <div class="model-params__label-title">
             <span>{spec().label}</span>
             <code class="model-params__param-key">{spec().path}</code>
+            <Show when={!isApplicable(spec()) && describeBlocker(spec())}>
+              {(message) => (
+                <span class="model-params__help" tabIndex={0} aria-label={message()}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
+                    <path d="M11 16h2v2h-2zm2.27-9.75c-2.08-.75-4.47.35-5.21 2.41l1.88.68c.18-.5.56-.9 1.07-1.13s1.08-.26 1.58-.08a2.01 2.01 0 0 1 1.32 1.86c0 1.04-1.66 1.86-2.24 2.07-.4.14-.67.52-.67.94v1h2v-.34c1.04-.51 2.91-1.69 2.91-3.68a4.015 4.015 0 0 0-2.64-3.73" />
+                  </svg>
+                  <span class="model-params__help-tooltip" role="tooltip">
+                    {message()}
+                  </span>
+                </span>
+              )}
+            </Show>
           </div>
-          {renderControl(spec())}
+          <div class="model-params__label-hint">{description()}</div>
+          <div class="model-params__default-hint">Default: {defaultLabel()}</div>
         </div>
-        <div class="model-params__label-hint">
-          {isApplicable(spec())
-            ? `Default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
-            : 'Unavailable with selected parameters'}
-        </div>
+        <div class="model-params__row-control">{renderControl(spec())}</div>
       </div>
     );
   };
@@ -415,8 +485,8 @@ const ModelParamsDialog: Component<Props> = (props) => {
           }}
         >
           <div
-            class="modal-card"
-            style="max-width: 460px; user-select: none;"
+            class="modal-card model-params__dialog"
+            style="max-width: 600px; user-select: none;"
             role="dialog"
             aria-modal="true"
             aria-labelledby="model-params-dialog-title"
@@ -428,71 +498,46 @@ const ModelParamsDialog: Component<Props> = (props) => {
             </h2>
             <p class="modal-card__desc">Manifest parameters for {props.slotLabel}.</p>
 
-            <Show
-              when={!props.loading}
-              fallback={
-                <div class="model-params__status">
-                  <span class="spinner" />
-                  <span>Loading parameters…</span>
-                </div>
-              }
-            >
+            <div class="model-params__body">
               <Show
-                when={props.specs.length > 0}
+                when={!props.loading}
                 fallback={
-                  <p class="model-params__status">This model has no configurable parameters.</p>
+                  <div class="model-params__status">
+                    <span class="spinner" />
+                    <span>Loading parameters…</span>
+                  </div>
                 }
               >
-                <For each={groupSpecs(props.specs)}>
-                  {(group) => (
-                    <div class="model-params__group">
-                      <div class="model-params__group-header">
-                        <span>{GROUP_LABELS[group.group]}</span>
-                        <span class="model-params__group-info">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="13"
-                            height="13"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            viewBox="0 0 24 24"
-                            aria-hidden="true"
-                          >
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 16v-4" />
-                            <path d="M12 8h.01" />
-                          </svg>
-                          <span class="model-params__group-tooltip">
-                            <span class="model-params__tooltip-intro">
-                              {GROUP_INTROS[group.group]}
-                            </span>
-                            <For each={group.specs}>
-                              {(spec) => (
-                                <span class="model-params__tooltip-param">
-                                  <strong>{spec.label}</strong>
-                                  <Show when={rangeLabel(spec)}>
-                                    {' '}
-                                    <span class="model-params__tooltip-range">
-                                      {rangeLabel(spec)}
-                                    </span>
-                                  </Show>
-                                  <br />
-                                  {paramHint(spec)}
-                                </span>
-                              )}
-                            </For>
-                          </span>
-                        </span>
+                <Show
+                  when={props.specs.length > 0}
+                  fallback={
+                    <p class="model-params__status">This model has no configurable parameters.</p>
+                  }
+                >
+                  <For each={groupSpecs(props.specs)}>
+                    {(group) => (
+                      <div class="model-params__group">
+                        <div class="model-params__group-header">
+                          <span>{GROUP_LABELS[group.group]}</span>
+                        </div>
+                        <div class="model-params__group-card">
+                          <For each={group.specs}>
+                            {(spec, index) => (
+                              <>
+                                <Show when={index() > 0}>
+                                  <div class="model-params__separator" />
+                                </Show>
+                                <ParamRow spec={spec} />
+                              </>
+                            )}
+                          </For>
+                        </div>
                       </div>
-                      <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
-                    </div>
-                  )}
-                </For>
+                    )}
+                  </For>
+                </Show>
               </Show>
-            </Show>
+            </div>
 
             <div class="modal-card__footer">
               <button
