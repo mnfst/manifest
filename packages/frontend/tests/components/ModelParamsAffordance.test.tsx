@@ -35,7 +35,6 @@ const baseProps = {
   model: 'deepseek-v4',
   slotLabel: 'deepseek-v4',
   scope: 'tier:default',
-  modelHasParams: () => true,
   getParams: vi.fn(() => null),
   setParams: vi.fn().mockResolvedValue(undefined),
 };

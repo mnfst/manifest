@@ -277,15 +277,6 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
     void _read;
     return (
       <div data-testid="default-section">
-        <span data-testid="default-has-params">
-          {String(
-            (props.modelHasParams as (p: string, a: string, m: string) => boolean)(
-              'openai',
-              'api_key',
-              'gpt-4o',
-            ),
-          )}
-        </span>
         <button
           data-testid="toggle-complexity"
           onClick={() => (props.onToggleComplexity as () => void)()}

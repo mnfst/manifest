@@ -127,7 +127,6 @@ export interface RoutingTierCardProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 const effectiveRoute = (
@@ -543,7 +542,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               slotLabel={labelFor(modelName())}
                               scope={modelParamsScopeForTier(props.stage.id)}
                               agentName={props.agentName()}
-                              modelHasParams={props.modelHasParams}
                               getParams={props.getModelParams!}
                               setParams={props.setModelParams!}
                               disabled={props.changingTier() === props.stage.id}
@@ -614,7 +612,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               getModelParams={props.getModelParams}
               setModelParams={props.setModelParams}
               swappingIndex={swappingFbIndex()}
-              modelHasParams={props.modelHasParams}
               modelParamsScope={modelParamsScopeForTier(props.stage.id)}
             />
           </div>

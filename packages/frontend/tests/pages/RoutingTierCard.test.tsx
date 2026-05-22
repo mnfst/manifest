@@ -92,7 +92,6 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.persistClearFallbacks,
       props.getModelParams,
       props.setModelParams,
-      props.modelHasParams,
     ];
     void _read;
     return (
@@ -256,7 +255,6 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {
     connectedProviders: () => activeProviders,
     getModelParams: () => null,
     setModelParams: vi.fn().mockResolvedValue(undefined),
-    modelHasParams: () => true,
     ...overrides,
   } as Parameters<typeof RoutingTierCard>[0];
 }

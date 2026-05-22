@@ -38,7 +38,6 @@ vi.mock("../../src/pages/RoutingTierCard.js", () => ({
       props.onPinKey,
       props.getModelParams,
       props.setModelParams,
-      props.modelHasParams,
     ];
     void _read;
     return (
