@@ -62,7 +62,7 @@
 
 .routing-modal__filter-bar {
   display: flex;
-  padding: 8px 24px 0;
+  padding: 8px 24px 8px;
   flex-shrink: 0;
 }
 
