@@ -1,0 +1,24 @@
+packages/frontend/tests/components/SetupStepProviders.test.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 30,34
+.changeset/calm-models-wave.md
+  s_cedb6b5244c8ac::t_85f4c59712764b 1-4
+  s_cedb6b5244c8ac::t_db90edab57a53b 5
+packages/frontend/src/components/SetupStepProviders.tsx
+  s_cedb6b5244c8ac::t_85f4c59712764b 15,19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "0c3974f6d9b4fc541e3f78021105794c35b05a60",
+  "prompts": {},
+  "sessions": {
+    "s_cedb6b5244c8ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4ed0-ee09-76b1-b268-ebd8f72d1207",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
