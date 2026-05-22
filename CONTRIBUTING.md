@@ -29,9 +29,16 @@ Manifest is a monorepo managed with [Turborepo](https://turbo.build/) and npm wo
 packages/
 ├── shared/               # Shared TypeScript types and constants
 ├── backend/              # NestJS API server (TypeORM, PostgreSQL, Better Auth)
-├── frontend/             # SolidJS single-page app (Vite, uPlot)
-└── wingman/              # Dev-only gateway tester — never shipped in Docker / cloud bundles
+└── frontend/             # SolidJS single-page app (Vite, uPlot)
 ```
+
+> The Wingman gateway tester now lives in its own repository at
+> [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at
+> [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard
+> embeds it as an iframe drawer **in dev mode only** — it is dead-code-
+> eliminated from production / self-hosted bundles. To run Wingman
+> locally instead of the hosted SPA, clone that repo and set
+> `VITE_WINGMAN_URL=http://localhost:3002` when building the frontend.
 
 Self-hosting is supported via the [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest).
 
@@ -97,13 +104,13 @@ docker rm -f manifest-postgres   # remove the container
 # CLI watcher doesn't compose with turbo's parallel runner)
 cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 
-# Frontend + Wingman (turbo runs both in parallel)
+# Frontend
 npm run dev
 ```
 
-The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`. Wingman runs on `http://localhost:3002` and is embedded as an iframe in the dashboard's bottom drawer (FAB at bottom-right, or `⌘/Ctrl+Shift+W`).
+The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`. The Wingman drawer in the bottom-right (FAB or `⌘/Ctrl+Shift+W`) embeds the hosted SPA at `https://wingman.manifest.build` — no local setup required. It only renders in dev mode and is stripped from production bundles.
 
-`npm run dev` is filtered to exactly `manifest-frontend` + `manifest-wingman` — adding a new workspace with a `dev` script will not silently join the dev set. **Wingman is excluded from every production path** (Dockerfile filter, `.dockerignore`, changeset config, and the `__DEV_MODE__` build constant in `packages/frontend/vite.config.ts` which dead-code-eliminates the drawer when `VITE_MANIFEST_SELFHOSTED=true`).
+`npm run dev` is filtered to exactly `manifest-frontend` — adding a new workspace with a `dev` script will not silently join the dev set.
 
 5. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
@@ -141,64 +148,13 @@ The backend runs standalone and OpenClaw talks to it as a regular OpenAI-compati
 - Debugging the proxy or message recording
 - Working on the dashboard UI with live data
 
-## Wingman — built-in gateway tester (dev only)
+## Wingman — gateway tester (dev only)
 
-**Wingman** is an in-dashboard playground for sending one-shot requests at the gateway while impersonating any of the agents/SDKs Manifest tracks (OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, Raw). It's a separate Vite SPA at `packages/wingman/` that the dashboard embeds via an iframe drawer when running in dev mode.
+**Wingman** is an in-browser playground for sending one-shot requests at the gateway while impersonating any of the agents/SDKs Manifest tracks (OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, Raw). It lives in its own repo at [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard embeds it as an iframe drawer (FAB at bottom-right, or `⌘/Ctrl + Shift + W`) **only in dev mode** — it is dead-code-eliminated from production / self-hosted bundles via the `__DEV_MODE__` build constant in `packages/frontend/vite.config.ts`.
 
-**Why it exists**: reproducing a customer report or verifying routing usually means standing up the full agent. Wingman cuts that to one click — pick a profile, type a message, see the request and response side by side, with the assistant's text, status pill, latency, tokens, and full headers/body dumps in tabs. Each send is saved to a localStorage history sidebar so you can compare runs and replay any of them.
+Pick a profile, type a message, see the request and response side by side with the assistant's text, status pill, latency, tokens, and full headers/body dumps. Each send is saved to a localStorage history sidebar so you can compare runs and replay any of them.
 
-**Features**:
-
-- 7 profiles with byte-correct headers + body shapes captured from the real CLIs/SDKs
-- Editable SDK code panel that actually executes via stubbed OpenAI / Vercel AI / LangChain TS runtimes (request goes through the user's typed code, not the form, when edited)
-- Save-to-Gist button that copies a redacted markdown report (API keys masked) for sharing in bug reports
-- Pink GitHub menu (Repository · Open issue · Start discussion · Browse · Contributing) and Discord shortcut
-
-### Running it
-
-The dashboard auto-discovers Wingman at `backend port + 1`. Start two things:
-
-```bash
-# Terminal 1 — Postgres (skip if already running)
-docker start manifest-postgres
-
-# Terminal 2 — backend on :3001
-cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
-
-# Terminal 3 — frontend (:3000) + Wingman (:3002), both started by turbo
-npm run dev
-```
-
-Open `http://localhost:3000`, sign in, then look at the **bottom-right corner**: a pink **🪶 Wingman** floating action button toggles the drawer. The drawer slides up over half the viewport, embeds Wingman in an iframe at `http://localhost:3002` with `?baseUrl=http://localhost:3000` pre-filled, and you can drag its top edge to resize. Keyboard: `⌘/Ctrl + Shift + W` toggles, `Esc` closes.
-
-To use Wingman with a single-service backend on a custom port (e.g. you're running `node packages/backend/dist/main.js` directly with `PORT=38238`), set the matching env vars on both processes — the backend's `frame-src` CSP and CORS allowlist read `WINGMAN_PORT`, and Wingman's Vite reads `WINGMAN_PORT` + `WINGMAN_BACKEND_PORT`:
-
-```bash
-# Backend
-WINGMAN_PORT=38239 PORT=38238 node -r dotenv/config packages/backend/dist/main.js
-
-# Wingman
-WINGMAN_PORT=38239 WINGMAN_BACKEND_PORT=38238 npm run dev --workspace=manifest-wingman
-```
-
-### Where Wingman is excluded
-
-Wingman is intentionally **not shipped to production or Docker self-hosted bundles**. The exclusion is enforced in four places:
-
-| Layer                              | Mechanism                                                                                                                                  |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `packages/frontend/vite.config.ts` | `__DEV_MODE__` is `true` only when Vite runs in dev mode (`vite serve`). Any production build sets it to `false` so esbuild dead-code-eliminates the FAB + drawer module. |
-| `docker/Dockerfile`                | Build stage runs `turbo build --filter=manifest-backend --filter=manifest-frontend --filter=manifest-shared` — Wingman is never built.     |
-| `.dockerignore`                    | `packages/wingman/` is excluded from the build context.                                                                                    |
-| `.changeset/config.json`           | `manifest-wingman` is in the ignored list — it can never trigger a Docker release.                                                         |
-
-After every change to the Wingman code, verify the production bundle stays clean:
-
-```bash
-npm run build --workspace=manifest-frontend
-grep -lc 'wingman\|Wingman' packages/frontend/dist/assets/*.js | grep -v ':0$'
-# ^ no JS chunk should match
-```
+The hosted SPA is a static bundle with no first-party backend. Your API key is sent directly from the browser to whatever Manifest backend you configure as the base URL (the same endpoint the key is already used against); nothing is proxied through wingman.manifest.build. To point the drawer at a locally-running Wingman build instead, set `VITE_WINGMAN_URL=http://localhost:3002` when building the frontend, and run Wingman from the `mnfst/wingman` repo.
 
 ## Available Scripts
 

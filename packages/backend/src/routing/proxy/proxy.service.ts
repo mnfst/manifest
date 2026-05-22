@@ -12,7 +12,11 @@ import { LimitCheckService } from '../../notifications/services/limit-check.serv
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type { RequestParamDefaults, SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES, snapshotRequestParams } from 'manifest-shared';
+import {
+  SPECIFICITY_CATEGORIES,
+  modelParamsScopeForRouting,
+  snapshotRequestParams,
+} from 'manifest-shared';
 import type { ParamMergeContext } from './proxy-fallback.service';
 import {
   ProxyFallbackService,
@@ -28,6 +32,8 @@ import {
 } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
@@ -81,13 +87,10 @@ export interface RoutingMeta {
    */
   primaryAuthType?: string;
   /**
-   * Effective request body parameters for this attempt — the merged result
-   * of (1) client body keys in `REQUEST_PARAM_KEYS`, (2) the user's
-   * `param_defaults` filtered for the resolved provider, (3) Manifest's
-   * tier-aware default (e.g. DeepSeek thinking-off on speed/cost tiers).
+   * Effective request body parameters for this attempt: client body values,
+   * route-scoped `agent_model_params`, and MPS provider param defaults.
    * Persisted on `agent_messages.request_params` so the dashboard can show
-   * "this request had thinking=disabled" alongside Request Headers in the
-   * expanded row. `null` when no known params apply.
+   * which model params were in play for the recorded request.
    */
   request_params?: RequestParamDefaults | null;
 }
@@ -115,6 +118,8 @@ export class ProxyService {
     private readonly config: ConfigService,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -183,16 +188,16 @@ export class ProxyService {
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
 
     // Per-attempt param-defaults merge happens inside the fallback service
-    // so each forward (primary + every fallback iteration) re-applies the
-    // filter and Manifest opinion against *its own* provider. Pass the
-    // merge inputs here as a single context bag; specificity matches skip
-    // the tier-aware Manifest default since they are user-curated and not
-    // tier-keyed.
-    const paramMergeContext: ParamMergeContext = {
-      userDefaults: resolved.param_defaults,
+    // so each forward (primary + every fallback iteration) looks up its
+    // own (provider, auth_type, model) tuple in the model-params service.
+    // Pass the agentId here as a thin context bag; the storage is already
+    // route-scoped, so no per-provider filter is needed downstream.
+    const scopeKey = modelParamsScopeForRouting({
       tier: resolved.tier,
-      isSpecificity: !!resolved.specificity_category,
-    };
+      specificityCategory: resolved.specificity_category,
+      headerTierId: resolved.header_tier_id,
+    });
+    const paramMergeContext: ParamMergeContext = { agentId, scopeKey };
 
     // Snapshot of which known param keys are *effectively in play* for the
     // primary attempt. Stored on every `agent_messages` row recorded for
@@ -200,12 +205,22 @@ export class ProxyService {
     // (today: DeepSeek's `thinking` toggle) in the expanded message detail.
     // Re-derived for fallback successes against the actual fallback
     // provider so the persisted snapshot matches what was sent on that row.
+    const primaryModelParams = await this.modelParamsService.get(
+      agentId,
+      scopeKey,
+      route.provider,
+      route.authType,
+      primaryModel,
+    );
+    const primarySpecs = await this.providerParamSpecs.getSpecs(
+      route.provider,
+      route.authType,
+      primaryModel,
+    );
     const primaryRequestParams = snapshotRequestParams({
       body: routingBody as Record<string, unknown>,
-      userDefaults: paramMergeContext.userDefaults,
-      tier: paramMergeContext.tier,
-      isSpecificity: paramMergeContext.isSpecificity,
-      provider: route.provider,
+      modelParams: primaryModelParams,
+      specs: primarySpecs,
     });
 
     const forward = await this.fallbackService.tryForwardToProvider({
@@ -473,15 +488,25 @@ export class ProxyService {
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
     if (success) {
-      // Re-snapshot for the fallback's actual provider — different vendor
-      // means a different filter (e.g. DeepSeek's `thinking` is dropped on
-      // an Anthropic fallback, matching what the proxy actually sent).
+      // Re-snapshot for the fallback's actual provider — its model-scoped
+      // params row (if any) is what was actually applied. Different model
+      // → different lookup → different snapshot, matching the wire.
+      const fallbackModelParams = success.authType
+        ? await this.modelParamsService.get(
+            args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
+            success.provider,
+            success.authType,
+            success.model,
+          )
+        : null;
+      const fallbackSpecs = success.authType
+        ? await this.providerParamSpecs.getSpecs(success.provider, success.authType, success.model)
+        : [];
       const fallbackRequestParams = snapshotRequestParams({
         body: body as Record<string, unknown>,
-        userDefaults: args.paramMergeContext.userDefaults,
-        tier: args.paramMergeContext.tier,
-        isSpecificity: args.paramMergeContext.isSpecificity,
-        provider: success.provider,
+        modelParams: fallbackModelParams,
+        specs: fallbackSpecs,
       });
       return {
         forward: success.forward,
@@ -510,13 +535,31 @@ export class ProxyService {
     const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
 
     // Fallback exhausted — recorded against the primary provider, so use
-    // the primary-provider snapshot for the row.
+    // the primary-provider snapshot for the row. Look up the primary's
+    // model-params one more time so the snapshot reflects what was sent
+    // before the chain failed.
+    const primaryModelParams =
+      primaryProvider && primaryAuth && resolved.route
+        ? await this.modelParamsService.get(
+            args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
+            primaryProvider,
+            primaryAuth as 'api_key' | 'subscription' | 'local',
+            primaryModel,
+          )
+        : null;
+    const exhaustedSpecs =
+      primaryProvider && primaryAuth && resolved.route
+        ? await this.providerParamSpecs.getSpecs(
+            primaryProvider,
+            primaryAuth as 'api_key' | 'subscription' | 'local',
+            primaryModel,
+          )
+        : [];
     const exhaustedRequestParams = snapshotRequestParams({
       body: body as Record<string, unknown>,
-      userDefaults: args.paramMergeContext.userDefaults,
-      tier: args.paramMergeContext.tier,
-      isSpecificity: args.paramMergeContext.isSpecificity,
-      provider: primaryProvider ?? '',
+      modelParams: primaryModelParams,
+      specs: exhaustedSpecs,
     });
     return {
       forward: {

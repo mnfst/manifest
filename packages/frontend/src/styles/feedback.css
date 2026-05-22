@@ -110,7 +110,7 @@
   border-radius: var(--radius);
   background: hsl(var(--card));
   color: hsl(var(--foreground));
-  font-family: var(--font-sans);
+  font-family: var(--font-family);
   font-size: var(--font-size-xs);
   resize: vertical;
   margin-bottom: 12px;

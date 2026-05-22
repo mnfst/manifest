@@ -57,9 +57,9 @@ export class AnthropicOauthController {
       throw new HttpException('code is required', HttpStatus.BAD_REQUEST);
     }
     // Resolve the agent so unknown agents still 404 even if state is valid.
-    await this.resolveAgent.resolve(user.id, agentName);
+    const agent = await this.resolveAgent.resolve(user.id, agentName);
     try {
-      await this.oauthService.exchangeCode(code, state);
+      await this.oauthService.exchangeCode(code, state, agent.id, user.id);
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Token exchange failed';
@@ -79,7 +79,7 @@ export class AnthropicOauthController {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return this.oauthService.findPendingForAgent(agent.id) ?? { state: null };
+    return (await this.oauthService.findPendingForAgent(agent.id, user.id)) ?? { state: null };
   }
 
   /** Disconnect the Anthropic subscription provider for an agent. */

@@ -135,7 +135,7 @@
   color: hsl(var(--popover-foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  font-size: var(--font-size-xs);
+  font-size: var(--tooltip-font-size);
   font-weight: 400;
   line-height: 1.5;
   white-space: normal;
@@ -189,6 +189,10 @@
 .tier-badge--fallback {
   background: hsl(var(--muted-foreground) / 0.1);
   color: hsl(var(--muted-foreground));
+}
+.tier-badge--playground {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
 }
 
 /* Custom header-triggered tier badge — color comes from tier-color-* classes. */
@@ -594,6 +598,21 @@
   border-bottom-color: transparent;
 }
 
+.msg-row--clickable {
+  cursor: pointer;
+}
+
+.msg-row--clickable:hover > td {
+  background: hsl(var(--accent));
+}
+
+.msg-detail__eye-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--muted-foreground));
+}
+
 .msg-detail__row > td {
   padding: 0 !important;
 }
@@ -651,21 +670,33 @@
 
 .msg-detail__meta {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 10px 16px;
   margin-bottom: 12px;
   font-size: var(--font-size-xs);
 }
 
+@media (max-width: 1400px) {
+  .msg-detail__meta {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 1100px) {
+  .msg-detail__meta {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .msg-detail__meta {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 600px) {
   .msg-detail__meta {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -682,7 +713,7 @@
 
 .msg-detail__meta-label {
   color: hsl(var(--muted-foreground));
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-family);
   font-weight: 500;
 }
 
@@ -694,7 +725,7 @@
   border-radius: 4px;
   background: transparent;
   color: hsl(var(--muted-foreground));
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-family);
   font-size: var(--font-size-xs);
   cursor: pointer;
   transition:
@@ -961,7 +992,7 @@
   border-radius: var(--radius);
   background: hsl(var(--foreground));
   color: hsl(var(--background));
-  font-size: var(--font-size-xs);
+  font-size: var(--tooltip-font-size);
   font-weight: 400;
   white-space: nowrap;
   opacity: 0;

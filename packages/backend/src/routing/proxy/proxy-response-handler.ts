@@ -4,7 +4,7 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { RoutingMeta } from './proxy.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
-import { ProxyMessageRecorder } from './proxy-message-recorder';
+import { ProxyMessageRecorder, SuccessRecordingPayload } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
 import {
   initSseHeaders,
@@ -32,6 +32,8 @@ import {
   type ExtractedThinkingBlocks,
 } from './anthropic-adapter';
 import type { CallerAttribution } from './caller-classifier';
+import type { CaptureSink } from './recording-capture';
+import { sanitizeResponseHeaders } from './recording-capture';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -61,10 +63,6 @@ function setHeaders(res: ExpressResponse, headers: Record<string, string>): void
   for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
 }
 
-/**
- * Handles non-OK provider responses: fallback-exhausted and single upstream errors.
- * Returns true if the response was handled (caller should return), false otherwise.
- */
 export async function handleProviderError(
   res: ExpressResponse,
   ctx: IngestionContext,
@@ -206,10 +204,6 @@ function handleFallbackExhausted(
   });
 }
 
-/**
- * Records fallback failures when a fallback model ultimately succeeded.
- * Returns the timestamp to use for the fallback success record.
- */
 export function recordFallbackFailures(
   ctx: IngestionContext,
   meta: RoutingMeta,
@@ -272,7 +266,6 @@ export function recordFallbackFailures(
   return new Date(fallbackBaseTime + (failures.length + 1) * 100).toISOString();
 }
 
-/** Pipes a streaming response, applying adapter transforms as needed. */
 export async function handleStreamResponse(
   res: ExpressResponse,
   forward: ForwardResult,
@@ -283,8 +276,14 @@ export async function handleStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  capture?: CaptureSink,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
+
+  if (capture) {
+    capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
+  }
+  const onClient = capture ? (text: string) => capture.appendRaw(text) : undefined;
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
@@ -297,7 +296,7 @@ export async function handleStreamResponse(
         : (chunk: string) => chunk;
 
   if (apiMode === 'responses' && forward.isResponses) {
-    return pipeStream(forward.response.body!, res);
+    return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
   }
 
   if (forward.isGoogle) {
@@ -317,6 +316,7 @@ export async function handleStreamResponse(
         return out ? toClientChunk(out) : null;
       },
       finalize,
+      onClient,
     );
   }
   if (forward.isAnthropic) {
@@ -348,6 +348,7 @@ export async function handleStreamResponse(
         return out ? toClientChunk(out) : null;
       },
       finalize,
+      onClient,
     );
   }
   if (forward.isChatGpt) {
@@ -360,15 +361,15 @@ export async function handleStreamResponse(
         return out ? toClientChunk(out) : null;
       },
       finalize,
+      onClient,
     );
   }
   if (apiMode === 'responses' || apiMode === 'messages') {
-    return pipeStream(forward.response.body!, res, toClientChunk, finalize);
+    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
   }
-  return pipeStream(forward.response.body!, res);
+  return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
 }
 
-/** Reads and converts a non-streaming response, extracting usage data. */
 export async function handleNonStreamResponse(
   res: ExpressResponse,
   forward: ForwardResult,
@@ -379,7 +380,11 @@ export async function handleNonStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  capture?: CaptureSink,
 ): Promise<StreamUsage | null> {
+  if (capture) {
+    capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
+  }
   let responseBody: unknown;
 
   if (apiMode === 'responses' && forward.isResponses) {
@@ -442,6 +447,8 @@ export async function handleNonStreamResponse(
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
 
+  if (capture) capture.setJson(responseBody);
+
   res.status(200);
   setHeaders(res, metaHeaders);
   res.json(responseBody);
@@ -453,9 +460,6 @@ async function readNativeResponsesBody(response: Response): Promise<unknown> {
   const text = await response.text();
   const trimmed = text.trimStart();
 
-  // ChatGPT subscription Responses can return SSE text without an SSE content
-  // type. Inspecting the body keeps non-streaming SDK calls from trying to parse
-  // `event: ...` as JSON.
   if (
     contentType.includes('text/event-stream') ||
     trimmed.startsWith('event:') ||
@@ -467,7 +471,6 @@ async function readNativeResponsesBody(response: Response): Promise<unknown> {
   return JSON.parse(text);
 }
 
-/** Records the success message or fallback success after response is sent. */
 export function recordSuccess(
   ctx: IngestionContext,
   meta: RoutingMeta,
@@ -479,6 +482,7 @@ export function recordSuccess(
   startTime?: number,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  recording?: { requestBody: Record<string, unknown>; capture: CaptureSink },
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
@@ -504,6 +508,23 @@ export function recordSuccess(
   } else {
     const usage = streamUsage ?? { prompt_tokens: 0, completion_tokens: 0 };
     const durationMs = startTime ? Date.now() - startTime : undefined;
+    let recordingPayload: SuccessRecordingPayload | undefined;
+    if (recording) {
+      const { capture, requestBody } = recording;
+      if (capture.overflowed) {
+        logger.warn('Recording skipped: payload exceeded size cap');
+      } else {
+        const responseBody = capture.buildResponseBody();
+        if (responseBody !== null) {
+          recordingPayload = {
+            request_body: requestBody,
+            response_body: responseBody,
+            response_headers: capture.responseHeaders,
+            size_bytes: capture.getSizeBytes(),
+          };
+        }
+      }
+    }
     recordSafely(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
         traceId,
@@ -519,6 +540,7 @@ export function recordSuccess(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        recordingPayload,
       }),
       'success message',
     );

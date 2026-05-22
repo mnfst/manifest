@@ -102,7 +102,13 @@ describe('agents API client', () => {
 
   it('getDuplicatePreview GETs the duplicate-preview endpoint', async () => {
     const fetchMock = setupFetch({
-      copied: { providers: 1, customProviders: 0, tierAssignments: 4, specificityAssignments: 0 },
+      copied: {
+        providers: 1,
+        customProviders: 0,
+        tierAssignments: 4,
+        specificityAssignments: 0,
+        modelParams: 0,
+      },
       suggested_name: 'demo-copy',
     });
     const out = await agents.getDuplicatePreview('demo');
@@ -115,7 +121,7 @@ describe('agents API client', () => {
     const fetchMock = setupFetch({
       agent: { id: '1', name: 'demo-copy', display_name: 'Demo Copy' },
       apiKey: 'mnfst_new',
-      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0 },
+      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0, modelParams: 0 },
     });
     const out = await agents.duplicateAgent('demo', 'demo-copy');
     expect(out.agent.name).toBe('demo-copy');

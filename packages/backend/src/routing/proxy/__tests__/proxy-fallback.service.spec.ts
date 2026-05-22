@@ -12,6 +12,28 @@ import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.ser
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
+
+const specCatalog: ProviderParamSpecCatalog = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-flash',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
+  },
+];
 
 describe('ProxyFallbackService', () => {
   let service: ProxyFallbackService;
@@ -23,6 +45,8 @@ describe('ProxyFallbackService', () => {
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
+  let modelParamsService: jest.Mocked<AgentModelParamsService>;
+  let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -61,6 +85,20 @@ describe('ProxyFallbackService', () => {
       getByModel: jest.fn().mockReturnValue(null),
     } as unknown as jest.Mocked<ModelPricingCacheService>;
 
+    modelParamsService = {
+      get: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue([]),
+      set: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as jest.Mocked<AgentModelParamsService>;
+
+    providerParamSpecs = {
+      getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
+        getProviderParamSpecs(specCatalog, provider, authType as 'api_key' | 'subscription', model),
+      ),
+      list: jest.fn().mockResolvedValue(specCatalog),
+    } as unknown as jest.Mocked<ProviderParamSpecService>;
+
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
@@ -70,6 +108,8 @@ describe('ProxyFallbackService', () => {
       providerClient,
       copilotToken,
       pricingCache,
+      modelParamsService,
+      providerParamSpecs,
     );
   });
 
@@ -127,13 +167,14 @@ describe('ProxyFallbackService', () => {
       ).rejects.toThrow('boom');
     });
 
-    it("merges Manifest's tier-aware default into the body before calling providerClient (DeepSeek + standard tier)", async () => {
+    it('merges the per-route saved params into the outbound body when the attempt has a configured row', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'disabled' } });
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -142,9 +183,17 @@ describe('ProxyFallbackService', () => {
         body: { messages: [{ role: 'user', content: 'hi' }] },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: false },
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
+      expect(modelParamsService.get).toHaveBeenCalledWith(
+        'agent-1',
+        'tier:default',
+        'deepseek',
+        'api_key',
+        'deepseek-v4-flash',
+      );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({
           body: expect.objectContaining({ thinking: { type: 'disabled' } }),
@@ -152,17 +201,18 @@ describe('ProxyFallbackService', () => {
       );
     });
 
-    it("re-merges per attempt — does not leak DeepSeek's thinking onto an Anthropic fallback", async () => {
+    it('per-attempt lookup leaves other providers untouched (no cross-provider leak)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: true,
         isChatGpt: false,
       });
+      // Anthropic has no row in agent_model_params, so the lookup returns null
+      // and the body passes through unmodified — no provider filter needed
+      // because storage is already route-scoped.
+      modelParamsService.get.mockResolvedValueOnce(null);
 
-      // Same context (originally resolved against DeepSeek) but the iteration
-      // is firing against Anthropic. The filter must drop `thinking` because
-      // Anthropic doesn't consume that field shape.
       await service.tryForwardToProvider({
         provider: 'anthropic',
         apiKey: 'sk-anthropic',
@@ -170,24 +220,22 @@ describe('ProxyFallbackService', () => {
         body: { messages: [{ role: 'user', content: 'hi' }] },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: {
-          userDefaults: { thinking: { type: 'disabled' } },
-          tier: 'standard',
-          isSpecificity: false,
-        },
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
       expect(forwarded.body.thinking).toBeUndefined();
     });
 
-    it('respects the inbound body field by presence (client wins over Manifest default)', async () => {
+    it('lets saved Manifest params override inbound body fields at the same path', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
       });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'disabled' } });
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -199,14 +247,15 @@ describe('ProxyFallbackService', () => {
         },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: false },
+        authType: 'api_key',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
-      expect(forwarded.body.thinking).toEqual({ type: 'enabled' });
+      expect(forwarded.body.thinking).toEqual({ type: 'disabled' });
     });
 
-    it('skips the tier-aware Manifest default for specificity contexts', async () => {
+    it('skips the lookup when paramMergeContext is omitted (e.g. legacy callers)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -221,11 +270,10 @@ describe('ProxyFallbackService', () => {
         body: { messages: [{ role: 'user', content: 'hi' }] },
         stream: false,
         sessionKey: 'sess-1',
-        paramMergeContext: { userDefaults: null, tier: 'standard', isSpecificity: true },
+        authType: 'api_key',
       });
 
-      const forwarded = providerClient.forward.mock.calls[0][0];
-      expect(forwarded.body.thinking).toBeUndefined();
+      expect(modelParamsService.get).not.toHaveBeenCalled();
     });
 
     it('rethrows when signal is aborted', async () => {

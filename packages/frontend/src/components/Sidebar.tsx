@@ -28,6 +28,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       onClick={(event) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) {
           props.onNavigate?.();
+          window.dispatchEvent(new CustomEvent('sidebar-navigate'));
         }
       }}
     >
@@ -69,6 +70,14 @@ const Sidebar: Component<SidebarProps> = (props) => {
           aria-current={isActive('/routing') ? 'page' : undefined}
         >
           Routing
+        </A>
+        <A
+          href={path('/playground')}
+          class="sidebar__link"
+          classList={{ active: isActive('/playground') }}
+          aria-current={isActive('/playground') ? 'page' : undefined}
+        >
+          Playground
         </A>
         <A
           href={path('/limits')}

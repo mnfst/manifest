@@ -25,11 +25,15 @@ import {
   refreshPricing,
   getComplexityStatus,
   toggleComplexity,
-  setTierParamDefaults,
-  setSpecificityParamDefaults,
+  listModelParams,
+  listModelParamSpecIndex,
+  setModelParams as setModelParamsApi,
+  deleteModelParams,
+  modelParamsKey,
+  type AgentModelParamsRow,
+  type AuthType,
+  type ModelParamSpecId,
   type RequestParamDefaults,
-  type TierAssignment,
-  type SpecificityAssignment,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 
@@ -64,10 +68,98 @@ const Routing: Component = () => {
     () => agentName(),
     (name) => listHeaderTiers(name).catch(() => [] as HeaderTier[]),
   );
-  const [complexityStatus, { refetch: refetchComplexityStatus, mutate: mutateComplexityStatus }] =
-    createResource(() => agentName(), getComplexityStatus);
+  const [complexityStatus, { mutate: mutateComplexityStatus }] = createResource(
+    () => agentName(),
+    getComplexityStatus,
+  );
   const [togglingComplexity, setTogglingComplexity] = createSignal(false);
   const complexityEnabled = () => complexityStatus()?.enabled ?? true;
+
+  // Per-route model params, fetched once and threaded down. Scope separates
+  // default/complexity tiers, task-specific tiers, and custom header tiers so
+  // the same model can have different values in different routing surfaces.
+  const [modelParams, { mutate: mutateModelParams }] = createResource(
+    () => agentName(),
+    (name) => listModelParams(name).catch(() => [] as AgentModelParamsRow[]),
+  );
+  const modelParamsMap = createMemo(() => {
+    const map = new Map<string, RequestParamDefaults>();
+    for (const row of modelParams() ?? []) {
+      map.set(modelParamsKey(row.scope, row.provider, row.authType, row.model), row.params);
+    }
+    return map;
+  });
+  const getModelParamsFor = (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ): RequestParamDefaults | null =>
+    modelParamsMap().get(modelParamsKey(scope, provider, authType, model)) ?? null;
+
+  // Lightweight identity index of models that expose configurable params, so a
+  // row only shows the params affordance when there's something to configure —
+  // without the full catalog. Per-param details are still fetched per-model on
+  // dialog open.
+  const [specIndex] = createResource(
+    () => agentName(),
+    (name) => listModelParamSpecIndex(name).catch(() => [] as ModelParamSpecId[]),
+  );
+  const specIndexKeys = createMemo(() => {
+    const set = new Set<string>();
+    for (const id of specIndex() ?? []) {
+      set.add(`${id.provider.toLowerCase()}::${id.authType}::${id.model}`);
+    }
+    return set;
+  });
+  const modelHasParams = (provider: string, authType: AuthType, model: string): boolean =>
+    specIndexKeys().has(`${provider.toLowerCase()}::${authType}::${model}`);
+  const setModelParamsFor = async (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    next: RequestParamDefaults | null,
+  ): Promise<void> => {
+    if (next === null) {
+      // Dialog returns null when the user collapses back to the provider's
+      // natural default. Delete the row so the table stays clean and the
+      // dashboard snapshot reflects the provider default, not an explicit
+      // override.
+      await deleteModelParams(agentName(), { scope, provider, authType, model });
+      mutateModelParams((rows) =>
+        (rows ?? []).filter(
+          (r) =>
+            !(
+              r.scope === scope &&
+              r.provider.toLowerCase() === provider.toLowerCase() &&
+              r.authType === authType &&
+              r.model === model
+            ),
+        ),
+      );
+      return;
+    }
+    const saved = await setModelParamsApi(agentName(), {
+      scope,
+      provider,
+      authType,
+      model,
+      params: next,
+    });
+    mutateModelParams((rows) => {
+      const without = (rows ?? []).filter(
+        (r) =>
+          !(
+            r.scope === scope &&
+            r.provider.toLowerCase() === provider.toLowerCase() &&
+            r.authType === authType &&
+            r.model === model
+          ),
+      );
+      return [...without, saved];
+    });
+  };
 
   const handleToggleComplexity = async () => {
     setTogglingComplexity(true);
@@ -404,16 +496,9 @@ const Routing: Component = () => {
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
                   embedded
-                  persistParamDefaults={(name, tier, paramDefaults) =>
-                    setTierParamDefaults(name, tier, paramDefaults)
-                  }
-                  onParamDefaultsSaved={(tier, paramDefaults) => {
-                    mutateTiers((rows: TierAssignment[] | undefined) =>
-                      rows?.map((row) =>
-                        row.tier === tier ? { ...row, param_defaults: paramDefaults } : row,
-                      ),
-                    );
-                  }}
+                  getModelParams={getModelParamsFor}
+                  setModelParams={setModelParamsFor}
+                  modelHasParams={modelHasParams}
                 />
               ),
               specificity: (
@@ -458,16 +543,9 @@ const Routing: Component = () => {
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded
-                  persistParamDefaults={(name, category, paramDefaults) =>
-                    setSpecificityParamDefaults(name, category, paramDefaults)
-                  }
-                  onParamDefaultsSaved={(category, paramDefaults) => {
-                    mutateSpecificity((rows: SpecificityAssignment[] | undefined) =>
-                      rows?.map((row) =>
-                        row.category === category ? { ...row, param_defaults: paramDefaults } : row,
-                      ),
-                    );
-                  }}
+                  getModelParams={getModelParamsFor}
+                  setModelParams={setModelParamsFor}
+                  modelHasParams={modelHasParams}
                 />
               ),
               custom: (
@@ -480,6 +558,9 @@ const Routing: Component = () => {
                   externalRefetch={() => void refetchHeaderTiers()}
                   externalMutate={mutateHeaderTiers}
                   embedded
+                  getModelParams={getModelParamsFor}
+                  setModelParams={setModelParamsFor}
+                  modelHasParams={modelHasParams}
                 />
               ),
             }}

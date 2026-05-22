@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { AgentModelParams } from '../../entities/agent-model-params.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -17,6 +18,8 @@ import { TierAutoAssignService } from './tier-auto-assign.service';
 import { ResolveAgentService } from './resolve-agent.service';
 import { SpecificityService } from './specificity.service';
 import { SpecificityPenaltyService } from './specificity-penalty.service';
+import { AgentModelParamsService } from './agent-model-params.service';
+import { ProviderParamSpecService } from './provider-param-spec.service';
 
 @Module({
   imports: [
@@ -24,6 +27,7 @@ import { SpecificityPenaltyService } from './specificity-penalty.service';
       UserProvider,
       TierAssignment,
       SpecificityAssignment,
+      AgentModelParams,
       Agent,
       Tenant,
       AgentMessage,
@@ -41,6 +45,8 @@ import { SpecificityPenaltyService } from './specificity-penalty.service';
     ResolveAgentService,
     SpecificityService,
     SpecificityPenaltyService,
+    AgentModelParamsService,
+    ProviderParamSpecService,
   ],
   exports: [
     TypeOrmModule,
@@ -53,6 +59,8 @@ import { SpecificityPenaltyService } from './specificity-penalty.service';
     ResolveAgentService,
     SpecificityService,
     SpecificityPenaltyService,
+    AgentModelParamsService,
+    ProviderParamSpecService,
   ],
 })
 export class RoutingCoreModule {}
