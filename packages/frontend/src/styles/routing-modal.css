@@ -1,4 +1,8 @@
 /* ── Model picker modal ───────────────────────────── */
+.routing-modal__card {
+  overflow: hidden;
+}
+
 .routing-modal__header {
   display: flex;
   align-items: flex-start;

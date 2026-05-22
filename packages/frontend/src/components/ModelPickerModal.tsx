@@ -295,7 +295,7 @@ const ModelPickerModal: Component<Props> = (props) => {
       }}
     >
       <div
-        class="modal-card"
+        class="modal-card routing-modal__card"
         style="max-width: 600px; padding: 0; display: flex; flex-direction: column; max-height: 80vh;"
         role="dialog"
         aria-modal="true"
