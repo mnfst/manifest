@@ -515,7 +515,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   <span class="routing-modal__group-name">{group.name}</span>
                   <Show when={props.agentName && !group.provId.startsWith('custom:')}>
                     <button
-                      class="routing-modal__group-refresh"
+                      class="routing-modal__icon-btn routing-modal__group-refresh"
                       disabled={refreshingProvId() !== null}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -546,7 +546,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   </Show>
                   <button
                     type="button"
-                    class="routing-modal__group-toggle"
+                    class="routing-modal__icon-btn routing-modal__group-toggle"
                     aria-expanded={!isGroupCollapsed(group.provId)}
                     aria-controls={groupPanelId(group.provId)}
                     aria-label={`${isGroupCollapsed(group.provId) ? 'Show' : 'Hide'} ${group.name} models`}

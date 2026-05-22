@@ -146,7 +146,7 @@
   flex: 1;
 }
 
-.routing-modal__group-refresh {
+.routing-modal__icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -165,45 +165,20 @@
     background 0.15s ease;
 }
 
-.routing-modal__group-refresh:hover:not(:disabled) {
+.routing-modal__icon-btn:hover:not(:disabled) {
   color: hsl(var(--foreground));
   border-color: hsl(var(--border));
   background: hsl(var(--muted) / 0.6);
 }
 
-.routing-modal__group-refresh:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.routing-modal__group-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease,
-    background 0.15s ease;
-}
-
-.routing-modal__group-toggle:hover {
-  color: hsl(var(--foreground));
-  border-color: hsl(var(--border));
-  background: hsl(var(--muted) / 0.6);
-}
-
-.routing-modal__group-toggle:focus-visible {
+.routing-modal__icon-btn:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 1px;
+}
+
+.routing-modal__icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .routing-modal__group-refresh-icon--spinning {
