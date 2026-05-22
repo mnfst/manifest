@@ -1,0 +1,199 @@
+packages/frontend/tests/components/ModelCapabilityBadges.test.tsx
+  s_7a2e10e1184608::t_a81108b108ed4e 1-9,11-14,16-30
+  s_7a2e10e1184608::t_fcaf5814f4ebd3 10,15
+packages/backend/src/routing/routing-core/__tests__/response-mode-guard.spec.ts
+  s_7a2e10e1184608::t_1715e11c93b10b 1-2,7-14,16-17,30,39,75-76
+  s_7a2e10e1184608::t_f7c9307f6cbada 3-6,15,18-29,31-38,40-74
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_7a2e10e1184608::t_a83db837d1283d 796-812,814-832
+packages/backend/src/entities/specificity-assignment.entity.ts
+  s_7a2e10e1184608::t_d1258c08a82cf2 2,32-33
+packages/frontend/src/styles/routing-modal.css
+  s_7a2e10e1184608::t_dca4f6633d3a9f 192-195,249
+  s_7a2e10e1184608::t_d4964df3f88a0e 215-226,250-263
+  s_7a2e10e1184608::t_6952710bb37a9a 233,240,244-245,352-356
+  s_7a2e10e1184608::t_a45308f3645543 248
+packages/frontend/src/components/ModelCapabilityBadges.tsx
+  s_7a2e10e1184608::t_bbd36548293c9b 1-20,23-25,33-34,48-50,53,55,57-64
+  s_7a2e10e1184608::t_1d1f33af63de76 21-22,26-28,30-32,35-47,51-52,54
+  s_7a2e10e1184608::t_fcaf5814f4ebd3 29,56
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_7a2e10e1184608::t_711432686edc76 13,107-108,110-111,120-121,130-132,159-160,162,165-167,214-217,220-222,289-297,300-302
+  s_7a2e10e1184608::t_fc58b410d7a384 18-25,148-156,383-385
+packages/backend/src/routing/tier.controller.ts
+  s_7a2e10e1184608::t_d6ef841b22f40d 19-24,82-91
+packages/frontend/src/pages/Routing.tsx
+  s_7a2e10e1184608::t_1e0e1898a87e06 17,22,39,42,80,186-207,215-243,253-254
+  s_7a2e10e1184608::t_4d1d64024f9240 81,213-214,249-252
+  s_7a2e10e1184608::t_9e043350935392 171,176-178
+  s_7a2e10e1184608::t_fcaf5814f4ebd3 208-212,244-248
+  s_7a2e10e1184608::t_22d676ea668866 580-582,628-630
+packages/backend/src/auth/auth.instance.ts
+  s_7a2e10e1184608::t_2dc3a39d832ada 40-45,48-51
+packages/backend/src/entities/tier-assignment.entity.ts
+  s_7a2e10e1184608::t_d1258c08a82cf2 2,29-30
+packages/frontend/src/services/api/specificity.ts
+  s_7a2e10e1184608::t_1842e64d1c30b1 2,12,64-76
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_7a2e10e1184608::t_c28468d38f61c1 14,16-20,22,104-105
+  s_7a2e10e1184608::t_b45b868fbc0ce1 15
+  s_7a2e10e1184608::t_342c84197158db 25,50,472-480
+  s_7a2e10e1184608::t_66a70ce09a8010 169-170,176,188
+  s_7a2e10e1184608::t_4201d9ba6e9ff0 617
+packages/backend/src/database/models-dev-sync.service.ts
+  s_7a2e10e1184608::t_4961bbce4f0bf8 3,5,49
+  s_7a2e10e1184608::t_627c7deb1f6231 136,277-281,296
+packages/frontend/src/components/RoutingModals.tsx
+  s_7a2e10e1184608::t_671178c866467d 14-15
+  s_7a2e10e1184608::t_d4964df3f88a0e 109-118,161,187,303
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_7a2e10e1184608::t_94064806d7db4c 26,130-138
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_7a2e10e1184608::t_da9b85860c7c4d 357-371
+  s_7a2e10e1184608::t_63d448490771e2 388-397,401-403,406-409,412,417-418,420-427,430-432
+  s_7a2e10e1184608::t_9fff571a29085c 398-400,404-405,410-411,413-416,419,428-429
+packages/frontend/src/styles/routing-specificity.css
+  s_7a2e10e1184608::t_f99ff2880ee6b7 8-13
+packages/frontend/src/components/ResponseModeControl.tsx
+  s_7a2e10e1184608::t_1fcbe363e3b80e 1-57
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_7a2e10e1184608::t_cc4ffb6874776b 9,20
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_7a2e10e1184608::t_247faa503808ed 511-526
+  s_7a2e10e1184608::t_993df0f9d42b92 532-543,545-548,551-555,558,563-564,566-576,578-580
+  s_7a2e10e1184608::t_6bc1c8534433d4 544,549-550,556-557,559-562,565,577
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_7a2e10e1184608::t_cfa36b7d4a5320 8,28,57-58,284-286,288-289
+  s_7a2e10e1184608::t_7d17cd54ceb5bd 29,391-392,399,401
+  s_7a2e10e1184608::t_40437b586904e9 111-113,294-299,393-398,402-407,434
+  s_7a2e10e1184608::t_0366c61849dd3e 287
+  s_7a2e10e1184608::t_d4964df3f88a0e 449
+packages/backend/src/database/database.module.ts
+  s_7a2e10e1184608::t_af769e6bca8df2 108,216
+packages/shared/src/resolve-response.ts
+  s_7a2e10e1184608::t_fc58b410d7a384 3,20
+  s_7a2e10e1184608::t_eac22b8013fb3c 21
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_7a2e10e1184608::t_d9057e8bebfb9d 5-6,61,123,145-152,159-176,178
+  s_7a2e10e1184608::t_809e414e517a8c 11,100-105,153-158,177,189-194,208-215
+  s_7a2e10e1184608::t_c003a5e0d72d0c 225-230
+packages/backend/src/routing/specificity.controller.ts
+  s_7a2e10e1184608::t_d9057e8bebfb9d 16,84-92
+packages/frontend/src/styles/routing.css
+  s_7a2e10e1184608::t_819dc689c6c1e6 283-356,1501-1507
+  s_7a2e10e1184608::t_d031310a143ea1 570-585,593-599,602-606
+  s_7a2e10e1184608::t_151417a38ffb72 586-592
+  s_7a2e10e1184608::t_ccde5deffb6b51 600-601
+  s_7a2e10e1184608::t_30b8cdbab42d1c 624-648,1248-1260
+packages/backend/src/entities/header-tier.entity.ts
+  s_7a2e10e1184608::t_d1258c08a82cf2 3,48-49
+packages/backend/src/routing/model.controller.spec.ts
+  s_7a2e10e1184608::t_99d12d06581485 8-9,40-41,72-77,86-87,301-311
+  s_7a2e10e1184608::t_2c571910558316 273
+  s_7a2e10e1184608::t_04f293535bfa72 288
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_7a2e10e1184608::t_7fea3ca30d304b 206,226
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_7a2e10e1184608::t_bd068e47657dce 9,19,94,135-142,148-154,211-212
+  s_7a2e10e1184608::t_fcaf5814f4ebd3 143-147
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_7a2e10e1184608::t_0e9a3e93ba93a9 160-162
+packages/backend/src/database/migrations/1789300000000-AddRoutingResponseMode.ts
+  s_7a2e10e1184608::t_d1258c08a82cf2 1-23
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_7a2e10e1184608::t_c06afe810c3b39 121-155
+packages/shared/src/provider-params-spec.ts
+  s_7a2e10e1184608::t_9f612822a1c083 4-7,71,120-134
+packages/frontend/src/components/FallbackList.tsx
+  s_7a2e10e1184608::t_1582005e0cc321 10,39,117-140,392,394-398
+.changeset/streaming-response-mode.md
+  s_7a2e10e1184608::t_22d67f4112137c 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_7a2e10e1184608::t_640e493ad8c768 726-785
+packages/frontend/src/services/api/header-tiers.ts
+  s_7a2e10e1184608::t_1842e64d1c30b1 2,16,75-85
+packages/backend/src/routing/routing-core/tier-auto-assign.service.ts
+  s_7a2e10e1184608::t_994a1e8cb4d95f 10,99
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_7a2e10e1184608::t_784de312fd6e90 28,408-412,456-460
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_7a2e10e1184608::t_f67a63e065d18f 1-89
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_7a2e10e1184608::t_ccf0906663ca83 218-219,222-234,238-241,243-246,248-249
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_7a2e10e1184608::t_d4964df3f88a0e 7,29,52-56,266-272,546-556,559-570,572-573,575-578,580-596,599-601
+  s_7a2e10e1184608::t_b1aa97257fa6a2 16,571,574
+packages/backend/src/auth/auth.instance.spec.ts
+  s_7a2e10e1184608::t_d202da2dc37c3c 143,145,170,184,186
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_7a2e10e1184608::t_a5d9f126d0fce4 561-575,636-641
+  s_7a2e10e1184608::t_8d6c0735847be4 577-578,580-587,589-592,595-598,601,606-623,626-629,632-635,645
+  s_7a2e10e1184608::t_4850290c1032b1 579,588,593-594,599-600,602-605,624-625,630-631,642-644
+packages/frontend/src/pages/RoutingSpecificitySection.tsx
+  s_7a2e10e1184608::t_60f7f758ec4311 17,22,161-163,252-258
+  s_7a2e10e1184608::t_2ebf8824b7b948 208,217-218
+packages/frontend/src/pages/RoutingDefaultTierSection.tsx
+  s_7a2e10e1184608::t_3d87de925937c2 7,12,43-45,161-171,180,199
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_7a2e10e1184608::t_d6ef841b22f40d 11-12,64,176,190-197,204-220,222
+  s_7a2e10e1184608::t_c3d012d11a810a 15,156-161,198-203,221,234-239,272-279
+  s_7a2e10e1184608::t_5082d4d9b6e25c 289-294
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_7a2e10e1184608::t_2d4ee434edb35a 76,81
+  s_7a2e10e1184608::t_ccf0906663ca83 135,140-142,401-418
+  s_7a2e10e1184608::t_cb2fe7b352dc46 299-340
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_7a2e10e1184608::t_32d75a51ae9072 1-2,8,14,25-27,50,61,76,87,97,106,116,126,133,137-139,148-150,159-161,173-176,178-179,185-187,192,195-197,202,207,239,248,250-252,255,259-262,266,269,273,275,280-283,286,288,292,295,297-298,301-302,307,311,314-315,318-320,325,328,330,332,335,338-339,351,356,360,364,367,371,376,378,381,385,388,394,400,405,411,417,422,428,434,439,442,444-445,448-449,452,458,470,472,476,480-481,487-488,495,498,501,503,507,510-512,515,517,520-522,525,527,531,536,542,545,549,554,560-563,571,577-579,582,589-591,600,602,610-611,614,616,619,625-628,636,645-646,649-653,657,662,668-669,671,675-677,689-690
+  s_7a2e10e1184608::t_ccf0906663ca83 17,253-254,256-258,263-264,270-272,274,276-279
+packages/shared/src/index.ts
+  s_7a2e10e1184608::t_9f612822a1c083 27-28,46,50,58
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_7a2e10e1184608::t_faf6d9ea58ca91 16,345,347,584,596-597
+  s_7a2e10e1184608::t_a78f6f56be55a3 346,410-411,456,458,585-593,598-605,645
+packages/shared/src/response-mode.ts
+  s_7a2e10e1184608::t_9f612822a1c083 1-9
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_7a2e10e1184608::t_b6254f813800ff 179-181,184-193,195-215
+packages/backend/src/routing/dto/resolve-response.ts
+  s_7a2e10e1184608::t_fc58b410d7a384 2,23
+  s_7a2e10e1184608::t_eac22b8013fb3c 24
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_7a2e10e1184608::t_d3654ba93f9dc4 96,101
+  s_7a2e10e1184608::t_2549268b75e951 279-319
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_7a2e10e1184608::t_32b1f3e17d4332 51
+packages/backend/src/routing/model.controller.ts
+  s_7a2e10e1184608::t_d34d87ed73563a 7,31,96-97,132
+  s_7a2e10e1184608::t_38c17d3ccff3ef 11,32,98-106,108-131
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_7a2e10e1184608::t_94064806d7db4c 5-6,91,140,147
+  s_7a2e10e1184608::t_7e2f6a8e120f9c 11,135-139,141-146,205-210,222,235-242
+  s_7a2e10e1184608::t_8c551a8fd0bc0f 251-256
+packages/backend/src/routing/routing-core/response-mode-guard.ts
+  s_7a2e10e1184608::t_5d61d851031cbd 1-4,10-16,19-20,22-24,44
+  s_7a2e10e1184608::t_8c74aab8ddda3e 5,38
+  s_7a2e10e1184608::t_7242f9243d268c 6-9,17-18,21,25-37,39-43
+packages/frontend/src/services/api/routing.ts
+  s_7a2e10e1184608::t_1842e64d1c30b1 1,4,189,233-242,290
+packages/backend/src/routing/dto/routing.dto.ts
+  s_7a2e10e1184608::t_d6ef841b22f40d 15,208-211
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_7a2e10e1184608::t_d4e9c42a999b4b 5,7,14,121-128,172,176,202-205,212,217,222-234,308-309
+  s_7a2e10e1184608::t_1dd64148329101 207-208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "1deefee405fd1660c091377da2561cf7ef0ebd80",
+  "prompts": {},
+  "sessions": {
+    "s_7a2e10e1184608": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4944-d9bd-71e1-a4e3-c518c2d0e835",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
