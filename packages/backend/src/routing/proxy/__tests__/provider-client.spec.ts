@@ -137,6 +137,49 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('routes public Responses API requests for xAI to /v1/responses', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.3',
+        body: {
+          input: [{ role: 'user', content: 'Hello' }],
+          reasoning: { effort: 'low' },
+          stream: false,
+        },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/responses',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer sk-xai',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).toMatchObject({
+        model: 'grok-4.3',
+        reasoning: { effort: 'low' },
+        stream: false,
+        store: false,
+      });
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.messages).toBeUndefined();
+      expect(result.isResponses).toBe(true);
+      expect(result.isChatGpt).toBe(false);
+    });
+
     it('builds correct URL for openrouter', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
@@ -1302,6 +1345,91 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(typeof sentBody.messages[0].content).toBe('string');
+    });
+  });
+
+  describe('resolveEndpoint - xAI Responses-only routing', () => {
+    const multiAgentModels = ['grok-4.20-multi-agent', 'grok-4.20-multi-agent-0309'];
+
+    it.each(multiAgentModels)(
+      'routes xAI multi-agent model %s to /v1/responses with chatgpt conversion',
+      async (model) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'xai',
+          apiKey: 'sk-xai',
+          model,
+          body,
+          stream: false,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith('https://api.x.ai/v1/responses', expect.any(Object));
+
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.model).toBe(model);
+        expect(sentBody.input).toEqual([
+          { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+        ]);
+        expect(sentBody.store).toBe(false);
+        expect(sentBody.messages).toBeUndefined();
+        expect(result.isChatGpt).toBe(true);
+        expect(result.isResponses).toBe(false);
+      },
+    );
+
+    it('detects xAI Responses-only models after stripping a vendor prefix', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'xai/grok-4.20-multi-agent-0309',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.x.ai/v1/responses');
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('grok-4.20-multi-agent-0309');
+    });
+
+    it('maps max_tokens to max_output_tokens for xAI multi-agent requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.20-multi-agent',
+        body: { ...body, max_tokens: 1536 },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(mockFetch).toHaveBeenCalledWith('https://api.x.ai/v1/responses', expect.any(Object));
+      expect(sentBody.max_output_tokens).toBe(1536);
+      expect(sentBody.max_tokens).toBeUndefined();
+    });
+
+    it('leaves regular xAI models on /v1/chat/completions for Chat Completions requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-4.3',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/chat/completions',
+        expect.any(Object),
+      );
+      expect(result.isChatGpt).toBe(false);
+      expect(result.isResponses).toBe(false);
     });
   });
 

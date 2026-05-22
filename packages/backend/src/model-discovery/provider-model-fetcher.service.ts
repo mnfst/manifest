@@ -129,7 +129,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // Note: do NOT block "safeguard" — Groq's gpt-oss-safeguard-20b is a chat
   // model the user can call.
   groq: /(?:(?:^|\/|-)compound|prompt-guard|orpheus)/i,
-  xai: /(?:imagine|multi-agent)/i,
+  xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
 };
 
