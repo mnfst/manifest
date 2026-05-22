@@ -1,0 +1,19 @@
+.changeset/message-log-assistant-response.md
+  s_83cad2da441eaf::t_bde6646a1e82f6 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "acb7df61426d872a97e43e48629df71e11968a0f",
+  "prompts": {},
+  "sessions": {
+    "s_83cad2da441eaf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4eaf-60b8-7483-83d7-cad29fe2128f",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
