@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
@@ -174,6 +179,24 @@ describe('ModelParamsDialog', () => {
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
   });
 
+  it('describes params with client-override note when specs exist', () => {
+    render(() => <ModelParamsDialog {...baseProps} slotLabel="GPT-5 Nano" />);
+    expect(screen.getByText('Defaults for GPT-5 Nano. Client requests override.')).toBeTruthy();
+  });
+
+  it('shows loading description while specs are being fetched', () => {
+    render(() => <ModelParamsDialog {...baseProps} specs={[]} loading={true} slotLabel="gpt-4o" />);
+    expect(screen.getByText('Loading parameters for gpt-4o…')).toBeTruthy();
+  });
+
+  it('shows fallback text when no specs and no requestParamsUrl', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={[]} requestParamsUrl={undefined} slotLabel="gpt-4o" />
+    ));
+    expect(screen.getByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
   it('reflects the configured override when present', () => {
     render(() => <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
@@ -185,7 +208,7 @@ describe('ModelParamsDialog', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
-    expect(screen.getByText('Max tokens')).toBeTruthy();
+    expect(screen.getAllByText('Max tokens').length).toBeGreaterThan(0);
     expect(screen.getByText('max_tokens')).toBeTruthy();
   });
 

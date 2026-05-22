@@ -6,6 +6,7 @@ import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenRouterCacheControl } from './cache-injection';
 import {
+  applyAnthropicMessagesMutations,
   toGoogleRequest,
   toAnthropicRequest,
   toResponsesRequest,
@@ -18,6 +19,7 @@ import {
   convertAnthropicResponse as anthropicResponseConverter,
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
+  createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
 import { toNativeResponsesRequest } from './responses-adapter';
@@ -121,6 +123,7 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      reasoningContentLookup: opts.reasoningContentLookup,
     });
 
     const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
@@ -201,6 +204,7 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -225,11 +229,27 @@ export class ProviderClient {
 
     if (endpoint.format === 'anthropic') {
       const isSubscription = authType === 'subscription';
-      const requestBody = toAnthropicRequest(requestSource, bareModel, {
-        injectCacheControl: !isSubscription,
-        injectSubscriptionIdentity: isSubscription,
-        thinkingLookup: ctx.thinkingLookup,
-      });
+      // When the inbound request is already Anthropic Messages
+      // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
+      // skip the OpenAI translation round-trip and apply only the additive
+      // mutations cache_control + subscription identity + max_tokens
+      // default + thinking-block replay. `chatBody` is still used for the
+      // routing/scoring layer earlier in the pipeline; only the wire body
+      // bypasses translation. This closes the lossy-roundtrip class of
+      // bugs that previously dropped Anthropic-native fields (server tool
+      // `type` tags, cache_control placement, etc.) — see #1886.
+      const requestBody =
+        ctx.apiMode === 'messages'
+          ? applyAnthropicMessagesMutations(body, {
+              injectCacheControl: !isSubscription,
+              injectSubscriptionIdentity: isSubscription,
+              thinkingLookup: ctx.thinkingLookup,
+            })
+          : toAnthropicRequest(requestSource, bareModel, {
+              injectCacheControl: !isSubscription,
+              injectSubscriptionIdentity: isSubscription,
+              thinkingLookup: ctx.thinkingLookup,
+            });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
       return {
@@ -274,7 +294,12 @@ export class ProviderClient {
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
+    const sanitized = sanitizeOpenAiBody(
+      requestSource,
+      endpointKey,
+      ctx.model,
+      ctx.reasoningContentLookup,
+    );
     if (stream && SUPPORTS_USAGE_STREAM_OPTIONS.has(endpointKey)) {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
@@ -339,5 +364,6 @@ export class ProviderClient {
   readonly convertAnthropicResponse = anthropicResponseConverter;
   readonly convertAnthropicStreamChunk = anthropicStreamChunkConverter;
   readonly createAnthropicStreamTransformer = createAnthropicTransformer;
+  readonly createReasoningContentStreamTransformer = reasoningContentStreamTransformer;
   readonly collectChatGptSseResponse = chatGptSseCollector;
 }

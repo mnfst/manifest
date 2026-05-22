@@ -348,6 +348,7 @@
   display: flex;
   justify-content: flex-end;
   margin-top: var(--gap-xl);
+  gap: 8px;
 }
 
 .modal-card__footer .btn:disabled {

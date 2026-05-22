@@ -307,6 +307,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 existingLabels={() => activeKeys().map((k) => k.label)}
                 open={props.addKeyOpen}
                 setOpen={props.setAddKeyOpen}
+                isSubscription={props.isSubMode()}
               />
             </Show>
           </Show>
@@ -411,7 +412,8 @@ async function handleAddKey(
   }
 }
 
-interface AddAnotherKeyActionProps {
+/** @internal Exported for testing only. */
+export interface AddAnotherKeyActionProps {
   onAdd: (label: string, apiKey: string) => Promise<boolean>;
   busy: Accessor<boolean>;
   setBusy: Setter<boolean>;
@@ -422,9 +424,11 @@ interface AddAnotherKeyActionProps {
   existingLabels: () => string[];
   open?: Accessor<boolean>;
   setOpen?: Setter<boolean>;
+  isSubscription?: boolean;
 }
 
-const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
+/** @internal Exported for testing only. */
+export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   const [localOpen, setLocalOpen] = createSignal(false);
   const isOpen = () => (props.open ?? localOpen)();
   const setIsOpen = (v: boolean) => {
@@ -432,13 +436,17 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   };
   const [label, setLabel] = createSignal('');
   const [apiKey, setApiKey] = createSignal('');
+  let apiKeyInputRef: HTMLInputElement | undefined;
 
   const defaultLabel = () => suggestNextLabel(props.existingLabels());
 
-  // Sync label suggestion when opened externally
+  // Sync label suggestion when opened externally and auto-focus the API key field
   createEffect(() => {
     if (isOpen() && !label().trim()) {
       setLabel(defaultLabel());
+    }
+    if (isOpen()) {
+      requestAnimationFrame(() => apiKeyInputRef?.focus());
     }
   });
 
@@ -466,7 +474,18 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
               setIsOpen(true);
             }}
           >
-            + Add another key
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style="vertical-align: -2px; margin-right: 2px;"
+            >
+              <path d="M4 11h11v2H4zm0-5h16v2H4zm0 10h8v2H4zm15-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
+            </svg>
+            {props.isSubscription ? ' Add connection' : ' Add another key'}
           </button>
         ) : undefined
       }
@@ -492,6 +511,7 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
           {props.provDef.name} {props.credentialNoun()}
         </label>
         <input
+          ref={apiKeyInputRef}
           id="add-key-value"
           class="provider-detail__input provider-detail__input--masked"
           type="text"
@@ -712,6 +732,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
           existingLabels={() => props.activeKeys().map((k) => k.label)}
           open={props.addKeyOpen}
           setOpen={props.setAddKeyOpen}
+          isSubscription={props.authType() === 'subscription'}
         />
       </Show>
     </div>

@@ -133,13 +133,16 @@
 }
 
 .btn--danger {
-  background: hsl(var(--destructive));
-  color: #fff;
-  border: none;
+  background: hsl(var(--background));
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--foreground) / 0.2);
+  border-radius: var(--radius);
 }
 
 .btn--danger:hover:not(:disabled) {
-  background: hsl(var(--destructive) / 0.85);
+  background: hsl(var(--destructive));
+  color: white;
+  border-color: hsl(var(--destructive));
 }
 
 .btn--danger:disabled {

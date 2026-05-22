@@ -43,37 +43,36 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
   }
 
   if (typeof u.input_tokens === 'number') {
-    const completion = typeof u.output_tokens === 'number' ? u.output_tokens : 0;
-    // Anthropic Messages reports caches in dedicated top-level fields, and
-    // `input_tokens` is the uncached portion only. Sum the cache pieces back
-    // in so the recorder stores the full total under `agent_messages.input_tokens`.
-    if (
-      typeof u.cache_read_input_tokens === 'number' ||
-      typeof u.cache_creation_input_tokens === 'number'
-    ) {
-      const cacheRead =
-        typeof u.cache_read_input_tokens === 'number' ? u.cache_read_input_tokens : 0;
-      const cacheCreation =
-        typeof u.cache_creation_input_tokens === 'number' ? u.cache_creation_input_tokens : 0;
-      return {
-        prompt_tokens: u.input_tokens + cacheRead + cacheCreation,
-        completion_tokens: completion,
-        cache_read_tokens: cacheRead,
-        cache_creation_tokens: cacheCreation,
-      };
-    }
-    // OpenAI Responses API shape: `input_tokens` already includes cached tokens;
-    // cache reads surface under `input_tokens_details.cached_tokens`.
+    // Two shapes share this branch:
+    //   - Anthropic native (`POST /v1/messages` passthrough): cache reads
+    //     and creations live at the top of the usage object as
+    //     `cache_read_input_tokens` / `cache_creation_input_tokens`, and
+    //     `input_tokens` is the non-cached portion. Total prompt tokens =
+    //     input + cache_read + cache_creation, matching what the converted
+    //     `fromAnthropicResponse` path used to record.
+    //   - OpenAI Responses API: cached count nests under
+    //     `input_tokens_details.cached_tokens`, and `input_tokens` is
+    //     already the total. No summing here or we'd double-count cache.
     const inputDetails =
       typeof u.input_tokens_details === 'object' && u.input_tokens_details !== null
         ? (u.input_tokens_details as Record<string, unknown>)
         : undefined;
+    const nativeCacheRead =
+      typeof u.cache_read_input_tokens === 'number' ? u.cache_read_input_tokens : 0;
+    const nativeCacheCreation =
+      typeof u.cache_creation_input_tokens === 'number' ? u.cache_creation_input_tokens : 0;
+    const isAnthropicNative = nativeCacheRead > 0 || nativeCacheCreation > 0;
+    const nestedCacheRead =
+      typeof inputDetails?.cached_tokens === 'number' ? inputDetails.cached_tokens : 0;
+    const promptTokens = isAnthropicNative
+      ? u.input_tokens + nativeCacheRead + nativeCacheCreation
+      : u.input_tokens;
+    const cacheRead = nativeCacheRead || nestedCacheRead;
     return {
-      prompt_tokens: u.input_tokens,
-      completion_tokens: completion,
-      cache_read_tokens:
-        typeof inputDetails?.cached_tokens === 'number' ? inputDetails.cached_tokens : undefined,
-      cache_creation_tokens: 0,
+      prompt_tokens: promptTokens,
+      completion_tokens: typeof u.output_tokens === 'number' ? u.output_tokens : 0,
+      cache_read_tokens: isAnthropicNative ? nativeCacheRead : cacheRead || undefined,
+      cache_creation_tokens: nativeCacheCreation,
     };
   }
 
@@ -148,17 +147,98 @@ export function parseSseEvents(buffer: string): { events: string[]; remaining: s
 
 const MAX_SSE_BUFFER_SIZE = 1_048_576;
 
+/**
+ * Forward an SSE stream byte-for-byte from `source` to `dest` while running a
+ * `tap` parser over the parsed events for telemetry side effects. The wire
+ * bytes are written unchanged, so SSE framing (`event:` headers, multi-line
+ * `data:` payloads, blank-line separators) is preserved end-to-end. Used by
+ * the `/v1/messages` → Anthropic passthrough path where translation must
+ * NOT touch the wire format but Manifest still needs to extract usage and
+ * cache thinking blocks.
+ *
+ * The tap receives the same parsed-event shape `pipeStream` would have
+ * passed to its `transform`. Its return value (an OpenAI-shape chunk in
+ * practice) is parsed for usage; nothing it returns is written to `dest`.
+ */
+export async function pipePassthrough(
+  source: ReadableStream<Uint8Array>,
+  dest: ExpressResponse,
+  tap: (parsedEvent: string) => string | null,
+  onClientChunk?: (text: string) => void,
+): Promise<StreamUsage | null> {
+  const reader = source.getReader();
+  const decoder = new TextDecoder();
+  let sseBuffer = '';
+  let capturedUsage: StreamUsage | null = null;
+
+  try {
+    let done = false;
+    while (!done) {
+      if (dest.writableEnded) break;
+      const result = await reader.read();
+      done = result.done;
+      if (result.value) {
+        // Write the upstream bytes through unchanged so the client sees
+        // intact SSE framing.
+        dest.write(Buffer.from(result.value));
+        const text = decoder.decode(result.value, { stream: !done });
+        if (onClientChunk) onClientChunk(text);
+        sseBuffer += text;
+        if (sseBuffer.length > MAX_SSE_BUFFER_SIZE) {
+          throw new Error('SSE buffer overflow: provider sent data without event boundaries');
+        }
+        const { events, remaining } = parseSseEvents(sseBuffer);
+        sseBuffer = remaining;
+        for (const event of events) {
+          const tapped = tap(event);
+          if (tapped) {
+            const usage = extractUsageFromSse(tapped);
+            if (usage) capturedUsage = usage;
+          }
+        }
+      }
+    }
+    // Flush a trailing partial event through the tap so a final usage
+    // chunk that the upstream didn't terminate with \n\n isn't lost.
+    if (sseBuffer.trim()) {
+      const payload = sseBuffer
+        .split('\n')
+        .map((line) => (line.startsWith('data: ') ? line.slice(6) : line))
+        .join('\n')
+        .trim();
+      if (payload && payload !== '[DONE]') {
+        const tapped = tap(payload);
+        if (tapped) {
+          const usage = extractUsageFromSse(tapped);
+          if (usage) capturedUsage = usage;
+        }
+      }
+    }
+  } finally {
+    if (!dest.writableEnded) dest.end();
+    reader.releaseLock();
+  }
+
+  return capturedUsage;
+}
+
 export async function pipeStream(
   source: ReadableStream<Uint8Array>,
   dest: ExpressResponse,
   transform?: (chunk: string) => string | null,
   finalize?: () => string | null,
+  onClientChunk?: (text: string) => void,
 ): Promise<StreamUsage | null> {
   const reader = source.getReader();
   const decoder = new TextDecoder();
   let sseBuffer = '';
   let passthroughBuffer = '';
   let capturedUsage: StreamUsage | null = null;
+
+  const writeOut = (s: string): void => {
+    dest.write(s);
+    if (onClientChunk) onClientChunk(s);
+  };
 
   try {
     let done = false;
@@ -182,13 +262,13 @@ export async function pipeStream(
           for (const event of events) {
             const transformed = transform(event);
             if (transformed) {
-              dest.write(transformed);
+              writeOut(transformed);
               const usage = extractUsageFromSse(transformed);
               if (usage) capturedUsage = usage;
             }
           }
         } else {
-          dest.write(text);
+          writeOut(text);
           passthroughBuffer += text;
           if (passthroughBuffer.length > MAX_SSE_BUFFER_SIZE) {
             throw new Error('SSE buffer overflow: provider sent data without event boundaries');
@@ -248,31 +328,23 @@ export async function pipeStream(
       if (payload && payload !== '[DONE]') {
         const transformed = transform(payload);
         if (transformed) {
-          dest.write(transformed);
+          writeOut(transformed);
           const usage = extractUsageFromSse(transformed);
           if (usage) capturedUsage = usage;
         }
       }
     }
 
-    // Stream tail. Anthropic Messages clients self-terminate after
-    // `message_stop` (emitted via `finalize`); OpenAI-compatible clients
-    // expect `data: [DONE]`. The presence of `finalize` signals the
-    // protocol-specific terminator was already written, so we skip the
-    // OpenAI sentinel — keeping the wire format clean for SDKs that may
-    // refuse to parse trailing unknown payloads.
-    // Guard tail writes with `!dest.writableEnded` so a client disconnect
-    // mid-stream doesn't trigger ERR_STREAM_WRITE_AFTER_END.
     if (transform && !dest.writableEnded) {
       if (finalize) {
         const trailing = finalize();
         if (trailing && !dest.writableEnded) {
-          dest.write(trailing);
+          writeOut(trailing);
           const usage = extractUsageFromSse(trailing);
           if (usage) capturedUsage = usage;
         }
       } else if (!dest.writableEnded) {
-        dest.write('data: [DONE]\n\n');
+        writeOut('data: [DONE]\n\n');
       }
     }
   } finally {

@@ -17,8 +17,9 @@ import {
   type ProviderParamSpec,
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
+import { MPS_CATALOG_SNAPSHOT } from './mps-catalog-snapshot';
 
-const MODEL_PARAMETERS_API = 'https://modelparameters.dev/api/v1/models.json';
+const MODEL_PARAMETERS_API = 'https://modelparams.dev/api/v1/models.json';
 const FETCH_TIMEOUT_MS = 10000;
 const MODEL_PARAM_TYPES: readonly ModelParamType[] = [
   'boolean',
@@ -45,39 +46,65 @@ interface ModelParametersApiResponse {
 @Injectable()
 export class ProviderParamSpecService implements OnModuleInit {
   private readonly logger = new Logger(ProviderParamSpecService.name);
-  private specs: ProviderParamSpecCatalog = freezeCatalog([]);
+  // Seed from the bundled snapshot so the params catalog is never empty when
+  // modelparams.dev is unreachable at boot (offline / blocked / migrated host).
+  // refreshCache() overwrites this with fresh data on a successful fetch.
+  private specs: ProviderParamSpecCatalog = freezeCatalog(
+    parseModelParametersCatalog(MPS_CATALOG_SNAPSHOT) ?? [],
+  );
   private lastFetchedAt: Date | null = null;
+  private etag: string | null = null;
 
   onModuleInit(): void {
-    // Fire-and-forget so a slow modelparameters.dev fetch can't delay
-    // app.listen() and trip Railway's healthcheck (see #1894). The MPS catalog
-    // falls back to its frozen default until the fetch lands.
+    // Fire-and-forget so a slow modelparams.dev fetch can't delay app.listen()
+    // and trip Railway's healthcheck (see #1894). The MPS catalog falls back to
+    // its frozen default until the fetch lands.
     void this.refreshCache().catch((err) => {
-      this.logger.warn(`Startup modelparameters.dev refresh failed: ${err}`);
+      this.logger.warn(`Startup modelparams.dev refresh failed: ${err}`);
     });
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async refreshCache(): Promise<number> {
-    const raw = await this.fetchModelParametersData();
-    if (!raw) return 0;
+    const { notModified, data, etag } = await this.fetchModelParametersData();
+    if (notModified) {
+      // 304 from the conditional GET — the catalog is byte-for-byte unchanged,
+      // so the cached copy stays authoritative. Record the check, skip re-parse.
+      this.lastFetchedAt = new Date();
+      return this.specs.length;
+    }
+    if (!data) return 0;
 
-    const catalog = parseModelParametersCatalog(raw);
+    const catalog = parseModelParametersCatalog(data);
     if (!catalog) {
-      this.logger.warn(
-        'modelparameters.dev returned an invalid MPS catalog; keeping current cache',
-      );
+      this.logger.warn('modelparams.dev returned an invalid MPS catalog; keeping current cache');
       return 0;
     }
 
     this.specs = freezeCatalog(catalog);
+    // Adopt the ETag only now that the body parsed cleanly, so a malformed-but-new
+    // 200 can't suppress a future re-fetch under the same ETag.
+    if (etag) this.etag = etag;
     this.lastFetchedAt = new Date();
-    this.logger.log(`modelparameters.dev MPS catalog loaded: ${this.specs.length} models`);
+    this.logger.log(`modelparams.dev MPS catalog loaded: ${this.specs.length} models`);
     return catalog.length;
   }
 
   async list(): Promise<ProviderParamSpecCatalog> {
     return this.specs;
+  }
+
+  /**
+   * Lightweight identity list (no params/descriptions) so the Routing page can
+   * decide which model rows expose a "configure params" affordance without
+   * downloading the whole catalog.
+   */
+  listModelIds(): Array<{ provider: string; authType: AuthType; model: string }> {
+    return this.specs.map((entry) => ({
+      provider: entry.provider,
+      authType: entry.authType,
+      model: entry.model,
+    }));
   }
 
   async getSpecs(
@@ -92,19 +119,36 @@ export class ProviderParamSpecService implements OnModuleInit {
     return this.lastFetchedAt;
   }
 
-  private async fetchModelParametersData(): Promise<unknown | null> {
+  private async fetchModelParametersData(): Promise<{
+    notModified: boolean;
+    data: unknown | null;
+    etag: string | null;
+  }> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(MODEL_PARAMETERS_API, { signal: controller.signal });
+      const headers: Record<string, string> = {};
+      if (this.etag) headers['If-None-Match'] = this.etag;
+      const res = await fetch(MODEL_PARAMETERS_API, { signal: controller.signal, headers });
+      // 304 Not Modified: nothing changed since the last successful fetch, so
+      // the daily refresh costs a round-trip with no body transfer as the
+      // catalog grows.
+      if (res.status === 304) return { notModified: true, data: null, etag: null };
       if (!res.ok) {
-        this.logger.warn(`modelparameters.dev API returned ${res.status}`);
-        return null;
+        this.logger.warn(`modelparams.dev API returned ${res.status}`);
+        return { notModified: false, data: null, etag: null };
       }
-      return (await res.json()) as unknown;
+      // Return the candidate ETag without committing it — refreshCache adopts it
+      // only after the body parses, so an invalid 200 can't poison the
+      // conditional request and strand us on the stale cache.
+      return {
+        notModified: false,
+        data: (await res.json()) as unknown,
+        etag: res.headers.get('etag'),
+      };
     } catch (err) {
-      this.logger.warn(`Failed to fetch modelparameters.dev data: ${err}`);
-      return null;
+      this.logger.warn(`Failed to fetch modelparams.dev data: ${err}`);
+      return { notModified: false, data: null, etag: null };
     } finally {
       clearTimeout(timeout);
     }

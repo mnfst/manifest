@@ -131,6 +131,7 @@ const Playground: Component = () => {
   const [pickerForColumn, setPickerForColumn] = createSignal<string | null>(null);
   const [showAddPicker, setShowAddPicker] = createSignal(false);
   const [announcement, setAnnouncement] = createSignal('');
+  const [promptHeight, setPromptHeight] = createSignal(0);
   const [historyOpen, setHistoryOpen] = createSignal(
     localStorage.getItem('manifest.playground.recentOpen') !== 'false',
   );
@@ -424,7 +425,7 @@ const Playground: Component = () => {
   const winners = () => findWinners(viewingHistory() ?? store.columns);
 
   return (
-    <div class="playground">
+    <div class="playground" style={{ 'padding-bottom': `${promptHeight() + 48}px` }}>
       <Title>Playground · Manifest</Title>
       <Meta
         name="description"
@@ -525,6 +526,8 @@ const Playground: Component = () => {
             onRecallPrevious={store.recallPreviousPrompt}
             disabled={store.isAnyRunning() || store.columns.length === 0}
             running={store.isAnyRunning()}
+            historyOpen={historyOpen()}
+            onHeightChange={setPromptHeight}
             headersSlot={
               <div class="playground-prompt__headers-slot">
                 <button

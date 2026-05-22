@@ -314,9 +314,19 @@
   margin-top: 2px;
 }
 
+.settings-card__label-desc--meta {
+  color: hsl(var(--muted-foreground));
+  margin-top: 4px;
+}
+
 .settings-card__control {
   flex-shrink: 0;
   width: 260px;
+}
+
+.settings-card__control--end {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .settings-card__input {

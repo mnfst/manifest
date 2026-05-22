@@ -41,6 +41,26 @@ describe('sanitizeRequestHeaders', () => {
     expect(result).toEqual({ 'x-safe': 'keep' });
   });
 
+  it('drops Railway/proxy/transport noise headers regardless of casing', () => {
+    const result = sanitizeRequestHeaders({
+      'X-Railway-Edge': 'railway/europe-west4-drams3a',
+      'X-Railway-Request-Id': 'm5e5d2NRQLKtNMov2JZdWA',
+      'X-Forwarded-For': '193.33.57.199',
+      'X-Forwarded-Host': 'app.manifest.build',
+      'X-Forwarded-Proto': 'https',
+      'X-Forwarded-Port': '443',
+      'X-Real-Ip': '193.33.57.199',
+      'X-Request-Start': '1779377596677',
+      'X-Envoy-External-Address': '193.33.57.199',
+      Host: 'app.manifest.build',
+      Connection: 'keep-alive',
+      'Accept-Encoding': 'gzip',
+      'Content-Length': '143',
+      'User-Agent': 'curl/8.18.0',
+    });
+    expect(result).toEqual({ 'user-agent': 'curl/8.18.0' });
+  });
+
   it('flattens array values with comma-space separator', () => {
     expect(sanitizeRequestHeaders({ 'x-multi': ['a', 'b', 'c'] })).toEqual({
       'x-multi': 'a, b, c',

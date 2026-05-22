@@ -5,10 +5,11 @@
 - `1779000000000-AddRoutingTiers.ts`
 - `1779100000000-RefactorAgents.ts`
 - `1779200000000-DropLegacyMetrics.ts`
+- `1779300000000-RekeyProviderKeys.ts`
 
 ### Summary
 - 🟢 **Added tables:** `routing_tiers`
-- 🟡 **Modified tables:** `agent_api_keys` (+1 FK), `agents` (+1 col, ~1 col, -1 col)
+- 🟡 **Modified tables:** `agent_api_keys` (+1 FK), `agents` (+1 col, ~1 col, -1 col), `provider_keys` (-1 FK, PK changed)
 - 🔴 **Removed tables:** `legacy_metrics`
 
 ### Schema diagram
@@ -19,18 +20,24 @@ Showing only changed tables. 🟢 added, 🟡 modified, 🔴 removed. Changed co
 erDiagram
     agent_api_keys["🟡 agent_api_keys (modified)"] {
         varchar id PK
-        varchar agent_id FK
+        varchar agent_id FK "🟡 FK added"
         varchar_64_ key
     }
     agents["🟡 agents (modified)"] {
         varchar id PK
-        varchar name "modified"
+        varchar name "🟡 modified"
         varchar tenant_id FK
-        varchar_255_ display_name "added"
+        varchar_255_ display_name "🟢 added"
+        boolean legacy_flag "🔴 removed"
     }
     legacy_metrics["🔴 legacy_metrics (removed)"] {
         varchar id PK
         integer value
+    }
+    provider_keys["🟡 provider_keys (modified)"] {
+        varchar id PK
+        varchar agent_id "🟡 FK removed"
+        varchar region PK "🟡 PK changed"
     }
     routing_tiers["🟢 routing_tiers (added)"] {
         uuid id PK
@@ -60,6 +67,10 @@ erDiagram
 - 🔄 modified `name`: `varchar` NOT NULL → `varchar` NULL
 - ➕ added `display_name` `varchar(255)` NULL
 - ➖ dropped `legacy_flag` _(was `boolean`)_
+
+#### 🟡 `provider_keys`
+- 🔑 primary key changed: + `region`
+- 🔗 dropped FK `agent_id` → `agents.id`
 
 #### 🔴 `legacy_metrics` _(removed)_
 

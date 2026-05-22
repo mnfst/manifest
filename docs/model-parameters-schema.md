@@ -7,7 +7,7 @@ catalog. The catalog is metadata: it describes which request parameters Manifest
 can configure for a provider/auth/model tuple. User-selected values still live in
 `agent_model_params`.
 
-The runtime source is `https://modelparameters.dev/api/v1/models.json`.
+The runtime source is `https://modelparams.dev/api/v1/models.json`.
 Manifest caches the latest valid remote catalog in memory and keeps that cache
 through transient refresh failures.
 
@@ -147,8 +147,11 @@ They do not store derived UI state or provider-specific rule state.
 The outbound proxy merge:
 
 1. expands needed nested defaults for configured nested roots
-2. merges client request body values last, so client body values win
+2. merges configured Manifest values last, so Manifest values win for the same provider path
 3. omits params that are not applicable under the final effective values
+
+Client request body values that do not overlap configured Manifest model
+params stay in the outbound provider request.
 
 ## Adding A New Rule
 

@@ -1,10 +1,8 @@
 import {
   chatCompletionsResponseToMessages,
   createMessagesStreamTransformer,
-  extractAnthropicServerTools,
   messagesToChatCompletionsRequest,
 } from '../anthropic-messages-adapter';
-import { toAnthropicRequest } from '../anthropic-adapter';
 
 describe('Anthropic Messages adapter', () => {
   describe('messagesToChatCompletionsRequest', () => {
@@ -232,7 +230,11 @@ describe('Anthropic Messages adapter', () => {
       expect(ignoredNamed.tool_choice).toBeUndefined();
     });
 
-    it('stashes Anthropic server tools and still exposes them to the scorer (issue #1886)', () => {
+    it('exposes Anthropic server tools to the scorer by function.name (issue #1886)', () => {
+      // chatBody is only consumed by the routing/scoring layer in messages
+      // mode — the wire body goes through applyAnthropicMessagesMutations
+      // direct from the inbound body, so server-tool `type` tags are
+      // preserved upstream. Scoring just needs tool count + function.name.
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
         tools: [
@@ -255,14 +257,6 @@ describe('Anthropic Messages adapter', () => {
         'my_custom',
         'explicit_custom',
       ]);
-
-      // Originals are stashed so toAnthropicRequest can re-emit them with the
-      // `type` tag intact.
-      expect(result._anthropicServerTools).toEqual([
-        { type: 'web_search_20250305', name: 'web_search' },
-        { type: 'bash_20250124', name: 'bash' },
-        { type: 'mcp_toolset', name: 'mcp' },
-      ]);
     });
 
     it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
@@ -271,7 +265,6 @@ describe('Anthropic Messages adapter', () => {
         tools: [{ type: 'advisor_20260301', name: 'advisor', description: 'Plan the task' }],
       });
 
-      expect(result._anthropicServerTools).toBeUndefined();
       expect(result.tools).toEqual([
         {
           type: 'function',
@@ -282,26 +275,6 @@ describe('Anthropic Messages adapter', () => {
           },
         },
       ]);
-    });
-
-    it('round-trips unknown typed tools back to Anthropic as custom tools (issue #1897)', () => {
-      const chatBody = messagesToChatCompletionsRequest({
-        messages: [{ role: 'user', content: 'x' }],
-        tools: [
-          { type: 'web_search_20250305', name: 'web_search' },
-          { type: 'advisor_20260301', name: 'advisor' },
-        ],
-      });
-
-      const anthropicBody = toAnthropicRequest(chatBody, 'claude-sonnet-4-20250514');
-      const tools = anthropicBody.tools as Array<Record<string, unknown>>;
-
-      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
-      expect(tools[1]).toEqual({
-        name: 'advisor',
-        input_schema: { type: 'object', properties: {}, additionalProperties: false },
-        cache_control: { type: 'ephemeral' },
-      });
     });
 
     it('adds missing array items in Anthropic tool schemas before OpenAI forwarding', () => {
@@ -342,14 +315,6 @@ describe('Anthropic Messages adapter', () => {
         },
       });
       expect(inputSchema.properties.codebase_context.anyOf[2]).toEqual({ type: 'array' });
-    });
-
-    it('omits the stash when no server tools are present', () => {
-      const result = messagesToChatCompletionsRequest({
-        messages: [{ role: 'user', content: 'x' }],
-        tools: [{ name: 'plain', input_schema: { type: 'object' } }],
-      });
-      expect(result._anthropicServerTools).toBeUndefined();
     });
 
     it('forwards Anthropic-native thinking and top_k onto chatBody', () => {
@@ -451,32 +416,6 @@ describe('Anthropic Messages adapter', () => {
         messages: ['nope', null, { role: 'user', content: 'ok' }],
       } as Record<string, unknown>);
       expect(result.messages).toEqual([{ role: 'user', content: 'ok' }]);
-    });
-  });
-
-  describe('extractAnthropicServerTools', () => {
-    it('returns tools whose type matches a known Anthropic server-tool prefix', () => {
-      expect(
-        extractAnthropicServerTools([
-          { type: 'web_search_20250305', name: 'web_search' },
-          { type: 'custom', name: 'c1' },
-          { type: 'advisor_20260301', name: 'advisor' },
-          { type: 'mcp_toolset', name: 'mcp' },
-          { type: 'mcp_toolset_future', name: 'future_mcp' },
-          { name: 'c2' },
-          { type: 'text_editor_20250728', name: 'str_replace_editor' },
-          'not-a-record',
-        ]),
-      ).toEqual([
-        { type: 'web_search_20250305', name: 'web_search' },
-        { type: 'mcp_toolset', name: 'mcp' },
-        { type: 'text_editor_20250728', name: 'str_replace_editor' },
-      ]);
-    });
-
-    it('returns an empty array when no server tools are present', () => {
-      expect(extractAnthropicServerTools([{ type: 'custom', name: 'c' }])).toEqual([]);
-      expect(extractAnthropicServerTools([])).toEqual([]);
     });
   });
 

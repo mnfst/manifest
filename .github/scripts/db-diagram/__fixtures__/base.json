@@ -37,6 +37,17 @@
       ],
       "primaryKeys": ["id"],
       "foreignKeys": []
+    },
+    "provider_keys": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "agent_id", "type": "varchar", "nullable": false },
+        { "name": "region", "type": "varchar", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": [
+        { "column": "agent_id", "toTable": "agents", "toColumn": "id" }
+      ]
     }
   }
 }

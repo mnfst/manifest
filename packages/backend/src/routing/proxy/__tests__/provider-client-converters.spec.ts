@@ -1,4 +1,7 @@
-import { sanitizeOpenAiBody } from '../provider-client-converters';
+import {
+  createReasoningContentStreamTransformer,
+  sanitizeOpenAiBody,
+} from '../provider-client-converters';
 
 describe('provider-client-converters', () => {
   describe('sanitizeOpenAiBody', () => {
@@ -18,20 +21,6 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('store');
       expect(result).toHaveProperty('metadata');
       expect(result).toHaveProperty('stream_options');
-    });
-
-    it('strips Manifest-internal _anthropic* stash fields on every provider (issue #1886)', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Hi' }],
-        model: 'gpt-4o',
-        _anthropicServerTools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      };
-
-      const openai = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
-      expect(openai).not.toHaveProperty('_anthropicServerTools');
-
-      const groq = sanitizeOpenAiBody(body, 'groq', 'llama-3');
-      expect(groq).not.toHaveProperty('_anthropicServerTools');
     });
 
     it('should strip OpenAI-only fields for non-passthrough providers', () => {
@@ -181,12 +170,45 @@ describe('provider-client-converters', () => {
       expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
     });
 
+    it('normalizes provider casing when preserving reasoning_content', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'DeepSeek', 'deepseek-chat');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
+    it('should preserve reasoning_content for native moonshot provider', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'moonshot', 'kimi-k2');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
     it('should preserve reasoning_content for openrouter deepseek models', () => {
       const body = {
         messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
       };
 
       const result = sanitizeOpenAiBody(body, 'openrouter', 'deepseek/deepseek-r1');
+      const messages = result.messages as any[];
+
+      expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
+    });
+
+    it('should preserve reasoning_content for openrouter moonshot models', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi', reasoning_content: 'thought' }],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'openrouter', 'moonshotai/kimi-k2');
       const messages = result.messages as any[];
 
       expect(messages[0]).toHaveProperty('reasoning_content', 'thought');
@@ -304,6 +326,83 @@ describe('provider-client-converters', () => {
         const messages = result.messages as any[];
         expect(messages[0]).not.toHaveProperty('reasoning_content');
       }
+    });
+
+    it('re-injects cached reasoning_content for compatible assistant tool-call messages', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'lookup', arguments: '{}' },
+              },
+            ],
+          },
+        ],
+      };
+
+      const lookup = jest.fn((id: string) => (id === 'call_1' ? 'cached reasoning' : null));
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).toHaveBeenCalledWith('call_1');
+      expect(messages[0]).toHaveProperty('reasoning_content', 'cached reasoning');
+    });
+
+    it('does not re-inject cached reasoning_content for strict providers', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const lookup = jest.fn(() => 'cached reasoning');
+      const result = sanitizeOpenAiBody(body, 'mistral', 'mistral-large', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
+    });
+
+    it('does not replace existing reasoning_content during re-injection', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            reasoning_content: 'client reasoning',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const lookup = jest.fn(() => 'cached reasoning');
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).toHaveProperty('reasoning_content', 'client reasoning');
+    });
+
+    it('does not re-inject cached reasoning_content without tool calls', () => {
+      const body = {
+        messages: [{ role: 'assistant', content: 'Hi' }],
+      };
+
+      const lookup = jest.fn(() => 'cached reasoning');
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const messages = result.messages as any[];
+
+      expect(lookup).not.toHaveBeenCalled();
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
     /* ── Message sanitization: reasoning_details ── */
@@ -839,6 +938,64 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('max_completion_tokens', 4096);
       expect(result).not.toHaveProperty('store');
       expect(result).not.toHaveProperty('service_tier');
+    });
+  });
+
+  describe('createReasoningContentStreamTransformer', () => {
+    it('accumulates reasoning_content and fires callback on tool-call finish', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback);
+
+      expect(
+        transform(
+          JSON.stringify({
+            choices: [{ delta: { reasoning_content: 'I should ' }, finish_reason: null }],
+          }),
+        ),
+      ).toContain('reasoning_content');
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_content: 'use a tool.' }, finish_reason: null }],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'lookup' } }],
+              },
+              finish_reason: null,
+            },
+          ],
+        }),
+      );
+      transform(JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }));
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith('call_1', 'I should use a tool.');
+    });
+
+    it('does not fire without a tool call id', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback);
+
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_content: 'thinking' }, finish_reason: null }],
+        }),
+      );
+      transform(JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }));
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('passes malformed chunks through unchanged as SSE data', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback);
+
+      expect(transform('not json')).toBe('data: not json\n\n');
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 });

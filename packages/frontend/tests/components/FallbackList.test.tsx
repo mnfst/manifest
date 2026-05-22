@@ -2,11 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpecCatalog } from 'manifest-shared';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
+
 const mockSetFallbacks = vi.fn();
 const mockClearFallbacks = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   setFallbacks: (...args: unknown[]) => mockSetFallbacks(...args),
   clearFallbacks: (...args: unknown[]) => mockClearFallbacks(...args),
+}));
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -61,6 +72,7 @@ const defaultProps = {
   ] as any[],
   onUpdate: vi.fn(),
   onAddFallback: vi.fn(),
+  modelHasParams: () => true,
 };
 
 const modelParamSpecs: ProviderParamSpecCatalog = [
@@ -1100,6 +1112,7 @@ describe('FallbackList', () => {
     };
 
     it('renders the params affordance on a fallback row and forwards saves through setModelParams', async () => {
+      vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
       const setModelParams = vi.fn().mockResolvedValue(undefined);
       const getModelParams = vi.fn().mockReturnValue(null);
       const { container, getByRole } = render(() => (
@@ -1109,7 +1122,6 @@ describe('FallbackList', () => {
           fallbackRoutes={[deepseekRoute] as any}
           getModelParams={getModelParams}
           setModelParams={setModelParams}
-          modelParamSpecs={() => modelParamSpecs}
         />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
@@ -1128,7 +1140,8 @@ describe('FallbackList', () => {
       });
     });
 
-    it("renders the affordance when the row's provider has no known param key", async () => {
+    it('renders the affordance and shows the request empty state for a model with no params', async () => {
+      vi.mocked(getModelParamSpecs).mockResolvedValue([]);
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
@@ -1136,14 +1149,12 @@ describe('FallbackList', () => {
           fallbackRoutes={[openaiRoute] as any}
           getModelParams={vi.fn().mockReturnValue(null)}
           setModelParams={vi.fn()}
-          modelParamSpecs={() => modelParamSpecs}
         />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
       );
       expect(btn).toBeDefined();
-
       fireEvent.click(btn!);
 
       await waitFor(() => {
@@ -1158,9 +1169,7 @@ describe('FallbackList', () => {
         <FallbackList
           {...defaultProps}
           fallbacks={['deepseek-v4-flash']}
-          fallbackRoutes={[deepseekRoute] as any}
-          modelParamSpecs={() => modelParamSpecs}
-        />
+          fallbackRoutes={[deepseekRoute] as any}        />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
@@ -1195,9 +1204,7 @@ describe('FallbackList', () => {
           fallbacks={['deepseek-v4-flash']}
           fallbackRoutes={null}
           getModelParams={vi.fn().mockReturnValue(null)}
-          setModelParams={vi.fn()}
-          modelParamSpecs={() => modelParamSpecs}
-        />
+          setModelParams={vi.fn()}        />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
