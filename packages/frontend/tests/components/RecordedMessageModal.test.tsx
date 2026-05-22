@@ -68,7 +68,6 @@ function baseDetails(overrides: Record<string, unknown> = {}) {
         messages: [
           { role: "system", content: "You are helpful." },
           { role: "user", content: "hi there" },
-          { role: "assistant", content: "hello back" },
         ],
       },
       response_body: {
@@ -187,6 +186,49 @@ describe("RecordedMessageModal (drawer)", () => {
       expect(document.body.textContent).toContain("noted");
     });
     expect(document.body.textContent).not.toContain("Unrecognised request body shape");
+  });
+
+  it("appends OpenAI Responses output as the final assistant turn", async () => {
+    mockGetMessageDetails.mockResolvedValue(
+      baseDetails({
+        recording: {
+          request_body: {
+            model: "gpt-5-mini",
+            input: [
+              {
+                role: "user",
+                content: [{ type: "input_text", text: "latest user question" }],
+              },
+            ],
+          },
+          response_body: {
+            type: "json",
+            body: {
+              id: "resp_1",
+              output: [
+                {
+                  type: "message",
+                  role: "assistant",
+                  content: [{ type: "output_text", text: "latest assistant answer" }],
+                },
+              ],
+            },
+          },
+          response_headers: {},
+          size_bytes: 120,
+          created_at: "",
+        },
+      }),
+    );
+
+    render(() => <RecordedMessageModal open={true} messageId="msg-responses" onClose={vi.fn()} />);
+
+    await vi.waitFor(() => {
+      const turns = Array.from(document.querySelectorAll(".recorded-modal__turn"));
+      expect(turns.length).toBe(2);
+      expect(turns.map((t) => t.getAttribute("data-role"))).toEqual(["user", "assistant"]);
+      expect(turns[turns.length - 1]?.textContent).toContain("latest assistant answer");
+    });
   });
 
   it("switches tabs when tab buttons are clicked", async () => {

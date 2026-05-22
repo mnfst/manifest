@@ -2,7 +2,9 @@ import {
   coerceContentToText,
   detectRequestBodyFormat,
   extractAssistantReply,
+  extractRecordedConversationMessages,
   extractRequestMessages,
+  extractResponseMessages,
   extractRequestTools,
   normalizeRole,
 } from '../src/chat-message';
@@ -192,6 +194,112 @@ describe('chat-message recording helpers', () => {
         body: { choices: [{ message: { role: 'assistant', content: 'done' } }] },
       }),
     ).toEqual({ role: 'assistant', content: 'done' });
+    expect(extractResponseMessages({ type: 'json', body: { choices: [{}] } })).toEqual([]);
     expect(extractAssistantReply({ type: 'json', body: {} })).toBeNull();
+  });
+
+  it('extracts OpenAI Responses output messages as response turns', () => {
+    const response = {
+      type: 'json',
+      body: {
+        output: [
+          { type: 'reasoning', summary: [] },
+          {
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'final answer' }],
+          },
+          {
+            type: 'message',
+            content: [{ type: 'output_text', text: 'implicit assistant answer' }],
+          },
+          { type: 'function_call', call_id: 'call_1', name: 'lookup', arguments: '{"id":1}' },
+          { type: 'function_call', id: 'call_2' },
+          { type: 'function_call' },
+        ],
+      },
+    };
+
+    expect(extractResponseMessages(response)).toEqual([
+      { role: 'assistant', content: [{ type: 'text', text: 'final answer' }] },
+      { role: 'assistant', content: [{ type: 'text', text: 'implicit assistant answer' }] },
+      {
+        role: 'assistant',
+        content: null,
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: { name: 'lookup', arguments: '{"id":1}' },
+          },
+        ],
+      },
+      {
+        role: 'assistant',
+        content: null,
+        tool_calls: [
+          {
+            id: 'call_2',
+            type: 'function',
+            function: { name: 'unknown', arguments: '{}' },
+          },
+        ],
+      },
+      {
+        role: 'assistant',
+        content: null,
+        tool_calls: [
+          {
+            id: undefined,
+            type: 'function',
+            function: { name: 'unknown', arguments: '{}' },
+          },
+        ],
+      },
+    ]);
+    expect(extractAssistantReply(response)).toEqual({
+      role: 'assistant',
+      content: [{ type: 'text', text: 'final answer' }],
+    });
+  });
+
+  it('appends captured OpenAI responses after request turns', () => {
+    expect(
+      extractRecordedConversationMessages(
+        { input: 'hello' },
+        {
+          type: 'json',
+          body: {
+            output: [
+              {
+                type: 'message',
+                role: 'assistant',
+                content: [{ type: 'output_text', text: 'hi back' }],
+              },
+            ],
+          },
+        },
+      ),
+    ).toEqual([
+      { role: 'user', content: 'hello' },
+      { role: 'assistant', content: [{ type: 'text', text: 'hi back' }] },
+    ]);
+    expect(
+      extractRecordedConversationMessages(
+        { system: 'Claude system prompt' },
+        {
+          type: 'json',
+          body: {
+            output: [
+              {
+                type: 'message',
+                role: 'assistant',
+                content: [{ type: 'output_text', text: 'do not append' }],
+              },
+            ],
+          },
+        },
+      ),
+    ).toEqual([]);
   });
 });

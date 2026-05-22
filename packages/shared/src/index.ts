@@ -99,7 +99,9 @@ export {
   coerceContentToText,
   detectRequestBodyFormat,
   extractAssistantReply,
+  extractRecordedConversationMessages,
   extractRequestMessages,
+  extractResponseMessages,
   extractRequestTools,
   normalizeRole,
 } from './chat-message';

@@ -1,6 +1,6 @@
 import { createEffect, createSignal, on, type Accessor, type Setter } from 'solid-js';
 import {
-  extractRequestMessages,
+  extractRecordedConversationMessages,
   normalizeRole,
   shouldCollapseByDefault,
   type ChatMessage,
@@ -62,7 +62,10 @@ export function createRecordedDrawerState(
       (d) => {
         if (!d?.recording?.request_body) return;
         const next = new Set<number>();
-        extractRequestMessages(d.recording.request_body).forEach((m: ChatMessage, i) => {
+        extractRecordedConversationMessages(
+          d.recording.request_body,
+          d.recording.response_body ?? null,
+        ).forEach((m: ChatMessage, i) => {
           const role = normalizeRole(m.role);
           const tokens = estimateMessageTokens(m);
           if (!shouldCollapseByDefault(role, tokens)) next.add(i);
