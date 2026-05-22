@@ -60,7 +60,6 @@ const MessageLog: Component = () => {
   const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
-  const [recordedOnly, setRecordedOnly] = createSignal(false);
   const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
   const closeDr = () => setRecordingModalId(null);
   onMount(() => window.addEventListener('sidebar-navigate', closeDr));
@@ -155,7 +154,7 @@ const MessageLog: Component = () => {
   };
 
   createEffect(
-    on([providerFilter, tierFilter, costMin, costMax, recordedOnly], () => pager.resetPage(), {
+    on([providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
       defer: true,
     }),
   );
@@ -166,7 +165,6 @@ const MessageLog: Component = () => {
       tier: tierFilter(),
       costMin: costMin(),
       costMax: costMax(),
-      recordedOnly: recordedOnly(),
       agentName: params.agentName,
       _ping: messagePing(),
       cursor: pager.currentCursor(),
@@ -178,7 +176,6 @@ const MessageLog: Component = () => {
       if (p.tier) q.routing_tier = p.tier;
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
-      if (p.recordedOnly) q.recorded = 'true';
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
@@ -205,11 +202,7 @@ const MessageLog: Component = () => {
   );
 
   const hasActiveFilters = () =>
-    providerFilter() !== '' ||
-    tierFilter() !== '' ||
-    costMin() !== '' ||
-    costMax() !== '' ||
-    recordedOnly();
+    providerFilter() !== '' || tierFilter() !== '' || costMin() !== '' || costMax() !== '';
 
   const hasNoData = () => {
     const d = data();
@@ -225,7 +218,6 @@ const MessageLog: Component = () => {
     setTierFilter('');
     setCostMin('');
     setCostMax('');
-    setRecordedOnly(false);
   };
 
   const tierOptions = [
@@ -281,15 +273,6 @@ const MessageLog: Component = () => {
               options={providerOptions()}
             />
             <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions} />
-            <button
-              type="button"
-              class={`msg-recorded-filter${recordedOnly() ? ' msg-recorded-filter--active' : ''}`}
-              onClick={() => setRecordedOnly(!recordedOnly())}
-              aria-pressed={recordedOnly()}
-              title="Show only recorded messages"
-            >
-              Recorded only
-            </button>
             <div class="cost-range-filter">
               <input
                 type="number"

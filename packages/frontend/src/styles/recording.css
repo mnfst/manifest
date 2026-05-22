@@ -61,35 +61,6 @@
   background: hsl(var(--destructive) / 0.08);
 }
 
-/* ── Recorded-only filter chip ─────────────────────────── */
-.msg-recorded-filter {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--background));
-  color: hsl(var(--muted-foreground));
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
-}
-
-.msg-recorded-filter:hover {
-  color: hsl(var(--foreground));
-  border-color: hsl(var(--border));
-}
-
-.msg-recorded-filter--active {
-  background: hsl(var(--destructive) / 0.12);
-  color: hsl(var(--destructive));
-  border-color: hsl(var(--destructive) / 0.4);
-}
-
 /* ── Recorded message modal ────────────────────────────── */
 .recorded-modal__header {
   display: flex;

@@ -239,6 +239,8 @@ describe("MessageLog", () => {
       const selects = container.querySelectorAll('[data-testid="select"]');
       expect(selects.length).toBeGreaterThanOrEqual(1);
     });
+    expect(container.textContent).not.toContain("Recorded only");
+    expect(container.querySelector(".msg-recorded-filter")).toBeNull();
   });
 
   it("renders provider display names in the filter dropdown", async () => {
@@ -1023,24 +1025,7 @@ describe("MessageLog", () => {
     });
   });
 
-  describe("Recording filter", () => {
-    it("toggles the recorded query param when the filter chip is clicked", async () => {
-      mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
-      await vi.waitFor(() => {
-        expect(container.querySelector(".msg-recorded-filter")).not.toBeNull();
-      });
-      const chip = container.querySelector(".msg-recorded-filter") as HTMLButtonElement;
-      mockGetMessages.mockClear();
-      fireEvent.click(chip);
-      await vi.waitFor(() => {
-        const calls = mockGetMessages.mock.calls;
-        const lastQ = calls[calls.length - 1]?.[0] ?? {};
-        expect(lastQ.recorded).toBe("true");
-      });
-      expect(chip.classList.contains("msg-recorded-filter--active")).toBe(true);
-    });
-
+  describe("Recording modal", () => {
     it("opens the recorded-message modal when the row is clicked", async () => {
       const withRecording = {
         ...messagesData,
