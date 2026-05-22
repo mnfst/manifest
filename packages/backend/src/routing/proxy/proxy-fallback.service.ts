@@ -48,7 +48,7 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
-import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 
 export interface FailedFallback {
@@ -128,6 +128,7 @@ export class ProxyFallbackService {
     chatBody?: Record<string, unknown>,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
+    reasoningContentLookup?: ReasoningContentLookup,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -243,6 +244,7 @@ export class ProxyFallbackService {
         providerRegion,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         paramMergeContext,
       });
 
@@ -288,6 +290,7 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
     paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     try {
@@ -326,6 +329,7 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
     paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     const {
@@ -337,6 +341,7 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
     } = opts;
     // Per-attempt merge: ask the model-params service for this iteration's
     // (provider, auth_type, model) config. Storage is model-scoped on the
@@ -436,6 +441,7 @@ export class ProxyFallbackService {
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
     });
   }
 }

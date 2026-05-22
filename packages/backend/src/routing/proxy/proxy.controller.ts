@@ -19,6 +19,7 @@ import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
 import { createCaptureSink, CaptureSink } from './recording-capture';
@@ -55,6 +56,7 @@ export class ProxyController {
     private readonly recorder: ProxyMessageRecorder,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly reasoningCache: ReasoningContentCache,
     private readonly recordingCache: AgentRecordingCacheService,
   ) {}
 
@@ -170,6 +172,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           capture,
+          this.reasoningCache,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -183,6 +186,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           capture,
+          this.reasoningCache,
         );
       }
 

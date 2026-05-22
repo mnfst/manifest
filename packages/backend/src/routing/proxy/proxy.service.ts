@@ -29,9 +29,11 @@ import {
   ProxyRequestOptions,
   SignatureLookup,
   ThinkingBlockLookup,
+  ReasoningContentLookup,
 } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
@@ -118,6 +120,7 @@ export class ProxyService {
     private readonly config: ConfigService,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
@@ -186,6 +189,8 @@ export class ProxyService {
       this.signatureCache.retrieve(sessionKey, toolCallId);
     const thinkingLookup = (firstToolUseId: string) =>
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
+    const reasoningContentLookup = (firstToolCallId: string) =>
+      this.reasoningCache.retrieve(sessionKey, firstToolCallId);
 
     // Per-attempt param-defaults merge happens inside the fallback service
     // so each forward (primary + every fallback iteration) looks up its
@@ -238,6 +243,7 @@ export class ProxyService {
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
       paramMergeContext,
     });
 
@@ -255,6 +261,7 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         apiMode,
         paramMergeContext,
       });
@@ -315,6 +322,7 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         apiMode,
         paramMergeContext,
       });
@@ -433,6 +441,7 @@ export class ProxyService {
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
+    reasoningContentLookup: ReasoningContentLookup;
     apiMode: ProxyApiMode;
     paramMergeContext: ParamMergeContext;
   }): Promise<ProxyResult | null> {
@@ -482,6 +491,7 @@ export class ProxyService {
       chatBody,
       fallbackRoutes,
       args.paramMergeContext,
+      args.reasoningContentLookup,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);

@@ -26,11 +26,13 @@ import {
 import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
+import type { ReasoningContentCache } from './reasoning-content-cache';
 import type { ExtractedSignature } from './google-adapter';
 import {
   extractThinkingBlocksFromMessagesResponse,
   type ExtractedThinkingBlocks,
 } from './anthropic-adapter';
+import { supportsReasoningContent } from './provider-client-converters';
 import type { CallerAttribution } from './caller-classifier';
 import type { CaptureSink } from './recording-capture';
 import { sanitizeResponseHeaders } from './recording-capture';
@@ -277,6 +279,7 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   capture?: CaptureSink,
+  reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders);
 
@@ -364,10 +367,57 @@ export async function handleStreamResponse(
       onClient,
     );
   }
+  if (supportsReasoningContent(meta.provider, meta.model)) {
+    const onReasoningContent =
+      reasoningCache && sessionKey
+        ? (firstToolCallId: string, content: string) => {
+            reasoningCache.store(sessionKey, firstToolCallId, content);
+          }
+        : undefined;
+    const transformer = providerClient.createReasoningContentStreamTransformer(onReasoningContent);
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const out = transformer(chunk);
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+      onClient,
+    );
+  }
   if (apiMode === 'responses' || apiMode === 'messages') {
     return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
   }
   return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+}
+
+function cacheReasoningContent(
+  responseBody: unknown,
+  cache: ReasoningContentCache | undefined,
+  sessionKey: string | undefined,
+): void {
+  if (!cache || !sessionKey) return;
+  const body = responseBody as Record<string, unknown> | undefined;
+  const choices = body?.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return;
+  const firstChoice = choices[0];
+  if (!firstChoice || typeof firstChoice !== 'object' || Array.isArray(firstChoice)) return;
+  const message = (firstChoice as Record<string, unknown>).message as
+    | Record<string, unknown>
+    | undefined;
+  if (!message) return;
+  const reasoningContent = message.reasoning_content;
+  if (typeof reasoningContent !== 'string' || !reasoningContent) return;
+  const toolCalls = message.tool_calls;
+  if (!Array.isArray(toolCalls) || toolCalls.length === 0) return;
+  const firstToolCall = toolCalls[0];
+  const firstToolCallId =
+    firstToolCall && typeof firstToolCall === 'object' && !Array.isArray(firstToolCall)
+      ? (firstToolCall as Record<string, unknown>).id
+      : undefined;
+  if (typeof firstToolCallId !== 'string' || !firstToolCallId) return;
+  cache.store(sessionKey, firstToolCallId, reasoningContent);
 }
 
 export async function handleNonStreamResponse(
@@ -381,6 +431,7 @@ export async function handleNonStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   capture?: CaptureSink,
+  reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
   if (capture) {
     capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
@@ -430,6 +481,9 @@ export async function handleNonStreamResponse(
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
+    if (supportsReasoningContent(meta.provider, meta.model)) {
+      cacheReasoningContent(responseBody, reasoningCache, sessionKey);
+    }
   }
 
   if (apiMode === 'responses' && !forward.isResponses) {

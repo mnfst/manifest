@@ -19,6 +19,7 @@ import {
   convertAnthropicResponse as anthropicResponseConverter,
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
+  createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
 import { toNativeResponsesRequest } from './responses-adapter';
@@ -122,6 +123,7 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      reasoningContentLookup: opts.reasoningContentLookup,
     });
 
     const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
@@ -202,6 +204,7 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -291,7 +294,12 @@ export class ProviderClient {
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
+    const sanitized = sanitizeOpenAiBody(
+      requestSource,
+      endpointKey,
+      ctx.model,
+      ctx.reasoningContentLookup,
+    );
     if (stream && SUPPORTS_USAGE_STREAM_OPTIONS.has(endpointKey)) {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
@@ -356,5 +364,6 @@ export class ProviderClient {
   readonly convertAnthropicResponse = anthropicResponseConverter;
   readonly convertAnthropicStreamChunk = anthropicStreamChunkConverter;
   readonly createAnthropicStreamTransformer = createAnthropicTransformer;
+  readonly createReasoningContentStreamTransformer = reasoningContentStreamTransformer;
   readonly collectChatGptSseResponse = chatGptSseCollector;
 }
