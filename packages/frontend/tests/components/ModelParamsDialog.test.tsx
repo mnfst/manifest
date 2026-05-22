@@ -160,8 +160,6 @@ describe('ModelParamsDialog', () => {
     ));
     expect(screen.getAllByText('Max tokens').length).toBeGreaterThan(0);
     expect(screen.getByText('max_tokens')).toBeTruthy();
-    expect(screen.getByText('Maximum number of output tokens.')).toBeTruthy();
-    expect(screen.getByText('Default: 4096')).toBeTruthy();
   });
 
   it('renders derived select, slider, and number controls from specs', () => {

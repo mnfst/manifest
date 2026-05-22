@@ -389,19 +389,18 @@ const ModelParamsDialog: Component<Props> = (props) => {
         class="model-params__row"
         classList={{ 'model-params__row--disabled': !isApplicable(spec()) }}
       >
-        <div class="model-params__row-copy">
+        <div class="model-params__row-top">
           <div class="model-params__label-title">
             <span>{spec().label}</span>
             <code class="model-params__param-key">{spec().path}</code>
           </div>
-          <div class="model-params__description">{spec().description}</div>
-          <div class="model-params__label-hint">
-            {isApplicable(spec())
-              ? `Default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
-              : 'Unavailable with selected parameters'}
-          </div>
+          {renderControl(spec())}
         </div>
-        <div class="model-params__row-control">{renderControl(spec())}</div>
+        <div class="model-params__label-hint">
+          {isApplicable(spec())
+            ? `Default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
+            : 'Unavailable with selected parameters'}
+        </div>
       </div>
     );
   };
