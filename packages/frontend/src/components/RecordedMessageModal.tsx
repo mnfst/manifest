@@ -27,8 +27,7 @@ import {
   coerceContentToText,
   countMatches,
   detectRequestBodyFormat,
-  extractAssistantReply,
-  extractRequestMessages,
+  extractRecordedConversationMessages,
   extractRequestTools,
   normalizeRole,
   type Role,
@@ -49,7 +48,10 @@ interface Props {
 }
 
 const requestMessages = (d: MessageDetailResponse) =>
-  extractRequestMessages(d.recording?.request_body);
+  extractRecordedConversationMessages(
+    d.recording?.request_body,
+    d.recording?.response_body ?? null,
+  );
 const requestTools = (d: MessageDetailResponse) => extractRequestTools(d.recording?.request_body);
 
 /** Don't hijack '/' when the user is typing in any editable field. */
@@ -108,11 +110,6 @@ const RecordedMessageModal: Component<Props> = (props) => {
       if (normalizeRole(ms[i]!.role) === 'user') return { msg: ms[i]!, index: i };
     }
     return null;
-  });
-
-  const assistantReply = createMemo(() => {
-    const d = data();
-    return d ? extractAssistantReply(d.recording?.response_body ?? null) : null;
   });
 
   // Only OpenAI-compatible request shapes carry inline conversation turns

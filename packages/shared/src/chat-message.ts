@@ -20,6 +20,7 @@ export interface ChatTool {
 }
 
 type JsonRecord = Record<string, unknown>;
+type RecordingResponseBody = { type?: string; body?: unknown };
 
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
@@ -112,6 +113,37 @@ function responsesInputItemToMessages(item: JsonRecord): ChatMessage[] {
   return [{ role, content: responsesContentToChatContent(item.content, role) }];
 }
 
+function responsesOutputItemToMessages(item: JsonRecord): ChatMessage[] {
+  if (item.type === 'function_call') {
+    return [
+      {
+        role: 'assistant',
+        content: null,
+        tool_calls: [
+          {
+            id:
+              typeof item.call_id === 'string'
+                ? item.call_id
+                : typeof item.id === 'string'
+                  ? item.id
+                  : undefined,
+            type: 'function',
+            function: {
+              name: typeof item.name === 'string' ? item.name : 'unknown',
+              arguments: typeof item.arguments === 'string' ? item.arguments : '{}',
+            },
+          },
+        ],
+      },
+    ];
+  }
+
+  if (item.type !== 'message') return [];
+
+  const role = typeof item.role === 'string' ? item.role : 'assistant';
+  return [{ role, content: responsesContentToChatContent(item.content, role) }];
+}
+
 export function extractRequestMessages(
   requestBody: Record<string, unknown> | null | undefined,
 ): ChatMessage[] {
@@ -183,12 +215,41 @@ export function detectRequestBodyFormat(
 }
 
 export function extractAssistantReply(
-  responseBody: { type?: string; body?: unknown } | null | undefined,
+  responseBody: RecordingResponseBody | null | undefined,
 ): ChatMessage | null {
-  if (!responseBody || responseBody.type !== 'json') return null;
-  const chat = (responseBody as { body?: unknown }).body as
-    | { choices?: Array<{ message?: ChatMessage }> }
-    | null
-    | undefined;
-  return chat?.choices?.[0]?.message ?? null;
+  return (
+    extractResponseMessages(responseBody).find((m) => normalizeRole(m.role) === 'assistant') ?? null
+  );
+}
+
+export function extractResponseMessages(
+  responseBody: RecordingResponseBody | null | undefined,
+): ChatMessage[] {
+  if (!responseBody || responseBody.type !== 'json' || !isRecord(responseBody.body)) return [];
+
+  const body = responseBody.body;
+  if (Array.isArray(body.choices)) {
+    for (const choice of body.choices) {
+      if (!isRecord(choice) || !isRecord(choice.message)) continue;
+      return [choice.message as ChatMessage];
+    }
+    return [];
+  }
+
+  if (!Array.isArray(body.output)) return [];
+
+  const messages: ChatMessage[] = [];
+  for (const item of body.output) {
+    if (isRecord(item)) messages.push(...responsesOutputItemToMessages(item));
+  }
+  return messages;
+}
+
+export function extractRecordedConversationMessages(
+  requestBody: Record<string, unknown> | null | undefined,
+  responseBody: RecordingResponseBody | null | undefined,
+): ChatMessage[] {
+  const requestMessages = extractRequestMessages(requestBody);
+  if (detectRequestBodyFormat(requestBody) !== 'openai') return requestMessages;
+  return [...requestMessages, ...extractResponseMessages(responseBody)];
 }
