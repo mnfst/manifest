@@ -30,17 +30,20 @@ function makeMeta(overrides: Partial<RoutingMeta> = {}): RoutingMeta {
 }
 
 function mockResponse(): {
-  res: Record<string, jest.Mock>;
+  res: Record<string, jest.Mock> & { writableEnded?: boolean };
   headers: Record<string, string>;
 } {
   const headers: Record<string, string> = {};
-  const res: Record<string, jest.Mock> = {
+  const res: Record<string, jest.Mock> & { writableEnded?: boolean } = {
     status: jest.fn().mockReturnThis(),
     setHeader: jest.fn((k: string, v: string) => {
       headers[k] = v;
     }),
     json: jest.fn(),
+    write: jest.fn(),
+    end: jest.fn(),
   };
+  res.writableEnded = false;
   return { res, headers };
 }
 
@@ -473,7 +476,7 @@ describe('proxy-response-handler', () => {
       } = {},
     ) {
       return {
-        response: { body: { getReader: jest.fn() } },
+        response: { body: { getReader: jest.fn() }, headers: new Headers() },
         isGoogle: flags.isGoogle ?? false,
         isAnthropic: flags.isAnthropic ?? false,
         isChatGpt: flags.isChatGpt ?? false,
@@ -491,8 +494,9 @@ describe('proxy-response-handler', () => {
 
     // These tests verify the branching logic (which adapter is used).
     // Full streaming is tested in stream-writer.spec.ts.
-    // We mock pipeStream to avoid needing real ReadableStreams.
+    // We mock pipeStream + pipePassthrough to avoid needing real ReadableStreams.
     let pipeStreamSpy: jest.SpyInstance;
+    let pipePassthroughSpy: jest.SpyInstance;
     let initSseHeadersSpy: jest.SpyInstance;
 
     beforeEach(() => {
@@ -500,11 +504,13 @@ describe('proxy-response-handler', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const streamWriter = require('../stream-writer');
       pipeStreamSpy = jest.spyOn(streamWriter, 'pipeStream').mockResolvedValue(null);
+      pipePassthroughSpy = jest.spyOn(streamWriter, 'pipePassthrough').mockResolvedValue(null);
       initSseHeadersSpy = jest.spyOn(streamWriter, 'initSseHeaders').mockImplementation(() => {});
     });
 
     afterEach(() => {
       pipeStreamSpy?.mockRestore();
+      pipePassthroughSpy?.mockRestore();
       initSseHeadersSpy?.mockRestore();
     });
 
@@ -570,6 +576,102 @@ describe('proxy-response-handler', () => {
         'toolu_stream',
         blocks,
       );
+    });
+
+    it('apiMode=messages + Anthropic upstream dispatches to pipePassthrough with the Anthropic transformer as tap (issue #1886)', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isAnthropic: true });
+      const tap = jest.fn();
+      const client = mockProviderClient();
+      client.createAnthropicStreamTransformer.mockReturnValue(tap);
+      const meta = makeMeta();
+
+      const usage = await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      // Dispatched to pipePassthrough, not pipeStream. Tap is the Anthropic
+      // stream transformer so thinking-block extraction + OpenAI-shape
+      // usage parsing still happen as a side effect.
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(forward.response.body, res, tap, undefined);
+      expect(pipeStreamSpy).not.toHaveBeenCalled();
+      expect(usage).toBeNull();
+    });
+
+    it('apiMode=messages + Anthropic upstream forwards raw stream chunks to capture', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isAnthropic: true });
+      const tap = jest.fn();
+      const client = mockProviderClient();
+      client.createAnthropicStreamTransformer.mockReturnValue(tap);
+      const capture = {
+        setHeaders: jest.fn(),
+        appendRaw: jest.fn(),
+      };
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        makeMeta(),
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+        capture as any,
+      );
+
+      expect(pipePassthroughSpy).toHaveBeenCalledWith(
+        forward.response.body,
+        res,
+        tap,
+        expect.any(Function),
+      );
+      const onClientChunk = pipePassthroughSpy.mock.calls[0][3];
+      onClientChunk('event: message_start\n\n');
+      expect(capture.appendRaw).toHaveBeenCalledWith('event: message_start\n\n');
+    });
+
+    it('apiMode=messages + Anthropic upstream returns the usage that pipePassthrough captured', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isAnthropic: true });
+      const client = mockProviderClient();
+      client.createAnthropicStreamTransformer.mockReturnValue(jest.fn());
+      const meta = makeMeta();
+      pipePassthroughSpy.mockResolvedValue({
+        prompt_tokens: 58,
+        completion_tokens: 12,
+        cache_read_tokens: 5,
+        cache_creation_tokens: 3,
+      });
+
+      const usage = await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(usage).toEqual({
+        prompt_tokens: 58,
+        completion_tokens: 12,
+        cache_read_tokens: 5,
+        cache_creation_tokens: 3,
+      });
     });
 
     it('should use ChatGPT adapter for ChatGPT responses', async () => {
@@ -914,6 +1016,96 @@ describe('proxy-response-handler', () => {
         cache_creation_tokens: undefined,
       });
       expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it('apiMode=messages + Anthropic upstream returns the upstream body verbatim, preserving server-tool blocks (issue #1886)', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      // A real Anthropic Messages response with server-tool result blocks.
+      // The lossy OpenAI converter (convertAnthropicResponse) only knows
+      // text/thinking/tool_use; without passthrough, server_tool_use and
+      // web_search_tool_result are silently dropped on the way out.
+      const body = {
+        id: 'msg_01',
+        type: 'message',
+        role: 'assistant',
+        model: 'claude-sonnet-4-5-20250929',
+        content: [
+          {
+            type: 'server_tool_use',
+            id: 'srvtoolu_1',
+            name: 'web_search',
+            input: { query: 'cats' },
+          },
+          {
+            type: 'web_search_tool_result',
+            tool_use_id: 'srvtoolu_1',
+            content: [{ type: 'web_search_result', url: 'https://example.test', title: 'Cats' }],
+          },
+          { type: 'text', text: 'Found some cats.' },
+        ],
+        usage: { input_tokens: 50, output_tokens: 12, cache_read_input_tokens: 0 },
+      };
+      const forward = mockForward(body, { isAnthropic: true });
+      const meta = makeMeta();
+      const thinkingCache = { store: jest.fn() };
+
+      const usage = await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess-msg-anthro',
+        thinkingCache as any,
+        'messages',
+      );
+
+      // Lossy converter wasn't called at all.
+      expect(client.convertAnthropicResponse).not.toHaveBeenCalled();
+      // Client gets the upstream body untouched.
+      expect(res.json).toHaveBeenCalledWith(body);
+      // Anthropic-native usage was parsed via parseUsageObject.
+      expect(usage).toEqual({
+        prompt_tokens: 50,
+        completion_tokens: 12,
+        cache_read_tokens: undefined,
+        cache_creation_tokens: 0,
+      });
+      // No thinking blocks → no cache writes.
+      expect(thinkingCache.store).not.toHaveBeenCalled();
+    });
+
+    it('apiMode=messages + Anthropic upstream stores thinking blocks keyed by first tool_use id', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const body = {
+        content: [
+          { type: 'thinking', thinking: 'searching...', signature: 'sig' },
+          { type: 'tool_use', id: 'toolu_1', name: 'web_search', input: { q: 'x' } },
+        ],
+        usage: { input_tokens: 1, output_tokens: 1 },
+      };
+      const forward = mockForward(body, { isAnthropic: true });
+      const meta = makeMeta();
+      const thinkingCache = { store: jest.fn() };
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess-x',
+        thinkingCache as any,
+        'messages',
+      );
+
+      expect(thinkingCache.store).toHaveBeenCalledWith('sess-x', 'toolu_1', [
+        { type: 'thinking', thinking: 'searching...', signature: 'sig' },
+      ]);
     });
 
     it('should convert Anthropic response', async () => {

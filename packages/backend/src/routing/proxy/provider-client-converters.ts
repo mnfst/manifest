@@ -5,6 +5,8 @@ import {
   type GoogleStreamChunkResult,
 } from './google-adapter';
 import {
+  applyAnthropicMessagesMutations,
+  extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
   fromAnthropicResponse,
   transformAnthropicStreamChunk,
@@ -66,7 +68,14 @@ export function createAnthropicTransformer(
 }
 
 // Re-export adapter functions used by ProviderClient.forward()
-export { toGoogleRequest, toAnthropicRequest, toResponsesRequest, collectChatGptSseResponse };
+export {
+  applyAnthropicMessagesMutations,
+  extractThinkingBlocksFromMessagesResponse,
+  toGoogleRequest,
+  toAnthropicRequest,
+  toResponsesRequest,
+  collectChatGptSseResponse,
+};
 export type { GoogleStreamChunkResult } from './google-adapter';
 export type { ThinkingBlocksCallback } from './anthropic-adapter';
 export type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
@@ -296,11 +305,6 @@ export function sanitizeOpenAiBody(
 
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
-    // Strip Manifest-internal fields stashed by inbound adapters (e.g.
-    // `_anthropicServerTools` from anthropic-messages-adapter). These are
-    // only consumed by toAnthropicRequest; OpenAI-compatible upstreams
-    // would reject the unknown parameter.
-    if (key.startsWith('_anthropic')) continue;
     if (key === 'messages') {
       cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
       continue;

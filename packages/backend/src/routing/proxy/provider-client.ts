@@ -6,6 +6,7 @@ import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenRouterCacheControl } from './cache-injection';
 import {
+  applyAnthropicMessagesMutations,
   toGoogleRequest,
   toAnthropicRequest,
   toResponsesRequest,
@@ -225,11 +226,27 @@ export class ProviderClient {
 
     if (endpoint.format === 'anthropic') {
       const isSubscription = authType === 'subscription';
-      const requestBody = toAnthropicRequest(requestSource, bareModel, {
-        injectCacheControl: !isSubscription,
-        injectSubscriptionIdentity: isSubscription,
-        thinkingLookup: ctx.thinkingLookup,
-      });
+      // When the inbound request is already Anthropic Messages
+      // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
+      // skip the OpenAI translation round-trip and apply only the additive
+      // mutations cache_control + subscription identity + max_tokens
+      // default + thinking-block replay. `chatBody` is still used for the
+      // routing/scoring layer earlier in the pipeline; only the wire body
+      // bypasses translation. This closes the lossy-roundtrip class of
+      // bugs that previously dropped Anthropic-native fields (server tool
+      // `type` tags, cache_control placement, etc.) — see #1886.
+      const requestBody =
+        ctx.apiMode === 'messages'
+          ? applyAnthropicMessagesMutations(body, {
+              injectCacheControl: !isSubscription,
+              injectSubscriptionIdentity: isSubscription,
+              thinkingLookup: ctx.thinkingLookup,
+            })
+          : toAnthropicRequest(requestSource, bareModel, {
+              injectCacheControl: !isSubscription,
+              injectSubscriptionIdentity: isSubscription,
+              thinkingLookup: ctx.thinkingLookup,
+            });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
       return {

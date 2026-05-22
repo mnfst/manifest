@@ -1,6 +1,7 @@
 import {
   initSseHeaders,
   parseSseEvents,
+  pipePassthrough,
   pipeStream,
   extractUsageFromSse,
   parseUsageObject,
@@ -656,6 +657,184 @@ describe('pipeStream', () => {
     const usage = await pipeStream(stream, res as never, transform);
 
     expect(usage).toEqual(expect.objectContaining({ prompt_tokens: 50, completion_tokens: 25 }));
+  });
+});
+
+describe('pipePassthrough', () => {
+  function createReadableStream(chunks: string[]): ReadableStream<Uint8Array> {
+    const encoder = new TextEncoder();
+    let index = 0;
+    return new ReadableStream({
+      pull(controller) {
+        if (index < chunks.length) {
+          controller.enqueue(encoder.encode(chunks[index]));
+          index++;
+        } else {
+          controller.close();
+        }
+      },
+    });
+  }
+
+  it('writes upstream SSE bytes through unchanged so framing is preserved', async () => {
+    const { res, written } = mockResponse();
+    const raw =
+      'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":5}}}\n\n' +
+      'event: message_delta\ndata: {"type":"message_delta","usage":{"output_tokens":3}}\n\n';
+    const stream = createReadableStream([raw]);
+    const tap = jest.fn(() => null);
+
+    await pipePassthrough(stream, res as never, tap);
+
+    // The original SSE — event: lines, data: prefixes, blank-line
+    // separators — round-trips intact. No [DONE] sentinel appended.
+    expect(written.join('')).toBe(raw);
+  });
+
+  it('passes raw upstream text to the capture callback', async () => {
+    const { res } = mockResponse();
+    const chunks = [
+      'event: message_start\ndata: {"type":"message_start"}\n\n',
+      'event: content_block_delta\ndata: {"type":"content_block_delta"}\n\n',
+    ];
+    const stream = createReadableStream(chunks);
+    const onClientChunk = jest.fn();
+
+    await pipePassthrough(stream, res as never, () => null, onClientChunk);
+
+    expect(onClientChunk).toHaveBeenCalledTimes(2);
+    expect(onClientChunk.mock.calls.map(([chunk]) => chunk).join('')).toBe(chunks.join(''));
+  });
+
+  it('runs the tap on each parsed event for telemetry side effects', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream([
+      'event: message_start\ndata: {"type":"a"}\n\nevent: message_delta\ndata: {"type":"b"}\n\n',
+    ]);
+    const seen: string[] = [];
+    const tap = jest.fn((event: string) => {
+      seen.push(event);
+      return null;
+    });
+
+    await pipePassthrough(stream, res as never, tap);
+
+    // parseSseEvents strips `data: ` per line — that's the same shape the
+    // Anthropic stream transformer expects.
+    expect(seen).toEqual([
+      'event: message_start\n{"type":"a"}',
+      'event: message_delta\n{"type":"b"}',
+    ]);
+  });
+
+  it('captures usage from the tap output when it emits an OpenAI-shape chunk', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream([
+      'event: message_delta\ndata: {"type":"message_delta"}\n\n',
+    ]);
+    const tap = jest.fn(
+      () =>
+        'data: {"usage":{"input_tokens":50,"output_tokens":12,"cache_read_input_tokens":5}}\n\n',
+    );
+
+    const usage = await pipePassthrough(stream, res as never, tap);
+
+    expect(usage).toEqual({
+      prompt_tokens: 55,
+      completion_tokens: 12,
+      cache_read_tokens: 5,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('returns null when the tap never emits usage', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: {"type":"ping"}\n\n']);
+    const tap = jest.fn(() => null);
+
+    const usage = await pipePassthrough(stream, res as never, tap);
+
+    expect(usage).toBeNull();
+  });
+
+  it('ignores tap output that has no usage field', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: {"x":1}\n\n']);
+    const tap = jest.fn(() => 'data: {"choices":[{"delta":{"content":"x"}}]}\n\n');
+
+    const usage = await pipePassthrough(stream, res as never, tap);
+
+    expect(usage).toBeNull();
+  });
+
+  it('flushes a trailing partial event through the tap so a final usage chunk is not lost', async () => {
+    const { res } = mockResponse();
+    // Upstream closes without the final blank-line separator.
+    const stream = createReadableStream([
+      'event: message_delta\ndata: {"type":"message_delta","usage":{"output_tokens":1}}',
+    ]);
+    const tap = jest.fn(() => 'data: {"usage":{"input_tokens":3,"output_tokens":1}}\n\n');
+
+    const usage = await pipePassthrough(stream, res as never, tap);
+
+    expect(tap).toHaveBeenCalledWith(
+      'event: message_delta\n{"type":"message_delta","usage":{"output_tokens":1}}',
+    );
+    expect(usage).toEqual({
+      prompt_tokens: 3,
+      completion_tokens: 1,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('ignores a whitespace-only trailing buffer', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: real\n\n', '   ']);
+    const tap = jest.fn(() => null);
+
+    await pipePassthrough(stream, res as never, tap);
+
+    // Only the real event triggers tap; the whitespace tail is silently dropped.
+    expect(tap).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips a trailing [DONE] sentinel in the flush buffer', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: [DONE]']);
+    const tap = jest.fn();
+
+    await pipePassthrough(stream, res as never, tap);
+
+    expect(tap).not.toHaveBeenCalled();
+  });
+
+  it('bails when the destination is already ended', async () => {
+    const { res, written } = mockResponse();
+    res.writableEnded = true;
+    const stream = createReadableStream(['data: x\n\n']);
+    const tap = jest.fn();
+
+    await pipePassthrough(stream, res as never, tap);
+
+    expect(written).toHaveLength(0);
+    expect(tap).not.toHaveBeenCalled();
+  });
+
+  it('calls dest.end() when the upstream closes cleanly', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: x\n\n']);
+    await pipePassthrough(stream, res as never, () => null);
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it('throws when the SSE buffer exceeds the safety limit', async () => {
+    const { res } = mockResponse();
+    const huge = 'x'.repeat(1_048_577); // 1 MiB + 1 byte
+    const stream = createReadableStream([huge]);
+    await expect(pipePassthrough(stream, res as never, () => null)).rejects.toThrow(
+      'SSE buffer overflow',
+    );
   });
 });
 

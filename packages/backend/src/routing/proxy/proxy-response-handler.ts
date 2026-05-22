@@ -6,7 +6,13 @@ import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
 import { ProxyMessageRecorder, SuccessRecordingPayload } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
-import { initSseHeaders, parseUsageObject, pipeStream, StreamUsage } from './stream-writer';
+import {
+  initSseHeaders,
+  parseUsageObject,
+  pipePassthrough,
+  pipeStream,
+  StreamUsage,
+} from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
 import {
   chatCompletionStreamChunkToResponses,
@@ -21,7 +27,10 @@ import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
 import type { ExtractedSignature } from './google-adapter';
-import type { ExtractedThinkingBlocks } from './anthropic-adapter';
+import {
+  extractThinkingBlocksFromMessagesResponse,
+  type ExtractedThinkingBlocks,
+} from './anthropic-adapter';
 import type { CallerAttribution } from './caller-classifier';
 import type { CaptureSink } from './recording-capture';
 import { sanitizeResponseHeaders } from './recording-capture';
@@ -321,6 +330,16 @@ export async function handleStreamResponse(
       meta.model,
       onThinkingBlocks,
     );
+    // Anthropic Messages inbound + Anthropic upstream: forward the upstream
+    // SSE bytes byte-for-byte so Anthropic SSE framing (`event:` headers,
+    // multi-line `data:` payloads, blank-line separators) reaches the
+    // client intact, and Anthropic-only content blocks (`server_tool_use`,
+    // `web_search_tool_result`, etc.) are not lost to translation. The
+    // transformer runs purely as a tap — thinking-block cache via callback
+    // and OpenAI-shape usage parsed off its return value by pipePassthrough.
+    if (apiMode === 'messages') {
+      return pipePassthrough(forward.response.body!, res, anthropicTransformer, onClient);
+    }
     return pipeStream(
       forward.response.body!,
       res,
@@ -382,6 +401,18 @@ export async function handleNonStreamResponse(
     // Always strip the internal side-channel — it must never reach the client,
     // even if the cache wasn't provided for this request.
     delete (responseBody as Record<string, unknown>)._extractedSignatures;
+  } else if (apiMode === 'messages' && forward.isAnthropic) {
+    // Anthropic Messages inbound + Anthropic upstream: pass the response
+    // body through unchanged so Anthropic-only content blocks
+    // (`server_tool_use`, `web_search_tool_result`, etc.) survive. The
+    // OpenAI-shaped converter only knows `text` / `thinking` / `tool_use`
+    // and would silently drop the rest.
+    const anthropicData = (await forward.response.json()) as Record<string, unknown>;
+    const extracted = extractThinkingBlocksFromMessagesResponse(anthropicData);
+    if (extracted && thinkingCache && sessionKey) {
+      thinkingCache.store(sessionKey, extracted.firstToolUseId, extracted.blocks);
+    }
+    responseBody = anthropicData;
   } else if (forward.isAnthropic) {
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
@@ -403,7 +434,10 @@ export async function handleNonStreamResponse(
 
   if (apiMode === 'responses' && !forward.isResponses) {
     responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model);
-  } else if (apiMode === 'messages') {
+  } else if (apiMode === 'messages' && !forward.isAnthropic) {
+    // Anthropic upstreams already returned a Messages-shaped body via the
+    // passthrough branch above. Skip the round-trip translation that would
+    // strip Anthropic-only content blocks.
     responseBody = chatCompletionsResponseToMessages(
       responseBody as Record<string, unknown>,
       meta.model,
