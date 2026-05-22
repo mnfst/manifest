@@ -17,6 +17,7 @@ interface Props {
   slotLabel: string;
   current: RequestParamDefaults | null;
   specs: readonly ProviderParamSpec[];
+  requestParamsUrl?: string;
   // True while the per-model specs are still being fetched (dialog opens
   // immediately, specs arrive async).
   loading?: boolean;
@@ -146,6 +147,7 @@ const numberDefault = (spec: ProviderParamSpec): number =>
 const ModelParamsDialog: Component<Props> = (props) => {
   const [draft, setDraft] = createSignal<DraftState>(stateFromCurrent(props.specs, props.current));
   const [saving, setSaving] = createSignal(false);
+  const hasSpecs = () => props.specs.length > 0;
 
   createEffect(() => {
     if (props.open) setDraft(stateFromCurrent(props.specs, props.current));
@@ -415,8 +417,9 @@ const ModelParamsDialog: Component<Props> = (props) => {
           }}
         >
           <div
-            class="modal-card"
-            style="max-width: 460px; user-select: none;"
+            class="modal-card model-params-modal"
+            classList={{ 'model-params-modal--empty': !props.loading && !hasSpecs() }}
+            style="user-select: none;"
             role="dialog"
             aria-modal="true"
             aria-labelledby="model-params-dialog-title"
@@ -426,7 +429,13 @@ const ModelParamsDialog: Component<Props> = (props) => {
             <h2 class="modal-card__title" id="model-params-dialog-title">
               Model parameters
             </h2>
-            <p class="modal-card__desc">Manifest parameters for {props.slotLabel}.</p>
+            <p class="modal-card__desc">
+              {props.loading
+                ? `Loading parameters for ${props.slotLabel}…`
+                : hasSpecs()
+                  ? `Defaults for ${props.slotLabel}. Client requests override.`
+                  : `No parameter controls are published for ${props.slotLabel} yet.`}
+            </p>
 
             <Show
               when={!props.loading}
@@ -438,9 +447,28 @@ const ModelParamsDialog: Component<Props> = (props) => {
               }
             >
               <Show
-                when={props.specs.length > 0}
+                when={hasSpecs()}
                 fallback={
-                  <p class="model-params__status">This model has no configurable parameters.</p>
+                  <div class="model-params__empty">
+                    <Show
+                      when={props.requestParamsUrl}
+                      fallback={
+                        <p class="model-params__status">
+                          This model has no configurable parameters.
+                        </p>
+                      }
+                    >
+                      <a
+                        class="btn btn--outline btn--sm model-params__empty-link"
+                        href={props.requestParamsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Request model parameters for ${props.slotLabel}`}
+                      >
+                        Request parameters for this model
+                      </a>
+                    </Show>
+                  </div>
                 }
               >
                 <For each={groupSpecs(props.specs)}>
@@ -494,25 +522,38 @@ const ModelParamsDialog: Component<Props> = (props) => {
               </Show>
             </Show>
 
-            <div class="modal-card__footer">
-              <button
-                class="btn btn--ghost btn--sm"
-                onClick={props.onClose}
-                disabled={saving()}
-                type="button"
-              >
-                {!props.loading && props.specs.length > 0 ? 'Cancel' : 'Close'}
-              </button>
-              <Show when={!props.loading && props.specs.length > 0}>
+            <div class="modal-card__footer model-params__footer">
+              <Show when={!props.loading && hasSpecs() && props.requestParamsUrl}>
+                <a
+                  class="model-params__request-link"
+                  href={props.requestParamsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Request parameters for ${props.slotLabel}`}
+                >
+                  Request
+                </a>
+              </Show>
+              <div class="model-params__footer-actions">
                 <button
-                  class="btn btn--primary btn--sm"
-                  onClick={handleSave}
+                  class="btn btn--ghost btn--sm"
+                  onClick={props.onClose}
                   disabled={saving()}
                   type="button"
                 >
-                  {saving() ? <span class="spinner" /> : 'Save'}
+                  {!props.loading && hasSpecs() ? 'Cancel' : 'Close'}
                 </button>
-              </Show>
+                <Show when={!props.loading && hasSpecs()}>
+                  <button
+                    class="btn btn--primary btn--sm"
+                    onClick={handleSave}
+                    disabled={saving()}
+                    type="button"
+                  >
+                    {saving() ? <span class="spinner" /> : 'Save'}
+                  </button>
+                </Show>
+              </div>
             </div>
           </div>
         </div>

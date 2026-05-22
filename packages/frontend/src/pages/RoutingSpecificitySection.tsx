@@ -178,7 +178,6 @@ export interface RoutingSpecificitySectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -273,7 +272,6 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 }
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
-                modelHasParams={props.modelHasParams}
               />
             )}
           </For>

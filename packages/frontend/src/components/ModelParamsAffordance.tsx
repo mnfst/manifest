@@ -11,9 +11,6 @@ interface Props {
   model: string;
   slotLabel: string;
   scope: string;
-  // Predicate (backed by the lightweight spec index) telling whether this route
-  // has any configurable params — so the affordance only renders when it does.
-  modelHasParams?: (provider: string, authType: AuthType, model: string) => boolean;
   getParams: (
     scope: string,
     provider: string,
@@ -47,12 +44,8 @@ const ModelParamsAffordance: Component<Props> = (props) => {
       ),
   );
 
-  // Show the affordance only for routes the spec index says have configurable
-  // params. The per-model specs themselves are still fetched lazily on open.
-  const supports = () =>
-    props.provider !== undefined &&
-    props.authType !== undefined &&
-    (props.modelHasParams?.(props.provider, props.authType, props.model) ?? false);
+  const canOpen = () =>
+    props.provider !== undefined && props.authType !== undefined && props.authType !== 'local';
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -61,8 +54,21 @@ const ModelParamsAffordance: Component<Props> = (props) => {
 
   const configured = () => current() !== null;
 
+  const requestUrl = () => {
+    if (!props.provider || !props.authType) return undefined;
+    const authTypeLabel = props.authType === 'subscription' ? 'Subscription' : 'API key';
+    const params = new URLSearchParams({
+      template: 'parameter-request.yml',
+      title: `${props.provider}/${props.model}: parameter coverage`,
+      provider: props.provider,
+      model: props.model,
+      'auth-type': authTypeLabel,
+    });
+    return `https://github.com/mnfst/modelparams.dev/issues/new?${params.toString()}`;
+  };
+
   return (
-    <Show when={supports()}>
+    <Show when={canOpen()}>
       <button
         type="button"
         class="routing-card__chip-action"
@@ -108,6 +114,7 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           current={current()}
           specs={specs() ?? []}
           loading={specs.loading}
+          requestParamsUrl={requestUrl()}
           onSave={(next) =>
             props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
           }

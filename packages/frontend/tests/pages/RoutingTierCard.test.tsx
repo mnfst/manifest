@@ -92,7 +92,6 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.persistClearFallbacks,
       props.getModelParams,
       props.setModelParams,
-      props.modelHasParams,
     ];
     void _read;
     return (
@@ -256,7 +255,6 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingTierCard>[0]> = {
     connectedProviders: () => activeProviders,
     getModelParams: () => null,
     setModelParams: vi.fn().mockResolvedValue(undefined),
-    modelHasParams: () => true,
     ...overrides,
   } as Parameters<typeof RoutingTierCard>[0];
 }
@@ -310,8 +308,8 @@ describe('RoutingTierCard', () => {
   it('opens the dropdown when the change button is clicked', () => {
     const onDropdownOpen = vi.fn();
     const { container } = render(() => <RoutingTierCard {...makeProps({ onDropdownOpen })} />);
-    // The params affordance shares the chip-action class and now renders
-    // optimistically, so target the change button by its aria-label.
+    // The params affordance shares the chip-action class, so target the change
+    // button by its aria-label.
     fireEvent.click(
       container.querySelector('button[aria-label^="Change model for"]') as HTMLButtonElement,
     );
@@ -1274,12 +1272,9 @@ describe('providerIdForModel route-provider attribution', () => {
     expect(id).toBe('openai');
   });
 
-  // Exercise the affordance JSX with a provider that has a registered param
-  // spec (deepseek). Solid lazily evaluates each JSX prop expression, so the
-  // affordance Show block's inner attributes (provider, authType, model,
-  // slotLabel, getParams, setParams) only fire when the child renders. With
-  // openai (no specs) the child returns null and those attributes stay
-  // unevaluated — a deepseek tier triggers them all.
+  // Exercise the save path with a provider that has a registered param spec.
+  // Solid lazily evaluates each JSX prop expression, so `setParams` is only
+  // read after the affordance opens and the dialog saves.
   it('renders the params affordance on the primary chip and forwards saves through setModelParams', async () => {
     const setModelParams = vi.fn().mockResolvedValue(undefined);
     const deepseekTier = {

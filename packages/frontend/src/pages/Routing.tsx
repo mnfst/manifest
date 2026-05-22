@@ -26,13 +26,11 @@ import {
   getComplexityStatus,
   toggleComplexity,
   listModelParams,
-  listModelParamSpecIndex,
   setModelParams as setModelParamsApi,
   deleteModelParams,
   modelParamsKey,
   type AgentModelParamsRow,
   type AuthType,
-  type ModelParamSpecId,
   type RequestParamDefaults,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
@@ -97,23 +95,6 @@ const Routing: Component = () => {
   ): RequestParamDefaults | null =>
     modelParamsMap().get(modelParamsKey(scope, provider, authType, model)) ?? null;
 
-  // Lightweight identity index of models that expose configurable params, so a
-  // row only shows the params affordance when there's something to configure —
-  // without the full catalog. Per-param details are still fetched per-model on
-  // dialog open.
-  const [specIndex] = createResource(
-    () => agentName(),
-    (name) => listModelParamSpecIndex(name).catch(() => [] as ModelParamSpecId[]),
-  );
-  const specIndexKeys = createMemo(() => {
-    const set = new Set<string>();
-    for (const id of specIndex() ?? []) {
-      set.add(`${id.provider.toLowerCase()}::${id.authType}::${id.model}`);
-    }
-    return set;
-  });
-  const modelHasParams = (provider: string, authType: AuthType, model: string): boolean =>
-    specIndexKeys().has(`${provider.toLowerCase()}::${authType}::${model}`);
   const setModelParamsFor = async (
     scope: string,
     provider: string,
@@ -498,7 +479,6 @@ const Routing: Component = () => {
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
-                  modelHasParams={modelHasParams}
                 />
               ),
               specificity: (
@@ -545,7 +525,6 @@ const Routing: Component = () => {
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
-                  modelHasParams={modelHasParams}
                 />
               ),
               custom: (
@@ -560,7 +539,6 @@ const Routing: Component = () => {
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
-                  modelHasParams={modelHasParams}
                 />
               ),
             }}

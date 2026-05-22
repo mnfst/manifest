@@ -72,7 +72,6 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.connectedProviders,
       props.getModelParams,
       props.setModelParams,
-      props.modelHasParams,
     ];
     void _read;
     return (
@@ -1170,7 +1169,6 @@ describe('HeaderTierCard', () => {
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
         setModelParams={vi.fn().mockResolvedValue(undefined)}
-        modelHasParams={() => true}
       />
     ));
     expect(
@@ -1225,7 +1223,6 @@ describe('HeaderTierCard', () => {
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
         setModelParams={setModelParams}
-        modelHasParams={() => true}
       />
     ));
     const btn = container.querySelector(
