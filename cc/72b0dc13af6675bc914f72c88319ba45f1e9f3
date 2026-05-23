@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_d38951c1e24d4f::t_a66eee11944eed 27,232-257,689-716,725-745
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_d38951c1e24d4f::t_b5eaddc38048d5 278-352
+.changeset/deepseek-image-input-guard.md
+  s_d38951c1e24d4f::t_4986d1f7640d53 1-5
+packages/backend/src/common/errors/error-codes.ts
+  s_d38951c1e24d4f::t_7b693845be6d06 61-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "cc72b0dc13af6675bc914f72c88319ba45f1e9f3",
+  "prompts": {},
+  "sessions": {
+    "s_d38951c1e24d4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e53ba-e26a-7292-9bca-d3db12884877",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
