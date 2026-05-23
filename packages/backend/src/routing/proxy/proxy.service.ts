@@ -24,6 +24,7 @@ import {
   normalizeProviderModel,
   resolveApiKey,
 } from './proxy-fallback.service';
+import { resolveEndpointKey } from './provider-endpoints';
 import {
   ProxyApiMode,
   ProxyRequestOptions,
@@ -227,6 +228,32 @@ export class ProxyService {
       modelParams: primaryModelParams,
       specs: primarySpecs,
     });
+
+    if (containsImageInput(routingBody) && isDeepSeekRoute(route.provider)) {
+      this.logger.warn(
+        `Skipping DeepSeek image input: provider=${route.provider} model=${primaryModel}`,
+      );
+      const unsupportedForward = this.buildUnsupportedImageForward(route.provider, primaryModel);
+      const fallbackResult = await this.tryFallbackChain({
+        agentId,
+        userId,
+        resolved,
+        primaryModel,
+        forward: unsupportedForward,
+        body,
+        chatBody,
+        stream,
+        sessionKey,
+        signal,
+        signatureLookup,
+        thinkingLookup,
+        reasoningContentLookup,
+        apiMode,
+        paramMergeContext,
+      });
+      if (fallbackResult?.meta.fallbackFromModel) return fallbackResult;
+      return this.buildUnsupportedImageResult(stream, route.provider, primaryModel, agentName);
+    }
 
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
@@ -659,6 +686,34 @@ export class ProxyService {
     const content = formatManifestError('M101', { dashboardUrl });
     return buildFriendlyResponse(content, stream, 'no_provider');
   }
+
+  private buildUnsupportedImageForward(provider: string, model: string): ForwardResult {
+    return {
+      response: new Response(
+        JSON.stringify({
+          error: {
+            message: `${provider} model ${model} does not support image inputs.`,
+            type: 'unsupported_image_input',
+          },
+        }),
+        { status: 400, headers: { 'content-type': 'application/json' } },
+      ),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    };
+  }
+
+  private buildUnsupportedImageResult(
+    stream: boolean,
+    provider: string,
+    model: string,
+    agentName?: string,
+  ): ProxyResult {
+    const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+    const content = formatManifestError('M302', { provider, model, dashboardUrl });
+    return buildFriendlyResponse(content, stream, 'unsupported_image_input');
+  }
 }
 
 /** Replace null content fields with empty string to avoid upstream rejections. */
@@ -666,4 +721,26 @@ function sanitizeNullContent(messages: Record<string, unknown>[]): void {
   for (const msg of messages) {
     if (msg && typeof msg === 'object' && msg.content === null) msg.content = '';
   }
+}
+
+function containsImageInput(body: Record<string, unknown>): boolean {
+  const messages = body.messages;
+  if (!Array.isArray(messages)) return false;
+  return messages.some((message) => {
+    if (!message || typeof message !== 'object' || Array.isArray(message)) return false;
+    return contentContainsImageInput((message as Record<string, unknown>).content);
+  });
+}
+
+function contentContainsImageInput(content: unknown): boolean {
+  if (!Array.isArray(content)) return false;
+  return content.some((part) => {
+    if (!part || typeof part !== 'object' || Array.isArray(part)) return false;
+    const type = (part as Record<string, unknown>).type;
+    return type === 'image_url' || type === 'input_image' || type === 'image';
+  });
+}
+
+function isDeepSeekRoute(provider: string): boolean {
+  return resolveEndpointKey(provider) === 'deepseek';
 }

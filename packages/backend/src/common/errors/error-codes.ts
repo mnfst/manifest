@@ -58,6 +58,11 @@ export const MANIFEST_ERRORS = {
     title: 'Messages array too long',
     template: '`messages` array exceeds maximum length of {max}.',
   },
+  M302: {
+    title: 'Image input unsupported by provider',
+    template:
+      '{provider} model {model} does not support image inputs. Pick a vision-capable route or add a fallback here: {dashboardUrl}',
+  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',

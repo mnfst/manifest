@@ -275,6 +275,81 @@ describe('ProxyService — orchestration', () => {
     });
   });
 
+  describe('image input compatibility', () => {
+    const anthropicImageBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'What is in this image?' },
+            { type: 'image', source: { type: 'url', url: 'https://example.test/image.png' } },
+          ],
+        },
+      ],
+      stream: false,
+    };
+
+    it('returns a friendly error instead of forwarding Anthropic image input to DeepSeek', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: anthropicImageBody as never, apiMode: 'messages' }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(body).toContain('M302');
+      expect(body).toContain('deepseek');
+      expect(body).toContain('deepseek-v4-flash');
+    });
+
+    it('skips the DeepSeek primary and tries configured fallbacks for image input', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+          },
+          model: 'gpt-4o',
+          provider: 'openai',
+          fallbackIndex: 0,
+          authType: 'api_key',
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: anthropicImageBody as never, apiMode: 'messages' }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).toHaveBeenCalled();
+      expect(result.meta.fallbackFromModel).toBe('deepseek-v4-flash');
+      expect(result.meta.provider).toBe('openai');
+      expect(result.meta.auth_type).toBe('api_key');
+    });
+  });
+
   describe('happy path forward', () => {
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
       resolveService.resolve.mockResolvedValue({
