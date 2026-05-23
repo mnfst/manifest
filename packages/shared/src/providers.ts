@@ -46,7 +46,7 @@ export interface SharedProviderEntry {
 export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
   {
     id: 'qwen',
-    displayName: 'Alibaba',
+    displayName: 'Alibaba Cloud',
     aliases: ['alibaba'],
     openRouterPrefixes: ['qwen', 'alibaba'],
     requiresApiKey: true,

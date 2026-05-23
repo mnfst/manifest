@@ -73,7 +73,7 @@ Manifest connects to **300+ models across 16 providers** plus any custom provide
   | [**xAI**](https://x.ai/) | ✅ | — | grok-4, grok-3, grok-code-fast |
   | [**DeepSeek**](https://www.deepseek.com/) | ✅ | — | deepseek-v3.2, deepseek-r1 |
   | [**Mistral**](https://mistral.ai/) | ✅ | — | mistral-large, codestral, magistral |
-  | [**Qwen** (Alibaba)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | ✅ | — | qwen3-max, qwen3-coder, qwq-32b |
+  | [**Qwen** (Alibaba Cloud)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | ✅ | — | qwen3-max, qwen3-coder, qwq-32b |
   | [**Moonshot** (Kimi)](https://kimi.ai/) | ✅ | — | kimi-k2, moonshot-v1-128k |
   | [**MiniMax**](https://www.minimax.io/) | ✅ | ✅ MiniMax Coding Plan | minimax-m2, abab7-chat-preview |
   | [**Z.ai** (Zhipu)](https://z.ai/) | ✅ | ✅ GLM Coding Plan | glm-4.6, glm-4.5-air |

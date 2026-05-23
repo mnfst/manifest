@@ -118,7 +118,7 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     const entry = PROVIDER_BY_ID_OR_ALIAS.get('alibaba') as ProviderRegistryEntry;
     expect(entry).toBeDefined();
     expect(entry.id).toBe('qwen');
-    expect(entry.displayName).toBe('Alibaba');
+    expect(entry.displayName).toBe('Alibaba Cloud');
   });
 
   it('resolves kimi alias to moonshot entry', () => {
