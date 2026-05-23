@@ -156,6 +156,7 @@ export interface RoutingSpecificitySectionProps {
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
+  onEditFallback?: (category: string, index: number) => void;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
@@ -260,6 +261,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 onReset={props.onReset}
                 onFallbackUpdate={props.onFallbackUpdate}
                 onAddFallback={props.onAddFallback}
+                onEditFallback={props.onEditFallback}
                 getFallbacksFor={(cat) =>
                   getAssignment(cat)?.fallback_routes?.map((r) => r.model) ?? []
                 }

@@ -32,6 +32,7 @@ export interface RoutingComplexitySectionProps {
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
+  onEditFallback?: (tierId: string, index: number) => void;
   getFallbacksFor: (tierId: string) => string[];
   getTier: (tierId: string) => TierAssignment | undefined;
   complexityEnabled: () => boolean;
@@ -63,6 +64,7 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
             onReset={props.onReset}
             onFallbackUpdate={props.onFallbackUpdate}
             onAddFallback={props.onAddFallback}
+            onEditFallback={props.onEditFallback}
             getFallbacksFor={props.getFallbacksFor}
             connectedProviders={props.connectedProviders}
           />

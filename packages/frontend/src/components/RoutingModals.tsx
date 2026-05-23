@@ -29,6 +29,16 @@ interface RoutingModalsProps {
   ) => void;
   fallbackPickerTier: Accessor<string | null>;
   onFallbackPickerClose: () => void;
+  fallbackEditPicker?: Accessor<{ tierId: string; index: number } | null>;
+  onFallbackEditPickerClose?: () => void;
+  onEditFallback?: (
+    tierId: string,
+    index: number,
+    modelName: string,
+    providerId: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+  ) => void;
   showProviderModal: Accessor<boolean>;
   onProviderModalClose: () => void;
   customProviderPrefill?: CustomProviderPrefill | null;
@@ -67,6 +77,7 @@ interface PendingOverride {
   authType?: AuthType;
   keys: RoutingProvider[];
   isFallback?: boolean;
+  editIndex?: number;
 }
 
 /**
@@ -124,7 +135,17 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
   const resolvePending = (label: string | null) => {
     const p = pendingOverride();
     if (!p) return;
-    if (p.isFallback) {
+    if (p.isFallback && p.editIndex !== undefined) {
+      props.onFallbackEditPickerClose?.();
+      props.onEditFallback?.(
+        p.tierId,
+        p.editIndex,
+        p.modelName,
+        p.providerId,
+        p.authType,
+        label ?? undefined,
+      );
+    } else if (p.isFallback) {
       // Close the fallback picker so the user must re-open it — this ensures
       // the tier data is fresh and used-key filtering is accurate.
       props.onFallbackPickerClose();
@@ -290,6 +311,123 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               onClose={props.onFallbackPickerClose}
               onConnectProviders={() => {
                 props.onFallbackPickerClose();
+                props.onOpenProviderModal();
+              }}
+              onProviderRefreshed={props.onProviderUpdate}
+            />
+          );
+        }}
+      </Show>
+
+      <Show when={props.fallbackEditPicker?.()}>
+        {(picker) => {
+          const tierId = () => picker().tierId;
+          const editIndex = () => picker().index;
+
+          const usedKeysForModel = (
+            modelName: string,
+            providerId?: string,
+            authType?: AuthType,
+          ) => {
+            let defaultLabel: string | undefined;
+            if (providerId) {
+              const effectiveAuth = authType ?? 'api_key';
+              const keys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
+              defaultLabel = keys[0]?.label;
+            }
+            return usedKeyLabelsForModelInTier(
+              props.getTier(tierId()),
+              modelName,
+              undefined,
+              defaultLabel,
+            );
+          };
+
+          // Filter out models already in this tier (primary + other fallbacks),
+          // except for the slot being edited — let the user re-pick the same
+          // model there if they want a no-op.
+          const filteredModels = () => {
+            const tier = props.getTier(tierId());
+            const idx = editIndex();
+            return props.models().filter((m) => {
+              const providerId = m.provider;
+              const authType = m.auth_type ?? 'api_key';
+              const keys = activeKeysFor(props.connectedProviders(), providerId, authType);
+              const primaryRoute = tier?.override_route ?? tier?.auto_assigned_route ?? null;
+              const routes = tier?.fallback_routes ?? [];
+              if (keys.length <= 1) {
+                if (
+                  primaryRoute &&
+                  primaryRoute.model === m.model_name &&
+                  primaryRoute.provider.toLowerCase() === providerId.toLowerCase() &&
+                  primaryRoute.authType === authType
+                ) {
+                  return false;
+                }
+                return !routes.some(
+                  (r, i) =>
+                    i !== idx &&
+                    r.model === m.model_name &&
+                    r.provider.toLowerCase() === providerId.toLowerCase() &&
+                    r.authType === authType,
+                );
+              }
+              const used = usedKeysForModel(m.model_name, providerId, authType);
+              return used.size < keys.length;
+            });
+          };
+
+          const handleEditSelect = (
+            _tid: string,
+            modelName: string,
+            providerId: string,
+            authType?: AuthType,
+          ) => {
+            const effectiveAuth = authType ?? 'api_key';
+            const allKeys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
+            if (allKeys.length <= 1) {
+              props.onFallbackEditPickerClose?.();
+              props.onEditFallback?.(tierId(), editIndex(), modelName, providerId, authType);
+              return;
+            }
+            const used = usedKeysForModel(modelName, providerId, authType);
+            const availableKeys = allKeys.filter((k) => !used.has(k.label.toLowerCase()));
+            if (availableKeys.length === 0) return;
+            if (availableKeys.length === 1) {
+              props.onFallbackEditPickerClose?.();
+              props.onEditFallback?.(
+                tierId(),
+                editIndex(),
+                modelName,
+                providerId,
+                authType,
+                availableKeys[0]!.label,
+              );
+              return;
+            }
+            setPendingOverride({
+              tierId: tierId(),
+              modelName,
+              providerId,
+              authType,
+              keys: availableKeys,
+              isFallback: true,
+              editIndex: editIndex(),
+            });
+          };
+
+          return (
+            <ModelPickerModal
+              tierId={tierId()}
+              agentName={props.agentName()}
+              models={filteredModels()}
+              tiers={props.tiers()}
+              customProviders={props.customProviders()}
+              connectedProviders={props.connectedProviders()}
+              onSelect={handleEditSelect}
+              onClose={() => props.onFallbackEditPickerClose?.()}
+              onConnectProviders={() => {
+                props.onFallbackEditPickerClose?.();
                 props.onOpenProviderModal();
               }}
               onProviderRefreshed={props.onProviderUpdate}

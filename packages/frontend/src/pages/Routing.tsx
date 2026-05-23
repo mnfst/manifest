@@ -167,6 +167,10 @@ const Routing: Component = () => {
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
   const [instructionProvider, setInstructionProvider] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
+  const [fallbackEditPicker, setFallbackEditPicker] = createSignal<{
+    tierId: string;
+    index: number;
+  } | null>(null);
   const [refreshingModels, setRefreshingModels] = createSignal(false);
   const [pricingHealth, { refetch: refetchPricingHealth }] = createResource(getPricingHealth);
   const [refreshingPricing, setRefreshingPricing] = createSignal(false);
@@ -236,6 +240,56 @@ const Routing: Component = () => {
       return;
     }
     return actions.handleAddFallback(tierId, modelName, providerId, authType, providerKeyLabel);
+  };
+
+  const handleEditFallback = async (
+    tierId: string,
+    index: number,
+    modelName: string,
+    providerId: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+  ) => {
+    setFallbackEditPicker(null);
+    const effectiveAuth = authType ?? 'api_key';
+    const newRoute = providerKeyLabel
+      ? {
+          provider: providerId,
+          authType: effectiveAuth,
+          model: modelName,
+          keyLabel: providerKeyLabel,
+        }
+      : { provider: providerId, authType: effectiveAuth, model: modelName };
+    const { setFallbacks, setSpecificityFallbacks } = await import('../services/api.js');
+    if (isSpecificityTier(tierId)) {
+      const sa = specificityAssignments()?.find((a) => a.category === tierId);
+      const currentRoutes = sa?.fallback_routes ?? [];
+      if (index < 0 || index >= currentRoutes.length) return;
+      const updatedRoutes = currentRoutes.map((r, i) => (i === index ? newRoute : r));
+      const updated = updatedRoutes.map((r) => r.model);
+      try {
+        await setSpecificityFallbacks(agentName(), tierId, updated, updatedRoutes);
+        await refetchSpecificity();
+        toast.success('Fallback updated');
+      } catch {
+        toast.error('Failed to update fallback');
+      }
+      return;
+    }
+    const tier = actions.getTier(tierId);
+    const currentRoutes = tier?.fallback_routes ?? [];
+    if (index < 0 || index >= currentRoutes.length) return;
+    const updatedRoutes = currentRoutes.map((r, i) => (i === index ? newRoute : r));
+    const updated = updatedRoutes.map((r) => r.model);
+    try {
+      const persistedRoutes = await setFallbacks(agentName(), tierId, updated, updatedRoutes);
+      mutateTiers((prev) =>
+        prev?.map((t) => (t.tier === tierId ? { ...t, fallback_routes: persistedRoutes } : t)),
+      );
+      toast.success('Fallback updated');
+    } catch {
+      toast.error('Failed to update fallback');
+    }
   };
 
   const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
@@ -471,6 +525,7 @@ const Routing: Component = () => {
                   onReset={actions.handleReset}
                   onFallbackUpdate={actions.handleFallbackUpdate}
                   onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
+                  onEditFallback={(tierId, index) => setFallbackEditPicker({ tierId, index })}
                   getFallbacksFor={actions.getFallbacksFor}
                   getTier={actions.getTier}
                   complexityEnabled={complexityEnabled}
@@ -520,6 +575,9 @@ const Routing: Component = () => {
                     );
                   }}
                   onAddFallback={(category) => setFallbackPickerTier(category)}
+                  onEditFallback={(category, index) =>
+                    setFallbackEditPicker({ tierId: category, index })
+                  }
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded
@@ -566,6 +624,9 @@ const Routing: Component = () => {
         }}
         fallbackPickerTier={fallbackPickerTier}
         onFallbackPickerClose={() => setFallbackPickerTier(null)}
+        fallbackEditPicker={fallbackEditPicker}
+        onFallbackEditPickerClose={() => setFallbackEditPicker(null)}
+        onEditFallback={handleEditFallback}
         showProviderModal={showProviderModal}
         onProviderModalClose={closeProviderModal}
         customProviderPrefill={customProviderPrefill()}
