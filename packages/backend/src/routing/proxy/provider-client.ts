@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
+import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
@@ -172,9 +173,17 @@ export class ProviderClient {
     if (apiMode === 'responses' && resolved === 'openai') {
       resolved = 'openai-responses';
     }
+    if (apiMode === 'responses' && resolved === 'xai') {
+      resolved = 'xai-responses';
+    }
     // OpenAI rejects these models on /v1/chat/completions; forward to /v1/responses.
     if (resolved === 'openai' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
       resolved = 'openai-responses';
+    }
+    // xAI multi-agent models are Responses API-only; route them to /v1/responses
+    // while still accepting Chat Completions-shaped client requests.
+    if (resolved === 'xai' && XAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
+      resolved = 'xai-responses';
     }
     // Copilot serves Codex variants only at /responses; /chat/completions returns
     // "Unsupported API for model" (gh issue mnfst/manifest#1849).
@@ -277,7 +286,9 @@ export class ProviderClient {
               // The ChatGPT subscription backend rejects max_output_tokens with
               // unsupported_parameter; only opt in for the API-key paths.
               mapMaxOutputTokens:
-                endpointKey === 'openai-responses' || endpointKey === 'copilot-responses',
+                endpointKey === 'openai-responses' ||
+                endpointKey === 'copilot-responses' ||
+                endpointKey === 'xai-responses',
             });
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
