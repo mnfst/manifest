@@ -1,0 +1,45 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_576e1fed5899c6::t_e2652b1b20238b 132
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 308,311,314,317
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_576e1fed5899c6::t_1a21216bc198d4 223-233
+packages/backend/src/common/constants/xai-models.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 1-7
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_576e1fed5899c6::t_593a42a9cc28ac 1351-1398,1416-1435
+  s_576e1fed5899c6::t_f6ffa3ec9269c8 175-177
+  s_ca6b27a16a0985::t_6b200ae35bd147 1399-1415
+  s_576e1fed5899c6::t_549013cb1f1975 140-174,178-182
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 132-137
+.changeset/xai-responses-routing.md
+  s_576e1fed5899c6::t_1a21216bc198d4 1-8
+packages/backend/src/routing/proxy/provider-client.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 3,176-178,183-186
+  s_ca6b27a16a0985::t_12e283c760da98 289-291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "d06146166d499f77d6bf1102827334b18aaf6b50",
+  "prompts": {},
+  "sessions": {
+    "s_576e1fed5899c6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4fbe-d392-70c1-9812-f4e265698ed7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_ca6b27a16a0985": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e58ca-944a-7cc2-a081-fdeb1c576447",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
