@@ -44,6 +44,7 @@ export {
   getProviderParamSpecs,
   isParamApplicability,
   isProviderParamPath,
+  normalizeProviderParamProviderId,
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
   providerParamIsApplicable,
