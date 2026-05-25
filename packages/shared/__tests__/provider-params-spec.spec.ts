@@ -2,6 +2,7 @@ import {
   compareProviderParamSpecs,
   deleteProviderParamValue,
   expandConfiguredParamDefaults,
+  getProviderModelCapabilities,
   getProviderParamValue,
   getProviderParamSpecs,
   isParamApplicability,
@@ -19,6 +20,7 @@ const catalog: ProviderParamSpecCatalog = [
     provider: 'anthropic',
     authType: 'api_key',
     model: 'claude-sonnet-4-6',
+    capabilities: ['text', 'stream', 'tools'],
     params: [
       {
         path: 'thinking.budget_tokens',
@@ -125,6 +127,22 @@ describe('provider-params-spec', () => {
           thinkingBudgetSpec,
         ),
       ).toBeLessThan(0);
+    });
+  });
+
+  describe('getProviderModelCapabilities', () => {
+    it('returns the matched model capabilities case-insensitively', () => {
+      expect(
+        getProviderModelCapabilities(catalog, 'Anthropic', 'api_key', 'claude-sonnet-4-6'),
+      ).toEqual(['text', 'stream', 'tools']);
+    });
+
+    it('returns null when inputs are incomplete or no capabilities are declared', () => {
+      expect(getProviderModelCapabilities(catalog, undefined, 'api_key', 'gpt-5')).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', undefined, 'gpt-5')).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', undefined)).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', 'missing')).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', 'gpt-5')).toBeNull();
     });
   });
 
