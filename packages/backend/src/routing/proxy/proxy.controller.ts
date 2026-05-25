@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Req,
   Res,
@@ -59,6 +60,24 @@ export class ProxyController {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly recordingCache: AgentRecordingCacheService,
   ) {}
+
+  @Get('models')
+  models(): Record<string, unknown> {
+    return {
+      object: 'list',
+      data: [
+        {
+          id: 'auto',
+          object: 'model',
+          type: 'model',
+          display_name: 'Manifest Auto',
+        },
+      ],
+      has_more: false,
+      first_id: 'auto',
+      last_id: 'auto',
+    };
+  }
 
   @Post('chat/completions')
   async chatCompletions(
