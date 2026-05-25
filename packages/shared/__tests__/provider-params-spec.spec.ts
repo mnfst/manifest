@@ -13,6 +13,7 @@ import {
   setProviderParamValue,
   type ProviderParamSpecCatalog,
 } from '../src/provider-params-spec';
+import { normalizeProviderParamProviderId as normalizeProviderParamProviderIdFromBarrel } from '../src';
 
 const catalog: ProviderParamSpecCatalog = [
   {
@@ -79,6 +80,20 @@ const catalog: ProviderParamSpecCatalog = [
       },
     ],
   },
+  {
+    provider: 'z-ai',
+    authType: 'subscription',
+    model: 'glm-5.1',
+    params: [
+      {
+        path: 'max_tokens',
+        type: 'integer',
+        label: 'Max tokens',
+        description: 'Maximum tokens.',
+        group: 'generation_length',
+      },
+    ],
+  },
 ];
 
 const anthropicSpecs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
@@ -108,6 +123,21 @@ describe('provider-params-spec', () => {
       ).toHaveLength(4);
       expect(getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude:sonnet/4-6')).toEqual(
         [],
+      );
+    });
+
+    it('matches catalog provider aliases against Manifest provider IDs', () => {
+      const specs = getProviderParamSpecs(catalog, 'zai', 'subscription', 'glm-5.1');
+
+      expect(specs).toHaveLength(1);
+      expect(specs[0].provider).toBe('zai');
+    });
+
+    it('exports provider alias normalization through the shared package barrel', () => {
+      expect(normalizeProviderParamProviderIdFromBarrel('zai')).toBe('zai');
+      expect(normalizeProviderParamProviderIdFromBarrel('z-ai')).toBe('zai');
+      expect(normalizeProviderParamProviderIdFromBarrel('unknown-provider')).toBe(
+        'unknown-provider',
       );
     });
 

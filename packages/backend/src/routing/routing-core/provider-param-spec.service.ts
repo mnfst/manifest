@@ -6,6 +6,7 @@ import {
   getProviderParamSpecs,
   isParamApplicability,
   isProviderParamPath,
+  normalizeProviderParamProviderId,
   providerParamValueIsValid,
   type AuthType,
   type JsonValue,
@@ -100,11 +101,14 @@ export class ProviderParamSpecService implements OnModuleInit {
    * downloading the whole catalog.
    */
   listModelIds(): Array<{ provider: string; authType: AuthType; model: string }> {
-    return this.specs.map((entry) => ({
-      provider: entry.provider,
-      authType: entry.authType,
-      model: entry.model,
-    }));
+    return this.specs.map((entry) => {
+      const provider = normalizeProviderParamProviderId(entry.provider);
+      return {
+        provider,
+        authType: entry.authType,
+        model: entry.model,
+      };
+    });
   }
 
   async getSpecs(
