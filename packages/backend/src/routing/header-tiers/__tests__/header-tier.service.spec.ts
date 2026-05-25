@@ -515,7 +515,7 @@ describe('HeaderTierService', () => {
         agent_id: 'agent-1',
         override_route: route('custom:local', 'api_key', 'local-model'),
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
-        response_mode: 'stream',
+        delivery_mode: 'stream',
       } as HeaderTier);
 
       await expect(svc.clearFallbacks('agent-1', 'h1')).rejects.toThrow(
@@ -530,7 +530,7 @@ describe('HeaderTierService', () => {
     });
   });
 
-  describe('stream response mode enforcement', () => {
+  describe('stream delivery mode enforcement', () => {
     it('rejects stream mode when the custom tier has no primary route', async () => {
       repo.findOne.mockResolvedValue({
         id: 'h1',
@@ -540,7 +540,7 @@ describe('HeaderTierService', () => {
         fallback_routes: null,
       } as HeaderTier);
 
-      await expect(svc.setResponseMode('agent-1', 'h1', 'stream')).rejects.toThrow(
+      await expect(svc.setDeliveryMode('agent-1', 'h1', 'stream')).rejects.toThrow(
         /add at least one stream-capable model/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -556,9 +556,9 @@ describe('HeaderTierService', () => {
       } as HeaderTier;
       repo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'h1', 'stream');
+      const result = await svc.setDeliveryMode('agent-1', 'h1', 'stream');
 
-      expect(result.response_mode).toBe('stream');
+      expect(result.delivery_mode).toBe('stream');
       expect(repo.save).toHaveBeenCalledWith(existing);
     });
 
@@ -569,7 +569,7 @@ describe('HeaderTierService', () => {
         agent_id: 'agent-1',
         override_route: route('openai', 'api_key', 'gpt-4o'),
         fallback_routes: null,
-        response_mode: 'stream',
+        delivery_mode: 'stream',
       } as HeaderTier);
 
       await expect(

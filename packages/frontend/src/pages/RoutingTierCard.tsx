@@ -342,7 +342,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   };
 
   const modelCapabilities = (modelName: string) => modelInfo(modelName)?.capabilities;
-  const isStreamMode = () => props.tier()?.response_mode === 'stream';
+  const isStreamMode = () => props.tier()?.delivery_mode === 'stream';
 
   return (
     <div class="routing-card">
@@ -639,7 +639,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               setModelParams={props.setModelParams}
               swappingIndex={swappingFbIndex()}
               modelParamsScope={modelParamsScopeForTier(props.stage.id)}
-              responseMode={props.tier()?.response_mode ?? 'buffered'}
+              deliveryMode={props.tier()?.delivery_mode ?? 'buffered'}
             />
           </div>
         </Show>

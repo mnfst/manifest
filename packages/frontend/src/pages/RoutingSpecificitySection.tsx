@@ -14,12 +14,13 @@ import type {
   AuthType,
   ModelRoute,
   RequestParamDefaults,
-  ResponseMode,
+  DeliveryMode,
+  OutputModality,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
 import '../styles/routing-specificity.css';
-import ResponseModeControl from '../components/ResponseModeControl.js';
+import OutputControls from '../components/OutputControls.js';
 
 const SPECIFICITY_ICONS: Record<string, () => JSX.Element> = {
   coding: () => (
@@ -158,9 +159,10 @@ export interface RoutingSpecificitySectionProps {
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
-  responseMode: () => ResponseMode;
-  changingResponseMode: () => boolean;
-  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
+  outputModality: () => OutputModality;
+  deliveryMode: () => DeliveryMode;
+  changingDeliveryMode: () => boolean;
+  onDeliveryModeChange: (mode: DeliveryMode) => void | Promise<void>;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
@@ -204,7 +206,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   const activeTiers = () => SPECIFICITY_STAGES.filter((s) => isActive(s.id));
 
   const handleToggle = async (category: string, label: string, active: boolean) => {
-    const shouldInheritStreaming = active && props.responseMode() === 'stream';
+    const shouldInheritStreaming = active && props.deliveryMode() === 'stream';
     setToggling(category);
     try {
       await toggleSpecificity(props.agentName(), category, active);
@@ -214,7 +216,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         await props.refetchAll();
       }
       if (shouldInheritStreaming) {
-        await props.onResponseModeChange('stream');
+        await props.onDeliveryModeChange('stream');
       }
       toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} routing`);
     } catch {
@@ -248,11 +250,12 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
           </div>
         }
       >
-        <div class="specificity-response-mode">
-          <ResponseModeControl
-            value={props.responseMode}
-            disabled={props.changingResponseMode}
-            onChange={props.onResponseModeChange}
+        <div class="specificity-output-controls">
+          <OutputControls
+            outputModality={props.outputModality}
+            deliveryMode={props.deliveryMode}
+            disabled={props.changingDeliveryMode}
+            onDeliveryModeChange={props.onDeliveryModeChange}
           />
         </div>
         <div class="specificity-cards">

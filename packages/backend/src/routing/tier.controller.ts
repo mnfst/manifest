@@ -20,7 +20,7 @@ import {
   AgentNameParamDto,
   SetOverrideDto,
   SetFallbacksDto,
-  SetResponseModeDto,
+  SetDeliveryModeDto,
 } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
 
@@ -79,16 +79,16 @@ export class TierController {
     return { ok: true };
   }
 
-  @Patch(':agentName/tiers/:tier/response-mode')
-  async setResponseMode(
+  @Patch(':agentName/tiers/:tier/delivery-mode')
+  async setDeliveryMode(
     @CurrentUser() user: AuthUser,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
-    @Body() body: SetResponseModeDto,
+    @Body() body: SetDeliveryModeDto,
   ) {
     this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setResponseMode(agent.id, user.id, tier, body.responseMode);
+    return this.tierService.setDeliveryMode(agent.id, user.id, tier, body.deliveryMode);
   }
 
   @Post(':agentName/tiers/reset-all')

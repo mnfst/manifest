@@ -7,7 +7,7 @@ import {
   type CustomProviderData,
   type ModelRoute,
   type RequestParamDefaults,
-  type ResponseMode,
+  type DeliveryMode,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -36,7 +36,7 @@ interface FallbackListProps {
   // same-name-different-auth ambiguity reported in issue #1708 without
   // changing the visible UI for users whose data has been backfilled.
   fallbackRoutes?: ModelRoute[] | null;
-  responseMode?: ResponseMode;
+  deliveryMode?: DeliveryMode;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
@@ -134,7 +134,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const skippedInStream = (model: string, index: number): boolean =>
-    props.responseMode === 'stream' &&
+    props.deliveryMode === 'stream' &&
     !(modelInfoFor(model, index)?.capabilities?.includes('stream') ?? false);
 
   /**

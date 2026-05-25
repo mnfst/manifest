@@ -8,11 +8,16 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute, ResponseMode } from 'manifest-shared';
-import { DEFAULT_RESPONSE_MODE, TIER_SLOTS, TierSlot } from 'manifest-shared';
+import type { AuthType, ModelRoute, DeliveryMode } from 'manifest-shared';
+import {
+  DEFAULT_DELIVERY_MODE,
+  DEFAULT_OUTPUT_MODALITY,
+  TIER_SLOTS,
+  TierSlot,
+} from 'manifest-shared';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 import { explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
-import { assertStreamableResponseMode } from './response-mode-guard';
+import { assertStreamableDeliveryMode } from './delivery-mode-guard';
 
 @Injectable()
 export class TierService {
@@ -61,7 +66,8 @@ export class TierService {
         override_route: null,
         auto_assigned_route: null,
         fallback_routes: null,
-        response_mode: DEFAULT_RESPONSE_MODE,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        delivery_mode: DEFAULT_DELIVERY_MODE,
       }),
     );
     try {
@@ -153,8 +159,8 @@ export class TierService {
         const filtered = existing.fallback_routes.filter((r) => !routeMatches(r, route));
         existing.fallback_routes = filtered.length > 0 ? filtered : null;
       }
-      assertStreamableResponseMode(
-        existing.response_mode,
+      assertStreamableDeliveryMode(
+        existing.delivery_mode,
         `tier "${tier}"`,
         route,
         existing.fallback_routes,
@@ -173,7 +179,8 @@ export class TierService {
       override_route: route,
       auto_assigned_route: null,
       fallback_routes: null,
-      response_mode: DEFAULT_RESPONSE_MODE,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      delivery_mode: DEFAULT_DELIVERY_MODE,
     });
 
     try {
@@ -187,21 +194,21 @@ export class TierService {
     return record;
   }
 
-  async setResponseMode(
+  async setDeliveryMode(
     agentId: string,
     userId: string,
     tier: string,
-    responseMode: ResponseMode,
+    deliveryMode: DeliveryMode,
   ): Promise<TierAssignment> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (existing) {
-      assertStreamableResponseMode(
-        responseMode,
+      assertStreamableDeliveryMode(
+        deliveryMode,
         `tier "${tier}"`,
         existing.override_route ?? existing.auto_assigned_route,
         existing.fallback_routes,
       );
-      existing.response_mode = responseMode;
+      existing.delivery_mode = deliveryMode;
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
       this.routingCache.invalidateAgent(agentId);
@@ -216,9 +223,10 @@ export class TierService {
       override_route: null,
       auto_assigned_route: null,
       fallback_routes: null,
-      response_mode: responseMode,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      delivery_mode: deliveryMode,
     });
-    assertStreamableResponseMode(responseMode, `tier "${tier}"`, null, null);
+    assertStreamableDeliveryMode(deliveryMode, `tier "${tier}"`, null, null);
     await this.tierRepo.insert(record);
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -231,8 +239,8 @@ export class TierService {
     if (!existing) return;
 
     existing.override_route = null;
-    assertStreamableResponseMode(
-      existing.response_mode,
+    assertStreamableDeliveryMode(
+      existing.delivery_mode,
       `tier "${tier}"`,
       existing.auto_assigned_route,
       existing.fallback_routes,
@@ -270,8 +278,8 @@ export class TierService {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
     const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
-    assertStreamableResponseMode(
-      existing.response_mode,
+    assertStreamableDeliveryMode(
+      existing.delivery_mode,
       `tier "${tier}"`,
       existing.override_route ?? existing.auto_assigned_route,
       fallbackRoutes,
@@ -286,8 +294,8 @@ export class TierService {
   async clearFallbacks(agentId: string, tier: string): Promise<void> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return;
-    assertStreamableResponseMode(
-      existing.response_mode,
+    assertStreamableDeliveryMode(
+      existing.delivery_mode,
       `tier "${tier}"`,
       existing.override_route ?? existing.auto_assigned_route,
       null,

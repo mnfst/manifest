@@ -803,7 +803,7 @@ describe('ResolveService', () => {
             route('openai', 'api_key', 'gpt-4o'),
             route('anthropic', 'api_key', 'claude-3-5-sonnet'),
           ],
-          response_mode: 'stream',
+          delivery_mode: 'stream',
         } as TierAssignment,
       ]);
 
@@ -820,7 +820,7 @@ describe('ResolveService', () => {
           override_route: route('openai', 'api_key', 'gpt-4o'),
           auto_assigned_route: null,
           fallback_routes: [route('custom:local', 'api_key', 'local-model')],
-          response_mode: 'stream',
+          delivery_mode: 'stream',
         } as TierAssignment,
       ]);
 

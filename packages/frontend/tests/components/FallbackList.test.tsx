@@ -134,7 +134,7 @@ describe('FallbackList', () => {
     const { container } = render(() => (
       <FallbackList
         {...defaultProps}
-        responseMode="stream"
+        deliveryMode="stream"
         fallbacks={['stream-model', 'legacy-model']}
         fallbackRoutes={[
           { provider: 'openai', authType: 'api_key', model: 'stream-model' },

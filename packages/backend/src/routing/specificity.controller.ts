@@ -13,7 +13,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { SpecificityService } from './routing-core/specificity.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { AgentNameParamDto, SetFallbacksDto, SetResponseModeDto } from './dto/routing.dto';
+import { AgentNameParamDto, SetFallbacksDto, SetDeliveryModeDto } from './dto/routing.dto';
 import { SetSpecificityOverrideDto, ToggleSpecificityDto } from './dto/specificity.dto';
 import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
 
@@ -81,16 +81,16 @@ export class SpecificityController {
     return { ok: true };
   }
 
-  @Patch(':agentName/specificity/:category/response-mode')
-  async setResponseMode(
+  @Patch(':agentName/specificity/:category/delivery-mode')
+  async setDeliveryMode(
     @CurrentUser() user: AuthUser,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
-    @Body() body: SetResponseModeDto,
+    @Body() body: SetDeliveryModeDto,
   ) {
     this.validateCategory(category);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.specificityService.setResponseMode(agent.id, user.id, category, body.responseMode);
+    return this.specificityService.setDeliveryMode(agent.id, user.id, category, body.deliveryMode);
   }
 
   @Put(':agentName/specificity/:category/fallbacks')

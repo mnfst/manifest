@@ -565,7 +565,7 @@ describe('TierService', () => {
         override_route: route('custom:local', 'api_key', 'local-model'),
         auto_assigned_route: null,
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
-        response_mode: 'stream',
+        delivery_mode: 'stream',
       } as TierAssignment);
 
       await expect(svc.clearFallbacks('agent-1', 'standard')).rejects.toThrow(
@@ -575,7 +575,7 @@ describe('TierService', () => {
     });
   });
 
-  describe('stream response mode enforcement', () => {
+  describe('stream delivery mode enforcement', () => {
     it('rejects stream mode when the route chain has no stream-capable model', async () => {
       tierRepo.findOne.mockResolvedValue({
         tier: 'standard',
@@ -584,7 +584,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      await expect(svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
+      await expect(svc.setDeliveryMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
         /add at least one stream-capable model/,
       );
       expect(tierRepo.save).not.toHaveBeenCalled();
@@ -599,9 +599,9 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+      const result = await svc.setDeliveryMode('agent-1', 'user-1', 'standard', 'stream');
 
-      expect(result.response_mode).toBe('stream');
+      expect(result.delivery_mode).toBe('stream');
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
     });
 
@@ -611,13 +611,13 @@ describe('TierService', () => {
         override_route: route('openai', 'api_key', 'gpt-4o'),
         auto_assigned_route: null,
         fallback_routes: [route('anthropic', 'api_key', 'claude-3-5-sonnet')],
-        response_mode: 'buffered',
+        delivery_mode: 'buffered',
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+      const result = await svc.setDeliveryMode('agent-1', 'user-1', 'standard', 'stream');
 
-      expect(result.response_mode).toBe('stream');
+      expect(result.delivery_mode).toBe('stream');
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
     });
 
@@ -626,7 +626,7 @@ describe('TierService', () => {
         tier: 'standard',
         override_route: route('openai', 'api_key', 'gpt-4o'),
         fallback_routes: null,
-        response_mode: 'stream',
+        delivery_mode: 'stream',
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
       discoveryService.getModelsForAgent.mockResolvedValue([

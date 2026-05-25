@@ -4,12 +4,13 @@ import type {
   AvailableModel,
   CustomProviderData,
   RequestParamDefaults,
-  ResponseMode,
+  DeliveryMode,
+  OutputModality,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
-import ResponseModeControl from '../components/ResponseModeControl.js';
+import OutputControls from '../components/OutputControls.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
 export interface RoutingDefaultTierSectionProps {
@@ -40,9 +41,10 @@ export interface RoutingDefaultTierSectionProps {
   complexityEnabled: () => boolean;
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
-  responseMode: () => ResponseMode;
-  changingResponseMode: () => boolean;
-  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
+  outputModality: () => OutputModality;
+  deliveryMode: () => DeliveryMode;
+  changingDeliveryMode: () => boolean;
+  onDeliveryModeChange: (mode: DeliveryMode) => void | Promise<void>;
   embedded?: boolean;
   /**
    * Read saved per-route params from the parent's loaded map. Threaded
@@ -157,10 +159,11 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
 
   const controls = () => (
     <div class="routing-section__controls">
-      <ResponseModeControl
-        value={props.responseMode}
-        disabled={props.changingResponseMode}
-        onChange={props.onResponseModeChange}
+      <OutputControls
+        outputModality={props.outputModality}
+        deliveryMode={props.deliveryMode}
+        disabled={props.changingDeliveryMode}
+        onDeliveryModeChange={props.onDeliveryModeChange}
       />
       {switchButton()}
     </div>

@@ -203,7 +203,8 @@ export class AgentDuplicationService {
             override_route: t.override_route,
             auto_assigned_route: t.auto_assigned_route,
             fallback_routes: t.fallback_routes,
-            response_mode: t.response_mode,
+            output_modality: t.output_modality,
+            delivery_mode: t.delivery_mode,
             updated_at: now,
           })),
         );
@@ -223,7 +224,8 @@ export class AgentDuplicationService {
             override_route: s.override_route,
             auto_assigned_route: s.auto_assigned_route,
             fallback_routes: s.fallback_routes,
-            response_mode: s.response_mode,
+            output_modality: s.output_modality,
+            delivery_mode: s.delivery_mode,
             updated_at: now,
           })),
         );

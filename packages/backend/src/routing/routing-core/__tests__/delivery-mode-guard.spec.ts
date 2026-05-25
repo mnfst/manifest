@@ -1,9 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import type { ModelRoute } from 'manifest-shared';
 import {
-  assertStreamableResponseMode,
-  effectiveRoutesForResponseMode,
-} from '../response-mode-guard';
+  assertStreamableDeliveryMode,
+  effectiveRoutesForDeliveryMode,
+} from '../delivery-mode-guard';
 
 const route = (provider: string, model: string): ModelRoute => ({
   provider,
@@ -11,14 +11,14 @@ const route = (provider: string, model: string): ModelRoute => ({
   model,
 });
 
-describe('assertStreamableResponseMode', () => {
+describe('assertStreamableDeliveryMode', () => {
   it('rejects stream mode when no saved route supports streaming', () => {
     const custom = route('custom:abc', 'custom:abc/local-model');
 
-    expect(() => assertStreamableResponseMode('stream', 'tier "default"', custom, null)).toThrow(
+    expect(() => assertStreamableDeliveryMode('stream', 'tier "default"', custom, null)).toThrow(
       BadRequestException,
     );
-    expect(() => assertStreamableResponseMode('stream', 'tier "default"', custom, null)).toThrow(
+    expect(() => assertStreamableDeliveryMode('stream', 'tier "default"', custom, null)).toThrow(
       /add at least one stream-capable model/,
     );
   });
@@ -28,7 +28,7 @@ describe('assertStreamableResponseMode', () => {
     const openai = route('openai', 'gpt-4o');
 
     expect(() =>
-      assertStreamableResponseMode('stream', 'tier "default"', custom, [openai]),
+      assertStreamableDeliveryMode('stream', 'tier "default"', custom, [openai]),
     ).not.toThrow();
   });
 
@@ -37,17 +37,17 @@ describe('assertStreamableResponseMode', () => {
     const custom = route('custom:abc', 'custom:abc/local-model');
 
     expect(() =>
-      assertStreamableResponseMode('stream', 'tier "default"', openai, [custom]),
+      assertStreamableDeliveryMode('stream', 'tier "default"', openai, [custom]),
     ).not.toThrow();
   });
 });
 
-describe('effectiveRoutesForResponseMode', () => {
+describe('effectiveRoutesForDeliveryMode', () => {
   it('keeps the persisted chain unchanged in buffered mode', () => {
     const custom = route('custom:abc', 'custom:abc/local-model');
     const openai = route('openai', 'gpt-4o');
 
-    expect(effectiveRoutesForResponseMode('buffered', custom, [openai])).toEqual({
+    expect(effectiveRoutesForDeliveryMode('buffered', custom, [openai])).toEqual({
       primaryRoute: custom,
       fallbackRoutes: [openai],
     });
@@ -58,7 +58,7 @@ describe('effectiveRoutesForResponseMode', () => {
     const openai = route('openai', 'gpt-4o');
     const anthropic = route('anthropic', 'claude-3-5-sonnet');
 
-    expect(effectiveRoutesForResponseMode('stream', custom, [openai, anthropic])).toEqual({
+    expect(effectiveRoutesForDeliveryMode('stream', custom, [openai, anthropic])).toEqual({
       primaryRoute: openai,
       fallbackRoutes: [anthropic],
     });
@@ -68,7 +68,7 @@ describe('effectiveRoutesForResponseMode', () => {
     const openai = route('openai', 'gpt-4o');
     const custom = route('custom:abc', 'custom:abc/local-model');
 
-    expect(effectiveRoutesForResponseMode('stream', openai, [custom])).toEqual({
+    expect(effectiveRoutesForDeliveryMode('stream', openai, [custom])).toEqual({
       primaryRoute: openai,
       fallbackRoutes: null,
     });

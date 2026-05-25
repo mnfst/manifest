@@ -5,7 +5,8 @@ import type {
   CustomProviderData,
   ModelRoute,
   RequestParamDefaults,
-  ResponseMode,
+  DeliveryMode,
+  OutputModality,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -25,7 +26,7 @@ import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForHeaderTier } from 'manifest-shared';
-import ResponseModeControl from './ResponseModeControl.js';
+import OutputControls from './OutputControls.js';
 import ModelCapabilityBadges from './ModelCapabilityBadges.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
@@ -52,10 +53,11 @@ interface Props {
   connectedProviders: RoutingProvider[];
   onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
+  outputModality?: OutputModality;
   onEdit?: () => void;
   onDisable?: () => void;
-  changingResponseMode?: boolean;
-  onResponseModeChange?: (mode: ResponseMode) => void | Promise<void>;
+  changingDeliveryMode?: boolean;
+  onDeliveryModeChange?: (mode: DeliveryMode) => void | Promise<void>;
   /**
    * Per-route params getter, threaded from the routing page boundary. When
    * present, the primary chip and every fallback row render a
@@ -107,7 +109,7 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const modelLabel = (): string => modelInfo()?.display_name ?? currentModel() ?? '';
-  const isStreamMode = (): boolean => props.tier.response_mode === 'stream';
+  const isStreamMode = (): boolean => props.tier.delivery_mode === 'stream';
   const primarySkipped = (): boolean =>
     isStreamMode() && !(modelInfo()?.capabilities?.includes('stream') ?? false);
 
@@ -280,11 +282,12 @@ const HeaderTierCard: Component<Props> = (props) => {
         {props.tier.header_key}: {props.tier.header_value}
       </code>
 
-      <ResponseModeControl
+      <OutputControls
         compact
-        value={() => props.tier.response_mode ?? 'buffered'}
-        disabled={() => !!props.changingResponseMode || !props.onResponseModeChange}
-        onChange={(mode) => props.onResponseModeChange?.(mode)}
+        outputModality={() => props.tier.output_modality ?? props.outputModality ?? 'text'}
+        deliveryMode={() => props.tier.delivery_mode ?? 'buffered'}
+        disabled={() => !!props.changingDeliveryMode || !props.onDeliveryModeChange}
+        onDeliveryModeChange={(mode) => props.onDeliveryModeChange?.(mode)}
       />
 
       <div class="routing-card__body">
@@ -428,7 +431,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
             modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
-            responseMode={props.tier.response_mode ?? 'buffered'}
+            deliveryMode={props.tier.delivery_mode ?? 'buffered'}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }
@@ -443,7 +446,7 @@ const HeaderTierCard: Component<Props> = (props) => {
           tiers={[]}
           customProviders={props.customProviders}
           connectedProviders={props.connectedProviders}
-          requiredCapability={props.tier.response_mode === 'stream' ? 'stream' : undefined}
+          requiredCapability={props.tier.delivery_mode === 'stream' ? 'stream' : undefined}
           onClose={() => setPickerMode(null)}
           onSelect={handlePickerSelect}
         />

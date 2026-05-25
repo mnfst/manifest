@@ -2,13 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import { DEFAULT_RESPONSE_MODE } from 'manifest-shared';
-import type { AuthType, ModelRoute, ResponseMode } from 'manifest-shared';
+import { DEFAULT_DELIVERY_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import type { AuthType, ModelRoute, DeliveryMode } from 'manifest-shared';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { explicitRoute, unambiguousRoute } from './route-helpers';
-import { assertStreamableResponseMode } from './response-mode-guard';
+import { assertStreamableDeliveryMode } from './delivery-mode-guard';
 
 @Injectable()
 export class SpecificityService {
@@ -58,7 +58,8 @@ export class SpecificityService {
       override_route: null,
       auto_assigned_route: null,
       fallback_routes: null,
-      response_mode: DEFAULT_RESPONSE_MODE,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      delivery_mode: DEFAULT_DELIVERY_MODE,
     });
 
     try {
@@ -97,8 +98,8 @@ export class SpecificityService {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
 
     if (existing) {
-      assertStreamableResponseMode(
-        existing.response_mode,
+      assertStreamableDeliveryMode(
+        existing.delivery_mode,
         `task-specific tier "${category}"`,
         route,
         existing.fallback_routes,
@@ -120,7 +121,8 @@ export class SpecificityService {
       override_route: route,
       auto_assigned_route: null,
       fallback_routes: null,
-      response_mode: DEFAULT_RESPONSE_MODE,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      delivery_mode: DEFAULT_DELIVERY_MODE,
     });
 
     try {
@@ -142,21 +144,21 @@ export class SpecificityService {
     return record;
   }
 
-  async setResponseMode(
+  async setDeliveryMode(
     agentId: string,
     userId: string,
     category: string,
-    responseMode: ResponseMode,
+    deliveryMode: DeliveryMode,
   ): Promise<SpecificityAssignment> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (existing) {
-      assertStreamableResponseMode(
-        responseMode,
+      assertStreamableDeliveryMode(
+        deliveryMode,
         `task-specific tier "${category}"`,
         existing.override_route ?? existing.auto_assigned_route,
         existing.fallback_routes,
       );
-      existing.response_mode = responseMode;
+      existing.delivery_mode = deliveryMode;
       existing.updated_at = new Date().toISOString();
       await this.repo.save(existing);
       this.routingCache.invalidateAgent(agentId);
@@ -172,9 +174,10 @@ export class SpecificityService {
       override_route: null,
       auto_assigned_route: null,
       fallback_routes: null,
-      response_mode: responseMode,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      delivery_mode: deliveryMode,
     });
-    assertStreamableResponseMode(responseMode, `task-specific tier "${category}"`, null, null);
+    assertStreamableDeliveryMode(deliveryMode, `task-specific tier "${category}"`, null, null);
     await this.repo.insert(record);
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -186,8 +189,8 @@ export class SpecificityService {
 
     existing.override_route = null;
     existing.fallback_routes = null;
-    assertStreamableResponseMode(
-      existing.response_mode,
+    assertStreamableDeliveryMode(
+      existing.delivery_mode,
       `task-specific tier "${category}"`,
       existing.auto_assigned_route,
       null,
@@ -206,8 +209,8 @@ export class SpecificityService {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return [];
     const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
-    assertStreamableResponseMode(
-      existing.response_mode,
+    assertStreamableDeliveryMode(
+      existing.delivery_mode,
       `task-specific tier "${category}"`,
       existing.override_route ?? existing.auto_assigned_route,
       fallbackRoutes,
@@ -222,8 +225,8 @@ export class SpecificityService {
   async clearFallbacks(agentId: string, category: string): Promise<void> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return;
-    assertStreamableResponseMode(
-      existing.response_mode,
+    assertStreamableDeliveryMode(
+      existing.delivery_mode,
       `task-specific tier "${category}"`,
       existing.override_route ?? existing.auto_assigned_route,
       null,

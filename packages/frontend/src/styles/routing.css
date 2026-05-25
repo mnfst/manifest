@@ -280,7 +280,7 @@
   left: 18px;
 }
 
-/* ── Response mode segmented control ─────────────── */
+/* ── Output controls ─────────────── */
 .routing-section__controls {
   display: flex;
   align-items: center;
@@ -289,21 +289,45 @@
   justify-content: flex-end;
 }
 
-.response-mode-control {
+.output-controls {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-.response-mode-control__label {
+.output-controls__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.output-controls__label {
   font-size: var(--font-size-xs);
   font-weight: 600;
   color: hsl(var(--muted-foreground));
   white-space: nowrap;
 }
 
-.response-mode-control__segments {
+.output-controls__select {
+  height: 32px;
+  min-width: 82px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 0 28px 0 10px;
+}
+
+.output-controls__select:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.output-controls__segments {
   display: inline-flex;
   align-items: center;
   padding: 2px;
@@ -312,7 +336,7 @@
   background: hsl(var(--background));
 }
 
-.response-mode-control__segment {
+.output-controls__segment {
   min-width: 76px;
   height: 28px;
   display: inline-flex;
@@ -333,22 +357,22 @@
     box-shadow var(--transition-fast);
 }
 
-.response-mode-control__segment:hover:not(:disabled) {
+.output-controls__segment:hover:not(:disabled) {
   color: hsl(var(--foreground));
 }
 
-.response-mode-control__segment--active {
+.output-controls__segment--active {
   background: hsl(var(--foreground));
   color: hsl(var(--background));
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
-.response-mode-control__segment:disabled {
+.output-controls__segment:disabled {
   cursor: not-allowed;
   opacity: 0.65;
 }
 
-.response-mode-control--compact {
+.output-controls--compact {
   justify-content: space-between;
   width: 100%;
   padding: 6px 0 10px;
@@ -1741,7 +1765,7 @@
     justify-content: flex-start;
   }
 
-  .response-mode-control {
+  .output-controls {
     align-items: flex-start;
     flex-direction: column;
   }

@@ -257,9 +257,9 @@ describe('RoutingModals', () => {
       <RoutingModals
         {...makeProps({
           dropdownTier: () => 'simple',
-          tiers: () => [{ ...tiers[0]!, response_mode: 'stream' }],
+          tiers: () => [{ ...tiers[0]!, delivery_mode: 'stream' }],
           getTier: (id) =>
-            id === 'simple' ? { ...tiers[0]!, response_mode: 'stream' } : undefined,
+            id === 'simple' ? { ...tiers[0]!, delivery_mode: 'stream' } : undefined,
         })}
       />
     ));
@@ -272,7 +272,7 @@ describe('RoutingModals', () => {
         {...makeProps({
           specificityDropdown: () => 'coding',
           specificityAssignments: () => [
-            { ...specificityAssignments[0]!, response_mode: 'stream' },
+            { ...specificityAssignments[0]!, delivery_mode: 'stream' },
           ],
         })}
       />

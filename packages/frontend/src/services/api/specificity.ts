@@ -1,5 +1,5 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
-import type { AuthType, ModelRoute, ResponseMode } from './routing.js';
+import type { AuthType, ModelRoute, DeliveryMode, OutputModality } from './routing.js';
 
 export interface SpecificityAssignment {
   id: string;
@@ -9,7 +9,8 @@ export interface SpecificityAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
-  response_mode?: ResponseMode;
+  output_modality?: OutputModality;
+  delivery_mode?: DeliveryMode;
   updated_at: string;
 }
 
@@ -61,17 +62,17 @@ export function resetSpecificity(agentName: string, category: string) {
   });
 }
 
-export function setSpecificityResponseMode(
+export function setSpecificityDeliveryMode(
   agentName: string,
   category: string,
-  responseMode: ResponseMode,
+  deliveryMode: DeliveryMode,
 ) {
   return fetchMutate<SpecificityAssignment>(
-    routingPath(agentName, `specificity/${encodeURIComponent(category)}/response-mode`),
+    routingPath(agentName, `specificity/${encodeURIComponent(category)}/delivery-mode`),
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ responseMode }),
+      body: JSON.stringify({ deliveryMode }),
     },
   );
 }
