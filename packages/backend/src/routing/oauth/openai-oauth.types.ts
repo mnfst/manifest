@@ -16,6 +16,7 @@ export interface PendingOAuth {
   verifier: string;
   agentId: string;
   userId: string;
+  label?: string;
   backendUrl: string;
   expiresAt: number;
 }

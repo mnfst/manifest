@@ -64,11 +64,13 @@ function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
   };
 }
 
-function renderView(opts: {
-  connected?: boolean;
-  activeKeys?: RoutingProvider[];
-  addKeyOpen?: boolean;
-} = {}) {
+function renderView(
+  opts: {
+    connected?: boolean;
+    activeKeys?: RoutingProvider[];
+    addKeyOpen?: boolean;
+  } = {},
+) {
   const [busy, setBusy] = createSignal(false);
   const [addKeyOpen, setAddKeyOpen] = createSignal(opts.addKeyOpen ?? false);
   const onBack = vi.fn();
@@ -108,6 +110,7 @@ describe('OAuthDetailView', () => {
   it('shows "Connected via" text and Disconnect button for single-key connected state', () => {
     renderView({ connected: true, activeKeys: [makeKey()] });
     expect(screen.getByText(/Connected via ChatGPT Plus subscription/)).toBeDefined();
+    expect(screen.getByText('Renew auth token')).toBeDefined();
     expect(screen.getByText('Disconnect')).toBeDefined();
   });
 
@@ -123,20 +126,14 @@ describe('OAuthDetailView', () => {
   });
 
   it('shows "Disconnect all" button in multi-key mode', () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     renderView({ connected: true, activeKeys: keys });
     expect(screen.getByText('Disconnect all')).toBeDefined();
   });
 
   it('clicking Rename shows input and saving calls renameProviderKey', async () => {
     mockRenameProviderKey.mockResolvedValue({ id: 'k1', label: 'New name', priority: 1 });
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old name' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old name' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');
@@ -176,6 +173,34 @@ describe('OAuthDetailView', () => {
     expect(onUpdate).toHaveBeenCalled();
   });
 
+  it('single-key Renew auth token re-authenticates the existing labeled account', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ connected: true, activeKeys: [makeKey({ label: 'Primary' })] });
+    fireEvent.click(screen.getByText('Renew auth token'));
+
+    await waitFor(() => {
+      expect(mockGetOpenaiOAuthUrl).toHaveBeenCalledWith('test-agent', 'Primary');
+    });
+  });
+
+  it('multi-key Renew auth token targets the clicked account label', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+    const keys = [
+      makeKey({ id: 'k1', label: 'Primary' }),
+      makeKey({ id: 'k2', label: 'Secondary' }),
+    ];
+
+    renderView({ connected: true, activeKeys: keys });
+    fireEvent.click(screen.getByLabelText('Renew auth token for Secondary'));
+
+    await waitFor(() => {
+      expect(mockGetOpenaiOAuthUrl).toHaveBeenCalledWith('test-agent', 'Secondary');
+    });
+  });
+
   it('addKeyOpen effect triggers getOpenaiOAuthUrl when connected', async () => {
     mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
     vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
@@ -201,10 +226,7 @@ describe('OAuthDetailView', () => {
 
   it('Disconnect all revokes all OpenAI OAuth tokens', async () => {
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true, notifications: [] });
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     const { onBack, onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     fireEvent.click(screen.getByText('Disconnect all'));
@@ -218,10 +240,7 @@ describe('OAuthDetailView', () => {
   });
 
   it('commitRename cancels if new label is same as old', async () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'Same' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Same' }), makeKey({ id: 'k2', label: 'Other' })];
     renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');
@@ -275,6 +294,27 @@ describe('OAuthDetailView', () => {
       expect(screen.getByText(/URL is missing the authorization code/)).toBeDefined();
     });
     expect(mockSubmitOpenaiOAuthCallback).not.toHaveBeenCalled();
+  });
+
+  it('handlePasteSubmit shows renewed-token toast for a re-auth flow', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    mockSubmitOpenaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ connected: true, activeKeys: [makeKey({ label: 'Primary' })] });
+    fireEvent.click(screen.getByText('Renew auth token'));
+    await waitFor(() => expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled());
+
+    const input = await waitFor(() => screen.getByPlaceholderText(/localhost:1455/));
+    fireEvent.input(input, {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc&state=xyz' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitOpenaiOAuthCallback).toHaveBeenCalledWith('abc', 'xyz');
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('OpenAI auth token renewed');
   });
 
   it('handlePasteSubmit shows error when exchange fails', async () => {
@@ -409,10 +449,7 @@ describe('OAuthDetailView', () => {
 
   it('commitRename catch branch when renameProviderKey fails', async () => {
     mockRenameProviderKey.mockRejectedValue(new Error('network'));
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old name' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old name' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');

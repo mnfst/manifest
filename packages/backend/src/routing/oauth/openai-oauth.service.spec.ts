@@ -151,6 +151,36 @@ describe('OpenaiOauthService', () => {
       expect(svc.getPendingCount()).toBe(0);
     });
 
+    it('stores re-authenticated tokens on the requested existing label', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, {
+          access_token: 'access-renewed',
+          refresh_token: 'refresh-renewed',
+          expires_in: 3600,
+        }),
+      );
+      const url = await svc.generateAuthorizationUrl(
+        'agent-1',
+        'user-1',
+        undefined,
+        'Work account',
+      );
+      const state = new URL(url).searchParams.get('state')!;
+
+      await svc.exchangeCode(state, 'auth-code');
+
+      expect(providerService.nextOAuthLabel).not.toHaveBeenCalled();
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'openai',
+        expect.stringContaining('"t":"access-renewed"'),
+        'subscription',
+        undefined,
+        'Work account',
+      );
+    });
+
     it('throws when the token endpoint returns an error', async () => {
       fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
       const url = await svc.generateAuthorizationUrl('a', 'u');
@@ -222,6 +252,31 @@ describe('OpenaiOauthService', () => {
         'openai',
         expect.stringContaining('"t":"new"'),
         'subscription',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('persists refreshed blobs on the requested label', async () => {
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000 };
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
+      );
+      const token = await svc.unwrapToken(
+        JSON.stringify(blob),
+        'agent-1',
+        'user-1',
+        'Work account',
+      );
+      expect(token).toBe('new');
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'openai',
+        expect.stringContaining('"t":"new"'),
+        'subscription',
+        undefined,
+        'Work account',
       );
     });
 

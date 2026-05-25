@@ -53,6 +53,7 @@ export class OpenaiOauthService {
     agentId: string,
     userId: string,
     backendUrl?: string,
+    label?: string,
   ): Promise<string> {
     const state = generateState();
     const { verifier, challenge } = generatePkce();
@@ -63,6 +64,7 @@ export class OpenaiOauthService {
       verifier,
       agentId,
       userId,
+      label,
       backendUrl: safeBackendUrl,
     });
     if (this.useCallbackServer) {
@@ -114,7 +116,8 @@ export class OpenaiOauthService {
       r: data.refresh_token,
       e: Date.now() + data.expires_in * 1000,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'openai');
+    const label =
+      pending.label ?? (await this.providerService.nextOAuthLabel(pending.agentId, 'openai'));
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -162,7 +165,12 @@ export class OpenaiOauthService {
   }
 
   /** Parse an OAuth blob and return a valid access token, refreshing if expired. */
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    label?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) return null;
     if (Date.now() < blob.e - 60_000) return blob.t;
@@ -174,6 +182,8 @@ export class OpenaiOauthService {
         'openai',
         serializeOAuthTokenBlob(refreshed),
         'subscription',
+        undefined,
+        label,
       );
       this.logger.log(`OpenAI OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;

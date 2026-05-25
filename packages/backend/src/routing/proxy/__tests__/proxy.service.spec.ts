@@ -299,6 +299,42 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordTier).toHaveBeenCalledWith('sess-1', 'standard');
     });
 
+    it('passes the primary OpenAI subscription key label into token unwrap', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: {
+          provider: 'openai',
+          authType: 'subscription',
+          model: 'gpt-5.2-codex',
+          keyLabel: 'Work account',
+        },
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.getProviderApiKey.mockResolvedValue('oauth-blob');
+      openaiOauth.unwrapToken.mockResolvedValue('access-token');
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
+        'oauth-blob',
+        'agent-1',
+        'user-1',
+        'Work account',
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'access-token' }),
+      );
+    });
+
     it('records the specificity category when the route originates from specificity', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

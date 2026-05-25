@@ -16,9 +16,10 @@ export interface MinimaxOAuthPollResponse {
   pollIntervalMs?: number;
 }
 
-export function getOpenaiOAuthUrl(agentName: string) {
+export function getOpenaiOAuthUrl(agentName: string, label?: string) {
   return fetchJson<{ url: string }>(`/oauth/openai/authorize`, {
     agentName,
+    ...(label ? { label } : {}),
   });
 }
 

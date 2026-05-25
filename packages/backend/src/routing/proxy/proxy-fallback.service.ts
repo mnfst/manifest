@@ -217,6 +217,7 @@ export class ProxyFallbackService {
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
+        providerKeyLabel,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -463,11 +464,12 @@ export async function resolveApiKey(
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
   anthropicOauth: AnthropicOauthService,
+  providerKeyLabel?: string,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
     if (lower === 'openai') {
-      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, userId);
+      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, userId, providerKeyLabel);
       if (unwrapped) return { apiKey: unwrapped };
     }
     if (lower === 'minimax') {

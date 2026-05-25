@@ -418,6 +418,7 @@ export class ProxyService {
       this.openaiOauth,
       this.minimaxOauth,
       this.anthropicOauth,
+      resolved.provider_key_label,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,

@@ -34,6 +34,14 @@ describe('oauth API client', () => {
     expect(url).toContain('agentName=demo');
   });
 
+  it('getOpenaiOAuthUrl forwards the optional provider key label', async () => {
+    const fetchMock = setupFetch({ url: 'https://example.com' });
+    await oauth.getOpenaiOAuthUrl('demo', 'Work account');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('agentName=demo');
+    expect(url).toContain('label=Work+account');
+  });
+
   it('revokeOpenaiOAuth POSTs with the encoded agent name in the URL', async () => {
     const fetchMock = setupFetch({ ok: true });
     await oauth.revokeOpenaiOAuth('my agent');

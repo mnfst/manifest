@@ -56,13 +56,19 @@ describe('OpenaiOauthController', () => {
         get: jest.fn().mockReturnValue('localhost:3001'),
       } as unknown as Request;
 
-      const result = await controller.authorize('my-agent', { id: 'user-1' } as never, req);
+      const result = await controller.authorize(
+        'my-agent',
+        undefined,
+        { id: 'user-1' } as never,
+        req,
+      );
 
       expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
       expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-id-1',
         'user-1',
         'http://localhost:3001',
+        undefined,
       );
       expect(result).toEqual({ url: 'https://auth.openai.com/oauth/...' });
     });
@@ -74,7 +80,12 @@ describe('OpenaiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize(undefined as unknown as string, { id: 'user-1' } as never, req),
+        controller.authorize(
+          undefined as unknown as string,
+          undefined,
+          { id: 'user-1' } as never,
+          req,
+        ),
       ).rejects.toThrow(HttpException);
     });
 
@@ -84,9 +95,9 @@ describe('OpenaiOauthController', () => {
         get: jest.fn().mockReturnValue('localhost:3001'),
       } as unknown as Request;
 
-      await expect(controller.authorize('', { id: 'user-1' } as never, req)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.authorize('', undefined, { id: 'user-1' } as never, req),
+      ).rejects.toThrow(HttpException);
     });
 
     it('throws 503 when callback server port is unavailable', async () => {
@@ -101,7 +112,7 @@ describe('OpenaiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+        controller.authorize('my-agent', undefined, { id: 'user-1' } as never, req),
       ).rejects.toThrow(HttpException);
     });
 
@@ -115,7 +126,7 @@ describe('OpenaiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+        controller.authorize('my-agent', undefined, { id: 'user-1' } as never, req),
       ).rejects.toThrow('Failed to start OAuth callback server');
     });
 
@@ -129,13 +140,49 @@ describe('OpenaiOauthController', () => {
         get: jest.fn().mockReturnValue('evil.example'),
       } as unknown as Request;
 
-      await controller.authorize('my-agent', { id: 'user-1' } as never, req);
+      await controller.authorize('my-agent', undefined, { id: 'user-1' } as never, req);
 
       expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-id-1',
         'user-1',
         'https://manifest.example.com',
+        undefined,
       );
+    });
+
+    it('passes an optional label for re-authenticating an existing OAuth key', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      oauthService.generateAuthorizationUrl.mockResolvedValue('https://auth.openai.com/oauth/...');
+
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3001'),
+      } as unknown as Request;
+
+      await controller.authorize('my-agent', 'Work account', { id: 'user-1' } as never, req);
+
+      expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
+        'agent-id-1',
+        'user-1',
+        'http://localhost:3001',
+        'Work account',
+      );
+    });
+
+    it('rejects repeated label query parameters', async () => {
+      const req = {
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3001'),
+      } as unknown as Request;
+
+      await expect(
+        controller.authorize('my-agent', ['Default', 'Work'], { id: 'user-1' } as never, req),
+      ).rejects.toMatchObject({
+        message: 'label query parameter must be a string',
+        status: HttpStatus.BAD_REQUEST,
+      });
+      expect(resolveAgent.resolve).not.toHaveBeenCalled();
+      expect(oauthService.generateAuthorizationUrl).not.toHaveBeenCalled();
     });
   });
 

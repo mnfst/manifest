@@ -41,6 +41,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [popupOpened, setPopupOpened] = createSignal(false);
   const [pasteUrl, setPasteUrl] = createSignal('');
   const [pasteError, setPasteError] = createSignal<string | null>(null);
+  const [pendingRenewLabel, setPendingRenewLabel] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
 
@@ -54,17 +55,26 @@ const OAuthDetailView: Component<Props> = (props) => {
     }
   });
 
-  const handleOAuthLogin = async () => {
+  const successMessage = (label?: string | null) =>
+    label
+      ? `${props.provDef.name} auth token renewed`
+      : `${props.provDef.name} subscription connected`;
+
+  const handleOAuthLogin = async (label?: string) => {
     props.setBusy(true);
     setPasteUrl('');
     setPasteError(null);
+    setPendingRenewLabel(label ?? null);
     try {
-      const { url } = await getOpenaiOAuthUrl(props.agentName);
+      const { url } = label
+        ? await getOpenaiOAuthUrl(props.agentName, label)
+        : await getOpenaiOAuthUrl(props.agentName);
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
         toast.error(
           'Popup was blocked by your browser. Allow popups for this site, then try again.',
         );
+        setPendingRenewLabel(null);
         props.setBusy(false);
         return;
       }
@@ -74,7 +84,9 @@ const OAuthDetailView: Component<Props> = (props) => {
 
       monitorOAuthPopup(popup, {
         onSuccess: () => {
-          toast.success(`${props.provDef.name} subscription connected`);
+          toast.success(successMessage(label));
+          setPopupOpened(false);
+          setPendingRenewLabel(null);
           props.onUpdate();
         },
         onFailure: () => {
@@ -82,6 +94,7 @@ const OAuthDetailView: Component<Props> = (props) => {
         },
       });
     } catch {
+      setPendingRenewLabel(null);
       props.setBusy(false);
     }
   };
@@ -102,7 +115,9 @@ const OAuthDetailView: Component<Props> = (props) => {
       props.setBusy(true);
       setPasteError(null);
       await submitOpenaiOAuthCallback(code, state);
-      toast.success(`${props.provDef.name} subscription connected`);
+      toast.success(successMessage(pendingRenewLabel()));
+      setPopupOpened(false);
+      setPendingRenewLabel(null);
       props.onUpdate();
     } catch {
       setPasteError('Failed to exchange token. The URL may have expired — try logging in again.');
@@ -178,26 +193,22 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   return (
     <>
-      <Show when={!props.connected()}>
-        <Show
-          when={popupOpened()}
-          fallback={
-            <>
-              <p class="provider-detail__hint">
-                Log in with your {props.provDef.name} account to connect your subscription.
-              </p>
-              <button
-                class="btn btn--primary provider-detail__action"
-                disabled={props.busy()}
-                onClick={handleOAuthLogin}
-              >
-                <Show when={!props.busy()} fallback={<span class="spinner" />}>
-                  Log in with {props.provDef.name}
-                </Show>
-              </button>
-            </>
-          }
+      <Show when={!props.connected() && !popupOpened()}>
+        <p class="provider-detail__hint">
+          Log in with your {props.provDef.name} account to connect your subscription.
+        </p>
+        <button
+          class="btn btn--primary provider-detail__action"
+          disabled={props.busy()}
+          onClick={() => handleOAuthLogin()}
         >
+          <Show when={!props.busy()} fallback={<span class="spinner" />}>
+            Log in with {props.provDef.name}
+          </Show>
+        </button>
+      </Show>
+      <Show when={popupOpened()}>
+        <>
           <p class="provider-detail__hint">
             A login window has opened. After you sign in, the popup will show a "can't be reached"
             page. This is expected.
@@ -247,7 +258,7 @@ const OAuthDetailView: Component<Props> = (props) => {
               </Show>
             </button>
           </div>
-        </Show>
+        </>
       </Show>
       <Show when={props.connected()}>
         {/* Multi-key list */}
@@ -274,6 +285,16 @@ const OAuthDetailView: Component<Props> = (props) => {
                               Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
                             </div>
                           </div>
+                          <button
+                            class="btn btn--outline btn--sm"
+                            style="flex-shrink: 0;"
+                            disabled={props.busy()}
+                            onClick={() => handleOAuthLogin(k.label)}
+                            aria-label={`Renew auth token for ${k.label}`}
+                            title="Renew auth token"
+                          >
+                            Renew
+                          </button>
                           <button
                             class="btn btn--outline btn--sm"
                             style="flex-shrink: 0;"
@@ -357,6 +378,15 @@ const OAuthDetailView: Component<Props> = (props) => {
               Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
             </span>
           </div>
+          <button
+            class="btn btn--outline provider-detail__action"
+            disabled={props.busy()}
+            onClick={() => handleOAuthLogin((props.activeKeys?.() ?? [])[0]?.label ?? 'Default')}
+          >
+            <Show when={!props.busy()} fallback={<span class="spinner" />}>
+              Renew auth token
+            </Show>
+          </button>
           <button
             class="btn btn--outline provider-detail__action provider-detail__disconnect"
             disabled={props.busy()}

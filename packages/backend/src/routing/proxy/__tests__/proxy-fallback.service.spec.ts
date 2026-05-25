@@ -770,6 +770,59 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('passes structured OpenAI fallback key labels into token unwrap', async () => {
+      providerKeyService.getProviderApiKey.mockResolvedValue('oauth-blob');
+      openaiOauth.unwrapToken.mockResolvedValue('access-token');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-5.2-codex'],
+        body,
+        false,
+        'sess-1',
+        'gpt-4o',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [
+          {
+            provider: 'openai',
+            authType: 'subscription',
+            model: 'gpt-5.2-codex',
+            keyLabel: 'Work account',
+          },
+        ],
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+        'Work account',
+      );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
+        'oauth-blob',
+        'agent-1',
+        'user-1',
+        'Work account',
+      );
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'access-token' }),
+      );
+    });
+
     it('does not exclude auth types for different provider', async () => {
       providerKeyService.getAuthType.mockResolvedValue('api_key');
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-test');
@@ -939,7 +992,31 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('access-token');
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', undefined);
+    });
+
+    it('passes key labels through to OpenAI subscription unwrap', async () => {
+      openaiOauth.unwrapToken.mockResolvedValue('access-token');
+
+      const result = await resolveApiKey(
+        'openai',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        'Work account',
+      );
+
+      expect(result.apiKey).toBe('access-token');
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(
+        'blob',
+        'agent-1',
+        'user-1',
+        'Work account',
+      );
     });
 
     it('unwraps MiniMax subscription token with resource URL', async () => {
