@@ -16,16 +16,20 @@ vi.mock("@solidjs/meta", () => ({
 
 const mockGetMessages = vi.fn();
 const mockGetCustomProviders = vi.fn();
+const mockGetSpecificityAssignments = vi.fn();
 const mockGetMessageDetails = vi.fn();
 const mockGetRoutingStatus = vi.fn();
+const mockListHeaderTiers = vi.fn();
 const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
 const mockDeleteMessageRecording = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+  getSpecificityAssignments: (...args: unknown[]) => mockGetSpecificityAssignments(...args),
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
   getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
+  listHeaderTiers: (...args: unknown[]) => mockListHeaderTiers(...args),
   setMessageFeedback: (...args: unknown[]) => mockSetMessageFeedback(...args),
   clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
   deleteMessageRecording: (...args: unknown[]) => mockDeleteMessageRecording(...args),
@@ -129,7 +133,9 @@ describe("MessageLog", () => {
     localStorage.clear();
     mockAgentName = "test-agent";
     mockGetCustomProviders.mockResolvedValue([]);
+    mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
+    mockListHeaderTiers.mockResolvedValue([]);
   });
 
   it("renders Messages heading", () => {
@@ -1154,6 +1160,35 @@ describe("MessageLog", () => {
       expect(tierSelect.textContent).toContain("Simple");
     });
 
+    it("adds active task-specific categories and defined custom tiers to the tier options", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockGetSpecificityAssignments.mockResolvedValue([
+        { category: "coding", is_active: true },
+        { category: "trading", is_active: false },
+      ]);
+      mockListHeaderTiers.mockResolvedValue([
+        { id: "ht-premium", name: "Premium", enabled: true, sort_order: 0 },
+        { id: "ht-legacy", name: "Legacy", enabled: false, sort_order: 1 },
+      ]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const tierSelect = container.querySelectorAll(
+          '[data-testid="select"]',
+        )[1] as HTMLSelectElement;
+        expect(tierSelect.textContent).toContain("Coding");
+        expect(tierSelect.textContent).toContain("Premium");
+      });
+
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      expect(tierSelect.textContent).not.toContain("Trading");
+      expect(tierSelect.textContent).toContain("Legacy");
+      expect(tierSelect.textContent).not.toContain("Task:");
+      expect(tierSelect.textContent).not.toContain("Custom:");
+    });
+
     it("sends routing_tier in the query when a tier is selected", async () => {
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
@@ -1171,6 +1206,56 @@ describe("MessageLog", () => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.routing_tier).toBe("playground");
+      });
+    });
+
+    it("sends specificity_category in the query when a task category is selected", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockGetSpecificityAssignments.mockResolvedValue([{ category: "coding", is_active: true }]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelectorAll('[data-testid="select"]').length).toBeGreaterThanOrEqual(
+          2,
+        );
+      });
+
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      mockGetMessages.mockClear();
+      fireEvent.change(tierSelect, { target: { value: "specificity:coding" } });
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.specificity_category).toBe("coding");
+        expect(lastQ.routing_tier).toBeUndefined();
+      });
+    });
+
+    it("sends header_tier_id in the query when a custom tier is selected", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockListHeaderTiers.mockResolvedValue([{ id: "ht-premium", name: "Premium" }]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelectorAll('[data-testid="select"]').length).toBeGreaterThanOrEqual(
+          2,
+        );
+      });
+
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      mockGetMessages.mockClear();
+      fireEvent.change(tierSelect, { target: { value: "header:ht-premium" } });
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.header_tier_id).toBe("ht-premium");
+        expect(lastQ.routing_tier).toBeUndefined();
       });
     });
   });

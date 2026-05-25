@@ -4,6 +4,7 @@ export * from './api/messages.js';
 export * from './api/analytics.js';
 export * from './api/routing.js';
 export * from './api/specificity.js';
+export * from './api/header-tiers.js';
 export * from './api/notifications.js';
 export * from './api/oauth.js';
 export * from './api/free-models.js';
