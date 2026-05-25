@@ -15,7 +15,6 @@ import type {
   ModelRoute,
   RequestParamDefaults,
   DeliveryMode,
-  OutputModality,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -159,7 +158,6 @@ export interface RoutingSpecificitySectionProps {
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
-  outputModality: () => OutputModality;
   deliveryMode: () => DeliveryMode;
   changingDeliveryMode: () => boolean;
   onDeliveryModeChange: (mode: DeliveryMode) => void | Promise<void>;
@@ -252,7 +250,6 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
       >
         <div class="specificity-output-controls">
           <OutputControls
-            outputModality={props.outputModality}
             deliveryMode={props.deliveryMode}
             disabled={props.changingDeliveryMode}
             onDeliveryModeChange={props.onDeliveryModeChange}

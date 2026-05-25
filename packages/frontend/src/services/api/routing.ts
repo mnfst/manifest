@@ -238,11 +238,11 @@ export function resetTier(agentName: string, tier: string) {
 
 export function setTierDeliveryMode(agentName: string, tier: string, deliveryMode: DeliveryMode) {
   return fetchMutate<TierAssignment>(
-    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/delivery-mode`),
+    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/response-mode`),
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deliveryMode }),
+      body: JSON.stringify({ deliveryMode, responseMode: deliveryMode }),
     },
   );
 }

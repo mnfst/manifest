@@ -6,7 +6,6 @@ import type {
   ModelRoute,
   RequestParamDefaults,
   DeliveryMode,
-  OutputModality,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -53,7 +52,6 @@ interface Props {
   connectedProviders: RoutingProvider[];
   onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
-  outputModality?: OutputModality;
   onEdit?: () => void;
   onDisable?: () => void;
   changingDeliveryMode?: boolean;
@@ -284,7 +282,6 @@ const HeaderTierCard: Component<Props> = (props) => {
 
       <OutputControls
         compact
-        outputModality={() => props.tier.output_modality ?? props.outputModality ?? 'text'}
         deliveryMode={() => props.tier.delivery_mode ?? 'buffered'}
         disabled={() => !!props.changingDeliveryMode || !props.onDeliveryModeChange}
         onDeliveryModeChange={(mode) => props.onDeliveryModeChange?.(mode)}

@@ -1,17 +1,12 @@
 import { createSignal, For, type Accessor, type Component } from 'solid-js';
-import type { DeliveryMode, OutputModality } from '../services/api.js';
+import type { DeliveryMode } from '../services/api.js';
 
 interface Props {
-  outputModality: Accessor<OutputModality>;
   deliveryMode: Accessor<DeliveryMode>;
   onDeliveryModeChange: (mode: DeliveryMode) => void | Promise<void>;
   disabled?: Accessor<boolean>;
   compact?: boolean;
 }
-
-const OUTPUT_OPTIONS: Array<{ value: OutputModality; label: string }> = [
-  { value: 'text', label: 'Text' },
-];
 
 const DELIVERY_OPTIONS: Array<{ value: DeliveryMode; label: string }> = [
   { value: 'buffered', label: 'Buffered' },
@@ -34,24 +29,9 @@ const OutputControls: Component<Props> = (props) => {
 
   return (
     <div class="output-controls" classList={{ 'output-controls--compact': !!props.compact }}>
-      <label class="output-controls__field">
-        <span class="output-controls__label">Output</span>
-        <select
-          class="output-controls__select"
-          value={props.outputModality()}
-          disabled
-          aria-label="Output"
-          title="Only text output is supported today"
-        >
-          <For each={OUTPUT_OPTIONS}>
-            {(option) => <option value={option.value}>{option.label}</option>}
-          </For>
-        </select>
-      </label>
-
       <div class="output-controls__field">
-        <span class="output-controls__label">Delivery</span>
-        <div class="output-controls__segments" role="group" aria-label="Delivery">
+        <span class="output-controls__label">Responses</span>
+        <div class="output-controls__segments" role="group" aria-label="Responses">
           <For each={DELIVERY_OPTIONS}>
             {(option) => (
               <button

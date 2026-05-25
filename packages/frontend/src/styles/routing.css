@@ -280,7 +280,7 @@
   left: 18px;
 }
 
-/* ── Output controls ─────────────── */
+/* ── Response controls ─────────────── */
 .routing-section__controls {
   display: flex;
   align-items: center;
@@ -307,24 +307,6 @@
   font-weight: 600;
   color: hsl(var(--muted-foreground));
   white-space: nowrap;
-}
-
-.output-controls__select {
-  height: 32px;
-  min-width: 82px;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-family);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  padding: 0 28px 0 10px;
-}
-
-.output-controls__select:disabled {
-  opacity: 0.72;
-  cursor: not-allowed;
 }
 
 .output-controls__segments {

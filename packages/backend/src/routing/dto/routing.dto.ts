@@ -207,6 +207,15 @@ export class SetFallbacksDto {
 }
 
 export class SetDeliveryModeDto {
+  @IsOptional()
   @IsIn(DELIVERY_MODES)
-  deliveryMode!: DeliveryMode;
+  deliveryMode?: DeliveryMode;
+
+  @IsOptional()
+  @IsIn(DELIVERY_MODES)
+  responseMode?: DeliveryMode;
+}
+
+export function deliveryModeFromDto(body: SetDeliveryModeDto): DeliveryMode | undefined {
+  return body.deliveryMode ?? body.responseMode;
 }

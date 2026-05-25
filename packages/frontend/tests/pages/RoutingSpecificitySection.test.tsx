@@ -112,7 +112,6 @@ function makeProps(
     onReset: vi.fn(),
     onFallbackUpdate: vi.fn(),
     onAddFallback: vi.fn(),
-    outputModality: () => "text",
     deliveryMode: () => "buffered",
     changingDeliveryMode: () => false,
     onDeliveryModeChange: vi.fn(),

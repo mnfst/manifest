@@ -5,7 +5,9 @@ import {
   AgentNameParamDto,
   ConnectProviderDto,
   CopilotPollDto,
+  SetDeliveryModeDto,
   SetFallbacksDto,
+  deliveryModeFromDto,
 } from './routing.dto';
 
 function toDto(data: Record<string, unknown>): AgentNameParamDto {
@@ -202,6 +204,32 @@ describe('SetFallbacksDto', () => {
 
   it('should reject when models property is missing', async () => {
     const dto = toFallbacksDto({});
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('SetDeliveryModeDto', () => {
+  function toDeliveryModeDto(data: Record<string, unknown>): SetDeliveryModeDto {
+    return plainToInstance(SetDeliveryModeDto, data);
+  }
+
+  it('accepts the deliveryMode body field', async () => {
+    const dto = toDeliveryModeDto({ deliveryMode: 'stream' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(deliveryModeFromDto(dto)).toBe('stream');
+  });
+
+  it('accepts the legacy responseMode body field', async () => {
+    const dto = toDeliveryModeDto({ responseMode: 'buffered' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+    expect(deliveryModeFromDto(dto)).toBe('buffered');
+  });
+
+  it('rejects invalid mode values', async () => {
+    const dto = toDeliveryModeDto({ deliveryMode: 'instant' });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });

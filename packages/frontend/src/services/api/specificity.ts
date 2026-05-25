@@ -68,11 +68,11 @@ export function setSpecificityDeliveryMode(
   deliveryMode: DeliveryMode,
 ) {
   return fetchMutate<SpecificityAssignment>(
-    routingPath(agentName, `specificity/${encodeURIComponent(category)}/delivery-mode`),
+    routingPath(agentName, `specificity/${encodeURIComponent(category)}/response-mode`),
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deliveryMode }),
+      body: JSON.stringify({ deliveryMode, responseMode: deliveryMode }),
     },
   );
 }

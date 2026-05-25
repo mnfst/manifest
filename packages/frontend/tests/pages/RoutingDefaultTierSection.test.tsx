@@ -82,7 +82,6 @@ function makeProps(
     complexityEnabled: () => false,
     togglingComplexity: () => false,
     onToggleComplexity: vi.fn(),
-    outputModality: () => "text",
     deliveryMode: () => "buffered",
     changingDeliveryMode: () => false,
     onDeliveryModeChange: vi.fn(),
@@ -125,6 +124,12 @@ describe("RoutingDefaultTierSection", () => {
       <RoutingDefaultTierSection {...makeProps({ complexityEnabled: () => true })} />
     ));
     expect(screen.getByText(/Analyzes the complexity/)).toBeDefined();
+  });
+
+  it("renders the Responses delivery control without an output selector", () => {
+    render(() => <RoutingDefaultTierSection {...makeProps()} />);
+    expect(screen.getByRole("group", { name: "Responses" })).toBeDefined();
+    expect(screen.queryByLabelText("Output")).toBeNull();
   });
 
   it("invokes onToggleComplexity when the toggle is clicked", () => {

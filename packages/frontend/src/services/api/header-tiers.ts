@@ -79,11 +79,11 @@ export function setHeaderTierDeliveryMode(
   deliveryMode: DeliveryMode,
 ) {
   return fetchMutate<HeaderTier>(
-    routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/delivery-mode`),
+    routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/response-mode`),
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deliveryMode }),
+      body: JSON.stringify({ deliveryMode, responseMode: deliveryMode }),
     },
   );
 }

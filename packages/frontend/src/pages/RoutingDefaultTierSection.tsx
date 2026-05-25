@@ -5,7 +5,6 @@ import type {
   CustomProviderData,
   RequestParamDefaults,
   DeliveryMode,
-  OutputModality,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
@@ -41,7 +40,6 @@ export interface RoutingDefaultTierSectionProps {
   complexityEnabled: () => boolean;
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
-  outputModality: () => OutputModality;
   deliveryMode: () => DeliveryMode;
   changingDeliveryMode: () => boolean;
   onDeliveryModeChange: (mode: DeliveryMode) => void | Promise<void>;
@@ -160,7 +158,6 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
   const controls = () => (
     <div class="routing-section__controls">
       <OutputControls
-        outputModality={props.outputModality}
         deliveryMode={props.deliveryMode}
         disabled={props.changingDeliveryMode}
         onDeliveryModeChange={props.onDeliveryModeChange}

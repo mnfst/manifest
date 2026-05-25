@@ -35,7 +35,6 @@ import {
   type AuthType,
   type RequestParamDefaults,
   type DeliveryMode,
-  type OutputModality,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 import { STAGES } from '../services/providers.js';
@@ -171,8 +170,6 @@ const Routing: Component = () => {
       ? 'stream'
       : 'buffered';
   };
-
-  const textOutputModality = (): OutputModality => 'text';
 
   const handleDefaultDeliveryModeChange = async (deliveryMode: DeliveryMode) => {
     const ids = complexityEnabled() ? STAGES.map((stage) => stage.id) : ['default'];
@@ -561,7 +558,6 @@ const Routing: Component = () => {
                   complexityEnabled={complexityEnabled}
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
-                  outputModality={textOutputModality}
                   deliveryMode={defaultDeliveryMode}
                   changingDeliveryMode={changingDefaultDeliveryMode}
                   onDeliveryModeChange={handleDefaultDeliveryModeChange}
@@ -609,7 +605,6 @@ const Routing: Component = () => {
                     );
                   }}
                   onAddFallback={(category) => setFallbackPickerTier(category)}
-                  outputModality={textOutputModality}
                   deliveryMode={specificityDeliveryMode}
                   changingDeliveryMode={changingSpecificityDeliveryMode}
                   onDeliveryModeChange={handleSpecificityDeliveryModeChange}
