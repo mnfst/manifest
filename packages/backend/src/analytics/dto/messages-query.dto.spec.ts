@@ -103,4 +103,36 @@ describe('MessagesQueryDto', () => {
     const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
     expect(flat.join('\n')).toMatch(/routing_tier must be one of/);
   });
+
+  it('accepts each known specificity_category value', async () => {
+    for (const category of [
+      'coding',
+      'web_browsing',
+      'data_analysis',
+      'image_generation',
+      'video_generation',
+      'social_media',
+      'email_management',
+      'calendar_management',
+      'trading',
+    ]) {
+      const dto = plainToInstance(MessagesQueryDto, { specificity_category: category });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    }
+  });
+
+  it('rejects an unknown specificity_category value', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { specificity_category: 'gardening' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    const flat = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+    expect(flat.join('\n')).toMatch(/specificity_category must be one of/);
+  });
+
+  it('accepts custom header tier ids', async () => {
+    const dto = plainToInstance(MessagesQueryDto, { header_tier_id: 'ht-premium' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
 });

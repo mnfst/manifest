@@ -85,6 +85,9 @@ describe('MessagesController', () => {
       agent_name: undefined,
       status: undefined,
       recorded: undefined,
+      routing_tier: undefined,
+      specificity_category: undefined,
+      header_tier_id: undefined,
     });
   });
 
@@ -105,6 +108,9 @@ describe('MessagesController', () => {
       limit: 25,
       cursor: 'ts|id',
       agent_name: 'bot-1',
+      routing_tier: 'simple',
+      specificity_category: 'coding',
+      header_tier_id: 'ht-premium',
     };
     await controller.getMessages(query as never, user as never);
 
@@ -120,6 +126,9 @@ describe('MessagesController', () => {
       agent_name: 'bot-1',
       status: undefined,
       recorded: undefined,
+      routing_tier: 'simple',
+      specificity_category: 'coding',
+      header_tier_id: 'ht-premium',
     });
   });
 
