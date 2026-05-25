@@ -16,6 +16,8 @@ const mockGetPricingHealth = vi.fn();
 const mockRefreshPricing = vi.fn();
 const mockGetComplexityStatus = vi.fn();
 const mockToggleComplexity = vi.fn();
+const mockSetTierDeliveryMode = vi.fn();
+const mockSetSpecificityDeliveryMode = vi.fn();
 const mockListModelParams = vi.fn();
 const mockSetModelParams = vi.fn();
 const mockDeleteModelParams = vi.fn();
@@ -33,6 +35,8 @@ vi.mock('../../src/services/api.js', () => ({
   refreshPricing: (...args: unknown[]) => mockRefreshPricing(...args),
   getComplexityStatus: (...args: unknown[]) => mockGetComplexityStatus(...args),
   toggleComplexity: (...args: unknown[]) => mockToggleComplexity(...args),
+  setTierDeliveryMode: (...args: unknown[]) => mockSetTierDeliveryMode(...args),
+  setSpecificityDeliveryMode: (...args: unknown[]) => mockSetSpecificityDeliveryMode(...args),
   setSpecificityFallbacks: (...args: unknown[]) => mockSetSpecificityFallbacks(...args),
   clearSpecificityFallbacks: (...args: unknown[]) => mockClearSpecificityFallbacks(...args),
   listModelParamSpecIndex: () =>
@@ -271,6 +275,9 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
       props.getTier,
       props.complexityEnabled,
       props.togglingComplexity,
+      props.deliveryMode,
+      props.changingDeliveryMode,
+      props.onDeliveryModeChange,
       props.getModelParams,
       props.setModelParams,
     ];
@@ -288,6 +295,22 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
           onClick={() => (props.onDropdownOpen as (id: string) => void)('simple')}
         >
           open
+        </button>
+        <button
+          data-testid="default-delivery-stream"
+          onClick={() =>
+            (props.onDeliveryModeChange as (mode: 'stream' | 'buffered') => void)('stream')
+          }
+        >
+          default-stream
+        </button>
+        <button
+          data-testid="default-delivery-buffered"
+          onClick={() =>
+            (props.onDeliveryModeChange as (mode: 'stream' | 'buffered') => void)('buffered')
+          }
+        >
+          default-buffered
         </button>
         <button
           data-testid="default-persist-params"
@@ -338,6 +361,9 @@ vi.mock('../../src/pages/RoutingSpecificitySection.js', () => ({
       routes?: { provider: string; authType: string; model: string }[] | null,
     ) => void;
     onAddFallback: (cat: string) => void;
+    deliveryMode?: () => 'stream' | 'buffered';
+    changingDeliveryMode?: () => boolean;
+    onDeliveryModeChange?: (mode: 'stream' | 'buffered') => void;
     onPinKey?: (cat: string, provider: string, label: string | null, authType?: string) => void;
     setModelParams?: (
       scope: string,
@@ -354,6 +380,7 @@ vi.mock('../../src/pages/RoutingSpecificitySection.js', () => ({
     ) => { thinking?: { type: 'enabled' | 'disabled' } } | null;
   }) => (
     <div data-testid="spec-section">
+      {void [props.deliveryMode?.(), props.changingDeliveryMode?.()]}
       <button data-testid="spec-open" onClick={() => props.onDropdownOpen('coding')}>
         spec-open
       </button>
@@ -386,6 +413,18 @@ vi.mock('../../src/pages/RoutingSpecificitySection.js', () => ({
       </button>
       <button data-testid="spec-add-fallback" onClick={() => props.onAddFallback('coding')}>
         spec-add-fallback
+      </button>
+      <button
+        data-testid="spec-delivery-stream"
+        onClick={() => props.onDeliveryModeChange?.('stream')}
+      >
+        spec-stream
+      </button>
+      <button
+        data-testid="spec-delivery-buffered"
+        onClick={() => props.onDeliveryModeChange?.('buffered')}
+      >
+        spec-buffered
       </button>
       <button
         data-testid="spec-pin-key"
@@ -461,13 +500,14 @@ vi.mock('../../src/pages/RoutingPanels.js', () => ({
   },
 }));
 
+const mockActionGetTier = vi.fn();
 vi.mock('../../src/pages/RoutingActions.js', () => ({
   createRoutingActions: () => ({
     changingTier: () => null,
     resettingAll: () => false,
     resettingTier: () => null,
     addingFallback: () => null,
-    getTier: () => undefined,
+    getTier: (...args: unknown[]) => mockActionGetTier(...args),
     getFallbacksFor: () => [],
     handleOverride: vi.fn(),
     handleResetAll: vi.fn(),
@@ -503,6 +543,14 @@ beforeEach(() => {
   mockGetComplexityStatus.mockResolvedValue({ enabled: true });
   mockGetPricingHealth.mockResolvedValue({ model_count: 100, last_fetched_at: '2025-01-01' });
   mockToggleComplexity.mockResolvedValue({ enabled: false });
+  mockSetTierDeliveryMode.mockImplementation(
+    (_agent: string, tier: string, delivery_mode: 'stream' | 'buffered') =>
+      Promise.resolve({ tier, delivery_mode }),
+  );
+  mockSetSpecificityDeliveryMode.mockImplementation(
+    (_agent: string, category: string, delivery_mode: 'stream' | 'buffered') =>
+      Promise.resolve({ category, delivery_mode }),
+  );
   mockListModelParams.mockResolvedValue([]);
 });
 
@@ -636,6 +684,147 @@ describe('Routing page', () => {
     fireEvent.click(screen.getByTestId('toggle-complexity'));
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith('Failed to toggle complexity routing');
+    });
+  });
+
+  it('updates the default response mode for the default tier', async () => {
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('default-delivery-stream')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('default-delivery-stream'));
+    await waitFor(() => {
+      expect(mockSetTierDeliveryMode).toHaveBeenCalledWith('demo', 'default', 'stream');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Streaming delivery mode enabled');
+    });
+  });
+
+  it('shows buffered copy when default response mode is set back to buffered', async () => {
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('default-delivery-buffered')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('default-delivery-buffered'));
+    await waitFor(() => {
+      expect(mockSetTierDeliveryMode).toHaveBeenCalledWith('demo', 'default', 'buffered');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Buffered delivery mode enabled');
+    });
+  });
+
+  it('toasts the API error when default response mode update fails', async () => {
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockSetTierDeliveryMode.mockRejectedValue(new Error('delivery boom'));
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('default-delivery-stream')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('default-delivery-stream'));
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('delivery boom');
+    });
+  });
+
+  it('inherits streaming mode when complexity routing is enabled from a streamed default tier', async () => {
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false });
+    mockToggleComplexity.mockResolvedValue({ enabled: true });
+    mockActionGetTier.mockImplementation((tier: string) =>
+      tier === 'default' ? { tier: 'default', delivery_mode: 'stream' } : undefined,
+    );
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('toggle-complexity')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('toggle-complexity'));
+    await waitFor(() => {
+      expect(mockSetTierDeliveryMode).toHaveBeenCalledWith('demo', 'simple', 'stream');
+      expect(mockSetTierDeliveryMode).toHaveBeenCalledWith('demo', 'standard', 'stream');
+      expect(mockSetTierDeliveryMode).toHaveBeenCalledWith('demo', 'complex', 'stream');
+      expect(mockSetTierDeliveryMode).toHaveBeenCalledWith('demo', 'reasoning', 'stream');
+    });
+  });
+
+  it('updates response mode for active specificity assignments', async () => {
+    mockGetSpecificityAssignments.mockResolvedValue([
+      {
+        id: 's1',
+        agent_id: 'a',
+        category: 'coding',
+        is_active: true,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: '2025-01-01',
+      },
+    ]);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('spec-delivery-stream')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('spec-delivery-stream'));
+    await waitFor(() => {
+      expect(mockSetSpecificityDeliveryMode).toHaveBeenCalledWith('demo', 'coding', 'stream');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Streaming delivery mode enabled');
+    });
+  });
+
+  it('shows buffered copy when specificity response mode is set back to buffered', async () => {
+    mockGetSpecificityAssignments.mockResolvedValue([
+      {
+        id: 's1',
+        agent_id: 'a',
+        category: 'coding',
+        is_active: true,
+        delivery_mode: 'stream',
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: '2025-01-01',
+      },
+    ]);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('spec-delivery-buffered')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('spec-delivery-buffered'));
+    await waitFor(() => {
+      expect(mockSetSpecificityDeliveryMode).toHaveBeenCalledWith('demo', 'coding', 'buffered');
+      expect(mockToastSuccess).toHaveBeenCalledWith('Buffered delivery mode enabled');
+    });
+  });
+
+  it('returns early when specificity response mode changes with no active assignments', async () => {
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('spec-delivery-stream')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('spec-delivery-stream'));
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    expect(mockSetSpecificityDeliveryMode).not.toHaveBeenCalled();
+  });
+
+  it('toasts the API error when specificity response mode update fails', async () => {
+    mockGetSpecificityAssignments.mockResolvedValue([
+      {
+        id: 's1',
+        agent_id: 'a',
+        category: 'coding',
+        is_active: true,
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+        updated_at: '2025-01-01',
+      },
+    ]);
+    mockSetSpecificityDeliveryMode.mockRejectedValue(new Error('specificity boom'));
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('spec-delivery-stream')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('spec-delivery-stream'));
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith('specificity boom');
     });
   });
 

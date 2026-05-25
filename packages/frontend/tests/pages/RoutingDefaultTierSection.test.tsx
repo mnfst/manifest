@@ -132,6 +132,16 @@ describe("RoutingDefaultTierSection", () => {
     expect(screen.queryByLabelText("Output")).toBeNull();
   });
 
+  it("forwards response mode changes from the Responses control", async () => {
+    const onDeliveryModeChange = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <RoutingDefaultTierSection {...makeProps({ onDeliveryModeChange })} />
+    ));
+    fireEvent.click(screen.getByText("Stream"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(onDeliveryModeChange).toHaveBeenCalledWith("stream");
+  });
+
   it("invokes onToggleComplexity when the toggle is clicked", () => {
     const onToggleComplexity = vi.fn();
     render(() => (

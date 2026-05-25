@@ -15,6 +15,7 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
       ),
       tiersCount: (props.tiers as { length: number } | undefined)?.length ?? 0,
       requiredCapability: props.requiredCapability,
+      providerRefreshed: props.onProviderRefreshed,
     });
     return (
       <div
@@ -355,6 +356,35 @@ describe('RoutingModals', () => {
       ));
       expect((pickerCalls[0].modelsList as string[])[0]).toBe('anonymous-model:');
     });
+
+    it('requires stream-capable models for stream-mode fallback pickers', () => {
+      render(() => (
+        <RoutingModals
+          {...makeProps({
+            fallbackPickerTier: () => 'simple',
+            tiers: () => [{ ...tiers[0]!, delivery_mode: 'stream' }],
+            getTier: (id: string) =>
+              id === 'simple' ? { ...tiers[0]!, delivery_mode: 'stream' } : undefined,
+          })}
+        />
+      ));
+      expect(pickerCalls[0].requiredCapability).toBe('stream');
+      expect(typeof pickerCalls[0].providerRefreshed).toBe('function');
+    });
+  });
+
+  it('forwards onFallbackPickerClose when the fallback picker closes', () => {
+    const onFallbackPickerClose = vi.fn();
+    const { getByTestId } = render(() => (
+      <RoutingModals
+        {...makeProps({
+          fallbackPickerTier: () => 'simple',
+          onFallbackPickerClose,
+        })}
+      />
+    ));
+    fireEvent.click(getByTestId('picker-close-simple'));
+    expect(onFallbackPickerClose).toHaveBeenCalled();
   });
 
   it('does not render ProviderSelectModal when showProviderModal is false', () => {

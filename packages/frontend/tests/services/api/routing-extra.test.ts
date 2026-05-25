@@ -130,6 +130,19 @@ describe('routing API client (additional coverage)', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
+  it('setTierDeliveryMode PATCHes the response-mode endpoint', async () => {
+    const fetchMock = setupFetch({ tier: 'simple', delivery_mode: 'stream' });
+    const out = await routing.setTierDeliveryMode('demo', 'simple', 'stream');
+    expect(out).toEqual({ tier: 'simple', delivery_mode: 'stream' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/routing/demo/tiers/simple/response-mode');
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      deliveryMode: 'stream',
+      responseMode: 'stream',
+    });
+  });
+
   it('resetAllTiers POSTs to /reset-all', async () => {
     const fetchMock = setupFetch({});
     await routing.resetAllTiers('demo');

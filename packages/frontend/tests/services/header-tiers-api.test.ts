@@ -137,4 +137,15 @@ describe('header-tiers API client', () => {
     expect(init.headers['Content-Type']).toBe('application/json');
     expect(JSON.parse(init.body)).toEqual({ enabled: true });
   });
+
+  it('setHeaderTierDeliveryMode PATCHes the response-mode endpoint', async () => {
+    const fetchMock = setupFetch({ id: 'ht-1', delivery_mode: 'stream' });
+    const out = await api.setHeaderTierDeliveryMode('my-agent', 'ht-1', 'stream');
+    expect(out).toEqual({ id: 'ht-1', delivery_mode: 'stream' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/header-tiers/ht-1/response-mode');
+    expect(init.method).toBe('PATCH');
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(JSON.parse(init.body)).toEqual({ deliveryMode: 'stream', responseMode: 'stream' });
+  });
 });

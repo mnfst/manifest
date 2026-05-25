@@ -152,6 +152,62 @@ describe('FallbackList', () => {
     );
   });
 
+  it('falls back to model-name matching when a structured route is stale', () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        deliveryMode="stream"
+        fallbacks={['legacy']}
+        fallbackRoutes={[
+          { provider: 'custom:missing', authType: 'api_key', model: 'other-model' },
+        ]}
+        models={[
+          {
+            model_name: 'legacy-pro',
+            provider: 'OpenAI',
+            capabilities: ['text', 'stream'],
+          },
+        ] as any[]}
+      />
+    ));
+
+    expect(container.querySelector('.fallback-list__card--skipped')).toBeNull();
+  });
+
+  it('closes a fallback key picker when clicking outside it', async () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={['model-a']}
+        connectedProviders={[
+          {
+            provider: 'openai',
+            auth_type: 'api_key',
+            is_active: true,
+            has_api_key: true,
+            label: 'Work',
+            priority: 0,
+          },
+          {
+            provider: 'openai',
+            auth_type: 'api_key',
+            is_active: true,
+            has_api_key: true,
+            label: 'Personal',
+            priority: 1,
+          },
+        ] as any[]}
+      />
+    ));
+
+    fireEvent.click(container.querySelector('.fallback-list__key-chip') as HTMLButtonElement);
+    expect(container.querySelector('[role="listbox"]')).not.toBeNull();
+    fireEvent.mouseDown(document.body);
+    await waitFor(() => {
+      expect(container.querySelector('[role="listbox"]')).toBeNull();
+    });
+  });
+
   it('calls onAddFallback when add button in empty state clicked', () => {
     const onAddFallback = vi.fn();
     const { container } = render(() => (

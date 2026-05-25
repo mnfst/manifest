@@ -247,6 +247,24 @@ describe('ModelPickerModal', () => {
     expect(onSelect).toHaveBeenCalledWith('default', 'gpt-4o', 'openai', 'api_key');
   });
 
+  it('uses a generic unavailable label for future output capabilities', () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="default"
+        models={baseModels}
+        tiers={[]}
+        connectedProviders={apiKeyOnly}
+        requiredCapability="image"
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    const blockedModel = container.querySelector('.routing-modal__model') as HTMLButtonElement;
+    expect(blockedModel.disabled).toBe(true);
+    expect(blockedModel.textContent).toContain('Image unavailable');
+  });
+
   describe('per-group refresh button', () => {
     it('does not render group refresh buttons when agentName is missing', () => {
       const { container } = render(() => (

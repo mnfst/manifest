@@ -56,6 +56,19 @@ describe('specificity API client', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
+  it('setSpecificityDeliveryMode PATCHes the response-mode endpoint', async () => {
+    const fetchMock = setupFetch({ category: 'coding', delivery_mode: 'stream' });
+    const out = await specificity.setSpecificityDeliveryMode('demo', 'coding', 'stream');
+    expect(out).toEqual({ category: 'coding', delivery_mode: 'stream' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/specificity/coding/response-mode');
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      deliveryMode: 'stream',
+      responseMode: 'stream',
+    });
+  });
+
   it('setSpecificityFallbacks attaches routes when length matches', async () => {
     const fetchMock = setupFetch([]);
     await specificity.setSpecificityFallbacks('demo', 'coding', ['m'], [

@@ -51,6 +51,7 @@ vi.mock("../../src/pages/RoutingTierCard.js", () => ({
       props.onReset,
       props.onFallbackUpdate,
       props.onAddFallback,
+      props.onPinKey,
       props.connectedProviders,
       props.persistFallbacks,
       props.persistClearFallbacks,
@@ -150,6 +151,18 @@ describe("RoutingSpecificitySection", () => {
     expect(screen.queryByTestId("tier-card-trading")).toBeNull();
   });
 
+  it("renders the Responses control and forwards response mode changes", async () => {
+    const onDeliveryModeChange = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <RoutingSpecificitySection
+        {...makeProps({ assignments: () => [codingActive], onDeliveryModeChange })}
+      />
+    ));
+    fireEvent.click(screen.getByText("Stream"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(onDeliveryModeChange).toHaveBeenCalledWith("stream");
+  });
+
   it("opens the management modal from the empty state CTA", () => {
     const { container } = render(() => (
       <RoutingSpecificitySection {...makeProps()} />
@@ -194,6 +207,25 @@ describe("RoutingSpecificitySection", () => {
     fireEvent.keyDown(rows[1], { key: "Enter" });
     await waitFor(() => {
       expect(mockToggleSpecificity).toHaveBeenCalledWith("demo", "trading", true);
+    });
+  });
+
+  it("inherits stream response mode when enabling a task-specific tier", async () => {
+    const onDeliveryModeChange = vi.fn().mockResolvedValue(undefined);
+    const { container } = render(() => (
+      <RoutingSpecificitySection
+        {...makeProps({
+          assignments: () => [tradingInactive],
+          deliveryMode: () => "stream",
+          onDeliveryModeChange,
+        })}
+      />
+    ));
+    fireEvent.click(screen.getByText("Add a task-specific tier"));
+    fireEvent.click(container.querySelectorAll(".specificity-modal__row")[0]);
+    await waitFor(() => {
+      expect(mockToggleSpecificity).toHaveBeenCalledWith("demo", "coding", true);
+      expect(onDeliveryModeChange).toHaveBeenCalledWith("stream");
     });
   });
 

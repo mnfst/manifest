@@ -5,16 +5,23 @@ const mockListHeaderTiers = vi.fn();
 const mockDeleteHeaderTier = vi.fn();
 const mockOverrideHeaderTier = vi.fn();
 const mockToggleHeaderTier = vi.fn();
+const mockSetHeaderTierDeliveryMode = vi.fn();
 vi.mock("../../src/services/api/header-tiers.js", () => ({
   listHeaderTiers: (...args: unknown[]) => mockListHeaderTiers(...args),
   deleteHeaderTier: (...args: unknown[]) => mockDeleteHeaderTier(...args),
   overrideHeaderTier: (...args: unknown[]) => mockOverrideHeaderTier(...args),
   toggleHeaderTier: (...args: unknown[]) => mockToggleHeaderTier(...args),
+  setHeaderTierDeliveryMode: (...args: unknown[]) => mockSetHeaderTierDeliveryMode(...args),
 }));
 
 const mockToastError = vi.fn();
+const mockToastSuccess = vi.fn();
 vi.mock("../../src/services/toast-store.js", () => ({
-  toast: { error: (...args: unknown[]) => mockToastError(...args), success: vi.fn(), warning: vi.fn() },
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+    warning: vi.fn(),
+  },
 }));
 
 const cardCalls: Array<Record<string, unknown>> = [];
@@ -31,6 +38,8 @@ vi.mock("../../src/components/HeaderTierCard.js", () => ({
       props.connectedProviders,
       props.getModelParams,
       props.setModelParams,
+      props.changingDeliveryMode,
+      props.onDeliveryModeChange,
     ];
     void _read;
     return (
@@ -74,6 +83,18 @@ vi.mock("../../src/components/HeaderTierCard.js", () => ({
           onClick={() => (props.onDisable as () => void)?.()}
         >
           disable
+        </button>
+        <button
+          data-testid={`delivery-${tier.id}`}
+          onClick={() => (props.onDeliveryModeChange as (mode: "stream" | "buffered") => void)("stream")}
+        >
+          delivery
+        </button>
+        <button
+          data-testid={`delivery-buffered-${tier.id}`}
+          onClick={() => (props.onDeliveryModeChange as (mode: "stream" | "buffered") => void)("buffered")}
+        >
+          delivery-buffered
         </button>
       </div>
     );
@@ -172,6 +193,10 @@ describe("RoutingHeaderTiersSection", () => {
     mockOverrideHeaderTier.mockResolvedValue(undefined);
     mockDeleteHeaderTier.mockResolvedValue(undefined);
     mockToggleHeaderTier.mockResolvedValue(undefined);
+    mockSetHeaderTierDeliveryMode.mockImplementation(
+      (_agent: string, id: string, delivery_mode: "stream" | "buffered") =>
+        Promise.resolve({ ...tier1, id, delivery_mode }),
+    );
   });
 
   it("renders the empty state when no tiers exist (with no externalTiers)", async () => {
@@ -314,6 +339,51 @@ describe("RoutingHeaderTiersSection", () => {
     fireEvent.click(getByTestId("disable-ht-1"));
     await waitFor(() => {
       expect(mockToggleHeaderTier).toHaveBeenCalledWith("demo", "ht-1", false);
+    });
+  });
+
+  it("updates a custom tier response mode from the card", async () => {
+    const externalMutate = vi.fn();
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({ externalTiers: () => [tier1], externalMutate })}
+      />
+    ));
+    fireEvent.click(getByTestId("delivery-ht-1"));
+    await waitFor(() => {
+      expect(mockSetHeaderTierDeliveryMode).toHaveBeenCalledWith("demo", "ht-1", "stream");
+      expect(externalMutate).toHaveBeenCalled();
+      expect(mockToastSuccess).toHaveBeenCalledWith("Streaming delivery mode enabled");
+    });
+    const update = externalMutate.mock.calls[0]![0] as (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined;
+    expect(update([tier1])?.[0]?.delivery_mode).toBe("stream");
+  });
+
+  it("toasts when a custom tier response mode update fails", async () => {
+    mockSetHeaderTierDeliveryMode.mockRejectedValue(new Error("delivery-fail"));
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1] })} />
+    ));
+    fireEvent.click(getByTestId("delivery-ht-1"));
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith("delivery-fail");
+    });
+  });
+
+  it("uses internal state and buffered copy for response mode updates without external mutation", async () => {
+    mockListHeaderTiers.mockResolvedValue([tier1]);
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({ externalTiers: undefined, externalMutate: undefined })}
+      />
+    ));
+    await waitFor(() => {
+      expect(getByTestId("delivery-buffered-ht-1")).toBeDefined();
+    });
+    fireEvent.click(getByTestId("delivery-buffered-ht-1"));
+    await waitFor(() => {
+      expect(mockSetHeaderTierDeliveryMode).toHaveBeenCalledWith("demo", "ht-1", "buffered");
+      expect(mockToastSuccess).toHaveBeenCalledWith("Buffered delivery mode enabled");
     });
   });
 
