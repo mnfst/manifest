@@ -283,6 +283,7 @@ describe("getClaudeCodeSettingsSnippet", () => {
     // Strict-parse to make sure it's valid JSON and shaped correctly.
     const parsed = JSON.parse(snippet);
     expect(parsed).toEqual({
+      model: "auto",
       env: {
         ANTHROPIC_BASE_URL: "http://localhost:38240",
         ANTHROPIC_AUTH_TOKEN: "mnfst_key",
