@@ -1,0 +1,32 @@
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 83-96,129-133
+  s_f532f74d9a54e0::t_e12e521bd11a1d 16,134-137
+packages/shared/src/provider-params-spec.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 91-92,98-99,107,110,117
+  s_f532f74d9a54e0::t_cf00ea0653de6f 2,93-97
+packages/shared/src/index.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 47
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_f532f74d9a54e0::t_1556d8d03cfaee 125-157
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_f532f74d9a54e0::t_c913195cf0aa3b 104-111
+  s_f532f74d9a54e0::t_d54923d2089dde 9
+.changeset/mps-provider-aliases.md
+  s_f532f74d9a54e0::t_d54923d2089dde 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "69388e8288cc740ef8f9d55919a71365841fc59f",
+  "prompts": {},
+  "sessions": {
+    "s_f532f74d9a54e0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5edb-77d7-70f0-bf2e-fe0a4ede59eb",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
