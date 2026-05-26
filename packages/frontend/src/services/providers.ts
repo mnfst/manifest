@@ -196,6 +196,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Kimi k2, Moonshot v1',
     models: [],
   },
+  nvidia: {
+    initial: 'Nv',
+    subtitle: 'Nemotron, Llama, Mistral via NVIDIA NIM',
+    models: [],
+  },
   ollama: {
     initial: 'Ol',
     subtitle: 'Llama, Mistral, Gemma, and more',
@@ -307,6 +312,7 @@ const PROVIDER_ORDER = [
   'minimax',
   'mistral',
   'moonshot',
+  'nvidia',
   'ollama',
   'ollama-cloud',
   'openai',

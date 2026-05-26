@@ -62,6 +62,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
@@ -104,6 +105,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
     expect(known).toContain('openrouter');
+    expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
     expect(known).toContain('kiro');
@@ -183,6 +185,21 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/chat/completions');
     expect(ep.buildHeaders('kilo-token')).toEqual({
       Authorization: 'Bearer kilo-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('nvidia uses the hosted NIM OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['nvidia'];
+    expect(ep.baseUrl).toBe('https://integrate.api.nvidia.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('nvidia/nemotron-3-super-120b-a12b')).toBe('/v1/chat/completions');
+  });
+
+  it('nvidia uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['nvidia'].buildHeaders('nvapi-test-key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer nvapi-test-key',
       'Content-Type': 'application/json',
     });
   });

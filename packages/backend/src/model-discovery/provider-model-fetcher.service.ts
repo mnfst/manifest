@@ -98,6 +98,16 @@ function parseOpenAIDeduped(body: unknown, provider: string): DiscoveredModel[] 
   });
 }
 
+function parseOpenAIDedupedById(body: unknown, provider: string): DiscoveredModel[] {
+  const parsed = parseOpenAI(body, provider);
+  const seen = new Set<string>();
+  return parsed.filter((m) => {
+    if (seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
+}
+
 /* ── Universal non-chat model filter ── */
 
 /**
@@ -136,6 +146,8 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // Note: do NOT block "safeguard" — Groq's gpt-oss-safeguard-20b is a chat
   // model the user can call.
   groq: /(?:(?:^|\/|-)compound|prompt-guard|orpheus)/i,
+  nvidia:
+    /(?:flux|cosmos|detector|gliner|calibration|embed|retriever|parse|tts|translate|safety|guard|reward|nvclip|vila|neva)/i,
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
 };
@@ -429,6 +441,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  nvidia: {
+    endpoint: 'https://integrate.api.nvidia.com/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAIDedupedById,
   },
   xai: {
     endpoint: 'https://api.x.ai/v1/models',
