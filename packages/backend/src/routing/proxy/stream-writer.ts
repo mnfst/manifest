@@ -103,6 +103,7 @@ export function initSseHeaders(
   res: ExpressResponse,
   extraHeaders: Record<string, string> = {},
 ): void {
+  res.statusCode = 200;
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');

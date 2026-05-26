@@ -50,6 +50,7 @@ export function buildFriendlyResponse(
     provider: 'manifest',
     confidence: 1,
     reason,
+    delivery_mode: stream ? 'stream' : 'buffered',
   };
 
   if (stream) {
