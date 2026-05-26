@@ -1,5 +1,5 @@
 import type { AuthType } from './auth-types';
-import { inferProviderFromModel, underlyingGatewayModel } from './provider-inference';
+import { resolveUnderlyingModelIdentity, underlyingGatewayModel } from './provider-inference';
 import { normalizeProviderName, SHARED_PROVIDER_BY_ID_OR_ALIAS } from './providers';
 import type { JsonPrimitive, JsonValue } from './request-params';
 
@@ -118,10 +118,9 @@ function paramLookupIdentity(
   authType: AuthType | undefined,
   model: string | undefined,
 ): { providerId: string | undefined; authType: AuthType | undefined; model: string | undefined } {
-  if (!model) return { providerId, authType, model };
-  const underlying = underlyingGatewayModel(model);
-  if (underlying === null) return { providerId, authType, model };
-  return { providerId: inferProviderFromModel(underlying), authType: 'api_key', model: underlying };
+  if (!model || underlyingGatewayModel(model) === null) return { providerId, authType, model };
+  const resolved = resolveUnderlyingModelIdentity(providerId, model);
+  return { providerId: resolved.provider, authType: 'api_key', model: resolved.model };
 }
 
 export function getProviderParamSpecs(

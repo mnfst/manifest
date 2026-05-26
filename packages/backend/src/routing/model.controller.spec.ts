@@ -311,6 +311,42 @@ describe('ModelController', () => {
       expect(result[0].capabilities).toEqual(['text', 'image', 'tools', 'stream']);
     });
 
+    it('resolves gateway models to the underlying provider for capability metadata', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'opencode-go/glm-5.1',
+          provider: 'opencode-go',
+          authType: 'subscription',
+        }),
+      ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        capabilities: ['text', 'tools', 'stream'],
+      });
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      // The gateway prefix is stripped and the provider inferred from the
+      // underlying id, so models.dev is queried as the real provider.
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('zai', 'glm-5.1');
+      expect(result[0].capabilities).toEqual(['text', 'tools', 'stream']);
+    });
+
+    it('falls back to the gateway provider when the underlying id is unknown', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'opencode-go/mimo-v25',
+          provider: 'opencode-go',
+          authType: 'subscription',
+        }),
+      ]);
+
+      await controller.getAvailableModels(mockUser, mockAgentName);
+
+      // `mimo-v25` matches no known provider, so the lookup keeps the gateway
+      // provider rather than passing `undefined`.
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('opencode-go', 'mimo-v25');
+    });
+
     it('should use null for display_name when displayName is empty', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([
         makeDiscovered({ id: 'some-model', provider: 'openai', displayName: '' }),

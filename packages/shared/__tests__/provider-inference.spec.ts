@@ -1,6 +1,7 @@
 import {
   MODEL_PREFIX_MAP,
   inferProviderFromModel,
+  resolveUnderlyingModelIdentity,
   underlyingGatewayModel,
 } from '../src/provider-inference';
 
@@ -84,5 +85,36 @@ describe('underlyingGatewayModel', () => {
   it('returns null for non-gateway model ids', () => {
     expect(underlyingGatewayModel('deepseek-v4-pro')).toBeNull();
     expect(underlyingGatewayModel('openrouter/anthropic/claude-sonnet-4')).toBeNull();
+  });
+});
+
+describe('resolveUnderlyingModelIdentity', () => {
+  it('resolves a gateway model id to its provenance provider and bare model', () => {
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/glm-5.1')).toEqual({
+      provider: 'zai',
+      model: 'glm-5.1',
+    });
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/kimi-k2.6')).toEqual({
+      provider: 'moonshot',
+      model: 'kimi-k2.6',
+    });
+  });
+
+  it('returns an undefined provider when the underlying id matches no known provider', () => {
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/mimo-v25')).toEqual({
+      provider: undefined,
+      model: 'mimo-v25',
+    });
+  });
+
+  it('returns non-gateway pairs unchanged', () => {
+    expect(resolveUnderlyingModelIdentity('zai', 'glm-5.1')).toEqual({
+      provider: 'zai',
+      model: 'glm-5.1',
+    });
+    expect(resolveUnderlyingModelIdentity(undefined, 'deepseek-v4-pro')).toEqual({
+      provider: undefined,
+      model: 'deepseek-v4-pro',
+    });
   });
 });

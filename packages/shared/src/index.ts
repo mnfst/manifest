@@ -83,7 +83,12 @@ export {
   encodeFallbackEntry,
 } from './fallback-encoding';
 export type { FallbackEntry } from './fallback-encoding';
-export { MODEL_PREFIX_MAP, inferProviderFromModel } from './provider-inference';
+export {
+  MODEL_PREFIX_MAP,
+  inferProviderFromModel,
+  underlyingGatewayModel,
+  resolveUnderlyingModelIdentity,
+} from './provider-inference';
 export {
   SHARED_PROVIDERS,
   SHARED_PROVIDER_BY_ID,
