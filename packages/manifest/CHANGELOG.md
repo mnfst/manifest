@@ -1,5 +1,12 @@
 # manifest
 
+## 6.8.1
+
+### Patch Changes
+
+- ba08e72: Support adding and managing multiple GitHub Copilot subscription accounts.
+- 9109d10: Keep connected subscription add-account flows visible for OAuth and device-code providers.
+
 ## 6.8.0
 
 ### Minor Changes
