@@ -39,7 +39,7 @@ describe('PlaygroundColumn', () => {
     expect(container.querySelector('.playground-column__response')).toBeNull();
   });
 
-  it('progressively renders streamed text while still loading (no skeleton once text exists)', () => {
+  it('progressively renders streamed text while still loading (no skeleton once text exists)', async () => {
     const { container } = render(() => (
       <PlaygroundColumn
         {...baseProps}
@@ -48,19 +48,24 @@ describe('PlaygroundColumn', () => {
     ));
     // Skeleton is replaced by the markdown response as soon as text arrives.
     expect(container.querySelector('.playground-column__skeleton')).toBeNull();
-    const md = container.querySelector('.playground-column__response');
-    expect(md).not.toBeNull();
-    expect(md!.textContent).toContain('partial answer');
+    // MarkdownContent loads marked/dompurify lazily, so wait for the response.
+    await vi.waitFor(() => {
+      const md = container.querySelector('.playground-column__response');
+      expect(md).not.toBeNull();
+      expect(md!.textContent).toContain('partial answer');
+    });
   });
 
-  it('renders the final markdown response on success', () => {
+  it('renders the final markdown response on success', async () => {
     const { container } = render(() => (
       <PlaygroundColumn
         {...baseProps}
         column={col({ status: 'success', response: '## Done\n\nall good' })}
       />
     ));
-    expect(container.querySelector('.playground-column__response h2')?.textContent).toBe('Done');
+    await vi.waitFor(() => {
+      expect(container.querySelector('.playground-column__response h2')?.textContent).toBe('Done');
+    });
   });
 
   it('renders the error state with a Retry button and fires onRetry', () => {

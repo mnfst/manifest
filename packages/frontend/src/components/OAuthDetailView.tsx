@@ -66,6 +66,11 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
 
+  // Dispose the OAuth popup monitor if the view unmounts mid-flow, otherwise its
+  // 300ms URL poll keeps running after the component is gone.
+  let disposeOAuthMonitor: (() => void) | null = null;
+  onCleanup(() => disposeOAuthMonitor?.());
+
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
   const isXaiProvider = () => props.provId === 'xai';
   const callbackPlaceholder = () =>
@@ -139,7 +144,7 @@ const OAuthDetailView: Component<Props> = (props) => {
       setSuccessHandled(false);
       props.setBusy(false);
 
-      monitorOAuthPopup(
+      disposeOAuthMonitor = monitorOAuthPopup(
         popup,
         {
           onSuccess: finishOAuthSuccess,

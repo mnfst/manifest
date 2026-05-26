@@ -2,18 +2,27 @@ import { useLocation } from '@solidjs/router';
 import {
   createEffect,
   createSignal,
+  lazy,
   onCleanup,
   onMount,
   Show,
+  Suspense,
   type ParentComponent,
 } from 'solid-js';
 import Header from './components/Header.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
 import VersionIndicator from './components/VersionIndicator.jsx';
-import WingmanDevTools from './components/WingmanDevTools.jsx';
 import { connectSse } from './services/sse.js';
 import { RightSidebarProvider, useRightSidebar } from './services/right-sidebar.jsx';
+
+// Dev-only gateway tester. Gating the dynamic import behind the compile-time
+// `__DEV_MODE__` flag lets rollup drop both the component and its transitive
+// deps from production/self-hosted bundles — a static import can leak in when
+// transitive deps have side effects, since `define` runs after graph build.
+const WingmanDevTools = __DEV_MODE__
+  ? lazy(() => import('./components/WingmanDevTools.jsx'))
+  : null;
 
 const SseConnector: ParentComponent = (props) => {
   onMount(() => {
@@ -72,7 +81,11 @@ const AppInner: ParentComponent = (props) => {
         {rightSidebar()}
       </div>
       <VersionIndicator />
-      {__DEV_MODE__ && <WingmanDevTools />}
+      {__DEV_MODE__ && WingmanDevTools && (
+        <Suspense fallback={null}>
+          <WingmanDevTools />
+        </Suspense>
+      )}
     </div>
   );
 };

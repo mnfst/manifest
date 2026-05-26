@@ -378,4 +378,27 @@ describe("CopilotDeviceLogin", () => {
     });
     expect(props.onConnected).toHaveBeenCalled();
   });
+
+  it("clears the pending poll timeout on unmount", async () => {
+    const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+    mockCopilotDeviceCode.mockResolvedValue({
+      device_code: "dc_test",
+      user_code: "ABCD-1234",
+      verification_uri: "https://github.com/login/device",
+      expires_in: 900,
+      interval: 5,
+    });
+    // Never resolve the poll so a pollTimeout stays pending at unmount.
+    mockCopilotPollToken.mockReturnValue(new Promise(() => {}));
+
+    const { unmount } = renderComponent();
+    await fireEvent.click(screen.getByText("Sign in with GitHub"));
+    await waitFor(() => {
+      expect(screen.getByText("ABCD-1234")).toBeDefined();
+    });
+
+    unmount();
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+  });
 });

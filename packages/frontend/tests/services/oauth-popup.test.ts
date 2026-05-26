@@ -139,4 +139,39 @@ describe("monitorOAuthPopup", () => {
     expect(onSuccess).toHaveBeenCalledTimes(1);
     expect(onFailure).not.toHaveBeenCalled();
   });
+
+  it("returns a disposer that stops polling and listeners without firing callbacks", () => {
+    const removeListenerSpy = vi.spyOn(window, "removeEventListener");
+
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      get location(): Location {
+        throw new DOMException("cross-origin");
+      },
+    } as unknown as Window;
+
+    const onSuccess = vi.fn();
+    const onFailure = vi.fn();
+
+    const dispose = monitorOAuthPopup(popup, { onSuccess, onFailure });
+
+    dispose();
+
+    // The message listener is removed as part of teardown.
+    expect(removeListenerSpy).toHaveBeenCalledWith("message", expect.any(Function));
+
+    // A late OAuth message and further polling ticks must be ignored.
+    window.dispatchEvent(
+      new MessageEvent("message", { data: { type: "manifest-oauth-success" } }),
+    );
+    vi.advanceTimersByTime(5_000);
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+
+    // Disposing again is a no-op (handled guard).
+    dispose();
+
+    removeListenerSpy.mockRestore();
+  });
 });
