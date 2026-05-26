@@ -232,16 +232,32 @@ describe('MessageTable', () => {
       expect(container.textContent).toContain('$1.50');
     });
 
-    it('renders subscription cost as $0.00', () => {
+    it('renders flat-fee subscription cost as $0.00 when cost is null', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ auth_type: 'subscription', cost: 0.05 })]}
+          items={[makeRow({ auth_type: 'subscription', cost: null })]}
           columns={['cost']}
           agentName="agent-1"
           customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('$0.00');
+      expect(container.querySelector('[title="Included in subscription"]')).not.toBeNull();
+    });
+
+    it('renders the recorded per-request cost for OpenCode-Go-style subscriptions', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ auth_type: 'subscription', cost: 0.013636 })]}
+          columns={['cost']}
+          agentName="agent-1"
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.textContent).toContain('$0.01');
+      expect(
+        container.querySelector('[title^="Per-request subscription cost:"]'),
+      ).not.toBeNull();
     });
 
     it('renders em dash for null cost', () => {
