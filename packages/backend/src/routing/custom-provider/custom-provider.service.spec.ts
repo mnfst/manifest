@@ -6,7 +6,7 @@ jest.mock('../../common/utils/detect-self-hosted', () => ({
 }));
 
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CustomProviderService } from './custom-provider.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
@@ -390,6 +390,32 @@ describe('CustomProviderService', () => {
         api_kind: 'anthropic',
       });
       expect(cp.api_kind).toBe('anthropic');
+    });
+
+    it('translates a unique-violation QueryFailedError on insert into ConflictException (race condition)', async () => {
+      // Two parallel POSTs can both pass the find-then-insert pre-check and
+      // race to insert the same (agent_id, name). The unique index raises
+      // QueryFailedError on the second insert; the service must surface
+      // that as 409, matching the pre-check branch above.
+      const { svc, insert } = makeDeps({ findOneResults: [null] });
+      (insert as jest.Mock).mockRejectedValueOnce(
+        new QueryFailedError(
+          'INSERT',
+          [],
+          new Error('duplicate key value violates unique constraint'),
+        ),
+      );
+      await expect(svc.create('agent-1', 'user-1', dto)).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('re-throws non-unique QueryFailedError unchanged from insert', async () => {
+      // Connection drops, FK violations, etc. are not user-correctable —
+      // they must continue to surface as 500 + observability events rather
+      // than getting swallowed as conflicts.
+      const { svc, insert } = makeDeps({ findOneResults: [null] });
+      const err = new QueryFailedError('INSERT', [], new Error('connection refused'));
+      (insert as jest.Mock).mockRejectedValueOnce(err);
+      await expect(svc.create('agent-1', 'user-1', dto)).rejects.toBe(err);
     });
   });
 

@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import {
   CANONICAL_LOCAL_IDS,
@@ -211,7 +211,21 @@ export class CustomProviderService {
       })),
       created_at: new Date().toISOString(),
     });
-    await this.repo.insert(cp);
+    try {
+      await this.repo.insert(cp);
+    } catch (error) {
+      // The pre-check above is racy: between findOne() and insert(), a
+      // parallel POST with the same (agent_id, name) can land. The
+      // CustomProvider entity declares a unique index on (agent_id, name),
+      // so the second insert raises QueryFailedError(unique-violation).
+      // Translate it into the same ConflictException the pre-check already
+      // produces, so concurrent and sequential creates both surface as 409
+      // instead of leaking 500. Mirrors agents.controller.ts:75-78,117-119.
+      if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
+        throw new ConflictException(`Custom provider "${dto.name}" already exists for this agent`);
+      }
+      throw error;
+    }
 
     // Create UserProvider + trigger tier recalculation. When the display
     // name resolves to Ollama / LM Studio we tag the row `'local'` so
