@@ -17,6 +17,7 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   xai: 'xai',
   minimax: 'minimax',
   moonshot: 'moonshotai',
+  nvidia: 'nvidia',
   qwen: 'alibaba',
   zai: 'zai',
   copilot: 'github-copilot',

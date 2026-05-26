@@ -184,6 +184,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'nvidia',
+    displayName: 'NVIDIA NIM',
+    aliases: ['nvidia-nim', 'nvidia nim', 'nvidianim', 'nim'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#76B900',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'nvapi-...',
+  },
+  {
     id: 'llamacpp',
     displayName: 'llama.cpp',
     aliases: ['llama.cpp', 'llama-cpp'],

@@ -24,6 +24,7 @@ describe('ProviderModelFetcherService', () => {
       'kilo',
       'mistral',
       'moonshot',
+      'nvidia',
       'xai',
       'minimax',
       'minimax-subscription',
@@ -713,6 +714,53 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('kilo', 'kilo-token');
 
       expect(result).toEqual([]);
+    });
+  });
+
+  /* ── NVIDIA NIM provider ── */
+
+  describe('nvidia provider', () => {
+    it('should hit the hosted NVIDIA NIM models endpoint with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('nvidia', 'nvapi-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://integrate.api.nvidia.com/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer nvapi-test-key' },
+        }),
+      );
+    });
+
+    it('should deduplicate models and filter non-chat NIM catalog entries', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'deepseek-ai/deepseek-v4-pro' },
+            { id: 'deepseek-ai/deepseek-v4-pro' },
+            { id: 'nvidia/nemotron-3-super-120b-a12b' },
+            { id: 'openai/gpt-oss-20b' },
+            { id: 'nvidia/embed-qa-4' },
+            { id: 'black-forest-labs/flux_1-schnell' },
+            { id: 'nvidia/ai-synthetic-video-detector' },
+            { id: 'nvidia/nemotron-4-340b-reward' },
+            { id: 'nvidia/llama-3.1-nemoguard-8b-content-safety' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('nvidia', 'nvapi-test-key');
+      expect(result.map((m) => m.id)).toEqual([
+        'deepseek-ai/deepseek-v4-pro',
+        'nvidia/nemotron-3-super-120b-a12b',
+        'openai/gpt-oss-20b',
+      ]);
+      expect(result.every((m) => m.provider === 'nvidia')).toBe(true);
     });
   });
 

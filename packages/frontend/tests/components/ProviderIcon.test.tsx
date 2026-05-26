@@ -12,6 +12,7 @@ const KNOWN_PROVIDERS = [
   "deepseek",
   "mistral",
   "xai",
+  "nvidia",
   "qwen",
   "moonshot",
   "openrouter",

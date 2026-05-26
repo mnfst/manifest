@@ -92,6 +92,20 @@ describe("validateApiKey", () => {
     });
     expect(validateApiKey(zai, "a".repeat(30))).toEqual({ valid: true });
   });
+
+  it("validates NVIDIA NIM key length without enforcing an undocumented prefix", () => {
+    const nvidia = getProvider("nvidia")!;
+    expect(nvidia.keyPlaceholder).toBe("nvapi-...");
+    expect(validateApiKey(nvidia, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+    expect(validateApiKey(nvidia, "short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 20 characters)",
+    });
+    expect(validateApiKey(nvidia, "x".repeat(20))).toEqual({ valid: true });
+  });
 });
 
 /* ── validateSubscriptionKey ────────────────────── */
@@ -413,6 +427,10 @@ describe("PROVIDERS", () => {
     expect(getSubscriptionProviderKeyUrl("zai")).toBe(
       "https://z.ai/manage-apikey/apikey-list",
     );
+  });
+
+  it("provides an API key URL for NVIDIA NIM", () => {
+    expect(getRoutingProviderApiKeyUrl("nvidia")).toBe("https://build.nvidia.com/settings/api-keys");
   });
 
   it("OpenCode Go is subscription-only with a sign-in URL", () => {

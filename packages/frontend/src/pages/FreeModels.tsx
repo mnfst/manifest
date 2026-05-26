@@ -74,7 +74,7 @@ const FREE_TO_BUILTIN: Record<string, string> = {
   Groq: 'groq',
   'Hugging Face': 'custom',
   'Kilo Code': 'custom',
-  'NVIDIA NIM': 'custom',
+  'NVIDIA NIM': 'nvidia',
   'Ollama Cloud': 'ollama',
   OpenRouter: 'openrouter',
   SiliconFlow: 'custom',

@@ -182,6 +182,19 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  nvidia: {
+    id: 'nvidia',
+    name: 'NVIDIA',
+    models: {
+      'nvidia/nemotron-3-super-120b-a12b': {
+        id: 'nvidia/nemotron-3-super-120b-a12b',
+        name: 'Nemotron 3 Super 120B A12B',
+        cost: { input: 0.8, output: 2.4 },
+        limit: { context: 128000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'unknown-provider': {
     id: 'unknown-provider',
     name: 'Unknown',
@@ -215,8 +228,9 @@ describe('ModelsDevSyncService', () => {
         'https://models.dev/api.json',
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
-      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1, mistral: 6, xai: 3, groq: 2 = 16
-      expect(count).toBe(16);
+      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
+      // mistral: 6, xai: 3, groq: 2, nvidia: 1 = 17
+      expect(count).toBe(17);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -299,6 +313,13 @@ describe('ModelsDevSyncService', () => {
       expect(prefixed).not.toBeNull();
       expect(prefixed!.name).toBe('Qwen3 32B (Groq)');
       expect(prefixed!.inputPricePerToken).toBe(0.29 / 1_000_000);
+    });
+
+    it('should find NVIDIA NIM models via our nvidia provider ID', () => {
+      const model = service.lookupModel('nvidia', 'nvidia/nemotron-3-super-120b-a12b');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Nemotron 3 Super 120B A12B');
+      expect(model!.inputPricePerToken).toBe(0.8 / 1_000_000);
     });
 
     it('should return null for unknown model', () => {
@@ -481,6 +502,7 @@ describe('ModelsDevSyncService', () => {
     it('should return true for mapped providers', () => {
       expect(service.isProviderSupported('anthropic')).toBe(true);
       expect(service.isProviderSupported('gemini')).toBe(true);
+      expect(service.isProviderSupported('nvidia')).toBe(true);
       expect(service.isProviderSupported('qwen')).toBe(true);
     });
 

@@ -60,6 +60,12 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     );
   });
 
+  it('resolves NVIDIA NIM aliases to the canonical provider entry', () => {
+    for (const name of ['nvidia', 'nvidia-nim', 'nvidia nim', 'nim']) {
+      expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name))?.id).toBe('nvidia');
+    }
+  });
+
   it('returns undefined for unknown names', () => {
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('unknownprovider')).toBeUndefined();
   });
@@ -81,6 +87,12 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     const groq = SHARED_PROVIDER_BY_ID.get('groq');
     expect(groq).toBeDefined();
     expect(groq!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('nvidia has no openRouter prefixes (native NIM /models is authoritative)', () => {
+    const nvidia = SHARED_PROVIDER_BY_ID.get('nvidia');
+    expect(nvidia).toBeDefined();
+    expect(nvidia!.openRouterPrefixes).toEqual([]);
   });
 });
 
