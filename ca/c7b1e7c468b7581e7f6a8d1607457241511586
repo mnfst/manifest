@@ -1,0 +1,148 @@
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 83-96,129-133
+  s_f532f74d9a54e0::t_e12e521bd11a1d 16,134-136,138
+  s_f532f74d9a54e0::t_7a00f20e2cbb28 137,139-141
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_5edd42bfd9f340::t_5304d752787c5d 3,64-80
+packages/backend/src/entities/reasoning-content-cache-entry.entity.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-28
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_d38951c1e24d4f::t_785f96874e7d9a 1-2,10,159-162
+  s_d38951c1e24d4f::t_b88cd1f31b565c 5-9,11,93-116,119-136,139-158,163-185
+  s_d38951c1e24d4f::t_11c6d03cd1eea7 117-118,137-138
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 6,33-38
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_576e1fed5899c6::t_e2652b1b20238b 132
+packages/backend/src/database/database.module.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 26,110,134,219,267
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_d38951c1e24d4f::t_eff1700d6cfb0c 111-118
+  s_d38951c1e24d4f::t_f70e986fbf76bd 15,53,110,119-120,133,300-344
+packages/frontend/src/components/ClaudeCodeSetup.tsx
+  s_5edd42bfd9f340::t_d102f25f0a8534 56-57
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_d38951c1e24d4f::t_545266fa55944d 41,87,357,364,436-455
+packages/frontend/tests/components/ModelParamsDialog.test.tsx
+  s_dfe6b7409de205::t_33633a3fa9f2c1 206-218
+  s_f4a445ef85efba::t_da02aedf2d9f06 281-298
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_576e1fed5899c6::t_1a21216bc198d4 224-234
+packages/backend/src/routing/proxy/provider-client.ts
+  s_ca6b27a16a0985::t_12e283c760da98 311-313
+  s_576e1fed5899c6::t_ef434b1e88ca66 3,185-187,192-195
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_5edd42bfd9f340::t_f9261927c38944 286
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 308,311,314,317
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-6,24,26,30-35,40,43,45,59-133,140-143,156-189,203-216,218-219
+  s_d38951c1e24d4f::t_b65998c33629b4 155,190-202
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_f532f74d9a54e0::t_c913195cf0aa3b 104-111
+  s_f532f74d9a54e0::t_d54923d2089dde 9
+packages/backend/src/database/migrations/1790100000000-AddReasoningContentCache.ts
+  s_d38951c1e24d4f::t_def8bcd5a531b0 1-28
+packages/shared/src/provider-params-spec.ts
+  s_f532f74d9a54e0::t_cf00ea0653de6f 2
+  s_f532f74d9a54e0::t_d7c2e32e74f353 93-97,116-124
+  s_f532f74d9a54e0::t_d54923d2089dde 91-92,98-99,107,110
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_5edd42bfd9f340::t_513464ed64ba2c 176-192
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_576e1fed5899c6::t_549013cb1f1975 140-174,178-182
+  s_576e1fed5899c6::t_593a42a9cc28ac 1351-1398,1416-1435
+  s_576e1fed5899c6::t_f6ffa3ec9269c8 175-177
+  s_ca6b27a16a0985::t_6b200ae35bd147 1399-1415
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_f532f74d9a54e0::t_1556d8d03cfaee 125-157
+packages/shared/src/index.ts
+  s_f532f74d9a54e0::t_d54923d2089dde 47
+packages/backend/src/common/constants/xai-models.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 1-7
+packages/frontend/tests/components/ClaudeCodeSetup.test.tsx
+  s_5edd42bfd9f340::t_afefb25bf01a81 27,30,33,97
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_706915655668dc::t_441f5848943559 88
+packages/frontend/src/services/framework-snippets.ts
+  s_5edd42bfd9f340::t_3db04033ccbee9 342-345,350
+packages/frontend/src/styles/routing.css
+  s_f4a445ef85efba::t_fbb713df4b8362 605
+packages/frontend/src/components/ModelParamsDialog.tsx
+  s_f4a445ef85efba::t_80e234a133dafb 277
+  s_dfe6b7409de205::t_23c2154dc899da 407
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_576e1fed5899c6::t_ef434b1e88ca66 147-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "cac7b1e7c468b7581e7f6a8d1607457241511586",
+  "prompts": {},
+  "sessions": {
+    "s_576e1fed5899c6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e4fbe-d392-70c1-9812-f4e265698ed7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5edd42bfd9f340": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5f67-537c-7192-8922-1b0f3fcf4f7d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_706915655668dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6270679-6fa5-4c36-aef1-ae57b393f96b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_ca6b27a16a0985": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e58ca-944a-7cc2-a081-fdeb1c576447",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_d38951c1e24d4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e53ba-e26a-7292-9bca-d3db12884877",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_dfe6b7409de205": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5139-e13e-7e50-a777-c685cdaffc2a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f4a445ef85efba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e503c-0b2a-7bb1-817f-f3bdff6ef2aa",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f532f74d9a54e0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e5edb-77d7-70f0-bf2e-fe0a4ede59eb",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
