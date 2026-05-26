@@ -1,0 +1,20 @@
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_33fd1fcf4f4b98::t_8b1f142c02d2a2 1563
+  s_33fd1fcf4f4b98::t_bcdc12ba2eabf8 1329-1332
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "7c98e482d40136875c017c51c7cebb019552a12d",
+  "prompts": {},
+  "sessions": {
+    "s_33fd1fcf4f4b98": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7a6fb0e2-3817-4ae6-91c2-135e27b18dbe",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
