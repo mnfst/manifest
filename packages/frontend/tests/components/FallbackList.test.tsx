@@ -358,7 +358,7 @@ describe('FallbackList', () => {
 
   it('shows custom provider logo when customProviderLogo returns an element', () => {
     const fakeImg = document.createElement('img');
-    fakeImg.src = '/icons/kilocode.jpg';
+    fakeImg.src = '/icons/kilocode.svg';
     fakeImg.alt = 'Kilo Code';
     mockCustomProviderLogo.mockReturnValueOnce(fakeImg as any);
     const customProviders = [
@@ -378,7 +378,7 @@ describe('FallbackList', () => {
 
     const iconSpan = container.querySelector('.fallback-list__icon');
     expect(iconSpan).not.toBeNull();
-    expect(iconSpan!.querySelector('img[src="/icons/kilocode.jpg"]')).not.toBeNull();
+    expect(iconSpan!.querySelector('img[src="/icons/kilocode.svg"]')).not.toBeNull();
   });
 
   it("uses 'C' as default letter when custom provider not found", () => {

@@ -1177,6 +1177,49 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Kilo API-key provider', () => {
+    it('routes to the Kilo Gateway and preserves provider-prefixed model IDs', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'kilo',
+        apiKey: 'kilo-token',
+        model: 'anthropic/claude-sonnet-4.5',
+        body,
+        stream: false,
+        authType: 'api-key',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.kilo.ai/api/gateway/chat/completions',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer kilo-token',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic/claude-sonnet-4.5');
+    });
+
+    it('preserves kilo-auto virtual model IDs', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'kilo',
+        apiKey: 'kilo-token',
+        model: 'kilo-auto/frontier',
+        body,
+        stream: false,
+        authType: 'api-key',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('kilo-auto/frontier');
+    });
+  });
+
   describe('OpenCode Go provider', () => {
     it('routes non-minimax models to OpenAI /v1/chat/completions', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

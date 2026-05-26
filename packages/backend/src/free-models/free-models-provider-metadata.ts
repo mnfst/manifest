@@ -53,7 +53,7 @@ export const PROVIDER_METADATA: Readonly<Record<string, ProviderMetadata>> = {
     warning: '',
   },
   'Kilo Code': {
-    logo: '/icons/kilocode.jpg',
+    logo: '/icons/kilocode.svg',
     tags: ['No credit card required'],
     warning: 'Prompts and outputs are logged on free models to improve provider products.',
   },
