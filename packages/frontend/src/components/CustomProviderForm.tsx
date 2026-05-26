@@ -88,12 +88,13 @@ const CustomProviderForm: Component<Props> = (props) => {
         url,
         apiKey().trim() || undefined,
         apiKind(),
+        name().trim() || undefined,
       );
       if (models.length === 0) {
         setProbeError('Server returned no models');
         return;
       }
-      setRows(models.map((m) => ({ model_name: m.model_name, input_price: '', output_price: '' })));
+      setRows(toModelRows(models));
     } catch (e) {
       setProbeError(e instanceof Error ? e.message : 'Probe failed');
     } finally {

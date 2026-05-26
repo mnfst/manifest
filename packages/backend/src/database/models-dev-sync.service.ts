@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import type { ModelCapability } from 'manifest-shared';
+import { normalizeProviderName, type ModelCapability } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 import { capabilitiesFromModelsDev } from '../model-discovery/model-capabilities';
 
@@ -98,6 +98,10 @@ export class ModelsDevSyncService implements OnModuleInit {
   private readonly logger = new Logger(ModelsDevSyncService.name);
   /** Map: our provider ID → Map<model ID (native), entry> */
   private cache = new Map<string, Map<string, ModelsDevModelEntry>>();
+  /** Map: models.dev provider ID → Map<model ID, entry>. Includes providers Manifest does not natively know. */
+  private customProviderCache = new Map<string, Map<string, ModelsDevModelEntry>>();
+  /** Map: provider id/display-name aliases → models.dev provider ID. */
+  private customProviderIndex = new Map<string, string>();
   private lastFetchedAt: Date | null = null;
   private initialLoad: Promise<void> | null = null;
 
@@ -124,7 +128,24 @@ export class ModelsDevSyncService implements OnModuleInit {
     if (!raw) return 0;
 
     const newCache = new Map<string, Map<string, ModelsDevModelEntry>>();
+    const newCustomProviderCache = new Map<string, Map<string, ModelsDevModelEntry>>();
+    const newCustomProviderIndex = new Map<string, string>();
     let totalModels = 0;
+
+    for (const [modelsDevId, provider] of Object.entries(raw)) {
+      if (!provider?.models) continue;
+
+      const modelMap = new Map<string, ModelsDevModelEntry>();
+      for (const [modelId, model] of Object.entries(provider.models)) {
+        if (!this.isChatCompatible(model)) continue;
+        modelMap.set(modelId, this.parseModel(modelsDevId, modelId, model));
+      }
+
+      if (modelMap.size > 0) {
+        newCustomProviderCache.set(modelsDevId, modelMap);
+        this.indexCustomProvider(newCustomProviderIndex, modelsDevId, provider);
+      }
+    }
 
     for (const [ourId, modelsDevId] of Object.entries(PROVIDER_ID_MAP)) {
       const provider = raw[modelsDevId];
@@ -144,6 +165,8 @@ export class ModelsDevSyncService implements OnModuleInit {
     }
 
     this.cache = newCache;
+    this.customProviderCache = newCustomProviderCache;
+    this.customProviderIndex = newCustomProviderIndex;
     this.lastFetchedAt = new Date();
     this.logger.log(`models.dev cache loaded: ${newCache.size} providers, ${totalModels} models`);
 
@@ -165,7 +188,25 @@ export class ModelsDevSyncService implements OnModuleInit {
   lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null {
     const providerModels = this.cache.get(resolveProviderId(providerId));
     if (!providerModels) return null;
+    return this.lookupModelInProvider(providerModels, modelId);
+  }
 
+  /**
+   * Look up a model for a user-defined custom provider by matching the custom
+   * provider display name against models.dev provider IDs and names.
+   */
+  lookupCustomProviderModel(providerName: string, modelId: string): ModelsDevModelEntry | null {
+    const providerKey = this.resolveCustomProviderKey(providerName);
+    if (!providerKey) return null;
+    const providerModels = this.customProviderCache.get(providerKey);
+    if (!providerModels) return null;
+    return this.lookupModelInProvider(providerModels, modelId);
+  }
+
+  private lookupModelInProvider(
+    providerModels: Map<string, ModelsDevModelEntry>,
+    modelId: string,
+  ): ModelsDevModelEntry | null {
     // 1. Exact match
     const exact = providerModels.get(modelId);
     if (exact) return exact;
@@ -255,6 +296,16 @@ export class ModelsDevSyncService implements OnModuleInit {
     return null;
   }
 
+  private resolveCustomProviderKey(providerName: string): string | null {
+    const trimmed = providerName.trim();
+    if (!trimmed) return null;
+    return (
+      this.customProviderIndex.get(trimmed.toLowerCase()) ??
+      this.customProviderIndex.get(normalizeProviderName(trimmed)) ??
+      null
+    );
+  }
+
   /**
    * Get all models for a provider (by our internal provider ID).
    * Returns an empty array if the provider is not found.
@@ -272,6 +323,29 @@ export class ModelsDevSyncService implements OnModuleInit {
 
   getLastFetchedAt(): Date | null {
     return this.lastFetchedAt;
+  }
+
+  private indexCustomProvider(
+    index: Map<string, string>,
+    modelsDevId: string,
+    provider: RawModelsDevProvider,
+  ): void {
+    this.addCustomProviderIndexEntry(index, modelsDevId, modelsDevId);
+    if (provider.id) this.addCustomProviderIndexEntry(index, provider.id, modelsDevId);
+    if (provider.name) this.addCustomProviderIndexEntry(index, provider.name, modelsDevId);
+  }
+
+  private addCustomProviderIndexEntry(
+    index: Map<string, string>,
+    value: string,
+    modelsDevId: string,
+  ): void {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const lower = trimmed.toLowerCase();
+    if (!index.has(lower)) index.set(lower, modelsDevId);
+    const normalized = normalizeProviderName(trimmed);
+    if (!index.has(normalized)) index.set(normalized, modelsDevId);
   }
 
   private parseModel(

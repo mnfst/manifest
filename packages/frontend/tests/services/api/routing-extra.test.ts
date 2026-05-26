@@ -299,6 +299,19 @@ describe('routing API client (additional coverage)', () => {
     expect(body.api_kind).toBe('anthropic');
   });
 
+  it('probeCustomProvider includes provider_name when provided', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ models: [] }),
+      text: async () => JSON.stringify({ models: [] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await routing.probeCustomProvider('demo', 'http://x', undefined, 'openai', 'Kilo Gateway');
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.provider_name).toBe('Kilo Gateway');
+  });
+
   it('probeCustomProvider throws using parseErrorMessage on non-ok response', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,

@@ -83,6 +83,11 @@ export class ProbeCustomProviderDto {
   base_url!: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  provider_name?: string;
+
+  @IsOptional()
   @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
   api_kind?: CustomProviderApiKindDto;
 
