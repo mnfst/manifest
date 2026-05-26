@@ -40,7 +40,8 @@ vi.mock('../../src/services/routing-utils.js', () => ({
   pricePerM: (n: number) => `$${(Number(n) * 1_000_000).toFixed(2)}`,
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
+vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/services/formatters.js')>()),
   customProviderColor: () => '#000',
 }));
 
@@ -716,6 +717,41 @@ describe('ModelPickerModal', () => {
       />
     ));
     expect(container.textContent).toContain('Runs on your machine');
+  });
+
+  it('renders the per-request cost instead of "Included in subscription" when present', () => {
+    const gatewayProviders: RoutingProvider[] = [
+      {
+        id: 'p4',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        is_active: true,
+        has_api_key: false,
+        connected_at: '2025-01-01',
+      },
+    ];
+    const gatewayModels: AvailableModel[] = [
+      {
+        ...baseModels[2],
+        model_name: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        display_name: 'GLM-5.1',
+        cost_per_request: 0.013636,
+      },
+    ];
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={gatewayModels}
+        tiers={tiers}
+        connectedProviders={gatewayProviders}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    expect(container.textContent).toContain('$0.0136/req');
+    expect(container.textContent).not.toContain('Included in subscription');
   });
 
   it('filters the list by group name when search matches the group label', () => {

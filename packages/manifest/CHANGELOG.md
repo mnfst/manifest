@@ -1,5 +1,27 @@
 # manifest
 
+## 6.7.0
+
+### Minor Changes
+
+- e76e89d: Add Gemini OAuth (gemini-cli / CodeAssist flow). Sign in with a personal
+  Google account to route through `cloudcode-pa.googleapis.com` against
+  the free-tier Gemini quota. Adds a `Sign in with Google` tile on the
+  Routing page and a curated CodeAssist-supported model list, including
+  Gemini 3.1 Pro Preview, Gemini 3 Flash Preview, Gemini 3.1 Flash-Lite,
+  and the Gemini 2.5 models.
+
+### Patch Changes
+
+- 802869f: Increase the custom provider model catalog limit from 50 to 500 models.
+- 9e73856: Surface Anthropic OAuth token exchange rate-limit errors instead of showing the generic expired-code message.
+- a446d3e: Show model parameters for gateway models (e.g. OpenCode Go). A model like `opencode-go/deepseek-v4-pro` now resolves its parameters and capabilities from the underlying provider's catalog entry (`deepseek` / `deepseek-v4-pro`), so the params dialog, request snapshot, and outbound param defaults work the same as connecting the provider directly.
+- 2509a8c: Add Kilo Gateway as an API-key provider with dynamic model discovery.
+- 0e2b471: Add Kiro subscription provider support with dynamic model discovery and proxy forwarding.
+- 713b070: Auto-fill custom provider model prices from exact models.dev provider/model matches, and mark exact model-only matches as estimated when no provider match is available.
+- 4d1b982: Track real per-request cost for OpenCode Go subscriptions. The OpenCode Go plan is a dollar quota ($12 / 5h) consumed per request, not a flat fee, so each call now records its docs-attributed USD cost (e.g. `$12 / 880 = $0.013636` for GLM-5.1) instead of `$0.00`. Other subscription providers (Claude Max, ChatGPT Plus, GLM Coding, Copilot) continue to record `$0.00`.
+- f4c3476: Add model-scoped streaming capabilities and enforce stream response mode in routing.
+
 ## 6.6.2
 
 ### Patch Changes

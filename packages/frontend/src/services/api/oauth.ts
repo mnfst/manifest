@@ -22,8 +22,22 @@ export function getOpenaiOAuthUrl(agentName: string) {
   });
 }
 
+export function getXaiOAuthUrl(agentName: string) {
+  return fetchJson<{ url: string }>(`/oauth/xai/authorize`, {
+    agentName,
+  });
+}
+
 export function submitOpenaiOAuthCallback(code: string, state: string) {
   return fetchMutate<{ ok: boolean }>('/oauth/openai/callback', {
+    method: 'POST',
+    body: JSON.stringify({ code, state }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+export function submitXaiOAuthCallback(code: string, state: string) {
+  return fetchMutate<{ ok: boolean }>('/oauth/xai/callback', {
     method: 'POST',
     body: JSON.stringify({ code, state }),
     headers: { 'Content-Type': 'application/json' },
@@ -35,6 +49,15 @@ export function revokeOpenaiOAuth(agentName: string, label?: string) {
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/openai/revoke?${params.toString()}`,
+    { method: 'POST' },
+  );
+}
+
+export function revokeXaiOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/xai/revoke?${params.toString()}`,
     { method: 'POST' },
   );
 }
@@ -160,6 +183,11 @@ const POPUP_OAUTH_PROVIDERS: Record<string, PopupOauthApi> = {
     getUrl: getGeminiOAuthUrl,
     submitCallback: submitGeminiOAuthCallback,
     revoke: revokeGeminiOAuth,
+  },
+  xai: {
+    getUrl: getXaiOAuthUrl,
+    submitCallback: submitXaiOAuthCallback,
+    revoke: revokeXaiOAuth,
   },
 };
 

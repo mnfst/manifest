@@ -259,6 +259,9 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   xai: {
     initial: 'X',
     subtitle: 'Grok 3, Grok 2',
+    supportsSubscription: true,
+    subscriptionLabel: 'Grok subscription',
+    subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
   zai: {

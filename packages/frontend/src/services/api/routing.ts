@@ -291,6 +291,8 @@ export interface AvailableModel {
   auth_type?: AuthType;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
+  /** Per-request USD cost for per-request subscriptions (e.g. OpenCode Go). */
+  cost_per_request?: number | null;
   context_window: number;
   capability_reasoning: boolean;
   capability_code: boolean;

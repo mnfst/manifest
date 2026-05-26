@@ -4,16 +4,25 @@ import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
+const mockGetXaiOAuthUrl = vi.fn();
+const mockSubmitOpenaiOAuthCallback = vi.fn();
+const mockSubmitXaiOAuthCallback = vi.fn();
 const mockPollMinimaxOAuth = vi.fn();
 const mockStartMinimaxOAuth = vi.fn();
+const mockRenameProviderKey = vi.fn();
 
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+  submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+  submitXaiOAuthCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
   pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
   revokeOpenaiOAuth: () => Promise.resolve({ ok: true }),
+  revokeXaiOAuth: () => Promise.resolve({ ok: true }),
   startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
+  renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({

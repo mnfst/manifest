@@ -67,7 +67,8 @@ vi.mock('../../src/services/routing-utils.js', () => ({
   usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
+vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/services/formatters.js')>()),
   customProviderColor: () => '#000',
 }));
 
@@ -629,6 +630,48 @@ describe('RoutingTierCard', () => {
       />
     ));
     expect(container.textContent).toContain('Included in subscription');
+  });
+
+  it('renders the per-request cost for per-request subscriptions', () => {
+    const tier = {
+      ...baseTier,
+      override_route: {
+        provider: 'opencode-go',
+        authType: 'subscription' as const,
+        model: 'opencode-go/glm-5.1',
+      },
+    };
+    const subProviders: RoutingProvider[] = [
+      {
+        id: 'p4',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        is_active: true,
+        has_api_key: false,
+        connected_at: '2025-01-01',
+      },
+    ];
+    const gatewayModels: AvailableModel[] = [
+      {
+        ...models[0],
+        model_name: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        display_name: 'GLM-5.1',
+        cost_per_request: 0.013636,
+      },
+    ];
+    const { container } = render(() => (
+      <RoutingTierCard
+        {...makeProps({
+          tier: () => tier,
+          activeProviders: () => subProviders,
+          models: () => gatewayModels,
+        })}
+      />
+    ));
+    expect(container.textContent).toContain('$0.0136/req');
+    expect(container.textContent).not.toContain('Included in subscription');
   });
 
   it('renders the custom-provider letter in the chip when override_route is custom', () => {

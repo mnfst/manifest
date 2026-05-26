@@ -6,9 +6,11 @@ import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
+import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import { resolveUnderlyingModelIdentity } from 'manifest-shared';
 import {
   mergeModelCapabilities,
   modelSupportsStreaming,
@@ -30,6 +32,7 @@ export class ModelController {
     private readonly pricingSync: PricingSyncService,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly modelsDevSync: ModelsDevSyncService,
+    private readonly opencodeGoCatalog: OpencodeGoCatalogService,
   ) {}
 
   @Get('pricing-health')
@@ -102,22 +105,36 @@ export class ModelController {
           authType,
           m.id,
         );
+        // Gateway models (e.g. `opencode-go/glm-5.1`) proxy another provider's
+        // API, so their capabilities live under the underlying provider on
+        // models.dev. Resolve the provenance before the metadata lookups; this
+        // is gateway-generic, not OpenCode Go-specific. `getCapabilities` (MPS)
+        // already unwraps gateways internally, so it keeps the raw identity.
+        const capId = resolveUnderlyingModelIdentity(m.provider, m.id);
+        const capProvider = capId.provider ?? m.provider;
         const modelsDevCapabilities = this.modelsDevSync.lookupModel(
-          m.provider,
-          m.id,
+          capProvider,
+          capId.model,
         )?.capabilities;
         const modelCapabilities = mergeModelCapabilities(
           m.capabilities,
           modelsDevCapabilities,
           capabilities,
-          modelSupportsStreaming(m.provider, m.id) ? ['stream'] : undefined,
+          modelSupportsStreaming(capProvider, capId.model) ? ['stream'] : undefined,
         );
+        // OpenCode Go bills a per-request slice of its dollar quota rather than
+        // per token, so surface that cost; other subscriptions stay flat-fee.
+        const costPerRequest =
+          m.provider === 'opencode-go'
+            ? await this.opencodeGoCatalog.resolveCostPerRequest(m.id)
+            : null;
         return {
           model_name: m.id,
           provider: m.provider,
           auth_type: authType,
           input_price_per_token: m.inputPricePerToken,
           output_price_per_token: m.outputPricePerToken,
+          ...(costPerRequest != null ? { cost_per_request: costPerRequest } : {}),
           context_window: m.contextWindow,
           capability_reasoning: m.capabilityReasoning,
           capability_code: m.capabilityCode,

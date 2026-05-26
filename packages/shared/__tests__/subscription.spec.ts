@@ -20,6 +20,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'zai',
         'opencode-go',
         'gemini',
+        'xai',
       ]),
     );
   });
@@ -119,6 +120,20 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config?.knownModels).toBeUndefined();
   });
 
+  it('returns config for xai', () => {
+    const config = getSubscriptionProviderConfig('xai');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Grok subscription',
+      subscriptionAuthMode: 'popup_oauth',
+    });
+  });
+
+  it('does not publish a hardcoded known-models list for xai', () => {
+    const config = getSubscriptionProviderConfig('xai');
+    expect(config?.knownModels).toBeUndefined();
+  });
+
   it('returns config for gemini', () => {
     const config = getSubscriptionProviderConfig('gemini');
     expect(config).toMatchObject({
@@ -169,6 +184,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('zai')).toBe(true);
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
     expect(supportsSubscriptionProvider('gemini')).toBe(true);
+    expect(supportsSubscriptionProvider('xai')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {
@@ -223,6 +239,10 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('gemini-2.5-pro');
     expect(models).toContain('gemini-2.5-flash');
     expect(models).toContain('gemini-2.5-flash-lite');
+  });
+
+  it('returns null for xai (dynamic provider discovery, no hardcoded list)', () => {
+    expect(getSubscriptionKnownModels('xai')).toBeNull();
   });
 
   it('returns null for unsupported providers', () => {
@@ -289,6 +309,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('zai');
     expect(caps).toMatchObject({
       maxContextWindow: 204800,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for xai', () => {
+    const caps = getSubscriptionCapabilities('xai');
+    expect(caps).toMatchObject({
+      maxContextWindow: 128000,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

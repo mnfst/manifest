@@ -11,6 +11,7 @@ import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
 import { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ReasoningContentCache } from '../reasoning-content-cache';
@@ -47,6 +48,7 @@ describe('ProxyFallbackService', () => {
   let anthropicOauth: jest.Mocked<AnthropicOauthService>;
   let geminiOauth: jest.Mocked<GeminiOauthService>;
   let kiroOauth: jest.Mocked<KiroOauthService>;
+  let xaiOauth: jest.Mocked<XaiOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
@@ -85,6 +87,9 @@ describe('ProxyFallbackService', () => {
     kiroOauth = {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<KiroOauthService>;
+    xaiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<XaiOauthService>;
 
     providerClient = {
       forward: jest.fn(),
@@ -131,6 +136,7 @@ describe('ProxyFallbackService', () => {
       anthropicOauth,
       geminiOauth,
       kiroOauth,
+      xaiOauth,
       providerClient,
       copilotToken,
       pricingCache,
@@ -1012,6 +1018,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -1037,6 +1044,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
@@ -1055,6 +1063,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -1075,6 +1084,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1094,6 +1104,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('access-claude');
@@ -1114,6 +1125,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('sk-ant-legacy');
@@ -1134,6 +1146,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('kiro-access');
@@ -1152,6 +1165,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('qwen-key');
@@ -1159,6 +1173,28 @@ describe('ProxyFallbackService', () => {
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
       expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(xaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps xAI OAuth subscription tokens', async () => {
+      xaiOauth.unwrapToken.mockResolvedValue('xai-access');
+
+      const result = await resolveApiKey(
+        'xai',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result.apiKey).toBe('xai-access');
+      expect(xaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -1175,6 +1211,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1192,6 +1229,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
@@ -1200,6 +1238,7 @@ describe('ProxyFallbackService', () => {
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
       expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(xaiOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('unwraps Gemini subscription token and reads project id from blob.u', async () => {
@@ -1222,6 +1261,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('fresh-access-token');
@@ -1244,6 +1284,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe(blob);
@@ -1263,6 +1304,7 @@ describe('ProxyFallbackService', () => {
         anthropicOauth,
         geminiOauth,
         kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('fresh-token');

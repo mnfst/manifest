@@ -32,15 +32,19 @@ class MockBroadcastChannel {
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
+const mockGetXaiOAuthUrl = vi.fn();
+const mockSubmitOpenaiOAuthCallback = vi.fn();
+const mockSubmitXaiOAuthCallback = vi.fn();
 const mockPollMinimaxOAuth = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockRevokeXaiOAuth = vi.fn();
 const mockRevokeMinimaxOAuth = vi.fn();
-const mockSubmitOpenaiOAuthCallback = vi.fn();
 const mockStartMinimaxOAuth = vi.fn();
 const mockStartAnthropicOAuth = vi.fn();
 const mockSubmitAnthropicOAuth = vi.fn();
 const mockRevokeAnthropicOAuth = vi.fn();
 const mockGetAnthropicOAuthPending = vi.fn().mockResolvedValue({ state: null });
+const mockRenameProviderKey = vi.fn();
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
@@ -49,8 +53,12 @@ vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+  getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+  submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+  submitXaiOAuthCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
   pollMinimaxOAuth: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  revokeXaiOAuth: (...args: unknown[]) => mockRevokeXaiOAuth(...args),
   revokeMinimaxOAuth: (...args: unknown[]) => mockRevokeMinimaxOAuth(...args),
   startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
   getDeviceCodeApi: (id: string) => ({
@@ -63,18 +71,22 @@ vi.mock('../../src/services/api.js', () => ({
   submitAnthropicOAuth: (...args: unknown[]) => mockSubmitAnthropicOAuth(...args),
   revokeAnthropicOAuth: (...args: unknown[]) => mockRevokeAnthropicOAuth(...args),
   getAnthropicOAuthPending: (...args: unknown[]) => mockGetAnthropicOAuthPending(...args),
+  renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
-  // Dispatch table consumed by OAuthDetailView. Returns the same mocked
-  // OpenAI/Gemini funcs so the existing tests keep working unchanged.
-  getPopupOauthApi: (providerId: string) => ({
-    getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
-    submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
-    revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
-    _provider: providerId,
-  }),
-  submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+  getPopupOauthApi: (providerId: string) =>
+    providerId === 'xai'
+      ? {
+          getUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+          submitCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
+          revoke: (...args: unknown[]) => mockRevokeXaiOAuth(...args),
+        }
+      : {
+          getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+          submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+          revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+        },
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({

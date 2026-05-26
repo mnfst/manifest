@@ -75,11 +75,16 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax' || lowerProvider === 'kiro') {
+      if (
+        lowerProvider === 'openai' ||
+        lowerProvider === 'minimax' ||
+        lowerProvider === 'kiro' ||
+        lowerProvider === 'xai'
+      ) {
         // Kiro's token blob is an OAuthTokenBlob superset (source 'kiro-oidc',
         // plus client credentials), so the generic unwrap reads its access
-        // token too. Refresh-on-expiry happens in the proxy via
-        // KiroOauthService.unwrapToken; discovery just uses the stored token.
+        // token too. Refresh-on-expiry happens in the provider OAuth services;
+        // discovery just uses the stored token.
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
