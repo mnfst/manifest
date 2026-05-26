@@ -93,14 +93,14 @@ export class CodeAssistClientService {
     accessToken: string,
   ): Promise<LongRunningOperation> {
     let current = lro;
-    for (let poll = 0; poll < CODE_ASSIST_OPERATION_MAX_POLLS && current.done === false; poll++) {
+    for (let poll = 0; poll < CODE_ASSIST_OPERATION_MAX_POLLS && current.done !== true; poll++) {
       if (!current.name) {
         throw new Error('CodeAssist onboardUser operation returned no operation name.');
       }
       await new Promise((resolve) => setTimeout(resolve, CODE_ASSIST_OPERATION_POLL_MS));
       current = await this.callOperation(current.name, accessToken);
     }
-    if (current.done === false) {
+    if (current.done !== true) {
       throw new Error('CodeAssist onboardUser operation did not complete.');
     }
     return current;

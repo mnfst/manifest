@@ -84,7 +84,6 @@ describe('CodeAssistClientService', () => {
         )
         .mockResolvedValueOnce(
           mockOkResponse({
-            done: false,
             name: 'operations/onboard-123',
           }),
         )
@@ -120,6 +119,7 @@ describe('CodeAssistClientService', () => {
         )
         .mockResolvedValueOnce(
           mockOkResponse({
+            done: true,
             response: { cloudaicompanionProject: { id: 'proj-789' } },
           }),
         );
@@ -151,7 +151,7 @@ describe('CodeAssistClientService', () => {
         .mockResolvedValueOnce(
           mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
         )
-        .mockResolvedValueOnce(mockOkResponse({ response: {} }));
+        .mockResolvedValueOnce(mockOkResponse({ done: true, response: {} }));
 
       await expect(svc.onboard('access-token')).rejects.toThrow(
         'CodeAssist onboardUser returned no project id.',
@@ -180,7 +180,7 @@ describe('CodeAssistClientService', () => {
           mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
         )
         .mockResolvedValueOnce(
-          mockOkResponse({ response: { cloudaicompanionProject: { id: 'p1' } } }),
+          mockOkResponse({ done: true, response: { cloudaicompanionProject: { id: 'p1' } } }),
         );
 
       await svc.onboard('my-token');
@@ -198,7 +198,7 @@ describe('CodeAssistClientService', () => {
           mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
         )
         .mockResolvedValueOnce(
-          mockOkResponse({ response: { cloudaicompanionProject: { id: 'p1' } } }),
+          mockOkResponse({ done: true, response: { cloudaicompanionProject: { id: 'p1' } } }),
         );
 
       await svc.onboard('my-token');
@@ -217,7 +217,7 @@ describe('CodeAssistClientService', () => {
           mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
         )
         .mockResolvedValueOnce(
-          mockOkResponse({ response: { cloudaicompanionProject: { id: 'p1' } } }),
+          mockOkResponse({ done: true, response: { cloudaicompanionProject: { id: 'p1' } } }),
         );
 
       await svc.onboard('my-token');
