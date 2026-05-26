@@ -51,3 +51,23 @@ export function inferProviderFromModel(model: string): string | undefined {
   }
   return undefined;
 }
+
+/**
+ * Resolve a `(provider, model)` pair to the underlying provider and model that
+ * own its metadata, transparently unwrapping gateway transports. For a gateway
+ * model id (e.g. `opencode-go/glm-5.1`) this returns the provenance provider
+ * inferred from the underlying id and that bare id
+ * (`{ provider: 'zai', model: 'glm-5.1' }`); non-gateway pairs are returned
+ * unchanged. The provider is `undefined` when the underlying id matches no
+ * known provider, so callers decide whether to fall back. Capability and
+ * parameter lookups route through this so any gateway model inherits the
+ * underlying model's metadata, not just OpenCode Go's.
+ */
+export function resolveUnderlyingModelIdentity(
+  provider: string | undefined,
+  model: string,
+): { provider: string | undefined; model: string } {
+  const underlying = underlyingGatewayModel(model);
+  if (underlying === null) return { provider, model };
+  return { provider: inferProviderFromModel(underlying), model: underlying };
+}

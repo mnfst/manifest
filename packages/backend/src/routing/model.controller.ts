@@ -9,6 +9,7 @@ import { ModelDiscoveryService } from '../model-discovery/model-discovery.servic
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import { resolveUnderlyingModelIdentity } from 'manifest-shared';
 import {
   mergeModelCapabilities,
   modelSupportsStreaming,
@@ -102,15 +103,22 @@ export class ModelController {
           authType,
           m.id,
         );
+        // Gateway models (e.g. `opencode-go/glm-5.1`) proxy another provider's
+        // API, so their capabilities live under the underlying provider on
+        // models.dev. Resolve the provenance before the metadata lookups; this
+        // is gateway-generic, not OpenCode Go-specific. `getCapabilities` (MPS)
+        // already unwraps gateways internally, so it keeps the raw identity.
+        const capId = resolveUnderlyingModelIdentity(m.provider, m.id);
+        const capProvider = capId.provider ?? m.provider;
         const modelsDevCapabilities = this.modelsDevSync.lookupModel(
-          m.provider,
-          m.id,
+          capProvider,
+          capId.model,
         )?.capabilities;
         const modelCapabilities = mergeModelCapabilities(
           m.capabilities,
           modelsDevCapabilities,
           capabilities,
-          modelSupportsStreaming(m.provider, m.id) ? ['stream'] : undefined,
+          modelSupportsStreaming(capProvider, capId.model) ? ['stream'] : undefined,
         );
         return {
           model_name: m.id,
