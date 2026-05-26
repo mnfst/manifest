@@ -1,0 +1,24 @@
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_09999a699a56bd::t_ca2242a2827491 70,72,270-300
+  s_09999a699a56bd::t_04fee3e59cfd32 132
+  s_09999a699a56bd::t_4aea22ffe8b2dc 23-42,65,73,89,122-126,162,164-168
+  s_09999a699a56bd::t_54bf04a9321d51 302,307-308
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_09999a699a56bd::t_f1153b17988174 255,265-267,283,297-367
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "75d0a5d0c2b591f8e84c3d62219e4816afb0af71",
+  "prompts": {},
+  "sessions": {
+    "s_09999a699a56bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f9-3832-7463-870d-e7082abaed01",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
