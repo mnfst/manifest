@@ -1,0 +1,52 @@
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_afb0d5c7f699a4::t_fcc66b98d95d52 65,107,173-183
+packages/frontend/src/pages/FreeModels.tsx
+  s_afb0d5c7f699a4::t_a031a7b9495df2 77
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_afb0d5c7f699a4::t_f01946b29bf0e6 89,172-173
+packages/frontend/src/services/providers.ts
+  s_afb0d5c7f699a4::t_83df407d8959d0 184-188,298
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_afb0d5c7f699a4::t_01322d7fa5075c 26,518-561
+packages/frontend/tests/pages/FreeModels.test.tsx
+  s_afb0d5c7f699a4::t_4e65c4f164b1eb 86
+  s_afb0d5c7f699a4::t_0f77cf28daff2e 29,81-85,87-94,181,235-242
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_afb0d5c7f699a4::t_7d4b94fc31d538 94-103,142-143,387-390
+packages/shared/src/providers.ts
+  s_afb0d5c7f699a4::t_e095966d75806b 163-164,166-173
+  s_afb0d5c7f699a4::t_3350d3fe4b6fdd 165
+packages/frontend/src/components/ProviderIcon.tsx
+  s_afb0d5c7f699a4::t_6a00d813762907 242-252
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_afb0d5c7f699a4::t_62e64d4062801a 172-184,218-220,305-311,492
+packages/frontend/tests/services/providers.test.ts
+  s_afb0d5c7f699a4::t_3eb6ccaef5a273 95-108,405
+  s_afb0d5c7f699a4::t_e58bc72937f6ee 406
+packages/shared/__tests__/providers.spec.ts
+  s_afb0d5c7f699a4::t_4ebed0347e47ad 63-68,91-95
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_afb0d5c7f699a4::t_53cfec70259561 14
+.changeset/nvidia-nim-provider.md
+  s_afb0d5c7f699a4::t_690120d6665f24 1-5
+packages/backend/src/database/models-dev-sync.service.ts
+  s_afb0d5c7f699a4::t_535589547b5b35 20
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_afb0d5c7f699a4::t_6d41e340f1696f 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "970592157883132b07a75b15c544ba253645017e",
+  "prompts": {},
+  "sessions": {
+    "s_afb0d5c7f699a4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6333-6c3c-7ba3-9641-6099564b83b9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
