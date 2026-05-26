@@ -6,6 +6,7 @@ import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
@@ -127,6 +128,7 @@ export class ProxyService {
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
@@ -298,6 +300,7 @@ export class ProxyService {
           isAnthropic: forward.isAnthropic,
           isChatGpt: forward.isChatGpt,
           isResponses: forward.isResponses,
+          isCodeAssist: forward.isCodeAssist,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -322,6 +325,7 @@ export class ProxyService {
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
         isResponses: forward.isResponses,
+        isCodeAssist: forward.isCodeAssist,
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
@@ -432,6 +436,7 @@ export class ProxyService {
       this.openaiOauth,
       this.minimaxOauth,
       this.anthropicOauth,
+      this.geminiOauth,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
@@ -602,6 +607,7 @@ export class ProxyService {
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
         isResponses: forward.isResponses,
+        isCodeAssist: forward.isCodeAssist,
       },
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: exhaustedRequestParams,

@@ -27,6 +27,8 @@ import { CustomProviderService } from '../custom-provider/custom-provider.servic
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
+import { parseOAuthTokenBlob } from '../oauth/core';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -76,6 +78,7 @@ export class ProxyFallbackService {
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -219,6 +222,7 @@ export class ProxyFallbackService {
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
+        this.geminiOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -452,6 +456,12 @@ export class ProxyFallbackService {
       }
     }
 
+    // For Gemini OAuth, the OAuth blob's `u` field is the
+    // CodeAssist project id (not a URL). It must be forwarded so the
+    // CodeAssist envelope wrap can include it.
+    const providerResource =
+      authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
+
     return this.providerClient.forward({
       provider,
       apiKey: effectiveKey,
@@ -467,6 +477,7 @@ export class ProxyFallbackService {
       signatureLookup,
       thinkingLookup,
       reasoningContentLookup,
+      providerResource,
     });
   }
 }
@@ -488,6 +499,7 @@ export async function resolveApiKey(
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
   anthropicOauth: AnthropicOauthService,
+  geminiOauth: GeminiOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -502,6 +514,15 @@ export async function resolveApiKey(
     if (lower === 'anthropic') {
       const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, userId);
       if (unwrapped) return { apiKey: unwrapped };
+    }
+    if (lower === 'gemini') {
+      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) {
+        // The CodeAssist project id was stored in `blob.u` by enrichBlob.
+        // Read it from the input blob (refreshes preserve the field).
+        const projectId = parseOAuthTokenBlob(apiKey)?.u;
+        return { apiKey: unwrapped, resourceUrl: projectId };
+      }
     }
   }
   return { apiKey };

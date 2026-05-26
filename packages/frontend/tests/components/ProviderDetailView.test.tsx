@@ -227,6 +227,28 @@ describe('ProviderDetailView', () => {
     });
   });
 
+  describe('Gemini subscription renders OAuthDetailView', () => {
+    it('renders OAuthDetailView for gemini popup_oauth subscription flow', () => {
+      const connectedGeminiSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'gemini',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: false,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const props = createTestProps({
+        provId: 'gemini',
+        providers: connectedGeminiSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByTestId('oauth-detail-view')).toBeDefined();
+    });
+  });
+
   it('renders back button', () => {
     const props = createTestProps();
     render(() => <ProviderDetailView {...props} />);

@@ -4,6 +4,7 @@ import {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
 } from '../src/subscription';
 
@@ -18,6 +19,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'ollama-cloud',
         'zai',
         'opencode-go',
+        'gemini',
       ]),
     );
   });
@@ -117,6 +119,32 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config?.knownModels).toBeUndefined();
   });
 
+  it('returns config for gemini', () => {
+    const config = getSubscriptionProviderConfig('gemini');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Sign in with Google',
+      subscriptionAuthMode: 'popup_oauth',
+      knownModelsMatch: 'exact',
+    });
+    expect(config?.knownModels).toEqual(
+      expect.arrayContaining([
+        'gemini-3.1-pro-preview',
+        'gemini-3-flash-preview',
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite-preview',
+        'gemini-2.5-pro',
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
+      ]),
+    );
+    expect(config?.subscriptionCapabilities).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
   it('is case-insensitive', () => {
     expect(getSubscriptionProviderConfig('ANTHROPIC')).not.toBeNull();
     expect(getSubscriptionProviderConfig('OpenAI')).not.toBeNull();
@@ -140,6 +168,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
     expect(supportsSubscriptionProvider('zai')).toBe(true);
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
+    expect(supportsSubscriptionProvider('gemini')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {
@@ -184,8 +213,45 @@ describe('getSubscriptionKnownModels', () => {
     expect(getSubscriptionKnownModels('opencode-go')).toBeNull();
   });
 
+  it('returns known models for gemini', () => {
+    const models = getSubscriptionKnownModels('gemini');
+    expect(models).toContain('gemini-3.1-pro-preview');
+    expect(models).toContain('gemini-3-flash-preview');
+    expect(models).toContain('gemini-3.1-flash-lite');
+    expect(models).toContain('gemini-3.1-flash-lite-preview');
+    expect(models).toContain('gemini-2.5-pro');
+    expect(models).toContain('gemini-2.5-flash');
+    expect(models).toContain('gemini-2.5-flash-lite');
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionKnownModels('unknown')).toBeNull();
+  });
+});
+
+describe('getSubscriptionKnownModelsMatch', () => {
+  it('returns prefix for providers with no knownModelsMatch override (default)', () => {
+    // anthropic has no knownModelsMatch field → defaults to 'prefix'
+    expect(getSubscriptionKnownModelsMatch('anthropic')).toBe('prefix');
+  });
+
+  it('returns prefix for openai (no override)', () => {
+    expect(getSubscriptionKnownModelsMatch('openai')).toBe('prefix');
+  });
+
+  it('returns exact for gemini', () => {
+    // gemini has knownModelsMatch: 'exact' — only explicitly allowed CodeAssist
+    // model IDs are shown.
+    expect(getSubscriptionKnownModelsMatch('gemini')).toBe('exact');
+  });
+
+  it('returns prefix for unsupported providers (graceful fallback)', () => {
+    expect(getSubscriptionKnownModelsMatch('unknown')).toBe('prefix');
+  });
+
+  it('is case-insensitive', () => {
+    expect(getSubscriptionKnownModelsMatch('GEMINI')).toBe('exact');
+    expect(getSubscriptionKnownModelsMatch('Anthropic')).toBe('prefix');
   });
 });
 

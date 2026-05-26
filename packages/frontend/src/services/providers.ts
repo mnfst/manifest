@@ -134,6 +134,9 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   gemini: {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
+    supportsSubscription: true,
+    subscriptionLabel: 'Sign in with Google',
+    subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
   groq: {

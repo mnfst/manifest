@@ -57,6 +57,12 @@ export interface ForwardOptions {
   thinkingLookup?: ThinkingBlockLookup;
   /** Lookup for re-injecting cached reasoning_content (DeepSeek-compatible providers). */
   reasoningContentLookup?: ReasoningContentLookup;
+  /**
+   * Provider-specific routing field carried in the OAuth token blob's `u`
+   * slot. For Gemini OAuth this is the CodeAssist
+   * `cloudaicompanionProject` id assigned during `enrichBlob`.
+   */
+  providerResource?: string;
 }
 
 /** Options for ProxyService.proxyRequest. */

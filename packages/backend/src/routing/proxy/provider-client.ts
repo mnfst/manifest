@@ -35,6 +35,12 @@ export interface ForwardResult {
   isChatGpt: boolean;
   /** True when the upstream already speaks the public Responses API format. */
   isResponses?: boolean;
+  /**
+   * True when the upstream is the CodeAssist API (Gemini OAuth flow). The
+   * response handler unwraps the `{ response: ... }` envelope before
+   * passing the inner body to the standard Google converters.
+   */
+  isCodeAssist?: boolean;
 }
 
 const parsedProviderTimeout = Number.parseInt(process.env.PROVIDER_TIMEOUT_MS ?? '', 10);
@@ -109,6 +115,7 @@ export class ProviderClient {
     const isAnthropic = endpoint.format === 'anthropic';
     const isResponses = opts.apiMode === 'responses' && endpoint.format === 'chatgpt';
     const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
+    const isCodeAssist = !!endpoint.codeAssistEnvelope;
 
     const bareModel = stripModelPrefix(model, endpointKey);
     const { url, headers, requestBody } = this.buildRequest({
@@ -125,6 +132,7 @@ export class ProviderClient {
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
       reasoningContentLookup: opts.reasoningContentLookup,
+      providerResource: opts.providerResource,
     });
 
     const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
@@ -149,6 +157,7 @@ export class ProviderClient {
       isAnthropic,
       isChatGpt,
       isResponses,
+      isCodeAssist,
     });
   }
 
@@ -214,6 +223,7 @@ export class ProviderClient {
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
+    providerResource?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -227,12 +237,24 @@ export class ProviderClient {
       // Google accepts the API key via header (set by buildHeaders below) so
       // we no longer need to embed it in the URL. Keeping the key out of the
       // URL avoids leaking it into upstream proxy / LB access logs.
-      let url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      const path =
+        stream && endpoint.buildStreamPath
+          ? endpoint.buildStreamPath(bareModel)
+          : endpoint.buildPath(bareModel);
+      let url = `${endpoint.baseUrl}${path}`;
       if (stream) url += '?alt=sse';
+      const innerBody = toGoogleRequest(requestSource, bareModel, ctx.signatureLookup);
+      const requestBody = endpoint.codeAssistEnvelope
+        ? // CodeAssist routes by `cloudaicompanionProject` rather than URL
+          // path; the project id was stashed in the OAuth blob's `u` field
+          // by GeminiOauthService.enrichBlob and travels through the proxy
+          // pipeline as `providerResource`.
+          { model: bareModel, project: ctx.providerResource ?? '', request: innerBody }
+        : innerBody;
       return {
         url,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody: toGoogleRequest(requestSource, bareModel, ctx.signatureLookup),
+        requestBody,
       };
     }
 
@@ -339,6 +361,7 @@ export class ProviderClient {
       isAnthropic: boolean;
       isChatGpt: boolean;
       isResponses?: boolean;
+      isCodeAssist?: boolean;
     },
   ): Promise<ForwardResult> {
     const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);

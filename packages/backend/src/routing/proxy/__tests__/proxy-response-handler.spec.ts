@@ -2145,6 +2145,161 @@ describe('proxy-response-handler', () => {
     });
   });
 
+  describe('CodeAssist envelope in handleStreamResponse', () => {
+    function mockForward(
+      flags: {
+        isGoogle?: boolean;
+        isCodeAssist?: boolean;
+      } = {},
+    ) {
+      return {
+        response: { body: { getReader: jest.fn() } },
+        isGoogle: flags.isGoogle ?? false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: false,
+        isCodeAssist: flags.isCodeAssist ?? false,
+      };
+    }
+
+    function mockProviderClient() {
+      return {
+        convertGoogleStreamChunk: jest
+          .fn()
+          .mockReturnValue({ chunk: 'data: out\n\n', signatures: [] }),
+        createAnthropicStreamTransformer: jest.fn().mockReturnValue(jest.fn()),
+        convertChatGptStreamChunk: jest.fn(),
+      };
+    }
+
+    let pipeStreamSpy: jest.SpyInstance;
+    let initSseHeadersSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const streamWriter = require('../stream-writer');
+      pipeStreamSpy = jest.spyOn(streamWriter, 'pipeStream').mockResolvedValue(null);
+      initSseHeadersSpy = jest.spyOn(streamWriter, 'initSseHeaders').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      pipeStreamSpy?.mockRestore();
+      initSseHeadersSpy?.mockRestore();
+    });
+
+    it('unwraps CodeAssist envelope before passing chunk to convertGoogleStreamChunk', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isGoogle: true, isCodeAssist: true });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+      client.convertGoogleStreamChunk.mockReturnValue({
+        chunk: 'data: converted\n\n',
+        signatures: [],
+      });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(capturedTransform).toBeDefined();
+      // pipeStream passes the parsed SSE payload, not the raw data: line.
+      const inner = { candidates: [{ content: 'hello' }] };
+      const wrapped = JSON.stringify({ response: inner });
+      capturedTransform!(wrapped);
+
+      // convertGoogleStreamChunk receives the bare Gemini payload.
+      const calledWith = client.convertGoogleStreamChunk.mock.calls[0][0] as string;
+      expect(calledWith).toBe(JSON.stringify(inner));
+    });
+
+    it('does not unwrap when isCodeAssist is false (plain Google path)', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward({ isGoogle: true, isCodeAssist: false });
+      const client = mockProviderClient();
+      const meta = makeMeta();
+
+      let capturedTransform: ((chunk: string) => string | null) | undefined;
+      pipeStreamSpy.mockImplementation(
+        async (_b: unknown, _r: unknown, transform?: (c: string) => string | null) => {
+          capturedTransform = transform;
+          return null;
+        },
+      );
+      client.convertGoogleStreamChunk.mockReturnValue({ chunk: 'data: out\n\n', signatures: [] });
+
+      await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      const wrapped = `data: ${JSON.stringify({ response: { candidates: [] } })}\n`;
+      capturedTransform!(wrapped);
+
+      // Without unwrapping, the raw wrapped chunk is passed through.
+      const calledWith = client.convertGoogleStreamChunk.mock.calls[0][0] as string;
+      expect(calledWith).toContain('"response"');
+    });
+  });
+
+  describe('CodeAssist envelope in handleNonStreamResponse', () => {
+    function makeNonStreamForward(
+      body: unknown,
+      flags: { isGoogle?: boolean; isCodeAssist?: boolean } = {},
+    ) {
+      return {
+        response: {
+          json: jest.fn().mockResolvedValue(body),
+          text: jest.fn().mockResolvedValue(JSON.stringify(body)),
+          headers: { get: jest.fn().mockReturnValue('application/json') },
+        },
+        isGoogle: flags.isGoogle ?? false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: false,
+        isCodeAssist: flags.isCodeAssist ?? false,
+      };
+    }
+
+    function mockNonStreamClient() {
+      return {
+        convertGoogleResponse: jest.fn().mockReturnValue({ id: 'converted' }),
+        convertAnthropicResponse: jest.fn(),
+        convertChatGptResponse: jest.fn(),
+        collectChatGptSseResponse: jest.fn(),
+      };
+    }
+
+    it('unwraps CodeAssist response envelope before calling convertGoogleResponse', async () => {
+      const { res } = mockResponse();
+      const client = mockNonStreamClient();
+      const inner = { candidates: [{ text: 'hello' }] };
+      const wrapped = { response: inner, traceId: 'abc' };
+      const forward = makeNonStreamForward(wrapped, { isGoogle: true, isCodeAssist: true });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      // The unwrapped inner object must be passed to convertGoogleResponse.
+      expect(client.convertGoogleResponse).toHaveBeenCalledWith(inner, meta.model);
+    });
+
+    it('does not unwrap for plain Google responses (no CodeAssist envelope)', async () => {
+      const { res } = mockResponse();
+      const client = mockNonStreamClient();
+      const rawBody = { candidates: [{ text: 'hello' }] };
+      const forward = makeNonStreamForward(rawBody, { isGoogle: true, isCodeAssist: false });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      // Raw body (not unwrapped) is passed to convertGoogleResponse.
+      expect(client.convertGoogleResponse).toHaveBeenCalledWith(rawBody, meta.model);
+    });
+  });
+
   describe('handleProviderError with specificity', () => {
     it('should pass specificityCategory to recordProviderError', async () => {
       const { res } = mockResponse();

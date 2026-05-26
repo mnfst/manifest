@@ -1,17 +1,17 @@
 import { ConfigService } from '@nestjs/config';
-import { OpenaiOauthService } from './openai-oauth.service';
+import { GeminiOauthService } from './gemini-oauth.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { CodeAssistClientService } from './codeassist-client.service';
 
 const originalFetch = global.fetch;
 
 function mockResponse(status: number, body: unknown, text = ''): Response {
-  const jsonBody = body;
   return {
     ok: status >= 200 && status < 300,
     status,
-    json: async () => jsonBody,
-    text: async () => text || JSON.stringify(jsonBody),
+    json: async () => body,
+    text: async () => text || JSON.stringify(body),
   } as unknown as Response;
 }
 
@@ -19,13 +19,19 @@ function createConfig(nodeEnv = 'production'): ConfigService {
   return {
     get: (key: string) => {
       if (key === 'app.nodeEnv') return nodeEnv;
-      if (key === 'OPENAI_OAUTH_CLIENT_ID') return undefined;
+      if (key === 'GEMINI_OAUTH_CLIENT_ID') return undefined;
+      if (key === 'GEMINI_OAUTH_CLIENT_SECRET') return undefined;
       return undefined;
     },
   } as unknown as ConfigService;
 }
 
-function createProviderService() {
+function createProviderService(): {
+  svc: ProviderService;
+  upsertProvider: jest.Mock;
+  recalculateTiers: jest.Mock;
+  nextOAuthLabel: jest.Mock;
+} {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
@@ -42,11 +48,24 @@ function createDiscovery(): { svc: ModelDiscoveryService; discoverModels: jest.M
   return { svc: { discoverModels } as unknown as ModelDiscoveryService, discoverModels };
 }
 
-describe('OpenaiOauthService', () => {
+function createCodeAssist(onboard?: jest.Mock): {
+  svc: CodeAssistClientService;
+  onboard: jest.Mock;
+} {
+  const onboardMock =
+    onboard ?? jest.fn().mockResolvedValue({ projectId: 'proj-123', tierId: 'free-tier' });
+  return {
+    svc: { onboard: onboardMock } as unknown as CodeAssistClientService,
+    onboard: onboardMock,
+  };
+}
+
+describe('GeminiOauthService', () => {
   let fetchMock: jest.Mock;
   let providerService: ReturnType<typeof createProviderService>;
   let discovery: ReturnType<typeof createDiscovery>;
-  let svc: OpenaiOauthService;
+  let codeAssist: ReturnType<typeof createCodeAssist>;
+  let svc: GeminiOauthService;
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -55,7 +74,13 @@ describe('OpenaiOauthService', () => {
     global.fetch = fetchMock as unknown as typeof fetch;
     providerService = createProviderService();
     discovery = createDiscovery();
-    svc = new OpenaiOauthService(providerService.svc, createConfig('production'), discovery.svc);
+    codeAssist = createCodeAssist();
+    svc = new GeminiOauthService(
+      providerService.svc,
+      createConfig('production'),
+      discovery.svc,
+      codeAssist.svc,
+    );
   });
 
   afterEach(() => {
@@ -67,36 +92,61 @@ describe('OpenaiOauthService', () => {
   });
 
   describe('generateAuthorizationUrl', () => {
-    it('builds an OAuth URL with PKCE S256 challenge and tracks pending state', async () => {
+    it('builds a Google OAuth URL with PKCE S256 challenge and tracks pending state', async () => {
       const url = await svc.generateAuthorizationUrl('agent-1', 'user-1', 'http://localhost:3001');
       const parsed = new URL(url);
-      expect(parsed.origin + parsed.pathname).toBe('https://auth.openai.com/oauth/authorize');
+      expect(parsed.origin + parsed.pathname).toBe('https://accounts.google.com/o/oauth2/v2/auth');
       expect(parsed.searchParams.get('response_type')).toBe('code');
       expect(parsed.searchParams.get('code_challenge_method')).toBe('S256');
       expect(parsed.searchParams.get('code_challenge')?.length).toBeGreaterThan(0);
-      expect(parsed.searchParams.get('scope')).toBe('openid profile email offline_access');
-      expect(parsed.searchParams.get('redirect_uri')).toBe('http://localhost:1455/auth/callback');
       expect(parsed.searchParams.get('state')?.length).toBeGreaterThan(0);
       expect(svc.getPendingCount()).toBe(1);
+    });
+
+    it('includes access_type=offline and prompt=consent in the authorize URL', async () => {
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const parsed = new URL(url);
+      expect(parsed.searchParams.get('access_type')).toBe('offline');
+      expect(parsed.searchParams.get('prompt')).toBe('consent');
+    });
+
+    it('includes the cloud-platform scope required for CodeAssist', async () => {
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const scope = new URL(url).searchParams.get('scope') ?? '';
+      expect(scope).toContain('https://www.googleapis.com/auth/cloud-platform');
+      expect(scope).toContain('https://www.googleapis.com/auth/userinfo.email');
+      expect(scope).toContain('https://www.googleapis.com/auth/userinfo.profile');
+    });
+
+    it('uses port 1455 for the callback redirect URI', async () => {
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1', 'http://localhost:3001');
+      const redirectUri = new URL(url).searchParams.get('redirect_uri');
+      expect(redirectUri).toBe('http://localhost:1455/auth/callback');
     });
 
     it('cleans up expired pending states on each call', async () => {
       await svc.generateAuthorizationUrl('a1', 'u1');
       expect(svc.getPendingCount()).toBe(1);
-      // Advance past the 10-minute TTL.
       jest.advanceTimersByTime(10 * 60 * 1000 + 1);
       await svc.generateAuthorizationUrl('a2', 'u2');
-      // The old entry should have been cleaned up; only the new one remains.
       expect(svc.getPendingCount()).toBe(1);
     });
 
     it('uses a custom client id from ConfigService when provided', async () => {
       const config = {
-        get: (key: string) => (key === 'OPENAI_OAUTH_CLIENT_ID' ? 'custom-client' : 'production'),
+        get: (key: string) => {
+          if (key === 'GEMINI_OAUTH_CLIENT_ID') return 'custom-gemini-client';
+          return 'production';
+        },
       } as unknown as ConfigService;
-      const customSvc = new OpenaiOauthService(providerService.svc, config, discovery.svc);
+      const customSvc = new GeminiOauthService(
+        providerService.svc,
+        config,
+        discovery.svc,
+        codeAssist.svc,
+      );
       const url = await customSvc.generateAuthorizationUrl('a', 'u');
-      expect(new URL(url).searchParams.get('client_id')).toBe('custom-client');
+      expect(new URL(url).searchParams.get('client_id')).toBe('custom-gemini-client');
     });
   });
 
@@ -115,7 +165,7 @@ describe('OpenaiOauthService', () => {
       expect(svc.getPendingCount()).toBe(0);
     });
 
-    it('exchanges a valid code, stores the blob, and triggers model discovery', async () => {
+    it('calls enrichBlob (onboard) after token exchange and stores the project id in blob.u', async () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, {
           access_token: 'access-1',
@@ -123,39 +173,76 @@ describe('OpenaiOauthService', () => {
           expires_in: 3600,
         }),
       );
+      codeAssist.onboard.mockResolvedValue({ projectId: 'proj-456', tierId: 'free-tier' });
+
       const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
-
       await svc.exchangeCode(state, 'auth-code');
 
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [tokenUrl, init] = fetchMock.mock.calls[0];
-      expect(tokenUrl).toBe('https://auth.openai.com/oauth/token');
-      const body = new URLSearchParams(init.body.toString());
-      expect(body.get('grant_type')).toBe('authorization_code');
-      expect(body.get('code')).toBe('auth-code');
-      expect(body.get('code_verifier')?.length).toBeGreaterThan(0);
-
+      expect(codeAssist.onboard).toHaveBeenCalledWith('access-1');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
-        'openai',
-        expect.stringContaining('"t":"access-1"'),
+        'gemini',
+        expect.stringContaining('"u":"proj-456"'),
         'subscription',
         undefined,
         undefined,
       );
-      expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
-      // State is one-time-use.
-      expect(svc.getPendingCount()).toBe(0);
+      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'gemini');
     });
 
-    it('throws when the token endpoint returns an error', async () => {
-      fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
-      const url = await svc.generateAuthorizationUrl('a', 'u');
+    it('stores providerId as gemini and authType as subscription', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, {
+          access_token: 'access-1',
+          refresh_token: 'refresh-1',
+          expires_in: 3600,
+        }),
+      );
+
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
-      await expect(svc.exchangeCode(state, 'bad')).rejects.toThrow('Token exchange failed');
+      await svc.exchangeCode(state, 'auth-code');
+
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'gemini',
+        expect.any(String),
+        'subscription',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('aborts exchange when onboard throws, without calling upsertProvider', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, {
+          access_token: 'access-1',
+          refresh_token: 'refresh-1',
+          expires_in: 3600,
+        }),
+      );
+      codeAssist.onboard.mockRejectedValue(new Error('CodeAssist returned no allowed tiers'));
+
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const state = new URL(url).searchParams.get('state')!;
+      await expect(svc.exchangeCode(state, 'auth-code')).rejects.toThrow();
+      expect(providerService.upsertProvider).not.toHaveBeenCalled();
+    });
+
+    it('triggers model discovery after successful exchange', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
+      );
+
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const state = new URL(url).searchParams.get('state')!;
+      await svc.exchangeCode(state, 'auth-code');
+
+      expect(discovery.discoverModels).toHaveBeenCalled();
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
     });
 
     it('swallows discovery errors (OAuth success is not rolled back)', async () => {
@@ -168,39 +255,12 @@ describe('OpenaiOauthService', () => {
       await expect(svc.exchangeCode(state, 'c')).resolves.toBeUndefined();
       expect(providerService.upsertProvider).toHaveBeenCalled();
     });
-  });
 
-  describe('callback handler', () => {
-    it('shuts down the callback server after a callback exchange failure', async () => {
+    it('throws when the token endpoint returns an error', async () => {
       fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
-      const url = await svc.generateAuthorizationUrl('a', 'u', 'http://localhost:3001');
+      const url = await svc.generateAuthorizationUrl('a', 'u');
       const state = new URL(url).searchParams.get('state')!;
-      const close = jest.fn();
-      const serviceInternals = svc as unknown as {
-        callbackServer: { close: () => void } | null;
-        serverReady: Promise<void> | null;
-      };
-      serviceInternals.callbackServer = { close };
-      serviceInternals.serverReady = Promise.resolve();
-      const req = { url: `/auth/callback?state=${state}&code=bad` };
-      let resolveResponse!: () => void;
-      const responseDone = new Promise<void>((resolve) => {
-        resolveResponse = resolve;
-      });
-      const res = { writeHead: jest.fn(), end: jest.fn(resolveResponse) };
-
-      (
-        svc as unknown as {
-          handleCallbackRequest: (request: typeof req, response: typeof res) => void;
-        }
-      ).handleCallbackRequest(req, res);
-      await responseDone;
-
-      expect(close).toHaveBeenCalled();
-      expect(serviceInternals.callbackServer).toBeNull();
-      expect(serviceInternals.serverReady).toBeNull();
-      expect(svc.getPendingCount()).toBe(0);
-      expect(res.end).toHaveBeenCalled();
+      await expect(svc.exchangeCode(state, 'bad')).rejects.toThrow('Token exchange failed');
     });
   });
 
@@ -225,6 +285,22 @@ describe('OpenaiOauthService', () => {
       expect(blob.r).toBe('old-refresh');
     });
 
+    it('preserves the resourceField as blob.u when supplied', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a3', refresh_token: 'r3', expires_in: 3600 }),
+      );
+      const blob = await svc.refreshAccessToken('old-refresh', 'proj-999');
+      expect(blob.u).toBe('proj-999');
+    });
+
+    it('does not set blob.u when resourceField is undefined', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a3', refresh_token: 'r3', expires_in: 3600 }),
+      );
+      const blob = await svc.refreshAccessToken('old-refresh');
+      expect(blob.u).toBeUndefined();
+    });
+
     it('throws when the refresh endpoint returns a non-2xx status', async () => {
       fetchMock.mockResolvedValue(mockResponse(400, {}));
       await expect(svc.refreshAccessToken('r')).rejects.toThrow('Token refresh failed');
@@ -243,8 +319,25 @@ describe('OpenaiOauthService', () => {
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
+    it('passes blob.u to refreshAccessToken when refreshing so the project id is preserved', async () => {
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000, u: 'proj-abc' };
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
+      );
+      const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      expect(token).toBe('new');
+      // The upserted blob must carry the project id so it survives the refresh.
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'gemini',
+        expect.stringContaining('"u":"proj-abc"'),
+        'subscription',
+      );
+    });
+
     it('refreshes and persists a fresh blob when the token is near expiry', async () => {
-      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000 }; // within the 60s skew window
+      const blob = { t: 'old', r: 'rf', e: Date.now() + 30_000 };
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
@@ -253,7 +346,7 @@ describe('OpenaiOauthService', () => {
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',
-        'openai',
+        'gemini',
         expect.stringContaining('"t":"new"'),
         'subscription',
       );
@@ -264,29 +357,14 @@ describe('OpenaiOauthService', () => {
       fetchMock.mockRejectedValue(new Error('network'));
       expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
     });
-
-    // Regression: a still-valid access token must be returned even when the
-    // OAuth response omitted a refresh token. The earlier check
-    // `!blob.t || !blob.r || !blob.e` short-circuited usable tokens to null.
-    it('returns the access token for a valid blob with no refresh token', async () => {
-      const blob = { t: 'still-good', r: '', e: Date.now() + 10 * 60 * 1000 };
-      expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBe('still-good');
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-
-    it('returns null for an expired blob with no refresh token (cannot refresh)', async () => {
-      const blob = { t: 'old', r: '', e: Date.now() + 1000 };
-      expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
   });
 
   describe('revokeToken', () => {
-    it('POSTs the token to the revoke endpoint', async () => {
+    it('POSTs the token to the Google revoke endpoint', async () => {
       fetchMock.mockResolvedValue(mockResponse(200, {}));
       await svc.revokeToken('tok');
       const [revokeUrl, init] = fetchMock.mock.calls[0];
-      expect(revokeUrl).toBe('https://auth.openai.com/oauth/revoke');
+      expect(revokeUrl).toBe('https://oauth2.googleapis.com/revoke');
       const body = new URLSearchParams(init.body.toString());
       expect(body.get('token')).toBe('tok');
     });

@@ -9,6 +9,7 @@ import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ReasoningContentCache } from '../reasoning-content-cache';
@@ -43,6 +44,7 @@ describe('ProxyFallbackService', () => {
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let anthropicOauth: jest.Mocked<AnthropicOauthService>;
+  let geminiOauth: jest.Mocked<GeminiOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
@@ -74,6 +76,10 @@ describe('ProxyFallbackService', () => {
     anthropicOauth = {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<AnthropicOauthService>;
+
+    geminiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<GeminiOauthService>;
 
     providerClient = {
       forward: jest.fn(),
@@ -118,6 +124,7 @@ describe('ProxyFallbackService', () => {
       openaiOauth,
       minimaxOauth,
       anthropicOauth,
+      geminiOauth,
       providerClient,
       copilotToken,
       pricingCache,
@@ -997,6 +1004,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -1020,6 +1028,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
@@ -1036,6 +1045,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -1054,6 +1064,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1071,6 +1082,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('access-claude');
@@ -1089,6 +1101,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('sk-ant-legacy');
@@ -1104,6 +1117,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('qwen-key');
@@ -1124,6 +1138,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1139,6 +1154,7 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
@@ -1146,6 +1162,121 @@ describe('ProxyFallbackService', () => {
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps Gemini subscription token and reads project id from blob.u', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue('fresh-access-token');
+      const blob = JSON.stringify({
+        t: 'old-token',
+        r: 'refresh',
+        e: Date.now() + 3600000,
+        u: 'proj-789',
+      });
+
+      const result = await resolveApiKey(
+        'gemini',
+        blob,
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+      );
+
+      expect(result.apiKey).toBe('fresh-access-token');
+      expect(result.resourceUrl).toBe('proj-789');
+      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith(blob, 'agent-1', 'user-1');
+    });
+
+    it('returns original key when Gemini unwrapToken returns null', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue(null);
+      const blob = JSON.stringify({ t: 'token', r: 'r', e: Date.now() + 1000, u: 'proj-x' });
+
+      const result = await resolveApiKey(
+        'gemini',
+        blob,
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+      );
+
+      expect(result.apiKey).toBe(blob);
+    });
+
+    it('returns resourceUrl as undefined when the Gemini blob is not parseable JSON', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue('fresh-token');
+
+      const result = await resolveApiKey(
+        'gemini',
+        'not-valid-json',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+      );
+
+      expect(result.apiKey).toBe('fresh-token');
+      expect(result.resourceUrl).toBeUndefined();
+    });
+  });
+
+  describe('tryForwardToProvider with Gemini subscription', () => {
+    it('passes providerResource to providerClient.forward for gemini subscription', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+        isCodeAssist: true,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'gemini',
+        apiKey: 'token',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        resourceUrl: 'proj-code-assist-123',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerResource: 'proj-code-assist-123',
+        }),
+      );
+    });
+
+    it('does not pass providerResource for non-subscription gemini', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'gemini',
+        apiKey: 'AIza-key',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+      });
+
+      const callArg = providerClient.forward.mock.calls[0][0];
+      expect(callArg.providerResource).toBeUndefined();
     });
   });
 });
