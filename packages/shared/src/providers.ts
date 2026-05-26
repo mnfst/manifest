@@ -100,6 +100,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'gsk_...',
   },
   {
+    id: 'kilo',
+    displayName: 'Kilo',
+    aliases: ['kilocode', 'kilo-code'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#f0e68c',
+    keyPrefix: '',
+    minKeyLength: 10,
+    keyPlaceholder: 'Kilo Gateway API key',
+  },
+  {
     id: 'copilot',
     displayName: 'GitHub Copilot',
     aliases: [],

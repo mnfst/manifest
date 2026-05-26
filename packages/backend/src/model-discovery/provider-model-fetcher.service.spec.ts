@@ -21,6 +21,7 @@ describe('ProviderModelFetcherService', () => {
       'openai-subscription',
       'deepseek',
       'groq',
+      'kilo',
       'mistral',
       'moonshot',
       'xai',
@@ -511,6 +512,89 @@ describe('ProviderModelFetcherService', () => {
           headers: { Authorization: 'Bearer gsk_test_key' },
         }),
       );
+    });
+  });
+
+  describe('kilo provider', () => {
+    it('fetches the public Kilo Gateway model catalog with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'kilo-auto/frontier',
+              name: 'Auto Frontier',
+              context_length: 1000000,
+              pricing: { prompt: '0.000005', completion: '0.000025' },
+              supported_parameters: ['max_tokens', 'temperature', 'tools', 'reasoning'],
+              architecture: { output_modalities: ['text'] },
+            },
+            {
+              id: 'anthropic/claude-sonnet-4.5',
+              name: 'Claude Sonnet 4.5',
+              top_provider: { context_length: 200000 },
+              supported_parameters: ['max_tokens', 'tools'],
+              architecture: { output_modalities: ['text'] },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.kilo.ai/api/gateway/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer kilo-token' },
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'kilo-auto/frontier',
+          displayName: 'Auto Frontier',
+          provider: 'kilo',
+          contextWindow: 1000000,
+          inputPricePerToken: 0.000005,
+          outputPricePerToken: 0.000025,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+        expect.objectContaining({
+          id: 'anthropic/claude-sonnet-4.5',
+          displayName: 'Claude Sonnet 4.5',
+          provider: 'kilo',
+          contextWindow: 200000,
+          capabilityReasoning: false,
+          capabilityCode: true,
+        }),
+      ]);
+    });
+
+    it('filters non-text output models from the Kilo catalog', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'openai/gpt-5.4', architecture: { output_modalities: ['text'] } },
+            { id: 'openai/gpt-image-2', architecture: { output_modalities: ['image'] } },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(result.map((m) => m.id)).toEqual(['openai/gpt-5.4']);
+    });
+
+    it('returns [] when the Kilo catalog data field is missing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(result).toEqual([]);
     });
   });
 

@@ -144,6 +144,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Llama, Gemma, Mixtral — fast inference',
     models: [],
   },
+  kilo: {
+    initial: 'K',
+    subtitle: 'Kilo Gateway unified model access',
+    models: [],
+  },
   llamacpp: {
     initial: 'Lc',
     subtitle: 'OpenAI-compatible server for GGUF models on CPU / Metal / CUDA',
@@ -285,6 +290,7 @@ const PROVIDER_ORDER = [
   'copilot',
   'gemini',
   'groq',
+  'kilo',
   'llamacpp',
   'lmstudio',
   'minimax',

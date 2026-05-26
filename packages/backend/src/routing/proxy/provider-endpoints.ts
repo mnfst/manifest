@@ -86,6 +86,7 @@ const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
+const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -130,6 +131,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     baseUrl: 'https://api.groq.com/openai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
+    format: 'openai',
+  },
+  kilo: {
+    baseUrl: KILO_GATEWAY_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/chat/completions',
     format: 'openai',
   },
   mistral: {

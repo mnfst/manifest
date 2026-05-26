@@ -173,6 +173,7 @@ describe('supportsSubscriptionProvider', () => {
 
   it('returns false for unsupported providers', () => {
     expect(supportsSubscriptionProvider('deepseek')).toBe(false);
+    expect(supportsSubscriptionProvider('kilo')).toBe(false);
     expect(supportsSubscriptionProvider('mistral')).toBe(false);
   });
 });

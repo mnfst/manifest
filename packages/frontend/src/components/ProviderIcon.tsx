@@ -2,8 +2,8 @@ import type { JSX } from 'solid-js';
 import { SHARED_PROVIDER_BY_ID_OR_ALIAS, normalizeProviderName } from 'manifest-shared';
 
 /**
- * Returns an inline SVG icon for a given provider ID, or null if no icon exists.
- * All SVGs use a 0 0 24 24 viewBox.
+ * Returns a branded icon for a given provider ID, or null if no icon exists.
+ * Inline SVGs use a 0 0 24 24 viewBox.
  */
 export function providerIcon(id: string, size: number = 20): JSX.Element | null {
   const s = { width: `${size}px`, height: `${size}px` };
@@ -125,6 +125,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
             d="m18.445 4.406-9.468 13.74 7.341.665-1.69 9.578 9.469-13.74-7.342-.664 1.69-9.579Z"
           />
         </svg>
+      );
+
+    /* ── Kilo ─────────────────────────────────────── */
+    case 'kilo':
+      return (
+        <img
+          src="/icons/kilocode.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain', 'border-radius': '4px' }}
+          aria-hidden="true"
+        />
       );
 
     /* ── GitHub Copilot ─────────────────────────────── */
@@ -411,8 +424,8 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   groq: '/icons/groq.svg',
   'hugging face': '/icons/huggingface.svg',
   huggingface: '/icons/huggingface.svg',
-  'kilo code': '/icons/kilocode.jpg',
-  kilocode: '/icons/kilocode.jpg',
+  'kilo code': '/icons/kilocode.svg',
+  kilocode: '/icons/kilocode.svg',
   mistral: '/icons/providers/mistral.svg',
   'mistral ai': '/icons/providers/mistral.svg',
   nvidia: '/icons/nvidia.svg',

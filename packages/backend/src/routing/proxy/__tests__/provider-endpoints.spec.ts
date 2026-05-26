@@ -63,6 +63,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
   });
 
@@ -120,6 +121,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
   });
 
+  it('resolves kilo and its aliases', () => {
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
+    expect(resolveEndpointKey('KiloCode')).toBe('kilo');
+    expect(resolveEndpointKey('kilo-code')).toBe('kilo');
+  });
+
   it('resolves every proxy-capable provider id and alias from the registry', () => {
     // tileOnly providers (LM Studio) don't have a fixed proxy endpoint —
     // they deep-link to the local-server detail view and route through
@@ -164,6 +171,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     const headers = PROVIDER_ENDPOINTS['groq'].buildHeaders('gsk_test_key');
     expect(headers).toEqual({
       Authorization: 'Bearer gsk_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('kilo uses the Kilo Gateway OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['kilo'];
+    expect(ep.baseUrl).toBe('https://api.kilo.ai/api/gateway');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/chat/completions');
+    expect(ep.buildHeaders('kilo-token')).toEqual({
+      Authorization: 'Bearer kilo-token',
       'Content-Type': 'application/json',
     });
   });

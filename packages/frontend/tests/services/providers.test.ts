@@ -353,6 +353,17 @@ describe("PROVIDERS", () => {
     expect(cloud.subscriptionCommand).toBeUndefined();
   });
 
+  it("Kilo is an API-key gateway provider with dynamic models", () => {
+    const kilo = PROVIDERS.find((p) => p.id === "kilo")!;
+    expect(kilo).toBeDefined();
+    expect(kilo.name).toBe("Kilo");
+    expect(kilo.supportsSubscription).toBeUndefined();
+    expect(kilo.subscriptionOnly).toBeUndefined();
+    expect(kilo.keyPlaceholder).toBe("Kilo Gateway API key");
+    expect(kilo.minKeyLength).toBe(10);
+    expect(kilo.models).toEqual([]);
+  });
+
   it("provides an API key URL for ollama-cloud in both the API-key and subscription maps", () => {
     expect(getRoutingProviderApiKeyUrl("ollama-cloud")).toBe(
       "https://ollama.com/settings/keys",
@@ -360,6 +371,11 @@ describe("PROVIDERS", () => {
     expect(getSubscriptionProviderKeyUrl("ollama-cloud")).toBe(
       "https://ollama.com/settings/keys",
     );
+  });
+
+  it("provides an API-key URL for Kilo", () => {
+    expect(getRoutingProviderApiKeyUrl("kilo")).toBe("https://app.kilo.ai");
+    expect(getSubscriptionProviderKeyUrl("kilo")).toBeUndefined();
   });
 
   it("exposes a subscription-key URL for every token-mode subscription-only provider", () => {
@@ -419,6 +435,21 @@ describe("PROVIDERS", () => {
       error: "Token is too short (minimum 10 characters)",
     });
     expect(validateSubscriptionKey(og, "a-valid-opencode-token-1234")).toEqual({
+      valid: true,
+    });
+  });
+
+  it("Kilo API key is validated with generic min-length check", () => {
+    const kilo = PROVIDERS.find((p) => p.id === "kilo")!;
+    expect(validateApiKey(kilo, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+    expect(validateApiKey(kilo, "short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 10 characters)",
+    });
+    expect(validateApiKey(kilo, "eyJhbGciOiJKiloToken")).toEqual({
       valid: true,
     });
   });

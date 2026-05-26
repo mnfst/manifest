@@ -17,6 +17,7 @@ const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
+const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 
 /* ── Generic parser factory ── */
 
@@ -287,6 +288,52 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
     });
 }
 
+interface KiloModelEntry {
+  id: string;
+  name?: string;
+  context_length?: number;
+  architecture?: { output_modalities?: string[] };
+  top_provider?: { context_length?: number };
+  pricing?: { prompt?: string; completion?: string };
+  supported_parameters?: string[];
+}
+
+function parseKilo(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown[] })?.data;
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((m: unknown) => {
+      const entry = m as KiloModelEntry;
+      if (typeof entry.id !== 'string' || entry.id.length === 0) return false;
+      const output = entry.architecture?.output_modalities?.map((o) => o.toLowerCase());
+      if (output && output.length > 0 && !output.every((o) => o === 'text')) {
+        return false;
+      }
+      return true;
+    })
+    .map((m: unknown) => {
+      const entry = m as KiloModelEntry;
+      const supported = Array.isArray(entry.supported_parameters) ? entry.supported_parameters : [];
+      const prompt = entry.pricing?.prompt ? Number(entry.pricing.prompt) : null;
+      const completion = entry.pricing?.completion ? Number(entry.pricing.completion) : null;
+      return {
+        id: entry.id,
+        displayName: entry.name || entry.id,
+        provider,
+        contextWindow:
+          entry.context_length ?? entry.top_provider?.context_length ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken:
+          prompt !== null && Number.isFinite(prompt) && prompt >= 0 ? prompt : null,
+        outputPricePerToken:
+          completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
+        capabilityReasoning:
+          supported.includes('reasoning') || supported.includes('include_reasoning'),
+        capabilityCode: supported.includes('tools'),
+        qualityScore: 3,
+      };
+    });
+}
+
 interface OllamaModelEntry {
   name: string;
   details?: { family?: string; parameter_size?: string };
@@ -361,6 +408,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.groq.com/openai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  kilo: {
+    endpoint: `${KILO_GATEWAY_BASE}/models`,
+    buildHeaders: bearerHeaders,
+    parse: parseKilo,
   },
   mistral: {
     endpoint: 'https://api.mistral.ai/v1/models',
