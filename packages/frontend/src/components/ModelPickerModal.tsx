@@ -9,7 +9,7 @@ import {
   type TierAssignment,
 } from '../services/api.js';
 import { PROVIDERS, STAGES, SPECIFICITY_STAGES, DEFAULT_STAGE } from '../services/providers.js';
-import { customProviderColor } from '../services/formatters.js';
+import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { toast } from '../services/toast-store.js';
@@ -570,7 +570,10 @@ const ModelPickerModal: Component<Props> = (props) => {
                           fallback={
                             <span class="routing-modal__model-meta">
                               <span class="routing-modal__model-id routing-modal__model-id--subscription">
-                                {isLocal() ? 'Runs on your machine' : 'Included in subscription'}
+                                {isLocal()
+                                  ? 'Runs on your machine'
+                                  : (formatPerRequestCost(model.pricing.cost_per_request) ??
+                                    'Included in subscription')}
                               </span>
                               <ModelCapabilityBadges
                                 capabilities={model.pricing.capabilities}

@@ -51,7 +51,8 @@ vi.mock('../../src/services/providers.js', () => ({
   ],
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
+vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/services/formatters.js')>()),
   customProviderColor: () => '#000',
 }));
 
@@ -357,6 +358,40 @@ describe('HeaderTierCard', () => {
     ));
     expect(container.querySelector('[data-testid="auth-subscription"]')).not.toBeNull();
     expect(container.textContent).toContain('Included in subscription');
+  });
+
+  it('shows the per-request cost for per-request subscriptions', () => {
+    const tierSub = {
+      ...baseTier,
+      override_route: {
+        provider: 'opencode-go',
+        authType: 'subscription',
+        model: 'opencode-go/glm-5.1',
+      } as const,
+    };
+    const gatewayModels: AvailableModel[] = [
+      {
+        ...models[0],
+        model_name: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        display_name: 'GLM-5.1',
+        cost_per_request: 0.013636,
+      },
+    ];
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierSub}
+        models={gatewayModels}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    expect(container.textContent).toContain('$0.0136/req');
+    expect(container.textContent).not.toContain('Included in subscription');
   });
 
   it('renders a + Add model button when override_route is null', () => {

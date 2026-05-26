@@ -17,7 +17,7 @@ import {
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { resolveProviderId, inferProviderFromModel, pricePerM } from '../services/routing-utils.js';
-import { customProviderColor } from '../services/formatters.js';
+import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
@@ -388,7 +388,10 @@ const HeaderTierCard: Component<Props> = (props) => {
                   when={effectiveAuth() !== 'subscription'}
                   fallback={
                     <span class="routing-card__chip-meta">
-                      <span class="routing-card__chip-price">Included in subscription</span>
+                      <span class="routing-card__chip-price">
+                        {formatPerRequestCost(modelInfo()?.cost_per_request) ??
+                          'Included in subscription'}
+                      </span>
                       <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
                       <Show when={primarySkipped()}>
                         <span class="routing-card__skipped-badge">Skipped in Stream</span>

@@ -27,6 +27,19 @@ export function formatCost(n: number): string | null {
 }
 
 /**
+ * Format a per-request subscription cost (e.g. OpenCode Go's docs-attributed
+ * USD per call) as a compact `$0.0136/req` label. Returns null for a missing,
+ * zero, or negative value so callers fall back to a flat-fee label.
+ */
+export function formatPerRequestCost(cost: number | null | undefined): string | null {
+  if (cost == null) return null;
+  const n = Number(cost);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n < 0.0001) return '< $0.0001/req';
+  return `$${n.toFixed(4)}/req`;
+}
+
+/**
  * Format a trend percentage (e.g., +18%, -7%).
  */
 export function formatTrend(pct: number): string {

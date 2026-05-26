@@ -10,7 +10,7 @@ import {
   inferProviderFromModel,
   usedKeyLabelsForModelInTier,
 } from '../services/routing-utils.js';
-import { customProviderColor } from '../services/formatters.js';
+import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
 import ModelCapabilityBadges from '../components/ModelCapabilityBadges.js';
@@ -580,7 +580,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                           when={effectiveAuth() !== 'subscription'}
                           fallback={
                             <span class="routing-card__chip-meta">
-                              <span class="routing-card__chip-price">Included in subscription</span>
+                              <span class="routing-card__chip-price">
+                                {formatPerRequestCost(modelInfo(modelName())?.cost_per_request) ??
+                                  'Included in subscription'}
+                              </span>
                               <ModelCapabilityBadges
                                 capabilities={modelCapabilities(modelName())}
                                 compact
