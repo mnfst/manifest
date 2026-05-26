@@ -97,6 +97,16 @@ export function normalizeProviderParamProviderId(providerId: string): string {
   return lower;
 }
 
+function normalizeProviderParamModelId(providerId: string, model: string): string {
+  const provider = normalizeProviderParamProviderId(providerId);
+  // Manifest route IDs for OpenCode Go include the provider prefix, while the
+  // MPS catalog keeps provider and model in separate fields.
+  if (provider === 'opencode-go' && model.toLowerCase().startsWith('opencode-go/')) {
+    return model.slice('opencode-go/'.length);
+  }
+  return model;
+}
+
 export function getProviderParamSpecs(
   catalog: ProviderParamSpecCatalog,
   providerId: string | undefined,
@@ -105,11 +115,12 @@ export function getProviderParamSpecs(
 ): readonly ProviderParamSpec[] {
   if (!providerId || !authType || !model) return [];
   const provider = normalizeProviderParamProviderId(providerId);
+  const modelId = normalizeProviderParamModelId(provider, model);
   const entry = catalog.find(
     (spec) =>
       normalizeProviderParamProviderId(spec.provider) === provider &&
       spec.authType === authType &&
-      spec.model === model,
+      normalizeProviderParamModelId(spec.provider, spec.model) === modelId,
   );
   if (!entry) return [];
   return entry.params

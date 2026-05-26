@@ -94,6 +94,22 @@ const catalog: ProviderParamSpecCatalog = [
       },
     ],
   },
+  {
+    provider: 'opencode-go',
+    authType: 'subscription',
+    model: 'mimo-v2.5',
+    params: [
+      {
+        path: 'temperature',
+        type: 'number',
+        label: 'Temperature',
+        description: 'Controls sampling randomness.',
+        default: 1,
+        range: { min: 0, max: 2, step: 0.1 },
+        group: 'sampling',
+      },
+    ],
+  },
 ];
 
 const anthropicSpecs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
@@ -131,6 +147,23 @@ describe('provider-params-spec', () => {
 
       expect(specs).toHaveLength(1);
       expect(specs[0].provider).toBe('zai');
+    });
+
+    it('matches OpenCode Go route model IDs against bare catalog model IDs', () => {
+      const specs = getProviderParamSpecs(
+        catalog,
+        'opencode-go',
+        'subscription',
+        'opencode-go/mimo-v2.5',
+      );
+
+      expect(specs).toHaveLength(1);
+      expect(specs[0]).toMatchObject({
+        provider: 'opencode-go',
+        authType: 'subscription',
+        model: 'mimo-v2.5',
+        path: 'temperature',
+      });
     });
 
     it('exports provider alias normalization through the shared package barrel', () => {
