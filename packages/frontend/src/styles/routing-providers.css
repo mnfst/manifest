@@ -758,6 +758,13 @@
   -moz-appearance: textfield;
 }
 
+.custom-provider-model-row__price-info {
+  width: 18px;
+  display: inline-flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .custom-provider-model-row__remove {
   width: 32px;
   height: 32px;

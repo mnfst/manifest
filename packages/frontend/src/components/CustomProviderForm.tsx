@@ -11,6 +11,7 @@ import {
 import { toast } from '../services/toast-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
+import InfoTooltip from './InfoTooltip.jsx';
 
 const BASE_URL_PLACEHOLDERS: Record<CustomProviderApiKind, string> = {
   openai: 'https://api.example.com/v1',
@@ -30,9 +31,17 @@ interface ModelRow {
   model_name: string;
   input_price: string;
   output_price: string;
+  price_estimated: boolean;
 }
 
-const emptyRow = (): ModelRow => ({ model_name: '', input_price: '', output_price: '' });
+const ESTIMATED_PRICE_TOOLTIP = 'Estimated price. This may not be accurate.';
+
+const emptyRow = (): ModelRow => ({
+  model_name: '',
+  input_price: '',
+  output_price: '',
+  price_estimated: false,
+});
 
 const toModelRows = (models: CustomProviderModel[]): ModelRow[] =>
   models.map((m) => ({
@@ -41,6 +50,7 @@ const toModelRows = (models: CustomProviderModel[]): ModelRow[] =>
       m.input_price_per_million_tokens != null ? String(m.input_price_per_million_tokens) : '',
     output_price:
       m.output_price_per_million_tokens != null ? String(m.output_price_per_million_tokens) : '',
+    price_estimated: m.price_estimated === true,
   }));
 
 const CustomProviderForm: Component<Props> = (props) => {
@@ -52,6 +62,7 @@ const CustomProviderForm: Component<Props> = (props) => {
       model_name: m.model_name,
       input_price: m.input_price ?? '',
       output_price: m.output_price ?? '',
+      price_estimated: false,
     }));
   };
 
@@ -102,8 +113,14 @@ const CustomProviderForm: Component<Props> = (props) => {
     }
   };
 
-  const updateRow = (index: number, field: keyof ModelRow, value: string) => {
-    setRows((prev) => prev.map((r, i) => (i === index ? { ...r, [field]: value } : r)));
+  const updateRow = (
+    index: number,
+    field: 'model_name' | 'input_price' | 'output_price',
+    value: string,
+  ) => {
+    setRows((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, [field]: value, price_estimated: false } : r)),
+    );
   };
 
   const addRow = () => setRows((prev) => [...prev, emptyRow()]);
@@ -126,6 +143,9 @@ const CustomProviderForm: Component<Props> = (props) => {
         : {}),
       ...(r.output_price !== ''
         ? { output_price_per_million_tokens: parsePrice(r.output_price) }
+        : {}),
+      ...(r.price_estimated && (r.input_price !== '' || r.output_price !== '')
+        ? { price_estimated: true }
         : {}),
     }));
 
@@ -410,6 +430,11 @@ const CustomProviderForm: Component<Props> = (props) => {
                     value={row().output_price}
                     onInput={(e) => updateRow(i, 'output_price', e.currentTarget.value)}
                   />
+                  <span class="custom-provider-model-row__price-info">
+                    <Show when={row().price_estimated}>
+                      <InfoTooltip text={ESTIMATED_PRICE_TOOLTIP} />
+                    </Show>
+                  </span>
                   <button
                     type="button"
                     class="custom-provider-model-row__remove"

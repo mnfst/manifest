@@ -203,6 +203,36 @@ export class ModelsDevSyncService implements OnModuleInit {
     return this.lookupModelInProvider(providerModels, modelId);
   }
 
+  /**
+   * Conservative model-only fallback for custom providers that are not listed
+   * on models.dev. Prefer official provider catalogs, then exact IDs from
+   * aggregator catalogs. This is intentionally not fuzzy.
+   */
+  lookupModelAcrossProviders(modelId: string): ModelsDevModelEntry | null {
+    const providerScoped = this.lookupProviderScopedModel(modelId);
+    if (providerScoped) return providerScoped;
+
+    for (const providerModels of this.cache.values()) {
+      const found = this.lookupModelInProvider(providerModels, modelId);
+      if (found) return found;
+    }
+
+    for (const providerModels of this.customProviderCache.values()) {
+      const exact = providerModels.get(modelId);
+      if (exact) return exact;
+    }
+
+    return null;
+  }
+
+  private lookupProviderScopedModel(modelId: string): ModelsDevModelEntry | null {
+    const slash = modelId.indexOf('/');
+    if (slash <= 0 || slash === modelId.length - 1) return null;
+    const providerPart = modelId.slice(0, slash);
+    const nativeModelId = modelId.slice(slash + 1);
+    return this.lookupModel(providerPart, nativeModelId);
+  }
+
   private lookupModelInProvider(
     providerModels: Map<string, ModelsDevModelEntry>,
     modelId: string,

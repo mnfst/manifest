@@ -23,7 +23,8 @@ function makeDeps(overrides: {
   findOneResults?: (CustomProvider | null)[];
   findResult?: CustomProvider[];
   cached?: CustomProvider[] | null;
-  modelsDevSync?: Pick<ModelsDevSyncService, 'lookupCustomProviderModel'>;
+  modelsDevSync?: Pick<ModelsDevSyncService, 'lookupCustomProviderModel'> &
+    Partial<Pick<ModelsDevSyncService, 'lookupModelAcrossProviders'>>;
 }) {
   const findOne = jest.fn();
   const find = jest.fn().mockResolvedValue(overrides.findResult ?? []);
@@ -423,6 +424,37 @@ describe('CustomProviderService', () => {
       });
     });
 
+    it('marks model-only price fallbacks as estimated when provider is not on models.dev', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue(null),
+        lookupModelAcrossProviders: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
+
+      const cp = await svc.create('agent-1', 'user-1', {
+        ...dto,
+        name: 'Mammouth AI',
+        models: [{ model_name: 'openai/gpt-4o-mini' }],
+      });
+
+      expect(modelsDevSync.lookupCustomProviderModel).toHaveBeenCalledWith(
+        'Mammouth AI',
+        'openai/gpt-4o-mini',
+      );
+      expect(modelsDevSync.lookupModelAcrossProviders).toHaveBeenCalledWith('openai/gpt-4o-mini');
+      expect(cp.models[0]).toEqual({
+        model_name: 'openai/gpt-4o-mini',
+        input_price_per_million_tokens: 0.15,
+        output_price_per_million_tokens: 0.6,
+        context_window: 128000,
+        price_estimated: true,
+      });
+    });
+
     it('preserves user-entered prices over models.dev matches', async () => {
       const modelsDevSync = {
         lookupCustomProviderModel: jest.fn().mockReturnValue({
@@ -741,6 +773,40 @@ describe('CustomProviderService', () => {
           input_price_per_million_tokens: 0.15,
           output_price_per_million_tokens: 0.6,
           context_window: 128000,
+        },
+      ]);
+    });
+
+    it('marks probed model-only price fallbacks as estimated', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue(null),
+        lookupModelAcrossProviders: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ modelsDevSync });
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [{ id: 'openai/gpt-4o-mini' }],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels(
+        'http://host.docker.internal:8000/v1',
+        'sk-x',
+        'openai',
+        'Mammouth AI',
+      );
+
+      expect(result).toEqual([
+        {
+          model_name: 'openai/gpt-4o-mini',
+          input_price_per_million_tokens: 0.15,
+          output_price_per_million_tokens: 0.6,
+          context_window: 128000,
+          price_estimated: true,
         },
       ]);
     });

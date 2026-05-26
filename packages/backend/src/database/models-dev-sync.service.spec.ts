@@ -1015,4 +1015,32 @@ describe('ModelsDevSyncService', () => {
       expect(service.lookupCustomProviderModel('Kilo Gateway', 'missing-model')).toBeNull();
     });
   });
+
+  describe('lookupModelAcrossProviders', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should match provider-prefixed model IDs against official provider catalogs first', () => {
+      const model = service.lookupModelAcrossProviders('openai/gpt-4o');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o');
+      expect(model!.inputPricePerToken).toBe(2.5 / 1_000_000);
+    });
+
+    it('should fall back to exact model IDs from non-native provider catalogs', () => {
+      const model = service.lookupModelAcrossProviders('openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+      expect(model!.inputPricePerToken).toBe(0.15 / 1_000_000);
+    });
+
+    it('should return null when no provider contains the model ID', () => {
+      expect(service.lookupModelAcrossProviders('missing-model')).toBeNull();
+    });
+  });
 });

@@ -7,6 +7,7 @@ export interface CustomProviderModel {
   input_price_per_million_tokens?: number;
   output_price_per_million_tokens?: number;
   context_window?: number;
+  price_estimated?: boolean;
 }
 
 export type CustomProviderApiKind = 'openai' | 'anthropic';

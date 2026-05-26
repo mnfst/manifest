@@ -13,6 +13,7 @@ import {
   IsUrl,
   IsIn,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -43,6 +44,10 @@ export class CustomProviderModelDto {
   @Min(1)
   @Type(() => Number)
   context_window?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  price_estimated?: boolean;
 }
 
 export class CreateCustomProviderDto {

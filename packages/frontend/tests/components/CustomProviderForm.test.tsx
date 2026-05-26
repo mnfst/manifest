@@ -586,6 +586,57 @@ describe("CustomProviderForm — Fetch models probe", () => {
     });
   });
 
+  it("shows estimated price info for model-only price fallbacks", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [
+        {
+          model_name: "openai/gpt-4o-mini",
+          input_price_per_million_tokens: 0.15,
+          output_price_per_million_tokens: 0.6,
+          price_estimated: true,
+        },
+      ],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
+      target: { value: "Mammouth AI" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "https://api.mammouth.ai/v1" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText("Info: Estimated price. This may not be accurate."),
+      ).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("Connect"));
+
+    await waitFor(() => {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+        name: "Mammouth AI",
+        base_url: "https://api.mammouth.ai/v1",
+        api_kind: "openai",
+        apiKey: undefined,
+        models: [
+          {
+            model_name: "openai/gpt-4o-mini",
+            input_price_per_million_tokens: 0.15,
+            output_price_per_million_tokens: 0.6,
+            price_estimated: true,
+          },
+        ],
+      });
+    });
+  });
+
   it("surfaces a 'no models' error when the server returns an empty list", async () => {
     mockProbeCustomProvider.mockResolvedValue({ models: [] });
 

@@ -436,16 +436,31 @@ export class CustomProviderService {
         providerName && this.modelsDevSync
           ? this.modelsDevSync.lookupCustomProviderModel(providerName, model.model_name)
           : null;
+      const modelOnlyMatch =
+        !modelsDevMatch && this.modelsDevSync
+          ? ((this.modelsDevSync as Partial<ModelsDevSyncService>).lookupModelAcrossProviders?.(
+              model.model_name,
+            ) ?? null)
+          : null;
+      const priceSource = modelsDevMatch ?? modelOnlyMatch;
+      const inputWasFilled =
+        model.input_price_per_million_tokens == null && priceSource?.inputPricePerToken != null;
+      const outputWasFilled =
+        model.output_price_per_million_tokens == null && priceSource?.outputPricePerToken != null;
       const inputPrice =
         model.input_price_per_million_tokens ??
-        this.toPricePerMillion(modelsDevMatch?.inputPricePerToken);
+        this.toPricePerMillion(priceSource?.inputPricePerToken);
       const outputPrice =
         model.output_price_per_million_tokens ??
-        this.toPricePerMillion(modelsDevMatch?.outputPricePerToken);
+        this.toPricePerMillion(priceSource?.outputPricePerToken);
       const contextWindow =
         model.context_window ??
-        modelsDevMatch?.contextWindow ??
+        priceSource?.contextWindow ??
         (options.defaultContextWindow === false ? undefined : 128000);
+      const priceEstimated =
+        !modelsDevMatch &&
+        (inputPrice !== undefined || outputPrice !== undefined) &&
+        (model.price_estimated === true || inputWasFilled || outputWasFilled);
 
       const enriched: CustomProviderModel = {
         model_name: model.model_name,
@@ -453,6 +468,7 @@ export class CustomProviderService {
       if (inputPrice !== undefined) enriched.input_price_per_million_tokens = inputPrice;
       if (outputPrice !== undefined) enriched.output_price_per_million_tokens = outputPrice;
       if (contextWindow !== undefined) enriched.context_window = contextWindow;
+      if (priceEstimated) enriched.price_estimated = true;
       return enriched;
     });
   }
