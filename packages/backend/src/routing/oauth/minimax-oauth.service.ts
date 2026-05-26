@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomUUID } from 'crypto';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { OAuthTokenBlob } from './openai-oauth.types';
 import {
   MinimaxRegion,
@@ -240,7 +241,7 @@ export class MinimaxOauthService {
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`MiniMax token refresh failed: ${text}`);
+      this.logger.error(`MiniMax token refresh failed: ${scrubSecrets(text)}`);
       throw new Error('Token refresh failed');
     }
     const payload = (await response.json()) as MinimaxTokenResponse;

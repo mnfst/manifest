@@ -85,8 +85,52 @@ describe('isPrivateIp', () => {
     expect(isPrivateIp('::ffff:8.8.8.8')).toBe(false);
   });
 
+  // Regression: Node's URL parser emits the *hex* form of IPv4-mapped IPv6
+  // literals (e.g. [::ffff:127.0.0.1] -> ::ffff:7f00:1). The old dotted-only
+  // regex missed these, letting a private/loopback target slip through.
+  it('detects ::ffff:7f00:1 (hex-form mapped loopback) as private', () => {
+    expect(isPrivateIp('::ffff:7f00:1')).toBe(true);
+  });
+
+  it('detects ::ffff:a00:5 (hex-form mapped 10.0.0.5) as private', () => {
+    expect(isPrivateIp('::ffff:a00:5')).toBe(true);
+  });
+
+  it('detects ::ffff:a9fe:a9fe (hex-form mapped 169.254.169.254) as private', () => {
+    expect(isPrivateIp('::ffff:a9fe:a9fe')).toBe(true);
+  });
+
+  it('allows ::ffff:808:808 (hex-form mapped public 8.8.8.8)', () => {
+    expect(isPrivateIp('::ffff:808:808')).toBe(false);
+  });
+
+  // RFC 6598 carrier-grade NAT — routes to internal cloud fabric.
+  it('detects 100.64.0.5 as private (CGNAT)', () => {
+    expect(isPrivateIp('100.64.0.5')).toBe(true);
+  });
+
+  it('detects 100.127.255.255 as private (CGNAT upper bound)', () => {
+    expect(isPrivateIp('100.127.255.255')).toBe(true);
+  });
+
+  it('allows 100.63.255.255 (just below CGNAT)', () => {
+    expect(isPrivateIp('100.63.255.255')).toBe(false);
+  });
+
+  it('allows 100.128.0.1 (just above CGNAT)', () => {
+    expect(isPrivateIp('100.128.0.1')).toBe(false);
+  });
+
   it('returns false for invalid IP format', () => {
     expect(isPrivateIp('not-an-ip')).toBe(false);
+  });
+
+  it('returns false for a malformed IPv6-shaped string', () => {
+    expect(isPrivateIp('1:2:3:4:5:6:7:8:9')).toBe(false);
+  });
+
+  it('handles a full (uncompressed) IPv6 literal as public', () => {
+    expect(isPrivateIp('2001:db8:0:0:0:0:0:1')).toBe(false);
   });
 });
 
@@ -122,6 +166,10 @@ describe('isCloudMetadataIp', () => {
 
   it('detects IPv4-mapped metadata IP', () => {
     expect(isCloudMetadataIp('::ffff:169.254.169.254')).toBe(true);
+  });
+
+  it('detects hex-form IPv4-mapped metadata IP (::ffff:a9fe:a9fe)', () => {
+    expect(isCloudMetadataIp('::ffff:a9fe:a9fe')).toBe(true);
   });
 
   it('allows public IPs', () => {
@@ -245,6 +293,32 @@ describe('validatePublicUrl', () => {
 
   it('rejects IP literal 192.168.x.x', async () => {
     await expect(validatePublicUrl('https://192.168.1.100:3000')).rejects.toThrow(
+      'private or internal',
+    );
+  });
+
+  it('rejects CGNAT literal 100.64.x.x (RFC 6598)', async () => {
+    await expect(validatePublicUrl('https://100.64.0.5:8080')).rejects.toThrow(
+      'private or internal',
+    );
+  });
+
+  // Regression (SSRF guard bypass): a bracketed IPv4-mapped IPv6 literal is
+  // normalized by URL to its hex form, which previously slipped past the guard.
+  it('rejects IPv4-mapped IPv6 literal pointing to cloud metadata', async () => {
+    await expect(validatePublicUrl('https://[::ffff:169.254.169.254]/latest')).rejects.toThrow(
+      'cloud metadata endpoints',
+    );
+  });
+
+  it('rejects IPv4-mapped IPv6 literal pointing to a private host', async () => {
+    await expect(validatePublicUrl('https://[::ffff:10.0.0.5]:6443')).rejects.toThrow(
+      'private or internal',
+    );
+  });
+
+  it('rejects IPv4-mapped IPv6 literal pointing to loopback', async () => {
+    await expect(validatePublicUrl('https://[::ffff:127.0.0.1]:8200')).rejects.toThrow(
       'private or internal',
     );
   });

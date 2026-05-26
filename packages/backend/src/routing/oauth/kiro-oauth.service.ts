@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'node:crypto';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import {
   KIRO_CLIENT_NAME,
   KIRO_CLIENT_TYPE,
@@ -280,7 +281,7 @@ export class KiroOauthService {
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`Kiro device authorization failed: ${text}`);
+      this.logger.error(`Kiro device authorization failed: ${scrubSecrets(text)}`);
       throw new Error('Failed to start Kiro login');
     }
     const payload = (await response.json()) as KiroDeviceAuthorizationResponse;
@@ -312,7 +313,7 @@ export class KiroOauthService {
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`Kiro token refresh failed: ${text}`);
+      this.logger.error(`Kiro token refresh failed: ${scrubSecrets(text)}`);
       throw new Error('Token refresh failed');
     }
     const payload = (await response.json()) as KiroTokenResponse;
