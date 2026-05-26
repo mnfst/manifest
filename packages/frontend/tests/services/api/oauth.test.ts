@@ -133,25 +133,92 @@ describe('oauth API client', () => {
     expect((init as RequestInit).method).toBe('POST');
   });
 
-  it('connectKiroCliOAuth POSTs to the CLI connect endpoint with the encoded agent name', async () => {
+  it('startKiroOAuth POSTs to the device-flow start endpoint with the encoded agent name', async () => {
     const fetchMock = setupFetch({
-      ok: true,
-      expiresAt: '2026-05-26T08:33:56.000Z',
-      authMethod: 'social',
-      provider: 'github',
+      flowId: 'f1',
+      userCode: 'AAAA-BBBB',
+      verificationUri: 'https://verify',
+      expiresAt: 0,
+      pollIntervalMs: 5000,
     });
-
-    const out = await oauth.connectKiroCliOAuth('my agent');
-
-    expect(out).toEqual({
-      ok: true,
-      expiresAt: '2026-05-26T08:33:56.000Z',
-      authMethod: 'social',
-      provider: 'github',
-    });
+    const out = await oauth.startKiroOAuth('my agent');
+    expect(out.flowId).toBe('f1');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/oauth/kiro/cli-connect?agentName=my%20agent');
+    expect(url).toContain('/api/v1/oauth/kiro/start?agentName=my%20agent');
     expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('pollKiroOAuth GETs /poll with the flowId', async () => {
+    const fetchMock = setupFetch({ status: 'pending', pollIntervalMs: 5000 });
+    const out = await oauth.pollKiroOAuth('flow-1');
+    expect(out).toEqual({ status: 'pending', pollIntervalMs: 5000 });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/kiro/poll');
+    expect(url).toContain('flowId=flow-1');
+  });
+
+  it('revokeKiroOAuth POSTs with the encoded agent name and optional label', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeKiroOAuth('my agent', 'Kiro 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/kiro/revoke?agentName=my+agent&label=Kiro+2');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeKiroOAuth omits the label when not provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeKiroOAuth('demo');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/kiro/revoke?agentName=demo');
+    expect(url).not.toContain('label=');
+  });
+
+  describe('getDeviceCodeApi', () => {
+    it('routes minimax through its region-aware start endpoint', async () => {
+      const fetchMock = setupFetch({
+        flowId: 'f1',
+        userCode: 'C',
+        verificationUri: 'https://v',
+        expiresAt: 0,
+        pollIntervalMs: 1000,
+      });
+      const api = oauth.getDeviceCodeApi('minimax');
+      expect(api.hasRegion).toBe(true);
+      await api.start('demo', 'cn');
+      expect(fetchMock.mock.calls[0][0] as string).toContain('region=cn');
+    });
+
+    it('defaults the minimax region when start is called without one', async () => {
+      const fetchMock = setupFetch({
+        flowId: 'f1',
+        userCode: 'C',
+        verificationUri: 'https://v',
+        expiresAt: 0,
+        pollIntervalMs: 1000,
+      });
+      await oauth.getDeviceCodeApi('minimax').start('demo');
+      expect(fetchMock.mock.calls[0][0] as string).toContain('region=global');
+    });
+
+    it('routes kiro through its region-less start endpoint', async () => {
+      const fetchMock = setupFetch({
+        flowId: 'f1',
+        userCode: 'C',
+        verificationUri: 'https://v',
+        expiresAt: 0,
+        pollIntervalMs: 5000,
+      });
+      const api = oauth.getDeviceCodeApi('kiro');
+      expect(api.hasRegion).toBe(false);
+      await api.start('demo', 'cn');
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('/api/v1/oauth/kiro/start');
+      expect(url).not.toContain('region=');
+    });
+
+    it('throws for a provider without a device-code flow', () => {
+      expect(() => oauth.getDeviceCodeApi('openai')).toThrow('does not support device-code OAuth');
+    });
   });
 
   it('startAnthropicOAuth POSTs the encoded agent name and returns the auth URL + state', async () => {

@@ -19,24 +19,9 @@ jest.mock('./anthropic-subscription-probe', () => ({
   filterBySubscriptionAccess: jest.fn().mockImplementation((models: unknown[]) => models),
 }));
 
-jest.mock('../routing/oauth/kiro-cli-token', () => ({
-  getFreshKiroCliToken: jest.fn(),
-  parseKiroCliTokenBlob: jest.fn((rawValue: string) => {
-    try {
-      const parsed = JSON.parse(rawValue) as { source?: string; t?: string; e?: number };
-      return parsed.source === 'kiro-cli' && parsed.t && typeof parsed.e === 'number'
-        ? parsed
-        : null;
-    } catch {
-      return null;
-    }
-  }),
-}));
-
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import { computeQualityScore } from '../database/quality-score.util';
-import { getFreshKiroCliToken } from '../routing/oauth/kiro-cli-token';
 
 const mockDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
 const mockGetSecret = getEncryptionSecret as jest.MockedFunction<typeof getEncryptionSecret>;
@@ -194,12 +179,16 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('openai', '', 'api_key', undefined);
     });
 
-    it('should unwrap Kiro CLI OAuth blobs before fetching models', async () => {
+    it('should unwrap the Kiro OIDC token blob before fetching models', async () => {
       mockDecrypt.mockReturnValue(
         JSON.stringify({
-          source: 'kiro-cli',
+          source: 'kiro-oidc',
           t: 'kiro-access',
+          r: 'kiro-refresh',
           e: Date.now() + 10 * 60_000,
+          cid: 'client-id',
+          cs: 'client-secret',
+          region: 'us-east-1',
         }),
       );
       const provider = makeProvider({ provider: 'kiro', auth_type: 'subscription' });
@@ -207,52 +196,6 @@ describe('ModelDiscoveryService', () => {
       await service.discoverModels(provider);
 
       expect(fetcher.fetch).toHaveBeenCalledWith('kiro', 'kiro-access', 'subscription', undefined);
-    });
-
-    it('should refresh expired Kiro CLI OAuth blobs before fetching models', async () => {
-      mockDecrypt.mockReturnValue(
-        JSON.stringify({
-          source: 'kiro-cli',
-          t: 'old-kiro-access',
-          e: Date.now() - 1,
-        }),
-      );
-      jest.mocked(getFreshKiroCliToken).mockResolvedValue({
-        source: 'kiro-cli',
-        t: 'fresh-kiro-access',
-        e: Date.now() + 10 * 60_000,
-      });
-      const provider = makeProvider({ provider: 'kiro', auth_type: 'subscription' });
-
-      await service.discoverModels(provider);
-
-      expect(fetcher.fetch).toHaveBeenCalledWith(
-        'kiro',
-        'fresh-kiro-access',
-        'subscription',
-        undefined,
-      );
-    });
-
-    it('should use stored Kiro CLI OAuth blobs when refresh fails during model discovery', async () => {
-      mockDecrypt.mockReturnValue(
-        JSON.stringify({
-          source: 'kiro-cli',
-          t: 'old-kiro-access',
-          e: Date.now() - 1,
-        }),
-      );
-      jest.mocked(getFreshKiroCliToken).mockRejectedValue(new Error('refresh failed'));
-      const provider = makeProvider({ provider: 'kiro', auth_type: 'subscription' });
-
-      await service.discoverModels(provider);
-
-      expect(fetcher.fetch).toHaveBeenCalledWith(
-        'kiro',
-        'old-kiro-access',
-        'subscription',
-        undefined,
-      );
     });
 
     it('should enrich models with openRouter pricing when available', async () => {

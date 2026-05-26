@@ -12,7 +12,6 @@ import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
-import { getFreshKiroCliToken, parseKiroCliTokenBlob } from '../routing/oauth/kiro-cli-token';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
@@ -76,7 +75,16 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax' || lowerProvider === 'xai') {
+      if (
+        lowerProvider === 'openai' ||
+        lowerProvider === 'minimax' ||
+        lowerProvider === 'kiro' ||
+        lowerProvider === 'xai'
+      ) {
+        // Kiro's token blob is an OAuthTokenBlob superset (source 'kiro-oidc',
+        // plus client credentials), so the generic unwrap reads its access
+        // token too. Refresh-on-expiry happens in the provider OAuth services;
+        // discovery just uses the stored token.
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
@@ -90,22 +98,6 @@ export class ModelDiscoveryService {
         // instead of incorrectly probing api.minimax.io.
         if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
           endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
-        }
-      } else if (lowerProvider === 'kiro') {
-        const blob = parseKiroCliTokenBlob(apiKey);
-        if (blob?.t) {
-          if (Date.now() < blob.e - 60_000) {
-            apiKey = blob.t;
-          } else {
-            try {
-              apiKey = (await getFreshKiroCliToken()).t;
-            } catch {
-              this.logger.warn(
-                'Kiro CLI token refresh failed for model discovery — using stored token',
-              );
-              apiKey = blob.t;
-            }
-          }
         }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {

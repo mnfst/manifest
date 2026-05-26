@@ -441,7 +441,7 @@ describe("PROVIDERS", () => {
     expect(kiro.name).toBe("Kiro");
     expect(kiro.supportsSubscription).toBe(true);
     expect(kiro.subscriptionOnly).toBe(true);
-    expect(kiro.subscriptionAuthMode).toBe("cli_oauth");
+    expect(kiro.subscriptionAuthMode).toBe("device_code");
     expect(kiro.subscriptionLabel).toBe("Kiro subscription");
     expect(kiro.subscriptionKeyPlaceholder).toBeUndefined();
     expect(kiro.subscriptionSignInUrl).toBeUndefined();
