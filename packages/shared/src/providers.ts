@@ -106,7 +106,7 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     openRouterPrefixes: [],
     requiresApiKey: true,
     localOnly: false,
-    color: '#E73562',
+    color: '#f0e68c',
     keyPrefix: '',
     minKeyLength: 10,
     keyPlaceholder: 'Kilo Gateway API key',

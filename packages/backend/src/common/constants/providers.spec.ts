@@ -94,6 +94,7 @@ describe('PROVIDER_REGISTRY', () => {
     expect(kilo!.openRouterPrefixes).toEqual([]);
     expect(kilo!.requiresApiKey).toBe(true);
     expect(kilo!.localOnly).toBe(false);
+    expect(kilo!.color).toBe('#f0e68c');
   });
 });
 
