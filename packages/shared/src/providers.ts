@@ -136,6 +136,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'API key',
   },
   {
+    id: 'kiro',
+    displayName: 'Kiro',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: false,
+    localOnly: false,
+    color: '#6D5EF9',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
+  },
+  {
     id: 'minimax',
     displayName: 'MiniMax',
     aliases: [],

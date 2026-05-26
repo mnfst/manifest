@@ -23,6 +23,7 @@ import ProviderKeyForm, { MAX_KEYS_PER_PROVIDER } from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
 import AnthropicOAuthDetailView from './AnthropicOAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
+import CliOAuthDetailView from './CliOAuthDetailView.js';
 import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 
 export interface ProviderDetailViewProps {
@@ -82,6 +83,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
   const isPopupPasteFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_paste';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
+  const isCliOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'cli_oauth';
   const isCommandOnly = () =>
     isSubMode() &&
     !!provDef.subscriptionCommand &&
@@ -118,6 +120,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const showAddKeyButton = () =>
     connected() &&
     supportsMultiKey() &&
+    !isCliOAuthFlow() &&
     activeKeys().length < MAX_KEYS_PER_PROVIDER &&
     !addKeyOpen();
 
@@ -437,6 +440,22 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         />
       </Show>
 
+      {/* Local CLI OAuth subscription */}
+      <Show when={isCliOAuthFlow()}>
+        <CliOAuthDetailView
+          provDef={provDef}
+          provId={props.provId}
+          agentName={props.agentName}
+          connected={connected}
+          selectedAuthType={props.selectedAuthType}
+          busy={props.busy}
+          setBusy={props.setBusy}
+          onBack={props.onBack}
+          onUpdate={props.onUpdate}
+          activeKeys={activeKeys}
+        />
+      </Show>
+
       {/* Ollama (no key) */}
       <Show when={isOllama}>
         <div class="provider-detail__field">
@@ -484,7 +503,8 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           !isCommandOnly() &&
           !isPopupOAuthFlow() &&
           !isPopupPasteFlow() &&
-          !isDeviceCodeFlow()
+          !isDeviceCodeFlow() &&
+          !isCliOAuthFlow()
         }
       >
         <ProviderKeyForm

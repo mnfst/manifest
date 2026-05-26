@@ -105,6 +105,27 @@ describe('oauth API client', () => {
     expect((init as RequestInit).method).toBe('POST');
   });
 
+  it('connectKiroCliOAuth POSTs to the CLI connect endpoint with the encoded agent name', async () => {
+    const fetchMock = setupFetch({
+      ok: true,
+      expiresAt: '2026-05-26T08:33:56.000Z',
+      authMethod: 'social',
+      provider: 'github',
+    });
+
+    const out = await oauth.connectKiroCliOAuth('my agent');
+
+    expect(out).toEqual({
+      ok: true,
+      expiresAt: '2026-05-26T08:33:56.000Z',
+      authMethod: 'social',
+      provider: 'github',
+    });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/kiro/cli-connect?agentName=my%20agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
   it('startAnthropicOAuth POSTs the encoded agent name and returns the auth URL + state', async () => {
     const fetchMock = setupFetch({ url: 'https://claude.ai/oauth/authorize?state=s', state: 's' });
     const out = await oauth.startAnthropicOAuth('my agent');

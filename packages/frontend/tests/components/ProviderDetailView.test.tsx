@@ -5,11 +5,13 @@ import { createSignal, type Accessor, type Setter } from 'solid-js';
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockRefreshProviderModels = vi.fn();
+const mockConnectKiroCliOAuth = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
+  connectKiroCliOAuth: (...args: unknown[]) => mockConnectKiroCliOAuth(...args),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -30,28 +32,109 @@ vi.mock('../../src/components/CopyButton.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderKeyForm.js', () => ({
-  default: () => <div data-testid="provider-key-form" />,
+  default: (props: {
+    provId: string;
+    agentName: string;
+    isSubMode: Accessor<boolean>;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    keyInput: Accessor<string>;
+    editing: Accessor<boolean>;
+    validationError: Accessor<string | null>;
+    providers: RoutingProvider[];
+    onBack: () => void;
+    onUpdate: () => void;
+  }) => (
+    <div
+      data-agent={props.agentName}
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-editing={String(props.editing())}
+      data-has-back={String(Boolean(props.onBack))}
+      data-has-update={String(Boolean(props.onUpdate))}
+      data-input={props.keyInput()}
+      data-is-sub-mode={String(props.isSubMode())}
+      data-provider-count={String(props.providers.length)}
+      data-provider-id={props.provId}
+      data-testid="provider-key-form"
+      data-validation-error={props.validationError() ?? ''}
+    />
+  ),
   MAX_KEYS_PER_PROVIDER: 5,
 }));
 
 vi.mock('../../src/components/OAuthDetailView.js', () => ({
-  default: () => <div data-testid="oauth-detail-view" />,
+  default: (props: {
+    provId: string;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    onClose: () => void;
+  }) => (
+    <div
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-has-close={String(Boolean(props.onClose))}
+      data-provider-id={props.provId}
+      data-testid="oauth-detail-view"
+    />
+  ),
+}));
+
+vi.mock('../../src/components/AnthropicOAuthDetailView.js', () => ({
+  default: (props: {
+    provId: string;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    onClose: () => void;
+  }) => (
+    <div
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-has-close={String(Boolean(props.onClose))}
+      data-provider-id={props.provId}
+      data-testid="anthropic-oauth-detail-view"
+    />
+  ),
 }));
 
 vi.mock('../../src/components/DeviceCodeDetailView.js', () => ({
-  default: () => <div data-testid="device-code-detail-view" />,
+  default: (props: {
+    provId: string;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    onClose: () => void;
+  }) => (
+    <div
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-has-close={String(Boolean(props.onClose))}
+      data-provider-id={props.provId}
+      data-testid="device-code-detail-view"
+    />
+  ),
 }));
 
 import ProviderDetailView from '../../src/components/ProviderDetailView';
 import { toast } from '../../src/services/toast-store.js';
 import type { AuthType, RoutingProvider } from '../../src/services/api.js';
 
-function createTestProps(overrides: Partial<{
-  provId: string;
-  providers: RoutingProvider[];
-  selectedAuthType: AuthType;
-}> = {}) {
-  const [busy, setBusy] = createSignal(false);
+function createTestProps(
+  overrides: Partial<{
+    provId: string;
+    providers: RoutingProvider[];
+    selectedAuthType: AuthType;
+    busy: boolean;
+  }> = {},
+) {
+  const [busy, setBusy] = createSignal(overrides.busy ?? false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
@@ -89,6 +172,7 @@ describe('ProviderDetailView', () => {
       last_fetched_at: '2026-04-12T10:00:00Z',
       error: null,
     });
+    mockConnectKiroCliOAuth.mockResolvedValue({ ok: true });
   });
 
   describe('Ollama connect flow', () => {
@@ -160,11 +244,7 @@ describe('ProviderDetailView', () => {
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith(
-          'test-agent',
-          'ollama',
-          'api_key',
-        );
+        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'ollama', 'api_key');
         expect(props.onBack).toHaveBeenCalled();
         expect(props.onUpdate).toHaveBeenCalled();
       });
@@ -246,6 +326,174 @@ describe('ProviderDetailView', () => {
       });
       render(() => <ProviderDetailView {...props} />);
       expect(screen.getByTestId('oauth-detail-view')).toBeDefined();
+    });
+  });
+
+  describe('Anthropic subscription renders paste-code OAuth flow', () => {
+    it('renders AnthropicOAuthDetailView for popup_paste subscription flow', () => {
+      const connectedAnthropicSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: true,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByTestId('anthropic-oauth-detail-view')).toBeDefined();
+    });
+  });
+
+  describe('Copilot subscription renders device-code flow', () => {
+    it('renders DeviceCodeDetailView for device_code subscription flow', () => {
+      const connectedCopilotSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'copilot',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: true,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const props = createTestProps({
+        provId: 'copilot',
+        providers: connectedCopilotSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByTestId('device-code-detail-view')).toBeDefined();
+    });
+  });
+
+  describe('Kiro subscription renders CLI OAuth flow', () => {
+    const connectedKiroSub: RoutingProvider[] = [
+      {
+        id: 'p1',
+        provider: 'kiro',
+        auth_type: 'subscription',
+        is_active: true,
+        has_api_key: true,
+        connected_at: '2025-01-01',
+      },
+    ];
+
+    it('renders the Kiro CLI login instructions when disconnected', () => {
+      const props = createTestProps({
+        provId: 'kiro',
+        selectedAuthType: 'subscription',
+      });
+
+      render(() => <ProviderDetailView {...props} />);
+
+      expect(screen.getByText('Connect with Kiro CLI')).toBeDefined();
+      expect(screen.getAllByText('kiro-cli login --use-device-flow').length).toBeGreaterThan(0);
+    });
+
+    it('connects Kiro through the local CLI OAuth endpoint', async () => {
+      const props = createTestProps({
+        provId: 'kiro',
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByText('Connect with Kiro CLI'));
+
+      await waitFor(() => {
+        expect(mockConnectKiroCliOAuth).toHaveBeenCalledWith('test-agent');
+        expect(toast.success).toHaveBeenCalledWith('Kiro subscription connected');
+        expect(props.onUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('keeps the Kiro CLI view open when connect fails', async () => {
+      mockConnectKiroCliOAuth.mockRejectedValueOnce(new Error('not logged in'));
+      const props = createTestProps({
+        provId: 'kiro',
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByText('Connect with Kiro CLI'));
+
+      await waitFor(() => {
+        expect(mockConnectKiroCliOAuth).toHaveBeenCalled();
+      });
+      expect(props.onUpdate).not.toHaveBeenCalled();
+    });
+
+    it('disables the Kiro connect button while busy', () => {
+      const props = createTestProps({
+        provId: 'kiro',
+        selectedAuthType: 'subscription',
+        busy: true,
+      });
+
+      render(() => <ProviderDetailView {...props} />);
+
+      expect(
+        (screen.getByRole('button', { name: 'Connect with Kiro CLI' }) as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    });
+
+    it('disconnects connected Kiro CLI OAuth and shows backend notifications', async () => {
+      mockDisconnectProvider.mockResolvedValueOnce({ notifications: ['Kiro was used by a tier'] });
+      const props = createTestProps({
+        provId: 'kiro',
+        providers: connectedKiroSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      expect(screen.getByText('Connected via local Kiro CLI login')).toBeDefined();
+      fireEvent.click(screen.getByText('Disconnect'));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'kiro', 'subscription');
+        expect(toast.error).toHaveBeenCalledWith('Kiro was used by a tier');
+        expect(props.onBack).toHaveBeenCalled();
+        expect(props.onUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('keeps connected Kiro CLI OAuth in place when disconnect fails', async () => {
+      mockDisconnectProvider.mockRejectedValueOnce(new Error('disconnect failed'));
+      const props = createTestProps({
+        provId: 'kiro',
+        providers: connectedKiroSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByText('Disconnect'));
+
+      await waitFor(() => {
+        expect(mockDisconnectProvider).toHaveBeenCalled();
+      });
+      expect(props.onBack).not.toHaveBeenCalled();
+    });
+
+    it('disables the Kiro disconnect button while busy', () => {
+      const props = createTestProps({
+        provId: 'kiro',
+        providers: connectedKiroSub,
+        selectedAuthType: 'subscription',
+        busy: true,
+      });
+
+      render(() => <ProviderDetailView {...props} />);
+
+      expect(
+        (screen.getByRole('button', { name: 'Disconnect Kiro CLI' }) as HTMLButtonElement).disabled,
+      ).toBe(true);
     });
   });
 

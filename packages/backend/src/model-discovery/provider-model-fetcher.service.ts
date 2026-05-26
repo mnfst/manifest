@@ -11,6 +11,12 @@ import {
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
 import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
+import {
+  buildKiroHeaders,
+  KIRO_BASE_URL,
+  KIRO_MODELS_TARGET,
+  parseKiroModels,
+} from '../routing/proxy/kiro-adapter';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
@@ -540,6 +546,8 @@ export class ProviderModelFetcherService {
       // `/models` endpoint; the discovery fallback chain pulls Gemini
       // models from the OpenRouter cache instead.
       return [];
+    } else if (configKey === 'kiro') {
+      return this.fetchKiroModels(apiKey);
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {
@@ -606,5 +614,55 @@ export class ProviderModelFetcherService {
       capabilityCode: true,
       qualityScore: 3,
     }));
+  }
+
+  private async fetchKiroModels(apiKey: string): Promise<DiscoveredModel[]> {
+    const models: DiscoveredModel[] = [];
+    let nextToken: string | undefined;
+
+    try {
+      for (let page = 0; page < 10; page += 1) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+        let res: Response;
+        try {
+          res = await fetch(KIRO_BASE_URL, {
+            method: 'POST',
+            headers: buildKiroHeaders(apiKey, KIRO_MODELS_TARGET),
+            body: JSON.stringify({
+              origin: 'KIRO_CLI',
+              maxResults: 100,
+              ...(nextToken ? { nextToken } : {}),
+            }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
+
+        if (!res.ok) {
+          this.logger.warn(`Provider kiro returned ${res.status} from ${KIRO_BASE_URL}`);
+          return [];
+        }
+
+        const body = await res.json();
+        models.push(...parseKiroModels(body, 'kiro'));
+        const maybeNextToken = (body as { nextToken?: unknown; next_token?: unknown }).nextToken;
+        const snakeNextToken = (body as { next_token?: unknown }).next_token;
+        nextToken =
+          typeof maybeNextToken === 'string'
+            ? maybeNextToken
+            : typeof snakeNextToken === 'string'
+              ? snakeNextToken
+              : undefined;
+        if (!nextToken) break;
+      }
+
+      return filterNonChatModels(models, 'kiro');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch models from kiro: ${message}`);
+      return [];
+    }
   }
 }

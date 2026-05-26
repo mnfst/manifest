@@ -461,6 +461,100 @@ describe('ProviderModelFetcherService', () => {
     );
   });
 
+  /* ── Kiro subscription provider ── */
+
+  it('should fetch Kiro models dynamically through the Kiro model-list operation', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              model_id: 'auto',
+              model_name: 'auto',
+              context_window_tokens: 1000000,
+            },
+          ],
+          nextToken: 'next-page',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              modelId: 'claude-sonnet-4.5',
+              modelName: 'Claude Sonnet 4.5',
+              tokenLimits: { maxInputTokens: 200000 },
+            },
+          ],
+        }),
+      });
+
+    const result = await service.fetch('kiro', 'ksk_test', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://q.us-east-1.amazonaws.com',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ksk_test',
+          'Content-Type': 'application/x-amz-json-1.0',
+          'x-amz-target': 'AmazonCodeWhispererService.ListAvailableModels',
+        },
+      }),
+    );
+    expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+      origin: 'KIRO_CLI',
+      maxResults: 100,
+    });
+    expect(JSON.parse(fetchSpy.mock.calls[1][1].body)).toEqual({
+      origin: 'KIRO_CLI',
+      maxResults: 100,
+      nextToken: 'next-page',
+    });
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'kiro/auto',
+        displayName: 'auto',
+        provider: 'kiro',
+        contextWindow: 1000000,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        capabilityCode: true,
+      }),
+      expect.objectContaining({
+        id: 'kiro/claude-sonnet-4.5',
+        displayName: 'Claude Sonnet 4.5',
+        contextWindow: 200000,
+      }),
+    ]);
+  });
+
+  it('should return [] when Kiro model discovery rejects the API key', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: false,
+      status: 403,
+    });
+
+    const result = await service.fetch('kiro', 'ksk_bad', 'subscription');
+
+    expect(result).toEqual([]);
+  });
+
+  it('should clear the Kiro model discovery timeout when fetch rejects', async () => {
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+    fetchSpy.mockRejectedValue(new Error('network failure'));
+
+    const result = await service.fetch('kiro', 'ksk_test', 'subscription');
+
+    expect(result).toEqual([]);
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+    clearTimeoutSpy.mockRestore();
+  });
+
   /* ── Groq provider ── */
 
   describe('groq provider', () => {

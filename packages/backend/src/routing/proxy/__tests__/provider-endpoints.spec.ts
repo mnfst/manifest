@@ -106,6 +106,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('openrouter');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
+    expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
   });
@@ -321,6 +322,18 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers).toEqual({
       Authorization: 'Bearer sk-cloud-key',
       'Content-Type': 'application/json',
+    });
+  });
+
+  it('kiro uses the Kiro AWS JSON endpoint and target header', () => {
+    const ep = PROVIDER_ENDPOINTS['kiro'];
+    expect(ep.baseUrl).toBe('https://q.us-east-1.amazonaws.com');
+    expect(ep.format).toBe('kiro');
+    expect(ep.buildPath('kiro/auto')).toBe('/');
+    expect(ep.buildHeaders('ksk_test')).toEqual({
+      Authorization: 'Bearer ksk_test',
+      'Content-Type': 'application/x-amz-json-1.0',
+      'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
     });
   });
 

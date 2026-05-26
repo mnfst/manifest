@@ -1220,6 +1220,53 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Kiro subscription provider', () => {
+    it('routes to the Kiro AWS JSON event-stream endpoint', async () => {
+      mockFetch.mockResolvedValue(
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.close();
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const result = await client.forward({
+        provider: 'kiro',
+        apiKey: 'ksk_test',
+        model: 'kiro/auto',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://q.us-east-1.amazonaws.com',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer ksk_test',
+            'Content-Type': 'application/x-amz-json-1.0',
+            'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
+            'x-amzn-kiro-agent-mode': 'SUPERVISED',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.conversationState.currentMessage.userInputMessage).toMatchObject({
+        content: 'Hello',
+        origin: 'KIRO_CLI',
+        modelId: 'auto',
+      });
+      expect(result.isGoogle).toBe(false);
+      expect(result.isAnthropic).toBe(false);
+      expect(result.isChatGpt).toBe(false);
+      expect(result.response.headers.get('Content-Type')).toBe('text/event-stream');
+    });
+  });
+
   describe('OpenCode Go provider', () => {
     it('routes non-minimax models to OpenAI /v1/chat/completions', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

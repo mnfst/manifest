@@ -12,6 +12,7 @@ import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
+import { getFreshKiroCliToken, parseKiroCliTokenBlob } from '../routing/oauth/kiro-cli-token';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
@@ -89,6 +90,22 @@ export class ModelDiscoveryService {
         // instead of incorrectly probing api.minimax.io.
         if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
           endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
+        }
+      } else if (lowerProvider === 'kiro') {
+        const blob = parseKiroCliTokenBlob(apiKey);
+        if (blob?.t) {
+          if (Date.now() < blob.e - 60_000) {
+            apiKey = blob.t;
+          } else {
+            try {
+              apiKey = (await getFreshKiroCliToken()).t;
+            } catch {
+              this.logger.warn(
+                'Kiro CLI token refresh failed for model discovery — using stored token',
+              );
+              apiKey = blob.t;
+            }
+          }
         }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {

@@ -10,6 +10,7 @@ import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
+import { KiroOauthService } from '../../oauth/kiro-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ReasoningContentCache } from '../reasoning-content-cache';
@@ -45,6 +46,7 @@ describe('ProxyFallbackService', () => {
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let anthropicOauth: jest.Mocked<AnthropicOauthService>;
   let geminiOauth: jest.Mocked<GeminiOauthService>;
+  let kiroOauth: jest.Mocked<KiroOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
@@ -80,6 +82,9 @@ describe('ProxyFallbackService', () => {
     geminiOauth = {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<GeminiOauthService>;
+    kiroOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<KiroOauthService>;
 
     providerClient = {
       forward: jest.fn(),
@@ -125,6 +130,7 @@ describe('ProxyFallbackService', () => {
       minimaxOauth,
       anthropicOauth,
       geminiOauth,
+      kiroOauth,
       providerClient,
       copilotToken,
       pricingCache,
@@ -1005,6 +1011,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -1029,6 +1036,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
@@ -1046,6 +1054,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -1065,6 +1074,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1083,6 +1093,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('access-claude');
@@ -1102,9 +1113,31 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('sk-ant-legacy');
+      expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps Kiro CLI OAuth subscription tokens', async () => {
+      kiroOauth.unwrapToken.mockResolvedValue('kiro-access');
+
+      const result = await resolveApiKey(
+        'kiro',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+      );
+
+      expect(result.apiKey).toBe('kiro-access');
+      expect(kiroOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
     });
 
     it('does not unwrap for non-OAuth subscription providers (e.g. Qwen)', async () => {
@@ -1118,12 +1151,14 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('qwen-key');
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -1139,6 +1174,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1155,6 +1191,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
@@ -1162,6 +1199,7 @@ describe('ProxyFallbackService', () => {
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
     });
 
     it('unwraps Gemini subscription token and reads project id from blob.u', async () => {
@@ -1183,6 +1221,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('fresh-access-token');
@@ -1204,6 +1243,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe(blob);
@@ -1222,6 +1262,7 @@ describe('ProxyFallbackService', () => {
         minimaxOauth,
         anthropicOauth,
         geminiOauth,
+        kiroOauth,
       );
 
       expect(result.apiKey).toBe('fresh-token');
