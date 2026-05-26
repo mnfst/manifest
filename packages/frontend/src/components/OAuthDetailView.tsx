@@ -20,6 +20,26 @@ import { monitorOAuthPopup } from '../services/oauth-popup.js';
 
 const MAX_LABEL_LENGTH = 50;
 
+function parseOAuthCallbackInput(raw: string, fallbackState: string | null) {
+  let code: string | null = null;
+  let state: string | null = fallbackState;
+  const parts = raw.split(/\s+/).filter(Boolean);
+
+  for (const part of parts) {
+    try {
+      const url = new URL(part);
+      code = code ?? url.searchParams.get('code');
+      state = state ?? url.searchParams.get('state');
+    } catch {
+      if (!code && /^[A-Za-z0-9._~-]{20,}$/.test(part)) {
+        code = part;
+      }
+    }
+  }
+
+  return { code, state };
+}
+
 interface Props {
   provDef: ProviderDef;
   provId: string;
@@ -42,13 +62,15 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [successHandled, setSuccessHandled] = createSignal(false);
   const [pasteUrl, setPasteUrl] = createSignal('');
   const [pasteError, setPasteError] = createSignal<string | null>(null);
+  const [oauthState, setOauthState] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
+  const isXaiProvider = () => props.provId === 'xai';
   const callbackPlaceholder = () =>
-    props.provId === 'xai'
-      ? 'http://127.0.0.1:56121/callback?code=...'
+    isXaiProvider()
+      ? 'Paste the xAI authorization code or callback URL'
       : 'http://localhost:1455/auth/callback?code=...';
   const activeKeyCount = () => (props.activeKeys?.() ?? []).length;
   const flowHasConnected = () => {
@@ -64,6 +86,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     setFlowKeyCount(null);
     setPasteUrl('');
     setPasteError(null);
+    setOauthState(null);
     toast.success(`${props.provDef.name} subscription connected`);
     props.onUpdate();
   };
@@ -96,11 +119,17 @@ const OAuthDetailView: Component<Props> = (props) => {
     setPasteError(null);
     try {
       const { url } = await oauthApi().getUrl(props.agentName);
+      try {
+        setOauthState(new URL(url).searchParams.get('state'));
+      } catch {
+        setOauthState(null);
+      }
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
         toast.error(
           'Popup was blocked by your browser. Allow popups for this site, then try again.',
         );
+        setOauthState(null);
         props.setBusy(false);
         return;
       }
@@ -130,11 +159,13 @@ const OAuthDetailView: Component<Props> = (props) => {
     if (!raw) return;
 
     try {
-      const url = new URL(raw);
-      const code = url.searchParams.get('code');
-      const state = url.searchParams.get('state');
+      const { code, state } = parseOAuthCallbackInput(raw, oauthState());
       if (!code || !state) {
-        setPasteError('URL is missing the authorization code. Make sure you copied the full URL.');
+        setPasteError(
+          props.provId === 'xai'
+            ? 'Paste the authorization code shown by xAI, or paste the full callback URL after approval.'
+            : 'URL is missing the authorization code. Make sure you copied the full URL.',
+        );
         return;
       }
 
@@ -236,32 +267,45 @@ const OAuthDetailView: Component<Props> = (props) => {
             </>
           }
         >
-          <p class="provider-detail__hint">
-            A login window has opened. If it does not close automatically after sign-in, paste the
-            callback URL below.
-          </p>
-          <p class="provider-detail__hint" style="margin-top: 8px;">
-            Copy the full URL from the{' '}
-            <span style="color: hsl(var(--foreground)); font-weight: 500;">
-              popup's address bar
-            </span>{' '}
-            and paste it below:
-          </p>
-          <video
-            src="/images/oauth-callback-example.mp4"
-            autoplay
-            loop
-            muted
-            playsinline
-            style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
-          />
+          <Show
+            when={isXaiProvider()}
+            fallback={
+              <>
+                <p class="provider-detail__hint">
+                  A login window has opened. If it does not close automatically after sign-in, paste
+                  the callback URL below.
+                </p>
+                <p class="provider-detail__hint" style="margin-top: 8px;">
+                  Copy the full URL from the{' '}
+                  <span style="color: hsl(var(--foreground)); font-weight: 500;">
+                    popup's address bar
+                  </span>{' '}
+                  and paste it below:
+                </p>
+                <video
+                  src="/images/oauth-callback-example.mp4"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
+                />
+              </>
+            }
+          >
+            <p class="provider-detail__hint">
+              A login window has opened. After approving access, paste the authorization code xAI
+              shows. If your browser lands on a callback URL, paste that URL instead.
+            </p>
+          </Show>
           <div class="provider-detail__field" style="margin-top: 12px;">
-            <input
+            <textarea
               class="provider-detail__input"
               classList={{ 'provider-detail__input--error': !!pasteError() }}
-              type="text"
               autocomplete="off"
               placeholder={callbackPlaceholder()}
+              rows={3}
+              style="resize: vertical;"
               value={pasteUrl()}
               onInput={(e) => {
                 setPasteUrl(e.currentTarget.value);

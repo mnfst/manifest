@@ -252,7 +252,7 @@ describe('OAuthDetailView', () => {
     });
   });
 
-  it('starts xAI OAuth with the xAI callback path and placeholder', async () => {
+  it('starts xAI OAuth with the xAI callback path and manual-code placeholder', async () => {
     mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
     vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
 
@@ -262,7 +262,9 @@ describe('OAuthDetailView', () => {
     await waitFor(() => {
       expect(mockGetXaiOAuthUrl).toHaveBeenCalledWith('test-agent');
     });
-    expect(screen.getByPlaceholderText('http://127.0.0.1:56121/callback?code=...')).toBeDefined();
+    expect(
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    ).toBeDefined();
     expect(monitorOAuthPopup).toHaveBeenCalledWith(
       expect.anything(),
       expect.anything(),
@@ -278,7 +280,7 @@ describe('OAuthDetailView', () => {
     const { onUpdate } = renderView({ provId: 'xai', provDef: xaiProvDef });
     fireEvent.click(screen.getByText('Log in with xAI'));
     const input = await waitFor(() =>
-      screen.getByPlaceholderText('http://127.0.0.1:56121/callback?code=...'),
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
     );
     fireEvent.input(input, {
       target: { value: 'http://127.0.0.1:56121/callback?code=xai-code&state=xai-state' },
@@ -290,6 +292,79 @@ describe('OAuthDetailView', () => {
     });
     expect(mockToastSuccess).toHaveBeenCalledWith('xAI subscription connected');
     expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('submits an xAI raw authorization code with the pending OAuth state', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({
+      url: 'https://auth.x.ai/oauth2/authorize?state=pending-xai-state',
+    });
+    mockSubmitXaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: { value: 'raw-xai-code-from-consent-page' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitXaiOAuthCallback).toHaveBeenCalledWith(
+        'raw-xai-code-from-consent-page',
+        'pending-xai-state',
+      );
+    });
+  });
+
+  it('submits an xAI consent URL and displayed code pasted together', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
+    mockSubmitXaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: {
+        value:
+          'https://accounts.x.ai/oauth2/consent?response_type=code&state=consent-state\nmanual-xai-code-from-page',
+      },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitXaiOAuthCallback).toHaveBeenCalledWith(
+        'manual-xai-code-from-page',
+        'consent-state',
+      );
+    });
+  });
+
+  it('asks xAI users for the displayed code when only the consent URL is pasted', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({
+      url: 'https://auth.x.ai/oauth2/authorize?state=pending-xai-state',
+    });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: { value: 'https://accounts.x.ai/oauth2/consent?state=pending-xai-state' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Paste the authorization code shown by xAI/)).toBeDefined();
+    });
+    expect(mockSubmitXaiOAuthCallback).not.toHaveBeenCalled();
   });
 
   it('shows popup-blocked toast when window.open returns null', async () => {
