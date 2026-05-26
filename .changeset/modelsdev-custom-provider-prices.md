@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Auto-fill custom provider model prices from models.dev, including estimated model-only fallback prices when the custom provider is not listed there.
+Auto-fill custom provider model prices from exact models.dev provider/model matches, and mark exact model-only matches as estimated when no provider match is available.
