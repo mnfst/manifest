@@ -74,6 +74,10 @@ export interface KiroOAuthPollResult {
 // not yet approved; they are not failures, just "keep polling" signals.
 const PENDING_TOKEN_ERRORS = new Set(['authorization_pending', 'slow_down']);
 
+// RFC 8628 §3.5: on `slow_down` the client MUST increase its polling interval,
+// by 5 seconds. Persist the bumped interval so subsequent polls keep backing off.
+const SLOW_DOWN_BACKOFF_MS = 5000;
+
 @Injectable()
 export class KiroOauthService {
   private readonly logger = new Logger(KiroOauthService.name);
@@ -158,6 +162,11 @@ export class KiroOauthService {
     if (!response.ok) {
       const error = payload?.error ?? '';
       if (PENDING_TOKEN_ERRORS.has(error)) {
+        if (error === 'slow_down') {
+          // Mutating the pending record (a live Map reference) backs off every
+          // subsequent poll, not just this response.
+          pending.pollIntervalMs += SLOW_DOWN_BACKOFF_MS;
+        }
         return {
           status: 'pending',
           message: 'Waiting for Kiro approval…',

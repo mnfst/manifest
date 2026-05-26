@@ -214,13 +214,29 @@ describe('KiroOauthService', () => {
       expect(service.getPendingCount()).toBe(0);
     });
 
-    it.each(['authorization_pending', 'slow_down'])('keeps polling on %s', async (error) => {
+    it('keeps polling at the same interval on authorization_pending', async () => {
       const service = makeService();
       const flowId = await startAndGetFlowId(service);
-      fetchMock.mockResolvedValueOnce(jsonResponse(400, { error }));
+      fetchMock.mockResolvedValueOnce(jsonResponse(400, { error: 'authorization_pending' }));
       const result = await service.pollAuthorization(flowId, 'user-1');
       expect(result.status).toBe('pending');
       expect(result.pollIntervalMs).toBe(5000);
+      expect(service.getPendingCount()).toBe(1);
+    });
+
+    it('backs off the interval by 5s on each slow_down (RFC 8628 §3.5)', async () => {
+      const service = makeService();
+      const flowId = await startAndGetFlowId(service);
+
+      fetchMock.mockResolvedValueOnce(jsonResponse(400, { error: 'slow_down' }));
+      let result = await service.pollAuthorization(flowId, 'user-1');
+      expect(result.status).toBe('pending');
+      expect(result.pollIntervalMs).toBe(10000);
+
+      // A second slow_down compounds the backoff on the persisted interval.
+      fetchMock.mockResolvedValueOnce(jsonResponse(400, { error: 'slow_down' }));
+      result = await service.pollAuthorization(flowId, 'user-1');
+      expect(result.pollIntervalMs).toBe(15000);
       expect(service.getPendingCount()).toBe(1);
     });
 
