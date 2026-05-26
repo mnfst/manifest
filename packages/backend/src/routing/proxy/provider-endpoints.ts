@@ -8,6 +8,7 @@ import {
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
+import { buildKiroHeaders, KIRO_BASE_URL, KIRO_CHAT_TARGET } from './kiro-adapter';
 
 export interface ProviderEndpoint {
   baseUrl: string;
@@ -21,7 +22,7 @@ export interface ProviderEndpoint {
    * `format: 'google'` streams.
    */
   buildStreamPath?: (model: string) => string;
-  format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
+  format: 'openai' | 'google' | 'anthropic' | 'chatgpt' | 'kiro';
   /**
    * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
    * providers, subscription resource URLs). The proxy re-runs SSRF
@@ -270,6 +271,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+  },
+  kiro: {
+    baseUrl: KIRO_BASE_URL,
+    buildHeaders: (apiKey: string) => buildKiroHeaders(apiKey, KIRO_CHAT_TARGET),
+    buildPath: () => '/',
+    format: 'kiro',
   },
   'opencode-go': {
     baseUrl: OPENCODE_GO_BASE,

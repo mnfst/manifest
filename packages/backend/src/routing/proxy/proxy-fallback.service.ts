@@ -29,6 +29,7 @@ import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from '../oauth/gemini-oauth.service';
 import { parseOAuthTokenBlob } from '../oauth/core';
+import { KiroOauthService } from '../oauth/kiro-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -79,6 +80,7 @@ export class ProxyFallbackService {
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
     private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -223,6 +225,7 @@ export class ProxyFallbackService {
         this.minimaxOauth,
         this.anthropicOauth,
         this.geminiOauth,
+        this.kiroOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -500,6 +503,7 @@ export async function resolveApiKey(
   minimaxOauth: MinimaxOauthService,
   anthropicOauth: AnthropicOauthService,
   geminiOauth: GeminiOauthService,
+  kiroOauth: KiroOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -523,6 +527,10 @@ export async function resolveApiKey(
         const projectId = parseOAuthTokenBlob(apiKey)?.u;
         return { apiKey: unwrapped, resourceUrl: projectId };
       }
+    }
+    if (lower === 'kiro') {
+      const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
     }
   }
   return { apiKey };

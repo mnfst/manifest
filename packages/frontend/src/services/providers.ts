@@ -31,7 +31,7 @@ export interface ProviderDef {
   /** Provider uses GitHub device login instead of token paste. */
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
-  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token' | 'cli_oauth';
   /**
    * Optional secondary subscription path. Lets a provider expose a pasted-token
    * shortcut alongside its primary OAuth/device-code flow — currently used so
@@ -75,7 +75,7 @@ interface ProviderUIOverlay {
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
   subscriptionCommand?: string;
   deviceLogin?: boolean;
-  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token' | 'cli_oauth';
   subscriptionTokenAlternative?: {
     prefix: string;
     placeholder: string;
@@ -137,6 +137,16 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     supportsSubscription: true,
     subscriptionLabel: 'Sign in with Google',
     subscriptionAuthMode: 'popup_oauth',
+    models: [],
+  },
+  kiro: {
+    initial: 'K',
+    subtitle: 'Claude, DeepSeek, MiniMax, GLM, Qwen via Kiro',
+    supportsSubscription: true,
+    subscriptionLabel: 'Kiro subscription',
+    subscriptionAuthMode: 'cli_oauth',
+    subscriptionOnly: true,
+    beta: true,
     models: [],
   },
   groq: {
@@ -291,6 +301,7 @@ const PROVIDER_ORDER = [
   'gemini',
   'groq',
   'kilo',
+  'kiro',
   'llamacpp',
   'lmstudio',
   'minimax',
@@ -307,6 +318,7 @@ const PROVIDER_ORDER = [
 
 export const PROVIDERS: ProviderDef[] = PROVIDER_ORDER.map((id) => {
   const shared = SHARED_PROVIDER_BY_ID.get(id);
+  /* v8 ignore next 3 -- PROVIDER_ORDER is static and must match shared provider metadata. */
   if (!shared) {
     throw new Error(`Unknown provider id in PROVIDER_ORDER: "${id}"`);
   }

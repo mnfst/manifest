@@ -69,6 +69,27 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  kiro: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Kiro subscription',
+    subscriptionAuthMode: 'cli_oauth' as const,
+    knownModels: Object.freeze([
+      'kiro/auto',
+      'kiro/claude-sonnet-4.5',
+      'kiro/claude-sonnet-4',
+      'kiro/claude-haiku-4.5',
+      'kiro/deepseek-3.2',
+      'kiro/minimax-m2.5',
+      'kiro/minimax-m2.1',
+      'kiro/glm-5',
+      'kiro/qwen3-coder-next',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   zai: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GLM Coding Plan',

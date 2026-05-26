@@ -8,6 +8,7 @@ const KNOWN_PROVIDERS = [
   "copilot",
   "gemini",
   "groq",
+  "kiro",
   "deepseek",
   "mistral",
   "xai",

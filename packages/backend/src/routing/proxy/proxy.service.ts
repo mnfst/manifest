@@ -7,6 +7,7 @@ import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from '../oauth/gemini-oauth.service';
+import { KiroOauthService } from '../oauth/kiro-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
@@ -129,6 +130,7 @@ export class ProxyService {
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
     private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
@@ -437,6 +439,7 @@ export class ProxyService {
       this.minimaxOauth,
       this.anthropicOauth,
       this.geminiOauth,
+      this.kiroOauth,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,

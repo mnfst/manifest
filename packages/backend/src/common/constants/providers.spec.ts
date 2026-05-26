@@ -96,6 +96,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(kilo!.localOnly).toBe(false);
     expect(kilo!.color).toBe('#f0e68c');
   });
+
+  it('kiro is registered as a CLI OAuth subscription provider', () => {
+    const kiro = PROVIDER_REGISTRY.find((p) => p.id === 'kiro');
+    expect(kiro).toBeDefined();
+    expect(kiro!.displayName).toBe('Kiro');
+    expect(kiro!.aliases).toEqual([]);
+    expect(kiro!.openRouterPrefixes).toEqual([]);
+    expect(kiro!.requiresApiKey).toBe(false);
+    expect(kiro!.localOnly).toBe(false);
+    expect(kiro!.keyPrefix).toBe('');
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {

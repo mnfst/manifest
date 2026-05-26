@@ -424,6 +424,25 @@ describe("PROVIDERS", () => {
     expect(og.models).toEqual([]);
   });
 
+  it("Kiro is subscription-only with CLI OAuth flow and dynamic models", () => {
+    const kiro = PROVIDERS.find((p) => p.id === "kiro")!;
+    expect(kiro).toBeDefined();
+    expect(kiro.name).toBe("Kiro");
+    expect(kiro.supportsSubscription).toBe(true);
+    expect(kiro.subscriptionOnly).toBe(true);
+    expect(kiro.subscriptionAuthMode).toBe("cli_oauth");
+    expect(kiro.subscriptionLabel).toBe("Kiro subscription");
+    expect(kiro.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(kiro.subscriptionSignInUrl).toBeUndefined();
+    expect(kiro.beta).toBe(true);
+    expect(kiro.models).toEqual([]);
+  });
+
+  it("provides the Kiro account URL in both provider maps", () => {
+    expect(getRoutingProviderApiKeyUrl("kiro")).toBe("https://app.kiro.dev");
+    expect(getSubscriptionProviderKeyUrl("kiro")).toBe("https://app.kiro.dev");
+  });
+
   it("OpenCode Go subscription key is validated with generic min-length check", () => {
     const og = PROVIDERS.find((p) => p.id === "opencode-go")!;
     expect(validateSubscriptionKey(og, "")).toEqual({

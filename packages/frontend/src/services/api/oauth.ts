@@ -61,6 +61,20 @@ export function revokeMinimaxOAuth(agentName: string, label?: string) {
   );
 }
 
+export interface KiroCliConnectResponse {
+  ok: true;
+  expiresAt: string;
+  authMethod?: string;
+  provider?: string;
+}
+
+export function connectKiroCliOAuth(agentName: string) {
+  return fetchMutate<KiroCliConnectResponse>(
+    `/oauth/kiro/cli-connect?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
+}
+
 export interface AnthropicOAuthAuthorizeResponse {
   url: string;
   state: string;

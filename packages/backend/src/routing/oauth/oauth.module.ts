@@ -8,6 +8,8 @@ import { MinimaxOauthController } from './minimax-oauth.controller';
 import { CopilotDeviceAuthService } from './copilot-device-auth.service';
 import { AnthropicOauthService } from './anthropic/anthropic-oauth.service';
 import { AnthropicOauthController } from './anthropic/anthropic-oauth.controller';
+import { KiroOauthService } from './kiro-oauth.service';
+import { KiroOauthController } from './kiro-oauth.controller';
 import { OAuthPendingFlowStore } from './core';
 import { GeminiOauthService } from './gemini-oauth.service';
 import { GeminiOauthController } from './gemini-oauth.controller';
@@ -20,12 +22,14 @@ import { CodeAssistClientService } from './codeassist-client.service';
     MinimaxOauthController,
     AnthropicOauthController,
     GeminiOauthController,
+    KiroOauthController,
   ],
   providers: [
     OpenaiOauthService,
     MinimaxOauthService,
     CopilotDeviceAuthService,
     AnthropicOauthService,
+    KiroOauthService,
     OAuthPendingFlowStore,
     GeminiOauthService,
     CodeAssistClientService,
@@ -36,6 +40,7 @@ import { CodeAssistClientService } from './codeassist-client.service';
     CopilotDeviceAuthService,
     AnthropicOauthService,
     GeminiOauthService,
+    KiroOauthService,
   ],
 })
 export class OAuthModule {}

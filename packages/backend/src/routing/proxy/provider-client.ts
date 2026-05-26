@@ -24,6 +24,7 @@ import {
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
 import { toNativeResponsesRequest } from './responses-adapter';
+import { forwardKiroChat } from './kiro-adapter';
 
 export interface ForwardResult {
   response: Response;
@@ -119,6 +120,25 @@ export class ProviderClient {
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
 
     const bareModel = stripModelPrefix(model, endpointKey);
+    if (endpoint.format === 'kiro') {
+      const requestSource =
+        opts.apiMode && opts.apiMode !== 'chat_completions' ? (opts.chatBody ?? body) : body;
+      const response = await forwardKiroChat({
+        apiKey,
+        model: bareModel,
+        body: requestSource,
+        stream,
+        signal,
+        timeoutMs: PROVIDER_TIMEOUT_MS,
+        extraHeaders,
+      });
+      return {
+        response,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
     const { url, headers, requestBody } = this.buildRequest({
       endpoint,
       endpointKey,

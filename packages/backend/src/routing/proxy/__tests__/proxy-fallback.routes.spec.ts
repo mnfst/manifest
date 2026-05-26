@@ -7,6 +7,7 @@ import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
+import { KiroOauthService } from '../../oauth/kiro-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
@@ -36,6 +37,7 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let anthropicOauth: jest.Mocked<AnthropicOauthService>;
   let geminiOauth: jest.Mocked<GeminiOauthService>;
+  let kiroOauth: jest.Mocked<KiroOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
@@ -69,6 +71,10 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<GeminiOauthService>;
 
+    kiroOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<KiroOauthService>;
+
     providerClient = {
       forward: jest.fn(),
     } as unknown as jest.Mocked<ProviderClient>;
@@ -100,6 +106,7 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
       minimaxOauth,
       anthropicOauth,
       geminiOauth,
+      kiroOauth,
       providerClient,
       copilotToken,
       pricingCache,
