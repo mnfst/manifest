@@ -130,6 +130,7 @@ const CustomProviderForm: Component<Props> = (props) => {
   };
 
   const validModels = () => rows().filter((r) => r.model_name.trim());
+  const hasEstimatedPrices = () => rows().some((r) => r.price_estimated);
 
   const canSubmit = () => name().trim() && baseUrl().trim() && validModels().length > 0 && !busy();
 
@@ -399,8 +400,25 @@ const CustomProviderForm: Component<Props> = (props) => {
         </div>
 
         <div class="provider-detail__field">
-          <label class="provider-detail__label">Models</label>
-          <div class="custom-provider-models">
+          <div id="cp-models-label" class="provider-detail__label custom-provider-models__label">
+            Models
+            <Show when={hasEstimatedPrices()}>
+              <InfoTooltip text={ESTIMATED_PRICE_TOOLTIP} />
+            </Show>
+          </div>
+          <div class="custom-provider-models" aria-labelledby="cp-models-label">
+            <div class="custom-provider-models__columns" aria-hidden="true">
+              <span class="custom-provider-models__column custom-provider-models__column--name">
+                Model name
+              </span>
+              <span class="custom-provider-models__column custom-provider-models__column--price">
+                Input / 1M tokens
+              </span>
+              <span class="custom-provider-models__column custom-provider-models__column--price">
+                Output / 1M tokens
+              </span>
+              <span class="custom-provider-models__column-spacer" />
+            </div>
             <Index each={rows()}>
               {(row, i) => (
                 <div class="custom-provider-model-row">
@@ -430,11 +448,6 @@ const CustomProviderForm: Component<Props> = (props) => {
                     value={row().output_price}
                     onInput={(e) => updateRow(i, 'output_price', e.currentTarget.value)}
                   />
-                  <span class="custom-provider-model-row__price-info">
-                    <Show when={row().price_estimated}>
-                      <InfoTooltip text={ESTIMATED_PRICE_TOOLTIP} />
-                    </Show>
-                  </span>
                   <button
                     type="button"
                     class="custom-provider-model-row__remove"

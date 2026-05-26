@@ -35,11 +35,17 @@ describe("InfoTooltip", () => {
   });
 
   it("has role=tooltip on bubble when expanded", () => {
-    const { container } = render(() => <InfoTooltip text="Bubble text" />);
+    render(() => <InfoTooltip text="Bubble text" />);
     fireEvent.click(screen.getByRole("button"));
-    const bubble = container.querySelector('[role="tooltip"]');
+    const bubble = screen.getByRole("tooltip");
     expect(bubble).not.toBeNull();
-    expect(bubble?.textContent).toBe("Bubble text");
+    expect(bubble.textContent).toBe("Bubble text");
+  });
+
+  it("shows tooltip text on hover", () => {
+    render(() => <InfoTooltip text="Hover text" />);
+    fireEvent.mouseEnter(screen.getByRole("button"));
+    expect(screen.getByRole("tooltip").textContent).toBe("Hover text");
   });
 
   it("toggles expanded on click", () => {

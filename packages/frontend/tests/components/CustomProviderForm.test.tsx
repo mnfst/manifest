@@ -616,6 +616,19 @@ describe("CustomProviderForm — Fetch models probe", () => {
         screen.getByLabelText("Info: Estimated price. This may not be accurate."),
       ).toBeDefined();
     });
+    expect(screen.getByText("Input / 1M tokens")).toBeDefined();
+    expect(screen.getByText("Output / 1M tokens")).toBeDefined();
+    expect(
+      screen.getAllByLabelText("Info: Estimated price. This may not be accurate."),
+    ).toHaveLength(1);
+
+    fireEvent.mouseEnter(screen.getByLabelText("Info: Estimated price. This may not be accurate."));
+
+    await waitFor(() => {
+      expect(screen.getByRole("tooltip").textContent).toBe(
+        "Estimated price. This may not be accurate.",
+      );
+    });
 
     fireEvent.click(screen.getByText("Connect"));
 
