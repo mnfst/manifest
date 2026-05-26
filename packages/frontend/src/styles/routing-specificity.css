@@ -5,6 +5,12 @@
   gap: 12px;
 }
 
+.specificity-output-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
 /* ── Empty state ────────────────────────────────── */
 .specificity-empty {
   position: relative;

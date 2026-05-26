@@ -793,6 +793,43 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('heartbeat');
     });
 
+    it('uses the first stream-capable fallback as the effective route in stream mode', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: route('custom:local', 'api_key', 'local-model'),
+          auto_assigned_route: null,
+          fallback_routes: [
+            route('openai', 'api_key', 'gpt-4o'),
+            route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+          ],
+          response_mode: 'stream',
+        } as TierAssignment,
+      ]);
+
+      const result = await svc.resolveForTier('agent-1', 'simple');
+
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'claude-3-5-sonnet')]);
+    });
+
+    it('filters non-stream fallbacks from the effective route chain in stream mode', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: route('openai', 'api_key', 'gpt-4o'),
+          auto_assigned_route: null,
+          fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+          response_mode: 'stream',
+        } as TierAssignment,
+      ]);
+
+      const result = await svc.resolveForTier('agent-1', 'simple');
+
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.fallback_routes).toBeNull();
+    });
+
     it('uses the default reason when the caller passes "default"', async () => {
       tierService.getTiers.mockResolvedValue([
         {

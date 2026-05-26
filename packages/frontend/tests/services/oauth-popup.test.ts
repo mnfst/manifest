@@ -33,7 +33,10 @@ describe("monitorOAuthPopup", () => {
     vi.advanceTimersByTime(30_000);
 
     // fullCleanup should have been called — removeEventListener is evidence
-    expect(removeListenerSpy).toHaveBeenCalledWith("message", expect.any(Function));
+    expect(removeListenerSpy).toHaveBeenCalledWith(
+      "message",
+      expect.any(Function),
+    );
 
     // Popup closed without a result — onFailure should be called to unblock UI
     expect(onSuccess).not.toHaveBeenCalled();
@@ -63,7 +66,7 @@ describe("monitorOAuthPopup", () => {
 
     // Simulate postMessage arriving before the 5-minute timeout
     window.dispatchEvent(
-      new MessageEvent("message", { data: { type: "manifest-oauth-success" } })
+      new MessageEvent("message", { data: { type: "manifest-oauth-success" } }),
     );
 
     expect(onSuccess).toHaveBeenCalledTimes(1);
@@ -96,7 +99,7 @@ describe("monitorOAuthPopup", () => {
 
     // Send a non-OAuth message
     window.dispatchEvent(
-      new MessageEvent("message", { data: { type: "unrelated-event" } })
+      new MessageEvent("message", { data: { type: "unrelated-event" } }),
     );
 
     vi.advanceTimersByTime(300);
@@ -110,6 +113,30 @@ describe("monitorOAuthPopup", () => {
     vi.advanceTimersByTime(300);
 
     expect(onSuccess).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+  });
+
+  it("recognizes custom provider done paths during URL polling", () => {
+    let href = "https://auth.x.ai/oauth2/authorize";
+    const popup = {
+      closed: false,
+      close: vi.fn(),
+      location: {
+        get href() {
+          return href;
+        },
+      },
+    } as unknown as Window;
+
+    const onSuccess = vi.fn();
+    const onFailure = vi.fn();
+
+    monitorOAuthPopup(popup, { onSuccess, onFailure }, "/oauth/xai/done");
+
+    href = "http://127.0.0.1:38284/api/v1/oauth/xai/done?ok=1";
+    vi.advanceTimersByTime(300);
+
+    expect(onSuccess).toHaveBeenCalledTimes(1);
     expect(onFailure).not.toHaveBeenCalled();
   });
 });

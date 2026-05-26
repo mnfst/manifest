@@ -16,17 +16,23 @@ vi.mock("@solidjs/meta", () => ({
 
 const mockGetMessages = vi.fn();
 const mockGetCustomProviders = vi.fn();
+const mockGetSpecificityAssignments = vi.fn();
 const mockGetMessageDetails = vi.fn();
 const mockGetRoutingStatus = vi.fn();
+const mockListHeaderTiers = vi.fn();
 const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
+const mockDeleteMessageRecording = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+  getSpecificityAssignments: (...args: unknown[]) => mockGetSpecificityAssignments(...args),
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
   getRoutingStatus: (...args: unknown[]) => mockGetRoutingStatus(...args),
+  listHeaderTiers: (...args: unknown[]) => mockListHeaderTiers(...args),
   setMessageFeedback: (...args: unknown[]) => mockSetMessageFeedback(...args),
   clearMessageFeedback: (...args: unknown[]) => mockClearMessageFeedback(...args),
+  deleteMessageRecording: (...args: unknown[]) => mockDeleteMessageRecording(...args),
 }));
 
 vi.mock("../../src/services/sse.js", () => ({
@@ -49,6 +55,8 @@ vi.mock("../../src/services/formatters.js", () => ({
   formatDuration: (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`,
   formatErrorMessage: (s: string) => s,
   customProviderColor: vi.fn(() => '#6366f1'),
+  sortedHeaderEntries: (h: Record<string, string> | null | undefined) =>
+    Object.entries(h ?? {}).sort(([a], [b]) => a.localeCompare(b)),
 }));
 
 const mockCheckIsSelfHosted = vi.fn(() => Promise.resolve(false));
@@ -58,7 +66,13 @@ vi.mock("../../src/services/setup-status.js", () => ({
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""}>
+    <div
+      data-testid="setup-modal"
+      data-open={props.open ? "true" : "false"}
+      data-agent={props.agentName ?? ""}
+      data-platform={props.agentPlatform ?? ""}
+      data-category={props.agentCategory ?? ""}
+    >
       <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
     </div>
   ),
@@ -119,7 +133,9 @@ describe("MessageLog", () => {
     localStorage.clear();
     mockAgentName = "test-agent";
     mockGetCustomProviders.mockResolvedValue([]);
+    mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
+    mockListHeaderTiers.mockResolvedValue([]);
   });
 
   it("renders Messages heading", () => {
@@ -229,6 +245,8 @@ describe("MessageLog", () => {
       const selects = container.querySelectorAll('[data-testid="select"]');
       expect(selects.length).toBeGreaterThanOrEqual(1);
     });
+    expect(container.textContent).not.toContain("Recorded only");
+    expect(container.querySelector(".msg-recorded-filter")).toBeNull();
   });
 
   it("renders provider display names in the filter dropdown", async () => {
@@ -650,19 +668,38 @@ describe("MessageLog", () => {
     });
   });
 
-  it("shows $0.00 cost for subscription auth_type messages", async () => {
+  it("shows $0.00 cost for flat-fee subscription messages (cost null)", async () => {
     const dataWithSub = {
       ...messagesData,
       items: [
-        { ...messagesData.items[0], auth_type: "subscription", cost: 0.05 },
+        { ...messagesData.items[0], auth_type: "subscription", cost: null },
       ],
       total_count: 1,
     };
     mockGetMessages.mockResolvedValue(dataWithSub);
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      // Subscription messages show "$0.00" instead of actual cost
       expect(container.textContent).toContain("$0.00");
+      expect(container.querySelector('[title="Included in subscription"]')).not.toBeNull();
+    });
+  });
+
+  it("shows the recorded per-request cost for OpenCode Go subscription messages", async () => {
+    const dataWithPerRequestSub = {
+      ...messagesData,
+      items: [
+        { ...messagesData.items[0], auth_type: "subscription", cost: 0.013636 },
+      ],
+      total_count: 1,
+    };
+    mockGetMessages.mockResolvedValue(dataWithPerRequestSub);
+    const { container } = render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      // Per-request subscriptions (OpenCode Go) record real costs — don't hide them.
+      expect(container.textContent).toContain("$0.01");
+      expect(
+        container.querySelector('[title^="Per-request subscription cost:"]'),
+      ).not.toBeNull();
     });
   });
 
@@ -1013,6 +1050,119 @@ describe("MessageLog", () => {
     });
   });
 
+  describe("Recording modal", () => {
+    it("opens the recorded-message modal when the row is clicked", async () => {
+      const withRecording = {
+        ...messagesData,
+        items: [{ ...messagesData.items[0], recorded: true }, messagesData.items[1]],
+      };
+      mockGetMessages.mockResolvedValue(withRecording);
+      mockGetMessageDetails.mockResolvedValue({
+        message: {
+          id: withRecording.items[0].id,
+          timestamp: withRecording.items[0].timestamp,
+          model: "gpt-4o",
+          request_headers: {},
+          recorded: true,
+        },
+        recording: {
+          request_body: {},
+          response_body: null,
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+        llm_calls: [],
+        tool_executions: [],
+        agent_logs: [],
+      });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".msg-row--clickable")).not.toBeNull();
+      });
+      fireEvent.click(container.querySelector(".msg-row--clickable") as HTMLElement);
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Message log");
+      });
+    });
+
+    it("refetches the messages list after deleting a recording from the modal", async () => {
+      const withRecording = {
+        ...messagesData,
+        items: [{ ...messagesData.items[0], recorded: true }, messagesData.items[1]],
+      };
+      mockGetMessages.mockResolvedValue(withRecording);
+      mockGetMessageDetails.mockResolvedValue({
+        message: {
+          id: withRecording.items[0].id,
+          timestamp: withRecording.items[0].timestamp,
+          model: "gpt-4o",
+          request_headers: {},
+          recorded: true,
+        },
+        recording: {
+          request_body: {},
+          response_body: null,
+          response_headers: {},
+          size_bytes: 0,
+          created_at: "",
+        },
+        llm_calls: [],
+        tool_executions: [],
+        agent_logs: [],
+      });
+      mockDeleteMessageRecording.mockResolvedValue(undefined);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector(".msg-row--clickable")).not.toBeNull();
+      });
+      // Open the recording modal by clicking the row
+      fireEvent.click(container.querySelector(".msg-row--clickable") as HTMLElement);
+      await vi.waitFor(() => {
+        expect(document.body.textContent).toContain("Message log");
+      });
+      // Open the overflow menu so the delete affordance is in the DOM.
+      // The overflow menu is now inside the DrawerHeader (the "More actions" button).
+      await vi.waitFor(() => {
+        const moreBtn = Array.from(document.querySelectorAll('button[aria-label="More actions"]'));
+        expect(moreBtn.length).toBeGreaterThan(0);
+      });
+      fireEvent.click(
+        Array.from(document.querySelectorAll('button[aria-label="More actions"]'))[0] as HTMLElement,
+      );
+      await vi.waitFor(() => {
+        const btn = Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Delete recording",
+        );
+        expect(btn).not.toBeUndefined();
+      });
+      // Snapshot getMessages call count before delete
+      const callsBeforeDelete = mockGetMessages.mock.calls.length;
+      const deleteBtn = Array.from(document.querySelectorAll("button")).find(
+        (b) => b.textContent?.trim() === "Delete recording",
+      ) as HTMLButtonElement;
+      expect(deleteBtn).not.toBeUndefined();
+      fireEvent.click(deleteBtn);
+      // Confirm the delete — now it's a modal with "Delete recording" confirm button
+      await vi.waitFor(() => {
+        const confirmBtn = Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Delete recording" && b.classList.contains("btn--danger"),
+        );
+        expect(confirmBtn).not.toBeUndefined();
+      });
+      fireEvent.click(
+        Array.from(document.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Delete recording" && b.classList.contains("btn--danger"),
+        ) as HTMLButtonElement,
+      );
+      // deleteMessageRecording should have been called and MessageLog should refetch
+      await vi.waitFor(() => {
+        expect(mockDeleteMessageRecording).toHaveBeenCalledWith("msg-12345678");
+        expect(mockGetMessages.mock.calls.length).toBeGreaterThan(callsBeforeDelete);
+      });
+    });
+  });
+
   describe("Tier filter", () => {
     it("renders a Tier select with Playground among the options", async () => {
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1027,6 +1177,35 @@ describe("MessageLog", () => {
       expect(tierSelect.textContent).toContain("All tiers");
       expect(tierSelect.textContent).toContain("Playground");
       expect(tierSelect.textContent).toContain("Simple");
+    });
+
+    it("adds active task-specific categories and defined custom tiers to the tier options", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockGetSpecificityAssignments.mockResolvedValue([
+        { category: "coding", is_active: true },
+        { category: "trading", is_active: false },
+      ]);
+      mockListHeaderTiers.mockResolvedValue([
+        { id: "ht-premium", name: "Premium", enabled: true, sort_order: 0 },
+        { id: "ht-legacy", name: "Legacy", enabled: false, sort_order: 1 },
+      ]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const tierSelect = container.querySelectorAll(
+          '[data-testid="select"]',
+        )[1] as HTMLSelectElement;
+        expect(tierSelect.textContent).toContain("Coding");
+        expect(tierSelect.textContent).toContain("Premium");
+      });
+
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      expect(tierSelect.textContent).not.toContain("Trading");
+      expect(tierSelect.textContent).toContain("Legacy");
+      expect(tierSelect.textContent).not.toContain("Task:");
+      expect(tierSelect.textContent).not.toContain("Custom:");
     });
 
     it("sends routing_tier in the query when a tier is selected", async () => {
@@ -1046,6 +1225,56 @@ describe("MessageLog", () => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.routing_tier).toBe("playground");
+      });
+    });
+
+    it("sends specificity_category in the query when a task category is selected", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockGetSpecificityAssignments.mockResolvedValue([{ category: "coding", is_active: true }]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelectorAll('[data-testid="select"]').length).toBeGreaterThanOrEqual(
+          2,
+        );
+      });
+
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      mockGetMessages.mockClear();
+      fireEvent.change(tierSelect, { target: { value: "specificity:coding" } });
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.specificity_category).toBe("coding");
+        expect(lastQ.routing_tier).toBeUndefined();
+      });
+    });
+
+    it("sends header_tier_id in the query when a custom tier is selected", async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockListHeaderTiers.mockResolvedValue([{ id: "ht-premium", name: "Premium" }]);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelectorAll('[data-testid="select"]').length).toBeGreaterThanOrEqual(
+          2,
+        );
+      });
+
+      const tierSelect = container.querySelectorAll(
+        '[data-testid="select"]',
+      )[1] as HTMLSelectElement;
+      mockGetMessages.mockClear();
+      fireEvent.change(tierSelect, { target: { value: "header:ht-premium" } });
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.header_tier_id).toBe("ht-premium");
+        expect(lastQ.routing_tier).toBeUndefined();
       });
     });
   });

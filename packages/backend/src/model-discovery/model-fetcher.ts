@@ -6,7 +6,7 @@
  * DiscoveredModel objects cached in user_providers.cached_models.
  */
 
-import type { AuthType } from 'manifest-shared';
+import type { AuthType, ModelCapability } from 'manifest-shared';
 
 export interface DiscoveredModel {
   id: string;
@@ -17,6 +17,7 @@ export interface DiscoveredModel {
   outputPricePerToken: number | null;
   capabilityReasoning: boolean;
   capabilityCode: boolean;
+  capabilities?: readonly ModelCapability[];
   qualityScore: number;
   authType?: AuthType;
 }

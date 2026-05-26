@@ -178,6 +178,8 @@ export class AgentDuplicationService {
             api_key_encrypted: p.api_key_encrypted,
             key_prefix: p.key_prefix,
             auth_type: p.auth_type,
+            label: p.label,
+            priority: p.priority,
             region: p.region,
             is_active: p.is_active,
             connected_at: now,
@@ -201,6 +203,8 @@ export class AgentDuplicationService {
             override_route: t.override_route,
             auto_assigned_route: t.auto_assigned_route,
             fallback_routes: t.fallback_routes,
+            output_modality: t.output_modality,
+            response_mode: t.response_mode,
             updated_at: now,
           })),
         );
@@ -220,6 +224,8 @@ export class AgentDuplicationService {
             override_route: s.override_route,
             auto_assigned_route: s.auto_assigned_route,
             fallback_routes: s.fallback_routes,
+            output_modality: s.output_modality,
+            response_mode: s.response_mode,
             updated_at: now,
           })),
         );

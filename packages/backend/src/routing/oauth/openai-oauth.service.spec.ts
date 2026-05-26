@@ -170,6 +170,40 @@ describe('OpenaiOauthService', () => {
     });
   });
 
+  describe('callback handler', () => {
+    it('shuts down the callback server after a callback exchange failure', async () => {
+      fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
+      const url = await svc.generateAuthorizationUrl('a', 'u', 'http://localhost:3001');
+      const state = new URL(url).searchParams.get('state')!;
+      const close = jest.fn();
+      const serviceInternals = svc as unknown as {
+        callbackServer: { close: () => void } | null;
+        serverReady: Promise<void> | null;
+      };
+      serviceInternals.callbackServer = { close };
+      serviceInternals.serverReady = Promise.resolve();
+      const req = { url: `/auth/callback?state=${state}&code=bad` };
+      let resolveResponse!: () => void;
+      const responseDone = new Promise<void>((resolve) => {
+        resolveResponse = resolve;
+      });
+      const res = { writeHead: jest.fn(), end: jest.fn(resolveResponse) };
+
+      (
+        svc as unknown as {
+          handleCallbackRequest: (request: typeof req, response: typeof res) => void;
+        }
+      ).handleCallbackRequest(req, res);
+      await responseDone;
+
+      expect(close).toHaveBeenCalled();
+      expect(serviceInternals.callbackServer).toBeNull();
+      expect(serviceInternals.serverReady).toBeNull();
+      expect(svc.getPendingCount()).toBe(0);
+      expect(res.end).toHaveBeenCalled();
+    });
+  });
+
   describe('refreshAccessToken', () => {
     it('returns a fresh blob with a new expiry', async () => {
       fetchMock.mockResolvedValue(
@@ -229,6 +263,21 @@ describe('OpenaiOauthService', () => {
       const blob = { t: 'old', r: 'rf', e: Date.now() + 1000 };
       fetchMock.mockRejectedValue(new Error('network'));
       expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
+    });
+
+    // Regression: a still-valid access token must be returned even when the
+    // OAuth response omitted a refresh token. The earlier check
+    // `!blob.t || !blob.r || !blob.e` short-circuited usable tokens to null.
+    it('returns the access token for a valid blob with no refresh token', async () => {
+      const blob = { t: 'still-good', r: '', e: Date.now() + 10 * 60 * 1000 };
+      expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBe('still-good');
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('returns null for an expired blob with no refresh token (cannot refresh)', async () => {
+      const blob = { t: 'old', r: '', e: Date.now() + 1000 };
+      expect(await svc.unwrapToken(JSON.stringify(blob), 'a', 'u')).toBeNull();
+      expect(fetchMock).not.toHaveBeenCalled();
     });
   });
 

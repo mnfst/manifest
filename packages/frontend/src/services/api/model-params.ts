@@ -1,8 +1,8 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
 import type { AuthType } from './routing.js';
-import type { ProviderParamSpecCatalog, RequestParamDefaults } from 'manifest-shared';
+import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
-export type { ProviderParamSpecCatalog } from 'manifest-shared';
+export type { ProviderParamSpec } from 'manifest-shared';
 
 /**
  * Per-route saved request body defaults. The frontend fetches the full set
@@ -17,8 +17,39 @@ export interface AgentModelParamsRow {
   params: RequestParamDefaults;
 }
 
-export function listModelParamSpecs(agentName: string) {
-  return fetchJson<ProviderParamSpecCatalog>(routingPath(agentName, 'model-param-specs'));
+/**
+ * Specs for a single route, fetched on demand when the user opens that model's
+ * parameter dialog. Replaces a full-catalog download on Routing-page boot, so
+ * the payload stays flat (~1 model) as the MPS catalog grows. Returns `[]` when
+ * the model has no configurable parameters.
+ */
+export function getModelParamSpecs(
+  agentName: string,
+  provider: string,
+  authType: AuthType,
+  model: string,
+) {
+  return fetchJson<ProviderParamSpec[]>(routingPath(agentName, 'model-param-specs/by-model'), {
+    provider,
+    authType,
+    model,
+  });
+}
+
+/** Route identity of a model that has configurable params (no param metadata). */
+export interface ModelParamSpecId {
+  provider: string;
+  authType: AuthType;
+  model: string;
+}
+
+/**
+ * Lightweight identities of every model that has configurable specs. Loaded
+ * once on Routing page boot so each row can decide whether to show the params
+ * affordance — far cheaper than the full catalog since it omits param details.
+ */
+export function listModelParamSpecIndex(agentName: string) {
+  return fetchJson<ModelParamSpecId[]>(routingPath(agentName, 'model-param-specs/index'));
 }
 
 export function listModelParams(agentName: string) {

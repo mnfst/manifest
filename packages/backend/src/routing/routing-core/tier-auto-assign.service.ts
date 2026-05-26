@@ -7,7 +7,7 @@ import { DiscoveredModel } from '../../model-discovery/model-fetcher';
 import { randomUUID } from 'crypto';
 import { Tier } from '../../scoring/types';
 import type { ModelRoute } from 'manifest-shared';
-import { TIER_SLOTS } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY, TIER_SLOTS } from 'manifest-shared';
 
 /**
  * OpenAI subscription tokens only work with Codex models (zero cost).
@@ -96,6 +96,8 @@ export class TierAutoAssignService {
           override_route: null,
           auto_assigned_route: best?.route ?? null,
           fallback_routes: null,
+          output_modality: DEFAULT_OUTPUT_MODALITY,
+          response_mode: DEFAULT_RESPONSE_MODE,
         });
       }
     }

@@ -1,9 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
+
 const mockSetFallbacks = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   setFallbacks: (...args: unknown[]) => mockSetFallbacks(...args),
+}));
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
 }));
 
 const mockToastError = vi.fn();
@@ -56,7 +67,8 @@ vi.mock('../../src/services/routing-utils.js', () => ({
   usedKeyLabelsForModelInTier: () => new Set<string>(),
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
+vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/services/formatters.js')>()),
   customProviderColor: () => '#000',
 }));
 
@@ -81,10 +93,14 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.persistClearFallbacks,
       props.getModelParams,
       props.setModelParams,
+      props.modelHasParams,
+      props.modelParamsScope,
+      props.responseMode,
     ];
     void _read;
     return (
       <div data-testid="fallback-list">
+        <span data-testid="fallback-response-mode">{String(props.responseMode ?? '')}</span>
         <button
           data-testid="trigger-update"
           onClick={() =>
@@ -261,6 +277,47 @@ describe('RoutingTierCard', () => {
     expect(container.querySelector('.routing-card__main')?.textContent).toContain('GPT-4o');
   });
 
+  it('marks a non-stream primary as skipped and passes stream mode to fallbacks', () => {
+    const streamTier = {
+      ...baseTier,
+      response_mode: 'stream' as const,
+      override_route: { provider: 'custom:local', authType: 'api_key' as const, model: 'legacy' },
+      fallback_routes: [{ provider: 'openai', authType: 'api_key' as const, model: 'gpt-4o' }],
+    };
+    const streamModels: AvailableModel[] = [
+      ...models,
+      {
+        model_name: 'legacy',
+        provider: 'custom:local',
+        auth_type: 'api_key',
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        context_window: 8000,
+        capability_reasoning: false,
+        capability_code: false,
+        quality_score: 1,
+        display_name: 'Legacy',
+        capabilities: ['text'],
+      },
+    ];
+
+    const { container, getByTestId } = render(() => (
+      <RoutingTierCard
+        {...makeProps({
+          tier: () => streamTier,
+          models: () => streamModels,
+          getFallbacksFor: () => streamTier.fallback_routes.map((r) => r.model),
+        })}
+      />
+    ));
+
+    expect(container.querySelector('.routing-card__model-chip--skipped')).not.toBeNull();
+    expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
+      'Skipped in Stream',
+    );
+    expect(getByTestId('fallback-response-mode').textContent).toBe('stream');
+  });
+
   it('renders the loading skeleton when tiersLoading is true', () => {
     const { container } = render(() => <RoutingTierCard {...makeProps({ tiersLoading: true })} />);
     expect(container.querySelector('.skeleton')).not.toBeNull();
@@ -297,7 +354,11 @@ describe('RoutingTierCard', () => {
   it('opens the dropdown when the change button is clicked', () => {
     const onDropdownOpen = vi.fn();
     const { container } = render(() => <RoutingTierCard {...makeProps({ onDropdownOpen })} />);
-    fireEvent.click(container.querySelector('.routing-card__chip-action') as HTMLButtonElement);
+    // The params affordance shares the chip-action class, so target the change
+    // button by its aria-label.
+    fireEvent.click(
+      container.querySelector('button[aria-label^="Change model for"]') as HTMLButtonElement,
+    );
     expect(onDropdownOpen).toHaveBeenCalledWith('simple');
   });
 
@@ -569,6 +630,48 @@ describe('RoutingTierCard', () => {
       />
     ));
     expect(container.textContent).toContain('Included in subscription');
+  });
+
+  it('renders the per-request cost for per-request subscriptions', () => {
+    const tier = {
+      ...baseTier,
+      override_route: {
+        provider: 'opencode-go',
+        authType: 'subscription' as const,
+        model: 'opencode-go/glm-5.1',
+      },
+    };
+    const subProviders: RoutingProvider[] = [
+      {
+        id: 'p4',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        is_active: true,
+        has_api_key: false,
+        connected_at: '2025-01-01',
+      },
+    ];
+    const gatewayModels: AvailableModel[] = [
+      {
+        ...models[0],
+        model_name: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        display_name: 'GLM-5.1',
+        cost_per_request: 0.013636,
+      },
+    ];
+    const { container } = render(() => (
+      <RoutingTierCard
+        {...makeProps({
+          tier: () => tier,
+          activeProviders: () => subProviders,
+          models: () => gatewayModels,
+        })}
+      />
+    ));
+    expect(container.textContent).toContain('$0.0136/req');
+    expect(container.textContent).not.toContain('Included in subscription');
   });
 
   it('renders the custom-provider letter in the chip when override_route is custom', () => {
@@ -1257,12 +1360,9 @@ describe('providerIdForModel route-provider attribution', () => {
     expect(id).toBe('openai');
   });
 
-  // Exercise the affordance JSX with a provider that has a registered param
-  // spec (deepseek). Solid lazily evaluates each JSX prop expression, so the
-  // affordance Show block's inner attributes (provider, authType, model,
-  // slotLabel, getParams, setParams) only fire when the child renders. With
-  // openai (no specs) the child returns null and those attributes stay
-  // unevaluated — a deepseek tier triggers them all.
+  // Exercise the save path with a provider that has a registered param spec.
+  // Solid lazily evaluates each JSX prop expression, so `setParams` is only
+  // read after the affordance opens and the dialog saves.
   it('renders the params affordance on the primary chip and forwards saves through setModelParams', async () => {
     const setModelParams = vi.fn().mockResolvedValue(undefined);
     const deepseekTier = {
@@ -1290,10 +1390,10 @@ describe('providerIdForModel route-provider attribution', () => {
           connectedProviders: () => deepseekProviders,
           getModelParams: () => null,
           setModelParams,
-          modelParamSpecs: () => modelParamSpecs,
         })}
       />
     ));
+    vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
     const btn = container.querySelector(
       '[aria-label="Configure model parameters for DeepSeek V4"]',
     ) as HTMLButtonElement;

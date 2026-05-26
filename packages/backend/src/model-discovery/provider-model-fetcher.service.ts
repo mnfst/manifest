@@ -11,12 +11,19 @@ import {
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
 import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
+import {
+  buildKiroHeaders,
+  KIRO_BASE_URL,
+  KIRO_MODELS_TARGET,
+  parseKiroModels,
+} from '../routing/proxy/kiro-adapter';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
+const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 
 /* ── Generic parser factory ── */
 
@@ -91,6 +98,16 @@ function parseOpenAIDeduped(body: unknown, provider: string): DiscoveredModel[] 
   });
 }
 
+function parseOpenAIDedupedById(body: unknown, provider: string): DiscoveredModel[] {
+  const parsed = parseOpenAI(body, provider);
+  const seen = new Set<string>();
+  return parsed.filter((m) => {
+    if (seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
+}
+
 /* ── Universal non-chat model filter ── */
 
 /**
@@ -129,7 +146,9 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // Note: do NOT block "safeguard" — Groq's gpt-oss-safeguard-20b is a chat
   // model the user can call.
   groq: /(?:(?:^|\/|-)compound|prompt-guard|orpheus)/i,
-  xai: /(?:imagine|multi-agent)/i,
+  nvidia:
+    /(?:flux|cosmos|detector|gliner|calibration|embed|retriever|parse|tts|translate|safety|guard|reward|nvclip|vila|neva)/i,
+  xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
 };
 
@@ -287,6 +306,52 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
     });
 }
 
+interface KiloModelEntry {
+  id: string;
+  name?: string;
+  context_length?: number;
+  architecture?: { output_modalities?: string[] };
+  top_provider?: { context_length?: number };
+  pricing?: { prompt?: string; completion?: string };
+  supported_parameters?: string[];
+}
+
+function parseKilo(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown[] })?.data;
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((m: unknown) => {
+      const entry = m as KiloModelEntry;
+      if (typeof entry.id !== 'string' || entry.id.length === 0) return false;
+      const output = entry.architecture?.output_modalities?.map((o) => o.toLowerCase());
+      if (output && output.length > 0 && !output.every((o) => o === 'text')) {
+        return false;
+      }
+      return true;
+    })
+    .map((m: unknown) => {
+      const entry = m as KiloModelEntry;
+      const supported = Array.isArray(entry.supported_parameters) ? entry.supported_parameters : [];
+      const prompt = entry.pricing?.prompt ? Number(entry.pricing.prompt) : null;
+      const completion = entry.pricing?.completion ? Number(entry.pricing.completion) : null;
+      return {
+        id: entry.id,
+        displayName: entry.name || entry.id,
+        provider,
+        contextWindow:
+          entry.context_length ?? entry.top_provider?.context_length ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken:
+          prompt !== null && Number.isFinite(prompt) && prompt >= 0 ? prompt : null,
+        outputPricePerToken:
+          completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
+        capabilityReasoning:
+          supported.includes('reasoning') || supported.includes('include_reasoning'),
+        capabilityCode: supported.includes('tools'),
+        qualityScore: 3,
+      };
+    });
+}
+
 interface OllamaModelEntry {
   name: string;
   details?: { family?: string; parameter_size?: string };
@@ -362,6 +427,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  kilo: {
+    endpoint: `${KILO_GATEWAY_BASE}/models`,
+    buildHeaders: bearerHeaders,
+    parse: parseKilo,
+  },
   mistral: {
     endpoint: 'https://api.mistral.ai/v1/models',
     buildHeaders: bearerHeaders,
@@ -371,6 +441,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  nvidia: {
+    endpoint: 'https://integrate.api.nvidia.com/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAIDedupedById,
   },
   xai: {
     endpoint: 'https://api.x.ai/v1/models',
@@ -483,6 +558,13 @@ export class ProviderModelFetcherService {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
       return this.fetchOpencodeGoCatalog();
+    } else if (configKey === 'gemini' && authType === 'subscription') {
+      // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
+      // `/models` endpoint; the discovery fallback chain pulls Gemini
+      // models from the OpenRouter cache instead.
+      return [];
+    } else if (configKey === 'kiro') {
+      return this.fetchKiroModels(apiKey);
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {
@@ -549,5 +631,55 @@ export class ProviderModelFetcherService {
       capabilityCode: true,
       qualityScore: 3,
     }));
+  }
+
+  private async fetchKiroModels(apiKey: string): Promise<DiscoveredModel[]> {
+    const models: DiscoveredModel[] = [];
+    let nextToken: string | undefined;
+
+    try {
+      for (let page = 0; page < 10; page += 1) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+        let res: Response;
+        try {
+          res = await fetch(KIRO_BASE_URL, {
+            method: 'POST',
+            headers: buildKiroHeaders(apiKey, KIRO_MODELS_TARGET),
+            body: JSON.stringify({
+              origin: 'KIRO_CLI',
+              maxResults: 100,
+              ...(nextToken ? { nextToken } : {}),
+            }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
+
+        if (!res.ok) {
+          this.logger.warn(`Provider kiro returned ${res.status} from ${KIRO_BASE_URL}`);
+          return [];
+        }
+
+        const body = await res.json();
+        models.push(...parseKiroModels(body, 'kiro'));
+        const maybeNextToken = (body as { nextToken?: unknown; next_token?: unknown }).nextToken;
+        const snakeNextToken = (body as { next_token?: unknown }).next_token;
+        nextToken =
+          typeof maybeNextToken === 'string'
+            ? maybeNextToken
+            : typeof snakeNextToken === 'string'
+              ? snakeNextToken
+              : undefined;
+        if (!nextToken) break;
+      }
+
+      return filterNonChatModels(models, 'kiro');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch models from kiro: ${message}`);
+      return [];
+    }
   }
 }

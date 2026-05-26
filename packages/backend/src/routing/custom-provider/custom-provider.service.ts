@@ -3,6 +3,8 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  Inject,
+  Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,7 +15,11 @@ import {
   normalizeProviderName,
 } from 'manifest-shared';
 import type { AuthType } from 'manifest-shared';
-import { CustomProvider, CustomProviderApiKind } from '../../entities/custom-provider.entity';
+import {
+  CustomProvider,
+  CustomProviderApiKind,
+  CustomProviderModel,
+} from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service';
@@ -21,6 +27,7 @@ import { CreateCustomProviderDto, UpdateCustomProviderDto } from '../dto/custom-
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 import { classifyProbeError } from './probe-error';
 
 const PROBE_TIMEOUT_MS = 5000;
@@ -68,6 +75,9 @@ export class CustomProviderService {
     private readonly routingCache: RoutingCacheService,
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
+    @Optional()
+    @Inject(ModelsDevSyncService)
+    private readonly modelsDevSync: ModelsDevSyncService | null = null,
   ) {}
 
   /** Provider key used in UserProvider tables. */
@@ -203,12 +213,7 @@ export class CustomProviderService {
       name: dto.name,
       base_url: dto.base_url,
       api_kind: dto.api_kind ?? 'openai',
-      models: dto.models.map((m) => ({
-        model_name: m.model_name,
-        input_price_per_million_tokens: m.input_price_per_million_tokens,
-        output_price_per_million_tokens: m.output_price_per_million_tokens,
-        context_window: m.context_window ?? 128000,
-      })),
+      models: this.enrichCustomProviderModels(dto.name, dto.models),
       created_at: new Date().toISOString(),
     });
     await this.repo.insert(cp);
@@ -269,12 +274,7 @@ export class CustomProviderService {
     }
 
     if (dto.models !== undefined) {
-      cp.models = dto.models.map((m) => ({
-        model_name: m.model_name,
-        input_price_per_million_tokens: m.input_price_per_million_tokens,
-        output_price_per_million_tokens: m.output_price_per_million_tokens,
-        context_window: m.context_window ?? 128000,
-      }));
+      cp.models = this.enrichCustomProviderModels(cp.name, dto.models);
     }
 
     // Retag auth_type when the name changes categories (freeform ↔ canonical
@@ -364,7 +364,8 @@ export class CustomProviderService {
     baseUrl: string,
     apiKey?: string,
     apiKind: CustomProviderApiKind = 'openai',
-  ): Promise<{ model_name: string }[]> {
+    providerName?: string,
+  ): Promise<CustomProviderModel[]> {
     try {
       await validatePublicUrl(baseUrl, { allowPrivate: isSelfHosted() });
     } catch (err) {
@@ -412,12 +413,68 @@ export class CustomProviderService {
         (m): m is { id: string } =>
           typeof m.id === 'string' && m.id.length > 0 && !isEmbeddingModel(m.id),
       );
-      return filtered.map((m) => ({ model_name: m.id }));
+      return this.enrichCustomProviderModels(
+        providerName,
+        filtered.map((m) => ({ model_name: m.id })),
+        { defaultContextWindow: false },
+      );
     } catch (err) {
       if (err instanceof BadRequestException) throw err;
       throw new BadRequestException(classifyProbeError({ url, error: err as Error }).message);
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  private enrichCustomProviderModels(
+    providerName: string | undefined,
+    models: readonly CustomProviderModel[],
+    options: { defaultContextWindow?: boolean } = {},
+  ): CustomProviderModel[] {
+    return models.map((model) => {
+      const modelsDevMatch =
+        providerName && this.modelsDevSync
+          ? this.modelsDevSync.lookupCustomProviderModel(providerName, model.model_name)
+          : null;
+      const modelOnlyMatch =
+        !modelsDevMatch && this.modelsDevSync
+          ? ((this.modelsDevSync as Partial<ModelsDevSyncService>).lookupModelAcrossProviders?.(
+              model.model_name,
+            ) ?? null)
+          : null;
+      const priceSource = modelsDevMatch ?? modelOnlyMatch;
+      const inputWasFilled =
+        model.input_price_per_million_tokens == null && priceSource?.inputPricePerToken != null;
+      const outputWasFilled =
+        model.output_price_per_million_tokens == null && priceSource?.outputPricePerToken != null;
+      const inputPrice =
+        model.input_price_per_million_tokens ??
+        this.toPricePerMillion(priceSource?.inputPricePerToken);
+      const outputPrice =
+        model.output_price_per_million_tokens ??
+        this.toPricePerMillion(priceSource?.outputPricePerToken);
+      const contextWindow =
+        model.context_window ??
+        priceSource?.contextWindow ??
+        (options.defaultContextWindow === false ? undefined : 128000);
+      const priceEstimated =
+        !modelsDevMatch &&
+        (inputPrice !== undefined || outputPrice !== undefined) &&
+        (model.price_estimated === true || inputWasFilled || outputWasFilled);
+
+      const enriched: CustomProviderModel = {
+        model_name: model.model_name,
+      };
+      if (inputPrice !== undefined) enriched.input_price_per_million_tokens = inputPrice;
+      if (outputPrice !== undefined) enriched.output_price_per_million_tokens = outputPrice;
+      if (contextWindow !== undefined) enriched.context_window = contextWindow;
+      if (priceEstimated) enriched.price_estimated = true;
+      return enriched;
+    });
+  }
+
+  private toPricePerMillion(pricePerToken: number | null | undefined): number | undefined {
+    if (pricePerToken == null) return undefined;
+    return Number((pricePerToken * 1_000_000).toFixed(12));
   }
 }

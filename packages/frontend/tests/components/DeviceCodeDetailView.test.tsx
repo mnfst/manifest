@@ -2,14 +2,40 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createSignal } from 'solid-js';
 import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 
-vi.mock('../../src/services/api.js', () => ({
-  connectProvider: vi.fn(),
-  disconnectProvider: vi.fn(),
-  pollMinimaxOAuth: vi.fn(),
-  revokeMinimaxOAuth: vi.fn(),
-  startMinimaxOAuth: vi.fn(),
-  renameProviderKey: vi.fn(),
-}));
+vi.mock('../../src/services/api.js', () => {
+  const startMinimaxOAuth = vi.fn();
+  const pollMinimaxOAuth = vi.fn();
+  const revokeMinimaxOAuth = vi.fn();
+  const startKiroOAuth = vi.fn();
+  const pollKiroOAuth = vi.fn();
+  const revokeKiroOAuth = vi.fn();
+  const deviceApis: Record<string, unknown> = {
+    minimax: {
+      start: startMinimaxOAuth,
+      poll: pollMinimaxOAuth,
+      revoke: revokeMinimaxOAuth,
+      hasRegion: true,
+    },
+    kiro: {
+      start: startKiroOAuth,
+      poll: pollKiroOAuth,
+      revoke: revokeKiroOAuth,
+      hasRegion: false,
+    },
+  };
+  return {
+    connectProvider: vi.fn(),
+    disconnectProvider: vi.fn(),
+    renameProviderKey: vi.fn(),
+    startMinimaxOAuth,
+    pollMinimaxOAuth,
+    revokeMinimaxOAuth,
+    startKiroOAuth,
+    pollKiroOAuth,
+    revokeKiroOAuth,
+    getDeviceCodeApi: (id: string) => deviceApis[id],
+  };
+});
 
 vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn() },
@@ -259,6 +285,44 @@ describe('DeviceCodeDetailView — multi-key', () => {
     expect(onUpdate).toHaveBeenCalled();
   });
 
+  it('single-key disconnect calls revoke and navigates back', async () => {
+    mockRevokeMinimaxOAuth.mockResolvedValue({ ok: true, notifications: [] });
+    const { onBack, onUpdate } = renderMultiKeyMinimax([makeKey({ id: 'only', label: 'Solo' })]);
+
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => {
+      expect(mockRevokeMinimaxOAuth).toHaveBeenCalledWith('test-agent');
+    });
+    expect(onBack).toHaveBeenCalled();
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('single-key disconnect failure resets busy without navigating back', async () => {
+    mockRevokeMinimaxOAuth.mockRejectedValue(new Error('network'));
+    const { onBack } = renderMultiKeyMinimax([makeKey({ id: 'only', label: 'Solo' })]);
+
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => {
+      expect(mockRevokeMinimaxOAuth).toHaveBeenCalledWith('test-agent');
+    });
+    expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('rename is a no-op when the label is unchanged', async () => {
+    const keys = [makeKey({ id: 'k1', label: 'Same' }), makeKey({ id: 'k2', label: 'Other' })];
+    renderMultiKeyMinimax(keys);
+
+    fireEvent.click(screen.getAllByText('Rename')[0]);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Rename Same')).toBeNull();
+    });
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+  });
+
   it('shows Disconnect all button in multi-key mode', () => {
     const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     renderMultiKeyMinimax(keys);
@@ -454,5 +518,72 @@ describe('DeviceCodeDetailView — addKeyOpen effect', () => {
 
     expect(screen.queryByLabelText('MiniMax Coding Plan token')).toBeNull();
     expect(screen.getByText('Disconnect')).toBeDefined();
+  });
+});
+
+function renderKiro() {
+  const provDef = getProvider('kiro')!;
+  const [busy, setBusy] = createSignal(false);
+  const [authType] = createSignal<AuthType>('subscription');
+  const props = {
+    provDef,
+    provId: 'kiro',
+    agentName: 'test-agent',
+    connected: () => false,
+    selectedAuthType: authType,
+    busy,
+    setBusy,
+    onBack: vi.fn(),
+    onUpdate: vi.fn(),
+    onClose: vi.fn(),
+  };
+  return { ...render(() => <DeviceCodeDetailView {...props} />), props };
+}
+
+describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('hides the region selector and shows the generic hint', () => {
+    renderKiro();
+    expect(screen.queryByLabelText('Region')).toBeNull();
+    expect(
+      screen.getByText(
+        'Open the authorization page in your browser to sign in and approve access.',
+      ),
+    ).toBeDefined();
+  });
+
+  it('does not render the MiniMax token-paste alternative', () => {
+    renderKiro();
+    expect(screen.queryByText('Connect with token')).toBeNull();
+  });
+
+  it('starts the device flow without a region argument', async () => {
+    const api = await import('../../src/services/api.js');
+    const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
+    startKiroOAuth.mockResolvedValue({
+      flowId: 'f1',
+      userCode: 'AAAA-BBBB',
+      verificationUri: 'https://view.awsapps.com/start',
+      expiresAt: Date.now() + 60000,
+      pollIntervalMs: 5000,
+    });
+    const openSpy = vi
+      .spyOn(window, 'open')
+      .mockReturnValue({
+        closed: false,
+        opener: null,
+        location: { replace: vi.fn() },
+      } as unknown as Window);
+
+    renderKiro();
+    fireEvent.click(screen.getByText('Connect with Kiro'));
+
+    await waitFor(() => {
+      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', undefined);
+    });
+    openSpy.mockRestore();
   });
 });

@@ -3,12 +3,13 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
-  ProviderParamSpecCatalog,
   RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
+import OutputControls from '../components/OutputControls.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
 export interface RoutingDefaultTierSectionProps {
@@ -39,6 +40,9 @@ export interface RoutingDefaultTierSectionProps {
   complexityEnabled: () => boolean;
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
+  responseMode: () => ResponseMode;
+  changingResponseMode: () => boolean;
+  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
   embedded?: boolean;
   /**
    * Read saved per-route params from the parent's loaded map. Threaded
@@ -63,7 +67,6 @@ export interface RoutingDefaultTierSectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -97,7 +100,6 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         connectedProviders={props.connectedProviders}
         getModelParams={props.getModelParams}
         setModelParams={props.setModelParams}
-        modelParamSpecs={props.modelParamSpecs}
       />
     </div>
   );
@@ -128,7 +130,6 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             connectedProviders={props.connectedProviders}
             getModelParams={props.getModelParams}
             setModelParams={props.setModelParams}
-            modelParamSpecs={props.modelParamSpecs}
           />
         )}
       </For>
@@ -154,6 +155,17 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       ? 'Analyzes the complexity of each request on the fly and routes it to the matching tier.'
       : 'Pick one model and up to 5 fallbacks as your default routing.';
 
+  const controls = () => (
+    <div class="routing-section__controls">
+      <OutputControls
+        responseMode={props.responseMode}
+        disabled={props.changingResponseMode}
+        onResponseModeChange={props.onResponseModeChange}
+      />
+      {switchButton()}
+    </div>
+  );
+
   if (props.embedded) {
     return (
       <div>
@@ -162,7 +174,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           style="margin-bottom: 16px;"
         >
           <span class="routing-section__subtitle">{subtitle()}</span>
-          {switchButton()}
+          {controls()}
         </div>
         <Show
           when={props.complexityEnabled()}
@@ -181,7 +193,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           <span class="routing-section__title">Default routing</span>
           <span class="routing-section__subtitle">{subtitle()}</span>
         </div>
-        {switchButton()}
+        {controls()}
       </div>
       <Show when={props.complexityEnabled()} fallback={defaultCard()}>
         {complexityCards()}

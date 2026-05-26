@@ -1,4 +1,3 @@
-import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
 import {
   compareProviderParamSpecs,
   getProviderParamValue,
@@ -8,6 +7,8 @@ import {
   type ModelParamGroup,
   type ProviderParamSpec,
 } from 'manifest-shared';
+import { createEffect, createSignal, For, Show, type Component } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import type { RequestParamDefaults } from '../services/api.js';
 import Select from './Select.jsx';
 
@@ -16,6 +17,10 @@ interface Props {
   slotLabel: string;
   current: RequestParamDefaults | null;
   specs: readonly ProviderParamSpec[];
+  requestParamsUrl?: string;
+  // True while the per-model specs are still being fetched (dialog opens
+  // immediately, specs arrive async).
+  loading?: boolean;
   onSave: (paramDefaults: RequestParamDefaults | null) => Promise<unknown>;
   onClose: () => void;
 }
@@ -31,6 +36,8 @@ const GROUP_LABELS: Record<ModelParamGroup, string> = {
   observability: 'Observability',
   provider_metadata: 'Provider metadata',
 };
+
+const trimTrailingPunct = (text: string): string => text.replace(/[.\s]+$/, '');
 
 const GROUP_ORDER: readonly ModelParamGroup[] = [
   'generation_length',
@@ -91,12 +98,16 @@ const numberDefault = (spec: ProviderParamSpec): number =>
 const ModelParamsDialog: Component<Props> = (props) => {
   const [draft, setDraft] = createSignal<DraftState>(stateFromCurrent(props.specs, props.current));
   const [saving, setSaving] = createSignal(false);
+  const hasSpecs = () => props.specs.length > 0;
 
   createEffect(() => {
     if (props.open) setDraft(stateFromCurrent(props.specs, props.current));
   });
 
   const valueFor = (spec: ProviderParamSpec): JsonValue | undefined => {
+    if (!providerParamIsApplicable(spec, draft())) {
+      return spec.default as JsonValue | undefined;
+    }
     const value = getProviderParamValue(draft(), spec.path);
     return (value === undefined ? spec.default : value) as JsonValue | undefined;
   };
@@ -108,6 +119,63 @@ const ModelParamsDialog: Component<Props> = (props) => {
   const isApplicable = (spec: ProviderParamSpec): boolean =>
     providerParamIsApplicable(spec, draft());
   const isDisabled = (spec: ProviderParamSpec): boolean => saving() || !isApplicable(spec);
+
+  const labelForPath = (path: string): string =>
+    props.specs.find((s) => s.path === path)?.label ?? path;
+
+  const formatValueList = (values: readonly JsonValue[]): string => {
+    const quoted = values.map((v) => `"${String(v)}"`);
+    if (quoted.length === 1) return quoted[0]!;
+    if (quoted.length === 2) return `${quoted[0]} or ${quoted[1]}`;
+    return `${quoted.slice(0, -1).join(', ')}, or ${quoted[quoted.length - 1]}`;
+  };
+
+  const describeBlocker = (spec: ProviderParamSpec): string | null => {
+    if (!spec.applicability) return null;
+    const { only, except } = spec.applicability;
+    if (only) {
+      const rules = Array.isArray(only) ? only : [only];
+      const rule = rules[0];
+      if (!rule) return null;
+      const parts = Object.entries(rule).map(([path, value]) => {
+        const label = labelForPath(path);
+        const list = Array.isArray(value) ? (value as readonly JsonValue[]) : [value as JsonValue];
+        return `set ${label} to ${formatValueList(list)}`;
+      });
+      return `To configure this parameter, ${parts.join(' and ')}.`;
+    }
+    if (except) {
+      const draftSnapshot = draft();
+      const rules = Array.isArray(except) ? except : [except];
+      const active = rules.find((rule) =>
+        Object.entries(rule).every(([path, value]) => {
+          const current = getProviderParamValue(draftSnapshot, path);
+          if (Array.isArray(value))
+            return (value as readonly JsonValue[]).includes(current as JsonValue);
+          if (value !== null && typeof value === 'object' && 'not' in value) {
+            const notVal = (value as { not: JsonValue | readonly JsonValue[] }).not;
+            if (Array.isArray(notVal))
+              return !(notVal as readonly JsonValue[]).includes(current as JsonValue);
+            return current !== notVal;
+          }
+          return current === value;
+        }),
+      );
+      if (!active) return null;
+      const parts = Object.entries(active).map(([path, value]) => {
+        const label = labelForPath(path);
+        if (Array.isArray(value)) {
+          return `${label} is ${formatValueList(value as readonly JsonValue[])}`;
+        }
+        if (value !== null && typeof value === 'object' && 'not' in value) {
+          return `${label} is set to a custom value`;
+        }
+        return `${label} is "${String(value)}"`;
+      });
+      return `Unavailable while ${parts.join(' and ')}.`;
+    }
+    return null;
+  };
 
   const stringValue = (spec: ProviderParamSpec): string => {
     const value = valueFor(spec);
@@ -165,87 +233,98 @@ const ModelParamsDialog: Component<Props> = (props) => {
   );
 
   const SliderRow = (spec: ProviderParamSpec) => {
-    let sliderRef: HTMLDivElement | undefined;
     const min = () => spec.range?.min ?? 0;
     const max = () => spec.range?.max ?? 100;
     const value = () => numericValue(spec);
-    const progress = () => {
-      const span = max() - min();
-      if (span <= 0) return 0;
-      return clampNumber(((value() - min()) / span) * 100, 0, 0, 100);
-    };
-    const setSliderValue = (next: number) => {
+    const setSliderVal = (next: number) => {
       if (isDisabled(spec)) return;
       setValue(spec, sliderValue(next, spec));
-    };
-    const setFromPointer = (clientX: number) => {
-      if (!sliderRef) return;
-      const rect = sliderRef.getBoundingClientRect();
-      const ratio = clampNumber((clientX - rect.left) / rect.width, 0, 0, 1);
-      setSliderValue(min() + ratio * (max() - min()));
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isDisabled(spec)) return;
       const step = sliderStep(spec);
       if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setSliderValue(value() - step);
+        setSliderVal(value() - step);
       } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
         e.preventDefault();
-        setSliderValue(value() + step);
+        setSliderVal(value() + step);
       } else if (e.key === 'Home') {
         e.preventDefault();
-        setSliderValue(min());
+        setSliderVal(min());
       } else if (e.key === 'End') {
         e.preventDefault();
-        setSliderValue(max());
+        setSliderVal(max());
       }
     };
 
+    let numberInputRef: HTMLInputElement | undefined;
+    createEffect(() => {
+      const next = value();
+      if (numberInputRef && document.activeElement !== numberInputRef) {
+        numberInputRef.value = String(next);
+      }
+    });
+
+    const commitFromText = (raw: string) => {
+      if (isDisabled(spec)) return;
+      const normalized = raw.replace(',', '.').trim();
+      if (normalized === '' || normalized === '-' || normalized === '.' || normalized === '-.') {
+        return;
+      }
+      const parsed = Number.parseFloat(normalized);
+      if (!Number.isFinite(parsed)) return;
+      setValue(spec, sliderValue(parsed, spec));
+    };
+
     return (
-      <div class="model-params__range">
-        <div
-          ref={sliderRef}
-          class="model-params__slider"
-          role="slider"
-          tabIndex={isDisabled(spec) ? -1 : 0}
-          aria-label={spec.label}
-          aria-valuemin={min()}
-          aria-valuemax={max()}
-          aria-valuenow={value()}
-          aria-valuetext={String(value())}
-          aria-disabled={isDisabled(spec)}
-          style={`--model-params-slider-progress: ${progress()}%;`}
-          onPointerDown={(e) => {
-            if (isDisabled(spec)) return;
-            e.preventDefault();
-            e.currentTarget.setPointerCapture?.(e.pointerId);
-            setFromPointer(e.clientX);
-          }}
-          onPointerMove={(e) => {
-            if (!e.currentTarget.hasPointerCapture?.(e.pointerId)) return;
-            setFromPointer(e.clientX);
-          }}
-          onPointerUp={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
-          onPointerCancel={(e) => e.currentTarget.releasePointerCapture?.(e.pointerId)}
-          onKeyDown={handleKeyDown}
-        >
-          <span class="model-params__slider-track" aria-hidden="true">
-            <span class="model-params__slider-fill" />
-          </span>
-          <span class="model-params__slider-thumb" aria-hidden="true" />
-        </div>
+      <div
+        class="model-params__slider-control"
+        classList={{ 'model-params__slider-field--disabled': isDisabled(spec) }}
+      >
         <input
-          class="model-params__slider-input"
-          type="number"
-          min={min()}
-          max={max()}
-          step={sliderStep(spec)}
-          value={value()}
+          ref={(el) => {
+            numberInputRef = el;
+            if (el) el.value = String(value());
+          }}
+          type="text"
+          inputmode="decimal"
+          class="model-params__number model-params__number--slider"
           disabled={isDisabled(spec)}
           aria-label={`${spec.label} value`}
-          onInput={(e) => setSliderValue(Number.parseFloat(e.currentTarget.value))}
+          onBlur={(e) => (e.currentTarget.value = String(value()))}
+          onInput={(e) => commitFromText(e.currentTarget.value)}
         />
+        <div class="model-params__slider-field">
+          <div class="model-params__slider-track-wrapper">
+            <div class="model-params__slider-track-bg" />
+            <For each={[0, 25, 50, 75, 100]}>
+              {(pct) => (
+                <span
+                  class="model-params__slider-tick"
+                  style={`left: calc(6px + (100% - 12px) * ${pct} / 100)`}
+                />
+              )}
+            </For>
+            <input
+              type="range"
+              class="model-params__slider"
+              min={min()}
+              max={max()}
+              step={sliderStep(spec)}
+              value={value()}
+              disabled={isDisabled(spec)}
+              aria-label={spec.label}
+              aria-disabled={isDisabled(spec)}
+              onInput={(e) => setSliderVal(Number.parseFloat(e.currentTarget.value))}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          <div class="model-params__slider-bounds">
+            <span class="model-params__slider-bound">{min()}</span>
+            <span class="model-params__slider-bound">{max()}</span>
+          </div>
+        </div>
       </div>
     );
   };
@@ -325,79 +404,173 @@ const ModelParamsDialog: Component<Props> = (props) => {
 
   const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
     const spec = () => rowProps.spec;
+    const description = () => trimTrailingPunct(spec().description) + '.';
+    const defaultLabel = () => (spec().default === undefined ? 'unset' : String(spec().default));
     return (
       <div
         class="model-params__row"
         classList={{ 'model-params__row--disabled': !isApplicable(spec()) }}
       >
-        <div class="model-params__label">
+        <div class="model-params__row-text">
           <div class="model-params__label-title">
             <span>{spec().label}</span>
             <code class="model-params__param-key">{spec().path}</code>
+            <Show when={!isApplicable(spec()) && describeBlocker(spec())}>
+              {(message) => (
+                <span class="model-params__help" tabIndex={0} aria-label={message()}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
+                    <path d="M11 16h2v2h-2zm2.27-9.75c-2.08-.75-4.47.35-5.21 2.41l1.88.68c.18-.5.56-.9 1.07-1.13s1.08-.26 1.58-.08a2.01 2.01 0 0 1 1.32 1.86c0 1.04-1.66 1.86-2.24 2.07-.4.14-.67.52-.67.94v1h2v-.34c1.04-.51 2.91-1.69 2.91-3.68a4.015 4.015 0 0 0-2.64-3.73" />
+                  </svg>
+                  <span class="model-params__help-tooltip" role="tooltip">
+                    {message()}
+                  </span>
+                </span>
+              )}
+            </Show>
           </div>
-          <div class="model-params__label-hint">
-            {isApplicable(spec())
-              ? `Provider default: ${spec().default === undefined ? 'unset' : String(spec().default)}`
-              : 'Unavailable with selected parameters'}
-          </div>
+          <div class="model-params__label-hint">{description()}</div>
+          <div class="model-params__default-hint">Default: {defaultLabel()}</div>
         </div>
-        {renderControl(spec())}
+        <div class="model-params__row-control">{renderControl(spec())}</div>
       </div>
     );
   };
 
   return (
-    <Show when={props.open}>
-      <div
-        class="modal-overlay"
-        onClick={(e) => {
-          if (e.target === e.currentTarget && !saving()) props.onClose();
-        }}
-      >
+    <Portal>
+      <Show when={props.open}>
         <div
-          class="modal-card"
-          style="max-width: 460px;"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="model-params-dialog-title"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={handleKeyDown}
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !saving()) props.onClose();
+          }}
         >
-          <h2 class="modal-card__title" id="model-params-dialog-title">
-            Model parameters
-          </h2>
-          <p class="modal-card__desc">Defaults for {props.slotLabel}. Client requests override.</p>
+          <div
+            class="modal-card model-params__dialog model-params-modal"
+            classList={{ 'model-params-modal--empty': !props.loading && !hasSpecs() }}
+            style="user-select: none;"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="model-params-dialog-title"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleKeyDown}
+          >
+            <h2 class="modal-card__title" id="model-params-dialog-title">
+              Model parameters
+            </h2>
+            <p class="modal-card__desc">
+              {props.loading
+                ? `Loading parameters for ${props.slotLabel}…`
+                : hasSpecs()
+                  ? `Defaults for ${props.slotLabel}. Client requests override.`
+                  : `No parameter controls are published for ${props.slotLabel} yet.`}
+            </p>
 
-          <For each={groupSpecs(props.specs)}>
-            {(group) => (
-              <div class="model-params__group">
-                <div class="model-params__group-header">{GROUP_LABELS[group.group]}</div>
-                <For each={group.specs}>{(spec) => <ParamRow spec={spec} />}</For>
+            <div class="model-params__body">
+              <Show
+                when={!props.loading}
+                fallback={
+                  <div class="model-params__status">
+                    <span class="spinner" />
+                    <span>Loading parameters…</span>
+                  </div>
+                }
+              >
+                <Show
+                  when={hasSpecs()}
+                  fallback={
+                    <div class="model-params__empty">
+                      <Show
+                        when={props.requestParamsUrl}
+                        fallback={
+                          <p class="model-params__status">
+                            This model has no configurable parameters.
+                          </p>
+                        }
+                      >
+                        <a
+                          class="btn btn--outline btn--sm model-params__empty-link"
+                          href={props.requestParamsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Request model parameters for ${props.slotLabel}`}
+                        >
+                          Request parameters for this model
+                        </a>
+                      </Show>
+                    </div>
+                  }
+                >
+                  <For each={groupSpecs(props.specs)}>
+                    {(group) => (
+                      <div class="model-params__group">
+                        <div class="model-params__group-header">
+                          <span>{GROUP_LABELS[group.group]}</span>
+                        </div>
+                        <div class="model-params__group-card">
+                          <For each={group.specs}>
+                            {(spec, index) => (
+                              <>
+                                <Show when={index() > 0}>
+                                  <div class="model-params__separator" />
+                                </Show>
+                                <ParamRow spec={spec} />
+                              </>
+                            )}
+                          </For>
+                        </div>
+                      </div>
+                    )}
+                  </For>
+                </Show>
+              </Show>
+            </div>
+
+            <div class="modal-card__footer model-params__footer">
+              <Show when={!props.loading && hasSpecs() && props.requestParamsUrl}>
+                <a
+                  class="model-params__request-link"
+                  href={props.requestParamsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Request parameters for ${props.slotLabel}`}
+                >
+                  Request
+                </a>
+              </Show>
+              <div class="model-params__footer-actions">
+                <button
+                  class="btn btn--ghost btn--sm"
+                  onClick={props.onClose}
+                  disabled={saving()}
+                  type="button"
+                >
+                  {!props.loading && hasSpecs() ? 'Cancel' : 'Close'}
+                </button>
+                <Show when={!props.loading && hasSpecs()}>
+                  <button
+                    class="btn btn--primary btn--sm"
+                    onClick={handleSave}
+                    disabled={saving()}
+                    type="button"
+                  >
+                    {saving() ? <span class="spinner" /> : 'Save'}
+                  </button>
+                </Show>
               </div>
-            )}
-          </For>
-
-          <div class="modal-card__footer">
-            <button
-              class="btn btn--ghost btn--sm"
-              onClick={props.onClose}
-              disabled={saving()}
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              class="btn btn--primary btn--sm"
-              onClick={handleSave}
-              disabled={saving()}
-              type="button"
-            >
-              {saving() ? <span class="spinner" /> : 'Save'}
-            </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Show>
+      </Show>
+    </Portal>
   );
 };
 

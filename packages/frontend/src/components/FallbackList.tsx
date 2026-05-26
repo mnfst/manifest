@@ -6,8 +6,8 @@ import {
   type AvailableModel,
   type CustomProviderData,
   type ModelRoute,
-  type ProviderParamSpecCatalog,
   type RequestParamDefaults,
+  type ResponseMode,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -36,6 +36,7 @@ interface FallbackListProps {
   // same-name-different-auth ambiguity reported in issue #1708 without
   // changing the visible UI for users whose data has been backfilled.
   fallbackRoutes?: ModelRoute[] | null;
+  responseMode?: ResponseMode;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
@@ -77,7 +78,7 @@ interface FallbackListProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelParamSpecs?: () => ProviderParamSpecCatalog;
+  swappingIndex?: number | null;
   modelParamsScope?: string;
 }
 
@@ -111,6 +112,30 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     return stripCustomPrefix(model);
   };
   const modelParamsScope = () => props.modelParamsScope ?? modelParamsScopeForTier(props.tier);
+
+  const modelInfoFor = (model: string, index: number): AvailableModel | undefined => {
+    const route = props.fallbackRoutes?.[index];
+    if (route) {
+      const routeProvider = resolveProviderId(route.provider)?.toLowerCase();
+      const routeMatch = props.models.find((m) => {
+        const modelProvider = resolveProviderId(m.provider)?.toLowerCase();
+        return (
+          m.model_name === route.model &&
+          modelProvider === routeProvider &&
+          (!m.auth_type || m.auth_type === route.authType)
+        );
+      });
+      if (routeMatch) return routeMatch;
+    }
+    return (
+      props.models.find((m) => m.model_name === model) ??
+      props.models.find((m) => m.model_name.startsWith(model + '-'))
+    );
+  };
+
+  const skippedInStream = (model: string, index: number): boolean =>
+    props.responseMode === 'stream' &&
+    !(modelInfoFor(model, index)?.capabilities?.includes('stream') ?? false);
 
   /**
    * Active labeled keys for (provider, auth_type), sorted by priority. Used
@@ -362,7 +387,14 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     class="fallback-list__card"
                     classList={{
                       'fallback-list__card--dragging': dragIndex() === i(),
+                      'fallback-list__card--swapping': props.swappingIndex === i(),
+                      'fallback-list__card--skipped': skippedInStream(model(), i()),
                     }}
+                    title={
+                      skippedInStream(model(), i())
+                        ? 'Skipped while Stream mode is active'
+                        : undefined
+                    }
                     draggable={true}
                     onDragStart={(e) => handleDragStart(i(), e)}
                     // Bind dragend on the draggable row itself rather than
@@ -377,99 +409,122 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     // row itself catches every drop target.
                     onDragEnd={handleDragEnd}
                   >
-                    <Show when={provId() && !isCustom()}>
-                      <span class="fallback-list__icon" title={title()}>
-                        {providerIcon(provId()!, 14)}
-                        {authBadgeFor(auth(), 8)}
-                      </span>
-                    </Show>
-                    <Show when={isCustom()}>
-                      {(() => {
-                        const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
-                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model());
-                        if (logo) {
-                          return (
-                            <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
-                              {logo}
-                            </span>
-                          );
-                        }
-                        const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                        return (
-                          <span
-                            class="provider-card__logo-letter fallback-list__icon"
-                            title={cp?.name ?? 'Custom'}
-                            style={{
-                              background: customProviderColor(cp?.name ?? ''),
-                              width: '14px',
-                              height: '14px',
-                              'font-size': '8px',
-                              'border-radius': '50%',
-                            }}
-                          >
-                            {letter}
-                          </span>
-                        );
-                      })()}
-                    </Show>
-                    <span class="fallback-list__model">{modelLabel(model())}</span>
-                    <Show when={keys().length > 1}>
-                      <FallbackKeyChip
-                        keys={keys()}
-                        currentLabel={pinnedLabel() ?? undefined}
-                        modelLabel={modelLabel(model())}
-                        modelName={model()}
-                        tier={props.tierData ?? (() => undefined)}
-                        fallbackIndex={i()}
-                        onPick={(label) => setLabelAt(i(), label)}
-                      />
-                    </Show>
                     <Show
-                      when={
-                        props.getModelParams &&
-                        props.setModelParams &&
-                        provId() &&
-                        auth() &&
-                        auth() !== 'local'
+                      when={props.swappingIndex !== i()}
+                      fallback={
+                        <>
+                          <div
+                            class="skeleton"
+                            style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                          />
+                          <div class="skeleton skeleton--text" style="width: 100px;" />
+                        </>
                       }
                     >
-                      <ModelParamsAffordance
-                        provider={provId()}
-                        authType={(auth() as AuthType) ?? undefined}
-                        model={model()}
-                        slotLabel={modelLabel(model())}
-                        scope={modelParamsScope()}
-                        specCatalog={props.modelParamSpecs?.() ?? []}
-                        getParams={props.getModelParams!}
-                        setParams={props.setModelParams!}
-                      />
+                      <Show when={provId() && !isCustom()}>
+                        <span class="fallback-list__icon" title={title()}>
+                          {providerIcon(provId()!, 14)}
+                          {authBadgeFor(auth(), 8)}
+                        </span>
+                      </Show>
+                      <Show when={isCustom()}>
+                        {(() => {
+                          const cp = props.customProviders.find(
+                            (c) => `custom:${c.id}` === provId(),
+                          );
+                          const logo = customProviderLogo(
+                            cp?.name ?? '',
+                            14,
+                            cp?.base_url,
+                            model(),
+                          );
+                          if (logo) {
+                            return (
+                              <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
+                                {logo}
+                              </span>
+                            );
+                          }
+                          const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                          return (
+                            <span
+                              class="provider-card__logo-letter fallback-list__icon"
+                              title={cp?.name ?? 'Custom'}
+                              style={{
+                                background: customProviderColor(cp?.name ?? ''),
+                                width: '14px',
+                                height: '14px',
+                                'font-size': '8px',
+                                'border-radius': '50%',
+                              }}
+                            >
+                              {letter}
+                            </span>
+                          );
+                        })()}
+                      </Show>
+                      <span class="fallback-list__model">{modelLabel(model())}</span>
+                      <Show when={skippedInStream(model(), i())}>
+                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      </Show>
+                      <Show when={keys().length > 1}>
+                        <FallbackKeyChip
+                          keys={keys()}
+                          currentLabel={pinnedLabel() ?? undefined}
+                          modelLabel={modelLabel(model())}
+                          modelName={model()}
+                          tier={props.tierData ?? (() => undefined)}
+                          fallbackIndex={i()}
+                          onPick={(label) => setLabelAt(i(), label)}
+                        />
+                      </Show>
+                      <Show
+                        when={
+                          props.getModelParams &&
+                          props.setModelParams &&
+                          provId() &&
+                          auth() &&
+                          auth() !== 'local'
+                        }
+                      >
+                        <ModelParamsAffordance
+                          provider={provId()}
+                          authType={(auth() as AuthType) ?? undefined}
+                          model={model()}
+                          slotLabel={modelLabel(model())}
+                          scope={modelParamsScope()}
+                          agentName={props.agentName}
+                          getParams={props.getModelParams!}
+                          setParams={props.setModelParams!}
+                        />
+                      </Show>
+                      <button
+                        class="fallback-list__remove"
+                        onClick={() => handleRemove(i())}
+                        title="Remove fallback"
+                        aria-label={`Remove ${modelLabel(model())}`}
+                        disabled={removingIndex() !== null}
+                      >
+                        {removingIndex() === i() ? (
+                          <span class="spinner" style="width: 10px; height: 10px;" />
+                        ) : (
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                          </svg>
+                        )}
+                      </button>
                     </Show>
-                    <button
-                      class="fallback-list__remove"
-                      onClick={() => handleRemove(i())}
-                      title="Remove fallback"
-                      aria-label={`Remove ${modelLabel(model())}`}
-                      disabled={removingIndex() !== null}
-                    >
-                      {removingIndex() === i() ? (
-                        <span class="spinner" style="width: 10px; height: 10px;" />
-                      ) : (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M18 6 6 18" />
-                          <path d="m6 6 12 12" />
-                        </svg>
-                      )}
-                    </button>
                   </div>
                 </>
               );

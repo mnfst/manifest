@@ -9,8 +9,12 @@ import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
+import { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
@@ -42,11 +46,15 @@ describe('ProxyFallbackService', () => {
   let openaiOauth: jest.Mocked<OpenaiOauthService>;
   let minimaxOauth: jest.Mocked<MinimaxOauthService>;
   let anthropicOauth: jest.Mocked<AnthropicOauthService>;
+  let geminiOauth: jest.Mocked<GeminiOauthService>;
+  let kiroOauth: jest.Mocked<KiroOauthService>;
+  let xaiOauth: jest.Mocked<XaiOauthService>;
   let providerClient: jest.Mocked<ProviderClient>;
   let copilotToken: jest.Mocked<CopilotTokenService>;
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
+  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -72,6 +80,16 @@ describe('ProxyFallbackService', () => {
     anthropicOauth = {
       unwrapToken: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<AnthropicOauthService>;
+
+    geminiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<GeminiOauthService>;
+    kiroOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<KiroOauthService>;
+    xaiOauth = {
+      unwrapToken: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<XaiOauthService>;
 
     providerClient = {
       forward: jest.fn(),
@@ -99,17 +117,32 @@ describe('ProxyFallbackService', () => {
       list: jest.fn().mockResolvedValue(specCatalog),
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
+    reasoningCache = {
+      reinjectMissingReasoningContent: jest.fn(
+        async (
+          requestBody: Record<string, unknown>,
+          _sessionKey: string,
+          _endpointKey: string | null,
+          _model: string,
+        ) => requestBody,
+      ),
+    };
+
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
       openaiOauth,
       minimaxOauth,
       anthropicOauth,
+      geminiOauth,
+      kiroOauth,
+      xaiOauth,
       providerClient,
       copilotToken,
       pricingCache,
       modelParamsService,
       providerParamSpecs,
+      reasoningCache as unknown as ReasoningContentCache,
     );
   });
 
@@ -228,7 +261,7 @@ describe('ProxyFallbackService', () => {
       expect(forwarded.body.thinking).toBeUndefined();
     });
 
-    it('respects the inbound body field by presence (client wins over saved per-route params)', async () => {
+    it('lets saved Manifest params override inbound body fields at the same path', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
         isGoogle: false,
@@ -252,7 +285,7 @@ describe('ProxyFallbackService', () => {
       });
 
       const forwarded = providerClient.forward.mock.calls[0][0];
-      expect(forwarded.body.thinking).toEqual({ type: 'enabled' });
+      expect(forwarded.body.thinking).toEqual({ type: 'disabled' });
     });
 
     it('skips the lookup when paramMergeContext is omitted (e.g. legacy callers)', async () => {
@@ -274,6 +307,53 @@ describe('ProxyFallbackService', () => {
       });
 
       expect(modelParamsService.get).not.toHaveBeenCalled();
+    });
+
+    it('re-injects shared reasoning_content before forwarding to compatible providers', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const requestBody = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+      const enrichedBody = {
+        messages: [
+          {
+            ...requestBody.messages[0],
+            reasoning_content: 'shared thinking',
+          },
+        ],
+      };
+      reasoningCache.reinjectMissingReasoningContent.mockResolvedValueOnce(enrichedBody);
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-chat',
+        body: requestBody,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+      });
+
+      expect(reasoningCache.reinjectMissingReasoningContent).toHaveBeenCalledWith(
+        requestBody,
+        'sess-1',
+        'deepseek',
+        'deepseek-chat',
+      );
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ body: enrichedBody }),
+      );
     });
 
     it('rethrows when signal is aborted', async () => {
@@ -936,6 +1016,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('access-token');
@@ -959,6 +1042,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('mm-token');
@@ -975,6 +1061,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('sk-key');
@@ -993,6 +1082,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1010,6 +1102,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('access-claude');
@@ -1028,9 +1123,34 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('sk-ant-legacy');
+      expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps Kiro CLI OAuth subscription tokens', async () => {
+      kiroOauth.unwrapToken.mockResolvedValue('kiro-access');
+
+      const result = await resolveApiKey(
+        'kiro',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result.apiKey).toBe('kiro-access');
+      expect(kiroOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
     });
 
     it('does not unwrap for non-OAuth subscription providers (e.g. Qwen)', async () => {
@@ -1043,12 +1163,38 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('qwen-key');
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(xaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps xAI OAuth subscription tokens', async () => {
+      xaiOauth.unwrapToken.mockResolvedValue('xai-access');
+
+      const result = await resolveApiKey(
+        'xai',
+        'blob',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result.apiKey).toBe('xai-access');
+      expect(xaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -1063,6 +1209,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('blob');
@@ -1078,6 +1227,9 @@ describe('ProxyFallbackService', () => {
         openaiOauth,
         minimaxOauth,
         anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
       );
 
       expect(result.apiKey).toBe('zai-sub-key');
@@ -1085,6 +1237,129 @@ describe('ProxyFallbackService', () => {
       expect(openaiOauth.unwrapToken).not.toHaveBeenCalled();
       expect(minimaxOauth.unwrapToken).not.toHaveBeenCalled();
       expect(anthropicOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(kiroOauth.unwrapToken).not.toHaveBeenCalled();
+      expect(xaiOauth.unwrapToken).not.toHaveBeenCalled();
+    });
+
+    it('unwraps Gemini subscription token and reads project id from blob.u', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue('fresh-access-token');
+      const blob = JSON.stringify({
+        t: 'old-token',
+        r: 'refresh',
+        e: Date.now() + 3600000,
+        u: 'proj-789',
+      });
+
+      const result = await resolveApiKey(
+        'gemini',
+        blob,
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result.apiKey).toBe('fresh-access-token');
+      expect(result.resourceUrl).toBe('proj-789');
+      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith(blob, 'agent-1', 'user-1');
+    });
+
+    it('returns original key when Gemini unwrapToken returns null', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue(null);
+      const blob = JSON.stringify({ t: 'token', r: 'r', e: Date.now() + 1000, u: 'proj-x' });
+
+      const result = await resolveApiKey(
+        'gemini',
+        blob,
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result.apiKey).toBe(blob);
+    });
+
+    it('returns resourceUrl as undefined when the Gemini blob is not parseable JSON', async () => {
+      geminiOauth.unwrapToken.mockResolvedValue('fresh-token');
+
+      const result = await resolveApiKey(
+        'gemini',
+        'not-valid-json',
+        'subscription',
+        'agent-1',
+        'user-1',
+        openaiOauth,
+        minimaxOauth,
+        anthropicOauth,
+        geminiOauth,
+        kiroOauth,
+        xaiOauth,
+      );
+
+      expect(result.apiKey).toBe('fresh-token');
+      expect(result.resourceUrl).toBeUndefined();
+    });
+  });
+
+  describe('tryForwardToProvider with Gemini subscription', () => {
+    it('passes providerResource to providerClient.forward for gemini subscription', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+        isCodeAssist: true,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'gemini',
+        apiKey: 'token',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        resourceUrl: 'proj-code-assist-123',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerResource: 'proj-code-assist-123',
+        }),
+      );
+    });
+
+    it('does not pass providerResource for non-subscription gemini', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: true,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'gemini',
+        apiKey: 'AIza-key',
+        model: 'gemini-2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+      });
+
+      const callArg = providerClient.forward.mock.calls[0][0];
+      expect(callArg.providerResource).toBeUndefined();
     });
   });
 });

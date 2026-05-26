@@ -134,11 +134,29 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   gemini: {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
+    supportsSubscription: true,
+    subscriptionLabel: 'Sign in with Google',
+    subscriptionAuthMode: 'popup_oauth',
+    models: [],
+  },
+  kiro: {
+    initial: 'K',
+    subtitle: 'Claude, DeepSeek, MiniMax, GLM, Qwen via Kiro',
+    supportsSubscription: true,
+    subscriptionLabel: 'Kiro subscription',
+    subscriptionAuthMode: 'device_code',
+    subscriptionOnly: true,
+    beta: true,
     models: [],
   },
   groq: {
     initial: 'Gq',
     subtitle: 'Llama, Gemma, Mixtral — fast inference',
+    models: [],
+  },
+  kilo: {
+    initial: 'K',
+    subtitle: 'Kilo Gateway unified model access',
     models: [],
   },
   llamacpp: {
@@ -176,6 +194,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   moonshot: {
     initial: 'Mo',
     subtitle: 'Kimi k2, Moonshot v1',
+    models: [],
+  },
+  nvidia: {
+    initial: 'Nv',
+    subtitle: 'Nemotron, Llama, Mistral via NVIDIA NIM',
     models: [],
   },
   ollama: {
@@ -241,6 +264,9 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   xai: {
     initial: 'X',
     subtitle: 'Grok 3, Grok 2',
+    supportsSubscription: true,
+    subscriptionLabel: 'Grok subscription',
+    subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
   zai: {
@@ -282,11 +308,14 @@ const PROVIDER_ORDER = [
   'copilot',
   'gemini',
   'groq',
+  'kilo',
+  'kiro',
   'llamacpp',
   'lmstudio',
   'minimax',
   'mistral',
   'moonshot',
+  'nvidia',
   'ollama',
   'ollama-cloud',
   'openai',
@@ -298,6 +327,7 @@ const PROVIDER_ORDER = [
 
 export const PROVIDERS: ProviderDef[] = PROVIDER_ORDER.map((id) => {
   const shared = SHARED_PROVIDER_BY_ID.get(id);
+  /* v8 ignore next 3 -- PROVIDER_ORDER is static and must match shared provider metadata. */
   if (!shared) {
     throw new Error(`Unknown provider id in PROVIDER_ORDER: "${id}"`);
   }

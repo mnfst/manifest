@@ -27,6 +27,10 @@ import { CustomProviderService } from '../custom-provider/custom-provider.servic
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
+import { parseOAuthTokenBlob } from '../oauth/core';
+import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -36,6 +40,7 @@ import {
   resolveEndpointKey,
 } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
@@ -48,7 +53,7 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
-import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 
 export interface FailedFallback {
@@ -75,11 +80,15 @@ export class ProxyFallbackService {
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
+    private readonly xaiOauth: XaiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly reasoningCache?: ReasoningContentCache,
   ) {}
 
   /**
@@ -128,6 +137,7 @@ export class ProxyFallbackService {
     chatBody?: Record<string, unknown>,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
+    reasoningContentLookup?: ReasoningContentLookup,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -216,6 +226,9 @@ export class ProxyFallbackService {
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
+        this.geminiOauth,
+        this.kiroOauth,
+        this.xaiOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -243,6 +256,7 @@ export class ProxyFallbackService {
         providerRegion,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         paramMergeContext,
       });
 
@@ -288,6 +302,7 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
     paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     try {
@@ -326,6 +341,7 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
     paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     const {
@@ -337,20 +353,21 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
     } = opts;
     // Per-attempt merge: ask the model-params service for this iteration's
     // (provider, auth_type, model) config. Storage is model-scoped on the
     // new agent_model_params table, so a primary OpenAI route with a
     // DeepSeek fallback no longer needs the old per-provider filter —
     // OpenAI's lookup returns null, DeepSeek's returns its own row.
-    const body = await this.applyParamMerge(
+    let body = await this.applyParamMerge(
       opts.body,
       opts.paramMergeContext,
       provider,
       authType,
       opts.model,
     );
-    const chatBody = opts.chatBody
+    let chatBody = opts.chatBody
       ? await this.applyParamMerge(
           opts.chatBody,
           opts.paramMergeContext,
@@ -422,6 +439,35 @@ export class ProxyFallbackService {
       }
     }
 
+    const reasoningEndpointKey =
+      customEndpoint && customEndpoint.format !== 'openai'
+        ? null
+        : customEndpoint
+          ? 'custom'
+          : resolveEndpointKey(provider);
+    if (this.reasoningCache) {
+      body = await this.reasoningCache.reinjectMissingReasoningContent(
+        body,
+        opts.sessionKey,
+        reasoningEndpointKey,
+        forwardModel,
+      );
+      if (chatBody) {
+        chatBody = await this.reasoningCache.reinjectMissingReasoningContent(
+          chatBody,
+          opts.sessionKey,
+          reasoningEndpointKey,
+          forwardModel,
+        );
+      }
+    }
+
+    // For Gemini OAuth, the OAuth blob's `u` field is the
+    // CodeAssist project id (not a URL). It must be forwarded so the
+    // CodeAssist envelope wrap can include it.
+    const providerResource =
+      authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
+
     return this.providerClient.forward({
       provider,
       apiKey: effectiveKey,
@@ -436,6 +482,8 @@ export class ProxyFallbackService {
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
+      providerResource,
     });
   }
 }
@@ -457,6 +505,9 @@ export async function resolveApiKey(
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
   anthropicOauth: AnthropicOauthService,
+  geminiOauth: GeminiOauthService,
+  kiroOauth: KiroOauthService,
+  xaiOauth: XaiOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -470,6 +521,23 @@ export async function resolveApiKey(
     }
     if (lower === 'anthropic') {
       const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
+    }
+    if (lower === 'gemini') {
+      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) {
+        // The CodeAssist project id was stored in `blob.u` by enrichBlob.
+        // Read it from the input blob (refreshes preserve the field).
+        const projectId = parseOAuthTokenBlob(apiKey)?.u;
+        return { apiKey: unwrapped, resourceUrl: projectId };
+      }
+    }
+    if (lower === 'kiro') {
+      const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
+    }
+    if (lower === 'xai') {
+      const unwrapped = await xaiOauth.unwrapToken(apiKey, agentId, userId);
       if (unwrapped) return { apiKey: unwrapped };
     }
   }

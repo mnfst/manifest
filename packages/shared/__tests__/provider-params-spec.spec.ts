@@ -2,6 +2,7 @@ import {
   compareProviderParamSpecs,
   deleteProviderParamValue,
   expandConfiguredParamDefaults,
+  getProviderModelCapabilities,
   getProviderParamValue,
   getProviderParamSpecs,
   isParamApplicability,
@@ -13,12 +14,14 @@ import {
   setProviderParamValue,
   type ProviderParamSpecCatalog,
 } from '../src/provider-params-spec';
+import { normalizeProviderParamProviderId as normalizeProviderParamProviderIdFromBarrel } from '../src';
 
 const catalog: ProviderParamSpecCatalog = [
   {
     provider: 'anthropic',
     authType: 'api_key',
     model: 'claude-sonnet-4-6',
+    capabilities: ['text', 'stream', 'tools'],
     params: [
       {
         path: 'thinking.budget_tokens',
@@ -79,6 +82,37 @@ const catalog: ProviderParamSpecCatalog = [
       },
     ],
   },
+  {
+    provider: 'z-ai',
+    authType: 'subscription',
+    model: 'glm-5.1',
+    params: [
+      {
+        path: 'max_tokens',
+        type: 'integer',
+        label: 'Max tokens',
+        description: 'Maximum tokens.',
+        group: 'generation_length',
+      },
+    ],
+  },
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-pro',
+    capabilities: ['text', 'stream'],
+    params: [
+      {
+        path: 'reasoning_effort',
+        type: 'enum',
+        label: 'Reasoning effort',
+        description: 'Controls DeepSeek reasoning effort.',
+        default: 'medium',
+        values: ['low', 'medium', 'high'],
+        group: 'reasoning',
+      },
+    ],
+  },
 ];
 
 const anthropicSpecs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
@@ -111,6 +145,45 @@ describe('provider-params-spec', () => {
       );
     });
 
+    it('resolves gateway models to the underlying provider specs', () => {
+      // OpenCode Go (subscription gateway) -> DeepSeek's native api_key specs.
+      const specs = getProviderParamSpecs(
+        catalog,
+        'opencode-go',
+        'subscription',
+        'opencode-go/deepseek-v4-pro',
+      );
+      expect(specs.map((spec) => spec.path)).toEqual(['reasoning_effort']);
+      expect(specs[0].provider).toBe('deepseek');
+      expect(specs[0].model).toBe('deepseek-v4-pro');
+    });
+
+    it('returns [] for gateway models whose underlying provider is absent from the catalog', () => {
+      // moonshot (kimi) is not in the catalog.
+      expect(
+        getProviderParamSpecs(catalog, 'opencode-go', 'subscription', 'opencode-go/kimi-k2.6'),
+      ).toEqual([]);
+      // mimo-v2.5 infers no provider at all.
+      expect(
+        getProviderParamSpecs(catalog, 'opencode-go', 'subscription', 'opencode-go/mimo-v2.5'),
+      ).toEqual([]);
+    });
+
+    it('matches catalog provider aliases against Manifest provider IDs', () => {
+      const specs = getProviderParamSpecs(catalog, 'zai', 'subscription', 'glm-5.1');
+
+      expect(specs).toHaveLength(1);
+      expect(specs[0].provider).toBe('zai');
+    });
+
+    it('exports provider alias normalization through the shared package barrel', () => {
+      expect(normalizeProviderParamProviderIdFromBarrel('zai')).toBe('zai');
+      expect(normalizeProviderParamProviderIdFromBarrel('z-ai')).toBe('zai');
+      expect(normalizeProviderParamProviderIdFromBarrel('unknown-provider')).toBe(
+        'unknown-provider',
+      );
+    });
+
     it('orders semantic groups and dependency type params before dependent siblings', () => {
       const paths = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6').map(
         (spec) => spec.path,
@@ -125,6 +198,33 @@ describe('provider-params-spec', () => {
           thinkingBudgetSpec,
         ),
       ).toBeLessThan(0);
+    });
+  });
+
+  describe('getProviderModelCapabilities', () => {
+    it('returns the matched model capabilities case-insensitively', () => {
+      expect(
+        getProviderModelCapabilities(catalog, 'Anthropic', 'api_key', 'claude-sonnet-4-6'),
+      ).toEqual(['text', 'stream', 'tools']);
+    });
+
+    it('returns null when inputs are incomplete or no capabilities are declared', () => {
+      expect(getProviderModelCapabilities(catalog, undefined, 'api_key', 'gpt-5')).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', undefined, 'gpt-5')).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', undefined)).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', 'missing')).toBeNull();
+      expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', 'gpt-5')).toBeNull();
+    });
+
+    it('resolves gateway models to the underlying provider capabilities', () => {
+      expect(
+        getProviderModelCapabilities(
+          catalog,
+          'opencode-go',
+          'subscription',
+          'opencode-go/deepseek-v4-pro',
+        ),
+      ).toEqual(['text', 'stream']);
     });
   });
 

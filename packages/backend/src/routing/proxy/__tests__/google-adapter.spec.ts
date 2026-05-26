@@ -68,6 +68,57 @@ describe('Google Adapter', () => {
       });
     });
 
+    it('preserves native Google generationConfig params', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        generationConfig: {
+          topK: 40,
+          thinkingConfig: {
+            thinkingBudget: 128,
+            includeThoughts: true,
+          },
+          responseMimeType: 'application/json',
+        },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      expect(result.generationConfig).toEqual({
+        topK: 40,
+        thinkingConfig: {
+          thinkingBudget: 128,
+          includeThoughts: true,
+        },
+        responseMimeType: 'application/json',
+      });
+    });
+
+    it('lets OpenAI-style generation aliases override native generationConfig fields', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        generationConfig: {
+          maxOutputTokens: 256,
+          temperature: 0.2,
+          topP: 0.4,
+          thinkingConfig: {
+            thinkingLevel: 'high',
+          },
+        },
+        max_tokens: 1000,
+        temperature: 0.7,
+        top_p: 0.9,
+      };
+      const result = toGoogleRequest(body, 'gemini-3.5-flash');
+
+      expect(result.generationConfig).toEqual({
+        maxOutputTokens: 1000,
+        temperature: 0.7,
+        topP: 0.9,
+        thinkingConfig: {
+          thinkingLevel: 'high',
+        },
+      });
+    });
+
     it('converts tools to functionDeclarations', () => {
       const body = {
         messages: [{ role: 'user', content: 'Search for cats' }],

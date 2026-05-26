@@ -25,6 +25,7 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -74,7 +75,16 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+      if (
+        lowerProvider === 'openai' ||
+        lowerProvider === 'minimax' ||
+        lowerProvider === 'kiro' ||
+        lowerProvider === 'xai'
+      ) {
+        // Kiro's token blob is an OAuthTokenBlob superset (source 'kiro-oidc',
+        // plus client credentials), so the generic unwrap reads its access
+        // token too. Refresh-on-expiry happens in the provider OAuth services;
+        // discovery just uses the stored token.
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
@@ -128,6 +138,19 @@ export class ModelDiscoveryService {
           provider.provider,
           raw.map((m) => m.id),
         );
+      }
+
+      // Subscription providers whose `/models` endpoint either does not
+      // exist (CodeAssist) or returns more than the subscription tier
+      // actually grants must use the curated `knownModels` list — otherwise
+      // the routing UI offers models that 404 at chat time.
+      if (raw.length === 0 && provider.auth_type === 'subscription') {
+        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        if (raw.length > 0) {
+          this.logger.log(
+            `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
+          );
+        }
       }
 
       // If native API returned no models, try models.dev first (native IDs), then OpenRouter
@@ -404,6 +427,11 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          capabilities: mergeModelCapabilities(
+            model.capabilities,
+            mdEntry.capabilities,
+            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+          ),
         });
       }
     }
@@ -447,6 +475,11 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      capabilities: mergeModelCapabilities(
+        model.capabilities,
+        mdEntry.capabilities,
+        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+      ),
     };
   }
 

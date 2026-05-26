@@ -721,11 +721,11 @@ describe("Overview", () => {
     });
   });
 
-  it("shows $0.00 cost for subscription auth_type messages in recent activity", async () => {
+  it("shows $0.00 cost for flat-fee subscription messages (cost null) in recent activity", async () => {
     const dataWithSub = {
       ...overviewData,
       recent_activity: [
-        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: 0.05 },
+        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: null },
       ],
     };
     mockGetOverview.mockResolvedValue(dataWithSub);
@@ -734,6 +734,23 @@ describe("Overview", () => {
       const subCost = container.querySelector('[title="Included in subscription"]');
       expect(subCost).not.toBeNull();
       expect(subCost!.textContent).toBe("$0.00");
+    });
+  });
+
+  it("renders the recorded cost for per-request subscriptions (e.g. OpenCode Go)", async () => {
+    const dataWithPerRequestSub = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: 0.013636 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithPerRequestSub);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      // Per-request subscription rows should show the real cost, not $0.00.
+      expect(container.textContent).toContain("$0.01");
+      const tooltip = container.querySelector('[title^="Per-request subscription cost:"]');
+      expect(tooltip).not.toBeNull();
     });
   });
 

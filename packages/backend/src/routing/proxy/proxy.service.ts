@@ -6,15 +6,27 @@ import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
+import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
-import type { RequestParamDefaults, SpecificityCategory, TierSlot } from 'manifest-shared';
+import type {
+  AuthType,
+  RequestParamDefaults,
+  ResponseMode,
+  OutputModality,
+  SpecificityCategory,
+  TierSlot,
+} from 'manifest-shared';
 import {
+  DEFAULT_RESPONSE_MODE,
   SPECIFICITY_CATEGORIES,
   modelParamsScopeForRouting,
+  routeEquals,
   snapshotRequestParams,
 } from 'manifest-shared';
 import type { ParamMergeContext } from './proxy-fallback.service';
@@ -29,17 +41,19 @@ import {
   ProxyRequestOptions,
   SignatureLookup,
   ThinkingBlockLookup,
+  ReasoningContentLookup,
 } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
-import type { AuthType } from 'manifest-shared';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
+import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 
 const STREAM_WARMUP_MS = 15_000;
 
@@ -93,6 +107,10 @@ export interface RoutingMeta {
    * which model params were in play for the recorded request.
    */
   request_params?: RequestParamDefaults | null;
+  /** Effective output modality configured on the resolved routing chain. */
+  output_modality?: OutputModality;
+  /** Effective response transport configured on the resolved routing chain. */
+  response_mode?: ResponseMode;
 }
 
 export interface ProxyResult {
@@ -112,12 +130,16 @@ export class ProxyService {
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
     private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
+    private readonly xaiOauth: XaiOauthService,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
     private readonly config: ConfigService,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
@@ -156,12 +178,14 @@ export class ProxyService {
       specificityOverride,
       headers,
     );
+    const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
+    const stream = body.stream === true || responseMode === 'stream';
     if (!resolved.route) {
       this.logger.warn(
         `No route available for agent=${agentId}: ` +
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
-      return this.buildNoProviderResult(body.stream === true, agentName);
+      return this.buildNoProviderResult(stream, agentName);
     }
 
     const route = resolved.route;
@@ -173,7 +197,7 @@ export class ProxyService {
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
       const content = formatManifestError('M100', { provider: route.provider, dashboardUrl });
-      return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
+      return buildFriendlyResponse(content, stream, 'no_provider_key');
     }
 
     const primaryModel = normalizeProviderModel(route.provider, route.model);
@@ -181,11 +205,12 @@ export class ProxyService {
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
     );
 
-    const stream = body.stream === true;
     const signatureLookup = (toolCallId: string) =>
       this.signatureCache.retrieve(sessionKey, toolCallId);
     const thinkingLookup = (firstToolUseId: string) =>
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
+    const reasoningContentLookup = (firstToolCallId: string) =>
+      this.reasoningCache.retrieve(sessionKey, firstToolCallId);
 
     // Per-attempt param-defaults merge happens inside the fallback service
     // so each forward (primary + every fallback iteration) looks up its
@@ -238,6 +263,7 @@ export class ProxyService {
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
       paramMergeContext,
     });
 
@@ -255,6 +281,7 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         apiMode,
         paramMergeContext,
       });
@@ -277,6 +304,7 @@ export class ProxyService {
           isAnthropic: forward.isAnthropic,
           isChatGpt: forward.isChatGpt,
           isResponses: forward.isResponses,
+          isCodeAssist: forward.isCodeAssist,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
@@ -301,6 +329,7 @@ export class ProxyService {
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
         isResponses: forward.isResponses,
+        isCodeAssist: forward.isCodeAssist,
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
@@ -315,6 +344,7 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         apiMode,
         paramMergeContext,
       });
@@ -410,6 +440,9 @@ export class ProxyService {
       this.openaiOauth,
       this.minimaxOauth,
       this.anthropicOauth,
+      this.geminiOauth,
+      this.kiroOauth,
+      this.xaiOauth,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
@@ -433,6 +466,7 @@ export class ProxyService {
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
+    reasoningContentLookup: ReasoningContentLookup;
     apiMode: ProxyApiMode;
     paramMergeContext: ParamMergeContext;
   }): Promise<ProxyResult | null> {
@@ -458,6 +492,16 @@ export class ProxyService {
       const assignment = tiers.find((t) => t.tier === resolved.tier);
       fallbackRoutes = assignment?.fallback_routes ?? null;
     }
+    if ((resolved.response_mode ?? DEFAULT_RESPONSE_MODE) === 'stream') {
+      const effectiveRoutes = effectiveRoutesForResponseMode(
+        resolved.response_mode,
+        resolved.route,
+        fallbackRoutes,
+      );
+      fallbackRoutes = (effectiveRoutes.fallbackRoutes ?? []).filter(
+        (route) => !routeEquals(route, resolved.route),
+      );
+    }
     if (!fallbackRoutes || fallbackRoutes.length === 0) return null;
     const fallbackModels = fallbackRoutes.map((r) => r.model);
 
@@ -482,6 +526,7 @@ export class ProxyService {
       chatBody,
       fallbackRoutes,
       args.paramMergeContext,
+      args.reasoningContentLookup,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
@@ -568,6 +613,7 @@ export class ProxyService {
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
         isResponses: forward.isResponses,
+        isCodeAssist: forward.isCodeAssist,
       },
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: exhaustedRequestParams,
@@ -593,6 +639,8 @@ export class ProxyService {
       header_tier_id: resolved.header_tier_id,
       header_tier_name: resolved.header_tier_name,
       header_tier_color: resolved.header_tier_color,
+      output_modality: resolved.output_modality,
+      response_mode: resolved.response_mode ?? DEFAULT_RESPONSE_MODE,
       ...overrides,
     };
   }

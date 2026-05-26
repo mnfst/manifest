@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor } from '@solidjs/testing-library';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 const mockResetHeaderTier = vi.fn();
 const mockSetHeaderTierFallbacks = vi.fn();
 const mockClearHeaderTierFallbacks = vi.fn();
@@ -8,6 +13,10 @@ vi.mock('../../src/services/api/header-tiers.js', () => ({
   resetHeaderTier: (...args: unknown[]) => mockResetHeaderTier(...args),
   setHeaderTierFallbacks: (...args: unknown[]) => mockSetHeaderTierFallbacks(...args),
   clearHeaderTierFallbacks: (...args: unknown[]) => mockClearHeaderTierFallbacks(...args),
+}));
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
 }));
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
@@ -42,7 +51,8 @@ vi.mock('../../src/services/providers.js', () => ({
   ],
 }));
 
-vi.mock('../../src/services/formatters.js', () => ({
+vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/services/formatters.js')>()),
   customProviderColor: () => '#000',
 }));
 
@@ -61,10 +71,16 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.models,
       props.customProviders,
       props.connectedProviders,
+      props.getModelParams,
+      props.setModelParams,
+      props.modelHasParams,
+      props.modelParamsScope,
+      props.responseMode,
     ];
     void _read;
     return (
       <div data-testid="fallback-list">
+        <div data-testid="fb-response-mode">{String(props.responseMode ?? '')}</div>
         <div data-testid="fb-count">{(props.fallbacks as string[]).length}</div>
         <div data-testid="fb-routes-count">
           {(props.fallbackRoutes as unknown[] | null | undefined)?.length ?? 'null'}
@@ -118,10 +134,14 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
       props.tiers,
       props.customProviders,
       props.connectedProviders,
+      props.requiredCapability,
     ];
     void _read;
     return (
       <div data-testid="model-picker">
+        <span data-testid="picker-required-capability">
+          {String(props.requiredCapability ?? '')}
+        </span>
         <button
           data-testid="picker-pick"
           onClick={() =>
@@ -156,6 +176,7 @@ vi.mock('../../src/components/HeaderTierSnippetModal.js', () => ({
 
 import HeaderTierCard from '../../src/components/HeaderTierCard';
 import type { ProviderParamSpecCatalog } from 'manifest-shared';
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
 import type { HeaderTier } from '../../src/services/api/header-tiers';
 import type { AvailableModel, CustomProviderData, RoutingProvider } from '../../src/services/api';
 
@@ -277,6 +298,48 @@ describe('HeaderTierCard', () => {
     expect(container.querySelector('.routing-card__main')?.textContent).toBe('GPT-4o');
   });
 
+  it('marks a non-stream primary as skipped and passes stream mode to fallbacks', () => {
+    const streamTier = {
+      ...baseTier,
+      response_mode: 'stream' as const,
+      override_route: { provider: 'custom:local', authType: 'api_key' as const, model: 'legacy' },
+    };
+    const streamModels: AvailableModel[] = [
+      ...models,
+      {
+        model_name: 'legacy',
+        provider: 'custom:local',
+        auth_type: 'api_key',
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        context_window: 8000,
+        capability_reasoning: false,
+        capability_code: false,
+        quality_score: 1,
+        display_name: 'Legacy',
+        capabilities: ['text'],
+      },
+    ];
+
+    const { container, getByTestId } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={streamTier}
+        models={streamModels}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+
+    expect(container.querySelector('.routing-card__model-chip--skipped')).not.toBeNull();
+    expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
+      'Skipped in Stream',
+    );
+    expect(getByTestId('fb-response-mode').textContent).toBe('stream');
+  });
+
   it("uses the route's authType for the badge instead of looking it up by provider", () => {
     const tierSub = {
       ...baseTier,
@@ -295,6 +358,40 @@ describe('HeaderTierCard', () => {
     ));
     expect(container.querySelector('[data-testid="auth-subscription"]')).not.toBeNull();
     expect(container.textContent).toContain('Included in subscription');
+  });
+
+  it('shows the per-request cost for per-request subscriptions', () => {
+    const tierSub = {
+      ...baseTier,
+      override_route: {
+        provider: 'opencode-go',
+        authType: 'subscription',
+        model: 'opencode-go/glm-5.1',
+      } as const,
+    };
+    const gatewayModels: AvailableModel[] = [
+      {
+        ...models[0],
+        model_name: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        auth_type: 'subscription',
+        display_name: 'GLM-5.1',
+        cost_per_request: 0.013636,
+      },
+    ];
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierSub}
+        models={gatewayModels}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    expect(container.textContent).toContain('$0.0136/req');
+    expect(container.textContent).not.toContain('Included in subscription');
   });
 
   it('renders a + Add model button when override_route is null', () => {
@@ -335,6 +432,26 @@ describe('HeaderTierCard', () => {
     ) as HTMLButtonElement;
     fireEvent.click(add);
     expect(queryByTestId('model-picker')).not.toBeNull();
+  });
+
+  it('requires stream-capable models when the header tier is in stream mode', () => {
+    const tierEmpty = { ...baseTier, override_route: null, response_mode: 'stream' as const };
+    const { container, getByTestId } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierEmpty}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    const add = Array.from(container.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('+ Add model'),
+    ) as HTMLButtonElement;
+    fireEvent.click(add);
+    expect(getByTestId('picker-required-capability').textContent).toBe('stream');
   });
 
   it('calls onOverride with the picked route when picker selects a primary model', async () => {
@@ -1157,7 +1274,6 @@ describe('HeaderTierCard', () => {
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
         setModelParams={vi.fn().mockResolvedValue(undefined)}
-        modelParamSpecs={() => modelParamSpecs}
       />
     ));
     expect(
@@ -1169,6 +1285,7 @@ describe('HeaderTierCard', () => {
   // getter is evaluated by the affordance (Solid props are lazy — `setParams`
   // is only read when the affordance calls `props.setParams(...)` on save).
   it('threads setModelParams through the affordance save flow', async () => {
+    vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
     const setModelParams = vi.fn().mockResolvedValue(undefined);
     const tierDeepseek = {
       ...baseTier,
@@ -1211,7 +1328,6 @@ describe('HeaderTierCard', () => {
         onFallbacksUpdate={vi.fn()}
         getModelParams={() => null}
         setModelParams={setModelParams}
-        modelParamSpecs={() => modelParamSpecs}
       />
     ));
     const btn = container.querySelector(

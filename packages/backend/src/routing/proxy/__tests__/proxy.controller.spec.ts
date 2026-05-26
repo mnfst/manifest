@@ -5,6 +5,7 @@ import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -154,6 +155,11 @@ describe('ProxyController', () => {
       { getTiers: jest.fn().mockResolvedValue([]) } as never,
       { getAssignments: jest.fn().mockResolvedValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
+      {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never,
+      { save: jest.fn() } as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -162,11 +168,30 @@ describe('ProxyController', () => {
       recorder,
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
+      new ReasoningContentCache(),
+      { isRecording: jest.fn().mockResolvedValue(false), invalidate: jest.fn() } as never,
     );
   });
 
   afterEach(() => {
     recorder.onModuleDestroy();
+  });
+
+  it('should expose /v1/models with the Manifest auto route', () => {
+    expect(controller.models()).toEqual({
+      object: 'list',
+      data: [
+        {
+          id: 'auto',
+          object: 'model',
+          type: 'model',
+          display_name: 'Manifest Auto',
+        },
+      ],
+      has_more: false,
+      first_id: 'auto',
+      last_id: 'auto',
+    });
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -1907,6 +1932,11 @@ describe('ProxyController', () => {
         { getTiers: jest.fn().mockResolvedValue([]) } as never,
         { getAssignments: jest.fn().mockResolvedValue([]) } as never,
         { list: jest.fn().mockResolvedValue([]) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
+        { save: jest.fn() } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1942,6 +1972,11 @@ describe('ProxyController', () => {
         { getTiers: jest.fn().mockResolvedValue([]) } as never,
         { getAssignments: jest.fn().mockResolvedValue([]) } as never,
         { list: jest.fn().mockResolvedValue([]) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
+        { save: jest.fn() } as never,
       );
 
       timedRecorder.onModuleDestroy();

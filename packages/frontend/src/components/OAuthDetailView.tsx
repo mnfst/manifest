@@ -1,5 +1,6 @@
 import {
   createEffect,
+  onCleanup,
   createSignal,
   For,
   Show,
@@ -9,9 +10,7 @@ import {
 } from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import {
-  getOpenaiOAuthUrl,
-  submitOpenaiOAuthCallback,
-  revokeOpenaiOAuth,
+  getPopupOauthApi,
   renameProviderKey,
   type AuthType,
   type RoutingProvider,
@@ -20,6 +19,26 @@ import { toast } from '../services/toast-store.js';
 import { monitorOAuthPopup } from '../services/oauth-popup.js';
 
 const MAX_LABEL_LENGTH = 50;
+
+function parseOAuthCallbackInput(raw: string, fallbackState: string | null) {
+  let code: string | null = null;
+  let state: string | null = fallbackState;
+  const parts = raw.split(/\s+/).filter(Boolean);
+
+  for (const part of parts) {
+    try {
+      const url = new URL(part);
+      code = code ?? url.searchParams.get('code');
+      state = state ?? url.searchParams.get('state');
+    } catch {
+      if (!code && /^[A-Za-z0-9._~-]{20,}$/.test(part)) {
+        code = part;
+      }
+    }
+  }
+
+  return { code, state };
+}
 
 interface Props {
   provDef: ProviderDef;
@@ -38,16 +57,43 @@ interface Props {
 }
 
 const OAuthDetailView: Component<Props> = (props) => {
-  const [popupOpened, setPopupOpened] = createSignal(false);
+  const [pasteFlowActive, setPasteFlowActive] = createSignal(false);
+  const [flowKeyCount, setFlowKeyCount] = createSignal<number | null>(null);
+  const [successHandled, setSuccessHandled] = createSignal(false);
   const [pasteUrl, setPasteUrl] = createSignal('');
   const [pasteError, setPasteError] = createSignal<string | null>(null);
+  const [oauthState, setOauthState] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
   const [addingAccount, setAddingAccount] = createSignal(false);
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
-  const showConnectFlow = () => !props.connected() || addingAccount();
-  const showConnectedFlow = () => props.connected() && !addingAccount();
+  const isXaiProvider = () => props.provId === 'xai';
+  const callbackPlaceholder = () =>
+    isXaiProvider()
+      ? 'Paste the xAI authorization code or callback URL'
+      : 'http://localhost:1455/auth/callback?code=...';
+  const showConnectFlow = () => !props.connected() || addingAccount() || pasteFlowActive();
+  const showConnectedFlow = () => props.connected() && !addingAccount() && !pasteFlowActive();
+  const activeKeyCount = () => (props.activeKeys?.() ?? []).length;
+  const flowHasConnected = () => {
+    const baseline = flowKeyCount();
+    if (baseline === null) return false;
+    return baseline > 0 ? activeKeyCount() > baseline : props.connected();
+  };
+
+  const finishOAuthSuccess = () => {
+    if (successHandled()) return;
+    setSuccessHandled(true);
+    setPasteFlowActive(false);
+    setFlowKeyCount(null);
+    setPasteUrl('');
+    setPasteError(null);
+    setOauthState(null);
+    setAddingAccount(false);
+    toast.success(`${props.provDef.name} subscription connected`);
+    props.onUpdate();
+  };
 
   // When "Add another key" is clicked in the header, launch a new OAuth popup.
   createEffect(() => {
@@ -58,36 +104,57 @@ const OAuthDetailView: Component<Props> = (props) => {
     }
   });
 
+  const oauthApi = () => getPopupOauthApi(props.provId);
+
+  createEffect(() => {
+    if (!pasteFlowActive()) return;
+    const interval = window.setInterval(() => {
+      props.onUpdate();
+    }, 2000);
+    onCleanup(() => window.clearInterval(interval));
+  });
+
+  createEffect(() => {
+    if (pasteFlowActive() && flowHasConnected()) finishOAuthSuccess();
+  });
+
   const handleOAuthLogin = async () => {
     props.setBusy(true);
     setPasteUrl('');
     setPasteError(null);
     try {
-      const { url } = await getOpenaiOAuthUrl(props.agentName);
+      const { url } = await oauthApi().getUrl(props.agentName);
+      try {
+        setOauthState(new URL(url).searchParams.get('state'));
+      } catch {
+        setOauthState(null);
+      }
       const popup = window.open(url, 'manifest-oauth', 'width=500,height=700');
       if (!popup) {
         toast.error(
           'Popup was blocked by your browser. Allow popups for this site, then try again.',
         );
         if (props.connected()) setAddingAccount(false);
+        setOauthState(null);
         props.setBusy(false);
         return;
       }
 
-      setPopupOpened(true);
+      setPasteFlowActive(true);
+      setFlowKeyCount(activeKeyCount());
+      setSuccessHandled(false);
       props.setBusy(false);
 
-      monitorOAuthPopup(popup, {
-        onSuccess: () => {
-          toast.success(`${props.provDef.name} subscription connected`);
-          setAddingAccount(false);
-          setPopupOpened(false);
-          props.onUpdate();
+      monitorOAuthPopup(
+        popup,
+        {
+          onSuccess: finishOAuthSuccess,
+          onFailure: () => {
+            // Popup closed without auto-redirect — user needs to paste the URL
+          },
         },
-        onFailure: () => {
-          // Popup closed without auto-redirect — user needs to paste the URL
-        },
-      });
+        `/oauth/${props.provId}/done`,
+      );
     } catch {
       if (props.connected()) setAddingAccount(false);
       props.setBusy(false);
@@ -99,22 +166,20 @@ const OAuthDetailView: Component<Props> = (props) => {
     if (!raw) return;
 
     try {
-      const url = new URL(raw);
-      const code = url.searchParams.get('code');
-      const state = url.searchParams.get('state');
+      const { code, state } = parseOAuthCallbackInput(raw, oauthState());
       if (!code || !state) {
-        setPasteError('URL is missing the authorization code. Make sure you copied the full URL.');
+        setPasteError(
+          props.provId === 'xai'
+            ? 'Paste the authorization code shown by xAI, or paste the full callback URL after approval.'
+            : 'URL is missing the authorization code. Make sure you copied the full URL.',
+        );
         return;
       }
 
       props.setBusy(true);
       setPasteError(null);
-      await submitOpenaiOAuthCallback(code, state);
-      toast.success(`${props.provDef.name} subscription connected`);
-      setAddingAccount(false);
-      setPasteUrl('');
-      setPopupOpened(false);
-      props.onUpdate();
+      await oauthApi().submitCallback(code, state);
+      finishOAuthSuccess();
     } catch {
       setPasteError('Failed to exchange token. The URL may have expired — try logging in again.');
     } finally {
@@ -124,15 +189,18 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   const cancelAddAccount = () => {
     setAddingAccount(false);
-    setPopupOpened(false);
+    setPasteFlowActive(false);
+    setFlowKeyCount(null);
+    setSuccessHandled(false);
     setPasteUrl('');
     setPasteError(null);
+    setOauthState(null);
   };
 
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await revokeOpenaiOAuth(props.agentName);
+      const result = await oauthApi().revoke(props.agentName);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -150,7 +218,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await revokeOpenaiOAuth(props.agentName, label);
+      const result = await oauthApi().revoke(props.agentName, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -198,7 +266,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     <>
       <Show when={showConnectFlow()}>
         <Show
-          when={popupOpened()}
+          when={pasteFlowActive()}
           fallback={
             <>
               <p class="provider-detail__hint">
@@ -216,32 +284,45 @@ const OAuthDetailView: Component<Props> = (props) => {
             </>
           }
         >
-          <p class="provider-detail__hint">
-            A login window has opened. After you sign in, the popup will show a "can't be reached"
-            page. This is expected.
-          </p>
-          <p class="provider-detail__hint" style="margin-top: 8px;">
-            Copy the full URL from the{' '}
-            <span style="color: hsl(var(--foreground)); font-weight: 500;">
-              popup's address bar
-            </span>{' '}
-            and paste it below:
-          </p>
-          <video
-            src="/images/oauth-callback-example.mp4"
-            autoplay
-            loop
-            muted
-            playsinline
-            style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
-          />
+          <Show
+            when={isXaiProvider()}
+            fallback={
+              <>
+                <p class="provider-detail__hint">
+                  A login window has opened. If it does not close automatically after sign-in, paste
+                  the callback URL below.
+                </p>
+                <p class="provider-detail__hint" style="margin-top: 8px;">
+                  Copy the full URL from the{' '}
+                  <span style="color: hsl(var(--foreground)); font-weight: 500;">
+                    popup's address bar
+                  </span>{' '}
+                  and paste it below:
+                </p>
+                <video
+                  src="/images/oauth-callback-example.mp4"
+                  autoplay
+                  loop
+                  muted
+                  playsinline
+                  style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
+                />
+              </>
+            }
+          >
+            <p class="provider-detail__hint">
+              A login window has opened. After approving access, paste the authorization code xAI
+              shows. If your browser lands on a callback URL, paste that URL instead.
+            </p>
+          </Show>
           <div class="provider-detail__field" style="margin-top: 12px;">
-            <input
+            <textarea
               class="provider-detail__input"
               classList={{ 'provider-detail__input--error': !!pasteError() }}
-              type="text"
               autocomplete="off"
-              placeholder="http://localhost:1455/auth/callback?code=..."
+              placeholder={callbackPlaceholder()}
+              rows={3}
+              style="resize: vertical;"
               value={pasteUrl()}
               onInput={(e) => {
                 setPasteUrl(e.currentTarget.value);

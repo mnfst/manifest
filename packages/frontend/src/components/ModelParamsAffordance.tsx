@@ -1,15 +1,16 @@
-import { createSignal, Show, type Component } from 'solid-js';
-import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
+import { createResource, createSignal, Show, type Component } from 'solid-js';
+import type { ProviderParamSpec } from 'manifest-shared';
 import type { AuthType, RequestParamDefaults } from '../services/api.js';
+import { getModelParamSpecs } from '../services/api/model-params.js';
 import ModelParamsDialog from './ModelParamsDialog.jsx';
 
 interface Props {
+  agentName: string;
   provider: string | undefined;
   authType: AuthType | undefined;
   model: string;
   slotLabel: string;
   scope: string;
-  specCatalog: ProviderParamSpecCatalog;
   getParams: (
     scope: string,
     provider: string,
@@ -29,9 +30,22 @@ interface Props {
 const ModelParamsAffordance: Component<Props> = (props) => {
   const [dialogOpen, setDialogOpen] = createSignal(false);
 
-  const specs = () =>
-    getProviderParamSpecs(props.specCatalog, props.provider, props.authType, props.model);
-  const supports = () => props.provider !== undefined && specs().length > 0;
+  // Fetch specs only while the dialog is open, so the Routing page never
+  // downloads the whole catalog up front. The provider/model filtering that
+  // used to run client-side now happens server-side via the by-model endpoint.
+  const [specs] = createResource(
+    () =>
+      dialogOpen() && props.provider && props.authType
+        ? { provider: props.provider, authType: props.authType, model: props.model }
+        : null,
+    (key) =>
+      getModelParamSpecs(props.agentName, key.provider, key.authType, key.model).catch(
+        () => [] as ProviderParamSpec[],
+      ),
+  );
+
+  const canOpen = () =>
+    props.provider !== undefined && props.authType !== undefined && props.authType !== 'local';
 
   const current = () => {
     if (!props.provider || !props.authType) return null;
@@ -40,8 +54,21 @@ const ModelParamsAffordance: Component<Props> = (props) => {
 
   const configured = () => current() !== null;
 
+  const requestUrl = () => {
+    if (!props.provider || !props.authType) return undefined;
+    const authTypeLabel = props.authType === 'subscription' ? 'Subscription' : 'API key';
+    const params = new URLSearchParams({
+      template: 'parameter-request.yml',
+      title: `${props.provider}/${props.model}: parameter coverage`,
+      provider: props.provider,
+      model: props.model,
+      'auth-type': authTypeLabel,
+    });
+    return `https://github.com/mnfst/modelparams.dev/issues/new?${params.toString()}`;
+  };
+
   return (
-    <Show when={supports() && props.authType}>
+    <Show when={canOpen()}>
       <button
         type="button"
         class="routing-card__chip-action"
@@ -85,7 +112,9 @@ const ModelParamsAffordance: Component<Props> = (props) => {
           open={dialogOpen()}
           slotLabel={props.slotLabel}
           current={current()}
-          specs={specs()}
+          specs={specs() ?? []}
+          loading={specs.loading}
+          requestParamsUrl={requestUrl()}
           onSave={(next) =>
             props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
           }

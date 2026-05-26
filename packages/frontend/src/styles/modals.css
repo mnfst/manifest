@@ -148,6 +148,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--gap-lg);
+  cursor: default;
   animation: fadeIn 150ms ease-out;
 }
 
@@ -347,6 +348,7 @@
   display: flex;
   justify-content: flex-end;
   margin-top: var(--gap-xl);
+  gap: 8px;
 }
 
 .modal-card__footer .btn:disabled {

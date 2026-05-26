@@ -2,11 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpecCatalog } from 'manifest-shared';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
+import { getModelParamSpecs } from '../../src/services/api/model-params.js';
+
 const mockSetFallbacks = vi.fn();
 const mockClearFallbacks = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   setFallbacks: (...args: unknown[]) => mockSetFallbacks(...args),
   clearFallbacks: (...args: unknown[]) => mockClearFallbacks(...args),
+}));
+
+vi.mock('../../src/services/api/model-params.js', () => ({
+  getModelParamSpecs: vi.fn(),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -104,6 +115,99 @@ describe('FallbackList', () => {
 
     const modelLabels = container.querySelectorAll('.fallback-list__model');
     expect(modelLabels.length).toBe(2);
+  });
+
+  it('marks non-stream fallback routes as skipped while stream mode is active', () => {
+    const streamModeModels = [
+      {
+        model_name: 'stream-model',
+        provider: 'OpenAI',
+        capabilities: ['text', 'stream'],
+      },
+      {
+        model_name: 'legacy-model',
+        provider: 'custom:local',
+        capabilities: ['text'],
+      },
+    ] as any[];
+
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        responseMode="stream"
+        fallbacks={['stream-model', 'legacy-model']}
+        fallbackRoutes={[
+          { provider: 'openai', authType: 'api_key', model: 'stream-model' },
+          { provider: 'custom:local', authType: 'api_key', model: 'legacy-model' },
+        ]}
+        models={streamModeModels}
+      />
+    ));
+
+    const cards = container.querySelectorAll('.fallback-list__card');
+    expect(cards[0]?.classList.contains('fallback-list__card--skipped')).toBe(false);
+    expect(cards[1]?.classList.contains('fallback-list__card--skipped')).toBe(true);
+    expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
+      'Skipped in Stream',
+    );
+  });
+
+  it('falls back to model-name matching when a structured route is stale', () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        responseMode="stream"
+        fallbacks={['legacy']}
+        fallbackRoutes={[{ provider: 'custom:missing', authType: 'api_key', model: 'other-model' }]}
+        models={
+          [
+            {
+              model_name: 'legacy-pro',
+              provider: 'OpenAI',
+              capabilities: ['text', 'stream'],
+            },
+          ] as any[]
+        }
+      />
+    ));
+
+    expect(container.querySelector('.fallback-list__card--skipped')).toBeNull();
+  });
+
+  it('closes a fallback key picker when clicking outside it', async () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={['model-a']}
+        connectedProviders={
+          [
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              is_active: true,
+              has_api_key: true,
+              label: 'Work',
+              priority: 0,
+            },
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              is_active: true,
+              has_api_key: true,
+              label: 'Personal',
+              priority: 1,
+            },
+          ] as any[]
+        }
+      />
+    ));
+
+    fireEvent.click(container.querySelector('.fallback-list__key-chip') as HTMLButtonElement);
+    expect(container.querySelector('[role="listbox"]')).not.toBeNull();
+    fireEvent.mouseDown(document.body);
+    await waitFor(() => {
+      expect(container.querySelector('[role="listbox"]')).toBeNull();
+    });
   });
 
   it('calls onAddFallback when add button in empty state clicked', () => {
@@ -254,7 +358,7 @@ describe('FallbackList', () => {
 
   it('shows custom provider logo when customProviderLogo returns an element', () => {
     const fakeImg = document.createElement('img');
-    fakeImg.src = '/icons/kilocode.jpg';
+    fakeImg.src = '/icons/kilocode.svg';
     fakeImg.alt = 'Kilo Code';
     mockCustomProviderLogo.mockReturnValueOnce(fakeImg as any);
     const customProviders = [
@@ -274,7 +378,7 @@ describe('FallbackList', () => {
 
     const iconSpan = container.querySelector('.fallback-list__icon');
     expect(iconSpan).not.toBeNull();
-    expect(iconSpan!.querySelector('img[src="/icons/kilocode.jpg"]')).not.toBeNull();
+    expect(iconSpan!.querySelector('img[src="/icons/kilocode.svg"]')).not.toBeNull();
   });
 
   it("uses 'C' as default letter when custom provider not found", () => {
@@ -1100,6 +1204,7 @@ describe('FallbackList', () => {
     };
 
     it('renders the params affordance on a fallback row and forwards saves through setModelParams', async () => {
+      vi.mocked(getModelParamSpecs).mockResolvedValue(modelParamSpecs[0].params);
       const setModelParams = vi.fn().mockResolvedValue(undefined);
       const getModelParams = vi.fn().mockReturnValue(null);
       const { container, getByRole } = render(() => (
@@ -1109,7 +1214,6 @@ describe('FallbackList', () => {
           fallbackRoutes={[deepseekRoute] as any}
           getModelParams={getModelParams}
           setModelParams={setModelParams}
-          modelParamSpecs={() => modelParamSpecs}
         />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
@@ -1128,7 +1232,8 @@ describe('FallbackList', () => {
       });
     });
 
-    it("does NOT render the affordance when the row's provider has no known param key", () => {
+    it('renders the affordance and shows the request empty state for a model with no params', async () => {
+      vi.mocked(getModelParamSpecs).mockResolvedValue([]);
       const { container } = render(() => (
         <FallbackList
           {...defaultProps}
@@ -1136,13 +1241,19 @@ describe('FallbackList', () => {
           fallbackRoutes={[openaiRoute] as any}
           getModelParams={vi.fn().mockReturnValue(null)}
           setModelParams={vi.fn()}
-          modelParamSpecs={() => modelParamSpecs}
         />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
       );
-      expect(btn).toBeUndefined();
+      expect(btn).toBeDefined();
+      fireEvent.click(btn!);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('No parameter controls are published for gpt-4o yet.'),
+        ).toBeTruthy();
+      });
     });
 
     it('does NOT render the affordance when the params callbacks are undefined', () => {
@@ -1151,7 +1262,6 @@ describe('FallbackList', () => {
           {...defaultProps}
           fallbacks={['deepseek-v4-flash']}
           fallbackRoutes={[deepseekRoute] as any}
-          modelParamSpecs={() => modelParamSpecs}
         />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
@@ -1188,7 +1298,6 @@ describe('FallbackList', () => {
           fallbackRoutes={null}
           getModelParams={vi.fn().mockReturnValue(null)}
           setModelParams={vi.fn()}
-          modelParamSpecs={() => modelParamSpecs}
         />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>

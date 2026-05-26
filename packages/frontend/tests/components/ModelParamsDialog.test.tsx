@@ -2,18 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
 import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
 
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
+
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
-
-const pointerEvent = (type: string, clientX: number) => {
-  const event = new Event(type, { bubbles: true, cancelable: true }) as PointerEvent;
-  Object.defineProperties(event, {
-    clientX: { value: clientX },
-    pointerId: { value: 1 },
-  });
-  return event;
-};
 
 const deepseekSpecs: readonly ProviderParamSpec[] = [
   {
@@ -129,11 +125,67 @@ describe('ModelParamsDialog', () => {
     expect(q('.modal-overlay')).toBeNull();
   });
 
+  it('shows a compact request action when no parameter specs are published', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={[]}
+        requestParamsUrl="https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=openai&model=gpt-4o"
+        slotLabel="gpt-4o"
+      />
+    ));
+
+    expect(screen.getByText('No parameter controls are published for gpt-4o yet.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy();
+    const link = screen.getByRole('link', { name: 'Request model parameters for gpt-4o' });
+    expect(link.textContent).toBe('Request parameters for this model');
+    expect(link).toHaveProperty(
+      'href',
+      'https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=openai&model=gpt-4o',
+    );
+  });
+
+  it('shows the compact request link alongside published parameter controls', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        requestParamsUrl="https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=deepseek&model=deepseek-v4"
+      />
+    ));
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeTruthy();
+    const link = screen.getByRole('link', { name: 'Request parameters for deepseek-v4' });
+    expect(link.textContent).toBe('Request');
+    expect(link).toHaveProperty(
+      'href',
+      'https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=deepseek&model=deepseek-v4',
+    );
+  });
+
   it('starts on the spec default when no override is configured', () => {
     render(() => <ModelParamsDialog {...baseProps} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
+  });
+
+  it('describes params with client-override note when specs exist', () => {
+    render(() => <ModelParamsDialog {...baseProps} slotLabel="GPT-5 Nano" />);
+    expect(screen.getByText('Defaults for GPT-5 Nano. Client requests override.')).toBeTruthy();
+  });
+
+  it('shows loading description while specs are being fetched', () => {
+    render(() => <ModelParamsDialog {...baseProps} specs={[]} loading={true} slotLabel="gpt-4o" />);
+    expect(screen.getByText('Loading parameters for gpt-4o…')).toBeTruthy();
+  });
+
+  it('shows fallback text when no specs and no requestParamsUrl', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={[]} requestParamsUrl={undefined} slotLabel="gpt-4o" />
+    ));
+    expect(screen.getByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(screen.queryByRole('link')).toBeNull();
   });
 
   it('reflects the configured override when present', () => {
@@ -147,8 +199,21 @@ describe('ModelParamsDialog', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
-    expect(screen.getByText('Max tokens')).toBeTruthy();
+    expect(screen.getAllByText('Max tokens').length).toBeGreaterThan(0);
     expect(screen.getByText('max_tokens')).toBeTruthy();
+  });
+
+  it('renders descriptions from the published parameter specs', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    expect(screen.getByText('Controls sampling randomness.')).toBeTruthy();
+    expect(
+      screen.queryByText(
+        'Low values give focused, deterministic answers. High values give more creative, varied responses.',
+      ),
+    ).toBeNull();
   });
 
   it('renders derived select, slider, and number controls from specs', () => {
@@ -165,49 +230,223 @@ describe('ModelParamsDialog', () => {
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
 
-    const slider = screen.getByRole('slider', { name: 'Temperature' });
-    const input = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLInputElement;
 
     fireEvent.keyDown(slider, { key: 'ArrowDown' });
-    expect(input.value).toBe('0.9');
+    expect(slider.value).toBe('0.9');
 
     fireEvent.keyDown(slider, { key: 'ArrowUp' });
-    expect(input.value).toBe('1');
+    expect(slider.value).toBe('1');
 
     fireEvent.keyDown(slider, { key: 'Home' });
-    expect(input.value).toBe('0');
+    expect(slider.value).toBe('0');
 
     fireEvent.keyDown(slider, { key: 'End' });
-    expect(input.value).toBe('1');
+    expect(slider.value).toBe('1');
   });
 
-  it('updates slider controls from pointer input', () => {
+  it('updates slider value from native input event', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
     ));
 
-    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLDivElement;
-    const input = screen.getByLabelText('Temperature value') as HTMLInputElement;
-    vi.spyOn(slider, 'getBoundingClientRect').mockReturnValue({
-      left: 0,
-      right: 100,
-      top: 0,
-      bottom: 20,
-      width: 100,
-      height: 20,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    });
-    slider.setPointerCapture = vi.fn();
-    slider.hasPointerCapture = vi.fn(() => true);
-    slider.releasePointerCapture = vi.fn();
+    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLInputElement;
+    fireEvent.input(slider, { target: { value: '0.5' } });
+    expect(slider.value).toBe('0.5');
+  });
 
-    fireEvent(slider, pointerEvent('pointerdown', 50));
-    expect(input.value).toBe('0.5');
+  it('updates slider value when typing in the companion number input', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
 
-    fireEvent(slider, pointerEvent('pointermove', 20));
-    expect(input.value).toBe('0.2');
+    const numberInput = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '0,3' } });
+    fireEvent.input(numberInput, { target: { value: '' } });
+    fireEvent.input(numberInput, { target: { value: '.' } });
+    fireEvent.input(numberInput, { target: { value: 'abc' } });
+    fireEvent.input(numberInput, { target: { value: '0.6' } });
+    fireEvent.blur(numberInput);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.6 }));
+  });
+
+  it('snaps companion number input values to the slider step before saving', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const numberInput = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '0.36' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.4 }));
+  });
+
+  it('keeps integer slider values truncated when the number input is edited', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const integerSliderSpec: readonly ProviderParamSpec[] = [
+      {
+        provider: 'anthropic',
+        authType: 'api_key',
+        model: 'claude-sonnet-4-6',
+        path: 'thinking.budget_tokens',
+        type: 'integer',
+        label: 'Thinking budget',
+        description: 'Budget.',
+        default: 4096,
+        range: { min: 1024, max: 32768, step: 1024 },
+        group: 'reasoning',
+      },
+    ];
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={integerSliderSpec}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const numberInput = screen.getByLabelText('Thinking budget value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '8192.9' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: { budget_tokens: 8192 } }));
+  });
+
+  it('renders a tooltip explaining how to enable a blocked param (only-rule case)', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ thinking: { type: 'disabled' } }}
+      />
+    ));
+
+    const helps = document.querySelectorAll('.model-params__help');
+    const messages = Array.from(helps).map((el) => el.getAttribute('aria-label'));
+    expect(messages.some((m) => m && m.includes('To configure this parameter'))).toBe(true);
+    expect(messages.some((m) => m && m.includes('Thinking mode'))).toBe(true);
+  });
+
+  it('formats lists of three or more required values in the help tooltip', () => {
+    const specs: readonly ProviderParamSpec[] = [
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'mode',
+        type: 'enum',
+        label: 'Mode',
+        description: 'Mode.',
+        default: 'off',
+        values: ['off', 'low', 'medium', 'high'],
+        group: 'reasoning',
+      },
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'effort',
+        type: 'integer',
+        label: 'Effort',
+        description: 'Effort.',
+        default: 1,
+        range: { min: 0, max: 10, step: 1 },
+        group: 'reasoning',
+        applicability: { only: { mode: ['low', 'medium', 'high'] } },
+      },
+    ];
+    render(() => <ModelParamsDialog {...baseProps} specs={specs} slotLabel="test" />);
+
+    const messages = Array.from(document.querySelectorAll('.model-params__help')).map((el) =>
+      el.getAttribute('aria-label'),
+    );
+    expect(messages.some((m) => m && m.includes('"low", "medium", or "high"'))).toBe(true);
+  });
+
+  it('describes blockers for primitive except rules and custom not rules', () => {
+    const blockedSpecs: readonly ProviderParamSpec[] = [
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'mode',
+        type: 'enum',
+        label: 'Mode',
+        description: 'Mode.',
+        default: 'fast',
+        values: ['fast', 'slow'],
+        group: 'reasoning',
+      },
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'noise',
+        type: 'number',
+        label: 'Noise',
+        description: 'Noise.',
+        default: 0.5,
+        range: { min: 0, max: 1, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { mode: 'slow' } },
+      },
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'jitter',
+        type: 'number',
+        label: 'Jitter',
+        description: 'Jitter.',
+        default: 0.5,
+        range: { min: 0, max: 1, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { mode: { not: 'fast' } } },
+      },
+    ];
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={blockedSpecs}
+        slotLabel="test"
+        current={{ mode: 'slow' }}
+      />
+    ));
+
+    const messages = Array.from(document.querySelectorAll('.model-params__help')).map((el) =>
+      el.getAttribute('aria-label'),
+    );
+    expect(messages.some((m) => m && m.includes('Mode is "slow"'))).toBe(true);
+    expect(messages.some((m) => m && m.includes('Mode is set to a custom value'))).toBe(true);
+  });
+
+  it('shows the slider min and max bounds', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' });
+    const field = slider.closest('.model-params__slider-field') as HTMLElement;
+    const bounds = field.querySelectorAll('.model-params__slider-bound');
+    expect(bounds[0]?.textContent).toBe('0');
+    expect(bounds[1]?.textContent).toBe('1');
   });
 
   it('stores integer number controls as parsed numeric values', async () => {

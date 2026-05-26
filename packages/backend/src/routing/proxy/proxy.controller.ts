@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Req,
   Res,
@@ -19,8 +20,11 @@ import { ProviderClient } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { classifyCaller } from './caller-classifier';
 import { sanitizeRequestHeaders } from './request-headers';
+import { createCaptureSink, CaptureSink } from './recording-capture';
+import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 import {
   buildMetaHeaders,
   handleProviderError,
@@ -53,7 +57,27 @@ export class ProxyController {
     private readonly recorder: ProxyMessageRecorder,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly reasoningCache: ReasoningContentCache,
+    private readonly recordingCache: AgentRecordingCacheService,
   ) {}
+
+  @Get('models')
+  models(): Record<string, unknown> {
+    return {
+      object: 'list',
+      data: [
+        {
+          id: 'auto',
+          object: 'model',
+          type: 'model',
+          display_name: 'Manifest Auto',
+        },
+      ],
+      has_more: false,
+      first_id: 'auto',
+      last_id: 'auto',
+    };
+  }
 
   @Post('chat/completions')
   async chatCompletions(
@@ -93,6 +117,9 @@ export class ProxyController {
     const isStream = body.stream === true;
     let headersSent = false;
     let slotAcquired = false;
+
+    const recordingEnabled = await this.recordingCache.isRecording(req.ingestionContext.agentId);
+    const capture: CaptureSink | undefined = recordingEnabled ? createCaptureSink() : undefined;
 
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
@@ -151,7 +178,9 @@ export class ProxyController {
 
       let streamUsage = null;
 
-      if (isStream && providerResponse.body) {
+      const shouldStreamResponse = isStream || meta.response_mode === 'stream';
+
+      if (shouldStreamResponse && providerResponse.body) {
         headersSent = true;
         streamUsage = await handleStreamResponse(
           res,
@@ -163,6 +192,8 @@ export class ProxyController {
           sessionKey,
           this.thinkingCache,
           apiMode,
+          capture,
+          this.reasoningCache,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -175,6 +206,8 @@ export class ProxyController {
           sessionKey,
           this.thinkingCache,
           apiMode,
+          capture,
+          this.reasoningCache,
         );
       }
 
@@ -189,6 +222,7 @@ export class ProxyController {
         startTime,
         callerAttribution,
         requestHeaders,
+        capture ? { capture, requestBody: body } : undefined,
       );
     } catch (err: unknown) {
       this.handleProxyError(

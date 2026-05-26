@@ -141,17 +141,37 @@ function buildMermaid(headSnap, baseSnap, added, modMap, dropped) {
     const modCols = new Set(
       changes.filter((c) => c.kind === 'modified').map((c) => c.column),
     );
+    const fkAddedCols = new Set(
+      changes.filter((c) => c.kind === 'fk-added').map((c) => c.fk.column),
+    );
+    const fkDroppedCols = new Set(
+      changes.filter((c) => c.kind === 'fk-dropped').map((c) => c.fk.column),
+    );
+    const pkChange = changes.find((c) => c.kind === 'pk-changed');
+    const pkChangedCols = new Set(
+      pkChange ? [...pkChange.added, ...pkChange.dropped] : [],
+    );
+    const droppedCols = changes.filter((c) => c.kind === 'dropped');
 
     for (const col of table.columns) {
       const safeType = sanitizeMermaidType(col.type);
       const pk = table.primaryKeys.includes(col.name) ? ' PK' : '';
       const fk = !pk && table.foreignKeys.some((f) => f.column === col.name) ? ' FK' : '';
-      let note = '';
-      if (isModified) {
-        if (addedCols.has(col.name)) note = ' "added"';
-        else if (modCols.has(col.name)) note = ' "modified"';
-      }
+      const note = isModified
+        ? columnNote(col.name, {
+            addedCols,
+            modCols,
+            fkAddedCols,
+            fkDroppedCols,
+            pkChangedCols,
+          })
+        : '';
       lines.push(`        ${safeType} ${col.name}${pk}${fk}${note}`);
+    }
+    // Columns removed by this PR no longer exist in the head snapshot, so render
+    // them as trailing rows (with their pre-drop type) flagged 🔴 removed.
+    for (const c of droppedCols) {
+      lines.push(`        ${sanitizeMermaidType(c.type)} ${c.column} "🔴 removed"`);
     }
     lines.push('    }');
     rendered.add(name);
@@ -168,6 +188,20 @@ function buildMermaid(headSnap, baseSnap, added, modMap, dropped) {
   }
 
   return lines.join('\n');
+}
+
+// Builds the inline annotation for a single column of a modified table.
+// 🟢 for a newly added column, 🟡 for any in-place change (type/nullable, FK,
+// or PK membership). Dropped columns are annotated separately as trailing rows.
+function columnNote(colName, sets) {
+  if (sets.addedCols.has(colName)) return ' "🟢 added"';
+  const parts = [];
+  if (sets.modCols.has(colName)) parts.push('modified');
+  if (sets.fkAddedCols.has(colName)) parts.push('FK added');
+  if (sets.fkDroppedCols.has(colName)) parts.push('FK removed');
+  if (sets.pkChangedCols.has(colName)) parts.push('PK changed');
+  if (!parts.length) return '';
+  return ` "🟡 ${parts.join(', ')}"`;
 }
 
 function buildSummary(added, modified, dropped) {

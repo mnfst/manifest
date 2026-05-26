@@ -66,6 +66,21 @@ export function FallbackIcon(): JSX.Element {
   );
 }
 
+export function RecordedIcon(): JSX.Element {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" fill="hsl(var(--destructive) / 0.25)" />
+      <circle cx="12" cy="12" r="5" fill="hsl(var(--destructive))" />
+    </svg>
+  );
+}
+
 const THUMB_UP_OUTLINED =
   'M19.5 8h-5.11l.9-2.71c.25-.76.13-1.6-.34-2.25A2.52 2.52 0 0 0 12.92 2h-.57c-.52 0-1.01.23-1.34.63L6.53 8H4.5A2.5 2.5 0 0 0 2 10.5v8A2.5 2.5 0 0 0 4.5 21h11.42a4.03 4.03 0 0 0 3.75-2.59l2.17-5.8c.11-.28.16-.58.16-.88V10.5A2.5 2.5 0 0 0 19.5 8M6 19H4.5c-.28 0-.5-.22-.5-.5v-8c0-.28.22-.5.5-.5H6zm14-7.27q0 .09-.03.18l-2.17 5.8a2 2 0 0 1-1.87 1.3H8.01V9.37l4.47-5.36h.45c.22 0 .35.13.41.21s.14.24.07.45L12.4 7.71c-.18.53-.09 1.12.24 1.58s.86.73 1.42.73h5.46c.28 0 .5.22.5.5v1.23Z';
 const THUMB_UP_FILLED =
@@ -139,7 +154,7 @@ export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Ele
 }
 
 export function DateCell(item: MessageRow): JSX.Element {
-  return <td style={`white-space: nowrap; ${MONO_XS}`}>{formatTime(item.timestamp)}</td>;
+  return <td style={`white-space: nowrap; width: 1%; ${MONO_XS}`}>{formatTime(item.timestamp)}</td>;
 }
 
 export function MessageCell(item: MessageRow): JSX.Element {
@@ -159,16 +174,24 @@ export function MessageCell(item: MessageRow): JSX.Element {
 }
 
 export function CostCell(item: MessageRow): JSX.Element {
+  // Subscription rows with a non-zero recorded cost are per-request
+  // subscriptions like OpenCode Go (docs-attributed $/request). Flat-fee
+  // subscriptions (Claude Max, ChatGPT Plus, GLM Coding, Copilot) record
+  // $0 and keep the "Included in subscription" treatment.
+  const isPerRequestSubscription =
+    item.auth_type === 'subscription' && item.cost != null && item.cost > 0;
   return (
     <td style={MONO}>
       <Show
-        when={item.auth_type === 'subscription'}
+        when={item.auth_type === 'subscription' && !isPerRequestSubscription}
         fallback={
           <span
             title={
-              item.cost != null && item.cost > 0 && item.cost < 0.01
-                ? `$${item.cost.toFixed(6)}`
-                : undefined
+              isPerRequestSubscription
+                ? `Per-request subscription cost: $${item.cost!.toFixed(6)}`
+                : item.cost != null && item.cost > 0 && item.cost < 0.01
+                  ? `$${item.cost.toFixed(6)}`
+                  : undefined
             }
           >
             {item.cost != null ? (formatCost(item.cost) ?? '\u2014') : '\u2014'}
@@ -210,6 +233,7 @@ function resolveMessageProviderName(item: MessageRow): string | undefined {
 export function ModelCell(
   item: MessageRow,
   customProviderName: (m: string) => string | undefined,
+  onOpenRecording?: (id: string) => void,
 ): JSX.Element {
   const provId = resolveMessageProvider(item);
   const provName = resolveMessageProviderName(item);
@@ -293,17 +317,19 @@ export function ModelCell(
 }
 
 export function TokenCell(value: number | null): JSX.Element {
-  return <td style={MONO}>{value != null ? formatNumber(value) : '\u2014'}</td>;
+  return <td style={`width: 130px; ${MONO}`}>{value != null ? formatNumber(value) : '\u2014'}</td>;
 }
 
 export function SmallTokenCell(value: number | null): JSX.Element {
-  return <td style={MONO_XS}>{value != null ? formatNumber(value) : '\u2014'}</td>;
+  return (
+    <td style={`width: 102px; ${MONO_XS}`}>{value != null ? formatNumber(value) : '\u2014'}</td>
+  );
 }
 
 export function CacheCell(item: MessageRow): JSX.Element {
   const has = (item.cache_read_tokens ?? 0) > 0 || (item.cache_creation_tokens ?? 0) > 0;
   return (
-    <td style={MONO_XS}>
+    <td style={`width: 192px; ${MONO_XS}`}>
       {has
         ? `Read: ${formatNumber(item.cache_read_tokens ?? 0)} / Write: ${formatNumber(item.cache_creation_tokens ?? 0)}`
         : '\u2014'}
@@ -423,6 +449,7 @@ export interface CellRenderContext {
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
   onFeedbackClear?: (id: string) => void;
+  onOpenRecording?: (id: string) => void;
 }
 
 export function renderCell(
@@ -444,7 +471,7 @@ export function renderCell(
     case 'output':
       return SmallTokenCell(item.output_tokens);
     case 'model':
-      return ModelCell(item, ctx.customProviderName);
+      return ModelCell(item, ctx.customProviderName, ctx.onOpenRecording);
     case 'cache':
       return CacheCell(item);
     case 'duration':

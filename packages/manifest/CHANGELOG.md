@@ -1,5 +1,103 @@
 # manifest
 
+## 6.8.0
+
+### Minor Changes
+
+- 19e2d5b: Kiro subscriptions now connect in Manifest Cloud. Kiro previously used a local-only CLI flow (reading the `kiro-cli` token cache off the backend's own disk), so it only worked when self-hosting. It now uses the AWS SSO OIDC device authorization flow server-side — register → show a user code + verification link → poll for the token — exactly like the GitHub Copilot and MiniMax subscriptions, working identically on a laptop and in the cloud.
+
+### Patch Changes
+
+- 8061e86: Show capability badges for gateway models in the model picker. A gateway model like `opencode-go/glm-5.1` now resolves its capabilities from the underlying provider's models.dev metadata (`zai` / `glm-5.1`) instead of showing "Capabilities unknown". The resolution is gateway-generic — it keys off the shared gateway-prefix abstraction, so any gateway added later inherits it automatically.
+- b13ac3d: Add Grok subscription provider support with xAI OAuth login and dynamic xAI model discovery.
+- 20c7c40: Add NVIDIA NIM as an official API-key routing provider.
+- f71c741: Show OpenCode Go's per-request cost in the model picker and tier cards. OpenCode Go bills a per-request slice of its dollar quota rather than a flat fee, so models with a published cost now display e.g. `$0.0136/req` instead of the generic "Included in subscription" label. The `available-models` API surfaces `cost_per_request` (from the OpenCode Go catalog) for gateway models; flat-fee subscriptions are unchanged.
+
+## 6.7.0
+
+### Minor Changes
+
+- e76e89d: Add Gemini OAuth (gemini-cli / CodeAssist flow). Sign in with a personal
+  Google account to route through `cloudcode-pa.googleapis.com` against
+  the free-tier Gemini quota. Adds a `Sign in with Google` tile on the
+  Routing page and a curated CodeAssist-supported model list, including
+  Gemini 3.1 Pro Preview, Gemini 3 Flash Preview, Gemini 3.1 Flash-Lite,
+  and the Gemini 2.5 models.
+
+### Patch Changes
+
+- 802869f: Increase the custom provider model catalog limit from 50 to 500 models.
+- 9e73856: Surface Anthropic OAuth token exchange rate-limit errors instead of showing the generic expired-code message.
+- a446d3e: Show model parameters for gateway models (e.g. OpenCode Go). A model like `opencode-go/deepseek-v4-pro` now resolves its parameters and capabilities from the underlying provider's catalog entry (`deepseek` / `deepseek-v4-pro`), so the params dialog, request snapshot, and outbound param defaults work the same as connecting the provider directly.
+- 2509a8c: Add Kilo Gateway as an API-key provider with dynamic model discovery.
+- 0e2b471: Add Kiro subscription provider support with dynamic model discovery and proxy forwarding.
+- 713b070: Auto-fill custom provider model prices from exact models.dev provider/model matches, and mark exact model-only matches as estimated when no provider match is available.
+- 4d1b982: Track real per-request cost for OpenCode Go subscriptions. The OpenCode Go plan is a dollar quota ($12 / 5h) consumed per request, not a flat fee, so each call now records its docs-attributed USD cost (e.g. `$12 / 880 = $0.013636` for GLM-5.1) instead of `$0.00`. Other subscription providers (Claude Max, ChatGPT Plus, GLM Coding, Copilot) continue to record `$0.00`.
+- f4c3476: Add model-scoped streaming capabilities and enforce stream response mode in routing.
+
+## 6.6.2
+
+### Patch Changes
+
+- b6920d3: refactor(proxy): forward Anthropic Messages requests to Anthropic upstreams without OpenAI translation
+
+  When a `POST /v1/messages` request resolves to an Anthropic upstream, the
+  proxy now forwards the original Anthropic body directly with only additive
+  mutations applied (cache_control on the last system block and last tool,
+  subscription identity injection for OAuth, default max_tokens, cached
+  extended-thinking replay). The OpenAI-shaped `chatBody` is retained for
+  the routing/scoring layer but no longer feeds the wire request.
+
+  Closes the lossy-roundtrip class of bugs that previously dropped Anthropic-
+  native fields (server-tool `type` discriminators, `top_k`, native
+  `stop_sequences` form, future Anthropic-only parameters) through the
+  Anthropic → OpenAI → Anthropic translation. Replaces the targeted
+  `_anthropicServerTools` stash workaround.
+
+- 07bc952: Set Claude Code setup snippets to use Manifest's `auto` model by default and expose it through `/v1/models`.
+- 610c408: Show captured assistant responses as the final turn in recorded OpenAI Chat and Responses API message log conversations.
+- 58dd78c: Show configured task-specific and custom tiers in the Messages tier filter and route those selections to the matching message-log filters.
+- ebb1e2b: Use modelparams.dev parameter descriptions in the Model parameters dialog instead of local hardcoded hints.
+- 534ff60: Refresh the Model parameters dialog with grouped cards, inline descriptions, a compact slider with min/max markers, and a synced number field. Disabled parameters now keep their description and gain a help icon explaining how to enable them, while remembering the last user value for when they become available again.
+- 6cd59c7: Resolve modelparams.dev provider aliases such as Z.ai's `z-ai` catalog ID when loading configurable model parameters.
+- ec47903: Keep the OpenAI OAuth callback paste field visible while an OAuth flow is active, align the OpenAI authorize request with the current Codex CLI flow, and persist pending OpenAI OAuth exchanges across backend instances.
+- 261769d: fix(proxy): re-inject cached reasoning_content for OpenAI-compatible tool turns
+
+  When reasoning providers return `reasoning_content` alongside tool calls, Manifest now caches the field and restores it on the next request if an OpenAI-compatible client dropped it from the assistant history. The replay is guarded to DeepSeek/Kimi/OpenCode Go-compatible targets and strict providers still have the field stripped.
+
+- 130eb3c: Remove the recorded-only filter from the messages dashboard.
+- 96cdd40: Persist cached `reasoning_content` for DeepSeek-compatible tool-call turns in Postgres so cloud deployments with multiple backend instances can re-inject the required field on follow-up requests.
+- 2bf3734: Render recorded OpenAI Responses API request input in the message log conversation tab instead of falling back to the raw-body hint.
+- d061461: fix(proxy): route xAI Responses API requests to xAI's native /v1/responses endpoint
+
+  Adds native xAI Responses API forwarding and routes xAI multi-agent Grok models
+  through /v1/responses instead of filtering them out of model discovery.
+
+## 6.6.1
+
+### Patch Changes
+
+- 9d3f743: Stop recording Railway and proxy noise headers on every message. Headers injected by the hosting edge (x-railway-_, x-forwarded-_, x-real-ip, etc.) are dropped before storage, so the message Headers tab only shows headers the agent actually sent.
+- 1173e30: Performance: bound the public usage-stats aggregations, add a composite `(key_prefix, is_active)` index for agent-key auth lookups, reuse uPlot chart instances in place on data refresh instead of rebuilding them, and memoize the message log's feedback overrides.
+
+## 6.6.0
+
+### Minor Changes
+
+- 400c195: Add opt-in per-agent message recording. Toggle in Settings → Recording captures the full request body, response body, and response headers for subsequent proxy calls. Recorded rows show a record-dot icon in the Messages log; clicking it opens a formatted modal with Parameters, Conversation turns, Tool calls, Reply, Usage pills, and Headers. Payloads capped at 2 MB and kept out of the hot message-list query via a separate `message_recordings` table. Defaults off; never included in anonymous telemetry.
+
+## 6.5.1
+
+### Patch Changes
+
+- 3b345e7: Fix provider disconnect cleanup so removing an OAuth subscription clears routes pinned to that auth type even when an API-key credential for the same provider remains connected.
+- 492cf46: Preserve provider key labels and priorities when duplicating agents.
+- 045907d: Preserve native Google `generationConfig` fields when routing requests to Gemini, while keeping existing OpenAI-compatible generation aliases as explicit overrides.
+- 9438035: Serve model parameter specs from the MPS catalog API and support scoped per-route defaults.
+- 4e780be: Make saved Manifest model parameters authoritative over overlapping client request parameters while preserving client parameters that Manifest does not configure.
+- bea267e: Fetch model parameter specs per-model on demand instead of downloading the full MPS catalog on every Routing-page load, and add an ETag conditional GET to the catalog refresh. Keeps the dashboard payload flat as the catalog grows.
+- 680feca: Stop slow startup model-catalog syncs from stalling boot past the deploy healthcheck. The OpenRouter, models.dev, GitHub, and modelparameters.dev fetches now run in the background instead of blocking `app.listen()`, and the two that lacked a timeout (OpenRouter, GitHub) now abort after 10s. The pricing cache still warms up with real data once those fetches land.
+
 ## 6.5.0
 
 ### Minor Changes

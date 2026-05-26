@@ -8,9 +8,11 @@ const KNOWN_PROVIDERS = [
   "copilot",
   "gemini",
   "groq",
+  "kiro",
   "deepseek",
   "mistral",
   "xai",
+  "nvidia",
   "qwen",
   "moonshot",
   "openrouter",
@@ -34,6 +36,15 @@ describe("providerIcon", () => {
     const { container } = render(() => <div>{providerIcon("llamacpp")}</div>);
     const svg = container.querySelector("svg");
     expect(svg).not.toBeNull();
+  });
+
+  it("returns the Kilo logo image for \"kilo\"", () => {
+    const { container } = render(() => <div>{providerIcon("kilo", 24)}</div>);
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.svg");
+    expect(img!.getAttribute("width")).toBe("24");
+    expect(img!.getAttribute("height")).toBe("24");
   });
 
   it("returns null for unknown provider", () => {
@@ -210,7 +221,7 @@ describe("customProviderLogo", () => {
     ));
     const img = container.querySelector("img");
     expect(img).not.toBeNull();
-    expect(img!.getAttribute("src")).toBe("/icons/kilocode.jpg");
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.svg");
   });
 
   it("resolves kilo code logo by provider name", () => {
@@ -219,7 +230,16 @@ describe("customProviderLogo", () => {
     ));
     const img = container.querySelector("img");
     expect(img).not.toBeNull();
-    expect(img!.getAttribute("src")).toBe("/icons/kilocode.jpg");
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.svg");
+  });
+
+  it("resolves canonical kilo logo by provider name", () => {
+    const { container } = render(() => (
+      <div>{customProviderLogo("Kilo")}</div>
+    ));
+    const img = container.querySelector("img");
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.svg");
   });
 
   it("resolves kilo code logo by base URL", () => {
@@ -228,7 +248,7 @@ describe("customProviderLogo", () => {
     ));
     const img = container.querySelector("img");
     expect(img).not.toBeNull();
-    expect(img!.getAttribute("src")).toBe("/icons/kilocode.jpg");
+    expect(img!.getAttribute("src")).toBe("/icons/kilocode.svg");
   });
 
   it("returns null when model prefix matches but no logo and name unknown", () => {

@@ -3,6 +3,7 @@ import { MessagesController } from './messages.controller';
 import { MessagesQueryService } from '../services/messages-query.service';
 import { MessageDetailsService } from '../services/message-details.service';
 import { MessageFeedbackService } from '../services/message-feedback.service';
+import { MessageRecordingService } from '../services/message-recording.service';
 import { SpecificityFeedbackService } from '../services/specificity-feedback.service';
 
 describe('MessagesController', () => {
@@ -13,6 +14,7 @@ describe('MessagesController', () => {
   let mockClearFeedback: jest.Mock;
   let mockFlagMiscategorized: jest.Mock;
   let mockClearMiscategorized: jest.Mock;
+  let mockDeleteRecording: jest.Mock;
 
   beforeEach(async () => {
     mockGetMessages = jest.fn().mockResolvedValue({
@@ -33,6 +35,7 @@ describe('MessagesController', () => {
     mockClearFeedback = jest.fn().mockResolvedValue(undefined);
     mockFlagMiscategorized = jest.fn().mockResolvedValue(undefined);
     mockClearMiscategorized = jest.fn().mockResolvedValue(undefined);
+    mockDeleteRecording = jest.fn().mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MessagesController],
@@ -48,6 +51,10 @@ describe('MessagesController', () => {
         {
           provide: MessageFeedbackService,
           useValue: { setFeedback: mockSetFeedback, clearFeedback: mockClearFeedback },
+        },
+        {
+          provide: MessageRecordingService,
+          useValue: { delete: mockDeleteRecording },
         },
         {
           provide: SpecificityFeedbackService,
@@ -76,7 +83,18 @@ describe('MessagesController', () => {
       limit: 50,
       cursor: undefined,
       agent_name: undefined,
+      status: undefined,
+      recorded: undefined,
+      routing_tier: undefined,
+      specificity_category: undefined,
+      header_tier_id: undefined,
     });
+  });
+
+  it('delegates recording deletion to MessageRecordingService', async () => {
+    const user = { id: 'u1' };
+    await controller.deleteRecording('msg-1', user as never);
+    expect(mockDeleteRecording).toHaveBeenCalledWith('msg-1', 'u1');
   });
 
   it('passes all filter parameters', async () => {
@@ -90,6 +108,9 @@ describe('MessagesController', () => {
       limit: 25,
       cursor: 'ts|id',
       agent_name: 'bot-1',
+      routing_tier: 'simple',
+      specificity_category: 'coding',
+      header_tier_id: 'ht-premium',
     };
     await controller.getMessages(query as never, user as never);
 
@@ -103,6 +124,11 @@ describe('MessagesController', () => {
       limit: 25,
       cursor: 'ts|id',
       agent_name: 'bot-1',
+      status: undefined,
+      recorded: undefined,
+      routing_tier: 'simple',
+      specificity_category: 'coding',
+      header_tier_id: 'ht-premium',
     });
   });
 

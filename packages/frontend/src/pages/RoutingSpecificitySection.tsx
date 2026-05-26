@@ -13,12 +13,13 @@ import type {
   AvailableModel,
   AuthType,
   ModelRoute,
-  ProviderParamSpecCatalog,
   RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
 import '../styles/routing-specificity.css';
+import OutputControls from '../components/OutputControls.js';
 
 const SPECIFICITY_ICONS: Record<string, () => JSX.Element> = {
   coding: () => (
@@ -157,6 +158,9 @@ export interface RoutingSpecificitySectionProps {
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
+  responseMode: () => ResponseMode;
+  changingResponseMode: () => boolean;
+  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
@@ -179,7 +183,6 @@ export interface RoutingSpecificitySectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  modelParamSpecs?: () => ProviderParamSpecCatalog;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -201,6 +204,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   const activeTiers = () => SPECIFICITY_STAGES.filter((s) => isActive(s.id));
 
   const handleToggle = async (category: string, label: string, active: boolean) => {
+    const shouldInheritStreaming = active && props.responseMode() === 'stream';
     setToggling(category);
     try {
       await toggleSpecificity(props.agentName(), category, active);
@@ -208,6 +212,9 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         await props.refetchSpecificity();
       } else {
         await props.refetchAll();
+      }
+      if (shouldInheritStreaming) {
+        await props.onResponseModeChange('stream');
       }
       toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} routing`);
     } catch {
@@ -241,6 +248,13 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
           </div>
         }
       >
+        <div class="specificity-output-controls">
+          <OutputControls
+            responseMode={props.responseMode}
+            disabled={props.changingResponseMode}
+            onResponseModeChange={props.onResponseModeChange}
+          />
+        </div>
         <div class="specificity-cards">
           <For each={activeTiers()}>
             {(stage) => (
@@ -274,7 +288,6 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 }
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
-                modelParamSpecs={props.modelParamSpecs}
               />
             )}
           </For>

@@ -30,28 +30,109 @@ vi.mock('../../src/components/CopyButton.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderKeyForm.js', () => ({
-  default: () => <div data-testid="provider-key-form" />,
+  default: (props: {
+    provId: string;
+    agentName: string;
+    isSubMode: Accessor<boolean>;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    keyInput: Accessor<string>;
+    editing: Accessor<boolean>;
+    validationError: Accessor<string | null>;
+    providers: RoutingProvider[];
+    onBack: () => void;
+    onUpdate: () => void;
+  }) => (
+    <div
+      data-agent={props.agentName}
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-editing={String(props.editing())}
+      data-has-back={String(Boolean(props.onBack))}
+      data-has-update={String(Boolean(props.onUpdate))}
+      data-input={props.keyInput()}
+      data-is-sub-mode={String(props.isSubMode())}
+      data-provider-count={String(props.providers.length)}
+      data-provider-id={props.provId}
+      data-testid="provider-key-form"
+      data-validation-error={props.validationError() ?? ''}
+    />
+  ),
   MAX_KEYS_PER_PROVIDER: 5,
 }));
 
 vi.mock('../../src/components/OAuthDetailView.js', () => ({
-  default: () => <div data-testid="oauth-detail-view" />,
+  default: (props: {
+    provId: string;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    onClose: () => void;
+  }) => (
+    <div
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-has-close={String(Boolean(props.onClose))}
+      data-provider-id={props.provId}
+      data-testid="oauth-detail-view"
+    />
+  ),
+}));
+
+vi.mock('../../src/components/AnthropicOAuthDetailView.js', () => ({
+  default: (props: {
+    provId: string;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    onClose: () => void;
+  }) => (
+    <div
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-has-close={String(Boolean(props.onClose))}
+      data-provider-id={props.provId}
+      data-testid="anthropic-oauth-detail-view"
+    />
+  ),
 }));
 
 vi.mock('../../src/components/DeviceCodeDetailView.js', () => ({
-  default: () => <div data-testid="device-code-detail-view" />,
+  default: (props: {
+    provId: string;
+    connected: Accessor<boolean>;
+    selectedAuthType: Accessor<AuthType>;
+    busy: Accessor<boolean>;
+    onClose: () => void;
+  }) => (
+    <div
+      data-auth={props.selectedAuthType()}
+      data-busy={String(props.busy())}
+      data-connected={String(props.connected())}
+      data-has-close={String(Boolean(props.onClose))}
+      data-provider-id={props.provId}
+      data-testid="device-code-detail-view"
+    />
+  ),
 }));
 
 import ProviderDetailView from '../../src/components/ProviderDetailView';
 import { toast } from '../../src/services/toast-store.js';
 import type { AuthType, RoutingProvider } from '../../src/services/api.js';
 
-function createTestProps(overrides: Partial<{
-  provId: string;
-  providers: RoutingProvider[];
-  selectedAuthType: AuthType;
-}> = {}) {
-  const [busy, setBusy] = createSignal(false);
+function createTestProps(
+  overrides: Partial<{
+    provId: string;
+    providers: RoutingProvider[];
+    selectedAuthType: AuthType;
+    busy: boolean;
+  }> = {},
+) {
+  const [busy, setBusy] = createSignal(overrides.busy ?? false);
   const [keyInput, setKeyInput] = createSignal('');
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
@@ -160,11 +241,7 @@ describe('ProviderDetailView', () => {
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith(
-          'test-agent',
-          'ollama',
-          'api_key',
-        );
+        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'ollama', 'api_key');
         expect(props.onBack).toHaveBeenCalled();
         expect(props.onUpdate).toHaveBeenCalled();
       });
@@ -227,6 +304,85 @@ describe('ProviderDetailView', () => {
     });
   });
 
+  describe('Gemini subscription renders OAuthDetailView', () => {
+    it('renders OAuthDetailView for gemini popup_oauth subscription flow', () => {
+      const connectedGeminiSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'gemini',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: false,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const props = createTestProps({
+        provId: 'gemini',
+        providers: connectedGeminiSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByTestId('oauth-detail-view')).toBeDefined();
+    });
+  });
+
+  describe('Anthropic subscription renders paste-code OAuth flow', () => {
+    it('renders AnthropicOAuthDetailView for popup_paste subscription flow', () => {
+      const connectedAnthropicSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'anthropic',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: true,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByTestId('anthropic-oauth-detail-view')).toBeDefined();
+    });
+  });
+
+  describe('Copilot subscription renders device-code flow', () => {
+    it('renders DeviceCodeDetailView for device_code subscription flow', () => {
+      const connectedCopilotSub: RoutingProvider[] = [
+        {
+          id: 'p1',
+          provider: 'copilot',
+          auth_type: 'subscription',
+          is_active: true,
+          has_api_key: true,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const props = createTestProps({
+        provId: 'copilot',
+        providers: connectedCopilotSub,
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      expect(screen.getByTestId('device-code-detail-view')).toBeDefined();
+    });
+  });
+
+  describe('Kiro subscription renders device-code flow', () => {
+    it('renders DeviceCodeDetailView for the Kiro device_code subscription flow', () => {
+      const props = createTestProps({
+        provId: 'kiro',
+        selectedAuthType: 'subscription',
+      });
+      render(() => <ProviderDetailView {...props} />);
+      const view = screen.getByTestId('device-code-detail-view');
+      expect(view).toBeDefined();
+      expect(view.getAttribute('data-provider-id')).toBe('kiro');
+    });
+  });
+
   it('renders back button', () => {
     const props = createTestProps();
     render(() => <ProviderDetailView {...props} />);
@@ -252,6 +408,7 @@ describe('ProviderDetailView', () => {
         has_api_key: true,
         connected_at: '2025-01-01',
         models_fetched_at: '2026-04-12T09:55:00Z',
+        cached_model_count: 12,
       },
     ];
 
@@ -269,7 +426,7 @@ describe('ProviderDetailView', () => {
       });
       render(() => <ProviderDetailView {...props} />);
       expect(screen.getByLabelText('Refresh models from Anthropic')).toBeDefined();
-      expect(screen.getByText('Models last refreshed 5m ago')).toBeDefined();
+      expect(screen.getByText(/12 models – last refreshed: 5m ago/)).toBeDefined();
     });
 
     it('calls refreshProviderModels with the provider and auth type and shows a success toast', async () => {

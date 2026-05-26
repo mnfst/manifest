@@ -127,8 +127,12 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       setInput('');
       setState(null);
       props.onUpdate();
-    } catch {
-      setError('Failed to exchange code. The code may have expired — sign in again to retry.');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to exchange code. The code may have expired — sign in again to retry.',
+      );
     } finally {
       props.setBusy(false);
     }

@@ -18,7 +18,7 @@ export function oauthDoneHtml(success: boolean, nonce?: string, providerLabel = 
 <p id="hint" style="font-size:13px;color:#888;display:none;">You can close this window.</p>
 <script${nonceAttr}>
 try{var bc=new BroadcastChannel('manifest-oauth');bc.postMessage({type:'${message}'});bc.close();}catch(e){}
-if(window.opener){window.opener.postMessage({type:'${message}'},window.location.origin);}
+if(window.opener){window.opener.postMessage({type:'${message}'},'*');}
 setTimeout(function(){window.close();document.getElementById('hint').style.display='block';},1500);
 </script>
 </body>

@@ -1,4 +1,12 @@
-import { Show, createEffect, createSignal, type Component, type JSX } from 'solid-js';
+import {
+  Show,
+  createEffect,
+  createSignal,
+  onMount,
+  onCleanup,
+  type Component,
+  type JSX,
+} from 'solid-js';
 
 interface Props {
   value: string;
@@ -8,13 +16,27 @@ interface Props {
   disabled: boolean;
   running: boolean;
   headersSlot?: JSX.Element;
+  historyOpen?: boolean;
+  onHeightChange?: (height: number) => void;
 }
 
-const MAX_PROMPT_LINES = 8;
+const MAX_PROMPT_LINES = 15;
 const PROMPT_LINE_HEIGHT_PX = 22;
 
 const PlaygroundPrompt: Component<Props> = (props) => {
   const [ref, setRef] = createSignal<HTMLTextAreaElement | undefined>();
+  let wrapperRef: HTMLDivElement | undefined;
+
+  onMount(() => {
+    if (!wrapperRef || !props.onHeightChange) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        props.onHeightChange?.(entry.contentRect.height);
+      }
+    });
+    ro.observe(wrapperRef);
+    onCleanup(() => ro.disconnect());
+  });
 
   const autoGrow = () => {
     const el = ref();
@@ -59,7 +81,11 @@ const PlaygroundPrompt: Component<Props> = (props) => {
   };
 
   return (
-    <div class="playground-prompt-wrapper">
+    <div
+      ref={wrapperRef}
+      class="playground-prompt-wrapper"
+      classList={{ 'playground-prompt-wrapper--history-open': props.historyOpen }}
+    >
       <form
         class="playground-prompt"
         onSubmit={(event) => {

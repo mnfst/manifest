@@ -24,6 +24,10 @@ export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
+export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
+export type { ResponseMode } from './response-mode';
+export { DEFAULT_OUTPUT_MODALITY, OUTPUT_MODALITIES, isOutputModality } from './output-modality';
+export type { OutputModality } from './output-modality';
 export {
   routeEquals,
   isModelRoute,
@@ -41,9 +45,12 @@ export {
   deleteProviderParamValue,
   expandConfiguredParamDefaults,
   getProviderParamValue,
+  getProviderModelCapabilities,
   getProviderParamSpecs,
   isParamApplicability,
   isProviderParamPath,
+  MODEL_CAPABILITIES,
+  normalizeProviderParamProviderId,
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
   providerParamIsApplicable,
@@ -51,6 +58,7 @@ export {
   setProviderParamValue,
 } from './provider-params-spec';
 export type {
+  ModelCapability,
   ModelParamGroup,
   ModelParamDefinition,
   ModelParamRange,
@@ -75,7 +83,12 @@ export {
   encodeFallbackEntry,
 } from './fallback-encoding';
 export type { FallbackEntry } from './fallback-encoding';
-export { MODEL_PREFIX_MAP, inferProviderFromModel } from './provider-inference';
+export {
+  MODEL_PREFIX_MAP,
+  inferProviderFromModel,
+  underlyingGatewayModel,
+  resolveUnderlyingModelIdentity,
+} from './provider-inference';
 export {
   SHARED_PROVIDERS,
   SHARED_PROVIDER_BY_ID,
@@ -92,9 +105,21 @@ export {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
+export {
+  coerceContentToText,
+  detectRequestBodyFormat,
+  extractAssistantReply,
+  extractRecordedConversationMessages,
+  extractRequestMessages,
+  extractResponseMessages,
+  extractRequestTools,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RequestBodyFormat, Role, ToolCall } from './chat-message';
 export type {
   PlaygroundMetrics,
   PlaygroundRunResult,

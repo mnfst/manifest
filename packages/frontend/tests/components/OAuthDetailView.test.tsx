@@ -5,6 +5,9 @@ import { createSignal } from 'solid-js';
 const mockGetOpenaiOAuthUrl = vi.fn();
 const mockSubmitOpenaiOAuthCallback = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockGetXaiOAuthUrl = vi.fn();
+const mockSubmitXaiOAuthCallback = vi.fn();
+const mockRevokeXaiOAuth = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockRenameProviderKey = vi.fn();
 const mockToastError = vi.fn();
@@ -14,6 +17,21 @@ vi.mock('../../src/services/api.js', () => ({
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+  getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+  submitXaiOAuthCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
+  revokeXaiOAuth: (...args: unknown[]) => mockRevokeXaiOAuth(...args),
+  getPopupOauthApi: (providerId: string) =>
+    providerId === 'xai'
+      ? {
+          getUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+          submitCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
+          revoke: (...args: unknown[]) => mockRevokeXaiOAuth(...args),
+        }
+      : {
+          getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+          submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+          revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+        },
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
 }));
@@ -32,6 +50,7 @@ vi.mock('../../src/services/oauth-popup.js', () => ({
 import OAuthDetailView from '../../src/components/OAuthDetailView';
 import type { ProviderDef } from '../../src/services/providers.js';
 import type { RoutingProvider } from '../../src/services/api.js';
+import { monitorOAuthPopup } from '../../src/services/oauth-popup.js';
 
 const provDef: ProviderDef = {
   id: 'openai',
@@ -46,6 +65,14 @@ const provDef: ProviderDef = {
   supportsSubscription: true,
   subscriptionLabel: 'ChatGPT Plus subscription',
   subscriptionAuthMode: 'oauth',
+};
+
+const xaiProvDef: ProviderDef = {
+  ...provDef,
+  id: 'xai',
+  name: 'xAI',
+  initial: 'X',
+  subscriptionLabel: 'Grok subscription',
 };
 
 function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
@@ -69,6 +96,8 @@ function renderView(
     connected?: boolean;
     activeKeys?: RoutingProvider[];
     addKeyOpen?: boolean;
+    provId?: string;
+    provDef?: ProviderDef;
   } = {},
 ) {
   const [busy, setBusy] = createSignal(false);
@@ -77,10 +106,11 @@ function renderView(
   const onUpdate = vi.fn();
   const onClose = vi.fn();
   const keys = opts.activeKeys ?? [];
+  const providerId = opts.provId ?? 'openai';
   const result = render(() => (
     <OAuthDetailView
-      provDef={provDef}
-      provId="openai"
+      provDef={opts.provDef ?? provDef}
+      provId={providerId}
       agentName="test-agent"
       connected={() => opts.connected ?? false}
       selectedAuthType={() => 'subscription'}
@@ -97,9 +127,35 @@ function renderView(
   return { ...result, onBack, onUpdate, onClose, setAddKeyOpen };
 }
 
+function renderReactiveView(opts: { connected?: boolean; activeKeys?: RoutingProvider[] } = {}) {
+  const [busy, setBusy] = createSignal(false);
+  const [connected, setConnected] = createSignal(opts.connected ?? false);
+  const [activeKeys, setActiveKeys] = createSignal(opts.activeKeys ?? []);
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const result = render(() => (
+    <OAuthDetailView
+      provDef={provDef}
+      provId="openai"
+      agentName="test-agent"
+      connected={connected}
+      selectedAuthType={() => 'subscription'}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      activeKeys={activeKeys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose, setConnected, setActiveKeys };
+}
+
 describe('OAuthDetailView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('shows "Log in with" button when not connected', () => {
@@ -203,6 +259,134 @@ describe('OAuthDetailView', () => {
     expect(screen.getByText('Disconnect')).toBeDefined();
   });
 
+  it('shows paste URL input when adding another OAuth account while already connected', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ connected: true, activeKeys: [makeKey()], addKeyOpen: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+      ).toBeDefined();
+    });
+  });
+
+  it('starts xAI OAuth with the xAI callback path and manual-code placeholder', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+
+    await waitFor(() => {
+      expect(mockGetXaiOAuthUrl).toHaveBeenCalledWith('test-agent');
+    });
+    expect(
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    ).toBeDefined();
+    expect(monitorOAuthPopup).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      '/oauth/xai/done',
+    );
+  });
+
+  it('submits an xAI pasted callback URL through the xAI OAuth API', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
+    mockSubmitXaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { onUpdate } = renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: { value: 'http://127.0.0.1:56121/callback?code=xai-code&state=xai-state' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitXaiOAuthCallback).toHaveBeenCalledWith('xai-code', 'xai-state');
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('xAI subscription connected');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('submits an xAI raw authorization code with the pending OAuth state', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({
+      url: 'https://auth.x.ai/oauth2/authorize?state=pending-xai-state',
+    });
+    mockSubmitXaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: { value: 'raw-xai-code-from-consent-page' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitXaiOAuthCallback).toHaveBeenCalledWith(
+        'raw-xai-code-from-consent-page',
+        'pending-xai-state',
+      );
+    });
+  });
+
+  it('submits an xAI consent URL and displayed code pasted together', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
+    mockSubmitXaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: {
+        value:
+          'https://accounts.x.ai/oauth2/consent?response_type=code&state=consent-state\nmanual-xai-code-from-page',
+      },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitXaiOAuthCallback).toHaveBeenCalledWith(
+        'manual-xai-code-from-page',
+        'consent-state',
+      );
+    });
+  });
+
+  it('asks xAI users for the displayed code when only the consent URL is pasted', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({
+      url: 'https://auth.x.ai/oauth2/authorize?state=pending-xai-state',
+    });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('Paste the xAI authorization code or callback URL'),
+    );
+    fireEvent.input(input, {
+      target: { value: 'https://accounts.x.ai/oauth2/consent?state=pending-xai-state' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Paste the authorization code shown by xAI/)).toBeDefined();
+    });
+    expect(mockSubmitXaiOAuthCallback).not.toHaveBeenCalled();
+  });
+
   it('shows popup-blocked toast when window.open returns null', async () => {
     mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
     vi.spyOn(window, 'open').mockReturnValue(null);
@@ -211,7 +395,9 @@ describe('OAuthDetailView', () => {
     fireEvent.click(screen.getByText('Log in with OpenAI'));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringMatching(/Popup was blocked/));
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Popup was blocked by your browser. Allow popups for this site, then try again.',
+      );
     });
   });
 
@@ -262,6 +448,51 @@ describe('OAuthDetailView', () => {
 
     await waitFor(() => {
       expect(mockSubmitOpenaiOAuthCallback).toHaveBeenCalledWith('abc123', 'xyz789');
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('OpenAI subscription connected');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('polls for provider updates while OAuth flow is pending', async () => {
+    vi.useFakeTimers();
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { onUpdate } = renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+    ).toBeDefined();
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(2000);
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('clears paste flow when provider data shows local callback success', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { setConnected, onUpdate } = renderReactiveView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+      ).toBeDefined();
+    });
+
+    setConnected(true);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+      ).toBeNull();
     });
     expect(mockToastSuccess).toHaveBeenCalledWith('OpenAI subscription connected');
     expect(onUpdate).toHaveBeenCalled();

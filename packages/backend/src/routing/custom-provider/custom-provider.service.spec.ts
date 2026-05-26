@@ -13,6 +13,7 @@ import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { validatePublicUrl } = require('../../common/utils/url-validation');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -22,6 +23,8 @@ function makeDeps(overrides: {
   findOneResults?: (CustomProvider | null)[];
   findResult?: CustomProvider[];
   cached?: CustomProvider[] | null;
+  modelsDevSync?: Pick<ModelsDevSyncService, 'lookupCustomProviderModel'> &
+    Partial<Pick<ModelsDevSyncService, 'lookupModelAcrossProviders'>>;
 }) {
   const findOne = jest.fn();
   const find = jest.fn().mockResolvedValue(overrides.findResult ?? []);
@@ -64,6 +67,7 @@ function makeDeps(overrides: {
     routingCache,
     autoAssign,
     pricingCache,
+    overrides.modelsDevSync as ModelsDevSyncService | undefined,
   );
 
   return {
@@ -391,6 +395,95 @@ describe('CustomProviderService', () => {
       });
       expect(cp.api_kind).toBe('anthropic');
     });
+
+    it('fills missing prices and context from models.dev when provider and model match', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
+
+      const cp = await svc.create('agent-1', 'user-1', {
+        ...dto,
+        name: 'Kilo Gateway',
+        models: [{ model_name: 'openai/gpt-4o-mini' }],
+      });
+
+      expect(modelsDevSync.lookupCustomProviderModel).toHaveBeenCalledWith(
+        'Kilo Gateway',
+        'openai/gpt-4o-mini',
+      );
+      expect(cp.models[0]).toEqual({
+        model_name: 'openai/gpt-4o-mini',
+        input_price_per_million_tokens: 0.15,
+        output_price_per_million_tokens: 0.6,
+        context_window: 128000,
+      });
+    });
+
+    it('marks model-only price fallbacks as estimated when provider is not on models.dev', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue(null),
+        lookupModelAcrossProviders: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
+
+      const cp = await svc.create('agent-1', 'user-1', {
+        ...dto,
+        name: 'Mammouth AI',
+        models: [{ model_name: 'openai/gpt-4o-mini' }],
+      });
+
+      expect(modelsDevSync.lookupCustomProviderModel).toHaveBeenCalledWith(
+        'Mammouth AI',
+        'openai/gpt-4o-mini',
+      );
+      expect(modelsDevSync.lookupModelAcrossProviders).toHaveBeenCalledWith('openai/gpt-4o-mini');
+      expect(cp.models[0]).toEqual({
+        model_name: 'openai/gpt-4o-mini',
+        input_price_per_million_tokens: 0.15,
+        output_price_per_million_tokens: 0.6,
+        context_window: 128000,
+        price_estimated: true,
+      });
+    });
+
+    it('preserves user-entered prices over models.dev matches', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
+
+      const cp = await svc.create('agent-1', 'user-1', {
+        ...dto,
+        name: 'Kilo Gateway',
+        models: [
+          {
+            model_name: 'openai/gpt-4o-mini',
+            input_price_per_million_tokens: 9,
+            output_price_per_million_tokens: 10,
+            context_window: 64000,
+          },
+        ],
+      });
+
+      expect(cp.models[0]).toMatchObject({
+        input_price_per_million_tokens: 9,
+        output_price_per_million_tokens: 10,
+        context_window: 64000,
+      });
+    });
   });
 
   describe('update', () => {
@@ -479,6 +572,29 @@ describe('CustomProviderService', () => {
       // Edited prices must flow into the shared pricing cache so the next
       // proxied message picks up the new per-token cost.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
+    });
+
+    it('fills missing model update prices from models.dev using the current provider name', async () => {
+      const existing = { id: 'cp1', agent_id: 'agent-1', name: 'Kilo Gateway' } as CustomProvider;
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ findOneResults: [existing], modelsDevSync });
+
+      await svc.update('agent-1', 'cp1', 'user-1', {
+        models: [{ model_name: 'openai/gpt-4o-mini' }],
+      });
+
+      expect(existing.models[0]).toEqual({
+        model_name: 'openai/gpt-4o-mini',
+        input_price_per_million_tokens: 0.15,
+        output_price_per_million_tokens: 0.6,
+        context_window: 128000,
+      });
     });
 
     it('updates api_kind when provided', async () => {
@@ -627,6 +743,72 @@ describe('CustomProviderService', () => {
       // a hostile endpoint could 3xx the probe to a cloud-metadata URL
       // that would bypass the pre-fetch validator.
       expect(init.redirect).toBe('error');
+    });
+
+    it('enriches probed models with models.dev pricing when provider name matches', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ modelsDevSync });
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [{ id: 'openai/gpt-4o-mini' }],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels(
+        'http://host.docker.internal:8000/v1',
+        'sk-x',
+        'openai',
+        'Kilo Gateway',
+      );
+
+      expect(result).toEqual([
+        {
+          model_name: 'openai/gpt-4o-mini',
+          input_price_per_million_tokens: 0.15,
+          output_price_per_million_tokens: 0.6,
+          context_window: 128000,
+        },
+      ]);
+    });
+
+    it('marks probed model-only price fallbacks as estimated', async () => {
+      const modelsDevSync = {
+        lookupCustomProviderModel: jest.fn().mockReturnValue(null),
+        lookupModelAcrossProviders: jest.fn().mockReturnValue({
+          inputPricePerToken: 0.15 / 1_000_000,
+          outputPricePerToken: 0.6 / 1_000_000,
+          contextWindow: 128000,
+        }),
+      };
+      const { svc } = makeDeps({ modelsDevSync });
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse({
+          data: [{ id: 'openai/gpt-4o-mini' }],
+        }),
+      ) as unknown as typeof fetch;
+
+      const result = await svc.probeModels(
+        'http://host.docker.internal:8000/v1',
+        'sk-x',
+        'openai',
+        'Mammouth AI',
+      );
+
+      expect(result).toEqual([
+        {
+          model_name: 'openai/gpt-4o-mini',
+          input_price_per_million_tokens: 0.15,
+          output_price_per_million_tokens: 0.6,
+          context_window: 128000,
+          price_estimated: true,
+        },
+      ]);
     });
 
     it('strips trailing slashes from the base URL before appending /models', async () => {

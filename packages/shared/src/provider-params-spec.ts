@@ -1,5 +1,11 @@
 import type { AuthType } from './auth-types';
+import { resolveUnderlyingModelIdentity, underlyingGatewayModel } from './provider-inference';
+import { normalizeProviderName, SHARED_PROVIDER_BY_ID_OR_ALIAS } from './providers';
 import type { JsonPrimitive, JsonValue } from './request-params';
+
+export const MODEL_CAPABILITIES = ['text', 'image', 'audio', 'video', 'stream', 'tools'] as const;
+
+export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
 
 export type ModelParamType = 'boolean' | 'enum' | 'integer' | 'number' | 'string';
 
@@ -64,6 +70,7 @@ export interface ProviderModelParamSpec {
   provider: string;
   authType: AuthType;
   model: string;
+  capabilities?: readonly ModelCapability[];
   params: readonly ModelParamDefinition[];
 }
 
@@ -87,29 +94,80 @@ const GROUP_ORDER: readonly ModelParamGroup[] = [
 
 const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
 
+export function normalizeProviderParamProviderId(providerId: string): string {
+  const lower = providerId.toLowerCase();
+  const exact = SHARED_PROVIDER_BY_ID_OR_ALIAS.get(lower);
+  if (exact) return exact.id;
+  const normalized = SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(lower));
+  if (normalized) return normalized.id;
+  return lower;
+}
+
+/**
+ * Resolve the catalog lookup identity for a model.
+ *
+ * Gateways (e.g. OpenCode Go) are transparent transports: a model like
+ * `opencode-go/deepseek-v4-pro` exposes the underlying provider's native
+ * parameters, so it resolves to `(deepseek, api_key, deepseek-v4-pro)`. The
+ * gateway's own subscription billing is irrelevant to which knobs the
+ * model's API accepts, so authType collapses to `api_key`. Non-gateway ids
+ * are returned unchanged.
+ */
+function paramLookupIdentity(
+  providerId: string | undefined,
+  authType: AuthType | undefined,
+  model: string | undefined,
+): { providerId: string | undefined; authType: AuthType | undefined; model: string | undefined } {
+  if (!model || underlyingGatewayModel(model) === null) return { providerId, authType, model };
+  const resolved = resolveUnderlyingModelIdentity(providerId, model);
+  return { providerId: resolved.provider, authType: 'api_key', model: resolved.model };
+}
+
 export function getProviderParamSpecs(
   catalog: ProviderParamSpecCatalog,
   providerId: string | undefined,
   authType: AuthType | undefined,
   model: string | undefined,
 ): readonly ProviderParamSpec[] {
-  if (!providerId || !authType || !model) return [];
-  const provider = providerId.toLowerCase();
+  const id = paramLookupIdentity(providerId, authType, model);
+  if (!id.providerId || !id.authType || !id.model) return [];
+  const provider = normalizeProviderParamProviderId(id.providerId);
   const entry = catalog.find(
     (spec) =>
-      spec.provider.toLowerCase() === provider &&
-      spec.authType === authType &&
-      spec.model === model,
+      normalizeProviderParamProviderId(spec.provider) === provider &&
+      spec.authType === id.authType &&
+      spec.model === id.model,
   );
   if (!entry) return [];
   return entry.params
-    .map((param) => ({
-      provider: entry.provider,
-      authType: entry.authType,
-      model: entry.model,
-      ...param,
-    }))
+    .map((param) => {
+      const provider = normalizeProviderParamProviderId(entry.provider);
+      return {
+        provider,
+        authType: entry.authType,
+        model: entry.model,
+        ...param,
+      };
+    })
     .sort(compareProviderParamSpecs);
+}
+
+export function getProviderModelCapabilities(
+  catalog: ProviderParamSpecCatalog,
+  providerId: string | undefined,
+  authType: AuthType | undefined,
+  model: string | undefined,
+): readonly ModelCapability[] | null {
+  const id = paramLookupIdentity(providerId, authType, model);
+  if (!id.providerId || !id.authType || !id.model) return null;
+  const provider = normalizeProviderParamProviderId(id.providerId);
+  const entry = catalog.find(
+    (spec) =>
+      normalizeProviderParamProviderId(spec.provider) === provider &&
+      spec.authType === id.authType &&
+      spec.model === id.model,
+  );
+  return entry?.capabilities ?? null;
 }
 
 export function compareProviderParamSpecs(

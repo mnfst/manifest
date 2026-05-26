@@ -1,6 +1,10 @@
 import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
-import { AnthropicOauthService, splitAnthropicAuthPayload } from './anthropic-oauth.service';
+import {
+  AnthropicOauthExchangeError,
+  AnthropicOauthService,
+  splitAnthropicAuthPayload,
+} from './anthropic-oauth.service';
 import { ANTHROPIC_OAUTH } from './anthropic-oauth.config';
 import {
   OAuthPendingFlowStore,
@@ -277,6 +281,24 @@ describe('AnthropicOauthService', () => {
       expect(logger.error).toHaveBeenCalledWith(
         expect.stringContaining('"stateMatchesCodeVerifier":true'),
       );
+    });
+
+    it('preserves Anthropic token endpoint rate limits as rate-limit errors', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(400, {
+          error: {
+            type: 'rate_limit_error',
+            message: 'Rate limited. Please try again later.',
+          },
+        }),
+      );
+      const { state } = await svc.generateAuthorizationUrl('a', 'u');
+
+      await expect(svc.exchangeCode(`bad#${state}`, undefined, 'a', 'u')).rejects.toMatchObject({
+        message:
+          'Anthropic rate-limited the OAuth token exchange. Please wait a minute, then sign in again.',
+        status: 429,
+      } satisfies Partial<AnthropicOauthExchangeError>);
     });
 
     it('falls back to state when the pending verifier is missing', async () => {
