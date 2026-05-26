@@ -131,6 +131,39 @@ describe('scrubSecrets', () => {
     expect(twice).toBe(once);
   });
 
+  it('redacts JSON refresh_token values', () => {
+    const out = scrubSecrets('{"error":"invalid_grant","refresh_token":"rt-abcdef123456789"}');
+    expect(out).not.toContain('rt-abcdef123456789');
+    expect(out).toContain('"refresh_token":"[REDACTED]"');
+  });
+
+  it('redacts JSON client_secret values', () => {
+    const out = scrubSecrets('{"client_secret":"cs-supersecretvalue","client_id":"public"}');
+    expect(out).not.toContain('cs-supersecretvalue');
+    expect(out).toContain('"client_secret":"[REDACTED]"');
+    // Non-secret fields are left intact.
+    expect(out).toContain('"client_id":"public"');
+  });
+
+  it('redacts form-encoded credential params without bleeding past &', () => {
+    const out = scrubSecrets('grant_type=refresh_token&refresh_token=rt-opaque999&client_id=abc');
+    expect(out).not.toContain('rt-opaque999');
+    expect(out).toContain('refresh_token=[REDACTED]');
+    expect(out).toContain('client_id=abc');
+  });
+
+  it('redacts a realistic Kiro device-authorization error body echoing the client secret', () => {
+    const body = JSON.stringify({
+      error: 'invalid_client',
+      client_secret: 'kiro-cs-LEAKEDSECRET12345',
+      device_code: 'dc-LEAKEDDEVICECODE67890',
+    });
+    const out = scrubSecrets(body);
+    expect(out).not.toContain('LEAKEDSECRET12345');
+    expect(out).not.toContain('LEAKEDDEVICECODE67890');
+    expect(out).toContain('[REDACTED]');
+  });
+
   it('redacts a realistic Anthropic 401 body', () => {
     const body = JSON.stringify({
       type: 'error',
