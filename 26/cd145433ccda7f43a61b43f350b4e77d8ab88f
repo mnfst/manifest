@@ -1,0 +1,42 @@
+packages/backend/src/database/models-dev-sync.service.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 206-235
+packages/frontend/tests/components/CustomProviderForm.test.tsx
+  s_b6f44f365c1482::t_b90c961e525644 589-615,617-639
+packages/frontend/src/styles/routing-providers.css
+  s_b6f44f365c1482::t_ecce329c88aaf2 761-767
+packages/backend/src/entities/custom-provider.entity.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 10
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_b6f44f365c1482::t_fb8d1ecce7e7f4 1018-1045
+.changeset/modelsdev-custom-provider-prices.md
+  s_b6f44f365c1482::t_2ca89950f6071b 5
+packages/backend/src/routing/dto/custom-provider.dto.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 16,47-50
+packages/frontend/src/components/CustomProviderForm.tsx
+  s_b6f44f365c1482::t_ecce329c88aaf2 14,34,37-44,53,65,121,123,147-149,433-437
+  s_b6f44f365c1482::t_58d46978cf94a6 116-120
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 439-449,452,455,458,460-463,471
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_b6f44f365c1482::t_952494afd3d3ea 427-457
+  s_b6f44f365c1482::t_d0f966fc992d2d 26-27
+  s_b6f44f365c1482::t_c2b64d6186b42c 780-813
+packages/frontend/src/services/api/routing.ts
+  s_b6f44f365c1482::t_ecce329c88aaf2 353
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "26cd145433ccda7f43a61b43f350b4e77d8ab88f",
+  "prompts": {},
+  "sessions": {
+    "s_b6f44f365c1482": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6308-418b-77e3-b7ac-c9a36cd1f55e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
