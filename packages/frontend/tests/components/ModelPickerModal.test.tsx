@@ -409,6 +409,38 @@ describe("ModelPickerModal", () => {
     expect(modelButtons[0].textContent).toContain("GPT-4o mini");
   });
 
+  it("collapses and expands a provider's model rows from the group arrow", () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={baseModels}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    const list = container.querySelector(".routing-modal__list") as HTMLElement;
+    expect(list.classList.contains("routing-modal__list--all-collapsed")).toBe(false);
+    const modelRows = container.querySelector(".routing-modal__group-models") as HTMLElement;
+    expect(modelRows.hasAttribute("hidden")).toBe(false);
+
+    const hideToggle = screen.getByLabelText("Hide OpenAI models");
+    expect(hideToggle.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(hideToggle);
+
+    const showToggle = screen.getByLabelText("Show OpenAI models");
+    expect(showToggle.getAttribute("aria-expanded")).toBe("false");
+    expect(modelRows.hasAttribute("hidden")).toBe(true);
+    expect(list.classList.contains("routing-modal__list--all-collapsed")).toBe(true);
+
+    fireEvent.click(showToggle);
+    expect(screen.getByLabelText("Hide OpenAI models").getAttribute("aria-expanded")).toBe("true");
+    expect(modelRows.hasAttribute("hidden")).toBe(false);
+    expect(list.classList.contains("routing-modal__list--all-collapsed")).toBe(false);
+  });
+
   it("renders the recommendation tag for the auto-assigned route", () => {
     const { container } = render(() => (
       <ModelPickerModal

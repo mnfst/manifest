@@ -1,4 +1,8 @@
 /* ── Model picker modal ───────────────────────────── */
+.routing-modal__card {
+  overflow: hidden;
+}
+
 .routing-modal__header {
   display: flex;
   align-items: flex-start;
@@ -62,7 +66,7 @@
 
 .routing-modal__filter-bar {
   display: flex;
-  padding: 8px 24px 0;
+  padding: 8px 24px 8px;
   flex-shrink: 0;
 }
 
@@ -108,8 +112,13 @@
   flex: 1;
   min-height: 0;
   padding: 0;
-  margin-top: 12px;
+  background: hsl(var(--card));
   border-top: 1px solid hsl(var(--border));
+}
+
+.routing-modal__list--all-collapsed {
+  flex: 0 0 auto;
+  overflow-y: visible;
 }
 
 .routing-modal__group {
@@ -124,11 +133,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px 6px;
+  padding: 12px 24px;
   position: sticky;
   top: 0;
   background: hsl(var(--card));
-  z-index: 1;
+  z-index: 2;
 }
 
 .routing-modal__group-icon {
@@ -146,7 +155,7 @@
   flex: 1;
 }
 
-.routing-modal__group-refresh {
+.routing-modal__icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -165,13 +174,18 @@
     background 0.15s ease;
 }
 
-.routing-modal__group-refresh:hover:not(:disabled) {
+.routing-modal__icon-btn:hover:not(:disabled) {
   color: hsl(var(--foreground));
   border-color: hsl(var(--border));
   background: hsl(var(--muted) / 0.6);
 }
 
-.routing-modal__group-refresh:disabled {
+.routing-modal__icon-btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 1px;
+}
+
+.routing-modal__icon-btn:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
