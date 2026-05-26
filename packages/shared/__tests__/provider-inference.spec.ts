@@ -1,4 +1,8 @@
-import { MODEL_PREFIX_MAP, inferProviderFromModel } from '../src/provider-inference';
+import {
+  MODEL_PREFIX_MAP,
+  inferProviderFromModel,
+  underlyingGatewayModel,
+} from '../src/provider-inference';
 
 describe('MODEL_PREFIX_MAP', () => {
   it('is a non-empty array of [RegExp, string] entries', () => {
@@ -68,5 +72,17 @@ describe('inferProviderFromModel', () => {
 
   it('returns undefined for unrecognized models', () => {
     expect(inferProviderFromModel('unknown-model')).toBeUndefined();
+  });
+});
+
+describe('underlyingGatewayModel', () => {
+  it('strips the gateway prefix from gateway model ids', () => {
+    expect(underlyingGatewayModel('opencode-go/deepseek-v4-pro')).toBe('deepseek-v4-pro');
+    expect(underlyingGatewayModel('opencode-go/kimi-k2.6')).toBe('kimi-k2.6');
+  });
+
+  it('returns null for non-gateway model ids', () => {
+    expect(underlyingGatewayModel('deepseek-v4-pro')).toBeNull();
+    expect(underlyingGatewayModel('openrouter/anthropic/claude-sonnet-4')).toBeNull();
   });
 });

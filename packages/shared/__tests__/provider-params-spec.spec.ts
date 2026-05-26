@@ -96,6 +96,23 @@ const catalog: ProviderParamSpecCatalog = [
       },
     ],
   },
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-pro',
+    capabilities: ['text', 'stream'],
+    params: [
+      {
+        path: 'reasoning_effort',
+        type: 'enum',
+        label: 'Reasoning effort',
+        description: 'Controls DeepSeek reasoning effort.',
+        default: 'medium',
+        values: ['low', 'medium', 'high'],
+        group: 'reasoning',
+      },
+    ],
+  },
 ];
 
 const anthropicSpecs = getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude-sonnet-4-6');
@@ -126,6 +143,30 @@ describe('provider-params-spec', () => {
       expect(getProviderParamSpecs(catalog, 'anthropic', 'api_key', 'claude:sonnet/4-6')).toEqual(
         [],
       );
+    });
+
+    it('resolves gateway models to the underlying provider specs', () => {
+      // OpenCode Go (subscription gateway) -> DeepSeek's native api_key specs.
+      const specs = getProviderParamSpecs(
+        catalog,
+        'opencode-go',
+        'subscription',
+        'opencode-go/deepseek-v4-pro',
+      );
+      expect(specs.map((spec) => spec.path)).toEqual(['reasoning_effort']);
+      expect(specs[0].provider).toBe('deepseek');
+      expect(specs[0].model).toBe('deepseek-v4-pro');
+    });
+
+    it('returns [] for gateway models whose underlying provider is absent from the catalog', () => {
+      // moonshot (kimi) is not in the catalog.
+      expect(
+        getProviderParamSpecs(catalog, 'opencode-go', 'subscription', 'opencode-go/kimi-k2.6'),
+      ).toEqual([]);
+      // mimo-v2.5 infers no provider at all.
+      expect(
+        getProviderParamSpecs(catalog, 'opencode-go', 'subscription', 'opencode-go/mimo-v2.5'),
+      ).toEqual([]);
     });
 
     it('matches catalog provider aliases against Manifest provider IDs', () => {
@@ -173,6 +214,17 @@ describe('provider-params-spec', () => {
       expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', undefined)).toBeNull();
       expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', 'missing')).toBeNull();
       expect(getProviderModelCapabilities(catalog, 'openai', 'api_key', 'gpt-5')).toBeNull();
+    });
+
+    it('resolves gateway models to the underlying provider capabilities', () => {
+      expect(
+        getProviderModelCapabilities(
+          catalog,
+          'opencode-go',
+          'subscription',
+          'opencode-go/deepseek-v4-pro',
+        ),
+      ).toEqual(['text', 'stream']);
     });
   });
 
