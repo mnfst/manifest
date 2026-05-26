@@ -1,0 +1,22 @@
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_13de6fdca9a587::t_6d00f9c3169436 217,220,227-239
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_13de6fdca9a587::t_d9098213ce0839 165-169
+  s_13de6fdca9a587::t_a68e4f613de75b 77-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7dff14ed625745ce9c63592ba9b416dd60d218bf",
+  "prompts": {},
+  "sessions": {
+    "s_13de6fdca9a587": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4b4825e9-21d8-4a2c-ac61-a32f2f414366",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
