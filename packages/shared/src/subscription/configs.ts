@@ -149,6 +149,17 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  xai: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Grok subscription',
+    subscriptionAuthMode: 'popup_oauth' as const,
+    // Model list is fetched dynamically from xAI's OpenAI-compatible /v1/models endpoint.
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   copilot: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GitHub Copilot subscription',

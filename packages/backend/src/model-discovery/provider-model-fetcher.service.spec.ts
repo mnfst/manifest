@@ -290,6 +290,30 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  /* ── xAI provider ── */
+
+  describe('xai provider', () => {
+    it('uses the dynamic xAI models endpoint for subscription auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'grok-3' }, { id: 'grok-4' }],
+        }),
+      });
+
+      const result = await service.fetch('xai', 'xai-test-key', 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer xai-test-key' },
+        }),
+      );
+      expect(result.map((m) => m.id)).toEqual(['grok-3', 'grok-4']);
+      expect(result.every((m) => m.provider === 'xai')).toBe(true);
+    });
+  });
+
   /* ── Mistral-specific filter ── */
 
   describe('parseMistralChatOnly (via mistral provider)', () => {

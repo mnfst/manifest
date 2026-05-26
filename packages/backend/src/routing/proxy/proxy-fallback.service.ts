@@ -30,6 +30,7 @@ import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.servic
 import { GeminiOauthService } from '../oauth/gemini-oauth.service';
 import { parseOAuthTokenBlob } from '../oauth/core';
 import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -81,6 +82,7 @@ export class ProxyFallbackService {
     private readonly anthropicOauth: AnthropicOauthService,
     private readonly geminiOauth: GeminiOauthService,
     private readonly kiroOauth: KiroOauthService,
+    private readonly xaiOauth: XaiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
@@ -226,6 +228,7 @@ export class ProxyFallbackService {
         this.anthropicOauth,
         this.geminiOauth,
         this.kiroOauth,
+        this.xaiOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
@@ -504,6 +507,7 @@ export async function resolveApiKey(
   anthropicOauth: AnthropicOauthService,
   geminiOauth: GeminiOauthService,
   kiroOauth: KiroOauthService,
+  xaiOauth: XaiOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -530,6 +534,10 @@ export async function resolveApiKey(
     }
     if (lower === 'kiro') {
       const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
+    }
+    if (lower === 'xai') {
+      const unwrapped = await xaiOauth.unwrapToken(apiKey, agentId, userId);
       if (unwrapped) return { apiKey: unwrapped };
     }
   }

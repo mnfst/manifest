@@ -76,7 +76,7 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+      if (lowerProvider === 'openai' || lowerProvider === 'minimax' || lowerProvider === 'xai') {
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;

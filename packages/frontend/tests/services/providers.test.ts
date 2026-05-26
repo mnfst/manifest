@@ -398,6 +398,17 @@ describe("PROVIDERS", () => {
     expect(zai.subscriptionOnly).toBeUndefined();
   });
 
+  it("xAI supports Grok subscription with OAuth flow and dynamic models", () => {
+    const xai = PROVIDERS.find((p) => p.id === "xai")!;
+    expect(xai.supportsSubscription).toBe(true);
+    expect(xai.subscriptionLabel).toBe("Grok subscription");
+    expect(xai.subscriptionAuthMode).toBe("popup_oauth");
+    expect(xai.subscriptionCredentialKind).toBeUndefined();
+    expect(xai.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(xai.subscriptionOnly).toBeUndefined();
+    expect(xai.models).toEqual([]);
+  });
+
   it("provides a subscription-key URL for Z.ai pointing at the API key dashboard", () => {
     expect(getSubscriptionProviderKeyUrl("zai")).toBe(
       "https://z.ai/manage-apikey/apikey-list",
