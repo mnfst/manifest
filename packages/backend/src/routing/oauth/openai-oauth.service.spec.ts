@@ -170,6 +170,40 @@ describe('OpenaiOauthService', () => {
     });
   });
 
+  describe('callback handler', () => {
+    it('shuts down the callback server after a callback exchange failure', async () => {
+      fetchMock.mockResolvedValue(mockResponse(400, {}, 'invalid_grant'));
+      const url = await svc.generateAuthorizationUrl('a', 'u', 'http://localhost:3001');
+      const state = new URL(url).searchParams.get('state')!;
+      const close = jest.fn();
+      const serviceInternals = svc as unknown as {
+        callbackServer: { close: () => void } | null;
+        serverReady: Promise<void> | null;
+      };
+      serviceInternals.callbackServer = { close };
+      serviceInternals.serverReady = Promise.resolve();
+      const req = { url: `/auth/callback?state=${state}&code=bad` };
+      let resolveResponse!: () => void;
+      const responseDone = new Promise<void>((resolve) => {
+        resolveResponse = resolve;
+      });
+      const res = { writeHead: jest.fn(), end: jest.fn(resolveResponse) };
+
+      (
+        svc as unknown as {
+          handleCallbackRequest: (request: typeof req, response: typeof res) => void;
+        }
+      ).handleCallbackRequest(req, res);
+      await responseDone;
+
+      expect(close).toHaveBeenCalled();
+      expect(serviceInternals.callbackServer).toBeNull();
+      expect(serviceInternals.serverReady).toBeNull();
+      expect(svc.getPendingCount()).toBe(0);
+      expect(res.end).toHaveBeenCalled();
+    });
+  });
+
   describe('refreshAccessToken', () => {
     it('returns a fresh blob with a new expiry', async () => {
       fetchMock.mockResolvedValue(

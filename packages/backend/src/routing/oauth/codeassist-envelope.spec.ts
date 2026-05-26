@@ -35,6 +35,13 @@ describe('unwrapCodeAssistStreamChunk', () => {
     expect(result).toBe(`data: ${JSON.stringify(inner)}\n`);
   });
 
+  it('rewrites a bare parsed SSE payload containing a response wrapper', () => {
+    const inner = { candidates: [1] };
+    const chunk = JSON.stringify({ response: inner });
+    const result = unwrapCodeAssistStreamChunk(chunk);
+    expect(result).toBe(JSON.stringify(inner));
+  });
+
   it('passes through event: lines without modification', () => {
     const line = 'event: content_block_delta\n';
     expect(unwrapCodeAssistStreamChunk(line)).toBe(line);

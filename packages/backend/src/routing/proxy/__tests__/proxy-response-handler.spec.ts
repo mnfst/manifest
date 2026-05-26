@@ -2208,15 +2208,14 @@ describe('proxy-response-handler', () => {
       await handleStreamResponse(res as any, forward as any, meta, {}, client as any);
 
       expect(capturedTransform).toBeDefined();
-      // Feed a wrapped CodeAssist chunk: the handler must unwrap before delegating.
+      // pipeStream passes the parsed SSE payload, not the raw data: line.
       const inner = { candidates: [{ content: 'hello' }] };
-      const wrapped = `data: ${JSON.stringify({ response: inner })}\n`;
+      const wrapped = JSON.stringify({ response: inner });
       capturedTransform!(wrapped);
 
-      // convertGoogleStreamChunk receives the unwrapped version (inner JSON on the data: line).
+      // convertGoogleStreamChunk receives the bare Gemini payload.
       const calledWith = client.convertGoogleStreamChunk.mock.calls[0][0] as string;
-      expect(calledWith).toContain(JSON.stringify(inner));
-      expect(calledWith).not.toContain('"response"');
+      expect(calledWith).toBe(JSON.stringify(inner));
     });
 
     it('does not unwrap when isCodeAssist is false (plain Google path)', async () => {

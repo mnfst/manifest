@@ -375,6 +375,7 @@ export abstract class RedirectPkceOauthBaseService {
       .then(() => this.sendDoneResponse(res, true, appUrl))
       .catch((err) => {
         this.logger.error(`OAuth callback failed: ${err}`);
+        this.shutdownCallbackServerIfIdle();
         this.sendDoneResponse(res, false, appUrl);
       });
   }

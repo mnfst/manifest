@@ -16,27 +16,36 @@ export function unwrapCodeAssistResponse(body: Record<string, unknown>): Record<
   return inner && typeof inner === 'object' ? (inner as Record<string, unknown>) : body;
 }
 
+function unwrapCodeAssistStreamPayload(payload: string): string {
+  if (!payload || payload === '[DONE]') return payload;
+  try {
+    const parsed = JSON.parse(payload) as Record<string, unknown>;
+    const inner = parsed.response;
+    if (inner && typeof inner === 'object') {
+      return JSON.stringify(inner);
+    }
+    return payload;
+  } catch {
+    return payload;
+  }
+}
+
 /** Unwrap one SSE chunk. Each `data: {...}` line is rewritten so the
  *  inner Gemini-shape JSON sits directly under `data:`, matching what
- *  `convertGoogleStreamChunk` expects. Non-`data:` lines pass through
- *  unchanged. */
+ *  `convertGoogleStreamChunk` expects. A bare parsed SSE payload is also
+ *  unwrapped because the proxy stream reader passes payload JSON, not raw
+ *  `data:` lines, to its transform. */
 export function unwrapCodeAssistStreamChunk(chunk: string): string {
-  return chunk
-    .split('\n')
+  const lines = chunk.split('\n');
+  if (!lines.some((line) => line.startsWith('data:'))) {
+    return unwrapCodeAssistStreamPayload(chunk);
+  }
+  return lines
     .map((line) => {
       if (!line.startsWith('data:')) return line;
       const payload = line.slice('data:'.length).trimStart();
-      if (!payload || payload === '[DONE]') return line;
-      try {
-        const parsed = JSON.parse(payload) as Record<string, unknown>;
-        const inner = parsed.response;
-        if (inner && typeof inner === 'object') {
-          return `data: ${JSON.stringify(inner)}`;
-        }
-        return line;
-      } catch {
-        return line;
-      }
+      const unwrapped = unwrapCodeAssistStreamPayload(payload);
+      return unwrapped === payload ? line : `data: ${unwrapped}`;
     })
     .join('\n');
 }

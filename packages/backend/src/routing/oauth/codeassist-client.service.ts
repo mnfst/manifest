@@ -24,6 +24,8 @@ import { scrubSecrets } from '../../common/utils/secret-scrub';
 
 const CODE_ASSIST_BASE = 'https://cloudcode-pa.googleapis.com';
 const CODE_ASSIST_VERSION = 'v1internal';
+const CODE_ASSIST_OPERATION_POLL_MS = 5_000;
+const CODE_ASSIST_OPERATION_MAX_POLLS = 12;
 
 const CLIENT_METADATA = {
   ideType: 'IDE_UNSPECIFIED',
@@ -78,11 +80,30 @@ export class CodeAssistClientService {
       tierId: tier.id,
       metadata: CLIENT_METADATA,
     });
-    const projectId = lro.response?.cloudaicompanionProject?.id;
+    const completed = await this.waitForOperation(lro, accessToken);
+    const projectId = completed.response?.cloudaicompanionProject?.id;
     if (!projectId) {
       throw new Error('CodeAssist onboardUser returned no project id.');
     }
     return { projectId, tierId: tier.id };
+  }
+
+  private async waitForOperation(
+    lro: LongRunningOperation,
+    accessToken: string,
+  ): Promise<LongRunningOperation> {
+    let current = lro;
+    for (let poll = 0; poll < CODE_ASSIST_OPERATION_MAX_POLLS && current.done === false; poll++) {
+      if (!current.name) {
+        throw new Error('CodeAssist onboardUser operation returned no operation name.');
+      }
+      await new Promise((resolve) => setTimeout(resolve, CODE_ASSIST_OPERATION_POLL_MS));
+      current = await this.callOperation(current.name, accessToken);
+    }
+    if (current.done === false) {
+      throw new Error('CodeAssist onboardUser operation did not complete.');
+    }
+    return current;
   }
 
   private async callJson<T>(
@@ -105,5 +126,24 @@ export class CodeAssistClientService {
       throw new Error(`CodeAssist ${method} failed (${response.status})`);
     }
     return (await response.json()) as T;
+  }
+
+  private async callOperation(name: string, accessToken: string): Promise<LongRunningOperation> {
+    const url = `${CODE_ASSIST_BASE}/${CODE_ASSIST_VERSION}/${name}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      this.logger.error(
+        `CodeAssist operation ${name} failed (${response.status}): ${scrubSecrets(text)}`,
+      );
+      throw new Error(`CodeAssist operation ${name} failed (${response.status})`);
+    }
+    return (await response.json()) as LongRunningOperation;
   }
 }

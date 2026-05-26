@@ -30,6 +30,10 @@ describe('CodeAssistClientService', () => {
     svc = new CodeAssistClientService();
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   afterAll(() => {
     global.fetch = originalFetch;
   });
@@ -68,6 +72,43 @@ describe('CodeAssistClientService', () => {
 
       expect(result).toEqual({ projectId: 'proj-456', tierId: 'free-tier' });
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('polls the operation when onboardUser returns an unfinished LRO', async () => {
+      jest.useFakeTimers();
+      fetchMock
+        .mockResolvedValueOnce(
+          mockOkResponse({
+            allowedTiers: [{ id: 'free-tier', isDefault: true }],
+          }),
+        )
+        .mockResolvedValueOnce(
+          mockOkResponse({
+            done: false,
+            name: 'operations/onboard-123',
+          }),
+        )
+        .mockResolvedValueOnce(
+          mockOkResponse({
+            done: true,
+            response: { cloudaicompanionProject: { id: 'proj-polled' } },
+          }),
+        );
+
+      const resultPromise = svc.onboard('access-token');
+      await Promise.resolve();
+      await Promise.resolve();
+      await jest.advanceTimersByTimeAsync(5_000);
+
+      await expect(resultPromise).resolves.toEqual({
+        projectId: 'proj-polled',
+        tierId: 'free-tier',
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(fetchMock.mock.calls[2][0]).toBe(
+        'https://cloudcode-pa.googleapis.com/v1internal/operations/onboard-123',
+      );
+      expect(fetchMock.mock.calls[2][1].method).toBe('GET');
     });
 
     it('falls back to the first allowed tier when no tier is marked isDefault', async () => {
