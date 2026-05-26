@@ -1,0 +1,34 @@
+packages/backend/src/routing/oauth/codeassist-client.service.spec.ts
+  s_efa1e76f9c84e4::t_f84aad7cb14a59 33-36,77-111
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_efa1e76f9c84e4::t_12126e32e8d42a 2211,2213,2216,2218
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_efa1e76f9c84e4::t_7abf361513dc6f 186-190,197
+  s_efa1e76f9c84e4::t_a46528297e2a27 173-177,185,191-196,198,202-206
+  s_efa1e76f9c84e4::t_3e20f4ad6cafdc 178-184,199-201
+packages/backend/src/routing/oauth/codeassist-client.service.ts
+  s_efa1e76f9c84e4::t_ac91dc20a72689 27-28,83-84,91-108,130-147
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_efa1e76f9c84e4::t_0a8a22765b1742 378
+packages/backend/src/routing/oauth/codeassist-envelope.ts
+  s_efa1e76f9c84e4::t_be2167763f21a5 19-32,35-37,41-42,47-48
+  s_efa1e76f9c84e4::t_592f2c059cb4d9 39-40,43
+packages/backend/src/routing/oauth/codeassist-envelope.spec.ts
+  s_efa1e76f9c84e4::t_e4d6151fe82e7e 38-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "dd054018785ff3ed5d18dc7c3cc8fdcba2a5d4a7",
+  "prompts": {},
+  "sessions": {
+    "s_efa1e76f9c84e4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62e3-187c-7972-baac-225825eb7633",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
