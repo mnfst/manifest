@@ -18,6 +18,8 @@ import { Type } from 'class-transformer';
 
 export const CUSTOM_PROVIDER_API_KINDS = ['openai', 'anthropic'] as const;
 export type CustomProviderApiKindDto = (typeof CUSTOM_PROVIDER_API_KINDS)[number];
+export const CUSTOM_PROVIDER_MODEL_LIMIT = 500;
+
 export class CustomProviderModelDto {
   @IsString()
   @IsNotEmpty()
@@ -68,7 +70,7 @@ export class CreateCustomProviderDto {
 
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(50)
+  @ArrayMaxSize(CUSTOM_PROVIDER_MODEL_LIMIT)
   @ValidateNested({ each: true })
   @Type(() => CustomProviderModelDto)
   models!: CustomProviderModelDto[];
@@ -117,7 +119,7 @@ export class UpdateCustomProviderDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(50)
+  @ArrayMaxSize(CUSTOM_PROVIDER_MODEL_LIMIT)
   @ValidateNested({ each: true })
   @Type(() => CustomProviderModelDto)
   models?: CustomProviderModelDto[];
