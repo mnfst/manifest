@@ -20,6 +20,7 @@ describe('oauth API client', () => {
   beforeEach(() => {
     vi.stubGlobal('window', { location: { origin: 'http://localhost', pathname: '/' } });
   });
+
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -38,7 +39,15 @@ describe('oauth API client', () => {
     const fetchMock = setupFetch({ ok: true });
     await oauth.revokeOpenaiOAuth('my agent');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my%20agent');
+    expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeOpenaiOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeOpenaiOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my+agent&label=Key+2');
     expect((init as RequestInit).method).toBe('POST');
   });
 
@@ -78,5 +87,153 @@ describe('oauth API client', () => {
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/oauth/minimax/poll');
     expect(url).toContain('flowId=flow-1');
+  });
+
+  it('revokeMinimaxOAuth POSTs with the encoded agent name in the URL', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeMinimaxOAuth('my agent');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/minimax/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeMinimaxOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeMinimaxOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/minimax/revoke?agentName=my+agent&label=Key+2');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('startAnthropicOAuth POSTs the encoded agent name and returns the auth URL + state', async () => {
+    const fetchMock = setupFetch({ url: 'https://claude.ai/oauth/authorize?state=s', state: 's' });
+    const out = await oauth.startAnthropicOAuth('my agent');
+    expect(out).toEqual({
+      url: 'https://claude.ai/oauth/authorize?state=s',
+      state: 's',
+    });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/anthropic/authorize?agentName=my%20agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('submitAnthropicOAuth POSTs the code/state pair as JSON', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.submitAnthropicOAuth('demo', 'auth-code-1', 'state-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/anthropic/exchange?agentName=demo');
+    const req = init as RequestInit;
+    expect(req.method).toBe('POST');
+    expect(req.body).toBe(JSON.stringify({ code: 'auth-code-1', state: 'state-1' }));
+    expect((req.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+  });
+
+  it('getAnthropicOAuthPending forwards the agent name as a query param', async () => {
+    const fetchMock = setupFetch({ state: null });
+    const out = await oauth.getAnthropicOAuthPending('demo');
+    expect(out).toEqual({ state: null });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/anthropic/pending');
+    expect(url).toContain('agentName=demo');
+  });
+
+  it('revokeAnthropicOAuth POSTs to /revoke with the encoded agent name', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeAnthropicOAuth('my agent');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/anthropic/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeAnthropicOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeAnthropicOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/anthropic/revoke?agentName=my+agent&label=Key+2');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('getGeminiOAuthUrl forwards agentName as a query param', async () => {
+    const fetchMock = setupFetch({ url: 'https://accounts.google.com/o/oauth2/v2/auth?...' });
+    const out = await oauth.getGeminiOAuthUrl('my-agent');
+    expect(out).toEqual({ url: 'https://accounts.google.com/o/oauth2/v2/auth?...' });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/gemini/authorize');
+    expect(url).toContain('agentName=my-agent');
+  });
+
+  it('submitGeminiOAuthCallback POSTs code and state to the callback endpoint', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.submitGeminiOAuthCallback('auth-code-123', 'state-abc');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/callback');
+    expect((init as RequestInit).method).toBe('POST');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      code: 'auth-code-123',
+      state: 'state-abc',
+    });
+  });
+
+  it('revokeGeminiOAuth POSTs with the encoded agent name in the URL', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeGeminiOAuth('my agent');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeGeminiOAuth includes the encoded key label when provided', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeGeminiOAuth('my agent', 'Key 2');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/revoke?agentName=my+agent&label=Key+2');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('getPopupOauthApi returns gemini api for gemini provider', () => {
+    const api = oauth.getPopupOauthApi('gemini');
+    expect(typeof api.getUrl).toBe('function');
+    expect(typeof api.submitCallback).toBe('function');
+    expect(typeof api.revoke).toBe('function');
+  });
+
+  it('getPopupOauthApi returns openai api for openai provider', () => {
+    const api = oauth.getPopupOauthApi('openai');
+    expect(typeof api.getUrl).toBe('function');
+    expect(typeof api.submitCallback).toBe('function');
+    expect(typeof api.revoke).toBe('function');
+  });
+
+  it('getPopupOauthApi throws for unsupported provider', () => {
+    expect(() => oauth.getPopupOauthApi('anthropic')).toThrow(
+      'Provider "anthropic" does not support popup OAuth',
+    );
+  });
+
+  it('getPopupOauthApi gemini getUrl delegates to getGeminiOAuthUrl', async () => {
+    const fetchMock = setupFetch({ url: 'https://accounts.google.com/auth' });
+    const api = oauth.getPopupOauthApi('gemini');
+    const result = await api.getUrl('agent-1');
+    expect(result).toEqual({ url: 'https://accounts.google.com/auth' });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/gemini/authorize');
+  });
+
+  it('getPopupOauthApi gemini submitCallback delegates to submitGeminiOAuthCallback', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    const api = oauth.getPopupOauthApi('gemini');
+    await api.submitCallback('code-xyz', 'state-xyz');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/callback');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('getPopupOauthApi gemini revoke delegates to revokeGeminiOAuth', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    const api = oauth.getPopupOauthApi('gemini');
+    await api.revoke('agent-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/gemini/revoke');
+    expect((init as RequestInit).method).toBe('POST');
   });
 });

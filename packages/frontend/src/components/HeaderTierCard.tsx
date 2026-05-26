@@ -4,6 +4,8 @@ import type {
   AvailableModel,
   CustomProviderData,
   ModelRoute,
+  RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -18,9 +20,13 @@ import { resolveProviderId, inferProviderFromModel, pricePerM } from '../service
 import { customProviderColor } from '../services/formatters.js';
 import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
+import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import { toast } from '../services/toast-store.js';
+import { modelParamsScopeForHeaderTier } from 'manifest-shared';
+import OutputControls from './OutputControls.js';
+import ModelCapabilityBadges from './ModelCapabilityBadges.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -48,6 +54,28 @@ interface Props {
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
+  changingResponseMode?: boolean;
+  onResponseModeChange?: (mode: ResponseMode) => void | Promise<void>;
+  /**
+   * Per-route params getter, threaded from the routing page boundary. When
+   * present, the primary chip and every fallback row render a
+   * `<ModelParamsAffordance>` for their own `(provider, authType, model)`
+   * tuple. Closes the gap where the custom (header-tier) routing surface
+   * had no params support at all.
+   */
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -79,6 +107,9 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const modelLabel = (): string => modelInfo()?.display_name ?? currentModel() ?? '';
+  const isStreamMode = (): boolean => props.tier.response_mode === 'stream';
+  const primarySkipped = (): boolean =>
+    isStreamMode() && !(modelInfo()?.capabilities?.includes('stream') ?? false);
 
   const priceLabel = (): string => {
     const info = modelInfo();
@@ -249,10 +280,22 @@ const HeaderTierCard: Component<Props> = (props) => {
         {props.tier.header_key}: {props.tier.header_value}
       </code>
 
+      <OutputControls
+        compact
+        responseMode={() => props.tier.response_mode ?? 'buffered'}
+        disabled={() => !!props.changingResponseMode || !props.onResponseModeChange}
+        onResponseModeChange={(mode) => props.onResponseModeChange?.(mode)}
+      />
+
       <div class="routing-card__body">
         <Show when={currentModel()}>
           {(modelName) => (
-            <div class="routing-card__model-chip" onClick={() => setPickerMode('primary')}>
+            <div
+              class="routing-card__model-chip"
+              classList={{ 'routing-card__model-chip--skipped': primarySkipped() }}
+              title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
+              onClick={() => setPickerMode('primary')}
+            >
               <div class="routing-card__chip-main">
                 <div class="routing-card__override">
                   <Show
@@ -297,33 +340,69 @@ const HeaderTierCard: Component<Props> = (props) => {
                   </Show>
                   <span class="routing-card__main">{modelLabel() || modelName()}</span>
                 </div>
-                <button
-                  class="routing-card__chip-action"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPickerMode('primary');
-                  }}
-                  aria-label={`Change model for ${props.tier.name}`}
-                >
-                  <span class="routing-tooltip">Change</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
+                <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                  <Show
+                    when={
+                      props.getModelParams &&
+                      props.setModelParams &&
+                      providerId() &&
+                      effectiveAuth() &&
+                      effectiveAuth() !== 'local'
+                    }
                   >
-                    <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
-                  </svg>
-                </button>
+                    <ModelParamsAffordance
+                      provider={providerId()}
+                      authType={(effectiveAuth() as AuthType) ?? undefined}
+                      model={modelName()}
+                      slotLabel={modelLabel() || modelName()}
+                      scope={modelParamsScopeForHeaderTier(props.tier.id)}
+                      agentName={props.agentName}
+                      getParams={props.getModelParams!}
+                      setParams={props.setModelParams!}
+                    />
+                  </Show>
+                  <button
+                    class="routing-card__chip-action"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPickerMode('primary');
+                    }}
+                    aria-label={`Change model for ${props.tier.name}`}
+                  >
+                    <span class="routing-tooltip">Change</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div class="routing-card__chip-footer">
                 <Show
                   when={effectiveAuth() !== 'subscription'}
-                  fallback={<span class="routing-card__chip-price">Included in subscription</span>}
+                  fallback={
+                    <span class="routing-card__chip-meta">
+                      <span class="routing-card__chip-price">Included in subscription</span>
+                      <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
+                      <Show when={primarySkipped()}>
+                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      </Show>
+                    </span>
+                  }
                 >
-                  <span class="routing-card__chip-price">{priceLabel()}</span>
+                  <span class="routing-card__chip-meta">
+                    <span class="routing-card__chip-price">{priceLabel()}</span>
+                    <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
+                    <Show when={primarySkipped()}>
+                      <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                    </Show>
+                  </span>
                 </Show>
               </div>
             </div>
@@ -346,6 +425,10 @@ const HeaderTierCard: Component<Props> = (props) => {
             persistFallbacks={(_agent, tierId, models, routes) =>
               setHeaderTierFallbacks(props.agentName, tierId, models, routes)
             }
+            getModelParams={props.getModelParams}
+            setModelParams={props.setModelParams}
+            modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
+            responseMode={props.tier.response_mode ?? 'buffered'}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }
@@ -360,6 +443,7 @@ const HeaderTierCard: Component<Props> = (props) => {
           tiers={[]}
           customProviders={props.customProviders}
           connectedProviders={props.connectedProviders}
+          requiredCapability={props.tier.response_mode === 'stream' ? 'stream' : undefined}
           onClose={() => setPickerMode(null)}
           onSelect={handlePickerSelect}
         />

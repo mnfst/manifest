@@ -2,7 +2,6 @@ import {
   IsString,
   IsIn,
   IsNotEmpty,
-  IsObject,
   IsOptional,
   IsArray,
   ArrayMaxSize,
@@ -13,7 +12,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
-import { TIER_SLOTS, AUTH_TYPES } from 'manifest-shared';
+import { AUTH_TYPES, RESPONSE_MODES, TIER_SLOTS, type ResponseMode } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
@@ -182,20 +181,6 @@ export class SetOverrideDto {
   route?: ModelRouteDto;
 }
 
-/**
- * Body for `PATCH …/tiers/:tier/params` and `…/specificity/:category/params`.
- * `paramDefaults: null` clears the configured defaults; an object replaces
- * them wholesale. Validation only checks the shape — not the field set —
- * because new provider knobs (`reasoning_effort`, `safety`, custom-provider
- * params, …) shouldn't require a backend release. The frontend curates the
- * surface; the column accepts any JSONB.
- */
-export class SetParamDefaultsDto {
-  @IsOptional()
-  @IsObject()
-  paramDefaults?: Record<string, unknown> | null;
-}
-
 export class CopilotPollDto {
   @IsString()
   @IsNotEmpty()
@@ -219,4 +204,18 @@ export class SetFallbacksDto {
   @ValidateNested({ each: true })
   @Type(() => ModelRouteDto)
   routes?: ModelRouteDto[];
+}
+
+export class SetResponseModeDto {
+  @IsOptional()
+  @IsIn(RESPONSE_MODES)
+  response_mode?: ResponseMode;
+
+  @IsOptional()
+  @IsIn(RESPONSE_MODES)
+  responseMode?: ResponseMode;
+}
+
+export function responseModeFromDto(body: SetResponseModeDto): ResponseMode | undefined {
+  return body.response_mode ?? body.responseMode;
 }

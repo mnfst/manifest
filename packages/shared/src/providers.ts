@@ -46,7 +46,7 @@ export interface SharedProviderEntry {
 export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
   {
     id: 'qwen',
-    displayName: 'Alibaba',
+    displayName: 'Alibaba Cloud',
     aliases: ['alibaba'],
     openRouterPrefixes: ['qwen', 'alibaba'],
     requiresApiKey: true,
@@ -98,6 +98,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPrefix: 'gsk_',
     minKeyLength: 50,
     keyPlaceholder: 'gsk_...',
+  },
+  {
+    id: 'kilo',
+    displayName: 'Kilo',
+    aliases: ['kilocode', 'kilo-code'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#f0e68c',
+    keyPrefix: '',
+    minKeyLength: 10,
+    keyPlaceholder: 'Kilo Gateway API key',
   },
   {
     id: 'copilot',

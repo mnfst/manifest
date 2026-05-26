@@ -68,6 +68,57 @@ describe('Google Adapter', () => {
       });
     });
 
+    it('preserves native Google generationConfig params', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        generationConfig: {
+          topK: 40,
+          thinkingConfig: {
+            thinkingBudget: 128,
+            includeThoughts: true,
+          },
+          responseMimeType: 'application/json',
+        },
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      expect(result.generationConfig).toEqual({
+        topK: 40,
+        thinkingConfig: {
+          thinkingBudget: 128,
+          includeThoughts: true,
+        },
+        responseMimeType: 'application/json',
+      });
+    });
+
+    it('lets OpenAI-style generation aliases override native generationConfig fields', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        generationConfig: {
+          maxOutputTokens: 256,
+          temperature: 0.2,
+          topP: 0.4,
+          thinkingConfig: {
+            thinkingLevel: 'high',
+          },
+        },
+        max_tokens: 1000,
+        temperature: 0.7,
+        top_p: 0.9,
+      };
+      const result = toGoogleRequest(body, 'gemini-3.5-flash');
+
+      expect(result.generationConfig).toEqual({
+        maxOutputTokens: 1000,
+        temperature: 0.7,
+        topP: 0.9,
+        thinkingConfig: {
+          thinkingLevel: 'high',
+        },
+      });
+    });
+
     it('converts tools to functionDeclarations', () => {
       const body = {
         messages: [{ role: 'user', content: 'Search for cats' }],
@@ -147,6 +198,69 @@ describe('Google Adapter', () => {
       expect(props.name.type).toBe('string');
       expect(props.config.type).toBe('object');
       expect(props.config.properties).toEqual({ key: { type: 'string' } });
+    });
+
+    it('strips both $ref and the non-standard dollar-less ref variant', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'List cities' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'list_cities',
+              parameters: {
+                type: 'object',
+                properties: {
+                  cities: { type: 'array', items: { ref: '#/definitions/City' } },
+                  neighbors: { type: 'array', items: { $ref: '#/definitions/City' } },
+                },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, { ref?: string; $ref?: string }>
+      >;
+
+      expect(props.cities.items).not.toHaveProperty('ref');
+      expect(props.neighbors.items).not.toHaveProperty('$ref');
+    });
+
+    it('preserves a user property literally named "ref"', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'lookup' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'lookup',
+              parameters: {
+                type: 'object',
+                properties: { ref: { type: 'string', description: 'reference id' } },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      expect(props).toHaveProperty('ref');
+      expect(props.ref.type).toBe('string');
     });
 
     it('preserves property names that collide with unsupported schema keywords', () => {

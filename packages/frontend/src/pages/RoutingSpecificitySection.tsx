@@ -14,10 +14,12 @@ import type {
   AuthType,
   ModelRoute,
   RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
 import '../styles/routing-specificity.css';
+import OutputControls from '../components/OutputControls.js';
 
 const SPECIFICITY_ICONS: Record<string, () => JSX.Element> = {
   coding: () => (
@@ -156,15 +158,31 @@ export interface RoutingSpecificitySectionProps {
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
+  responseMode: () => ResponseMode;
+  changingResponseMode: () => boolean;
+  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
-  persistParamDefaults?: (
-    agentName: string,
-    category: string,
-    paramDefaults: RequestParamDefaults | null,
+  /**
+   * Read saved per-route params from the parent's loaded map. Threaded
+   * down to every model row so each affordance reflects the configured
+   * state without per-row fetches.
+   */
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  /** Persist new params for a single route. */
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
   ) => Promise<unknown>;
-  onParamDefaultsSaved?: (category: string, paramDefaults: RequestParamDefaults | null) => void;
 }
 
 function toTierAssignment(a: SpecificityAssignment | undefined): TierAssignment | undefined {
@@ -186,6 +204,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   const activeTiers = () => SPECIFICITY_STAGES.filter((s) => isActive(s.id));
 
   const handleToggle = async (category: string, label: string, active: boolean) => {
+    const shouldInheritStreaming = active && props.responseMode() === 'stream';
     setToggling(category);
     try {
       await toggleSpecificity(props.agentName(), category, active);
@@ -193,6 +212,9 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         await props.refetchSpecificity();
       } else {
         await props.refetchAll();
+      }
+      if (shouldInheritStreaming) {
+        await props.onResponseModeChange('stream');
       }
       toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} routing`);
     } catch {
@@ -226,6 +248,13 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
           </div>
         }
       >
+        <div class="specificity-output-controls">
+          <OutputControls
+            responseMode={props.responseMode}
+            disabled={props.changingResponseMode}
+            onResponseModeChange={props.onResponseModeChange}
+          />
+        </div>
         <div class="specificity-cards">
           <For each={activeTiers()}>
             {(stage) => (
@@ -257,8 +286,8 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
                 persistClearFallbacks={(_agentName, category) =>
                   clearSpecificityFallbacks(_agentName, category)
                 }
-                persistParamDefaults={props.persistParamDefaults}
-                onParamDefaultsSaved={props.onParamDefaultsSaved}
+                getModelParams={props.getModelParams}
+                setModelParams={props.setModelParams}
               />
             )}
           </For>

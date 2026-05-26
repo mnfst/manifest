@@ -10,11 +10,20 @@ import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { readFallbackRoutes, readOverrideRoute } from '../routing-core/route-helpers';
+import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
-import type { AuthType, ModelRoute, SpecificityCategory, TierSlot } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import type {
+  AuthType,
+  ModelRoute,
+  ResponseMode,
+  OutputModality,
+  SpecificityCategory,
+  TierSlot,
+} from 'manifest-shared';
 import type { HeaderTier } from '../../entities/header-tier.entity';
 import type { TierAssignment } from '../../entities/tier-assignment.entity';
 import type { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -96,8 +105,12 @@ export class ResolveService {
       return this.resolveForTier(agentId, 'default', 'default');
     }
 
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
     const route = await this.buildResolvedRoute(agentId, assignment);
-    if (!route) {
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
+    if (!effectiveRoutes.primaryRoute) {
       this.logger.warn(
         `No route resolved for agent=${agentId} tier=${result.tier} ` +
           `(override=${assignment.override_route?.model ?? 'null'} ` +
@@ -106,22 +119,24 @@ export class ResolveService {
       return {
         tier: result.tier,
         route: null,
-        fallback_routes: readFallbackRoutes(assignment),
+        fallback_routes: effectiveRoutes.fallbackRoutes,
+        output_modality: outputModality,
+        response_mode: responseMode,
         confidence: result.confidence,
         score: result.score,
         reason: result.reason,
-        param_defaults: assignment.param_defaults,
       };
     }
 
     return {
       tier: result.tier,
-      route,
-      fallback_routes: readFallbackRoutes(assignment),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: result.confidence,
       score: result.score,
       reason: result.reason,
-      param_defaults: assignment.param_defaults,
     };
   }
 
@@ -134,18 +149,32 @@ export class ResolveService {
     const assignment = tiers.find((t) => t.tier === tier);
 
     if (!assignment) {
-      return { tier, route: null, fallback_routes: null, confidence: 1, score: 0, reason };
+      return {
+        tier,
+        route: null,
+        fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason,
+      };
     }
 
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
     const route = await this.buildResolvedRoute(agentId, assignment);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
     return {
       tier,
-      route,
-      fallback_routes: readFallbackRoutes(assignment),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: 1,
       score: 0,
       reason,
-      param_defaults: assignment.param_defaults,
     };
   }
 
@@ -189,10 +218,17 @@ export class ResolveService {
         : null;
     const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, baseRoute) : null;
 
+    const outputModality = outputModalityFor(match);
+    const responseMode = responseModeFor(match);
+    const fallbackRoutes = readFallbackRoutes(match);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
+
     return {
       tier: 'standard',
-      route,
-      fallback_routes: readFallbackRoutes(match),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: 1,
       score: 0,
       reason: 'header-match',
@@ -259,15 +295,26 @@ export class ResolveService {
       return null;
     }
 
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
+    const enrichedRoute = await this.enrichRouteKeyLabel(agentId, route);
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      enrichedRoute,
+      fallbackRoutes,
+    );
+
     return {
       tier: 'standard',
-      route: await this.enrichRouteKeyLabel(agentId, route),
-      fallback_routes: readFallbackRoutes(assignment),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: detected.confidence,
       score: 0,
       reason: 'specificity',
       specificity_category: detected.category,
-      param_defaults: assignment.param_defaults,
     };
   }
 
@@ -343,4 +390,12 @@ function matchesHeaderRule(headers: IncomingHttpHeaders, tier: HeaderTier): bool
   // Node gives repeated headers as string[]; match if any entry equals the rule.
   if (Array.isArray(raw)) return raw.some((v) => v === tier.header_value);
   return raw === tier.header_value;
+}
+
+function outputModalityFor(row: { output_modality?: OutputModality | null }): OutputModality {
+  return row.output_modality ?? DEFAULT_OUTPUT_MODALITY;
+}
+
+function responseModeFor(row: { response_mode?: ResponseMode | null }): ResponseMode {
+  return row.response_mode ?? DEFAULT_RESPONSE_MODE;
 }

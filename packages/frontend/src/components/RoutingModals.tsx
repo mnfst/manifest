@@ -11,6 +11,8 @@ import type {
   AvailableModel,
   RoutingProvider,
   SpecificityAssignment,
+  ModelCapability,
+  ResponseMode,
 } from '../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import { usedKeyLabelsForModelInTier } from '../services/routing-utils.js';
@@ -104,6 +106,16 @@ function providerDisplayName(providerId: string, customProviders: CustomProvider
 
 const RoutingModals: Component<RoutingModalsProps> = (props) => {
   const [pendingOverride, setPendingOverride] = createSignal<PendingOverride | null>(null);
+  const requiredCapabilityForResponseMode = (
+    responseMode: ResponseMode | undefined,
+  ): ModelCapability | undefined => (responseMode === 'stream' ? 'stream' : undefined);
+  const requiredCapabilityForTier = (tierId: string): ModelCapability | undefined =>
+    requiredCapabilityForResponseMode(props.getTier(tierId)?.response_mode);
+  const requiredCapabilityForSpecificity = (category: string): ModelCapability | undefined =>
+    requiredCapabilityForResponseMode(
+      props.specificityAssignments?.().find((assignment) => assignment.category === category)
+        ?.response_mode,
+    );
 
   const handleSelect = (
     tierId: string,
@@ -146,6 +158,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             tiers={props.tiers()}
             customProviders={props.customProviders()}
             connectedProviders={props.connectedProviders()}
+            requiredCapability={requiredCapabilityForTier(tierId())}
             onSelect={handleSelect}
             onClose={props.onDropdownClose}
             onConnectProviders={() => {
@@ -171,6 +184,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               tiers={specificityTiers()}
               customProviders={props.customProviders()}
               connectedProviders={props.connectedProviders()}
+              requiredCapability={requiredCapabilityForSpecificity(category())}
               onSelect={(_, model, provider, authType) =>
                 props.onSpecificityOverride?.(category(), model, provider, authType)
               }
@@ -286,6 +300,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               tiers={props.tiers()}
               customProviders={props.customProviders()}
               connectedProviders={props.connectedProviders()}
+              requiredCapability={requiredCapabilityForTier(tierId())}
               onSelect={handleFallbackSelect}
               onClose={props.onFallbackPickerClose}
               onConnectProviders={() => {

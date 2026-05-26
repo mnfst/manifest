@@ -1,112 +1,130 @@
 import { snapshotRequestParams } from '../src/request-params-snapshot';
+import type { ProviderParamSpec } from '../src/provider-params-spec';
+
+const specs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.budget_tokens',
+    type: 'integer',
+    label: 'Thinking budget',
+    description: 'Maximum Anthropic extended thinking token budget.',
+    default: 4096,
+    range: { min: 1024, max: 32768, step: 1024 },
+    group: 'reasoning',
+    applicability: { only: { 'thinking.type': 'enabled' } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    description: 'Controls Anthropic thinking mode.',
+    default: 'disabled',
+    values: ['disabled', 'adaptive', 'enabled'],
+    group: 'reasoning',
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'temperature',
+    type: 'number',
+    label: 'Temperature',
+    description: 'Controls sampling randomness.',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.1 },
+    group: 'sampling',
+    applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'top_p',
+    type: 'number',
+    label: 'Top P',
+    description: 'Controls nucleus sampling.',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.01 },
+    group: 'sampling',
+    applicability: {
+      except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+    },
+  },
+];
 
 describe('snapshotRequestParams', () => {
-  it('returns null when the provider has no known param keys (e.g. OpenAI)', () => {
+  it('returns null when the resolved model has no specs', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
-        userDefaults: null,
-        tier: 'reasoning',
-        isSpecificity: false,
-        provider: 'openai',
+        modelParams: null,
+        specs: [],
       }),
     ).toBeNull();
   });
 
-  it("falls back to the provider's own default for known keys when nothing was overridden", () => {
-    // DeepSeek defaults thinking to enabled; the reasoning tier intentionally
-    // stays neutral, so neither user nor Manifest contributed a value. The
-    // snapshot still emits the effective state so dashboards can show what
-    // the request actually had.
+  it('falls back to provider defaults for known params', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
-        userDefaults: null,
-        tier: 'reasoning',
-        isSpecificity: false,
-        provider: 'deepseek',
+        modelParams: null,
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'enabled' } });
+    ).toEqual({ temperature: 1, top_p: 1, thinking: { type: 'disabled' } });
   });
 
-  it("captures Manifest's tier-aware default for DeepSeek on standard tier", () => {
+  it('records saved per-route params and nested sibling defaults', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
-        userDefaults: null,
-        tier: 'standard',
-        isSpecificity: false,
-        provider: 'deepseek',
+        modelParams: { thinking: { type: 'enabled' } },
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'disabled' } });
+    ).toEqual({ thinking: { type: 'enabled', budget_tokens: 4096 } });
   });
 
-  it("skips Manifest's tier-aware default for specificity matches but still records the provider's own effective default", () => {
-    // Manifest deliberately stays out of the way on specificity slots.
-    // The provider-default fallback still records `enabled` because that
-    // is what DeepSeek will actually do without an explicit `thinking`
-    // field — the dashboard would otherwise show no params at all and the
-    // operator couldn't tell why a specificity-routed request burned
-    // budget on reasoning tokens.
+  it('records saved Manifest params over client body values at the same path', () => {
+    expect(
+      snapshotRequestParams({
+        body: { temperature: 0.4, messages: [] },
+        modelParams: { temperature: 0.8 },
+        specs,
+      }),
+    ).toEqual({ temperature: 0.8, thinking: { type: 'disabled' } });
+  });
+
+  it('records client body params that are not configured in Manifest', () => {
+    expect(
+      snapshotRequestParams({
+        body: { temperature: 0.4, messages: [] },
+        modelParams: { thinking: { type: 'disabled' } },
+        specs,
+      }),
+    ).toEqual({ temperature: 0.4, thinking: { type: 'disabled' } });
+  });
+
+  it('omits unavailable params from the snapshot', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
-        userDefaults: null,
-        tier: 'standard',
-        isSpecificity: true,
-        provider: 'deepseek',
+        modelParams: { temperature: 0.7, thinking: { type: 'adaptive' } },
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'enabled' } });
+    ).toEqual({ thinking: { type: 'adaptive' } });
   });
 
-  it("client body wins by presence over both user defaults and Manifest's", () => {
-    expect(
-      snapshotRequestParams({
-        body: { thinking: { type: 'enabled' }, messages: [] },
-        userDefaults: { thinking: { type: 'disabled' } },
-        tier: 'standard',
-        isSpecificity: false,
-        provider: 'deepseek',
-      }),
-    ).toEqual({ thinking: { type: 'enabled' } });
-  });
-
-  it('user defaults win over Manifest defaults when client body has no known key', () => {
+  it('omits conflicted defaults from the snapshot', () => {
     expect(
       snapshotRequestParams({
         body: { messages: [] },
-        userDefaults: { thinking: { type: 'enabled' } },
-        tier: 'standard',
-        isSpecificity: false,
-        provider: 'deepseek',
+        modelParams: { temperature: 0.2, top_p: 0.7 },
+        specs,
       }),
-    ).toEqual({ thinking: { type: 'enabled' } });
-  });
-
-  it('drops user defaults that the resolved provider does not consume', () => {
-    expect(
-      snapshotRequestParams({
-        body: { messages: [] },
-        userDefaults: { thinking: { type: 'disabled' } },
-        tier: 'standard',
-        isSpecificity: false,
-        // Anthropic does not consume the OpenAI-compat `thinking.type` field;
-        // a DeepSeek-shaped knob must not leak onto an Anthropic fallback.
-        provider: 'anthropic',
-      }),
-    ).toBeNull();
-  });
-
-  it('only emits keys from REQUEST_PARAM_KEYS — extraneous body fields stay out of the snapshot', () => {
-    const result = snapshotRequestParams({
-      body: { messages: [], temperature: 0.7, thinking: { type: 'enabled' } },
-      userDefaults: null,
-      tier: 'standard',
-      isSpecificity: false,
-      provider: 'deepseek',
-    });
-    expect(result).toEqual({ thinking: { type: 'enabled' } });
-    expect(Object.keys(result!)).not.toContain('temperature');
-    expect(Object.keys(result!)).not.toContain('messages');
+    ).toEqual({ temperature: 0.2, thinking: { type: 'disabled' } });
   });
 });

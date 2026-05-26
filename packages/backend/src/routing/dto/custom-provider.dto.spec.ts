@@ -6,6 +6,7 @@ import {
   ProbeCustomProviderDto,
   UpdateCustomProviderDto,
   CustomProviderModelDto,
+  CUSTOM_PROVIDER_MODEL_LIMIT,
 } from './custom-provider.dto';
 
 function toDto(data: Record<string, unknown>): CreateCustomProviderDto {
@@ -14,6 +15,10 @@ function toDto(data: Record<string, unknown>): CreateCustomProviderDto {
 
 function toUpdateDto(data: Record<string, unknown>): UpdateCustomProviderDto {
   return plainToInstance(UpdateCustomProviderDto, data);
+}
+
+function makeModels(count: number): CustomProviderModelDto[] {
+  return Array.from({ length: count }, (_, i) => ({ model_name: `model-${i + 1}` }));
 }
 
 describe('CreateCustomProviderDto', () => {
@@ -107,6 +112,26 @@ describe('CreateCustomProviderDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
+  it('accepts large custom provider catalogs', async () => {
+    const dto = toDto({
+      name: 'Mammouth',
+      base_url: 'https://api.mammouth.ai/v1',
+      models: makeModels(73),
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects custom provider catalogs above the configured limit', async () => {
+    const dto = toDto({
+      name: 'Too Large',
+      base_url: 'https://api.example.com/v1',
+      models: makeModels(CUSTOM_PROVIDER_MODEL_LIMIT + 1),
+    });
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'models')).toBe(true);
+  });
+
   it('rejects missing base_url', async () => {
     const dto = toDto({
       name: 'Test',
@@ -148,6 +173,14 @@ describe('UpdateCustomProviderDto', () => {
   it('accepts partial update with only models', async () => {
     const dto = toUpdateDto({
       models: [{ model_name: 'model-a' }],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts large model catalog updates', async () => {
+    const dto = toUpdateDto({
+      models: makeModels(73),
     });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);

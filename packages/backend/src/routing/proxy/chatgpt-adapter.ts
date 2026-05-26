@@ -21,9 +21,20 @@ import { OpenAIMessage } from './proxy-types';
 
 /* ── Request conversion ── */
 
+export interface ToResponsesRequestOptions {
+  /**
+   * Map `max_tokens` / `max_completion_tokens` → `max_output_tokens`.
+   * The ChatGPT subscription backend (`chatgpt.com/backend-api/codex/responses`)
+   * rejects `max_output_tokens`, so callers that target that endpoint must
+   * leave this disabled. API-key /responses and Copilot /responses accept it.
+   */
+  mapMaxOutputTokens?: boolean;
+}
+
 export function toResponsesRequest(
   body: Record<string, unknown>,
   model: string,
+  options: ToResponsesRequestOptions = {},
 ): Record<string, unknown> {
   const messages = (body.messages ?? []) as OpenAIMessage[];
   const input: Record<string, unknown>[] = [];
@@ -63,6 +74,16 @@ export function toResponsesRequest(
     store: false,
     instructions: extractInstructions(messages),
   };
+
+  // Map Chat Completions token caps to the Responses API field so callers
+  // don't silently lose their output limit when routed to /responses.
+  // Gated because the ChatGPT subscription backend rejects max_output_tokens.
+  if (options.mapMaxOutputTokens) {
+    const maxOutputTokens = body.max_completion_tokens ?? body.max_tokens;
+    if (typeof maxOutputTokens === 'number') {
+      request.max_output_tokens = maxOutputTokens;
+    }
+  }
 
   if (Array.isArray(body.tools)) {
     request.tools = convertTools(body.tools as Record<string, unknown>[]);
@@ -254,10 +275,7 @@ function handleCompletedEvent(dataStr: string, model: string): string {
  * This function consumes the SSE text and builds a non-streaming
  * OpenAI Chat Completion response from the collected events.
  */
-export function collectChatGptSseResponse(
-  sseText: string,
-  model: string,
-): Record<string, unknown> {
+export function collectChatGptSseResponse(sseText: string, model: string): Record<string, unknown> {
   let text = '';
   // Map output_index → tool call to handle mixed output items correctly.
   // The output_index from the API refers to position in the full output array

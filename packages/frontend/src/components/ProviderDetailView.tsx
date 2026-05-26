@@ -2,6 +2,7 @@ import {
   Show,
   createSignal,
   createMemo,
+  createEffect,
   type Component,
   type Accessor,
   type Setter,
@@ -20,6 +21,7 @@ import { formatTimeAgo } from '../services/formatters.js';
 import CopyButton from './CopyButton.js';
 import ProviderKeyForm, { MAX_KEYS_PER_PROVIDER } from './ProviderKeyForm.js';
 import OAuthDetailView from './OAuthDetailView.js';
+import AnthropicOAuthDetailView from './AnthropicOAuthDetailView.js';
 import DeviceCodeDetailView from './DeviceCodeDetailView.js';
 import { getRoutingProviderApiKeyUrl } from '../services/provider-api-key-urls.js';
 
@@ -39,6 +41,7 @@ export interface ProviderDetailViewProps {
   onBack: () => void;
   onUpdate: () => void;
   onClose: () => void;
+  initialAddKey?: boolean;
 }
 
 const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
@@ -77,6 +80,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const subscriptionAuthMode = () =>
     provDef.subscriptionAuthMode ?? (provDef.subscriptionKeyPlaceholder ? 'token' : undefined);
   const isPopupOAuthFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_oauth';
+  const isPopupPasteFlow = () => isSubMode() && subscriptionAuthMode() === 'popup_paste';
   const isDeviceCodeFlow = () => isSubMode() && subscriptionAuthMode() === 'device_code';
   const isCommandOnly = () =>
     isSubMode() &&
@@ -94,6 +98,10 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const isOllama = provDef.noKeyRequired;
 
   const [addKeyOpen, setAddKeyOpen] = createSignal(false);
+
+  createEffect(() => {
+    if (props.initialAddKey) setAddKeyOpen(true);
+  });
 
   const supportsMultiKey = () => props.selectedAuthType() !== 'local';
 
@@ -228,52 +236,65 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
                 <span class="provider-detail__beta-badge">beta</span>
               </Show>
             </div>
-            <Show when={connected() && lastFetchedAgo()}>
-              <div class="provider-detail__last-refreshed">
-                Models last refreshed {lastFetchedAgo()}
-              </div>
-            </Show>
           </div>
         </div>
         <div class="provider-detail__header-actions">
-          <Show when={connected()}>
-            <button
-              class="btn btn--outline btn--sm provider-detail__refresh-btn"
-              disabled={refreshing() || props.busy()}
-              onClick={handleRefreshModels}
-              aria-label={`Refresh models from ${provDef.name}`}
-              title={`Refresh models from ${provDef.name}`}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                classList={{ 'provider-detail__refresh-icon--spinning': refreshing() }}
-              >
-                <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
-                <path d="M21 3v5h-5" />
-              </svg>
-              {refreshing() ? 'Refreshing…' : 'Refresh models'}
-            </button>
-          </Show>
           <Show when={showAddKeyButton()}>
             <button
               type="button"
               class="btn btn--sm"
-              style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs);"
+              style="background: hsl(var(--foreground)); color: hsl(var(--background)); border: none; font-size: var(--font-size-xs); display: inline-flex; align-items: center; gap: 4px;"
               onClick={() => setAddKeyOpen(true)}
             >
-              Add another key
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M4 11h11v2H4zm0-5h16v2H4zm0 10h8v2H4zm15-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
+              </svg>
+              {isSubMode() ? 'Add connection' : 'Add another key'}
             </button>
           </Show>
         </div>
       </div>
+
+      <Show when={connected()}>
+        <div class="provider-detail__models-bar">
+          <span>
+            {activeProviderRow()?.cached_model_count ?? 0} model
+            {(activeProviderRow()?.cached_model_count ?? 0) === 1 ? '' : 's'}
+            <Show when={lastFetchedAgo()}> – last refreshed: {lastFetchedAgo()}</Show>
+          </span>
+          <button
+            class="btn btn--outline btn--sm provider-detail__refresh-btn"
+            disabled={refreshing() || props.busy()}
+            onClick={handleRefreshModels}
+            aria-label={`Refresh models from ${provDef.name}`}
+            title={`Refresh models from ${provDef.name}`}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              classList={{ 'provider-detail__refresh-icon--spinning': refreshing() }}
+            >
+              <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+              <path d="M21 3v5h-5" />
+            </svg>
+            {refreshing() ? 'Refreshing…' : 'Refresh models'}
+          </button>
+        </div>
+      </Show>
 
       {/* Subscription sign-in URL instruction (token mode with external sign-in) */}
       <Show when={isSubMode() && provDef.subscriptionSignInUrl}>
@@ -372,6 +393,28 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
+        />
+      </Show>
+
+      {/* Paste-code OAuth subscription (Anthropic) */}
+      <Show when={isPopupPasteFlow()}>
+        <AnthropicOAuthDetailView
+          provDef={provDef}
+          provId={props.provId}
+          agentName={props.agentName}
+          connected={connected}
+          selectedAuthType={props.selectedAuthType}
+          busy={props.busy}
+          setBusy={props.setBusy}
+          onBack={props.onBack}
+          onUpdate={props.onUpdate}
+          onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 
@@ -388,6 +431,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           onBack={props.onBack}
           onUpdate={props.onUpdate}
           onClose={props.onClose}
+          addKeyOpen={addKeyOpen}
+          setAddKeyOpen={setAddKeyOpen}
+          activeKeys={activeKeys}
         />
       </Show>
 
@@ -432,7 +478,15 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       </Show>
 
       {/* API key / subscription token form (non-Ollama, non-command-only, non-OAuth) */}
-      <Show when={!isOllama && !isCommandOnly() && !isPopupOAuthFlow() && !isDeviceCodeFlow()}>
+      <Show
+        when={
+          !isOllama &&
+          !isCommandOnly() &&
+          !isPopupOAuthFlow() &&
+          !isPopupPasteFlow() &&
+          !isDeviceCodeFlow()
+        }
+      >
         <ProviderKeyForm
           provDef={provDef}
           provId={props.provId}

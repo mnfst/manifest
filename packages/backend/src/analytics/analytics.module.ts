@@ -11,6 +11,8 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
+import { MessageRecording } from '../entities/message-recording.entity';
+import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -21,6 +23,7 @@ import { TimeseriesQueriesService } from './services/timeseries-queries.service'
 import { MessagesQueryService } from './services/messages-query.service';
 import { MessageDetailsService } from './services/message-details.service';
 import { MessageFeedbackService } from './services/message-feedback.service';
+import { MessageRecordingService } from './services/message-recording.service';
 import { SpecificityFeedbackService } from './services/specificity-feedback.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
 import { OverviewController } from './controllers/overview.controller';
@@ -46,6 +49,8 @@ import { SavingsQueryService } from './services/savings-query.service';
       TierAssignment,
       SpecificityAssignment,
       HeaderTier,
+      MessageRecording,
+      AgentModelParams,
     ]),
     OtlpModule,
     RoutingCoreModule,
@@ -68,10 +73,11 @@ import { SavingsQueryService } from './services/savings-query.service';
     MessagesQueryService,
     MessageDetailsService,
     MessageFeedbackService,
+    MessageRecordingService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
     SavingsQueryService,
   ],
-  exports: [SpecificityFeedbackService],
+  exports: [SpecificityFeedbackService, MessageRecordingService],
 })
 export class AnalyticsModule {}

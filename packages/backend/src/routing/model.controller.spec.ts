@@ -5,6 +5,8 @@ import { CustomProviderService } from './custom-provider/custom-provider.service
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
@@ -35,6 +37,8 @@ describe('ModelController', () => {
   let mockResolveAgent: Record<string, jest.Mock>;
   let mockCustomProviderService: Record<string, jest.Mock>;
   let mockPricingSync: Record<string, jest.Mock>;
+  let mockProviderParamSpecs: Record<string, jest.Mock>;
+  let mockModelsDevSync: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,6 +69,12 @@ describe('ModelController', () => {
       getLastFetchedAt: jest.fn().mockReturnValue(new Date('2026-04-13T00:00:00Z')),
       refreshCache: jest.fn().mockResolvedValue(42),
     };
+    mockProviderParamSpecs = {
+      getCapabilities: jest.fn().mockResolvedValue(null),
+    };
+    mockModelsDevSync = {
+      lookupModel: jest.fn().mockReturnValue(null),
+    };
 
     controller = new ModelController(
       mockProviderService as unknown as ProviderService,
@@ -73,6 +83,8 @@ describe('ModelController', () => {
       mockResolveAgent as unknown as ResolveAgentService,
       mockCustomProviderService as unknown as CustomProviderService,
       mockPricingSync as unknown as PricingSyncService,
+      mockProviderParamSpecs as unknown as ProviderParamSpecService,
+      mockModelsDevSync as unknown as ModelsDevSyncService,
     );
   });
 
@@ -258,6 +270,7 @@ describe('ModelController', () => {
         context_window: 128000,
         capability_reasoning: false,
         capability_code: true,
+        capabilities: ['stream'],
         quality_score: 3,
         display_name: 'GPT-4o',
       });
@@ -272,6 +285,7 @@ describe('ModelController', () => {
 
       expect(Object.keys(result[0]).sort()).toEqual([
         'auth_type',
+        'capabilities',
         'capability_code',
         'capability_reasoning',
         'context_window',
@@ -282,6 +296,19 @@ describe('ModelController', () => {
         'provider',
         'quality_score',
       ]);
+    });
+
+    it('should include model-scoped capabilities from models.dev metadata', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({ id: 'gpt-4o', provider: 'openai' }),
+      ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        capabilities: ['text', 'image', 'tools', 'stream'],
+      });
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result[0].capabilities).toEqual(['text', 'image', 'tools', 'stream']);
     });
 
     it('should use null for display_name when displayName is empty', async () => {

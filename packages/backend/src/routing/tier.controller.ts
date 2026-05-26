@@ -20,7 +20,8 @@ import {
   AgentNameParamDto,
   SetOverrideDto,
   SetFallbacksDto,
-  SetParamDefaultsDto,
+  SetResponseModeDto,
+  responseModeFromDto,
 } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
 
@@ -79,6 +80,20 @@ export class TierController {
     return { ok: true };
   }
 
+  @Patch(':agentName/tiers/:tier/response-mode')
+  async setResponseMode(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('tier') tier: string,
+    @Body() body: SetResponseModeDto,
+  ) {
+    this.validateTier(tier);
+    const responseMode = responseModeFromDto(body);
+    if (!responseMode) throw new BadRequestException('response_mode is required');
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.tierService.setResponseMode(agent.id, user.id, tier, responseMode);
+  }
+
   @Post(':agentName/tiers/reset-all')
   async resetAllOverrides(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
@@ -119,18 +134,6 @@ export class TierController {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
     await this.tierService.clearFallbacks(agent.id, tier);
     return { ok: true };
-  }
-
-  @Patch(':agentName/tiers/:tier/params')
-  async setParamDefaults(
-    @CurrentUser() user: AuthUser,
-    @Param('agentName') agentName: string,
-    @Param('tier') tier: string,
-    @Body() body: SetParamDefaultsDto,
-  ) {
-    this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setParamDefaults(agent.id, user.id, tier, body.paramDefaults ?? null);
   }
 
   @Get(':agentName/complexity/status')

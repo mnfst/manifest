@@ -14,6 +14,7 @@ const AUTH_TYPE_WHITELIST: ReadonlySet<string> = new Set<string>(AUTH_TYPES);
 interface ProviderAggregateRow {
   provider: string | null;
   count: string;
+  cost: string | null;
 }
 
 interface BucketRow {
@@ -25,6 +26,7 @@ interface TotalsRow {
   total: string;
   input_tokens: string | null;
   output_tokens: string | null;
+  cost: string | null;
 }
 
 /**
@@ -66,6 +68,8 @@ export class PayloadBuilderService {
       messages_by_auth_type: this.bucketsToRecord(authRows, 'unknown', AUTH_TYPE_WHITELIST),
       tokens_input_total: Number(totals.input_tokens ?? 0),
       tokens_output_total: Number(totals.output_tokens ?? 0),
+      cost_usd_total: roundCents(Number(totals.cost ?? 0)),
+      cost_usd_by_provider: this.collapseProviderCosts(providerRows),
       agents_total: agentsTotal,
       agents_by_platform: this.bucketsToRecord(agentPlatformRows, 'unknown'),
       platform: process.platform,
@@ -78,6 +82,7 @@ export class PayloadBuilderService {
       .createQueryBuilder('m')
       .select('m.provider', 'provider')
       .addSelect('COUNT(*)', 'count')
+      .addSelect('COALESCE(SUM(m.cost_usd), 0)', 'cost')
       .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
       .groupBy('m.provider')
       .getRawMany<ProviderAggregateRow>();
@@ -132,9 +137,10 @@ export class PayloadBuilderService {
       .select('COUNT(*)', 'total')
       .addSelect('SUM(m.input_tokens)', 'input_tokens')
       .addSelect('SUM(m.output_tokens)', 'output_tokens')
+      .addSelect('COALESCE(SUM(m.cost_usd), 0)', 'cost')
       .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
       .getRawOne<TotalsRow>();
-    return row ?? { total: '0', input_tokens: '0', output_tokens: '0' };
+    return row ?? { total: '0', input_tokens: '0', output_tokens: '0', cost: '0' };
   }
 
   /**
@@ -148,6 +154,29 @@ export class PayloadBuilderService {
     for (const row of rows) {
       const bucket = this.bucketFor(row.provider);
       out[bucket] = (out[bucket] ?? 0) + Number(row.count);
+    }
+    return out;
+  }
+
+  /**
+   * Same bucketing as `collapseProviders`, but sums `cost_usd` instead of
+   * row counts. Custom provider names collapse into a single `"custom"`
+   * bucket, so admin-configured BYOK pricing never appears keyed by the
+   * raw provider string. Values are rounded to cents to avoid emitting
+   * micro-precision floats over the wire.
+   */
+  private collapseProviderCosts(rows: ProviderAggregateRow[]): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      const cost = row.cost == null ? 0 : Number(row.cost);
+      if (!Number.isFinite(cost) || cost <= 0) continue;
+      const bucket = this.bucketFor(row.provider);
+      out[bucket] = (out[bucket] ?? 0) + cost;
+    }
+    for (const key of Object.keys(out)) {
+      const rounded = roundCents(out[key]);
+      if (rounded === 0) delete out[key];
+      else out[key] = rounded;
     }
     return out;
   }
@@ -173,4 +202,9 @@ export class PayloadBuilderService {
     }
     return out;
   }
+}
+
+function roundCents(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 100) / 100;
 }

@@ -8,10 +8,16 @@ import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute, RequestParamDefaults } from 'manifest-shared';
-import { TIER_SLOTS, TierSlot } from 'manifest-shared';
+import type { AuthType, ModelRoute, ResponseMode } from 'manifest-shared';
+import {
+  DEFAULT_RESPONSE_MODE,
+  DEFAULT_OUTPUT_MODALITY,
+  TIER_SLOTS,
+  TierSlot,
+} from 'manifest-shared';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 import { explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
+import { assertStreamableResponseMode } from './response-mode-guard';
 
 @Injectable()
 export class TierService {
@@ -60,6 +66,8 @@ export class TierService {
         override_route: null,
         auto_assigned_route: null,
         fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
       }),
     );
     try {
@@ -151,6 +159,12 @@ export class TierService {
         const filtered = existing.fallback_routes.filter((r) => !routeMatches(r, route));
         existing.fallback_routes = filtered.length > 0 ? filtered : null;
       }
+      assertStreamableResponseMode(
+        existing.response_mode,
+        `tier "${tier}"`,
+        route,
+        existing.fallback_routes,
+      );
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
       this.routingCache.invalidateAgent(agentId);
@@ -165,6 +179,8 @@ export class TierService {
       override_route: route,
       auto_assigned_route: null,
       fallback_routes: null,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      response_mode: DEFAULT_RESPONSE_MODE,
     });
 
     try {
@@ -178,37 +194,21 @@ export class TierService {
     return record;
   }
 
-  async clearOverride(agentId: string, tier: string): Promise<void> {
-    const existing = await this.tierRepo.findOne({
-      where: { agent_id: agentId, tier },
-    });
-    if (!existing) return;
-
-    existing.override_route = null;
-    existing.updated_at = new Date().toISOString();
-    await this.tierRepo.save(existing);
-    this.routingCache.invalidateAgent(agentId);
-  }
-
-  /**
-   * Set or clear the configured request body defaults for a tier. Lazily
-   * creates the assignment row if missing so the popup can be opened
-   * before the user picks a primary model. Pass `null` to clear.
-   *
-   * Storage is at the assignment level (not per-route), so the same
-   * defaults apply to the primary model AND every fallback. Multi-key
-   * compatible: switching pinned key on a route does not affect the
-   * stored params — they ride along with whichever key the proxy picks.
-   */
-  async setParamDefaults(
+  async setResponseMode(
     agentId: string,
     userId: string,
     tier: string,
-    paramDefaults: RequestParamDefaults | null,
+    responseMode: ResponseMode,
   ): Promise<TierAssignment> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (existing) {
-      existing.param_defaults = paramDefaults;
+      assertStreamableResponseMode(
+        responseMode,
+        `tier "${tier}"`,
+        existing.override_route ?? existing.auto_assigned_route,
+        existing.fallback_routes,
+      );
+      existing.response_mode = responseMode;
       existing.updated_at = new Date().toISOString();
       await this.tierRepo.save(existing);
       this.routingCache.invalidateAgent(agentId);
@@ -223,21 +223,31 @@ export class TierService {
       override_route: null,
       auto_assigned_route: null,
       fallback_routes: null,
-      param_defaults: paramDefaults,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      response_mode: responseMode,
     });
-    try {
-      await this.tierRepo.insert(record);
-    } catch (err) {
-      // Retry handles the unique-index race: a concurrent caller created the
-      // row between our findOne and insert. If no row appeared, the insert
-      // failed for a real reason (DB down, constraint mismatch, etc.) and
-      // we must surface it instead of pretending the write succeeded.
-      const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
-      if (retry) return this.setParamDefaults(agentId, userId, tier, paramDefaults);
-      throw err;
-    }
+    assertStreamableResponseMode(responseMode, `tier "${tier}"`, null, null);
+    await this.tierRepo.insert(record);
     this.routingCache.invalidateAgent(agentId);
     return record;
+  }
+
+  async clearOverride(agentId: string, tier: string): Promise<void> {
+    const existing = await this.tierRepo.findOne({
+      where: { agent_id: agentId, tier },
+    });
+    if (!existing) return;
+
+    existing.override_route = null;
+    assertStreamableResponseMode(
+      existing.response_mode,
+      `tier "${tier}"`,
+      existing.auto_assigned_route,
+      existing.fallback_routes,
+    );
+    existing.updated_at = new Date().toISOString();
+    await this.tierRepo.save(existing);
+    this.routingCache.invalidateAgent(agentId);
   }
 
   async resetAllOverrides(agentId: string): Promise<void> {
@@ -267,7 +277,14 @@ export class TierService {
   ): Promise<ModelRoute[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
-    existing.fallback_routes = await this.buildFallbackRoutes(agentId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
+    assertStreamableResponseMode(
+      existing.response_mode,
+      `tier "${tier}"`,
+      existing.override_route ?? existing.auto_assigned_route,
+      fallbackRoutes,
+    );
+    existing.fallback_routes = fallbackRoutes;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -277,6 +294,12 @@ export class TierService {
   async clearFallbacks(agentId: string, tier: string): Promise<void> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return;
+    assertStreamableResponseMode(
+      existing.response_mode,
+      `tier "${tier}"`,
+      existing.override_route ?? existing.auto_assigned_route,
+      null,
+    );
     existing.fallback_routes = null;
     existing.updated_at = new Date().toISOString();
     await this.tierRepo.save(existing);

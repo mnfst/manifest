@@ -5,6 +5,7 @@ import {
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
+import { resolveSubscriptionEndpointKey } from '../provider-hooks';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -62,6 +63,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
   });
 
@@ -119,6 +121,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
   });
 
+  it('resolves kilo and its aliases', () => {
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
+    expect(resolveEndpointKey('KiloCode')).toBe('kilo');
+    expect(resolveEndpointKey('kilo-code')).toBe('kilo');
+  });
+
   it('resolves every proxy-capable provider id and alias from the registry', () => {
     // tileOnly providers (LM Studio) don't have a fixed proxy endpoint —
     // they deep-link to the local-server detail view and route through
@@ -167,6 +175,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('kilo uses the Kilo Gateway OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['kilo'];
+    expect(ep.baseUrl).toBe('https://api.kilo.ai/api/gateway');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/chat/completions');
+    expect(ep.buildHeaders('kilo-token')).toEqual({
+      Authorization: 'Bearer kilo-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('qwen uses DashScope compatible-mode endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['qwen'];
     expect(ep.baseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
@@ -203,6 +222,31 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Editor-Version': 'vscode/1.100.0',
       'Editor-Plugin-Version': 'copilot/1.300.0',
       'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
+  it('copilot-responses targets /responses with chatgpt format and Copilot headers', () => {
+    const ep = PROVIDER_ENDPOINTS['copilot-responses'];
+    expect(ep.baseUrl).toBe('https://api.githubcopilot.com');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('gpt-5.3-codex')).toBe('/responses');
+    expect(ep.buildHeaders('ghu_token')).toEqual({
+      Authorization: 'Bearer ghu_token',
+      'Content-Type': 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
+  it('xai-responses targets /v1/responses with OpenAI-compatible auth headers', () => {
+    const ep = PROVIDER_ENDPOINTS['xai-responses'];
+    expect(ep.baseUrl).toBe('https://api.x.ai');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('grok-4.20-multi-agent')).toBe('/v1/responses');
+    expect(ep.buildHeaders('xai-test-key')).toEqual({
+      Authorization: 'Bearer xai-test-key',
+      'Content-Type': 'application/json',
     });
   });
 
@@ -348,5 +392,59 @@ describe('buildEndpointOverride', () => {
     expect(() => buildEndpointOverride('https://example.com', 'nonexistent-template')).toThrow(
       'No provider endpoint template configured for: nonexistent-template',
     );
+  });
+});
+
+describe('resolveSubscriptionEndpointKey', () => {
+  it('returns gemini-subscription for google (the Gemini API-key endpoint key)', () => {
+    expect(resolveSubscriptionEndpointKey('google')).toBe('gemini-subscription');
+  });
+
+  it('returns openai-subscription for openai', () => {
+    expect(resolveSubscriptionEndpointKey('openai')).toBe('openai-subscription');
+  });
+
+  it('returns minimax-subscription for minimax', () => {
+    expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns undefined for providers with no subscription override', () => {
+    expect(resolveSubscriptionEndpointKey('anthropic')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('deepseek')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('unknown')).toBeUndefined();
+  });
+});
+
+describe('gemini-subscription endpoint', () => {
+  const ep = PROVIDER_ENDPOINTS['gemini-subscription'];
+
+  it('exists in PROVIDER_ENDPOINTS', () => {
+    expect(ep).toBeDefined();
+  });
+
+  it('uses the CodeAssist base URL', () => {
+    expect(ep.baseUrl).toBe('https://cloudcode-pa.googleapis.com');
+  });
+
+  it('uses google format', () => {
+    expect(ep.format).toBe('google');
+  });
+
+  it('has codeAssistEnvelope set to true', () => {
+    expect(ep.codeAssistEnvelope).toBe(true);
+  });
+
+  it('buildHeaders returns Authorization: Bearer and Content-Type', () => {
+    const headers = ep.buildHeaders('my-access-token');
+    expect(headers['Authorization']).toBe('Bearer my-access-token');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('buildPath returns the non-streaming generateContent path', () => {
+    expect(ep.buildPath('gemini-2.5-pro')).toBe('/v1internal:generateContent');
+  });
+
+  it('buildStreamPath returns the streamGenerateContent path', () => {
+    expect(ep.buildStreamPath!('gemini-2.5-pro')).toBe('/v1internal:streamGenerateContent');
   });
 });

@@ -12,10 +12,11 @@ import {
 } from '../services/routing-utils.js';
 import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
-import ModelParamsDialog from '../components/ModelParamsDialog.jsx';
+import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
+import ModelCapabilityBadges from '../components/ModelCapabilityBadges.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import { providerThinkingDefault } from 'manifest-shared';
+import { modelParamsScopeForTier } from 'manifest-shared';
 import type {
   TierAssignment,
   AvailableModel,
@@ -106,22 +107,27 @@ export interface RoutingTierCardProps {
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
   /**
-   * Save the configured request body params for this tier (or specificity
-   * category — same shape). The dialog calls this on save; the parent is
-   * responsible for the API call. Optional so tests and embed contexts can
-   * skip the params surface entirely.
+   * Read saved per-route params from the parent's loaded map. The
+   * affordance reads through this so saving in one slot reflects on every
+   * other slot that resolves to the same `(provider, authType, model)`.
    */
-  persistParamDefaults?: (
-    agentName: string,
-    tier: string,
-    paramDefaults: RequestParamDefaults | null,
-  ) => Promise<unknown>;
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
   /**
-   * Optional optimistic-update hook the parent uses to update its tier
-   * snapshot after a successful save, so the icon's "configured" badge
-   * reflects the new state without a refetch.
+   * Persist new params for a single route. Parent owns the server call
+   * and the local cache update; the card just threads the callback down.
    */
-  onParamDefaultsSaved?: (tier: string, paramDefaults: RequestParamDefaults | null) => void;
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
 }
 
 const effectiveRoute = (
@@ -147,33 +153,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
-  const [paramsDialogOpen, setParamsDialogOpen] = createSignal(false);
-
-  // The sliders icon renders next to whichever route — primary or fallback —
-  // uses a provider whose API consumes a known param key (today only
-  // DeepSeek's `thinking`). Param defaults are stored at the tier level and
-  // filtered per-attempt against the actual provider in the proxy, so the
-  // affordance attaches to the route that actually consumes the value rather
-  // than always living next to the primary.
-  const primaryProvider = (): string | null => {
-    const t = props.tier();
-    return t ? (effectiveRoute(t)?.provider ?? null) : null;
-  };
-  const primarySupportsParams = () => {
-    const p = primaryProvider();
-    return p !== null && providerThinkingDefault(p) !== undefined;
-  };
-  const paramSurfaceProvider = (): string | null => {
-    const fromPrimary = primaryProvider();
-    if (fromPrimary && providerThinkingDefault(fromPrimary) !== undefined) return fromPrimary;
-    const t = props.tier();
-    for (const r of t?.fallback_routes ?? []) {
-      if (r.provider && providerThinkingDefault(r.provider) !== undefined) return r.provider;
-    }
-    return null;
-  };
-  const supportsParams = () => paramSurfaceProvider() !== null;
-  const paramsConfigured = () => (props.tier()?.param_defaults ?? null) !== null;
+  const [swappingFbIndex, setSwappingFbIndex] = createSignal<number | null>(null);
 
   const handlePrimaryDragStart = (e: DragEvent) => {
     setPrimaryDragging(true);
@@ -214,6 +194,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!tier) return;
     const currentModel = eff();
     if (!currentModel) return;
+    setSwappingFbIndex(slot > 0 ? slot - 1 : 0);
     // Carry the full primary route through the swap. Without this, the same
     // model name on a different auth (subscription vs api_key) collapses back
     // to "first match in discovery" when the backend rebuilds fallback_routes
@@ -225,7 +206,10 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     const newFallbacks = [...fallbacks];
     newFallbacks.splice(slot, 0, currentModel);
     const newPrimary = newFallbacks.shift()!;
-    if (newPrimary === currentModel && slot === 0) return; // no-op
+    if (newPrimary === currentModel && slot === 0) {
+      setSwappingFbIndex(null);
+      return;
+    } // no-op
     // Build the parallel route list when we have full coverage. The route
     // shape carries `keyLabel`, so multi-key pins ride along with the swap
     // automatically — primary→fallback or fallback→primary keeps the same
@@ -258,16 +242,21 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     } catch {
       props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
       toast.error('Failed to update fallbacks');
+      setSwappingFbIndex(null);
       return;
     }
     const provId = newPrimaryRoute?.provider ?? providerIdForModel(newPrimary, props.models());
-    props.onOverride(
-      props.stage.id,
-      newPrimary,
-      provId ?? '',
-      newPrimaryRoute?.authType,
-      newPrimaryRoute?.keyLabel ?? undefined,
-    );
+    try {
+      await props.onOverride(
+        props.stage.id,
+        newPrimary,
+        provId ?? '',
+        newPrimaryRoute?.authType,
+        newPrimaryRoute?.keyLabel ?? undefined,
+      );
+    } finally {
+      setSwappingFbIndex(null);
+    }
   };
 
   const swapPrimaryWithFallback = async (fbIndex: number) => {
@@ -275,10 +264,14 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!tier) return;
     const currentModel = eff();
     if (!currentModel) return;
+    setSwappingFbIndex(fbIndex);
     const currentRoute = effectiveRoute(tier);
     const fallbacks = props.getFallbacksFor(props.stage.id);
     const fbModel = fallbacks[fbIndex];
-    if (!fbModel) return;
+    if (!fbModel) {
+      setSwappingFbIndex(null);
+      return;
+    }
     const fallbackRoutes = tier.fallback_routes ?? null;
     const fbRoute = fallbackRoutes?.[fbIndex] ?? null;
     // Swap: fallback model goes to primary, current primary takes its place.
@@ -300,16 +293,21 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     } catch {
       props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
       toast.error('Failed to update fallbacks');
+      setSwappingFbIndex(null);
       return;
     }
     const provId = fbRoute?.provider ?? providerIdForModel(fbModel, props.models());
-    props.onOverride(
-      props.stage.id,
-      fbModel,
-      provId ?? '',
-      fbRoute?.authType,
-      fbRoute?.keyLabel ?? undefined,
-    );
+    try {
+      await props.onOverride(
+        props.stage.id,
+        fbModel,
+        provId ?? '',
+        fbRoute?.authType,
+        fbRoute?.keyLabel ?? undefined,
+      );
+    } finally {
+      setSwappingFbIndex(null);
+    }
   };
 
   const modelInfo = (modelName: string): AvailableModel | undefined => {
@@ -342,6 +340,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!info) return '';
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
+
+  const modelCapabilities = (modelName: string) => modelInfo(modelName)?.capabilities;
+  const isStreamMode = () => props.tier()?.response_mode === 'stream';
 
   return (
     <div class="routing-card">
@@ -383,11 +384,20 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
         when={!props.tiersLoading}
         fallback={
           <div class="routing-card__body">
-            <div class="skeleton skeleton--text" style="width: 160px; height: 14px;" />
-            <div
-              class="skeleton skeleton--text"
-              style="width: 200px; height: 12px; margin-top: 6px;"
-            />
+            <div class="routing-card__model-chip">
+              <div class="routing-card__chip-main">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div
+                    class="skeleton"
+                    style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                  />
+                  <div class="skeleton skeleton--text" style="width: 120px;" />
+                </div>
+              </div>
+              <div class="routing-card__chip-footer">
+                <div class="skeleton skeleton--text" style="width: 150px; height: 12px;" />
+              </div>
+            </div>
           </div>
         }
       >
@@ -396,6 +406,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             {(modelName) => {
               const provId = () =>
                 manualProviderId() ?? providerIdForModel(modelName(), props.models());
+              const primarySkipped = () =>
+                isStreamMode() && !(modelCapabilities(modelName())?.includes('stream') ?? false);
               const effectiveAuth = (): AuthType | null => {
                 const t = props.tier();
                 const route = t ? effectiveRoute(t) : null;
@@ -409,13 +421,29 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                 if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
                 return null;
               };
+              const isSwapping = () =>
+                swappingFbIndex() !== null || props.changingTier() === props.stage.id;
               return (
                 <>
                   <Show
-                    when={props.changingTier() !== props.stage.id}
+                    when={!isSwapping()}
                     fallback={
                       <div class="routing-card__model-chip">
-                        <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+                        <div class="routing-card__chip-main">
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <div
+                              class="skeleton"
+                              style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                            />
+                            <div class="skeleton skeleton--text" style="width: 120px;" />
+                          </div>
+                        </div>
+                        <div class="routing-card__chip-footer">
+                          <div
+                            class="skeleton skeleton--text"
+                            style="width: 150px; height: 12px;"
+                          />
+                        </div>
                       </div>
                     }
                   >
@@ -424,7 +452,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                       classList={{
                         'routing-card__model-chip--dragging': primaryDragging(),
                         'routing-card__model-chip--drop-target': primaryDropTarget(),
+                        'routing-card__model-chip--skipped': primarySkipped(),
                       }}
+                      title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
                       draggable={true}
                       onDragStart={handlePrimaryDragStart}
                       onDragEnd={handlePrimaryDragEnd}
@@ -510,41 +540,20 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             }}
                             disabled={() => props.changingTier() === props.stage.id}
                           />
-                          <Show when={primarySupportsParams() && props.persistParamDefaults}>
-                            <button
-                              class="routing-card__chip-action"
-                              classList={{
-                                'routing-card__chip-action--configured': paramsConfigured(),
-                              }}
-                              onClick={() => setParamsDialogOpen(true)}
+                          <Show
+                            when={props.setModelParams && props.getModelParams && effectiveAuth()}
+                          >
+                            <ModelParamsAffordance
+                              provider={provId()}
+                              authType={effectiveAuth() ?? undefined}
+                              model={modelName()}
+                              slotLabel={labelFor(modelName())}
+                              scope={modelParamsScopeForTier(props.stage.id)}
+                              agentName={props.agentName()}
+                              getParams={props.getModelParams!}
+                              setParams={props.setModelParams!}
                               disabled={props.changingTier() === props.stage.id}
-                              aria-label={`Configure model parameters for ${props.stage.label}`}
-                              title="Model parameters"
-                            >
-                              <span class="routing-tooltip">Parameters</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <line x1="4" y1="21" x2="4" y2="14" />
-                                <line x1="4" y1="10" x2="4" y2="3" />
-                                <line x1="12" y1="21" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12" y2="3" />
-                                <line x1="20" y1="21" x2="20" y2="16" />
-                                <line x1="20" y1="12" x2="20" y2="3" />
-                                <line x1="1" y1="14" x2="7" y2="14" />
-                                <line x1="9" y1="8" x2="15" y2="8" />
-                                <line x1="17" y1="16" x2="23" y2="16" />
-                              </svg>
-                            </button>
+                            />
                           </Show>
                           <button
                             class="routing-card__chip-action"
@@ -570,10 +579,28 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                         <Show
                           when={effectiveAuth() !== 'subscription'}
                           fallback={
-                            <span class="routing-card__chip-price">Included in subscription</span>
+                            <span class="routing-card__chip-meta">
+                              <span class="routing-card__chip-price">Included in subscription</span>
+                              <ModelCapabilityBadges
+                                capabilities={modelCapabilities(modelName())}
+                                compact
+                              />
+                              <Show when={primarySkipped()}>
+                                <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                              </Show>
+                            </span>
                           }
                         >
-                          <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
+                          <span class="routing-card__chip-meta">
+                            <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
+                            <ModelCapabilityBadges
+                              capabilities={modelCapabilities(modelName())}
+                              compact
+                            />
+                            <Show when={primarySkipped()}>
+                              <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                            </Show>
+                          </span>
                         </Show>
                       </div>
                     </div>
@@ -608,9 +635,11 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               onFallbackDragEnd={() => setFallbackDragging(null)}
               persistFallbacks={props.persistFallbacks}
               persistClearFallbacks={props.persistClearFallbacks}
-              onConfigureParams={
-                props.persistParamDefaults ? () => setParamsDialogOpen(true) : undefined
-              }
+              getModelParams={props.getModelParams}
+              setModelParams={props.setModelParams}
+              swappingIndex={swappingFbIndex()}
+              modelParamsScope={modelParamsScopeForTier(props.stage.id)}
+              responseMode={props.tier()?.response_mode ?? 'buffered'}
             />
           </div>
         </Show>
@@ -659,28 +688,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             </div>
           </div>
         </div>
-      </Show>
-
-      <Show when={paramsDialogOpen() && supportsParams() && props.persistParamDefaults}>
-        {(() => {
-          const provider = paramSurfaceProvider() ?? '';
-          const providerDefault = providerThinkingDefault(provider) ?? 'enabled';
-          return (
-            <ModelParamsDialog
-              open={paramsDialogOpen()}
-              slotLabel={props.stage.label}
-              current={props.tier()?.param_defaults ?? null}
-              providerDefault={providerDefault}
-              onSave={async (paramDefaults) => {
-                if (!props.persistParamDefaults) return;
-                await props.persistParamDefaults(props.agentName(), props.stage.id, paramDefaults);
-                props.onParamDefaultsSaved?.(props.stage.id, paramDefaults);
-                toast.success('Model parameters saved');
-              }}
-              onClose={() => setParamsDialogOpen(false)}
-            />
-          );
-        })()}
       </Show>
     </div>
   );

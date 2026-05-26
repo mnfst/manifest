@@ -169,6 +169,19 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  kilo: {
+    id: 'kilo',
+    name: 'Kilo Gateway',
+    models: {
+      'openai/gpt-4o-mini': {
+        id: 'openai/gpt-4o-mini',
+        name: 'GPT-4o mini',
+        cost: { input: 0.15, output: 0.6, cache_read: 0.075 },
+        limit: { context: 128000, output: 16384 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'unknown-provider': {
     id: 'unknown-provider',
     name: 'Unknown',
@@ -493,21 +506,33 @@ describe('ModelsDevSyncService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('should call refreshCache on module init', async () => {
+    it('kicks off refreshCache without blocking', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({}),
       });
 
-      await service.onModuleInit();
+      // Fire-and-forget (must not block boot — see #1894); whenInitialized()
+      // resolves once the startup fetch has settled.
+      service.onModuleInit();
+      await service.whenInitialized();
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should not throw when fetch fails during init', async () => {
-      fetchSpy.mockRejectedValue(new Error('Network error'));
+    it('does not reject when refreshCache rejects', async () => {
+      // Reject refreshCache itself (not just fetch, which it swallows internally)
+      // to exercise onModuleInit's .catch handler.
+      jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('Network error'));
 
-      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      service.onModuleInit();
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('whenInitialized', () => {
+    it('resolves immediately when onModuleInit has not run', async () => {
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
     });
   });
 
@@ -953,6 +978,69 @@ describe('ModelsDevSyncService', () => {
       const upper = service.getModelsForProvider('ANTHROPIC');
       expect(lower).toEqual(upper);
       expect(lower.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('lookupCustomProviderModel', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should find arbitrary models.dev providers by display name', () => {
+      const model = service.lookupCustomProviderModel('Kilo Gateway', 'openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+      expect(model!.inputPricePerToken).toBe(0.15 / 1_000_000);
+      expect(model!.outputPricePerToken).toBe(0.6 / 1_000_000);
+      expect(model!.contextWindow).toBe(128000);
+    });
+
+    it('should normalize custom provider names and IDs', () => {
+      expect(service.lookupCustomProviderModel('kilo', 'openai/gpt-4o-mini')).not.toBeNull();
+      expect(
+        service.lookupCustomProviderModel('kilo-gateway', 'openai/gpt-4o-mini'),
+      ).not.toBeNull();
+    });
+
+    it('should keep native provider support scoped to PROVIDER_ID_MAP', () => {
+      expect(service.getModelsForProvider('kilo')).toEqual([]);
+    });
+
+    it('should return null when provider or model is missing', () => {
+      expect(service.lookupCustomProviderModel('Mammouth', 'openai/gpt-4o-mini')).toBeNull();
+      expect(service.lookupCustomProviderModel('Kilo Gateway', 'missing-model')).toBeNull();
+    });
+  });
+
+  describe('lookupModelAcrossProviders', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should match provider-prefixed model IDs against official provider catalogs first', () => {
+      const model = service.lookupModelAcrossProviders('openai/gpt-4o');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o');
+      expect(model!.inputPricePerToken).toBe(2.5 / 1_000_000);
+    });
+
+    it('should fall back to exact model IDs from non-native provider catalogs', () => {
+      const model = service.lookupModelAcrossProviders('openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+      expect(model!.inputPricePerToken).toBe(0.15 / 1_000_000);
+    });
+
+    it('should return null when no provider contains the model ID', () => {
+      expect(service.lookupModelAcrossProviders('missing-model')).toBeNull();
     });
   });
 });

@@ -1,5 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CanActivate, ExecutionContext, INestApplication, Injectable, UnauthorizedException, ValidationPipe } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  INestApplication,
+  Injectable,
+  UnauthorizedException,
+  ValidationPipe,
+} from '@nestjs/common';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
@@ -26,6 +33,10 @@ import { EmailProviderConfig } from '../src/entities/email-provider-config.entit
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
 import { HeaderTier } from '../src/entities/header-tier.entity';
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
+import { MessageRecording } from '../src/entities/message-recording.entity';
+import { AgentModelParams } from '../src/entities/agent-model-params.entity';
+import { PlaygroundRun } from '../src/entities/playground-run.entity';
+import { PlaygroundColumn } from '../src/entities/playground-column.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -33,6 +44,7 @@ import { NotificationsModule } from '../src/notifications/notifications.module';
 import { ModelPricesModule } from '../src/model-prices/model-prices.module';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { RoutingModule } from '../src/routing/routing.module';
+import { PlaygroundModule } from '../src/playground/playground.module';
 import { CommonModule } from '../src/common/common.module';
 import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 import { SetupModule } from '../src/setup/setup.module';
@@ -43,7 +55,29 @@ export const TEST_TENANT_ID = 'test-tenant-001';
 export const TEST_AGENT_ID = 'test-agent-001';
 export const TEST_OTLP_KEY = 'mnfst_test-otlp-key-001';
 
-const entities = [AgentMessage, LlmCall, ToolExecution, AgentLog, ApiKey, Tenant, Agent, AgentApiKey, NotificationRule, NotificationLog, UserProvider, TierAssignment, CustomProvider, EmailProviderConfig, SpecificityAssignment, HeaderTier, InstallMetadata];
+const entities = [
+  AgentMessage,
+  LlmCall,
+  ToolExecution,
+  AgentLog,
+  ApiKey,
+  Tenant,
+  Agent,
+  AgentApiKey,
+  NotificationRule,
+  NotificationLog,
+  UserProvider,
+  TierAssignment,
+  CustomProvider,
+  EmailProviderConfig,
+  SpecificityAssignment,
+  HeaderTier,
+  InstallMetadata,
+  MessageRecording,
+  AgentModelParams,
+  PlaygroundRun,
+  PlaygroundColumn,
+];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
   data: [
@@ -105,9 +139,7 @@ const OPENROUTER_MODELS_FIXTURE = {
 function buildTypeOrmConfig(): TypeOrmModuleOptions {
   return {
     type: 'postgres' as const,
-    url:
-      process.env['DATABASE_URL'] ??
-      'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+    url: process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
     entities,
     synchronize: true,
     dropSchema: true,
@@ -141,7 +173,8 @@ class MockSessionGuard implements CanActivate {
 export async function createTestApp(): Promise<INestApplication> {
   process.env['API_KEY'] = TEST_API_KEY;
   process.env['NODE_ENV'] = 'test';
-  process.env['BETTER_AUTH_SECRET'] = process.env['BETTER_AUTH_SECRET'] ?? 'test-secret-for-e2e-at-least-32chars!!';
+  process.env['BETTER_AUTH_SECRET'] =
+    process.env['BETTER_AUTH_SECRET'] ?? 'test-secret-for-e2e-at-least-32chars!!';
   const restoreFetch = stubOpenRouterPricingFetch();
 
   try {
@@ -159,12 +192,11 @@ export async function createTestApp(): Promise<INestApplication> {
         NotificationsModule,
         ModelPricesModule,
         RoutingModule,
+        PlaygroundModule,
         PublicStatsModule,
         SetupModule,
       ],
-      providers: [
-        { provide: APP_GUARD, useClass: MockSessionGuard },
-      ],
+      providers: [{ provide: APP_GUARD, useClass: MockSessionGuard }],
     }).compile();
 
     const app = moduleFixture.createNestApplication();
@@ -182,7 +214,14 @@ export async function createTestApp(): Promise<INestApplication> {
     // Seed test API key (hashed)
     await ds.query(
       `INSERT INTO api_keys (id, key, key_hash, key_prefix, user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6)`,
-      ['test-key-id', hashKey(TEST_API_KEY), keyPrefix(TEST_API_KEY), TEST_USER_ID, 'Test Key', now],
+      [
+        'test-key-id',
+        hashKey(TEST_API_KEY),
+        keyPrefix(TEST_API_KEY),
+        TEST_USER_ID,
+        'Test Key',
+        now,
+      ],
     );
 
     // Seed test tenant, agent, and OTLP key (hashed)
@@ -196,7 +235,15 @@ export async function createTestApp(): Promise<INestApplication> {
     );
     await ds.query(
       `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`,
-      ['test-otlp-key-id', hashKey(TEST_OTLP_KEY), keyPrefix(TEST_OTLP_KEY), 'Test OTLP Key', TEST_TENANT_ID, TEST_AGENT_ID, now],
+      [
+        'test-otlp-key-id',
+        hashKey(TEST_OTLP_KEY),
+        keyPrefix(TEST_OTLP_KEY),
+        'Test OTLP Key',
+        TEST_TENANT_ID,
+        TEST_AGENT_ID,
+        now,
+      ],
     );
 
     // Reload pricing cache from deterministic fixture data to keep e2e startup fast.

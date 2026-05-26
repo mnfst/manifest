@@ -2,9 +2,12 @@ import { createSignal, createEffect, onCleanup, For, Show, type Component } from
 import {
   clearFallbacks,
   setFallbacks,
+  type AuthType,
   type AvailableModel,
   type CustomProviderData,
   type ModelRoute,
+  type RequestParamDefaults,
+  type ResponseMode,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -19,7 +22,8 @@ import {
 import { toast } from '../services/toast-store.js';
 import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
-import { providerThinkingDefault } from 'manifest-shared';
+import ModelParamsAffordance from './ModelParamsAffordance.jsx';
+import { modelParamsScopeForTier } from 'manifest-shared';
 
 interface FallbackListProps {
   agentName: string;
@@ -32,6 +36,7 @@ interface FallbackListProps {
   // same-name-different-auth ambiguity reported in issue #1708 without
   // changing the visible UI for users whose data has been backfilled.
   fallbackRoutes?: ModelRoute[] | null;
+  responseMode?: ResponseMode;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
@@ -53,13 +58,43 @@ interface FallbackListProps {
     routes?: ModelRoute[],
   ) => Promise<unknown>;
   persistClearFallbacks?: (agentName: string, tier: string) => Promise<unknown>;
-  // Open the tier's Model Parameters dialog. Rendered per-row when the
-  // row's route provider consumes a known param key (today only DeepSeek's
-  // `thinking`). Param defaults are tier-scoped — the proxy filters per
-  // attempt against the actual provider — so the affordance can attach to
-  // whichever fallback row is compatible without owning its own state.
-  onConfigureParams?: () => void;
+  /**
+   * Per-route params getter, threaded from the routing page boundary. When
+   * present, every fallback row whose provider consumes a known param key
+   * renders a `<ModelParamsAffordance>` for its own `(provider, authType,
+   * model)` tuple. Saving from a fallback row updates the parent's cache
+   * just like saving from the primary chip does.
+   */
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
+  swappingIndex?: number | null;
+  modelParamsScope?: string;
 }
+
+const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={p.size}
+    height={p.size}
+    class={p.class}
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path d="M9 10h6c2.21 0 4 1.79 4 4s-1.79 4-4 4h-3v2h3c3.31 0 6-2.69 6-6s-2.69-6-6-6H9V4L3 9l6 5z" />
+  </svg>
+);
 
 const FallbackList: Component<FallbackListProps> = (props) => {
   const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
@@ -76,6 +111,31 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     }
     return stripCustomPrefix(model);
   };
+  const modelParamsScope = () => props.modelParamsScope ?? modelParamsScopeForTier(props.tier);
+
+  const modelInfoFor = (model: string, index: number): AvailableModel | undefined => {
+    const route = props.fallbackRoutes?.[index];
+    if (route) {
+      const routeProvider = resolveProviderId(route.provider)?.toLowerCase();
+      const routeMatch = props.models.find((m) => {
+        const modelProvider = resolveProviderId(m.provider)?.toLowerCase();
+        return (
+          m.model_name === route.model &&
+          modelProvider === routeProvider &&
+          (!m.auth_type || m.auth_type === route.authType)
+        );
+      });
+      if (routeMatch) return routeMatch;
+    }
+    return (
+      props.models.find((m) => m.model_name === model) ??
+      props.models.find((m) => m.model_name.startsWith(model + '-'))
+    );
+  };
+
+  const skippedInStream = (model: string, index: number): boolean =>
+    props.responseMode === 'stream' &&
+    !(modelInfoFor(model, index)?.capabilities?.includes('stream') ?? false);
 
   /**
    * Active labeled keys for (provider, auth_type), sorted by priority. Used
@@ -327,7 +387,14 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     class="fallback-list__card"
                     classList={{
                       'fallback-list__card--dragging': dragIndex() === i(),
+                      'fallback-list__card--swapping': props.swappingIndex === i(),
+                      'fallback-list__card--skipped': skippedInStream(model(), i()),
                     }}
+                    title={
+                      skippedInStream(model(), i())
+                        ? 'Skipped while Stream mode is active'
+                        : undefined
+                    }
                     draggable={true}
                     onDragStart={(e) => handleDragStart(i(), e)}
                     // Bind dragend on the draggable row itself rather than
@@ -342,115 +409,122 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     // row itself catches every drop target.
                     onDragEnd={handleDragEnd}
                   >
-                    <Show when={provId() && !isCustom()}>
-                      <span class="fallback-list__icon" title={title()}>
-                        {providerIcon(provId()!, 14)}
-                        {authBadgeFor(auth(), 8)}
-                      </span>
-                    </Show>
-                    <Show when={isCustom()}>
-                      {(() => {
-                        const cp = props.customProviders.find((c) => `custom:${c.id}` === provId());
-                        const logo = customProviderLogo(cp?.name ?? '', 14, cp?.base_url, model());
-                        if (logo) {
-                          return (
-                            <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
-                              {logo}
-                            </span>
-                          );
-                        }
-                        const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
-                        return (
-                          <span
-                            class="provider-card__logo-letter fallback-list__icon"
-                            title={cp?.name ?? 'Custom'}
-                            style={{
-                              background: customProviderColor(cp?.name ?? ''),
-                              width: '14px',
-                              height: '14px',
-                              'font-size': '8px',
-                              'border-radius': '50%',
-                            }}
-                          >
-                            {letter}
-                          </span>
-                        );
-                      })()}
-                    </Show>
-                    <span class="fallback-list__model">{modelLabel(model())}</span>
-                    <Show when={keys().length > 1}>
-                      <FallbackKeyChip
-                        keys={keys()}
-                        currentLabel={pinnedLabel() ?? undefined}
-                        modelLabel={modelLabel(model())}
-                        modelName={model()}
-                        tier={props.tierData ?? (() => undefined)}
-                        fallbackIndex={i()}
-                        onPick={(label) => setLabelAt(i(), label)}
-                      />
-                    </Show>
                     <Show
-                      when={
-                        props.onConfigureParams &&
-                        provId() &&
-                        providerThinkingDefault(provId()!) !== undefined
+                      when={props.swappingIndex !== i()}
+                      fallback={
+                        <>
+                          <div
+                            class="skeleton"
+                            style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                          />
+                          <div class="skeleton skeleton--text" style="width: 100px;" />
+                        </>
                       }
                     >
-                      <button
-                        class="fallback-list__params"
-                        onClick={() => props.onConfigureParams!()}
-                        title="Model parameters"
-                        aria-label={`Configure model parameters for ${modelLabel(model())}`}
+                      <Show when={provId() && !isCustom()}>
+                        <span class="fallback-list__icon" title={title()}>
+                          {providerIcon(provId()!, 14)}
+                          {authBadgeFor(auth(), 8)}
+                        </span>
+                      </Show>
+                      <Show when={isCustom()}>
+                        {(() => {
+                          const cp = props.customProviders.find(
+                            (c) => `custom:${c.id}` === provId(),
+                          );
+                          const logo = customProviderLogo(
+                            cp?.name ?? '',
+                            14,
+                            cp?.base_url,
+                            model(),
+                          );
+                          if (logo) {
+                            return (
+                              <span class="fallback-list__icon" title={cp?.name ?? 'Custom'}>
+                                {logo}
+                              </span>
+                            );
+                          }
+                          const letter = (cp?.name ?? 'C').charAt(0).toUpperCase();
+                          return (
+                            <span
+                              class="provider-card__logo-letter fallback-list__icon"
+                              title={cp?.name ?? 'Custom'}
+                              style={{
+                                background: customProviderColor(cp?.name ?? ''),
+                                width: '14px',
+                                height: '14px',
+                                'font-size': '8px',
+                                'border-radius': '50%',
+                              }}
+                            >
+                              {letter}
+                            </span>
+                          );
+                        })()}
+                      </Show>
+                      <span class="fallback-list__model">{modelLabel(model())}</span>
+                      <Show when={skippedInStream(model(), i())}>
+                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      </Show>
+                      <Show when={keys().length > 1}>
+                        <FallbackKeyChip
+                          keys={keys()}
+                          currentLabel={pinnedLabel() ?? undefined}
+                          modelLabel={modelLabel(model())}
+                          modelName={model()}
+                          tier={props.tierData ?? (() => undefined)}
+                          fallbackIndex={i()}
+                          onPick={(label) => setLabelAt(i(), label)}
+                        />
+                      </Show>
+                      <Show
+                        when={
+                          props.getModelParams &&
+                          props.setModelParams &&
+                          provId() &&
+                          auth() &&
+                          auth() !== 'local'
+                        }
                       >
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <line x1="4" y1="21" x2="4" y2="14" />
-                          <line x1="4" y1="10" x2="4" y2="3" />
-                          <line x1="12" y1="21" x2="12" y2="12" />
-                          <line x1="12" y1="8" x2="12" y2="3" />
-                          <line x1="20" y1="21" x2="20" y2="16" />
-                          <line x1="20" y1="12" x2="20" y2="3" />
-                          <line x1="1" y1="14" x2="7" y2="14" />
-                          <line x1="9" y1="8" x2="15" y2="8" />
-                          <line x1="17" y1="16" x2="23" y2="16" />
-                        </svg>
+                        <ModelParamsAffordance
+                          provider={provId()}
+                          authType={(auth() as AuthType) ?? undefined}
+                          model={model()}
+                          slotLabel={modelLabel(model())}
+                          scope={modelParamsScope()}
+                          agentName={props.agentName}
+                          getParams={props.getModelParams!}
+                          setParams={props.setModelParams!}
+                        />
+                      </Show>
+                      <button
+                        class="fallback-list__remove"
+                        onClick={() => handleRemove(i())}
+                        title="Remove fallback"
+                        aria-label={`Remove ${modelLabel(model())}`}
+                        disabled={removingIndex() !== null}
+                      >
+                        {removingIndex() === i() ? (
+                          <span class="spinner" style="width: 10px; height: 10px;" />
+                        ) : (
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                          </svg>
+                        )}
                       </button>
                     </Show>
-                    <button
-                      class="fallback-list__remove"
-                      onClick={() => handleRemove(i())}
-                      title="Remove fallback"
-                      aria-label={`Remove ${modelLabel(model())}`}
-                      disabled={removingIndex() !== null}
-                    >
-                      {removingIndex() === i() ? (
-                        <span class="spinner" style="width: 10px; height: 10px;" />
-                      ) : (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="M18 6 6 18" />
-                          <path d="m6 6 12 12" />
-                        </svg>
-                      )}
-                    </button>
                   </div>
                 </>
               );
@@ -468,17 +542,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
         when={props.fallbacks.length > 0}
         fallback={
           <div class="fallback-list__empty">
-            <svg
-              class="fallback-list__empty-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M6 22h2V8h4L7 2 2 8h4zM19 2h-2v14h-4l5 6 5-6h-4z" />
-            </svg>
+            <FallbackUndoIcon size={20} class="fallback-list__empty-icon" />
             <span class="fallback-list__empty-title">No fallbacks</span>
             <span class="fallback-list__empty-desc">
               Add fallback models to guarantee a response if the provider fails.
@@ -492,16 +556,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                 <span class="spinner" />
               ) : (
                 <>
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path d="m7.12,20.57c.2.23.55.23.75,0l2.4-2.74c.28-.32.05-.83-.38-.83h-1.9V3.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v13.5h-1.9c-.43,0-.66.51-.38.83l2.4,2.74Z" />
-                    <path d="m14.1,7h1.9v13.5c0,.28.22.5.5.5s.5-.22.5-.5V7h1.9c.43,0,.66-.51.38-.83l-2.4-2.74c-.2-.23-.55-.23-.75,0l-2.4,2.74c-.28.32-.05.83.38.83Z" />
-                  </svg>
+                  <FallbackUndoIcon size={16} />
                   Add fallback
                 </>
               )}
@@ -519,16 +574,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
               <span class="spinner" />
             ) : (
               <>
-                <svg
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path d="m7.12,20.57c.2.23.55.23.75,0l2.4-2.74c.28-.32.05-.83-.38-.83h-1.9V3.5c0-.28-.22-.5-.5-.5s-.5.22-.5.5v13.5h-1.9c-.43,0-.66.51-.38.83l2.4,2.74Z" />
-                  <path d="m14.1,7h1.9v13.5c0,.28.22.5.5.5s.5-.22.5-.5V7h1.9c.43,0,.66-.51.38-.83l-2.4-2.74c-.2-.23-.55-.23-.75,0l-2.4,2.74c-.28.32-.05.83.38.83Z" />
-                </svg>
+                <FallbackUndoIcon size={16} />
                 Add fallback
               </>
             )}

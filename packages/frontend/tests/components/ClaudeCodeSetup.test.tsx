@@ -24,11 +24,13 @@ describe("ClaudeCodeSetup", () => {
     const labels = Array.from(codes).map((c) => c.textContent);
     expect(labels).toContain("~/.claude/settings.json");
     expect(labels).toContain("claude");
+    expect(labels).toContain("auto");
   });
 
-  it("renders the JSON env block with ANTHROPIC vars", () => {
+  it("renders the JSON settings block with Manifest auto model and ANTHROPIC vars", () => {
     const { container } = render(() => <ClaudeCodeSetup {...baseProps} />);
     const text = container.textContent ?? "";
+    expect(text).toContain('"model": "auto"');
     expect(text).toContain('"env"');
     expect(text).toContain("ANTHROPIC_BASE_URL");
     expect(text).toContain("ANTHROPIC_AUTH_TOKEN");
@@ -92,6 +94,7 @@ describe("ClaudeCodeSetup", () => {
     fireEvent.click(copyButton!);
     expect(writeText).toHaveBeenCalledTimes(1);
     expect(writeText.mock.calls[0][0]).toContain("mnfst_full_secret_value");
+    expect(writeText.mock.calls[0][0]).toContain('"model": "auto"');
     void copyBtn;
   });
 

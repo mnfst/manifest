@@ -491,6 +491,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
         "http://host.docker.internal:8000/v1",
         undefined,
         "openai",
+        undefined,
       );
       const inputs = screen.getAllByPlaceholderText("Model name") as HTMLInputElement[];
       expect(inputs).toHaveLength(2);
@@ -514,6 +515,138 @@ describe("CustomProviderForm — Fetch models probe", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Connection refused")).toBeDefined();
+    });
+  });
+
+  it("populates probed models with models.dev prices", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [
+        {
+          model_name: "openai/gpt-4o-mini",
+          input_price_per_million_tokens: 0.15,
+          output_price_per_million_tokens: 0.6,
+        },
+      ],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
+      target: { value: "Kilo Gateway" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "https://api.kilo.ai/api/gateway" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(mockProbeCustomProvider).toHaveBeenCalledWith(
+        "test-agent",
+        "https://api.kilo.ai/api/gateway",
+        undefined,
+        "openai",
+        "Kilo Gateway",
+      );
+      expect(
+        (screen.getByLabelText("Model 1 input price per million tokens") as HTMLInputElement).value,
+      ).toBe("0.15");
+      expect(
+        (screen.getByLabelText("Model 1 output price per million tokens") as HTMLInputElement)
+          .value,
+      ).toBe("0.6");
+    });
+  });
+
+  it("keeps price fields blank when the probe returns models without pricing", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [{ model_name: "unknown-model" }],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "http://host.docker.internal:8000/v1" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(
+        (screen.getByLabelText("Model 1 input price per million tokens") as HTMLInputElement).value,
+      ).toBe("");
+      expect(
+        (screen.getByLabelText("Model 1 output price per million tokens") as HTMLInputElement)
+          .value,
+      ).toBe("");
+    });
+  });
+
+  it("shows estimated price info for model-only price fallbacks", async () => {
+    mockProbeCustomProvider.mockResolvedValue({
+      models: [
+        {
+          model_name: "openai/gpt-4o-mini",
+          input_price_per_million_tokens: 0.15,
+          output_price_per_million_tokens: 0.6,
+          price_estimated: true,
+        },
+      ],
+    });
+
+    render(() => (
+      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+    ));
+
+    fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
+      target: { value: "Mammouth AI" },
+    });
+    fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
+      target: { value: "https://api.mammouth.ai/v1" },
+    });
+
+    fireEvent.click(screen.getByText("Fetch models"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText("Info: Estimated price. This may not be accurate."),
+      ).toBeDefined();
+    });
+    expect(screen.getByText("Input / 1M tokens")).toBeDefined();
+    expect(screen.getByText("Output / 1M tokens")).toBeDefined();
+    expect(
+      screen.getAllByLabelText("Info: Estimated price. This may not be accurate."),
+    ).toHaveLength(1);
+
+    fireEvent.mouseEnter(screen.getByLabelText("Info: Estimated price. This may not be accurate."));
+
+    await waitFor(() => {
+      expect(screen.getByRole("tooltip").textContent).toBe(
+        "Estimated price. This may not be accurate.",
+      );
+    });
+
+    fireEvent.click(screen.getByText("Connect"));
+
+    await waitFor(() => {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+        name: "Mammouth AI",
+        base_url: "https://api.mammouth.ai/v1",
+        api_kind: "openai",
+        apiKey: undefined,
+        models: [
+          {
+            model_name: "openai/gpt-4o-mini",
+            input_price_per_million_tokens: 0.15,
+            output_price_per_million_tokens: 0.6,
+            price_estimated: true,
+          },
+        ],
+      });
     });
   });
 
@@ -1210,6 +1343,7 @@ describe("CustomProviderForm — API format selector", () => {
         "https://api.anthropic.com",
         undefined,
         "anthropic",
+        undefined,
       );
     });
   });

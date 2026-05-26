@@ -222,12 +222,16 @@
 }
 
 .btn--danger {
-  background: hsl(var(--destructive));
-  color: white;
+  background: hsl(var(--background));
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--foreground) / 0.2);
+  border-radius: var(--radius);
 }
 
 .btn--danger:hover {
-  background: hsl(var(--destructive) / 0.9);
+  background: hsl(var(--destructive));
+  color: white;
+  border-color: hsl(var(--destructive));
 }
 
 /* ── Danger zone ──────────────────────────────────── */
@@ -240,6 +244,7 @@
 }
 
 .settings-card--danger .settings-card__control {
+  width: auto;
   display: flex;
   justify-content: flex-end;
 }
@@ -312,7 +317,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--gap-lg);
-  z-index: 40;
+  z-index: 60;
 }
 
 .header__left {
@@ -455,7 +460,7 @@
   border-radius: var(--radius);
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
   padding: 4px;
-  z-index: 50;
+  z-index: 200;
   animation: fadeInUp 100ms ease-out;
 }
 
@@ -695,20 +700,6 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-}
-
-.wingman-drawer__badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.7px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #ec4899, #db2777);
-  color: white;
-  text-transform: uppercase;
-  line-height: 1;
 }
 
 .wingman-drawer__title strong {

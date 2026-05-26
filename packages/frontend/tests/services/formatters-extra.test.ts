@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { formatNumber, formatCost, formatTrend } from "../../src/services/formatters.js";
+import {
+  formatNumber,
+  formatCost,
+  formatTrend,
+  sortedHeaderEntries,
+} from "../../src/services/formatters.js";
 
 describe("formatNumber edge cases", () => {
   it("formats exactly 1000 as 1k", () => {
@@ -73,5 +78,22 @@ describe("formatTrend edge cases", () => {
   it("formats fractional trend (rounds)", () => {
     expect(formatTrend(12.7)).toBe("+13%");
     expect(formatTrend(-12.3)).toBe("-12%");
+  });
+});
+
+describe("sortedHeaderEntries", () => {
+  it("returns an empty array for null or undefined input", () => {
+    expect(sortedHeaderEntries(null)).toEqual([]);
+    expect(sortedHeaderEntries(undefined)).toEqual([]);
+  });
+
+  it("sorts header entries alphabetically by key", () => {
+    expect(
+      sortedHeaderEntries({ "x-custom": "1", authorization: "secret", "user-agent": "curl" }),
+    ).toEqual([
+      ["authorization", "secret"],
+      ["user-agent", "curl"],
+      ["x-custom", "1"],
+    ]);
   });
 });

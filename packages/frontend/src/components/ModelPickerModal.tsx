@@ -4,6 +4,7 @@ import {
   type AuthType,
   type AvailableModel,
   type CustomProviderData,
+  type ModelCapability,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -12,6 +13,7 @@ import { customProviderColor } from '../services/formatters.js';
 import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { toast } from '../services/toast-store.js';
+import ModelCapabilityBadges from './ModelCapabilityBadges.js';
 
 interface Props {
   tierId: string;
@@ -24,6 +26,7 @@ interface Props {
   onClose: () => void;
   onConnectProviders?: () => void;
   onProviderRefreshed?: () => void | Promise<void>;
+  requiredCapability?: ModelCapability;
 }
 
 /** Resolve a display label for a model name, handling vendor-prefixed IDs. */
@@ -45,6 +48,11 @@ const isFreeModel = (m: AvailableModel): boolean =>
   m.output_price_per_token != null &&
   Number(m.input_price_per_token) === 0 &&
   Number(m.output_price_per_token) === 0;
+
+const unavailableCapabilityLabel = (capability: ModelCapability): string => {
+  if (capability === 'stream') return 'Stream unavailable';
+  return `${capability.charAt(0).toUpperCase()}${capability.slice(1)} unavailable`;
+};
 
 const ModelPickerModal: Component<Props> = (props) => {
   const hasSubscription = () =>
@@ -255,6 +263,19 @@ const ModelPickerModal: Component<Props> = (props) => {
   const isSub = () => activeTab() === 'subscription';
   const isLocal = () => activeTab() === 'local';
   const isPaid = () => !isSub() && !isLocal();
+  const missingRequiredCapability = (model: AvailableModel): string | null => {
+    const required = props.requiredCapability;
+    if (!required) return null;
+    return (model.capabilities ?? []).includes(required)
+      ? null
+      : unavailableCapabilityLabel(required);
+  };
+
+  // Resolve the routing-tier label for the subtitle. Callers outside the
+  // routing context (e.g. the Playground) pass a non-tier id, so there is no
+  // matching stage — render no subtitle instead of a bare "tier".
+  const tierLabel = () =>
+    [DEFAULT_STAGE, ...STAGES, ...SPECIFICITY_STAGES].find((s) => s.id === props.tierId)?.label;
 
   return (
     <div
@@ -278,13 +299,9 @@ const ModelPickerModal: Component<Props> = (props) => {
             <div class="routing-modal__title" id="model-picker-title">
               Select a model
             </div>
-            <div class="routing-modal__subtitle">
-              {
-                [DEFAULT_STAGE, ...STAGES, ...SPECIFICITY_STAGES].find((s) => s.id === props.tierId)
-                  ?.label
-              }{' '}
-              tier
-            </div>
+            <Show when={tierLabel()}>
+              {(label) => <div class="routing-modal__subtitle">{label()} tier</div>}
+            </Show>
           </div>
           <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
             <svg
@@ -526,41 +543,62 @@ const ModelPickerModal: Component<Props> = (props) => {
                   </Show>
                 </div>
                 <For each={group.models}>
-                  {(model) => (
-                    <button
-                      class="routing-modal__model"
-                      onClick={() =>
-                        props.onSelect(props.tierId, model.value, group.provId, activeTab())
-                      }
-                    >
-                      <span class="routing-modal__model-label">
-                        {model.label}
-                        <Show when={isRecommended(model.value, group.provId, activeTab())}>
-                          <span class="routing-modal__recommended"> (recommended)</span>
-                        </Show>
-                        <Show when={modelRole(model.value, group.provId, activeTab())}>
-                          {(role) => <span class="routing-modal__role-tag">{role()}</span>}
-                        </Show>
-                      </span>
-                      <Show
-                        when={isPaid()}
-                        fallback={
-                          <span class="routing-modal__model-id routing-modal__model-id--subscription">
-                            {isLocal() ? 'Runs on your machine' : 'Included in subscription'}
-                          </span>
+                  {(model) => {
+                    const disabledReason = () => missingRequiredCapability(model.pricing);
+                    const disabled = () => disabledReason() !== null;
+                    return (
+                      <button
+                        class="routing-modal__model"
+                        classList={{ 'routing-modal__model--disabled': disabled() }}
+                        disabled={disabled()}
+                        title={disabledReason() ?? undefined}
+                        onClick={() =>
+                          props.onSelect(props.tierId, model.value, group.provId, activeTab())
                         }
                       >
-                        <Show when={model.pricing}>
-                          {(p) => (
-                            <span class="routing-modal__model-id">
-                              {pricePerM(p().input_price_per_token)} in ·{' '}
-                              {pricePerM(p().output_price_per_token)} out per 1M
+                        <span class="routing-modal__model-label">
+                          {model.label}
+                          <Show when={isRecommended(model.value, group.provId, activeTab())}>
+                            <span class="routing-modal__recommended"> (recommended)</span>
+                          </Show>
+                          <Show when={modelRole(model.value, group.provId, activeTab())}>
+                            {(role) => <span class="routing-modal__role-tag">{role()}</span>}
+                          </Show>
+                        </span>
+                        <Show
+                          when={isPaid()}
+                          fallback={
+                            <span class="routing-modal__model-meta">
+                              <span class="routing-modal__model-id routing-modal__model-id--subscription">
+                                {isLocal() ? 'Runs on your machine' : 'Included in subscription'}
+                              </span>
+                              <ModelCapabilityBadges
+                                capabilities={model.pricing.capabilities}
+                                compact
+                              />
                             </span>
+                          }
+                        >
+                          <Show when={model.pricing}>
+                            {(p) => (
+                              <span class="routing-modal__model-meta">
+                                <span class="routing-modal__model-id">
+                                  {pricePerM(p().input_price_per_token)} in ·{' '}
+                                  {pricePerM(p().output_price_per_token)} out per 1M
+                                </span>
+                                <ModelCapabilityBadges capabilities={p().capabilities} compact />
+                              </span>
+                            )}
+                          </Show>
+                        </Show>
+                        <Show when={disabledReason()}>
+                          {(reason) => (
+                            <span class="routing-modal__model-disabled-reason">{reason()}</span>
                           )}
                         </Show>
-                      </Show>
-                    </button>
-                  )}
+                      </button>
+                    );
+                  }}
                 </For>
               </div>
             )}

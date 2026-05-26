@@ -13,6 +13,7 @@ import { TierController } from './tier.controller';
 import { ModelController } from './model.controller';
 import { CopilotController } from './copilot.controller';
 import { SpecificityController } from './specificity.controller';
+import { ModelParamsController } from './model-params.controller';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
@@ -35,6 +36,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ModelController,
     CopilotController,
     SpecificityController,
+    ModelParamsController,
   ],
   providers: [OllamaSyncService],
   exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],

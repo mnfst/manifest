@@ -8,9 +8,13 @@ import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 
-const route = (provider: string, model: string): ModelRoute => ({
+const route = (
+  provider: string,
+  model: string,
+  authType: ModelRoute['authType'] = 'api_key',
+): ModelRoute => ({
   provider,
-  authType: 'api_key',
+  authType,
   model,
 });
 
@@ -255,6 +259,72 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
+    it('clears only disconnected auth-type routes when another auth type stays active', async () => {
+      const subscriptionRow = {
+        id: 'p-sub',
+        agent_id: 'agent-1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+      };
+      providerRepo.find
+        // Active rows matching the disconnect target.
+        .mockResolvedValueOnce([subscriptionRow])
+        // Sibling API-key row remains active for the same provider.
+        .mockResolvedValueOnce([
+          {
+            id: 'p-api',
+            agent_id: 'agent-1',
+            provider: 'anthropic',
+            auth_type: 'api_key',
+            is_active: true,
+          },
+        ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
+          fallback_routes: [
+            route('anthropic', 'claude-opus-4-6', 'subscription'),
+            route('anthropic', 'claude-haiku-4-6', 'api_key'),
+          ],
+        } as unknown as TierAssignment,
+      ]);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: null,
+          auto_assigned_route: route('anthropic', 'claude-haiku-4-6'),
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([
+        {
+          category: 'coding',
+          override_route: route('anthropic', 'claude-sonnet-4-6', 'subscription'),
+          fallback_routes: [
+            route('anthropic', 'claude-opus-4-6', 'subscription'),
+            route('anthropic', 'claude-haiku-4-6', 'api_key'),
+          ],
+        } as unknown as SpecificityAssignment,
+      ]);
+
+      const result = await svc.removeProvider('agent-1', 'anthropic', 'subscription');
+
+      expect(subscriptionRow.is_active).toBe(false);
+      const savedTiers = tierRepo.save.mock.calls[0][0];
+      expect(savedTiers[0].override_route).toBeNull();
+      expect(savedTiers[0].fallback_routes).toEqual([
+        route('anthropic', 'claude-haiku-4-6', 'api_key'),
+      ]);
+      const savedSpec = specRepo.save.mock.calls[0][0];
+      expect(savedSpec[0].override_route).toBeNull();
+      expect(savedSpec[0].fallback_routes).toEqual([
+        route('anthropic', 'claude-haiku-4-6', 'api_key'),
+      ]);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(result.notifications[0]).toMatch(/claude-sonnet-4-6 is no longer available/);
+    });
+
     it('throws NotFoundException when no provider record exists', async () => {
       providerRepo.findOne.mockResolvedValue(null);
       await expect(svc.removeProvider('agent-1', 'missing')).rejects.toThrow();
@@ -358,6 +428,132 @@ describe('ProviderService — route-only cleanup paths', () => {
       const result = await svc.getProviders('agent-1');
       expect(result).toBe(cached);
       expect(providerRepo.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('upsertProvider — MiniMax subscription region', () => {
+    // upsertProvider encrypts the apiKey, which requires an encryption secret —
+    // the rest of this suite mocks repos but never hits the encrypt path, so
+    // there's no global setup. Keep the secret scoped to this describe.
+    let originalSecret: string | undefined;
+    beforeAll(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+    afterAll(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('persists region=cn on a new MiniMax subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'minimax',
+        'sk-cp-token-from-cn',
+        'subscription',
+        'cn',
+      );
+
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('updates region on an existing MiniMax subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'minimax',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'global',
+        is_active: true,
+      });
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'minimax',
+        'sk-cp-new-token',
+        'subscription',
+        'cn',
+      );
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('preserves existing MiniMax subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'minimax',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('rejects unsupported MiniMax subscription region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
+      ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
+    });
+  });
+
+  describe('nextOAuthLabel', () => {
+    it('returns undefined when no subscription rows exist', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBeUndefined();
+    });
+
+    it('returns "Key 2" when one subscription row exists', async () => {
+      providerRepo.find.mockResolvedValue([{ label: 'Default', is_active: true }]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 2');
+    });
+
+    it('skips existing labels', async () => {
+      providerRepo.find.mockResolvedValue([
+        { label: 'Default', is_active: true },
+        { label: 'Key 2', is_active: true },
+      ]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 3');
+    });
+
+    it('is case-insensitive when checking existing labels', async () => {
+      providerRepo.find.mockResolvedValue([
+        { label: 'Default', is_active: true },
+        { label: 'key 2', is_active: true },
+      ]);
+      const label = await svc.nextOAuthLabel('agent-1', 'openai');
+      expect(label).toBe('Key 3');
     });
   });
 });

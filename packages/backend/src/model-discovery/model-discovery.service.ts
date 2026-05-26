@@ -13,6 +13,7 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -24,6 +25,7 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -81,6 +83,13 @@ export class ModelDiscoveryService {
             endpointOverride = blob.u;
           }
         }
+        // Pasted MiniMax Coding Plan tokens (sk-cp-) have no OAuth blob, so
+        // discovery has no resource URL to use. Fall back to the persisted
+        // region column so CN tokens discover models against the CN host
+        // instead of incorrectly probing api.minimax.io.
+        if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
+          endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
+        }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {
           apiKey = await this.copilotTokenService.getCopilotToken(apiKey);
@@ -120,6 +129,19 @@ export class ModelDiscoveryService {
           provider.provider,
           raw.map((m) => m.id),
         );
+      }
+
+      // Subscription providers whose `/models` endpoint either does not
+      // exist (CodeAssist) or returns more than the subscription tier
+      // actually grants must use the curated `knownModels` list — otherwise
+      // the routing UI offers models that 404 at chat time.
+      if (raw.length === 0 && provider.auth_type === 'subscription') {
+        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        if (raw.length > 0) {
+          this.logger.log(
+            `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
+          );
+        }
       }
 
       // If native API returned no models, try models.dev first (native IDs), then OpenRouter
@@ -167,7 +189,7 @@ export class ModelDiscoveryService {
     }));
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
-    // Personal AI agents (OpenClaw, Hermes, SDK-based agents) almost always
+    // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
@@ -396,6 +418,11 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          capabilities: mergeModelCapabilities(
+            model.capabilities,
+            mdEntry.capabilities,
+            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+          ),
         });
       }
     }
@@ -439,6 +466,11 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      capabilities: mergeModelCapabilities(
+        model.capabilities,
+        mdEntry.capabilities,
+        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+      ),
     };
   }
 

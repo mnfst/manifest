@@ -45,6 +45,7 @@ describe('ProxyMessageRecorder', () => {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     } as never;
+    const recordingService = { save: jest.fn() } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
@@ -56,6 +57,7 @@ describe('ProxyMessageRecorder', () => {
       specificityService,
       headerTierService,
       opencodeGoCatalog,
+      recordingService,
     );
   });
 
@@ -658,6 +660,7 @@ describe('ProxyMessageRecorder', () => {
         getCostPerRequest: jest.fn().mockReturnValue(null),
         resolveCostPerRequest: jest.fn().mockResolvedValue(null),
       } as never;
+      const recordingService = { save: jest.fn() } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -669,6 +672,7 @@ describe('ProxyMessageRecorder', () => {
         specificityService,
         headerTierService,
         opencodeGoCatalog,
+        recordingService,
       );
     });
 
@@ -1086,6 +1090,7 @@ describe('ProxyMessageRecorder', () => {
         getCostPerRequest: jest.fn().mockReturnValue(null),
         resolveCostPerRequest: jest.fn().mockResolvedValue(null),
       } as never;
+      const recordingService = { save: jest.fn() } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -1097,6 +1102,7 @@ describe('ProxyMessageRecorder', () => {
         specificityService,
         headerTierService,
         opencodeGoCatalog,
+        recordingService,
       );
 
       // Insert path
@@ -1213,12 +1219,6 @@ describe('ProxyMessageRecorder', () => {
     });
   });
 
-  // Persistence proof for the per-message Model Parameters telemetry. Each
-  // record* path must thread `requestParams` to the inserted row so the
-  // dashboard's expanded message detail can show what the request actually
-  // had — and crucially, **omitting** the field must keep the column NULL
-  // (the back-compat property: existing call sites that don't know about
-  // this feature don't accidentally write garbage).
   describe('request_params persistence', () => {
     const params = { thinking: { type: 'disabled' as const } };
 
@@ -1265,10 +1265,6 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'gpt-4o', failures, {
         requestParams: params,
       });
-      // The recorder calls `insert` once with a row[] payload. Both rows
-      // need to carry the snapshot — when one fallback succeeds and the
-      // others fail, the dashboard should still show what was requested
-      // for each attempt.
       const rows = insertMock.mock.calls[0][0] as Array<{ request_params: unknown }>;
       expect(rows).toHaveLength(2);
       expect(rows[0].request_params).toEqual(params);
@@ -1285,13 +1281,6 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('arbitrary param shapes round-trip — forward-compat for future provider knobs and user-defined custom params', async () => {
-      // The persistence layer never inspects the JSONB content. Today's
-      // typed `RequestParamDefaults` shape carries `thinking`; tomorrow's
-      // shapes might include `reasoning_effort: 'high'`, a user-defined
-      // `custom_safety: { mode: 'permissive' }` from a custom provider, or
-      // anything else. Storing them all without code changes is the whole
-      // point of the JSONB column. Test that with a multi-key fixture the
-      // field round-trips byte-identically.
       const future = {
         thinking: { type: 'enabled' },
         reasoning_effort: 'high',
@@ -1301,16 +1290,108 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: future });
     });
   });
+
+  describe('recordingPayload', () => {
+    function buildScopedRecorder(saveMock: jest.Mock): ProxyMessageRecorder {
+      const dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(null),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation(async (_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation(async (_r: unknown, _c: unknown, fn: (m: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: jest.fn() }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+      const passthroughCustomProviders = {
+        canonicalizeAgentMessageKeys: jest
+          .fn()
+          .mockImplementation(
+            async (_agentId: string, provider: string | null, model: string | null) => ({
+              provider: provider ?? null,
+              model: model ?? null,
+            }),
+          ),
+      } as never;
+      return new ProxyMessageRecorder(
+        { insert: insertMock } as never,
+        { getByModel: getByModelMock } as never,
+        dedupWithLock,
+        { emit: emitMock } as never,
+        passthroughCustomProviders,
+        { getProviders: jest.fn().mockResolvedValue([]) } as never,
+        { getTiers: jest.fn().mockResolvedValue([]) } as never,
+        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
+        { list: jest.fn().mockResolvedValue([]) } as never,
+        { save: saveMock } as never,
+      );
+    }
+
+    it('persists a recording and sets recorded=true on the message (insert path)', async () => {
+      const saveMock = jest.fn().mockResolvedValue(undefined);
+      const scopedRecorder = buildScopedRecorder(saveMock);
+
+      try {
+        await scopedRecorder.recordSuccessMessage(
+          ctx,
+          'gpt-4o',
+          'standard',
+          'scored',
+          { prompt_tokens: 10, completion_tokens: 5 },
+          {
+            recordingPayload: {
+              request_body: { messages: [{ role: 'user', content: 'hi' }] },
+              response_body: { type: 'json', body: { ok: true } },
+              response_headers: { 'content-type': 'application/json' },
+              size_bytes: 100,
+            },
+          },
+        );
+
+        expect(insertMock).toHaveBeenCalledTimes(1);
+        const inserted = insertMock.mock.calls[0][0];
+        expect(inserted.recorded).toBe(true);
+        expect(saveMock).toHaveBeenCalledTimes(1);
+        expect(saveMock.mock.calls[0][1].size_bytes).toBe(100);
+      } finally {
+        scopedRecorder.onModuleDestroy();
+      }
+    });
+
+    it('swallows errors from the recording service without failing the insert', async () => {
+      const saveMock = jest.fn().mockRejectedValue(new Error('disk full'));
+      const scopedRecorder = buildScopedRecorder(saveMock);
+
+      try {
+        await expect(
+          scopedRecorder.recordSuccessMessage(
+            ctx,
+            'gpt-4o',
+            'standard',
+            'scored',
+            { prompt_tokens: 1, completion_tokens: 1 },
+            {
+              recordingPayload: {
+                request_body: {},
+                response_body: null,
+                response_headers: {},
+                size_bytes: 0,
+              },
+            },
+          ),
+        ).resolves.toBeUndefined();
+        expect(saveMock).toHaveBeenCalled();
+        expect(insertMock).toHaveBeenCalled();
+      } finally {
+        scopedRecorder.onModuleDestroy();
+      }
+    });
+  });
 });
 
-/**
- * Integration-style assertions that exercise the recorder with a REAL
- * `CustomProviderService` (not the passthrough stub used in the suite
- * above) so the full write path — recorder → canonicalizeAgentMessageKeys
- * → custom_providers lookup → row rewrite → insert — is pinned end-to-end.
- * The only stubs are the TypeORM repo and the cache/scheduler services
- * `CustomProviderService` depends on for reasons unrelated to the rewrite.
- */
 describe('ProxyMessageRecorder with real CustomProviderService', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { CustomProviderService } = require('../../custom-provider/custom-provider.service');
@@ -1355,6 +1436,7 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     } as never;
+    const mockRecordingService = { save: jest.fn() } as never;
     const recorder = new ProxyMessageRecorder(
       messageRepo,
       pricingCache,
@@ -1366,6 +1448,7 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       mockSpecificityService,
       mockHeaderTierService,
       mockOpencodeGoCatalog,
+      mockRecordingService,
     );
     return { recorder, insertMock };
   }

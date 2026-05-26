@@ -75,7 +75,7 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   padding: 8px 12px;
-  font-size: var(--font-size-xs);
+  font-size: var(--tooltip-font-size);
   color: hsl(var(--popover-foreground));
   pointer-events: none;
   box-shadow:

@@ -19,6 +19,7 @@ describe('MinimaxOauthService', () => {
     providerService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      nextOAuthLabel: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<ProviderService>;
 
     configService = {
@@ -123,6 +124,8 @@ describe('MinimaxOauthService', () => {
         'minimax',
         expect.any(String),
         'subscription',
+        undefined,
+        undefined,
       );
       expect(discoveryService.discoverModels).toHaveBeenCalled();
     });

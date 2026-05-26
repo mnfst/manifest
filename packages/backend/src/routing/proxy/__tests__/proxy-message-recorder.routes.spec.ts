@@ -51,6 +51,7 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     } as never;
+    const recordingService = { save: jest.fn() } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
@@ -62,6 +63,7 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
       specificityService,
       headerTierService,
       opencodeGoCatalog,
+      recordingService,
     );
   });
 

@@ -13,6 +13,14 @@ export interface ProviderEndpoint {
   baseUrl: string;
   buildHeaders: (apiKey: string, authType?: string) => Record<string, string>;
   buildPath: (model: string) => string;
+  /**
+   * Optional override used when the request is a stream. Some upstreams
+   * (notably the CodeAssist API) expose a separate `:streamGenerateContent`
+   * method instead of accepting `?alt=sse` on the non-streaming path. When
+   * absent, the proxy falls back to `buildPath` and appends `?alt=sse` for
+   * `format: 'google'` streams.
+   */
+  buildStreamPath?: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt';
   /**
    * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
@@ -23,6 +31,13 @@ export interface ProviderEndpoint {
    * forward time.
    */
   requiresSsrfRevalidation?: boolean;
+  /**
+   * When `true`, the proxy wraps the outgoing Google-shape request body in
+   * the CodeAssist envelope (`{ model, project, request }`) and unwraps
+   * `{ response }` from the upstream reply. The project id is read from
+   * the OAuth blob's `u` field. Only valid alongside `format: 'google'`.
+   */
+  codeAssistEnvelope?: boolean;
 }
 
 const openaiHeaders = (apiKey: string) => ({
@@ -71,6 +86,7 @@ const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
+const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -117,6 +133,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  kilo: {
+    baseUrl: KILO_GATEWAY_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/chat/completions',
+    format: 'openai',
+  },
   mistral: {
     baseUrl: 'https://api.mistral.ai',
     buildHeaders: openaiHeaders,
@@ -128,6 +150,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+  },
+  'xai-responses': {
+    baseUrl: 'https://api.x.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/responses',
+    format: 'chatgpt',
   },
   minimax: {
     baseUrl: 'https://api.minimax.io',
@@ -177,6 +205,23 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
+  // Gemini OAuth (gemini-cli flow) routes through the CodeAssist API, which
+  // wraps the standard Gemini request/response in a small envelope and
+  // identifies the user via a Bearer token + their assigned
+  // `cloudaicompanionProject` id (stored in the OAuth blob's `u` field).
+  // Wrap/unwrap happens in `provider-client` and `proxy-response-handler`
+  // when `endpointKey === 'gemini-subscription'`.
+  'gemini-subscription': {
+    baseUrl: 'https://cloudcode-pa.googleapis.com',
+    buildHeaders: (apiKey: string) => ({
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    }),
+    buildPath: () => '/v1internal:generateContent',
+    buildStreamPath: () => '/v1internal:streamGenerateContent',
+    format: 'google',
+    codeAssistEnvelope: true,
+  },
   copilot: {
     baseUrl: 'https://api.githubcopilot.com',
     buildHeaders: (apiKey: string) => ({
@@ -188,6 +233,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: () => '/chat/completions',
     format: 'openai',
+  },
+  // Codex variants (e.g. gpt-5-codex, gpt-5.2-codex, gpt-5.3-codex) only accept
+  // /responses on Copilot — /chat/completions returns "Unsupported API for model".
+  'copilot-responses': {
+    baseUrl: 'https://api.githubcopilot.com',
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Editor-Version': COPILOT_EDITOR_VERSION,
+      'Editor-Plugin-Version': COPILOT_PLUGIN_VERSION,
+      'Copilot-Integration-Id': 'vscode-chat',
+    }),
+    buildPath: () => '/responses',
+    format: 'chatgpt',
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',

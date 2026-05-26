@@ -1,12 +1,14 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import type { RequestParamDefaults } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { RecordingResponseBody } from '../../entities/message-recording.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
+import { MessageRecordingService } from '../../analytics/services/message-recording.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
@@ -78,6 +80,13 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   requestParams?: RequestParamDefaults | null;
 }
 
+export interface SuccessRecordingPayload {
+  request_body: Record<string, unknown>;
+  response_body: RecordingResponseBody | null;
+  response_headers: Record<string, string>;
+  size_bytes: number;
+}
+
 export interface SuccessMessageOpts extends HeaderTierRef {
   traceId?: string;
   provider?: string;
@@ -88,12 +97,8 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
-  /**
-   * Snapshot of effective request body parameters (today: DeepSeek
-   * `thinking`) merged into the outbound provider request. `null` when no
-   * known params apply. Persisted to `agent_messages.request_params`.
-   */
   requestParams?: RequestParamDefaults | null;
+  recordingPayload?: SuccessRecordingPayload;
 }
 
 /**
@@ -130,6 +135,7 @@ function buildMessageRow(
 
 @Injectable()
 export class ProxyMessageRecorder implements OnModuleDestroy {
+  private readonly logger = new Logger(ProxyMessageRecorder.name);
   private readonly rateLimitCooldown = new Map<string, number>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
@@ -147,6 +153,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly specificityService: SpecificityService,
     private readonly headerTierService: HeaderTierService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
+    private readonly recordingService: MessageRecordingService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -473,7 +480,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId,
       headerTierName,
       headerTierColor,
+      recordingPayload,
     } = opts ?? {};
+    const recorded = !!recordingPayload;
 
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
@@ -507,6 +516,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const errorMessage = cannedMessage ?? null;
 
     let wrote = false;
+    let writtenMessageId: string | null = null;
     await this.dedup.withSuccessWriteLock(
       this.dedup.getSuccessWriteLockKey(ctx, canonicalModel, traceId, normalizedSessionKey),
       async () => {
@@ -550,16 +560,20 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_color: headerTierColor ?? null,
               baseline_model_id: baseline?.modelId ?? null,
               baseline_cost_usd: baseline?.cost ?? null,
+              recorded,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
             await messageRepo.update({ id: existing.id }, updatePayload);
             wrote = true;
+            writtenMessageId = existing.id;
             return;
           }
 
+          const newId = uuid();
           await messageRepo.insert(
             buildMessageRow(ctx, {
+              id: newId,
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
@@ -588,13 +602,24 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_color: headerTierColor ?? null,
               baseline_model_id: baseline?.modelId ?? null,
               baseline_cost_usd: baseline?.cost ?? null,
+              recorded,
             }),
           );
           wrote = true;
+          writtenMessageId = newId;
         });
       },
     );
-    if (wrote) this.eventBus.emit(ctx.userId);
+    if (wrote) {
+      this.eventBus.emit(ctx.userId);
+      if (recordingPayload && writtenMessageId) {
+        try {
+          await this.recordingService.save(writtenMessageId, recordingPayload);
+        } catch (err) {
+          this.logger.warn(`Failed to save message recording: ${String(err)}`);
+        }
+      }
+    }
   }
 
   /**

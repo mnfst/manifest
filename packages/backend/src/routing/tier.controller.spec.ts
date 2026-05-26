@@ -28,7 +28,6 @@ describe('TierController', () => {
       getFallbacks: jest.fn().mockResolvedValue([]),
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
-      setParamDefaults: jest.fn(),
     };
     resolveAgentService = {
       resolve: jest.fn().mockResolvedValue(agent),
@@ -128,35 +127,5 @@ describe('TierController', () => {
       complexity_routing_enabled: false,
     });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
-  });
-
-  it('PATCH /tiers/:tier/params persists defaults, treats omitted body as a clear, and rejects unknown slots', async () => {
-    (tierService.setParamDefaults as jest.Mock).mockResolvedValue({
-      tier: 'standard',
-      param_defaults: { thinking: { type: 'disabled' } },
-    });
-
-    const out = await controller.setParamDefaults(user, 'demo', 'standard', {
-      paramDefaults: { thinking: { type: 'disabled' } },
-    });
-
-    expect(out).toEqual({ tier: 'standard', param_defaults: { thinking: { type: 'disabled' } } });
-    expect(tierService.setParamDefaults).toHaveBeenCalledWith('agent-1', 'user-1', 'standard', {
-      thinking: { type: 'disabled' },
-    });
-
-    // Empty body → null clears the defaults. The dialog uses this when the
-    // user collapses back to the provider's effective default.
-    await controller.setParamDefaults(user, 'demo', 'standard', {});
-    expect(tierService.setParamDefaults).toHaveBeenLastCalledWith(
-      'agent-1',
-      'user-1',
-      'standard',
-      null,
-    );
-
-    await expect(
-      controller.setParamDefaults(user, 'demo', 'bogus', { paramDefaults: null }),
-    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });
