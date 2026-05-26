@@ -1,4 +1,5 @@
 import type { AuthType } from './auth-types';
+import { normalizeProviderName, SHARED_PROVIDER_BY_ID_OR_ALIAS } from './providers';
 import type { JsonPrimitive, JsonValue } from './request-params';
 
 export type ModelParamType = 'boolean' | 'enum' | 'integer' | 'number' | 'string';
@@ -87,6 +88,15 @@ const GROUP_ORDER: readonly ModelParamGroup[] = [
 
 const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
 
+export function normalizeProviderParamProviderId(providerId: string): string {
+  const lower = providerId.toLowerCase();
+  const exact = SHARED_PROVIDER_BY_ID_OR_ALIAS.get(lower);
+  if (exact) return exact.id;
+  const normalized = SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(lower));
+  if (normalized) return normalized.id;
+  return lower;
+}
+
 export function getProviderParamSpecs(
   catalog: ProviderParamSpecCatalog,
   providerId: string | undefined,
@@ -94,21 +104,24 @@ export function getProviderParamSpecs(
   model: string | undefined,
 ): readonly ProviderParamSpec[] {
   if (!providerId || !authType || !model) return [];
-  const provider = providerId.toLowerCase();
+  const provider = normalizeProviderParamProviderId(providerId);
   const entry = catalog.find(
     (spec) =>
-      spec.provider.toLowerCase() === provider &&
+      normalizeProviderParamProviderId(spec.provider) === provider &&
       spec.authType === authType &&
       spec.model === model,
   );
   if (!entry) return [];
   return entry.params
-    .map((param) => ({
-      provider: entry.provider,
-      authType: entry.authType,
-      model: entry.model,
-      ...param,
-    }))
+    .map((param) => {
+      const provider = normalizeProviderParamProviderId(entry.provider);
+      return {
+        provider,
+        authType: entry.authType,
+        model: entry.model,
+        ...param,
+      };
+    })
     .sort(compareProviderParamSpecs);
 }
 

@@ -38,6 +38,7 @@ import {
   resolveEndpointKey,
 } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
@@ -83,6 +84,7 @@ export class ProxyFallbackService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly reasoningCache?: ReasoningContentCache,
   ) {}
 
   /**
@@ -352,14 +354,14 @@ export class ProxyFallbackService {
     // new agent_model_params table, so a primary OpenAI route with a
     // DeepSeek fallback no longer needs the old per-provider filter —
     // OpenAI's lookup returns null, DeepSeek's returns its own row.
-    const body = await this.applyParamMerge(
+    let body = await this.applyParamMerge(
       opts.body,
       opts.paramMergeContext,
       provider,
       authType,
       opts.model,
     );
-    const chatBody = opts.chatBody
+    let chatBody = opts.chatBody
       ? await this.applyParamMerge(
           opts.chatBody,
           opts.paramMergeContext,
@@ -428,6 +430,29 @@ export class ProxyFallbackService {
       } else if (providerRegion === 'cn') {
         const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
         customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
+      }
+    }
+
+    const reasoningEndpointKey =
+      customEndpoint && customEndpoint.format !== 'openai'
+        ? null
+        : customEndpoint
+          ? 'custom'
+          : resolveEndpointKey(provider);
+    if (this.reasoningCache) {
+      body = await this.reasoningCache.reinjectMissingReasoningContent(
+        body,
+        opts.sessionKey,
+        reasoningEndpointKey,
+        forwardModel,
+      );
+      if (chatBody) {
+        chatBody = await this.reasoningCache.reinjectMissingReasoningContent(
+          chatBody,
+          opts.sessionKey,
+          reasoningEndpointKey,
+          forwardModel,
+        );
       }
     }
 

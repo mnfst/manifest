@@ -69,11 +69,13 @@ function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
   };
 }
 
-function renderView(opts: {
-  connected?: boolean;
-  activeKeys?: RoutingProvider[];
-  addKeyOpen?: boolean;
-} = {}) {
+function renderView(
+  opts: {
+    connected?: boolean;
+    activeKeys?: RoutingProvider[];
+    addKeyOpen?: boolean;
+  } = {},
+) {
   const [busy, setBusy] = createSignal(false);
   const [addKeyOpen, setAddKeyOpen] = createSignal(opts.addKeyOpen ?? false);
   const onBack = vi.fn();
@@ -100,9 +102,35 @@ function renderView(opts: {
   return { ...result, onBack, onUpdate, onClose, setAddKeyOpen };
 }
 
+function renderReactiveView(opts: { connected?: boolean; activeKeys?: RoutingProvider[] } = {}) {
+  const [busy, setBusy] = createSignal(false);
+  const [connected, setConnected] = createSignal(opts.connected ?? false);
+  const [activeKeys, setActiveKeys] = createSignal(opts.activeKeys ?? []);
+  const onBack = vi.fn();
+  const onUpdate = vi.fn();
+  const onClose = vi.fn();
+  const result = render(() => (
+    <OAuthDetailView
+      provDef={provDef}
+      provId="openai"
+      agentName="test-agent"
+      connected={connected}
+      selectedAuthType={() => 'subscription'}
+      busy={busy}
+      setBusy={setBusy}
+      onBack={onBack}
+      onUpdate={onUpdate}
+      onClose={onClose}
+      activeKeys={activeKeys}
+    />
+  ));
+  return { ...result, onBack, onUpdate, onClose, setConnected, setActiveKeys };
+}
+
 describe('OAuthDetailView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it('shows "Log in with" button when not connected', () => {
@@ -128,20 +156,14 @@ describe('OAuthDetailView', () => {
   });
 
   it('shows "Disconnect all" button in multi-key mode', () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     renderView({ connected: true, activeKeys: keys });
     expect(screen.getByText('Disconnect all')).toBeDefined();
   });
 
   it('clicking Rename shows input and saving calls renameProviderKey', async () => {
     mockRenameProviderKey.mockResolvedValue({ id: 'k1', label: 'New name', priority: 1 });
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old name' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old name' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');
@@ -192,6 +214,19 @@ describe('OAuthDetailView', () => {
     });
   });
 
+  it('shows paste URL input when adding another OAuth account while already connected', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ connected: true, activeKeys: [makeKey()], addKeyOpen: true });
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+      ).toBeDefined();
+    });
+  });
+
   it('shows popup-blocked toast when window.open returns null', async () => {
     mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
     vi.spyOn(window, 'open').mockReturnValue(null);
@@ -200,16 +235,15 @@ describe('OAuthDetailView', () => {
     fireEvent.click(screen.getByText('Log in with OpenAI'));
 
     await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith(expect.stringMatching(/Popup was blocked/));
+      expect(mockToastError).toHaveBeenCalledWith(
+        'Popup was blocked by your browser. Allow popups for this site, then try again.',
+      );
     });
   });
 
   it('Disconnect all revokes all OpenAI OAuth tokens', async () => {
     mockRevokeOpenaiOAuth.mockResolvedValue({ ok: true, notifications: [] });
-    const keys = [
-      makeKey({ id: 'k1', label: 'A' }),
-      makeKey({ id: 'k2', label: 'B' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'A' }), makeKey({ id: 'k2', label: 'B' })];
     const { onBack, onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     fireEvent.click(screen.getByText('Disconnect all'));
@@ -223,10 +257,7 @@ describe('OAuthDetailView', () => {
   });
 
   it('commitRename cancels if new label is same as old', async () => {
-    const keys = [
-      makeKey({ id: 'k1', label: 'Same' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Same' }), makeKey({ id: 'k2', label: 'Other' })];
     renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');
@@ -257,6 +288,51 @@ describe('OAuthDetailView', () => {
 
     await waitFor(() => {
       expect(mockSubmitOpenaiOAuthCallback).toHaveBeenCalledWith('abc123', 'xyz789');
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('OpenAI subscription connected');
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('polls for provider updates while OAuth flow is pending', async () => {
+    vi.useFakeTimers();
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { onUpdate } = renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+    ).toBeDefined();
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(2000);
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('clears paste flow when provider data shows local callback success', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { setConnected, onUpdate } = renderReactiveView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+      ).toBeDefined();
+    });
+
+    setConnected(true);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
+      ).toBeNull();
     });
     expect(mockToastSuccess).toHaveBeenCalledWith('OpenAI subscription connected');
     expect(onUpdate).toHaveBeenCalled();
@@ -414,10 +490,7 @@ describe('OAuthDetailView', () => {
 
   it('commitRename catch branch when renameProviderKey fails', async () => {
     mockRenameProviderKey.mockRejectedValue(new Error('network'));
-    const keys = [
-      makeKey({ id: 'k1', label: 'Old name' }),
-      makeKey({ id: 'k2', label: 'Other' }),
-    ];
+    const keys = [makeKey({ id: 'k1', label: 'Old name' }), makeKey({ id: 'k2', label: 'Other' })];
     const { onUpdate } = renderView({ connected: true, activeKeys: keys });
 
     const renameButtons = screen.getAllByText('Rename');

@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { MessageRecording } from '../../entities/message-recording.entity';
+import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
 import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
@@ -29,7 +30,12 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, CustomProvider, MessageRecording]),
+    TypeOrmModule.forFeature([
+      AgentMessage,
+      CustomProvider,
+      MessageRecording,
+      ReasoningContentCacheEntry,
+    ]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,

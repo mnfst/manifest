@@ -411,8 +411,8 @@ describe('ProviderSelectModal', () => {
       ));
 
       fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Alibaba'));
-      fireEvent.input(screen.getByLabelText('Alibaba API key'), {
+      fireEvent.click(screen.getByText('Alibaba Cloud'));
+      fireEvent.input(screen.getByLabelText('Alibaba Cloud API key'), {
         target: { value: VALID_QWEN_KEY },
       });
       fireEvent.click(screen.getByText('Connect'));

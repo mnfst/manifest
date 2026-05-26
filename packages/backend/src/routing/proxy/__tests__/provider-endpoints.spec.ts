@@ -221,6 +221,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('xai-responses targets /v1/responses with OpenAI-compatible auth headers', () => {
+    const ep = PROVIDER_ENDPOINTS['xai-responses'];
+    expect(ep.baseUrl).toBe('https://api.x.ai');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('grok-4.20-multi-agent')).toBe('/v1/responses');
+    expect(ep.buildHeaders('xai-test-key')).toEqual({
+      Authorization: 'Bearer xai-test-key',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('anthropic buildPath returns /v1/messages', () => {
     const path = PROVIDER_ENDPOINTS['anthropic'].buildPath('claude-sonnet-4');
     expect(path).toBe('/v1/messages');

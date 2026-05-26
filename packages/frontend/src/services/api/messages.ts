@@ -112,6 +112,8 @@ export function getMessages(
     cost_max?: string;
     recorded?: string;
     routing_tier?: string;
+    specificity_category?: string;
+    header_tier_id?: string;
   } = {},
 ) {
   return fetchJson('/messages', params);

@@ -144,6 +144,12 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
   },
+  'xai-responses': {
+    baseUrl: 'https://api.x.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/responses',
+    format: 'chatgpt',
+  },
   minimax: {
     baseUrl: 'https://api.minimax.io',
     buildHeaders: openaiHeaders,

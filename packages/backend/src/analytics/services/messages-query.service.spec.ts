@@ -598,6 +598,64 @@ describe('MessagesQueryService', () => {
     expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
   });
 
+  it('passes specificity_category filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      specificity_category: 'coding',
+    });
+
+    expect(result.total_count).toBe(1);
+    const specificityCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('specificity_category'),
+    );
+    expect(specificityCall).toBeDefined();
+    expect(specificityCall?.[1]).toEqual({ specificityFilter: 'coding' });
+  });
+
+  it('passes header_tier_id filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      header_tier_id: 'ht-premium',
+    });
+
+    expect(result.total_count).toBe(1);
+    const headerTierCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('header_tier_id'),
+    );
+    expect(headerTierCall).toBeDefined();
+    expect(headerTierCall?.[1]).toEqual({ headerTierFilter: 'ht-premium' });
+  });
+
   it('different routing_tier values produce different count cache keys', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 3 });
     mockGetRawMany

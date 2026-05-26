@@ -1,6 +1,11 @@
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
-import { ALL_TIERS, type MessageTier } from 'manifest-shared';
+import {
+  ALL_TIERS,
+  SPECIFICITY_CATEGORIES,
+  type MessageTier,
+  type SpecificityCategory,
+} from 'manifest-shared';
 
 export const MESSAGE_STATUS_FILTER_VALUES = [
   'ok',
@@ -67,4 +72,14 @@ export class MessagesQueryDto {
     message: `routing_tier must be one of: ${ALL_TIERS.join(', ')}`,
   })
   routing_tier?: MessageTier;
+
+  @IsOptional()
+  @IsIn(SPECIFICITY_CATEGORIES, {
+    message: `specificity_category must be one of: ${SPECIFICITY_CATEGORIES.join(', ')}`,
+  })
+  specificity_category?: SpecificityCategory;
+
+  @IsOptional()
+  @IsString()
+  header_tier_id?: string;
 }

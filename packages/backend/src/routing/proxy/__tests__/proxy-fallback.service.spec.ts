@@ -12,6 +12,7 @@ import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.ser
 import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
@@ -49,6 +50,7 @@ describe('ProxyFallbackService', () => {
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
+  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -105,6 +107,17 @@ describe('ProxyFallbackService', () => {
       list: jest.fn().mockResolvedValue(specCatalog),
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
+    reasoningCache = {
+      reinjectMissingReasoningContent: jest.fn(
+        async (
+          requestBody: Record<string, unknown>,
+          _sessionKey: string,
+          _endpointKey: string | null,
+          _model: string,
+        ) => requestBody,
+      ),
+    };
+
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
@@ -117,6 +130,7 @@ describe('ProxyFallbackService', () => {
       pricingCache,
       modelParamsService,
       providerParamSpecs,
+      reasoningCache as unknown as ReasoningContentCache,
     );
   });
 
@@ -281,6 +295,53 @@ describe('ProxyFallbackService', () => {
       });
 
       expect(modelParamsService.get).not.toHaveBeenCalled();
+    });
+
+    it('re-injects shared reasoning_content before forwarding to compatible providers', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const requestBody = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+      const enrichedBody = {
+        messages: [
+          {
+            ...requestBody.messages[0],
+            reasoning_content: 'shared thinking',
+          },
+        ],
+      };
+      reasoningCache.reinjectMissingReasoningContent.mockResolvedValueOnce(enrichedBody);
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-chat',
+        body: requestBody,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+      });
+
+      expect(reasoningCache.reinjectMissingReasoningContent).toHaveBeenCalledWith(
+        requestBody,
+        'sess-1',
+        'deepseek',
+        'deepseek-chat',
+      );
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({ body: enrichedBody }),
+      );
     });
 
     it('rethrows when signal is aborted', async () => {

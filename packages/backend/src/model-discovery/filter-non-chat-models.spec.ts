@@ -305,16 +305,16 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('filters multi-agent models', () => {
+    it('keeps xAI multi-agent models because the proxy routes them to Responses API', () => {
       const models = [makeModel('grok-4.20-multi-agent-0309'), makeModel('grok-3')];
       const result = filterNonChatModels(models, 'xai');
-      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+      expect(result.map((m) => m.id)).toEqual(['grok-4.20-multi-agent-0309', 'grok-3']);
     });
 
-    it('filters any future multi-agent model', () => {
+    it('keeps future xAI multi-agent models for Responses API routing', () => {
       const models = [makeModel('grok-5-multi-agent-0612'), makeModel('grok-3')];
       const result = filterNonChatModels(models, 'xai');
-      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+      expect(result.map((m) => m.id)).toEqual(['grok-5-multi-agent-0612', 'grok-3']);
     });
   });
 

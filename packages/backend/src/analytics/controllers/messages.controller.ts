@@ -44,6 +44,8 @@ export class MessagesController {
       status: query.status,
       recorded: query.recorded,
       routing_tier: query.routing_tier,
+      specificity_category: query.specificity_category,
+      header_tier_id: query.header_tier_id,
     });
   }
 
