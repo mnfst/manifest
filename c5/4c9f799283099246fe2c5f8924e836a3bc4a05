@@ -1,0 +1,87 @@
+packages/frontend/tests/services/oauth-popup.test.ts
+  s_09999a699a56bd::t_1467f6103dd66a 118-141
+packages/shared/__tests__/subscription.spec.ts
+  s_09999a699a56bd::t_4fc6be20df64b2 23,123-127,129,132-134,161-162,187,244-247,317-320
+  s_09999a699a56bd::t_019c239aea9251 128
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_09999a699a56bd::t_e0d6107ee13daf 293-316
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_09999a699a56bd::t_452f8f7b6e77c2 1-79,82-121,124-163,169-204
+  s_09999a699a56bd::t_1de479300bd12c 80-81,122-123,164-168
+packages/frontend/src/services/oauth-popup.ts
+  s_09999a699a56bd::t_8df543b0a85eb4 10,66
+packages/backend/src/routing/oauth/core/callback-page.ts
+  s_09999a699a56bd::t_d1118c40132f1e 21
+packages/frontend/tests/services/api/oauth.test.ts
+  s_09999a699a56bd::t_fc45807a91f70e 38-57,66-70
+packages/backend/src/routing/oauth/oauth.module.ts
+  s_09999a699a56bd::t_08e0a81a4cda5b 13-14,22-25,28-29,36,48
+packages/frontend/tests/components/ProviderSelectModal-commandonly.test.tsx
+  s_09999a699a56bd::t_4a2e224cf71933 7,9,18,20,23
+  s_09999a699a56bd::t_37fc7a3905ce1c 8,12,19,25
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_09999a699a56bd::t_5e44f605052fd9 1-227,229-305
+  s_09999a699a56bd::t_29a13d1ab15525 228
+packages/frontend/tests/services/providers.test.ts
+  s_09999a699a56bd::t_62df529df5e391 401,405-407
+  s_09999a699a56bd::t_debaa1f37eb6f5 402-404,408-411
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_09999a699a56bd::t_60e7d523551980 14,51,90-93,139
+  s_09999a699a56bd::t_40555b8ac2eba2 1021,1047,1066,1087,1107,1128,1137-1138,1140-1146,1149-1151,1154-1155,1157,1160-1165,1168-1170,1177-1178,1193,1214,1232,1241
+packages/shared/src/subscription/configs.ts
+  s_09999a699a56bd::t_6287aca5da4b27 152-154,156-162
+  s_09999a699a56bd::t_c8df7ee26bee27 155
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_09999a699a56bd::t_f83704afcf9d7a 33,85,231,510,539-540
+packages/frontend/src/components/OAuthDetailView.tsx
+  s_09999a699a56bd::t_ada364c49ae623 49-52,264
+  s_09999a699a56bd::t_377630a0c8f25a 113-119,121-122
+  s_09999a699a56bd::t_40f34f5be263b5 240-241
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_09999a699a56bd::t_2c58ffeaf82159 11,42,79-82,115
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_09999a699a56bd::t_01d1f90075a2dd 11,135,445
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_09999a699a56bd::t_71ef69c8f24f36 18,78,114,157
+packages/frontend/tests/components/ProviderSelectModal-opencode-go.test.tsx
+  s_09999a699a56bd::t_f3bb81400e4800 7,9,18,20,23
+  s_09999a699a56bd::t_0f2d6ff6d087cb 8,12,19,25
+.changeset/grok-subscription-provider.md
+  s_09999a699a56bd::t_99c688177e2f3c 1-4
+  s_09999a699a56bd::t_8accddd3b39039 5
+packages/frontend/src/services/api/oauth.ts
+  s_09999a699a56bd::t_b35714e42ff5e1 25-30,39-46,56-60
+packages/frontend/tests/components/OAuthDetailView.test.tsx
+  s_09999a699a56bd::t_011ea692dcefad 10,22
+  s_09999a699a56bd::t_a2b7aa8cf84ac9 68-75
+  s_09999a699a56bd::t_6282725bd345ab 256,258,260-264,269-272,274-277,279,283-294,298,301-302,306
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_09999a699a56bd::t_ce3af179732ad3 1-126
+packages/frontend/src/services/providers.ts
+  s_09999a699a56bd::t_f5a8ff8b2ea875 262-263
+  s_09999a699a56bd::t_9e08cd9c181e1b 264
+packages/frontend/tests/components/ProviderSelectModal-subscription.test.tsx
+  s_09999a699a56bd::t_b28ac80d6ba059 7,9,18,20,23
+  s_09999a699a56bd::t_5fc693b98ee422 8,12,19,25
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_09999a699a56bd::t_b321a5cb0c23cb 79
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_09999a699a56bd::t_9b47c2ebfe89db 35,37,40,57,59,62
+  s_09999a699a56bd::t_5dfdd59cdb8ce9 36,48,58,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c54c9f799283099246fe2c5f8924e836a3bc4a05",
+  "prompts": {},
+  "sessions": {
+    "s_09999a699a56bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e62f9-3832-7463-870d-e7082abaed01",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
