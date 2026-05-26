@@ -1,0 +1,23 @@
+packages/backend/src/routing/dto/custom-provider.dto.ts
+  s_b6f44f365c1482::t_d1062b09b31e8a 21-22,73,122
+packages/backend/src/routing/dto/custom-provider.dto.spec.ts
+  s_b6f44f365c1482::t_8001335830b80d 9,20-23,115-134,181-183
+.changeset/custom-provider-model-cap.md
+  s_b6f44f365c1482::t_c2a7902330bbf7 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "802869f98ddd534a6eafd7fd8e110b053a866661",
+  "prompts": {},
+  "sessions": {
+    "s_b6f44f365c1482": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6308-418b-77e3-b7ac-c9a36cd1f55e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
