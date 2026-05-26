@@ -1,0 +1,19 @@
+.changeset/modelsdev-custom-provider-prices.md
+  s_b6f44f365c1482::t_e903228d9fec94 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "174d3298cf8cb4ae8d45351ed73915c2b7efebef",
+  "prompts": {},
+  "sessions": {
+    "s_b6f44f365c1482": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6308-418b-77e3-b7ac-c9a36cd1f55e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
