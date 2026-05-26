@@ -12,7 +12,7 @@ import { CurrentUser } from '../../../auth/current-user.decorator';
 import { AuthUser } from '../../../auth/auth.instance';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
-import { AnthropicOauthService } from './anthropic-oauth.service';
+import { AnthropicOauthExchangeError, AnthropicOauthService } from './anthropic-oauth.service';
 import { optionalTrimmedStringQuery } from '../query-params';
 
 @Controller('api/v1/oauth/anthropic')
@@ -64,7 +64,10 @@ export class AnthropicOauthController {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Token exchange failed';
       this.logger.error(`Anthropic OAuth exchange failed: ${message}`);
-      throw new HttpException(message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        message,
+        err instanceof AnthropicOauthExchangeError ? err.status : HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
