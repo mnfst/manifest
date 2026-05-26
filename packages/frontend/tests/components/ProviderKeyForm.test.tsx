@@ -42,6 +42,7 @@ vi.mock('../../src/services/provider-api-key-urls.js', () => ({
 }));
 
 import ProviderKeyForm, { AddAnotherKeyAction } from '../../src/components/ProviderKeyForm';
+import { suggestNextProviderKeyLabel } from '../../src/services/provider-key-labels';
 
 /* ── Test helpers ───────────────────────────────────────────── */
 
@@ -309,9 +310,9 @@ describe('ProviderKeyForm', () => {
       });
 
       // Find the Save button (inside the editing view)
-      const saveBtn = Array.from(
-        container.querySelectorAll('.provider-detail__action'),
-      ).find((b) => b.textContent?.includes('Save')) as HTMLButtonElement;
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
       expect(saveBtn).not.toBeNull();
       fireEvent.click(saveBtn);
       await Promise.resolve();
@@ -332,9 +333,9 @@ describe('ProviderKeyForm', () => {
         isSubMode: true,
         keyInput: 'sess-token-abc',
       });
-      const saveBtn = Array.from(
-        container.querySelectorAll('.provider-detail__action'),
-      ).find((b) => b.textContent?.includes('Save')) as HTMLButtonElement;
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
       fireEvent.click(saveBtn);
       await Promise.resolve();
       await Promise.resolve();
@@ -355,9 +356,9 @@ describe('ProviderKeyForm', () => {
         isSubMode: true,
         keyInput: 'new-cloud-key',
       });
-      const saveBtn = Array.from(
-        container.querySelectorAll('.provider-detail__action'),
-      ).find((b) => b.textContent?.includes('Save')) as HTMLButtonElement;
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
       fireEvent.click(saveBtn);
       await Promise.resolve();
       await Promise.resolve();
@@ -496,9 +497,7 @@ describe('ProviderKeyForm', () => {
         editing: true,
         keyInput: 'sk-new',
       });
-      const editingInput = container.querySelector(
-        'input:not([disabled])',
-      ) as HTMLInputElement;
+      const editingInput = container.querySelector('input:not([disabled])') as HTMLInputElement;
       fireEvent.keyDown(editingInput, { key: 'Enter' });
       await Promise.resolve();
       await Promise.resolve();
@@ -912,5 +911,14 @@ describe('ProviderKeyForm', () => {
       await Promise.resolve();
       expect(queryByText('Add key')).not.toBeNull();
     });
+  });
+});
+
+describe('suggestNextProviderKeyLabel', () => {
+  it('falls back after the bounded Key N search is exhausted', () => {
+    const existing = Array.from({ length: 98 }, (_, index) => `Key ${index + 2}`);
+    existing.push('Default');
+
+    expect(suggestNextProviderKeyLabel(existing)).toBe('Key 100');
   });
 });

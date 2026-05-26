@@ -65,6 +65,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [oauthState, setOauthState] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
+  const [addingAccount, setAddingAccount] = createSignal(false);
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
   const isXaiProvider = () => props.provId === 'xai';
@@ -72,6 +73,8 @@ const OAuthDetailView: Component<Props> = (props) => {
     isXaiProvider()
       ? 'Paste the xAI authorization code or callback URL'
       : 'http://localhost:1455/auth/callback?code=...';
+  const showConnectFlow = () => !props.connected() || addingAccount() || pasteFlowActive();
+  const showConnectedFlow = () => props.connected() && !addingAccount() && !pasteFlowActive();
   const activeKeyCount = () => (props.activeKeys?.() ?? []).length;
   const flowHasConnected = () => {
     const baseline = flowKeyCount();
@@ -87,6 +90,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     setPasteUrl('');
     setPasteError(null);
     setOauthState(null);
+    setAddingAccount(false);
     toast.success(`${props.provDef.name} subscription connected`);
     props.onUpdate();
   };
@@ -94,6 +98,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   // When "Add another key" is clicked in the header, launch a new OAuth popup.
   createEffect(() => {
     if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
+      setAddingAccount(true);
       props.setAddKeyOpen?.(false);
       void handleOAuthLogin();
     }
@@ -129,6 +134,7 @@ const OAuthDetailView: Component<Props> = (props) => {
         toast.error(
           'Popup was blocked by your browser. Allow popups for this site, then try again.',
         );
+        if (props.connected()) setAddingAccount(false);
         setOauthState(null);
         props.setBusy(false);
         return;
@@ -150,6 +156,7 @@ const OAuthDetailView: Component<Props> = (props) => {
         `/oauth/${props.provId}/done`,
       );
     } catch {
+      if (props.connected()) setAddingAccount(false);
       props.setBusy(false);
     }
   };
@@ -178,6 +185,16 @@ const OAuthDetailView: Component<Props> = (props) => {
     } finally {
       props.setBusy(false);
     }
+  };
+
+  const cancelAddAccount = () => {
+    setAddingAccount(false);
+    setPasteFlowActive(false);
+    setFlowKeyCount(null);
+    setSuccessHandled(false);
+    setPasteUrl('');
+    setPasteError(null);
+    setOauthState(null);
   };
 
   const handleDisconnect = async () => {
@@ -247,7 +264,7 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   return (
     <>
-      <Show when={pasteFlowActive() || !props.connected()}>
+      <Show when={showConnectFlow()}>
         <Show
           when={pasteFlowActive()}
           fallback={
@@ -330,8 +347,17 @@ const OAuthDetailView: Component<Props> = (props) => {
             </button>
           </div>
         </Show>
+        <Show when={addingAccount()}>
+          <button
+            class="btn btn--outline provider-detail__action"
+            disabled={props.busy()}
+            onClick={cancelAddAccount}
+          >
+            Cancel
+          </button>
+        </Show>
       </Show>
-      <Show when={props.connected() && !pasteFlowActive()}>
+      <Show when={showConnectedFlow()}>
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">

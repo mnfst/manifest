@@ -513,6 +513,18 @@ describe('AnthropicOAuthDetailView — multi-key', () => {
     });
     expect(onUpdate).not.toHaveBeenCalled();
   });
+
+  it('commitRename cancels if the label did not change', () => {
+    const keys = [makeKey({ id: 'k1', label: 'Same' }), makeKey({ id: 'k2', label: 'Other' })];
+    renderMultiKeyView(keys);
+
+    const renameButtons = screen.getAllByText('Rename');
+    fireEvent.click(renameButtons[0]);
+    fireEvent.click(screen.getByText('Save'));
+
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('Rename Same')).toBeNull();
+  });
 });
 
 function renderViewWithAddKeyOpen() {
@@ -557,5 +569,24 @@ describe('AnthropicOAuthDetailView — addKeyOpen effect', () => {
     await waitFor(() => {
       expect(mockStartAnthropicOAuth).toHaveBeenCalledWith('test-agent');
     });
+    expect(screen.getByLabelText('Anthropic authorization code')).toBeDefined();
+  });
+
+  it('cancels a connected add-account Claude OAuth flow', async () => {
+    mockStartAnthropicOAuth.mockResolvedValue({ url: 'https://x', state: 'abc' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderViewWithAddKeyOpen();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Anthropic authorization code')).toBeDefined();
+    });
+    fireEvent.input(screen.getByLabelText('Anthropic authorization code'), {
+      target: { value: 'code#abc' },
+    });
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(screen.queryByLabelText('Anthropic authorization code')).toBeNull();
+    expect(screen.getByText('Disconnect')).toBeDefined();
   });
 });

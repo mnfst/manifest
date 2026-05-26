@@ -50,12 +50,16 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
   const [error, setError] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
+  const [addingAccount, setAddingAccount] = createSignal(false);
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
+  const showConnectFlow = () => !props.connected() || addingAccount();
+  const showConnectedFlow = () => props.connected() && !addingAccount();
 
   // When "Add another key" is clicked in the header, launch a new OAuth popup.
   createEffect(() => {
     if (props.addKeyOpen?.() && props.connected() && !props.busy()) {
+      setAddingAccount(true);
       props.setAddKeyOpen?.(false);
       void handleSignIn();
     }
@@ -85,8 +89,10 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
           'Popup was blocked by your browser. Allow popups for this site, then try again.',
         );
         setState(null);
+        if (props.connected()) setAddingAccount(false);
       }
     } catch {
+      if (props.connected()) setAddingAccount(false);
       // error toast from fetchMutate
     } finally {
       props.setBusy(false);
@@ -117,6 +123,9 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
       const authState = state() ?? pastedState;
       await submitAnthropicOAuth(props.agentName, raw, authState);
       toast.success(`${props.provDef.name} subscription connected`);
+      setAddingAccount(false);
+      setInput('');
+      setState(null);
       props.onUpdate();
     } catch (err) {
       setError(
@@ -127,6 +136,13 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
     } finally {
       props.setBusy(false);
     }
+  };
+
+  const cancelAddAccount = () => {
+    setAddingAccount(false);
+    setInput('');
+    setError(null);
+    setState(null);
   };
 
   const handleDisconnect = async () => {
@@ -196,7 +212,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
 
   return (
     <>
-      <Show when={!props.connected()}>
+      <Show when={showConnectFlow()}>
         <div class="anthropic-detail__primary">
           <p class="provider-detail__hint">
             Sign in with your Claude Pro or Max account — Manifest will route through your
@@ -250,8 +266,17 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
             </Show>
           </button>
         </div>
+        <Show when={addingAccount()}>
+          <button
+            class="btn btn--outline provider-detail__action"
+            disabled={props.busy()}
+            onClick={cancelAddAccount}
+          >
+            Cancel
+          </button>
+        </Show>
       </Show>
-      <Show when={props.connected()}>
+      <Show when={showConnectedFlow()}>
         {/* Multi-key list */}
         <Show when={isMultiKey()}>
           <div class="provider-detail__field">

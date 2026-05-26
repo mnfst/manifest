@@ -237,6 +237,26 @@ describe('OAuthDetailView', () => {
     await waitFor(() => {
       expect(mockGetOpenaiOAuthUrl).toHaveBeenCalledWith('test-agent');
     });
+    expect(screen.getByPlaceholderText(/localhost:1455/)).toBeDefined();
+  });
+
+  it('cancels a connected add-account OAuth flow', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ connected: true, activeKeys: [makeKey()], addKeyOpen: true });
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/localhost:1455/)).toBeDefined();
+    });
+
+    fireEvent.input(screen.getByPlaceholderText(/localhost:1455/), {
+      target: { value: 'http://localhost:1455/auth/callback?code=abc&state=xyz' },
+    });
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(screen.queryByPlaceholderText(/localhost:1455/)).toBeNull();
+    expect(screen.getByText('Disconnect')).toBeDefined();
   });
 
   it('shows paste URL input when adding another OAuth account while already connected', async () => {
