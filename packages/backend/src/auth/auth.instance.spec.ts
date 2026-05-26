@@ -140,7 +140,9 @@ describe('auth.instance', () => {
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.trustedOrigins).toContain('http://localhost:3000');
+      expect(config.trustedOrigins).toContain('http://127.0.0.1:3000');
       expect(config.trustedOrigins).toContain('http://localhost:3001');
+      expect(config.trustedOrigins).toContain('http://127.0.0.1:3001');
     });
 
     it('includes BETTER_AUTH_URL when set', () => {
@@ -165,6 +167,7 @@ describe('auth.instance', () => {
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.trustedOrigins).toContain('http://localhost:4000');
+      expect(config.trustedOrigins).toContain('http://127.0.0.1:4000');
     });
 
     it('does not include localhost origins in production mode', () => {
@@ -178,7 +181,9 @@ describe('auth.instance', () => {
 
       const config = mockBetterAuth.mock.calls[0][0];
       expect(config.trustedOrigins).not.toContain('http://localhost:3000');
+      expect(config.trustedOrigins).not.toContain('http://127.0.0.1:3000');
       expect(config.trustedOrigins).not.toContain('http://localhost:3001');
+      expect(config.trustedOrigins).not.toContain('http://127.0.0.1:3001');
     });
   });
 

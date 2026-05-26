@@ -102,7 +102,11 @@ export function extractUsageFromSse(sseText: string): StreamUsage | null {
 export function initSseHeaders(
   res: ExpressResponse,
   extraHeaders: Record<string, string> = {},
+  statusCode?: number,
 ): void {
+  if (statusCode !== undefined) {
+    res.statusCode = statusCode;
+  }
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');

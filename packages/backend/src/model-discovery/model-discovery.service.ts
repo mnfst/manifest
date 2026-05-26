@@ -25,6 +25,7 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -404,6 +405,11 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          capabilities: mergeModelCapabilities(
+            model.capabilities,
+            mdEntry.capabilities,
+            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+          ),
         });
       }
     }
@@ -447,6 +453,11 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      capabilities: mergeModelCapabilities(
+        model.capabilities,
+        mdEntry.capabilities,
+        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+      ),
     };
   }
 

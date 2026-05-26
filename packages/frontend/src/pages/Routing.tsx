@@ -14,10 +14,12 @@ import { createRoutingActions } from './RoutingActions.js';
 import { listHeaderTiers, type HeaderTier } from '../services/api/header-tiers.js';
 import {
   getTierAssignments,
+  setTierResponseMode,
   getAvailableModels,
   getProviders,
   getCustomProviders,
   getSpecificityAssignments,
+  setSpecificityResponseMode,
   overrideSpecificity,
   resetSpecificity,
   refreshModels,
@@ -32,8 +34,10 @@ import {
   type AgentModelParamsRow,
   type AuthType,
   type RequestParamDefaults,
+  type ResponseMode,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
+import { STAGES } from '../services/providers.js';
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -71,6 +75,8 @@ const Routing: Component = () => {
     getComplexityStatus,
   );
   const [togglingComplexity, setTogglingComplexity] = createSignal(false);
+  const [changingDefaultResponseMode, setChangingDefaultResponseMode] = createSignal(false);
+  const [changingSpecificityResponseMode, setChangingSpecificityResponseMode] = createSignal(false);
   const complexityEnabled = () => complexityStatus()?.enabled ?? true;
 
   // Per-route model params, fetched once and threaded down. Scope separates
@@ -143,14 +149,90 @@ const Routing: Component = () => {
   };
 
   const handleToggleComplexity = async () => {
+    const shouldInheritStreaming = defaultResponseMode() === 'stream';
     setTogglingComplexity(true);
     try {
       const result = await toggleComplexity(agentName());
       mutateComplexityStatus(result);
+      if (shouldInheritStreaming) {
+        await handleDefaultResponseModeChange('stream');
+      }
     } catch {
       toast.error('Failed to toggle complexity routing');
     } finally {
       setTogglingComplexity(false);
+    }
+  };
+
+  const defaultResponseMode = (): ResponseMode => {
+    const ids = complexityEnabled() ? STAGES.map((stage) => stage.id) : ['default'];
+    return ids.every((id) => actions.getTier(id)?.response_mode === 'stream')
+      ? 'stream'
+      : 'buffered';
+  };
+
+  const handleDefaultResponseModeChange = async (responseMode: ResponseMode) => {
+    const ids = complexityEnabled() ? STAGES.map((stage) => stage.id) : ['default'];
+    setChangingDefaultResponseMode(true);
+    try {
+      const updated = await Promise.all(
+        ids.map((tier) => setTierResponseMode(agentName(), tier, responseMode)),
+      );
+      mutateTiers((prev) => {
+        const byTier = new Map(updated.map((row) => [row.tier, row]));
+        const merged = (prev ?? []).map((row) => byTier.get(row.tier) ?? row);
+        for (const row of updated) {
+          if (!merged.some((existing) => existing.tier === row.tier)) merged.push(row);
+        }
+        return merged;
+      });
+      toast.success(
+        responseMode === 'stream'
+          ? 'Streaming response mode enabled'
+          : 'Buffered response mode enabled',
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update response mode');
+    } finally {
+      setChangingDefaultResponseMode(false);
+    }
+  };
+
+  const activeSpecificityAssignments = () =>
+    specificityAssignments()?.filter((assignment) => assignment.is_active) ?? [];
+
+  const specificityResponseMode = (): ResponseMode => {
+    const active = activeSpecificityAssignments();
+    return active.length > 0 && active.every((assignment) => assignment.response_mode === 'stream')
+      ? 'stream'
+      : 'buffered';
+  };
+
+  const handleSpecificityResponseModeChange = async (responseMode: ResponseMode) => {
+    const active = activeSpecificityAssignments();
+    if (active.length === 0) return;
+    setChangingSpecificityResponseMode(true);
+    try {
+      const updated = await Promise.all(
+        active.map((assignment) =>
+          setSpecificityResponseMode(agentName(), assignment.category, responseMode),
+        ),
+      );
+      mutateSpecificity((prev) => {
+        const byCategory = new Map(updated.map((row) => [row.category, row]));
+        return prev?.map((row) => byCategory.get(row.category) ?? row);
+      });
+      toast.success(
+        responseMode === 'stream'
+          ? 'Streaming response mode enabled'
+          : 'Buffered response mode enabled',
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to update task-specific response mode',
+      );
+    } finally {
+      setChangingSpecificityResponseMode(false);
     }
   };
 
@@ -476,6 +558,9 @@ const Routing: Component = () => {
                   complexityEnabled={complexityEnabled}
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
+                  responseMode={defaultResponseMode}
+                  changingResponseMode={changingDefaultResponseMode}
+                  onResponseModeChange={handleDefaultResponseModeChange}
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
@@ -520,6 +605,9 @@ const Routing: Component = () => {
                     );
                   }}
                   onAddFallback={(category) => setFallbackPickerTier(category)}
+                  responseMode={specificityResponseMode}
+                  changingResponseMode={changingSpecificityResponseMode}
+                  onResponseModeChange={handleSpecificityResponseModeChange}
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded

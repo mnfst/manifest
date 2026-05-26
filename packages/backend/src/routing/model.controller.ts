@@ -4,9 +4,15 @@ import { AuthUser } from '../auth/auth.instance';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
+import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import {
+  mergeModelCapabilities,
+  modelSupportsStreaming,
+} from '../model-discovery/model-capabilities';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
@@ -22,6 +28,8 @@ export class ModelController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly customProviderService: CustomProviderService,
     private readonly pricingSync: PricingSyncService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly modelsDevSync: ModelsDevSyncService,
   ) {}
 
   @Get('pricing-health')
@@ -85,23 +93,42 @@ export class ModelController {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
     }
 
-    return models.map((m) => {
-      const isCustom = CustomProviderService.isCustom(m.provider);
-      return {
-        model_name: m.id,
-        provider: m.provider,
-        auth_type: m.authType ?? 'api_key',
-        input_price_per_token: m.inputPricePerToken,
-        output_price_per_token: m.outputPricePerToken,
-        context_window: m.contextWindow,
-        capability_reasoning: m.capabilityReasoning,
-        capability_code: m.capabilityCode,
-        quality_score: m.qualityScore,
-        display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
-        ...(isCustom && {
-          provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
-        }),
-      };
-    });
+    return Promise.all(
+      models.map(async (m) => {
+        const isCustom = CustomProviderService.isCustom(m.provider);
+        const authType = m.authType ?? 'api_key';
+        const capabilities = await this.providerParamSpecs.getCapabilities(
+          m.provider,
+          authType,
+          m.id,
+        );
+        const modelsDevCapabilities = this.modelsDevSync.lookupModel(
+          m.provider,
+          m.id,
+        )?.capabilities;
+        const modelCapabilities = mergeModelCapabilities(
+          m.capabilities,
+          modelsDevCapabilities,
+          capabilities,
+          modelSupportsStreaming(m.provider, m.id) ? ['stream'] : undefined,
+        );
+        return {
+          model_name: m.id,
+          provider: m.provider,
+          auth_type: authType,
+          input_price_per_token: m.inputPricePerToken,
+          output_price_per_token: m.outputPricePerToken,
+          context_window: m.contextWindow,
+          capability_reasoning: m.capabilityReasoning,
+          capability_code: m.capabilityCode,
+          ...(modelCapabilities ? { capabilities: modelCapabilities } : {}),
+          quality_score: m.qualityScore,
+          display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
+          ...(isCustom && {
+            provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
+          }),
+        };
+      }),
+    );
   }
 }

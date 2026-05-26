@@ -117,6 +117,99 @@ describe('FallbackList', () => {
     expect(modelLabels.length).toBe(2);
   });
 
+  it('marks non-stream fallback routes as skipped while stream mode is active', () => {
+    const streamModeModels = [
+      {
+        model_name: 'stream-model',
+        provider: 'OpenAI',
+        capabilities: ['text', 'stream'],
+      },
+      {
+        model_name: 'legacy-model',
+        provider: 'custom:local',
+        capabilities: ['text'],
+      },
+    ] as any[];
+
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        responseMode="stream"
+        fallbacks={['stream-model', 'legacy-model']}
+        fallbackRoutes={[
+          { provider: 'openai', authType: 'api_key', model: 'stream-model' },
+          { provider: 'custom:local', authType: 'api_key', model: 'legacy-model' },
+        ]}
+        models={streamModeModels}
+      />
+    ));
+
+    const cards = container.querySelectorAll('.fallback-list__card');
+    expect(cards[0]?.classList.contains('fallback-list__card--skipped')).toBe(false);
+    expect(cards[1]?.classList.contains('fallback-list__card--skipped')).toBe(true);
+    expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
+      'Skipped in Stream',
+    );
+  });
+
+  it('falls back to model-name matching when a structured route is stale', () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        responseMode="stream"
+        fallbacks={['legacy']}
+        fallbackRoutes={[{ provider: 'custom:missing', authType: 'api_key', model: 'other-model' }]}
+        models={
+          [
+            {
+              model_name: 'legacy-pro',
+              provider: 'OpenAI',
+              capabilities: ['text', 'stream'],
+            },
+          ] as any[]
+        }
+      />
+    ));
+
+    expect(container.querySelector('.fallback-list__card--skipped')).toBeNull();
+  });
+
+  it('closes a fallback key picker when clicking outside it', async () => {
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={['model-a']}
+        connectedProviders={
+          [
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              is_active: true,
+              has_api_key: true,
+              label: 'Work',
+              priority: 0,
+            },
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              is_active: true,
+              has_api_key: true,
+              label: 'Personal',
+              priority: 1,
+            },
+          ] as any[]
+        }
+      />
+    ));
+
+    fireEvent.click(container.querySelector('.fallback-list__key-chip') as HTMLButtonElement);
+    expect(container.querySelector('[role="listbox"]')).not.toBeNull();
+    fireEvent.mouseDown(document.body);
+    await waitFor(() => {
+      expect(container.querySelector('[role="listbox"]')).toBeNull();
+    });
+  });
+
   it('calls onAddFallback when add button in empty state clicked', () => {
     const onAddFallback = vi.fn();
     const { container } = render(() => (
@@ -1168,7 +1261,8 @@ describe('FallbackList', () => {
         <FallbackList
           {...defaultProps}
           fallbacks={['deepseek-v4-flash']}
-          fallbackRoutes={[deepseekRoute] as any}        />
+          fallbackRoutes={[deepseekRoute] as any}
+        />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
@@ -1203,7 +1297,8 @@ describe('FallbackList', () => {
           fallbacks={['deepseek-v4-flash']}
           fallbackRoutes={null}
           getModelParams={vi.fn().mockReturnValue(null)}
-          setModelParams={vi.fn()}        />
+          setModelParams={vi.fn()}
+        />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),

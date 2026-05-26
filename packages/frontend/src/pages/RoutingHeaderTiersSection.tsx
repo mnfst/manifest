@@ -6,6 +6,7 @@ import {
   listHeaderTiers,
   deleteHeaderTier,
   overrideHeaderTier,
+  setHeaderTierResponseMode,
   toggleHeaderTier,
   type HeaderTier,
 } from '../services/api/header-tiers.js';
@@ -15,6 +16,7 @@ import type {
   CustomProviderData,
   ModelRoute,
   RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -88,6 +90,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
   const [snippetTier, setSnippetTier] = createSignal<HeaderTier | null>(null);
   // Which tier is currently being toggled (loading state).
   const [toggling, setToggling] = createSignal<string | null>(null);
+  const [changingResponseMode, setChangingResponseMode] = createSignal<string | null>(null);
 
   const tiers = (): HeaderTier[] =>
     (props.externalTiers ? props.externalTiers() : internalTiersRes()) ?? [];
@@ -125,6 +128,26 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
       toast.error(err instanceof Error ? err.message : 'Failed to toggle tier');
     } finally {
       setToggling(null);
+    }
+  };
+
+  const handleResponseModeChange = async (id: string, responseMode: ResponseMode) => {
+    setChangingResponseMode(id);
+    try {
+      const updated = await setHeaderTierResponseMode(props.agentName(), id, responseMode);
+      const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
+        prev?.map((t) => (t.id === id ? updated : t));
+      if (props.externalMutate) props.externalMutate(update);
+      else internalMutate(update);
+      toast.success(
+        responseMode === 'stream'
+          ? 'Streaming response mode enabled'
+          : 'Buffered response mode enabled',
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update response mode');
+    } finally {
+      setChangingResponseMode(null);
     }
   };
 
@@ -184,6 +207,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 }
                 onEdit={() => setModalTier(tier)}
                 onDisable={() => handleToggle(tier.id, false)}
+                changingResponseMode={changingResponseMode() === tier.id}
+                onResponseModeChange={(mode) => handleResponseModeChange(tier.id, mode)}
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
               />

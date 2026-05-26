@@ -92,10 +92,14 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.persistClearFallbacks,
       props.getModelParams,
       props.setModelParams,
+      props.modelHasParams,
+      props.modelParamsScope,
+      props.responseMode,
     ];
     void _read;
     return (
       <div data-testid="fallback-list">
+        <span data-testid="fallback-response-mode">{String(props.responseMode ?? '')}</span>
         <button
           data-testid="trigger-update"
           onClick={() =>
@@ -270,6 +274,47 @@ describe('RoutingTierCard', () => {
     const { container } = render(() => <RoutingTierCard {...makeProps()} />);
     expect(container.querySelector('.routing-card__tier')?.textContent).toBe('Simple');
     expect(container.querySelector('.routing-card__main')?.textContent).toContain('GPT-4o');
+  });
+
+  it('marks a non-stream primary as skipped and passes stream mode to fallbacks', () => {
+    const streamTier = {
+      ...baseTier,
+      response_mode: 'stream' as const,
+      override_route: { provider: 'custom:local', authType: 'api_key' as const, model: 'legacy' },
+      fallback_routes: [{ provider: 'openai', authType: 'api_key' as const, model: 'gpt-4o' }],
+    };
+    const streamModels: AvailableModel[] = [
+      ...models,
+      {
+        model_name: 'legacy',
+        provider: 'custom:local',
+        auth_type: 'api_key',
+        input_price_per_token: 0,
+        output_price_per_token: 0,
+        context_window: 8000,
+        capability_reasoning: false,
+        capability_code: false,
+        quality_score: 1,
+        display_name: 'Legacy',
+        capabilities: ['text'],
+      },
+    ];
+
+    const { container, getByTestId } = render(() => (
+      <RoutingTierCard
+        {...makeProps({
+          tier: () => streamTier,
+          models: () => streamModels,
+          getFallbacksFor: () => streamTier.fallback_routes.map((r) => r.model),
+        })}
+      />
+    ));
+
+    expect(container.querySelector('.routing-card__model-chip--skipped')).not.toBeNull();
+    expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
+      'Skipped in Stream',
+    );
+    expect(getByTestId('fallback-response-mode').textContent).toBe('stream');
   });
 
   it('renders the loading skeleton when tiersLoading is true', () => {

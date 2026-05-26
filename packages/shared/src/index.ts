@@ -24,6 +24,10 @@ export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
 export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
+export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
+export type { ResponseMode } from './response-mode';
+export { DEFAULT_OUTPUT_MODALITY, OUTPUT_MODALITIES, isOutputModality } from './output-modality';
+export type { OutputModality } from './output-modality';
 export {
   routeEquals,
   isModelRoute,
@@ -41,9 +45,11 @@ export {
   deleteProviderParamValue,
   expandConfiguredParamDefaults,
   getProviderParamValue,
+  getProviderModelCapabilities,
   getProviderParamSpecs,
   isParamApplicability,
   isProviderParamPath,
+  MODEL_CAPABILITIES,
   normalizeProviderParamProviderId,
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
@@ -52,6 +58,7 @@ export {
   setProviderParamValue,
 } from './provider-params-spec';
 export type {
+  ModelCapability,
   ModelParamGroup,
   ModelParamDefinition,
   ModelParamRange,

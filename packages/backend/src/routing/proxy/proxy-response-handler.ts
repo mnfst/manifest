@@ -50,6 +50,8 @@ export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
     'X-Manifest-Provider': meta.provider,
     'X-Manifest-Confidence': String(meta.confidence),
     'X-Manifest-Reason': meta.reason,
+    'X-Manifest-Output-Modality': meta.output_modality ?? 'text',
+    'X-Manifest-Response-Mode': meta.response_mode ?? 'buffered',
   };
   if (meta.specificity_category) {
     headers['X-Manifest-Specificity'] = meta.specificity_category;
@@ -281,7 +283,7 @@ export async function handleStreamResponse(
   capture?: CaptureSink,
   reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
-  initSseHeaders(res, metaHeaders);
+  initSseHeaders(res, metaHeaders, 200);
 
   if (capture) {
     capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));

@@ -106,6 +106,7 @@ import { RenameBenchmarkToPlayground1789000000000 } from './migrations/178900000
 import { AddOAuthPendingFlows1789100000000 } from './migrations/1789100000000-AddOAuthPendingFlows';
 import { ScopeAgentModelParams1789200000000 } from './migrations/1789200000000-ScopeAgentModelParams';
 import { EnableRecordMessagesForAll1789300000000 } from './migrations/1789300000000-EnableRecordMessagesForAll';
+import { AddRoutingOutputControls1789300000000 } from './migrations/1789300000000-AddRoutingOutputControls';
 import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/1790000000000-AddAgentApiKeyPrefixActiveIndex';
 import { AddReasoningContentCache1790100000000 } from './migrations/1790100000000-AddReasoningContentCache';
 
@@ -215,6 +216,7 @@ const migrations = [
   AddOAuthPendingFlows1789100000000,
   ScopeAgentModelParams1789200000000,
   EnableRecordMessagesForAll1789300000000,
+  AddRoutingOutputControls1789300000000,
   AddAgentApiKeyPrefixActiveIndex1790000000000,
   AddReasoningContentCache1790100000000,
 ];

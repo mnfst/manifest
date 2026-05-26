@@ -13,6 +13,7 @@ import {
 import { customProviderColor } from '../services/formatters.js';
 import FallbackList from '../components/FallbackList.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
+import ModelCapabilityBadges from '../components/ModelCapabilityBadges.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForTier } from 'manifest-shared';
@@ -340,6 +341,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
+  const modelCapabilities = (modelName: string) => modelInfo(modelName)?.capabilities;
+  const isStreamMode = () => props.tier()?.response_mode === 'stream';
+
   return (
     <div class="routing-card">
       <div class="routing-card__header">
@@ -402,6 +406,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
             {(modelName) => {
               const provId = () =>
                 manualProviderId() ?? providerIdForModel(modelName(), props.models());
+              const primarySkipped = () =>
+                isStreamMode() && !(modelCapabilities(modelName())?.includes('stream') ?? false);
               const effectiveAuth = (): AuthType | null => {
                 const t = props.tier();
                 const route = t ? effectiveRoute(t) : null;
@@ -446,7 +452,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                       classList={{
                         'routing-card__model-chip--dragging': primaryDragging(),
                         'routing-card__model-chip--drop-target': primaryDropTarget(),
+                        'routing-card__model-chip--skipped': primarySkipped(),
                       }}
+                      title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
                       draggable={true}
                       onDragStart={handlePrimaryDragStart}
                       onDragEnd={handlePrimaryDragEnd}
@@ -571,10 +579,28 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                         <Show
                           when={effectiveAuth() !== 'subscription'}
                           fallback={
-                            <span class="routing-card__chip-price">Included in subscription</span>
+                            <span class="routing-card__chip-meta">
+                              <span class="routing-card__chip-price">Included in subscription</span>
+                              <ModelCapabilityBadges
+                                capabilities={modelCapabilities(modelName())}
+                                compact
+                              />
+                              <Show when={primarySkipped()}>
+                                <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                              </Show>
+                            </span>
                           }
                         >
-                          <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
+                          <span class="routing-card__chip-meta">
+                            <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
+                            <ModelCapabilityBadges
+                              capabilities={modelCapabilities(modelName())}
+                              compact
+                            />
+                            <Show when={primarySkipped()}>
+                              <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                            </Show>
+                          </span>
                         </Show>
                       </div>
                     </div>
@@ -613,6 +639,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               setModelParams={props.setModelParams}
               swappingIndex={swappingFbIndex()}
               modelParamsScope={modelParamsScopeForTier(props.stage.id)}
+              responseMode={props.tier()?.response_mode ?? 'buffered'}
             />
           </div>
         </Show>
