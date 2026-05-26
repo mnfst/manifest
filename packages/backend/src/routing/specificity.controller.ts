@@ -16,8 +16,8 @@ import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import {
   AgentNameParamDto,
   SetFallbacksDto,
-  SetDeliveryModeDto,
-  deliveryModeFromDto,
+  SetResponseModeDto,
+  responseModeFromDto,
 } from './dto/routing.dto';
 import { SetSpecificityOverrideDto, ToggleSpecificityDto } from './dto/specificity.dto';
 import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
@@ -86,21 +86,18 @@ export class SpecificityController {
     return { ok: true };
   }
 
-  @Patch([
-    ':agentName/specificity/:category/delivery-mode',
-    ':agentName/specificity/:category/response-mode',
-  ])
-  async setDeliveryMode(
+  @Patch(':agentName/specificity/:category/response-mode')
+  async setResponseMode(
     @CurrentUser() user: AuthUser,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
-    @Body() body: SetDeliveryModeDto,
+    @Body() body: SetResponseModeDto,
   ) {
     this.validateCategory(category);
-    const deliveryMode = deliveryModeFromDto(body);
-    if (!deliveryMode) throw new BadRequestException('deliveryMode is required');
+    const responseMode = responseModeFromDto(body);
+    if (!responseMode) throw new BadRequestException('response_mode is required');
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.specificityService.setDeliveryMode(agent.id, user.id, category, deliveryMode);
+    return this.specificityService.setResponseMode(agent.id, user.id, category, responseMode);
   }
 
   @Put(':agentName/specificity/:category/fallbacks')

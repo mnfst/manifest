@@ -1,6 +1,6 @@
 import type { Tier } from './tiers';
 import type { ModelRoute } from './model-route';
-import type { DeliveryMode } from './delivery-mode';
+import type { ResponseMode } from './response-mode';
 import type { OutputModality } from './output-modality';
 import type { SpecificityCategory } from './specificity';
 
@@ -21,6 +21,6 @@ export interface ResolveResponse {
   /** Effective output modality configured on the resolved routing chain. */
   output_modality?: OutputModality;
   /** Effective transport policy configured on the resolved routing chain. */
-  delivery_mode?: DeliveryMode;
+  response_mode?: ResponseMode;
   specificity_category?: SpecificityCategory;
 }

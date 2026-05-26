@@ -14,13 +14,13 @@ import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type {
   AuthType,
   RequestParamDefaults,
-  DeliveryMode,
+  ResponseMode,
   OutputModality,
   SpecificityCategory,
   TierSlot,
 } from 'manifest-shared';
 import {
-  DEFAULT_DELIVERY_MODE,
+  DEFAULT_RESPONSE_MODE,
   SPECIFICITY_CATEGORIES,
   modelParamsScopeForRouting,
   routeEquals,
@@ -50,7 +50,7 @@ import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
-import { effectiveRoutesForDeliveryMode } from '../routing-core/delivery-mode-guard';
+import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 
 const STREAM_WARMUP_MS = 15_000;
 
@@ -107,7 +107,7 @@ export interface RoutingMeta {
   /** Effective output modality configured on the resolved routing chain. */
   output_modality?: OutputModality;
   /** Effective response transport configured on the resolved routing chain. */
-  delivery_mode?: DeliveryMode;
+  response_mode?: ResponseMode;
 }
 
 export interface ProxyResult {
@@ -172,8 +172,8 @@ export class ProxyService {
       specificityOverride,
       headers,
     );
-    const deliveryMode = resolved.delivery_mode ?? DEFAULT_DELIVERY_MODE;
-    const stream = body.stream === true || deliveryMode === 'stream';
+    const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
+    const stream = body.stream === true || responseMode === 'stream';
     if (!resolved.route) {
       this.logger.warn(
         `No route available for agent=${agentId}: ` +
@@ -481,9 +481,9 @@ export class ProxyService {
       const assignment = tiers.find((t) => t.tier === resolved.tier);
       fallbackRoutes = assignment?.fallback_routes ?? null;
     }
-    if ((resolved.delivery_mode ?? DEFAULT_DELIVERY_MODE) === 'stream') {
-      const effectiveRoutes = effectiveRoutesForDeliveryMode(
-        resolved.delivery_mode,
+    if ((resolved.response_mode ?? DEFAULT_RESPONSE_MODE) === 'stream') {
+      const effectiveRoutes = effectiveRoutesForResponseMode(
+        resolved.response_mode,
         resolved.route,
         fallbackRoutes,
       );
@@ -628,7 +628,7 @@ export class ProxyService {
       header_tier_name: resolved.header_tier_name,
       header_tier_color: resolved.header_tier_color,
       output_modality: resolved.output_modality,
-      delivery_mode: resolved.delivery_mode ?? DEFAULT_DELIVERY_MODE,
+      response_mode: resolved.response_mode ?? DEFAULT_RESPONSE_MODE,
       ...overrides,
     };
   }

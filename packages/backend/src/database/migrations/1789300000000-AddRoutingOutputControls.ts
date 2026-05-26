@@ -8,28 +8,28 @@ export class AddRoutingOutputControls1789300000000 implements MigrationInterface
       `ALTER TABLE "tier_assignments" ADD COLUMN "output_modality" varchar NOT NULL DEFAULT 'text'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "tier_assignments" ADD COLUMN "delivery_mode" varchar NOT NULL DEFAULT 'buffered'`,
+      `ALTER TABLE "tier_assignments" ADD COLUMN "response_mode" varchar NOT NULL DEFAULT 'buffered'`,
     );
     await queryRunner.query(
       `ALTER TABLE "specificity_assignments" ADD COLUMN "output_modality" varchar NOT NULL DEFAULT 'text'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "specificity_assignments" ADD COLUMN "delivery_mode" varchar NOT NULL DEFAULT 'buffered'`,
+      `ALTER TABLE "specificity_assignments" ADD COLUMN "response_mode" varchar NOT NULL DEFAULT 'buffered'`,
     );
     await queryRunner.query(
       `ALTER TABLE "header_tiers" ADD COLUMN "output_modality" varchar NOT NULL DEFAULT 'text'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "header_tiers" ADD COLUMN "delivery_mode" varchar NOT NULL DEFAULT 'buffered'`,
+      `ALTER TABLE "header_tiers" ADD COLUMN "response_mode" varchar NOT NULL DEFAULT 'buffered'`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "header_tiers" DROP COLUMN "delivery_mode"`);
+    await queryRunner.query(`ALTER TABLE "header_tiers" DROP COLUMN "response_mode"`);
     await queryRunner.query(`ALTER TABLE "header_tiers" DROP COLUMN "output_modality"`);
-    await queryRunner.query(`ALTER TABLE "specificity_assignments" DROP COLUMN "delivery_mode"`);
+    await queryRunner.query(`ALTER TABLE "specificity_assignments" DROP COLUMN "response_mode"`);
     await queryRunner.query(`ALTER TABLE "specificity_assignments" DROP COLUMN "output_modality"`);
-    await queryRunner.query(`ALTER TABLE "tier_assignments" DROP COLUMN "delivery_mode"`);
+    await queryRunner.query(`ALTER TABLE "tier_assignments" DROP COLUMN "response_mode"`);
     await queryRunner.query(`ALTER TABLE "tier_assignments" DROP COLUMN "output_modality"`);
   }
 }

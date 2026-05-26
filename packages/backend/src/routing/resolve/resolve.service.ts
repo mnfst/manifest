@@ -10,16 +10,16 @@ import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { readFallbackRoutes, readOverrideRoute } from '../routing-core/route-helpers';
-import { effectiveRoutesForDeliveryMode } from '../routing-core/delivery-mode-guard';
+import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
-import { DEFAULT_DELIVERY_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
 import type {
   AuthType,
   ModelRoute,
-  DeliveryMode,
+  ResponseMode,
   OutputModality,
   SpecificityCategory,
   TierSlot,
@@ -106,10 +106,10 @@ export class ResolveService {
     }
 
     const outputModality = outputModalityFor(assignment);
-    const deliveryMode = deliveryModeFor(assignment);
+    const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
     const route = await this.buildResolvedRoute(agentId, assignment);
-    const effectiveRoutes = effectiveRoutesForDeliveryMode(deliveryMode, route, fallbackRoutes);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
     if (!effectiveRoutes.primaryRoute) {
       this.logger.warn(
         `No route resolved for agent=${agentId} tier=${result.tier} ` +
@@ -121,7 +121,7 @@ export class ResolveService {
         route: null,
         fallback_routes: effectiveRoutes.fallbackRoutes,
         output_modality: outputModality,
-        delivery_mode: deliveryMode,
+        response_mode: responseMode,
         confidence: result.confidence,
         score: result.score,
         reason: result.reason,
@@ -133,7 +133,7 @@ export class ResolveService {
       route: effectiveRoutes.primaryRoute,
       fallback_routes: effectiveRoutes.fallbackRoutes,
       output_modality: outputModality,
-      delivery_mode: deliveryMode,
+      response_mode: responseMode,
       confidence: result.confidence,
       score: result.score,
       reason: result.reason,
@@ -154,7 +154,7 @@ export class ResolveService {
         route: null,
         fallback_routes: null,
         output_modality: DEFAULT_OUTPUT_MODALITY,
-        delivery_mode: DEFAULT_DELIVERY_MODE,
+        response_mode: DEFAULT_RESPONSE_MODE,
         confidence: 1,
         score: 0,
         reason,
@@ -162,16 +162,16 @@ export class ResolveService {
     }
 
     const outputModality = outputModalityFor(assignment);
-    const deliveryMode = deliveryModeFor(assignment);
+    const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
     const route = await this.buildResolvedRoute(agentId, assignment);
-    const effectiveRoutes = effectiveRoutesForDeliveryMode(deliveryMode, route, fallbackRoutes);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
     return {
       tier,
       route: effectiveRoutes.primaryRoute,
       fallback_routes: effectiveRoutes.fallbackRoutes,
       output_modality: outputModality,
-      delivery_mode: deliveryMode,
+      response_mode: responseMode,
       confidence: 1,
       score: 0,
       reason,
@@ -219,16 +219,16 @@ export class ResolveService {
     const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, baseRoute) : null;
 
     const outputModality = outputModalityFor(match);
-    const deliveryMode = deliveryModeFor(match);
+    const responseMode = responseModeFor(match);
     const fallbackRoutes = readFallbackRoutes(match);
-    const effectiveRoutes = effectiveRoutesForDeliveryMode(deliveryMode, route, fallbackRoutes);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
 
     return {
       tier: 'standard',
       route: effectiveRoutes.primaryRoute,
       fallback_routes: effectiveRoutes.fallbackRoutes,
       output_modality: outputModality,
-      delivery_mode: deliveryMode,
+      response_mode: responseMode,
       confidence: 1,
       score: 0,
       reason: 'header-match',
@@ -296,11 +296,11 @@ export class ResolveService {
     }
 
     const outputModality = outputModalityFor(assignment);
-    const deliveryMode = deliveryModeFor(assignment);
+    const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
     const enrichedRoute = await this.enrichRouteKeyLabel(agentId, route);
-    const effectiveRoutes = effectiveRoutesForDeliveryMode(
-      deliveryMode,
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
       enrichedRoute,
       fallbackRoutes,
     );
@@ -310,7 +310,7 @@ export class ResolveService {
       route: effectiveRoutes.primaryRoute,
       fallback_routes: effectiveRoutes.fallbackRoutes,
       output_modality: outputModality,
-      delivery_mode: deliveryMode,
+      response_mode: responseMode,
       confidence: detected.confidence,
       score: 0,
       reason: 'specificity',
@@ -396,6 +396,6 @@ function outputModalityFor(row: { output_modality?: OutputModality | null }): Ou
   return row.output_modality ?? DEFAULT_OUTPUT_MODALITY;
 }
 
-function deliveryModeFor(row: { delivery_mode?: DeliveryMode | null }): DeliveryMode {
-  return row.delivery_mode ?? DEFAULT_DELIVERY_MODE;
+function responseModeFor(row: { response_mode?: ResponseMode | null }): ResponseMode {
+  return row.response_mode ?? DEFAULT_RESPONSE_MODE;
 }

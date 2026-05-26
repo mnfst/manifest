@@ -51,7 +51,7 @@ export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
     'X-Manifest-Confidence': String(meta.confidence),
     'X-Manifest-Reason': meta.reason,
     'X-Manifest-Output-Modality': meta.output_modality ?? 'text',
-    'X-Manifest-Delivery-Mode': meta.delivery_mode ?? 'buffered',
+    'X-Manifest-Response-Mode': meta.response_mode ?? 'buffered',
   };
   if (meta.specificity_category) {
     headers['X-Manifest-Specificity'] = meta.specificity_category;

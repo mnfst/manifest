@@ -134,7 +134,7 @@ describe('FallbackList', () => {
     const { container } = render(() => (
       <FallbackList
         {...defaultProps}
-        deliveryMode="stream"
+        responseMode="stream"
         fallbacks={['stream-model', 'legacy-model']}
         fallbackRoutes={[
           { provider: 'openai', authType: 'api_key', model: 'stream-model' },
@@ -156,18 +156,18 @@ describe('FallbackList', () => {
     const { container } = render(() => (
       <FallbackList
         {...defaultProps}
-        deliveryMode="stream"
+        responseMode="stream"
         fallbacks={['legacy']}
-        fallbackRoutes={[
-          { provider: 'custom:missing', authType: 'api_key', model: 'other-model' },
-        ]}
-        models={[
-          {
-            model_name: 'legacy-pro',
-            provider: 'OpenAI',
-            capabilities: ['text', 'stream'],
-          },
-        ] as any[]}
+        fallbackRoutes={[{ provider: 'custom:missing', authType: 'api_key', model: 'other-model' }]}
+        models={
+          [
+            {
+              model_name: 'legacy-pro',
+              provider: 'OpenAI',
+              capabilities: ['text', 'stream'],
+            },
+          ] as any[]
+        }
       />
     ));
 
@@ -179,24 +179,26 @@ describe('FallbackList', () => {
       <FallbackList
         {...defaultProps}
         fallbacks={['model-a']}
-        connectedProviders={[
-          {
-            provider: 'openai',
-            auth_type: 'api_key',
-            is_active: true,
-            has_api_key: true,
-            label: 'Work',
-            priority: 0,
-          },
-          {
-            provider: 'openai',
-            auth_type: 'api_key',
-            is_active: true,
-            has_api_key: true,
-            label: 'Personal',
-            priority: 1,
-          },
-        ] as any[]}
+        connectedProviders={
+          [
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              is_active: true,
+              has_api_key: true,
+              label: 'Work',
+              priority: 0,
+            },
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              is_active: true,
+              has_api_key: true,
+              label: 'Personal',
+              priority: 1,
+            },
+          ] as any[]
+        }
       />
     ));
 
@@ -1259,7 +1261,8 @@ describe('FallbackList', () => {
         <FallbackList
           {...defaultProps}
           fallbacks={['deepseek-v4-flash']}
-          fallbackRoutes={[deepseekRoute] as any}        />
+          fallbackRoutes={[deepseekRoute] as any}
+        />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),
@@ -1294,7 +1297,8 @@ describe('FallbackList', () => {
           fallbacks={['deepseek-v4-flash']}
           fallbackRoutes={null}
           getModelParams={vi.fn().mockReturnValue(null)}
-          setModelParams={vi.fn()}        />
+          setModelParams={vi.fn()}
+        />
       ));
       const btn = Array.from(container.querySelectorAll<HTMLButtonElement>('button')).find((b) =>
         b.getAttribute('aria-label')?.startsWith('Configure model parameters'),

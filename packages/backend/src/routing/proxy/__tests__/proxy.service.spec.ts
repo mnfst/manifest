@@ -729,7 +729,7 @@ describe('ProxyService — orchestration', () => {
       expect(tierService.getTiers).not.toHaveBeenCalled();
     });
 
-    it('skips non-stream fallback routes when delivery mode is stream', async () => {
+    it('skips non-stream fallback routes when response mode is stream', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -737,7 +737,7 @@ describe('ProxyService — orchestration', () => {
           route('custom:local', 'api_key', 'local-model'),
           route('anthropic', 'api_key', 'claude'),
         ],
-        delivery_mode: 'stream',
+        response_mode: 'stream',
         confidence: 0.9,
         score: 5,
         reason: 'scored',
@@ -765,7 +765,7 @@ describe('ProxyService — orchestration', () => {
         tier: 'standard',
         route: route('anthropic', 'api_key', 'claude'),
         fallback_routes: null,
-        delivery_mode: 'stream',
+        response_mode: 'stream',
         confidence: 0.9,
         score: 5,
         reason: 'scored',

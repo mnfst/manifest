@@ -1,22 +1,18 @@
-import {
-  DEFAULT_DELIVERY_MODE,
-  DELIVERY_MODES,
-  isDeliveryMode,
-} from '../src/delivery-mode';
+import { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from '../src/response-mode';
 import {
   DEFAULT_OUTPUT_MODALITY,
   OUTPUT_MODALITIES,
   isOutputModality,
 } from '../src/output-modality';
 
-describe('delivery-mode', () => {
+describe('response-mode', () => {
   it('defines buffered as the default and validates supported modes', () => {
-    expect(DEFAULT_DELIVERY_MODE).toBe('buffered');
-    expect(DELIVERY_MODES).toEqual(['buffered', 'stream']);
-    expect(isDeliveryMode('buffered')).toBe(true);
-    expect(isDeliveryMode('stream')).toBe(true);
-    expect(isDeliveryMode('video')).toBe(false);
-    expect(isDeliveryMode(null)).toBe(false);
+    expect(DEFAULT_RESPONSE_MODE).toBe('buffered');
+    expect(RESPONSE_MODES).toEqual(['buffered', 'stream']);
+    expect(isResponseMode('buffered')).toBe(true);
+    expect(isResponseMode('stream')).toBe(true);
+    expect(isResponseMode('video')).toBe(false);
+    expect(isResponseMode(null)).toBe(false);
   });
 });
 

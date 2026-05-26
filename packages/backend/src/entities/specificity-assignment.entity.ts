@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
-import type { ModelRoute, DeliveryMode, OutputModality } from 'manifest-shared';
+import type { ModelRoute, ResponseMode, OutputModality } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('specificity_assignments')
@@ -33,7 +33,7 @@ export class SpecificityAssignment {
   output_modality!: OutputModality;
 
   @Column('varchar', { default: 'buffered' })
-  delivery_mode!: DeliveryMode;
+  response_mode!: ResponseMode;
 
   @Column(timestampType(), { default: timestampDefault() })
   updated_at!: string;

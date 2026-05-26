@@ -14,12 +14,12 @@ import { createRoutingActions } from './RoutingActions.js';
 import { listHeaderTiers, type HeaderTier } from '../services/api/header-tiers.js';
 import {
   getTierAssignments,
-  setTierDeliveryMode,
+  setTierResponseMode,
   getAvailableModels,
   getProviders,
   getCustomProviders,
   getSpecificityAssignments,
-  setSpecificityDeliveryMode,
+  setSpecificityResponseMode,
   overrideSpecificity,
   resetSpecificity,
   refreshModels,
@@ -34,7 +34,7 @@ import {
   type AgentModelParamsRow,
   type AuthType,
   type RequestParamDefaults,
-  type DeliveryMode,
+  type ResponseMode,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 import { STAGES } from '../services/providers.js';
@@ -75,8 +75,8 @@ const Routing: Component = () => {
     getComplexityStatus,
   );
   const [togglingComplexity, setTogglingComplexity] = createSignal(false);
-  const [changingDefaultDeliveryMode, setChangingDefaultDeliveryMode] = createSignal(false);
-  const [changingSpecificityDeliveryMode, setChangingSpecificityDeliveryMode] = createSignal(false);
+  const [changingDefaultResponseMode, setChangingDefaultResponseMode] = createSignal(false);
+  const [changingSpecificityResponseMode, setChangingSpecificityResponseMode] = createSignal(false);
   const complexityEnabled = () => complexityStatus()?.enabled ?? true;
 
   // Per-route model params, fetched once and threaded down. Scope separates
@@ -149,13 +149,13 @@ const Routing: Component = () => {
   };
 
   const handleToggleComplexity = async () => {
-    const shouldInheritStreaming = defaultDeliveryMode() === 'stream';
+    const shouldInheritStreaming = defaultResponseMode() === 'stream';
     setTogglingComplexity(true);
     try {
       const result = await toggleComplexity(agentName());
       mutateComplexityStatus(result);
       if (shouldInheritStreaming) {
-        await handleDefaultDeliveryModeChange('stream');
+        await handleDefaultResponseModeChange('stream');
       }
     } catch {
       toast.error('Failed to toggle complexity routing');
@@ -164,19 +164,19 @@ const Routing: Component = () => {
     }
   };
 
-  const defaultDeliveryMode = (): DeliveryMode => {
+  const defaultResponseMode = (): ResponseMode => {
     const ids = complexityEnabled() ? STAGES.map((stage) => stage.id) : ['default'];
-    return ids.every((id) => actions.getTier(id)?.delivery_mode === 'stream')
+    return ids.every((id) => actions.getTier(id)?.response_mode === 'stream')
       ? 'stream'
       : 'buffered';
   };
 
-  const handleDefaultDeliveryModeChange = async (deliveryMode: DeliveryMode) => {
+  const handleDefaultResponseModeChange = async (responseMode: ResponseMode) => {
     const ids = complexityEnabled() ? STAGES.map((stage) => stage.id) : ['default'];
-    setChangingDefaultDeliveryMode(true);
+    setChangingDefaultResponseMode(true);
     try {
       const updated = await Promise.all(
-        ids.map((tier) => setTierDeliveryMode(agentName(), tier, deliveryMode)),
+        ids.map((tier) => setTierResponseMode(agentName(), tier, responseMode)),
       );
       mutateTiers((prev) => {
         const byTier = new Map(updated.map((row) => [row.tier, row]));
@@ -187,35 +187,35 @@ const Routing: Component = () => {
         return merged;
       });
       toast.success(
-        deliveryMode === 'stream'
-          ? 'Streaming delivery mode enabled'
-          : 'Buffered delivery mode enabled',
+        responseMode === 'stream'
+          ? 'Streaming response mode enabled'
+          : 'Buffered response mode enabled',
       );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update delivery mode');
+      toast.error(err instanceof Error ? err.message : 'Failed to update response mode');
     } finally {
-      setChangingDefaultDeliveryMode(false);
+      setChangingDefaultResponseMode(false);
     }
   };
 
   const activeSpecificityAssignments = () =>
     specificityAssignments()?.filter((assignment) => assignment.is_active) ?? [];
 
-  const specificityDeliveryMode = (): DeliveryMode => {
+  const specificityResponseMode = (): ResponseMode => {
     const active = activeSpecificityAssignments();
-    return active.length > 0 && active.every((assignment) => assignment.delivery_mode === 'stream')
+    return active.length > 0 && active.every((assignment) => assignment.response_mode === 'stream')
       ? 'stream'
       : 'buffered';
   };
 
-  const handleSpecificityDeliveryModeChange = async (deliveryMode: DeliveryMode) => {
+  const handleSpecificityResponseModeChange = async (responseMode: ResponseMode) => {
     const active = activeSpecificityAssignments();
     if (active.length === 0) return;
-    setChangingSpecificityDeliveryMode(true);
+    setChangingSpecificityResponseMode(true);
     try {
       const updated = await Promise.all(
         active.map((assignment) =>
-          setSpecificityDeliveryMode(agentName(), assignment.category, deliveryMode),
+          setSpecificityResponseMode(agentName(), assignment.category, responseMode),
         ),
       );
       mutateSpecificity((prev) => {
@@ -223,16 +223,16 @@ const Routing: Component = () => {
         return prev?.map((row) => byCategory.get(row.category) ?? row);
       });
       toast.success(
-        deliveryMode === 'stream'
-          ? 'Streaming delivery mode enabled'
-          : 'Buffered delivery mode enabled',
+        responseMode === 'stream'
+          ? 'Streaming response mode enabled'
+          : 'Buffered response mode enabled',
       );
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Failed to update task-specific delivery mode',
+        err instanceof Error ? err.message : 'Failed to update task-specific response mode',
       );
     } finally {
-      setChangingSpecificityDeliveryMode(false);
+      setChangingSpecificityResponseMode(false);
     }
   };
 
@@ -558,9 +558,9 @@ const Routing: Component = () => {
                   complexityEnabled={complexityEnabled}
                   togglingComplexity={togglingComplexity}
                   onToggleComplexity={handleToggleComplexity}
-                  deliveryMode={defaultDeliveryMode}
-                  changingDeliveryMode={changingDefaultDeliveryMode}
-                  onDeliveryModeChange={handleDefaultDeliveryModeChange}
+                  responseMode={defaultResponseMode}
+                  changingResponseMode={changingDefaultResponseMode}
+                  onResponseModeChange={handleDefaultResponseModeChange}
                   embedded
                   getModelParams={getModelParamsFor}
                   setModelParams={setModelParamsFor}
@@ -605,9 +605,9 @@ const Routing: Component = () => {
                     );
                   }}
                   onAddFallback={(category) => setFallbackPickerTier(category)}
-                  deliveryMode={specificityDeliveryMode}
-                  changingDeliveryMode={changingSpecificityDeliveryMode}
-                  onDeliveryModeChange={handleSpecificityDeliveryModeChange}
+                  responseMode={specificityResponseMode}
+                  changingResponseMode={changingSpecificityResponseMode}
+                  onResponseModeChange={handleSpecificityResponseModeChange}
                   refetchAll={refetchAll}
                   refetchSpecificity={() => refetchSpecificity() as unknown as Promise<void>}
                   embedded

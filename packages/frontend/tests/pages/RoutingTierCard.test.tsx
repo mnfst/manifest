@@ -94,12 +94,12 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.setModelParams,
       props.modelHasParams,
       props.modelParamsScope,
-      props.deliveryMode,
+      props.responseMode,
     ];
     void _read;
     return (
       <div data-testid="fallback-list">
-        <span data-testid="fallback-delivery-mode">{String(props.deliveryMode ?? '')}</span>
+        <span data-testid="fallback-response-mode">{String(props.responseMode ?? '')}</span>
         <button
           data-testid="trigger-update"
           onClick={() =>
@@ -279,7 +279,7 @@ describe('RoutingTierCard', () => {
   it('marks a non-stream primary as skipped and passes stream mode to fallbacks', () => {
     const streamTier = {
       ...baseTier,
-      delivery_mode: 'stream' as const,
+      response_mode: 'stream' as const,
       override_route: { provider: 'custom:local', authType: 'api_key' as const, model: 'legacy' },
       fallback_routes: [{ provider: 'openai', authType: 'api_key' as const, model: 'gpt-4o' }],
     };
@@ -314,7 +314,7 @@ describe('RoutingTierCard', () => {
     expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
       'Skipped in Stream',
     );
-    expect(getByTestId('fallback-delivery-mode').textContent).toBe('stream');
+    expect(getByTestId('fallback-response-mode').textContent).toBe('stream');
   });
 
   it('renders the loading skeleton when tiersLoading is true', () => {

@@ -14,7 +14,7 @@ import type {
   AuthType,
   ModelRoute,
   RequestParamDefaults,
-  DeliveryMode,
+  ResponseMode,
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
@@ -158,9 +158,9 @@ export interface RoutingSpecificitySectionProps {
   onReset: (category: string) => void;
   onFallbackUpdate: (category: string, fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onAddFallback: (category: string) => void;
-  deliveryMode: () => DeliveryMode;
-  changingDeliveryMode: () => boolean;
-  onDeliveryModeChange: (mode: DeliveryMode) => void | Promise<void>;
+  responseMode: () => ResponseMode;
+  changingResponseMode: () => boolean;
+  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
   refetchAll: () => Promise<void>;
   refetchSpecificity?: () => Promise<void>;
   embedded?: boolean;
@@ -204,7 +204,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
   const activeTiers = () => SPECIFICITY_STAGES.filter((s) => isActive(s.id));
 
   const handleToggle = async (category: string, label: string, active: boolean) => {
-    const shouldInheritStreaming = active && props.deliveryMode() === 'stream';
+    const shouldInheritStreaming = active && props.responseMode() === 'stream';
     setToggling(category);
     try {
       await toggleSpecificity(props.agentName(), category, active);
@@ -214,7 +214,7 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
         await props.refetchAll();
       }
       if (shouldInheritStreaming) {
-        await props.onDeliveryModeChange('stream');
+        await props.onResponseModeChange('stream');
       }
       toast.success(`${active ? 'Enabled' : 'Disabled'} ${label} routing`);
     } catch {
@@ -250,9 +250,9 @@ const RoutingSpecificitySection: Component<RoutingSpecificitySectionProps> = (pr
       >
         <div class="specificity-output-controls">
           <OutputControls
-            deliveryMode={props.deliveryMode}
-            disabled={props.changingDeliveryMode}
-            onDeliveryModeChange={props.onDeliveryModeChange}
+            responseMode={props.responseMode}
+            disabled={props.changingResponseMode}
+            onResponseModeChange={props.onResponseModeChange}
           />
         </div>
         <div class="specificity-cards">

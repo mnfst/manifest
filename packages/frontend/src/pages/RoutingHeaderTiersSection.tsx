@@ -6,7 +6,7 @@ import {
   listHeaderTiers,
   deleteHeaderTier,
   overrideHeaderTier,
-  setHeaderTierDeliveryMode,
+  setHeaderTierResponseMode,
   toggleHeaderTier,
   type HeaderTier,
 } from '../services/api/header-tiers.js';
@@ -16,7 +16,7 @@ import type {
   CustomProviderData,
   ModelRoute,
   RequestParamDefaults,
-  DeliveryMode,
+  ResponseMode,
   RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -90,7 +90,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
   const [snippetTier, setSnippetTier] = createSignal<HeaderTier | null>(null);
   // Which tier is currently being toggled (loading state).
   const [toggling, setToggling] = createSignal<string | null>(null);
-  const [changingDeliveryMode, setChangingDeliveryMode] = createSignal<string | null>(null);
+  const [changingResponseMode, setChangingResponseMode] = createSignal<string | null>(null);
 
   const tiers = (): HeaderTier[] =>
     (props.externalTiers ? props.externalTiers() : internalTiersRes()) ?? [];
@@ -131,23 +131,23 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
-  const handleDeliveryModeChange = async (id: string, deliveryMode: DeliveryMode) => {
-    setChangingDeliveryMode(id);
+  const handleResponseModeChange = async (id: string, responseMode: ResponseMode) => {
+    setChangingResponseMode(id);
     try {
-      const updated = await setHeaderTierDeliveryMode(props.agentName(), id, deliveryMode);
+      const updated = await setHeaderTierResponseMode(props.agentName(), id, responseMode);
       const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
         prev?.map((t) => (t.id === id ? updated : t));
       if (props.externalMutate) props.externalMutate(update);
       else internalMutate(update);
       toast.success(
-        deliveryMode === 'stream'
-          ? 'Streaming delivery mode enabled'
-          : 'Buffered delivery mode enabled',
+        responseMode === 'stream'
+          ? 'Streaming response mode enabled'
+          : 'Buffered response mode enabled',
       );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update delivery mode');
+      toast.error(err instanceof Error ? err.message : 'Failed to update response mode');
     } finally {
-      setChangingDeliveryMode(null);
+      setChangingResponseMode(null);
     }
   };
 
@@ -207,8 +207,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 }
                 onEdit={() => setModalTier(tier)}
                 onDisable={() => handleToggle(tier.id, false)}
-                changingDeliveryMode={changingDeliveryMode() === tier.id}
-                onDeliveryModeChange={(mode) => handleDeliveryModeChange(tier.id, mode)}
+                changingResponseMode={changingResponseMode() === tier.id}
+                onResponseModeChange={(mode) => handleResponseModeChange(tier.id, mode)}
                 getModelParams={props.getModelParams}
                 setModelParams={props.setModelParams}
               />

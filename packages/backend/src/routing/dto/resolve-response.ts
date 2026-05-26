@@ -1,7 +1,7 @@
 import { ScoringReason } from '../../scoring';
 import type {
   ModelRoute,
-  DeliveryMode,
+  ResponseMode,
   OutputModality,
   SpecificityCategory,
   TierSlot,
@@ -29,7 +29,7 @@ export interface ResolveResponse {
   /** Effective output modality configured on the resolved routing chain. */
   output_modality?: OutputModality;
   /** Effective transport policy configured on the resolved routing chain. */
-  delivery_mode?: DeliveryMode;
+  response_mode?: ResponseMode;
   specificity_category?: SpecificityCategory;
   header_tier_id?: string;
   header_tier_name?: string;

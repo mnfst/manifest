@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
-import type { ModelRoute, DeliveryMode, OutputModality, TierColor } from 'manifest-shared';
+import type { ModelRoute, ResponseMode, OutputModality, TierColor } from 'manifest-shared';
 
 @Entity('header_tiers')
 @Index(['agent_id', 'sort_order'])
@@ -49,7 +49,7 @@ export class HeaderTier {
   output_modality!: OutputModality;
 
   @Column('varchar', { default: 'buffered' })
-  delivery_mode!: DeliveryMode;
+  response_mode!: ResponseMode;
 
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;

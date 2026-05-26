@@ -12,7 +12,7 @@ import type {
   RoutingProvider,
   SpecificityAssignment,
   ModelCapability,
-  DeliveryMode,
+  ResponseMode,
 } from '../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import { usedKeyLabelsForModelInTier } from '../services/routing-utils.js';
@@ -106,15 +106,15 @@ function providerDisplayName(providerId: string, customProviders: CustomProvider
 
 const RoutingModals: Component<RoutingModalsProps> = (props) => {
   const [pendingOverride, setPendingOverride] = createSignal<PendingOverride | null>(null);
-  const requiredCapabilityForDeliveryMode = (
-    deliveryMode: DeliveryMode | undefined,
-  ): ModelCapability | undefined => (deliveryMode === 'stream' ? 'stream' : undefined);
+  const requiredCapabilityForResponseMode = (
+    responseMode: ResponseMode | undefined,
+  ): ModelCapability | undefined => (responseMode === 'stream' ? 'stream' : undefined);
   const requiredCapabilityForTier = (tierId: string): ModelCapability | undefined =>
-    requiredCapabilityForDeliveryMode(props.getTier(tierId)?.delivery_mode);
+    requiredCapabilityForResponseMode(props.getTier(tierId)?.response_mode);
   const requiredCapabilityForSpecificity = (category: string): ModelCapability | undefined =>
-    requiredCapabilityForDeliveryMode(
+    requiredCapabilityForResponseMode(
       props.specificityAssignments?.().find((assignment) => assignment.category === category)
-        ?.delivery_mode,
+        ?.response_mode,
     );
 
   const handleSelect = (

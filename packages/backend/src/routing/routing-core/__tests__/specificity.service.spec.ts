@@ -361,7 +361,7 @@ describe('SpecificityService', () => {
         override_route: route('custom:local', 'api_key', 'local-model'),
         auto_assigned_route: null,
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
-        delivery_mode: 'stream',
+        response_mode: 'stream',
       } as SpecificityAssignment);
 
       await expect(svc.clearFallbacks('agent-1', 'coding')).rejects.toThrow(
@@ -386,7 +386,7 @@ describe('SpecificityService', () => {
     });
   });
 
-  describe('stream delivery mode enforcement', () => {
+  describe('stream response mode enforcement', () => {
     it('rejects stream mode when the category has no primary route', async () => {
       repo.findOne.mockResolvedValue({
         category: 'coding',
@@ -395,7 +395,7 @@ describe('SpecificityService', () => {
         fallback_routes: null,
       } as SpecificityAssignment);
 
-      await expect(svc.setDeliveryMode('agent-1', 'user-1', 'coding', 'stream')).rejects.toThrow(
+      await expect(svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream')).rejects.toThrow(
         /add at least one stream-capable model/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -410,9 +410,9 @@ describe('SpecificityService', () => {
       } as SpecificityAssignment;
       repo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setDeliveryMode('agent-1', 'user-1', 'coding', 'stream');
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream');
 
-      expect(result.delivery_mode).toBe('stream');
+      expect(result.response_mode).toBe('stream');
       expect(repo.save).toHaveBeenCalledWith(existing);
     });
 
@@ -421,7 +421,7 @@ describe('SpecificityService', () => {
         category: 'coding',
         override_route: route('openai', 'api_key', 'gpt-4o'),
         fallback_routes: null,
-        delivery_mode: 'stream',
+        response_mode: 'stream',
       } as SpecificityAssignment);
 
       await expect(

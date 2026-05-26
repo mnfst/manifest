@@ -2,9 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute, DeliveryMode } from 'manifest-shared';
+import type { AuthType, ModelRoute, ResponseMode } from 'manifest-shared';
 import {
-  DEFAULT_DELIVERY_MODE,
+  DEFAULT_RESPONSE_MODE,
   DEFAULT_OUTPUT_MODALITY,
   TIER_COLORS,
   type TierColor,
@@ -13,7 +13,7 @@ import { HeaderTier } from '../../entities/header-tier.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { explicitRoute, unambiguousRoute } from '../routing-core/route-helpers';
-import { assertStreamableDeliveryMode } from '../routing-core/delivery-mode-guard';
+import { assertStreamableResponseMode } from '../routing-core/response-mode-guard';
 
 export const RESERVED_HEADER_KEYS = new Set<string>([
   'authorization',
@@ -94,7 +94,7 @@ export class HeaderTierService {
       override_route: null,
       fallback_routes: null,
       output_modality: DEFAULT_OUTPUT_MODALITY,
-      delivery_mode: DEFAULT_DELIVERY_MODE,
+      response_mode: DEFAULT_RESPONSE_MODE,
       created_at: now,
       updated_at: now,
     });
@@ -138,19 +138,19 @@ export class HeaderTierService {
     return row;
   }
 
-  async setDeliveryMode(
+  async setResponseMode(
     agentId: string,
     id: string,
-    deliveryMode: DeliveryMode,
+    responseMode: ResponseMode,
   ): Promise<HeaderTier> {
     const row = await this.findOrThrow(agentId, id);
-    assertStreamableDeliveryMode(
-      deliveryMode,
+    assertStreamableResponseMode(
+      responseMode,
       `custom tier "${row.name}"`,
       row.override_route,
       row.fallback_routes,
     );
-    row.delivery_mode = deliveryMode;
+    row.response_mode = responseMode;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
@@ -208,8 +208,8 @@ export class HeaderTierService {
     const route =
       explicit ??
       unambiguousRoute(model, await this.discoveryService.getModelsForAgent(row.agent_id));
-    assertStreamableDeliveryMode(
-      row.delivery_mode,
+    assertStreamableResponseMode(
+      row.response_mode,
       `custom tier "${row.name}"`,
       route,
       row.fallback_routes,
@@ -225,7 +225,7 @@ export class HeaderTierService {
     const row = await this.findOrThrow(agentId, id);
     row.override_route = null;
     row.fallback_routes = null;
-    assertStreamableDeliveryMode(row.delivery_mode, `custom tier "${row.name}"`, null, null);
+    assertStreamableResponseMode(row.response_mode, `custom tier "${row.name}"`, null, null);
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
@@ -239,8 +239,8 @@ export class HeaderTierService {
   ): Promise<ModelRoute[]> {
     const row = await this.findOrThrow(agentId, id);
     const fallbackRoutes = await this.buildFallbackRoutes(row.agent_id, models, routes);
-    assertStreamableDeliveryMode(
-      row.delivery_mode,
+    assertStreamableResponseMode(
+      row.response_mode,
       `custom tier "${row.name}"`,
       row.override_route,
       fallbackRoutes,
@@ -254,8 +254,8 @@ export class HeaderTierService {
 
   async clearFallbacks(agentId: string, id: string): Promise<void> {
     const row = await this.findOrThrow(agentId, id);
-    assertStreamableDeliveryMode(
-      row.delivery_mode,
+    assertStreamableResponseMode(
+      row.response_mode,
       `custom tier "${row.name}"`,
       row.override_route,
       null,

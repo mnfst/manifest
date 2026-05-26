@@ -74,12 +74,12 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.setModelParams,
       props.modelHasParams,
       props.modelParamsScope,
-      props.deliveryMode,
+      props.responseMode,
     ];
     void _read;
     return (
       <div data-testid="fallback-list">
-        <div data-testid="fb-delivery-mode">{String(props.deliveryMode ?? '')}</div>
+        <div data-testid="fb-response-mode">{String(props.responseMode ?? '')}</div>
         <div data-testid="fb-count">{(props.fallbacks as string[]).length}</div>
         <div data-testid="fb-routes-count">
           {(props.fallbackRoutes as unknown[] | null | undefined)?.length ?? 'null'}
@@ -300,7 +300,7 @@ describe('HeaderTierCard', () => {
   it('marks a non-stream primary as skipped and passes stream mode to fallbacks', () => {
     const streamTier = {
       ...baseTier,
-      delivery_mode: 'stream' as const,
+      response_mode: 'stream' as const,
       override_route: { provider: 'custom:local', authType: 'api_key' as const, model: 'legacy' },
     };
     const streamModels: AvailableModel[] = [
@@ -336,7 +336,7 @@ describe('HeaderTierCard', () => {
     expect(container.querySelector('.routing-card__skipped-badge')?.textContent).toContain(
       'Skipped in Stream',
     );
-    expect(getByTestId('fb-delivery-mode').textContent).toBe('stream');
+    expect(getByTestId('fb-response-mode').textContent).toBe('stream');
   });
 
   it("uses the route's authType for the badge instead of looking it up by provider", () => {
@@ -400,7 +400,7 @@ describe('HeaderTierCard', () => {
   });
 
   it('requires stream-capable models when the header tier is in stream mode', () => {
-    const tierEmpty = { ...baseTier, override_route: null, delivery_mode: 'stream' as const };
+    const tierEmpty = { ...baseTier, override_route: null, response_mode: 'stream' as const };
     const { container, getByTestId } = render(() => (
       <HeaderTierCard
         agentName="demo"

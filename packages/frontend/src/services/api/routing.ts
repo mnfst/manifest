@@ -2,12 +2,12 @@ import type {
   AuthType,
   ModelCapability,
   ModelRoute,
-  DeliveryMode,
+  ResponseMode,
   OutputModality,
 } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type { AuthType, ModelCapability, ModelRoute, DeliveryMode, OutputModality };
+export type { AuthType, ModelCapability, ModelRoute, ResponseMode, OutputModality };
 
 export interface RoutingProvider {
   id: string;
@@ -193,7 +193,7 @@ export interface TierAssignment {
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
   output_modality?: OutputModality;
-  delivery_mode?: DeliveryMode;
+  response_mode?: ResponseMode;
   updated_at: string;
 }
 
@@ -236,13 +236,13 @@ export function resetTier(agentName: string, tier: string) {
   });
 }
 
-export function setTierDeliveryMode(agentName: string, tier: string, deliveryMode: DeliveryMode) {
+export function setTierResponseMode(agentName: string, tier: string, responseMode: ResponseMode) {
   return fetchMutate<TierAssignment>(
     routingPath(agentName, `tiers/${encodeURIComponent(tier)}/response-mode`),
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deliveryMode, responseMode: deliveryMode }),
+      body: JSON.stringify({ response_mode: responseMode }),
     },
   );
 }

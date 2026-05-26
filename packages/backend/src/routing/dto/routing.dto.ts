@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
-import { AUTH_TYPES, DELIVERY_MODES, TIER_SLOTS, type DeliveryMode } from 'manifest-shared';
+import { AUTH_TYPES, RESPONSE_MODES, TIER_SLOTS, type ResponseMode } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 const KNOWN_PROVIDER_IDS: readonly string[] = Array.from(PROVIDER_BY_ID_OR_ALIAS.keys());
@@ -206,16 +206,16 @@ export class SetFallbacksDto {
   routes?: ModelRouteDto[];
 }
 
-export class SetDeliveryModeDto {
+export class SetResponseModeDto {
   @IsOptional()
-  @IsIn(DELIVERY_MODES)
-  deliveryMode?: DeliveryMode;
+  @IsIn(RESPONSE_MODES)
+  response_mode?: ResponseMode;
 
   @IsOptional()
-  @IsIn(DELIVERY_MODES)
-  responseMode?: DeliveryMode;
+  @IsIn(RESPONSE_MODES)
+  responseMode?: ResponseMode;
 }
 
-export function deliveryModeFromDto(body: SetDeliveryModeDto): DeliveryMode | undefined {
-  return body.deliveryMode ?? body.responseMode;
+export function responseModeFromDto(body: SetResponseModeDto): ResponseMode | undefined {
+  return body.response_mode ?? body.responseMode;
 }

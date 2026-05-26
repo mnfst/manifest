@@ -23,7 +23,7 @@ import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ModelRouteDto, SetDeliveryModeDto, deliveryModeFromDto } from '../dto/routing.dto';
+import { ModelRouteDto, SetResponseModeDto, responseModeFromDto } from '../dto/routing.dto';
 import { HeaderTierService } from './header-tier.service';
 import { AUTH_TYPES, type TierColor } from 'manifest-shared';
 
@@ -127,17 +127,17 @@ export class HeaderTierController {
     return this.headerTierService.setEnabled(agent.id, id, body.enabled);
   }
 
-  @Patch([':agentName/header-tiers/:id/delivery-mode', ':agentName/header-tiers/:id/response-mode'])
-  async setDeliveryMode(
+  @Patch(':agentName/header-tiers/:id/response-mode')
+  async setResponseMode(
     @CurrentUser() user: AuthUser,
     @Param('agentName') agentName: string,
     @Param('id') id: string,
-    @Body() body: SetDeliveryModeDto,
+    @Body() body: SetResponseModeDto,
   ) {
-    const deliveryMode = deliveryModeFromDto(body);
-    if (!deliveryMode) throw new BadRequestException('deliveryMode is required');
+    const responseMode = responseModeFromDto(body);
+    if (!responseMode) throw new BadRequestException('response_mode is required');
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.headerTierService.setDeliveryMode(agent.id, id, deliveryMode);
+    return this.headerTierService.setResponseMode(agent.id, id, responseMode);
   }
 
   @Delete(':agentName/header-tiers/:id')

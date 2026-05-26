@@ -178,7 +178,7 @@ export class ProxyController {
 
       let streamUsage = null;
 
-      const shouldStreamResponse = isStream || meta.delivery_mode === 'stream';
+      const shouldStreamResponse = isStream || meta.response_mode === 'stream';
 
       if (shouldStreamResponse && providerResponse.body) {
         headersSent = true;
