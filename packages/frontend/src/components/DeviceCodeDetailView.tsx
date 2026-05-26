@@ -11,10 +11,8 @@ import {
 import type { ProviderDef } from '../services/providers.js';
 import {
   connectProvider,
-  pollMinimaxOAuth,
+  getDeviceCodeApi,
   renameProviderKey,
-  revokeMinimaxOAuth,
-  startMinimaxOAuth,
   type AuthType,
   type MinimaxOAuthRegion,
   type RoutingProvider,
@@ -59,6 +57,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
   const [renameValue, setRenameValue] = createSignal('');
 
+  const api = () => getDeviceCodeApi(props.provId);
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
 
   // When "Add another key" is clicked in the header, launch a new device code flow.
@@ -119,7 +118,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await revokeMinimaxOAuth(props.agentName);
+      const result = await api().revoke(props.agentName);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -137,7 +136,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await revokeMinimaxOAuth(props.agentName, label);
+      const result = await api().revoke(props.agentName, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -195,7 +194,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
 
     try {
-      const result = await pollMinimaxOAuth(current.flowId);
+      const result = await api().poll(current.flowId);
       if (isDisposed || flowGeneration !== activeFlowGeneration) return;
       const latest = flow();
       if (!latest || latest.flowId !== current.flowId) {
@@ -251,7 +250,11 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     clearPollTimer();
     setStatusMessage(null);
     try {
-      const nextFlow = await startMinimaxOAuth(props.agentName, selectedRegion());
+      const current = api();
+      const nextFlow = await current.start(
+        props.agentName,
+        current.hasRegion ? selectedRegion() : undefined,
+      );
       if (isDisposed || flowGeneration !== activeFlowGeneration) {
         popup.close();
         return;
@@ -284,24 +287,33 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             <>
               <div class="subscription-detail__primary">
                 <p class="provider-detail__hint" style="margin-bottom: 0;">
-                  Choose your MiniMax region, then open the authorization page in your browser to
-                  sign in and approve access.
-                </p>
-                <div class="provider-detail__field">
-                  <label class="provider-detail__label" for="minimax-region">
-                    Region
-                  </label>
-                  <select
-                    id="minimax-region"
-                    class="provider-detail__input"
-                    value={selectedRegion()}
-                    disabled={props.busy()}
-                    onChange={(e) => setSelectedRegion(e.currentTarget.value as MinimaxOAuthRegion)}
+                  <Show
+                    when={api().hasRegion}
+                    fallback="Open the authorization page in your browser to sign in and approve access."
                   >
-                    <option value="global">Global (api.minimax.io)</option>
-                    <option value="cn">China Mainland (api.minimaxi.com)</option>
-                  </select>
-                </div>
+                    Choose your MiniMax region, then open the authorization page in your browser to
+                    sign in and approve access.
+                  </Show>
+                </p>
+                <Show when={api().hasRegion}>
+                  <div class="provider-detail__field">
+                    <label class="provider-detail__label" for="minimax-region">
+                      Region
+                    </label>
+                    <select
+                      id="minimax-region"
+                      class="provider-detail__input"
+                      value={selectedRegion()}
+                      disabled={props.busy()}
+                      onChange={(e) =>
+                        setSelectedRegion(e.currentTarget.value as MinimaxOAuthRegion)
+                      }
+                    >
+                      <option value="global">Global (api.minimax.io)</option>
+                      <option value="cn">China Mainland (api.minimaxi.com)</option>
+                    </select>
+                  </div>
+                </Show>
                 <button
                   class="btn btn--primary subscription-detail__btn"
                   disabled={props.busy()}

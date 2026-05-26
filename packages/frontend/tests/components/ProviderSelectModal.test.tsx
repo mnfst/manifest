@@ -53,6 +53,12 @@ vi.mock('../../src/services/api.js', () => ({
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
   revokeMinimaxOAuth: (...args: unknown[]) => mockRevokeMinimaxOAuth(...args),
   startMinimaxOAuth: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
+  getDeviceCodeApi: (id: string) => ({
+    start: (...args: unknown[]) => mockStartMinimaxOAuth(...args),
+    poll: (...args: unknown[]) => mockPollMinimaxOAuth(...args),
+    revoke: (...args: unknown[]) => mockRevokeMinimaxOAuth(...args),
+    hasRegion: id === 'minimax',
+  }),
   startAnthropicOAuth: (...args: unknown[]) => mockStartAnthropicOAuth(...args),
   submitAnthropicOAuth: (...args: unknown[]) => mockSubmitAnthropicOAuth(...args),
   revokeAnthropicOAuth: (...args: unknown[]) => mockRevokeAnthropicOAuth(...args),

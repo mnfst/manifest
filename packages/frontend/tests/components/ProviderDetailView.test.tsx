@@ -5,13 +5,11 @@ import { createSignal, type Accessor, type Setter } from 'solid-js';
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockRefreshProviderModels = vi.fn();
-const mockConnectKiroCliOAuth = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
-  connectKiroCliOAuth: (...args: unknown[]) => mockConnectKiroCliOAuth(...args),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -172,7 +170,6 @@ describe('ProviderDetailView', () => {
       last_fetched_at: '2026-04-12T10:00:00Z',
       error: null,
     });
-    mockConnectKiroCliOAuth.mockResolvedValue({ ok: true });
   });
 
   describe('Ollama connect flow', () => {
@@ -373,127 +370,16 @@ describe('ProviderDetailView', () => {
     });
   });
 
-  describe('Kiro subscription renders CLI OAuth flow', () => {
-    const connectedKiroSub: RoutingProvider[] = [
-      {
-        id: 'p1',
-        provider: 'kiro',
-        auth_type: 'subscription',
-        is_active: true,
-        has_api_key: true,
-        connected_at: '2025-01-01',
-      },
-    ];
-
-    it('renders the Kiro CLI login instructions when disconnected', () => {
-      const props = createTestProps({
-        provId: 'kiro',
-        selectedAuthType: 'subscription',
-      });
-
-      render(() => <ProviderDetailView {...props} />);
-
-      expect(screen.getByText('Connect with Kiro CLI')).toBeDefined();
-      expect(screen.getAllByText('kiro-cli login --use-device-flow').length).toBeGreaterThan(0);
-    });
-
-    it('connects Kiro through the local CLI OAuth endpoint', async () => {
+  describe('Kiro subscription renders device-code flow', () => {
+    it('renders DeviceCodeDetailView for the Kiro device_code subscription flow', () => {
       const props = createTestProps({
         provId: 'kiro',
         selectedAuthType: 'subscription',
       });
       render(() => <ProviderDetailView {...props} />);
-
-      fireEvent.click(screen.getByText('Connect with Kiro CLI'));
-
-      await waitFor(() => {
-        expect(mockConnectKiroCliOAuth).toHaveBeenCalledWith('test-agent');
-        expect(toast.success).toHaveBeenCalledWith('Kiro subscription connected');
-        expect(props.onUpdate).toHaveBeenCalled();
-      });
-    });
-
-    it('keeps the Kiro CLI view open when connect fails', async () => {
-      mockConnectKiroCliOAuth.mockRejectedValueOnce(new Error('not logged in'));
-      const props = createTestProps({
-        provId: 'kiro',
-        selectedAuthType: 'subscription',
-      });
-      render(() => <ProviderDetailView {...props} />);
-
-      fireEvent.click(screen.getByText('Connect with Kiro CLI'));
-
-      await waitFor(() => {
-        expect(mockConnectKiroCliOAuth).toHaveBeenCalled();
-      });
-      expect(props.onUpdate).not.toHaveBeenCalled();
-    });
-
-    it('disables the Kiro connect button while busy', () => {
-      const props = createTestProps({
-        provId: 'kiro',
-        selectedAuthType: 'subscription',
-        busy: true,
-      });
-
-      render(() => <ProviderDetailView {...props} />);
-
-      expect(
-        (screen.getByRole('button', { name: 'Connect with Kiro CLI' }) as HTMLButtonElement)
-          .disabled,
-      ).toBe(true);
-    });
-
-    it('disconnects connected Kiro CLI OAuth and shows backend notifications', async () => {
-      mockDisconnectProvider.mockResolvedValueOnce({ notifications: ['Kiro was used by a tier'] });
-      const props = createTestProps({
-        provId: 'kiro',
-        providers: connectedKiroSub,
-        selectedAuthType: 'subscription',
-      });
-      render(() => <ProviderDetailView {...props} />);
-
-      expect(screen.getByText('Connected via local Kiro CLI login')).toBeDefined();
-      fireEvent.click(screen.getByText('Disconnect'));
-
-      await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalledWith('test-agent', 'kiro', 'subscription');
-        expect(toast.error).toHaveBeenCalledWith('Kiro was used by a tier');
-        expect(props.onBack).toHaveBeenCalled();
-        expect(props.onUpdate).toHaveBeenCalled();
-      });
-    });
-
-    it('keeps connected Kiro CLI OAuth in place when disconnect fails', async () => {
-      mockDisconnectProvider.mockRejectedValueOnce(new Error('disconnect failed'));
-      const props = createTestProps({
-        provId: 'kiro',
-        providers: connectedKiroSub,
-        selectedAuthType: 'subscription',
-      });
-      render(() => <ProviderDetailView {...props} />);
-
-      fireEvent.click(screen.getByText('Disconnect'));
-
-      await waitFor(() => {
-        expect(mockDisconnectProvider).toHaveBeenCalled();
-      });
-      expect(props.onBack).not.toHaveBeenCalled();
-    });
-
-    it('disables the Kiro disconnect button while busy', () => {
-      const props = createTestProps({
-        provId: 'kiro',
-        providers: connectedKiroSub,
-        selectedAuthType: 'subscription',
-        busy: true,
-      });
-
-      render(() => <ProviderDetailView {...props} />);
-
-      expect(
-        (screen.getByRole('button', { name: 'Disconnect Kiro CLI' }) as HTMLButtonElement).disabled,
-      ).toBe(true);
+      const view = screen.getByTestId('device-code-detail-view');
+      expect(view).toBeDefined();
+      expect(view.getAttribute('data-provider-id')).toBe('kiro');
     });
   });
 

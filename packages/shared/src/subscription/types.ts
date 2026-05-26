@@ -9,7 +9,7 @@ export interface SubscriptionProviderConfig {
   subscriptionLabel: string;
   subscriptionKeyPlaceholder?: string;
   subscriptionCommand?: string;
-  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token' | 'cli_oauth';
+  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
   subscriptionTokenPrefix?: string;
   knownModels?: readonly string[];
   /**

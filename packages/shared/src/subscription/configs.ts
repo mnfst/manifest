@@ -72,7 +72,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
   kiro: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'Kiro subscription',
-    subscriptionAuthMode: 'cli_oauth' as const,
+    subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
       'kiro/auto',
       'kiro/claude-sonnet-4.5',

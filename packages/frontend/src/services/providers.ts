@@ -31,7 +31,7 @@ export interface ProviderDef {
   /** Provider uses GitHub device login instead of token paste. */
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
-  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token' | 'cli_oauth';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
   /**
    * Optional secondary subscription path. Lets a provider expose a pasted-token
    * shortcut alongside its primary OAuth/device-code flow — currently used so
@@ -75,7 +75,7 @@ interface ProviderUIOverlay {
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
   subscriptionCommand?: string;
   deviceLogin?: boolean;
-  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token' | 'cli_oauth';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
   subscriptionTokenAlternative?: {
     prefix: string;
     placeholder: string;
@@ -144,7 +144,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Claude, DeepSeek, MiniMax, GLM, Qwen via Kiro',
     supportsSubscription: true,
     subscriptionLabel: 'Kiro subscription',
-    subscriptionAuthMode: 'cli_oauth',
+    subscriptionAuthMode: 'device_code',
     subscriptionOnly: true,
     beta: true,
     models: [],

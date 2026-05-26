@@ -61,16 +61,22 @@ export function revokeMinimaxOAuth(agentName: string, label?: string) {
   );
 }
 
-export interface KiroCliConnectResponse {
-  ok: true;
-  expiresAt: string;
-  authMethod?: string;
-  provider?: string;
+export function startKiroOAuth(agentName: string) {
+  return fetchMutate<MinimaxOAuthStartResponse>(
+    `/oauth/kiro/start?agentName=${encodeURIComponent(agentName)}`,
+    { method: 'POST' },
+  );
 }
 
-export function connectKiroCliOAuth(agentName: string) {
-  return fetchMutate<KiroCliConnectResponse>(
-    `/oauth/kiro/cli-connect?agentName=${encodeURIComponent(agentName)}`,
+export function pollKiroOAuth(flowId: string) {
+  return fetchJson<MinimaxOAuthPollResponse>(`/oauth/kiro/poll`, { flowId });
+}
+
+export function revokeKiroOAuth(agentName: string, label?: string) {
+  const params = new URLSearchParams({ agentName });
+  if (label) params.set('label', label);
+  return fetchMutate<{ ok: boolean; notifications?: string[] }>(
+    `/oauth/kiro/revoke?${params.toString()}`,
     { method: 'POST' },
   );
 }
@@ -161,6 +167,42 @@ export function getPopupOauthApi(providerId: string): PopupOauthApi {
   const api = POPUP_OAUTH_PROVIDERS[providerId];
   if (!api) {
     throw new Error(`Provider "${providerId}" does not support popup OAuth`);
+  }
+  return api;
+}
+
+/**
+ * Dispatch table for device-code providers. DeviceCodeDetailView picks the
+ * right start/poll/revoke triplet by provider id. `hasRegion` gates the
+ * MiniMax-only region selector — providers without it (e.g. Kiro) ignore the
+ * region argument.
+ */
+export interface DeviceCodeApi {
+  start: (agentName: string, region?: MinimaxOAuthRegion) => Promise<MinimaxOAuthStartResponse>;
+  poll: (flowId: string) => Promise<MinimaxOAuthPollResponse>;
+  revoke: (agentName: string, label?: string) => Promise<{ ok: boolean; notifications?: string[] }>;
+  hasRegion: boolean;
+}
+
+const DEVICE_CODE_PROVIDERS: Record<string, DeviceCodeApi> = {
+  minimax: {
+    start: (agentName, region) => startMinimaxOAuth(agentName, region ?? 'global'),
+    poll: pollMinimaxOAuth,
+    revoke: revokeMinimaxOAuth,
+    hasRegion: true,
+  },
+  kiro: {
+    start: (agentName) => startKiroOAuth(agentName),
+    poll: pollKiroOAuth,
+    revoke: revokeKiroOAuth,
+    hasRegion: false,
+  },
+};
+
+export function getDeviceCodeApi(providerId: string): DeviceCodeApi {
+  const api = DEVICE_CODE_PROVIDERS[providerId];
+  if (!api) {
+    throw new Error(`Provider "${providerId}" does not support device-code OAuth`);
   }
   return api;
 }
