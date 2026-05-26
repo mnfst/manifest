@@ -1,5 +1,43 @@
 # manifest
 
+## 6.6.2
+
+### Patch Changes
+
+- b6920d3: refactor(proxy): forward Anthropic Messages requests to Anthropic upstreams without OpenAI translation
+
+  When a `POST /v1/messages` request resolves to an Anthropic upstream, the
+  proxy now forwards the original Anthropic body directly with only additive
+  mutations applied (cache_control on the last system block and last tool,
+  subscription identity injection for OAuth, default max_tokens, cached
+  extended-thinking replay). The OpenAI-shaped `chatBody` is retained for
+  the routing/scoring layer but no longer feeds the wire request.
+
+  Closes the lossy-roundtrip class of bugs that previously dropped Anthropic-
+  native fields (server-tool `type` discriminators, `top_k`, native
+  `stop_sequences` form, future Anthropic-only parameters) through the
+  Anthropic → OpenAI → Anthropic translation. Replaces the targeted
+  `_anthropicServerTools` stash workaround.
+
+- 07bc952: Set Claude Code setup snippets to use Manifest's `auto` model by default and expose it through `/v1/models`.
+- 610c408: Show captured assistant responses as the final turn in recorded OpenAI Chat and Responses API message log conversations.
+- 58dd78c: Show configured task-specific and custom tiers in the Messages tier filter and route those selections to the matching message-log filters.
+- ebb1e2b: Use modelparams.dev parameter descriptions in the Model parameters dialog instead of local hardcoded hints.
+- 534ff60: Refresh the Model parameters dialog with grouped cards, inline descriptions, a compact slider with min/max markers, and a synced number field. Disabled parameters now keep their description and gain a help icon explaining how to enable them, while remembering the last user value for when they become available again.
+- 6cd59c7: Resolve modelparams.dev provider aliases such as Z.ai's `z-ai` catalog ID when loading configurable model parameters.
+- ec47903: Keep the OpenAI OAuth callback paste field visible while an OAuth flow is active, align the OpenAI authorize request with the current Codex CLI flow, and persist pending OpenAI OAuth exchanges across backend instances.
+- 261769d: fix(proxy): re-inject cached reasoning_content for OpenAI-compatible tool turns
+
+  When reasoning providers return `reasoning_content` alongside tool calls, Manifest now caches the field and restores it on the next request if an OpenAI-compatible client dropped it from the assistant history. The replay is guarded to DeepSeek/Kimi/OpenCode Go-compatible targets and strict providers still have the field stripped.
+
+- 130eb3c: Remove the recorded-only filter from the messages dashboard.
+- 96cdd40: Persist cached `reasoning_content` for DeepSeek-compatible tool-call turns in Postgres so cloud deployments with multiple backend instances can re-inject the required field on follow-up requests.
+- 2bf3734: Render recorded OpenAI Responses API request input in the message log conversation tab instead of falling back to the raw-body hint.
+- d061461: fix(proxy): route xAI Responses API requests to xAI's native /v1/responses endpoint
+
+  Adds native xAI Responses API forwarding and routes xAI multi-agent Grok models
+  through /v1/responses instead of filtering them out of model discovery.
+
 ## 6.6.1
 
 ### Patch Changes
