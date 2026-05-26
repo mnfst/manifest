@@ -50,6 +50,7 @@ export {
   isParamApplicability,
   isProviderParamPath,
   MODEL_CAPABILITIES,
+  normalizeProviderParamProviderId,
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
   providerParamIsApplicable,

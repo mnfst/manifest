@@ -53,7 +53,8 @@ const ClaudeCodeSetup: Component<Props> = (props) => {
     <div class="setup-agents-card">
       <p class="setup-method__hint">
         Add this block to <code class="setup-model-hint__code">~/.claude/settings.json</code> —
-        every <code class="setup-model-hint__code">claude</code> run will route through Manifest.
+        every <code class="setup-model-hint__code">claude</code> run will route through Manifest
+        with <code class="setup-model-hint__code">auto</code>.
       </p>
 
       <div class="setup-cli-block">

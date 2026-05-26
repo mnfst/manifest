@@ -23,6 +23,7 @@ import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
+import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -107,6 +108,7 @@ import { ScopeAgentModelParams1789200000000 } from './migrations/1789200000000-S
 import { EnableRecordMessagesForAll1789300000000 } from './migrations/1789300000000-EnableRecordMessagesForAll';
 import { AddRoutingOutputControls1789300000000 } from './migrations/1789300000000-AddRoutingOutputControls';
 import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/1790000000000-AddAgentApiKeyPrefixActiveIndex';
+import { AddReasoningContentCache1790100000000 } from './migrations/1790100000000-AddReasoningContentCache';
 
 const entities = [
   AgentMessage,
@@ -130,6 +132,7 @@ const entities = [
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
+  ReasoningContentCacheEntry,
 ];
 
 const migrations = [
@@ -215,6 +218,7 @@ const migrations = [
   EnableRecordMessagesForAll1789300000000,
   AddRoutingOutputControls1789300000000,
   AddAgentApiKeyPrefixActiveIndex1790000000000,
+  AddReasoningContentCache1790100000000,
 ];
 
 @Module({
@@ -262,6 +266,7 @@ const migrations = [
       HeaderTier,
       MessageRecording,
       AgentModelParams,
+      ReasoningContentCacheEntry,
     ]),
     ModelPricesModule,
   ],

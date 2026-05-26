@@ -122,6 +122,39 @@ describe('ProviderParamSpecService', () => {
     ]);
   });
 
+  it('canonicalizes provider aliases when listing model identities', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => ({
+        models: [
+          {
+            provider: 'z-ai',
+            authType: 'subscription',
+            model: 'glm-5',
+            params: [
+              {
+                path: 'max_tokens',
+                type: 'integer',
+                label: 'Max tokens',
+                description: 'Upper bound on generated tokens.',
+                group: 'generation_length',
+                range: { min: 1 },
+              },
+            ],
+          },
+        ],
+      }),
+    } as unknown as Response);
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+
+    expect(service.listModelIds()).toEqual([
+      { provider: 'zai', authType: 'subscription', model: 'glm-5' },
+    ]);
+  });
+
   it('sends If-None-Match and keeps the cache on a 304 response', async () => {
     mockRemoteCatalog('"v1"');
     const service = new ProviderParamSpecService();

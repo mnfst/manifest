@@ -1,4 +1,13 @@
+import type { Repository } from 'typeorm';
+import { ReasoningContentCacheEntry } from '../../../entities/reasoning-content-cache-entry.entity';
 import { ReasoningContentCache } from '../reasoning-content-cache';
+
+const makeRepo = () =>
+  ({
+    upsert: jest.fn().mockResolvedValue(undefined),
+    find: jest.fn().mockResolvedValue([]),
+    delete: jest.fn().mockResolvedValue(undefined),
+  }) as unknown as jest.Mocked<Repository<ReasoningContentCacheEntry>>;
 
 describe('ReasoningContentCache', () => {
   let cache: ReasoningContentCache;
@@ -79,6 +88,101 @@ describe('ReasoningContentCache', () => {
     cache.store('session-1', 'call_1', 'new');
 
     expect(cache.retrieve('session-1', 'call_1')).toBe('new');
+  });
+
+  it('persists stored reasoning_content to the shared repository when available', () => {
+    const repo = makeRepo();
+    const sharedCache = new ReasoningContentCache(repo);
+
+    sharedCache.store('session-1', 'call_1', 'thinking');
+
+    expect(repo.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        session_key: 'session-1',
+        first_tool_call_id: 'call_1',
+        content: 'thinking',
+      }),
+      ['session_key', 'first_tool_call_id'],
+    );
+  });
+
+  it('retrieves shared reasoning_content and warms the local cache', async () => {
+    const repo = makeRepo();
+    repo.find.mockResolvedValue([
+      {
+        session_key: 'session-1',
+        first_tool_call_id: 'call_2',
+        content: 'shared thinking',
+        expires_at: new Date(Date.now() + 60_000).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
+    const sharedCache = new ReasoningContentCache(repo);
+
+    const result = await sharedCache.retrieveMany('session-1', ['call_2']);
+
+    expect(result.get('call_2')).toBe('shared thinking');
+    expect(sharedCache.retrieve('session-1', 'call_2')).toBe('shared thinking');
+  });
+
+  it('re-injects shared reasoning_content into compatible assistant tool-call messages', async () => {
+    const repo = makeRepo();
+    repo.find.mockResolvedValue([
+      {
+        session_key: 'session-1',
+        first_tool_call_id: 'call_1',
+        content: 'shared thinking',
+        expires_at: new Date(Date.now() + 60_000).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
+    const sharedCache = new ReasoningContentCache(repo);
+    const body = {
+      messages: [
+        {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+      ],
+    };
+
+    const result = await sharedCache.reinjectMissingReasoningContent(
+      body,
+      'session-1',
+      'deepseek',
+      'deepseek-chat',
+    );
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    const originalMessages = body.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBe('shared thinking');
+    expect(originalMessages[0].reasoning_content).toBeUndefined();
+  });
+
+  it('does not query shared cache for strict providers', async () => {
+    const repo = makeRepo();
+    const sharedCache = new ReasoningContentCache(repo);
+    const body = {
+      messages: [
+        {
+          role: 'assistant',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+      ],
+    };
+
+    const result = await sharedCache.reinjectMissingReasoningContent(
+      body,
+      'session-1',
+      'mistral',
+      'mistral-large',
+    );
+
+    expect(result).toBe(body);
+    expect(repo.find).not.toHaveBeenCalled();
   });
 
   it('evicts expired entries lazily when cleanup interval has elapsed', () => {
