@@ -38,7 +38,7 @@ import type { CaptureSink } from './recording-capture';
 import { sanitizeResponseHeaders } from './recording-capture';
 import {
   unwrapCodeAssistResponse,
-  unwrapCodeAssistStreamChunk,
+  unwrapCodeAssistStreamPayload,
 } from '../oauth/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
@@ -311,7 +311,7 @@ export async function handleStreamResponse(
       forward.response.body!,
       res,
       (chunk) => {
-        const innerChunk = forward.isCodeAssist ? unwrapCodeAssistStreamChunk(chunk) : chunk;
+        const innerChunk = forward.isCodeAssist ? unwrapCodeAssistStreamPayload(chunk) : chunk;
         const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(
           innerChunk,
           meta.model,

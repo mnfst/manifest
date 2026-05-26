@@ -16,7 +16,7 @@ export function unwrapCodeAssistResponse(body: Record<string, unknown>): Record<
   return inner && typeof inner === 'object' ? (inner as Record<string, unknown>) : body;
 }
 
-function unwrapCodeAssistStreamPayload(payload: string): string {
+export function unwrapCodeAssistStreamPayload(payload: string): string {
   if (!payload || payload === '[DONE]') return payload;
   try {
     const parsed = JSON.parse(payload) as Record<string, unknown>;
