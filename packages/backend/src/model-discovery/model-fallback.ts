@@ -268,15 +268,16 @@ export function buildSubscriptionFallbackModels(
     }
   }
 
-  // Add any knownModels not already covered by discovered models.
-  // A knownModel is "covered" if any discovered model starts with it as a prefix
-  // (e.g., "claude-opus-4" is covered by "claude-opus-4-20260301").
+  // Add any knownModels not already covered by discovered models. Prefix-mode
+  // providers treat versioned IDs as covered by the family ID; exact-mode
+  // providers only treat an identical ID as covered.
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
   for (const modelId of knownPrefixes) {
     const lowerModelId = modelId.toLowerCase();
     const covered = models.some((m) => {
       const lowerDiscovered = m.id.toLowerCase();
-      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+      if (lowerDiscovered === lowerModelId) return true;
+      return matchMode !== 'exact' && lowerDiscovered.startsWith(`${lowerModelId}-`);
     });
     if (covered) continue;
     models.push({
@@ -306,16 +307,19 @@ export function supplementWithKnownModels(
 ): DiscoveredModel[] {
   const knownModels = getSubscriptionKnownModels(providerId);
   if (!knownModels) return raw;
+  const matchMode = getSubscriptionKnownModelsMatch(providerId);
 
   const capabilities = getSubscriptionCapabilities(providerId);
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
 
   for (const modelId of knownModels) {
     const lowerModelId = modelId.toLowerCase();
-    // Skip if this model or a more specific version (e.g., with date suffix) already exists
+    // Skip if this model is already present. Prefix-mode providers also treat
+    // a more specific version (e.g., with a date suffix) as covered.
     const covered = raw.some((m) => {
       const lowerDiscovered = m.id.toLowerCase();
-      return lowerDiscovered === lowerModelId || lowerDiscovered.startsWith(`${lowerModelId}-`);
+      if (lowerDiscovered === lowerModelId) return true;
+      return matchMode !== 'exact' && lowerDiscovered.startsWith(`${lowerModelId}-`);
     });
     if (covered) continue;
     raw.push({

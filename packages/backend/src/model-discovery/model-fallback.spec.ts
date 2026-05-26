@@ -310,6 +310,16 @@ describe('buildSubscriptionFallbackModels', () => {
             displayName: 'Gemini 2.5 Flash',
           },
         ],
+        // Exact current preview model → included because it is explicitly known
+        [
+          'google/gemini-3.1-pro-preview',
+          {
+            input: 0.000002,
+            output: 0.000012,
+            contextWindow: 1000000,
+            displayName: 'Gemini 3.1 Pro Preview',
+          },
+        ],
         // Suffixed preview → excluded in exact mode
         [
           'google/gemini-2.5-pro-preview-06-05',
@@ -342,6 +352,7 @@ describe('buildSubscriptionFallbackModels', () => {
 
       expect(ids).toContain('gemini-2.5-pro');
       expect(ids).toContain('gemini-2.5-flash');
+      expect(ids).toContain('gemini-3.1-pro-preview');
       // Suffixed variants excluded
       expect(ids).not.toContain('gemini-2.5-pro-preview-06-05');
       expect(ids).not.toContain('gemini-2.5-flash-lite-preview-06-17');
@@ -404,10 +415,13 @@ describe('buildSubscriptionFallbackModels', () => {
       expect(anthropicResult.map((m) => m.id)).toContain('claude-opus-4-20260301');
       // Exact: preview suffix rejected
       expect(geminiResult.map((m) => m.id)).not.toContain('gemini-2.5-pro-preview');
-      // All 3 knownModels added directly as zero-cost for gemini
+      // Exact mode keeps explicit known preview IDs separate from their base model IDs.
       expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-pro');
       expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-flash');
       expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-flash-lite');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-3.1-pro-preview');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-3.1-flash-lite');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-3.1-flash-lite-preview');
     });
 
     it('applies maxContextWindow cap from gemini subscription capabilities', () => {
@@ -432,14 +446,18 @@ describe('buildSubscriptionFallbackModels', () => {
       expect(proModel!.contextWindow).toBe(1000000);
     });
 
-    it('returns all 3 gemini knownModels as zero-cost when pricingSync returns nothing', () => {
+    it('returns all gemini knownModels as zero-cost when pricingSync returns nothing', () => {
       const result = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'gemini');
 
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'gemini-2.5-flash',
         'gemini-2.5-flash-lite',
         'gemini-2.5-pro',
+        'gemini-3-flash-preview',
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite-preview',
+        'gemini-3.1-pro-preview',
       ]);
       for (const m of result) {
         expect(m.inputPricePerToken).toBe(0);
@@ -491,6 +509,28 @@ describe('supplementWithKnownModels', () => {
 
     const opusEntries = result.filter((m) => m.id.startsWith('claude-opus-4'));
     expect(opusEntries).toHaveLength(1);
+  });
+
+  it('keeps explicit gemini preview known models separate in exact mode', () => {
+    const raw = [
+      {
+        id: 'gemini-3.1-flash-lite',
+        displayName: 'Gemini 3.1 Flash-Lite',
+        provider: 'gemini',
+        contextWindow: 1000000,
+        inputPricePerToken: 0.0000001,
+        outputPricePerToken: 0.0000008,
+        capabilityReasoning: false,
+        capabilityCode: false,
+        qualityScore: 3,
+      },
+    ];
+
+    const result = supplementWithKnownModels(raw, 'gemini');
+    const ids = result.map((m) => m.id);
+
+    expect(ids).toContain('gemini-3.1-flash-lite');
+    expect(ids).toContain('gemini-3.1-flash-lite-preview');
   });
 });
 

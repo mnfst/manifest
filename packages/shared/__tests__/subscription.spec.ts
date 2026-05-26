@@ -128,7 +128,15 @@ describe('getSubscriptionProviderConfig', () => {
       knownModelsMatch: 'exact',
     });
     expect(config?.knownModels).toEqual(
-      expect.arrayContaining(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']),
+      expect.arrayContaining([
+        'gemini-3.1-pro-preview',
+        'gemini-3-flash-preview',
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite-preview',
+        'gemini-2.5-pro',
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
+      ]),
     );
     expect(config?.subscriptionCapabilities).toMatchObject({
       maxContextWindow: 1000000,
@@ -207,6 +215,10 @@ describe('getSubscriptionKnownModels', () => {
 
   it('returns known models for gemini', () => {
     const models = getSubscriptionKnownModels('gemini');
+    expect(models).toContain('gemini-3.1-pro-preview');
+    expect(models).toContain('gemini-3-flash-preview');
+    expect(models).toContain('gemini-3.1-flash-lite');
+    expect(models).toContain('gemini-3.1-flash-lite-preview');
     expect(models).toContain('gemini-2.5-pro');
     expect(models).toContain('gemini-2.5-flash');
     expect(models).toContain('gemini-2.5-flash-lite');
@@ -228,7 +240,8 @@ describe('getSubscriptionKnownModelsMatch', () => {
   });
 
   it('returns exact for gemini', () => {
-    // gemini has knownModelsMatch: 'exact' — CodeAssist 404s on suffixed variants
+    // gemini has knownModelsMatch: 'exact' — only explicitly allowed CodeAssist
+    // model IDs are shown.
     expect(getSubscriptionKnownModelsMatch('gemini')).toBe('exact');
   });
 

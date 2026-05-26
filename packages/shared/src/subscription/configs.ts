@@ -107,14 +107,20 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'Sign in with Google',
     subscriptionAuthMode: 'popup_oauth' as const,
-    // CodeAssist (gemini-cli) supports a fixed list of Gemini models on the
-    // free tier. The dashboard uses these as fallback when no native /models
-    // call returns (CodeAssist does not expose one).
-    // Free-tier CodeAssist exposes only the 2.5 family. The 2.0-flash
-    // models that the standard Gemini API offers are 404 here, so we keep
-    // them out of the discovered list rather than letting users pick
-    // models that fail at chat time.
-    knownModels: Object.freeze(['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']),
+    // CodeAssist (gemini-cli) supports a fixed list of Gemini models. The
+    // dashboard uses these as fallback when no native /models call returns
+    // (CodeAssist does not expose one). Keep this list strict to models that
+    // the CodeAssist route recognizes; some current Gemini API model IDs still
+    // 404 on the CodeAssist API.
+    knownModels: Object.freeze([
+      'gemini-3.1-pro-preview',
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite',
+      'gemini-3.1-flash-lite-preview',
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+    ]),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1000000,
