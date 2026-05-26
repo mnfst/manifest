@@ -7,6 +7,7 @@
 export function monitorOAuthPopup(
   popup: Window,
   callbacks: { onSuccess: () => void; onFailure: () => void },
+  donePath = '/oauth/openai/done',
 ): void {
   let handled = false;
   let bc: BroadcastChannel | null = null;
@@ -62,7 +63,7 @@ export function monitorOAuthPopup(
   pollRef = setInterval(() => {
     try {
       const doneUrl = popup.location?.href;
-      if (doneUrl?.includes('/oauth/openai/done')) {
+      if (doneUrl?.includes(donePath)) {
         const ok = new URL(doneUrl).searchParams.get('ok') === '1';
         handleResult(ok);
       }

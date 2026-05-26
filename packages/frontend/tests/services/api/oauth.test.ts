@@ -35,11 +35,39 @@ describe('oauth API client', () => {
     expect(url).toContain('agentName=demo');
   });
 
+  it('getXaiOAuthUrl forwards agentName as a query param', async () => {
+    const fetchMock = setupFetch({ url: 'https://auth.x.ai/oauth2/authorize?state=s' });
+    const out = await oauth.getXaiOAuthUrl('demo');
+    expect(out).toEqual({ url: 'https://auth.x.ai/oauth2/authorize?state=s' });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/xai/authorize');
+    expect(url).toContain('agentName=demo');
+  });
+
+  it('submitXaiOAuthCallback POSTs code + state as JSON', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.submitXaiOAuthCallback('code-1', 'state-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/xai/callback');
+    const req = init as RequestInit;
+    expect(req.method).toBe('POST');
+    expect(req.body).toBe(JSON.stringify({ code: 'code-1', state: 'state-1' }));
+    expect((req.headers as Record<string, string>)['Content-Type']).toBe('application/json');
+  });
+
   it('revokeOpenaiOAuth POSTs with the encoded agent name in the URL', async () => {
     const fetchMock = setupFetch({ ok: true });
     await oauth.revokeOpenaiOAuth('my agent');
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/oauth/openai/revoke?agentName=my+agent');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('revokeXaiOAuth POSTs with the encoded agent name and label in the URL', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await oauth.revokeXaiOAuth('my agent', 'X Account');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/oauth/xai/revoke?agentName=my+agent&label=X+Account');
     expect((init as RequestInit).method).toBe('POST');
   });
 

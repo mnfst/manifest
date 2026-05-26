@@ -5,6 +5,9 @@ import { createSignal } from 'solid-js';
 const mockGetOpenaiOAuthUrl = vi.fn();
 const mockSubmitOpenaiOAuthCallback = vi.fn();
 const mockRevokeOpenaiOAuth = vi.fn();
+const mockGetXaiOAuthUrl = vi.fn();
+const mockSubmitXaiOAuthCallback = vi.fn();
+const mockRevokeXaiOAuth = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockRenameProviderKey = vi.fn();
 const mockToastError = vi.fn();
@@ -14,11 +17,21 @@ vi.mock('../../src/services/api.js', () => ({
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
   revokeOpenaiOAuth: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
-  getPopupOauthApi: () => ({
-    getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
-    submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
-    revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
-  }),
+  getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+  submitXaiOAuthCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
+  revokeXaiOAuth: (...args: unknown[]) => mockRevokeXaiOAuth(...args),
+  getPopupOauthApi: (providerId: string) =>
+    providerId === 'xai'
+      ? {
+          getUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
+          submitCallback: (...args: unknown[]) => mockSubmitXaiOAuthCallback(...args),
+          revoke: (...args: unknown[]) => mockRevokeXaiOAuth(...args),
+        }
+      : {
+          getUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
+          submitCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
+          revoke: (...args: unknown[]) => mockRevokeOpenaiOAuth(...args),
+        },
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
   renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
 }));
@@ -37,6 +50,7 @@ vi.mock('../../src/services/oauth-popup.js', () => ({
 import OAuthDetailView from '../../src/components/OAuthDetailView';
 import type { ProviderDef } from '../../src/services/providers.js';
 import type { RoutingProvider } from '../../src/services/api.js';
+import { monitorOAuthPopup } from '../../src/services/oauth-popup.js';
 
 const provDef: ProviderDef = {
   id: 'openai',
@@ -51,6 +65,14 @@ const provDef: ProviderDef = {
   supportsSubscription: true,
   subscriptionLabel: 'ChatGPT Plus subscription',
   subscriptionAuthMode: 'oauth',
+};
+
+const xaiProvDef: ProviderDef = {
+  ...provDef,
+  id: 'xai',
+  name: 'xAI',
+  initial: 'X',
+  subscriptionLabel: 'Grok subscription',
 };
 
 function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
@@ -74,6 +96,8 @@ function renderView(
     connected?: boolean;
     activeKeys?: RoutingProvider[];
     addKeyOpen?: boolean;
+    provId?: string;
+    provDef?: ProviderDef;
   } = {},
 ) {
   const [busy, setBusy] = createSignal(false);
@@ -82,10 +106,11 @@ function renderView(
   const onUpdate = vi.fn();
   const onClose = vi.fn();
   const keys = opts.activeKeys ?? [];
+  const providerId = opts.provId ?? 'openai';
   const result = render(() => (
     <OAuthDetailView
-      provDef={provDef}
-      provId="openai"
+      provDef={opts.provDef ?? provDef}
+      provId={providerId}
       agentName="test-agent"
       connected={() => opts.connected ?? false}
       selectedAuthType={() => 'subscription'}
@@ -225,6 +250,46 @@ describe('OAuthDetailView', () => {
         screen.getByPlaceholderText('http://localhost:1455/auth/callback?code=...'),
       ).toBeDefined();
     });
+  });
+
+  it('starts xAI OAuth with the xAI callback path and placeholder', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+
+    await waitFor(() => {
+      expect(mockGetXaiOAuthUrl).toHaveBeenCalledWith('test-agent');
+    });
+    expect(screen.getByPlaceholderText('http://127.0.0.1:56121/callback?code=...')).toBeDefined();
+    expect(monitorOAuthPopup).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      '/oauth/xai/done',
+    );
+  });
+
+  it('submits an xAI pasted callback URL through the xAI OAuth API', async () => {
+    mockGetXaiOAuthUrl.mockResolvedValue({ url: 'https://auth.x.ai/oauth2/authorize' });
+    mockSubmitXaiOAuthCallback.mockResolvedValue({ ok: true });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { onUpdate } = renderView({ provId: 'xai', provDef: xaiProvDef });
+    fireEvent.click(screen.getByText('Log in with xAI'));
+    const input = await waitFor(() =>
+      screen.getByPlaceholderText('http://127.0.0.1:56121/callback?code=...'),
+    );
+    fireEvent.input(input, {
+      target: { value: 'http://127.0.0.1:56121/callback?code=xai-code&state=xai-state' },
+    });
+    fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() => {
+      expect(mockSubmitXaiOAuthCallback).toHaveBeenCalledWith('xai-code', 'xai-state');
+    });
+    expect(mockToastSuccess).toHaveBeenCalledWith('xAI subscription connected');
+    expect(onUpdate).toHaveBeenCalled();
   });
 
   it('shows popup-blocked toast when window.open returns null', async () => {

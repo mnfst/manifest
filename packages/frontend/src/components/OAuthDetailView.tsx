@@ -46,6 +46,10 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [renameValue, setRenameValue] = createSignal('');
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
+  const callbackPlaceholder = () =>
+    props.provId === 'xai'
+      ? 'http://127.0.0.1:56121/callback?code=...'
+      : 'http://localhost:1455/auth/callback?code=...';
   const activeKeyCount = () => (props.activeKeys?.() ?? []).length;
   const flowHasConnected = () => {
     const baseline = flowKeyCount();
@@ -106,12 +110,16 @@ const OAuthDetailView: Component<Props> = (props) => {
       setSuccessHandled(false);
       props.setBusy(false);
 
-      monitorOAuthPopup(popup, {
-        onSuccess: finishOAuthSuccess,
-        onFailure: () => {
-          // Popup closed without auto-redirect — user needs to paste the URL
+      monitorOAuthPopup(
+        popup,
+        {
+          onSuccess: finishOAuthSuccess,
+          onFailure: () => {
+            // Popup closed without auto-redirect — user needs to paste the URL
+          },
         },
-      });
+        `/oauth/${props.provId}/done`,
+      );
     } catch {
       props.setBusy(false);
     }
@@ -229,8 +237,8 @@ const OAuthDetailView: Component<Props> = (props) => {
           }
         >
           <p class="provider-detail__hint">
-            A login window has opened. After you sign in, the popup will show a "can't be reached"
-            page. This is expected.
+            A login window has opened. If it does not close automatically after sign-in, paste the
+            callback URL below.
           </p>
           <p class="provider-detail__hint" style="margin-top: 8px;">
             Copy the full URL from the{' '}
@@ -253,7 +261,7 @@ const OAuthDetailView: Component<Props> = (props) => {
               classList={{ 'provider-detail__input--error': !!pasteError() }}
               type="text"
               autocomplete="off"
-              placeholder="http://localhost:1455/auth/callback?code=..."
+              placeholder={callbackPlaceholder()}
               value={pasteUrl()}
               onInput={(e) => {
                 setPasteUrl(e.currentTarget.value);
