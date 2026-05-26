@@ -1,5 +1,18 @@
 # manifest
 
+## 6.8.0
+
+### Minor Changes
+
+- 19e2d5b: Kiro subscriptions now connect in Manifest Cloud. Kiro previously used a local-only CLI flow (reading the `kiro-cli` token cache off the backend's own disk), so it only worked when self-hosting. It now uses the AWS SSO OIDC device authorization flow server-side — register → show a user code + verification link → poll for the token — exactly like the GitHub Copilot and MiniMax subscriptions, working identically on a laptop and in the cloud.
+
+### Patch Changes
+
+- 8061e86: Show capability badges for gateway models in the model picker. A gateway model like `opencode-go/glm-5.1` now resolves its capabilities from the underlying provider's models.dev metadata (`zai` / `glm-5.1`) instead of showing "Capabilities unknown". The resolution is gateway-generic — it keys off the shared gateway-prefix abstraction, so any gateway added later inherits it automatically.
+- b13ac3d: Add Grok subscription provider support with xAI OAuth login and dynamic xAI model discovery.
+- 20c7c40: Add NVIDIA NIM as an official API-key routing provider.
+- f71c741: Show OpenCode Go's per-request cost in the model picker and tier cards. OpenCode Go bills a per-request slice of its dollar quota rather than a flat fee, so models with a published cost now display e.g. `$0.0136/req` instead of the generic "Included in subscription" label. The `available-models` API surfaces `cost_per_request` (from the OpenCode Go catalog) for gateway models; flat-fee subscriptions are unchanged.
+
 ## 6.7.0
 
 ### Minor Changes
