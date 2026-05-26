@@ -283,7 +283,7 @@ export async function handleStreamResponse(
   capture?: CaptureSink,
   reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
-  initSseHeaders(res, metaHeaders);
+  initSseHeaders(res, metaHeaders, 200);
 
   if (capture) {
     capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));

@@ -8,7 +8,7 @@ import {
 } from '../stream-writer';
 
 function mockResponse(): {
-  res: Record<string, jest.Mock | boolean>;
+  res: Record<string, jest.Mock | boolean | number>;
   written: string[];
   headers: Record<string, string>;
 } {
@@ -24,6 +24,7 @@ function mockResponse(): {
     }),
     end: jest.fn(),
     writableEnded: false,
+    statusCode: 201,
   };
   return { res, written, headers };
 }
@@ -39,6 +40,22 @@ describe('initSseHeaders', () => {
     expect(headers['Connection']).toBe('keep-alive');
     expect(headers['X-Accel-Buffering']).toBe('no');
     expect(res.flushHeaders).toHaveBeenCalled();
+  });
+
+  it('should preserve the current status code unless one is provided', () => {
+    const { res } = mockResponse();
+
+    initSseHeaders(res as never);
+
+    expect(res.statusCode).toBe(201);
+  });
+
+  it('should set the status code when provided', () => {
+    const { res } = mockResponse();
+
+    initSseHeaders(res as never, {}, 200);
+
+    expect(res.statusCode).toBe(200);
   });
 
   it('should set extra headers when provided', () => {
