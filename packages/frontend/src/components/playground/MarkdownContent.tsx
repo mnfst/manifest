@@ -64,7 +64,10 @@ const MarkdownContent: Component<Props> = (props) => {
   });
 
   return (
-    <Show when={html() != null} fallback={<pre class="markdown-loading">{props.text}</pre>}>
+    <Show
+      when={html() != null}
+      fallback={<pre class={`${props.class ?? ''} markdown-loading`.trim()}>{props.text}</pre>}
+    >
       <div class={props.class} innerHTML={html()!} />
     </Show>
   );

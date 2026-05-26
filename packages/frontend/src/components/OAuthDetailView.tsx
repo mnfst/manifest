@@ -144,6 +144,9 @@ const OAuthDetailView: Component<Props> = (props) => {
       setSuccessHandled(false);
       props.setBusy(false);
 
+      // Dispose any in-flight monitor from a previous start before replacing it,
+      // so repeated logins don't orphan the earlier poll/listener handle.
+      disposeOAuthMonitor?.();
       disposeOAuthMonitor = monitorOAuthPopup(
         popup,
         {
