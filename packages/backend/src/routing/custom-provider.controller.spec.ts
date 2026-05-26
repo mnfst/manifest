@@ -261,6 +261,7 @@ describe('CustomProviderController', () => {
         'http://host.docker.internal:8000/v1',
         'sk-x',
         undefined,
+        undefined,
       );
       expect(result).toEqual({ models: [{ model_name: 'm1' }, { model_name: 'm2' }] });
     });
@@ -275,6 +276,21 @@ describe('CustomProviderController', () => {
         'https://api.anthropic.com',
         'sk-ant-x',
         'anthropic',
+        undefined,
+      );
+    });
+
+    it('forwards provider_name so probe results can be price-enriched', async () => {
+      await controller.probe(mockUser, 'test-agent', {
+        base_url: 'https://api.kilo.ai/api/gateway',
+        apiKey: 'kilo-x',
+        provider_name: 'Kilo Gateway',
+      } as never);
+      expect(mockCustomProviderService.probeModels).toHaveBeenCalledWith(
+        'https://api.kilo.ai/api/gateway',
+        'kilo-x',
+        undefined,
+        'Kilo Gateway',
       );
     });
 

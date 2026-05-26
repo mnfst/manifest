@@ -125,6 +125,25 @@ describe('api/routing', () => {
     expect(body.apiKey).toBeUndefined();
   });
 
+  it('probeCustomProvider can include a provider name for price enrichment', async () => {
+    mockOk({
+      models: [{ model_name: 'openai/gpt-4o-mini', input_price_per_million_tokens: 0.15 }],
+    });
+    await probeCustomProvider(
+      'demo-agent',
+      'https://api.kilo.ai/api/gateway',
+      undefined,
+      'openai',
+      'Kilo Gateway',
+    );
+    const [, init] = mockFetch.mock.calls[0];
+    expect(JSON.parse(init.body)).toEqual({
+      base_url: 'https://api.kilo.ai/api/gateway',
+      api_kind: 'openai',
+      provider_name: 'Kilo Gateway',
+    });
+  });
+
   it('deleteCustomProvider DELETEs the custom provider by ID', async () => {
     mockOk({ ok: true });
     const out = await deleteCustomProvider('demo-agent', 'cp-123');

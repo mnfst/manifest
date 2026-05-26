@@ -350,6 +350,7 @@ export interface CustomProviderModel {
   input_price_per_million_tokens?: number;
   output_price_per_million_tokens?: number;
   context_window?: number;
+  price_estimated?: boolean;
 }
 
 export interface CustomProviderData {
@@ -434,20 +435,21 @@ export async function probeCustomProvider(
   base_url: string,
   apiKey?: string,
   api_kind?: CustomProviderApiKind,
+  provider_name?: string,
 ) {
   const res = await fetch(`${BASE_URL}${routingPath(agentName, 'custom-providers/probe')}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base_url, apiKey, api_kind }),
+    body: JSON.stringify({ base_url, apiKey, api_kind, provider_name }),
   });
   if (!res.ok) {
     const message = await parseErrorMessage(res);
     throw new Error(message);
   }
   const text = await res.text();
-  if (!text) return { models: [] } as { models: { model_name: string }[] };
-  return JSON.parse(text) as { models: { model_name: string }[] };
+  if (!text) return { models: [] } as { models: CustomProviderModel[] };
+  return JSON.parse(text) as { models: CustomProviderModel[] };
 }
 
 export function deleteCustomProvider(agentName: string, id: string) {

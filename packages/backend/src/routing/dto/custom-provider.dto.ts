@@ -13,6 +13,7 @@ import {
   IsUrl,
   IsIn,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -43,6 +44,10 @@ export class CustomProviderModelDto {
   @Min(1)
   @Type(() => Number)
   context_window?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  price_estimated?: boolean;
 }
 
 export class CreateCustomProviderDto {
@@ -81,6 +86,11 @@ export class ProbeCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  provider_name?: string;
 
   @IsOptional()
   @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })

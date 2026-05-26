@@ -731,6 +731,39 @@
   gap: 6px;
 }
 
+.custom-provider-models__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.custom-provider-models__columns {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.custom-provider-models__column {
+  min-width: 0;
+}
+
+.custom-provider-models__column--name {
+  flex: 2;
+}
+
+.custom-provider-models__column--price {
+  flex: 1;
+}
+
+.custom-provider-models__column-spacer {
+  width: 32px;
+  flex-shrink: 0;
+}
+
 .custom-provider-model-row {
   display: flex;
   gap: 6px;

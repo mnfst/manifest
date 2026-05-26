@@ -1,4 +1,5 @@
 import { createSignal, onCleanup, type Component } from 'solid-js';
+import { Portal } from 'solid-js/web';
 
 interface Props {
   text: string;
@@ -6,15 +7,22 @@ interface Props {
 
 const InfoTooltip: Component<Props> = (props) => {
   const [expanded, setExpanded] = createSignal(false);
-  const [pos, setPos] = createSignal<{ top: number; left: number } | null>(null);
+  const [pos, setPos] = createSignal<{
+    top: number;
+    left: number;
+    placement: 'above' | 'below';
+  } | null>(null);
   let iconRef: HTMLSpanElement | undefined;
 
   const updatePos = () => {
     if (!iconRef) return;
     const rect = iconRef.getBoundingClientRect();
+    const placement = rect.top < 72 ? 'below' : 'above';
+    const left = Math.min(Math.max(rect.left + rect.width / 2, 16), window.innerWidth - 16);
     setPos({
-      top: rect.top - 8,
-      left: rect.left + rect.width / 2,
+      top: placement === 'above' ? rect.top - 8 : rect.bottom + 8,
+      left,
+      placement,
     });
   };
 
@@ -70,18 +78,21 @@ const InfoTooltip: Component<Props> = (props) => {
         <line x1="12" y1="8" x2="12.01" y2="8" />
       </svg>
       {expanded() && pos() && (
-        <span
-          class="info-tooltip__bubble"
-          role="tooltip"
-          style={{
-            position: 'fixed',
-            top: `${pos()!.top}px`,
-            left: `${pos()!.left}px`,
-            transform: 'translate(-50%, -100%)',
-          }}
-        >
-          {props.text}
-        </span>
+        <Portal>
+          <span
+            class="info-tooltip__bubble"
+            role="tooltip"
+            style={{
+              position: 'fixed',
+              top: `${pos()!.top}px`,
+              left: `${pos()!.left}px`,
+              transform:
+                pos()!.placement === 'above' ? 'translate(-50%, -100%)' : 'translate(-50%, 0)',
+            }}
+          >
+            {props.text}
+          </span>
+        </Portal>
       )}
     </span>
   );
