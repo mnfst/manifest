@@ -1890,6 +1890,21 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('meta-llama/llama-guard-4-12b');
     });
+
+    it('preserves NVIDIA NIM slash-prefixed model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'nvidia',
+        apiKey: 'nvapi-test',
+        model: 'nvidia/nemotron-3-super-120b-a12b',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('nvidia/nemotron-3-super-120b-a12b');
+    });
   });
 
   describe('Body sanitization for non-OpenAI providers', () => {

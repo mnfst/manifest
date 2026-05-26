@@ -81,11 +81,17 @@ const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
 function stripModelPrefix(model: string, endpointKey: string): string {
   // OpenRouter accepts and expects vendor prefixes
   if (endpointKey === 'openrouter') return model;
-  // Custom providers, Groq, and Kilo: model IDs from these APIs contain legitimate
+  // Custom providers, Groq, Kilo, and NVIDIA NIM: model IDs from these APIs contain legitimate
   // slash segments (e.g. "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b",
   // "anthropic/claude-sonnet-4.5").
   // Stripping would mangle the name the upstream API expects.
-  if (endpointKey === 'custom' || endpointKey === 'groq' || endpointKey === 'kilo') return model;
+  if (
+    endpointKey === 'custom' ||
+    endpointKey === 'groq' ||
+    endpointKey === 'kilo' ||
+    endpointKey === 'nvidia'
+  )
+    return model;
   return stripVendorPrefix(model);
 }
 
