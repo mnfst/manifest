@@ -102,6 +102,7 @@ const OPENAI_ONLY_FIELDS = new Set([
  * Nested message fields may still need target-aware cleanup.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+const STRICT_TOOL_SEQUENCE_ENDPOINTS = new Set(['openai']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
@@ -241,6 +242,90 @@ function supportsReasoningDetails(endpointKey: string): boolean {
   return endpointKey === 'openrouter';
 }
 
+function toolCallIds(toolCalls: unknown): string[] {
+  if (!Array.isArray(toolCalls)) return [];
+  return toolCalls
+    .map((toolCall) => {
+      if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) return null;
+      const id = (toolCall as Record<string, unknown>).id;
+      return typeof id === 'string' && id ? id : null;
+    })
+    .filter((id): id is string => id !== null);
+}
+
+function hasCompleteImmediateToolResponses(
+  messages: unknown[],
+  index: number,
+  ids: string[],
+): boolean {
+  const pending = new Set(ids);
+  for (let i = index + 1; i < messages.length; i++) {
+    const message = messages[i];
+    if (!message || typeof message !== 'object' || Array.isArray(message)) return false;
+    const record = message as Record<string, unknown>;
+    if (record.role !== 'tool') return false;
+    if (typeof record.tool_call_id !== 'string') return false;
+    if (!pending.has(record.tool_call_id)) return false;
+    pending.delete(record.tool_call_id);
+    if (pending.size === 0) {
+      const next = messages[i + 1];
+      if (!next || typeof next !== 'object' || Array.isArray(next)) return true;
+      return (next as Record<string, unknown>).role !== 'tool';
+    }
+  }
+  return false;
+}
+
+function stripIncompleteToolCallBlocks(messages: unknown[], endpointKey: string): unknown[] {
+  if (!STRICT_TOOL_SEQUENCE_ENDPOINTS.has(endpointKey)) return messages;
+
+  const expectedToolCallIds = new Set<string>();
+  const result: unknown[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const message = messages[i];
+    if (!message || typeof message !== 'object' || Array.isArray(message)) {
+      result.push(message);
+      continue;
+    }
+
+    const record = message as Record<string, unknown>;
+    if (record.role === 'tool' && typeof record.tool_call_id === 'string') {
+      if (!expectedToolCallIds.has(record.tool_call_id)) continue;
+      expectedToolCallIds.delete(record.tool_call_id);
+      result.push(message);
+      continue;
+    }
+
+    const hasToolCallsArray = Array.isArray(record.tool_calls) && record.tool_calls.length > 0;
+    const ids = toolCallIds(record.tool_calls);
+    if (record.role !== 'assistant' || !hasToolCallsArray) {
+      result.push(message);
+      continue;
+    }
+
+    if (ids.length > 0 && hasCompleteImmediateToolResponses(messages, i, ids)) {
+      for (const id of ids) expectedToolCallIds.add(id);
+      result.push(message);
+      continue;
+    }
+
+    const cleaned = { ...record };
+    delete cleaned.tool_calls;
+    if (cleaned.content === null || cleaned.content === undefined) cleaned.content = '';
+    result.push(cleaned);
+
+    while (i + 1 < messages.length) {
+      const next = messages[i + 1];
+      if (!next || typeof next !== 'object' || Array.isArray(next)) break;
+      if ((next as Record<string, unknown>).role !== 'tool') break;
+      i += 1;
+    }
+  }
+
+  return result;
+}
+
 function sanitizeOpenAiMessages(
   messages: unknown,
   endpointKey: string,
@@ -249,6 +334,7 @@ function sanitizeOpenAiMessages(
 ): unknown {
   if (!Array.isArray(messages)) return messages;
 
+  const normalizedMessages = stripIncompleteToolCallBlocks(messages, endpointKey);
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
   const preserveReasoningDetails = supportsReasoningDetails(endpointKey);
   const isMistral = endpointKey === 'mistral';
@@ -264,7 +350,7 @@ function sanitizeOpenAiMessages(
   };
 
   if (isMistral) {
-    for (const message of messages) {
+    for (const message of normalizedMessages) {
       if (!message || typeof message !== 'object' || Array.isArray(message)) {
         continue;
       }
@@ -308,7 +394,7 @@ function sanitizeOpenAiMessages(
     return rewritten;
   };
 
-  return messages.map((message) => {
+  return normalizedMessages.map((message) => {
     if (!message || typeof message !== 'object' || Array.isArray(message)) {
       return message;
     }
