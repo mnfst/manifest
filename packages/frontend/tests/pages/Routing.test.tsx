@@ -1635,6 +1635,27 @@ describe('Routing page', () => {
     });
   });
 
+  it('fires onResponseModeChange on the ResponseModeModal which calls handleDefaultResponseModeChange', async () => {
+    render(() => <Routing />);
+    await waitFor(() => {
+      const headerRight = screen.getByTestId('tab-header-right');
+      expect(headerRight.querySelector('.response-mode-btn')).not.toBeNull();
+    });
+    fireEvent.click(screen.getByTestId('tab-header-right').querySelector('.response-mode-btn') as HTMLButtonElement);
+    await waitFor(() => {
+      expect(screen.getByTestId('response-mode-modal')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('response-mode-modal-change'));
+    await waitFor(() => {
+      // Complexity is enabled, so it calls setTierResponseMode for each stage
+      expect(mockSetTierResponseMode).toHaveBeenCalled();
+      const calls = mockSetTierResponseMode.mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      expect(calls[0][0]).toBe('demo');
+      expect(calls[0][2]).toBe('stream');
+    });
+  });
+
   it('closes the help modal via Escape key', async () => {
     render(() => <Routing />);
     await waitFor(() => {
