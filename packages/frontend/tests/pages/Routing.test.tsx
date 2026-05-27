@@ -13,7 +13,6 @@ const mockSetSpecificityFallbacks = vi.fn();
 const mockClearSpecificityFallbacks = vi.fn();
 const mockRefreshModels = vi.fn();
 const mockGetPricingHealth = vi.fn();
-const mockRefreshPricing = vi.fn();
 const mockGetComplexityStatus = vi.fn();
 const mockToggleComplexity = vi.fn();
 const mockSetTierResponseMode = vi.fn();
@@ -32,7 +31,6 @@ vi.mock('../../src/services/api.js', () => ({
   resetSpecificity: (...args: unknown[]) => mockResetSpecificity(...args),
   refreshModels: (...args: unknown[]) => mockRefreshModels(...args),
   getPricingHealth: (...args: unknown[]) => mockGetPricingHealth(...args),
-  refreshPricing: (...args: unknown[]) => mockRefreshPricing(...args),
   getComplexityStatus: (...args: unknown[]) => mockGetComplexityStatus(...args),
   toggleComplexity: (...args: unknown[]) => mockToggleComplexity(...args),
   setTierResponseMode: (...args: unknown[]) => mockSetTierResponseMode(...args),
@@ -56,11 +54,12 @@ vi.mock('../../src/services/api/header-tiers.js', () => ({
 
 const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
+const mockToastWarning = vi.fn();
 vi.mock('../../src/services/toast-store.js', () => ({
   toast: {
     error: (...args: unknown[]) => mockToastError(...args),
     success: (...args: unknown[]) => mockToastSuccess(...args),
-    warning: vi.fn(),
+    warning: (...args: unknown[]) => mockToastWarning(...args),
   },
 }));
 
@@ -612,56 +611,24 @@ describe('Routing page', () => {
     });
   });
 
-  it('renders the empty pricing-cache warning when model_count is 0', async () => {
+  it('shows a pricing warning toast when model_count is 0', async () => {
     mockGetPricingHealth.mockResolvedValue({ model_count: 0, last_fetched_at: null });
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText(/Pricing catalog is empty/)).toBeDefined();
+      expect(mockToastWarning).toHaveBeenCalledWith(
+        'Model pricing data is unavailable. Automatic tier defaults may be delayed.',
+      );
     });
+    expect(screen.queryByText(/Pricing catalog is empty/)).toBeNull();
+    expect(screen.queryByText(/openrouter/i)).toBeNull();
   });
 
-  it('retries the pricing sync from the warning', async () => {
-    mockGetPricingHealth.mockResolvedValue({ model_count: 0, last_fetched_at: null });
-    mockRefreshPricing.mockResolvedValue({
-      ok: true,
-      model_count: 50,
-      last_fetched_at: '2025-01-01',
-    });
+  it('does not show a pricing warning when pricing data is loaded', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText(/Retry pricing sync/)).toBeDefined();
+      expect(mockGetPricingHealth).toHaveBeenCalled();
     });
-    fireEvent.click(screen.getByText(/Retry pricing sync/));
-    await waitFor(() => {
-      expect(mockRefreshPricing).toHaveBeenCalled();
-      expect(mockToastSuccess).toHaveBeenCalledWith('Pricing catalog loaded (50 models)');
-    });
-  });
-
-  it('toasts a sync failure when refreshPricing rejects', async () => {
-    mockGetPricingHealth.mockResolvedValue({ model_count: 0, last_fetched_at: null });
-    mockRefreshPricing.mockRejectedValue(new Error('boom'));
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByText(/Retry pricing sync/)).toBeDefined();
-    });
-    fireEvent.click(screen.getByText(/Retry pricing sync/));
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Pricing refresh failed');
-    });
-  });
-
-  it('toasts when pricing sync returns ok=false', async () => {
-    mockGetPricingHealth.mockResolvedValue({ model_count: 0, last_fetched_at: null });
-    mockRefreshPricing.mockResolvedValue({ ok: false, model_count: 0, last_fetched_at: null });
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByText(/Retry pricing sync/)).toBeDefined();
-    });
-    fireEvent.click(screen.getByText(/Retry pricing sync/));
-    await waitFor(() => {
-      expect(mockToastError).toHaveBeenCalledWith('Pricing refresh failed — check backend logs');
-    });
+    expect(mockToastWarning).not.toHaveBeenCalled();
   });
 
   it('toggles complexity and updates the resource on success', async () => {
