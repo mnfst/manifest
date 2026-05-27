@@ -976,6 +976,63 @@ describe('provider-client-converters', () => {
       expect(callback).toHaveBeenCalledWith('call_1', 'I should use a tool.');
     });
 
+    it('stores reasoning_content once a tool call id appears even without a tool-call finish marker', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback);
+
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_content: 'I should use a tool.' }, finish_reason: null }],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'lookup' } }],
+              },
+              finish_reason: null,
+            },
+          ],
+        }),
+      );
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith('call_1', 'I should use a tool.');
+    });
+
+    it('updates cached reasoning_content if more reasoning arrives after the tool call id', () => {
+      const callback = jest.fn();
+      const transform = createReasoningContentStreamTransformer(callback);
+
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_content: 'plan A' }, finish_reason: null }],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [
+            {
+              delta: {
+                tool_calls: [{ id: 'call_1', type: 'function', function: { name: 'lookup' } }],
+              },
+              finish_reason: null,
+            },
+          ],
+        }),
+      );
+      transform(
+        JSON.stringify({
+          choices: [{ delta: { reasoning_content: ' then plan B' }, finish_reason: null }],
+        }),
+      );
+
+      expect(callback).toHaveBeenCalledTimes(2);
+      expect(callback).toHaveBeenLastCalledWith('call_1', 'plan A then plan B');
+    });
+
     it('does not fire without a tool call id', () => {
       const callback = jest.fn();
       const transform = createReasoningContentStreamTransformer(callback);

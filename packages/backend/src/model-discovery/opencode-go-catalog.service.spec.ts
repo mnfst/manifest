@@ -16,6 +16,7 @@ const ENDPOINTS_TABLE = [
   `| Kimi K2.5    | kimi-k2.5    | ${OAI} | ${OAI_SDK} |`,
   `| MiMo-V2-Pro  | mimo-v2-pro  | ${OAI} | ${OAI_SDK} |`,
   `| MiMo-V2-Omni | mimo-v2-omni | ${OAI} | ${OAI_SDK} |`,
+  `| Qwen3.7 Max  | qwen3.7-max  | ${ANT} | ${ANT_SDK} |`,
   `| MiniMax M2.7 | minimax-m2.7 | ${ANT} | ${ANT_SDK} |`,
   `| MiniMax M2.5 | minimax-m2.5 | ${ANT} | ${ANT_SDK} |`,
   '',
@@ -31,6 +32,7 @@ const LIMITS_TABLE = [
   '| Kimi K2.5          | 1,850               | 4,630             | 9,250              |',
   '| MiMo-V2-Pro        | 1,290               | 3,225             | 6,450              |',
   '| MiMo-V2-Omni (≤ 256K) | 2,150            | 5,450             | 10,900             |',
+  '| Qwen3.7 Max        | 770                 | 1,925             | 3,850              |',
   '| MiniMax M2.7       | 3,400               | 8,500             | 17,000             |',
   '| MiniMax M2.5       | 6,300               | 15,900            | 31,800             |',
   '',
@@ -68,6 +70,7 @@ describe('OpencodeGoCatalogService', () => {
         'kimi-k2.5',
         'mimo-v2-pro',
         'mimo-v2-omni',
+        'qwen3.7-max',
         'minimax-m2.7',
         'minimax-m2.5',
       ]);
@@ -79,15 +82,17 @@ describe('OpencodeGoCatalogService', () => {
       expect(labels['glm-5.1']).toBe('GLM-5.1');
       expect(labels['kimi-k2.5']).toBe('Kimi K2.5');
       expect(labels['mimo-v2-omni']).toBe('MiMo-V2-Omni');
+      expect(labels['qwen3.7-max']).toBe('Qwen3.7 Max');
       expect(labels['minimax-m2.7']).toBe('MiniMax M2.7');
     });
 
-    it('tags MiniMax rows as anthropic and everything else as openai', () => {
+    it('tags docs rows with the endpoint format they declare', () => {
       const entries = service.parse(SAMPLE_MDX);
       const byId = Object.fromEntries(entries.map((e) => [e.id, e.format]));
       expect(byId['glm-5.1']).toBe('openai');
       expect(byId['kimi-k2.5']).toBe('openai');
       expect(byId['mimo-v2-pro']).toBe('openai');
+      expect(byId['qwen3.7-max']).toBe('anthropic');
       expect(byId['minimax-m2.5']).toBe('anthropic');
       expect(byId['minimax-m2.7']).toBe('anthropic');
     });
@@ -182,6 +187,29 @@ describe('OpencodeGoCatalogService', () => {
       const prefixed = service.getCostPerRequest('opencode-go/glm-5.1');
       expect(bare).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
       expect(prefixed).toBe(bare);
+    });
+
+    it('resolves both bare and prefixed model formats after list()', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+      await service.list();
+      expect(service.getFormat('qwen3.7-max')).toBe('anthropic');
+      expect(service.getFormat('opencode-go/qwen3.7-max')).toBe('anthropic');
+      expect(service.getFormat('opencode-go/mimo-v2-pro')).toBe('openai');
+    });
+
+    it('warms the catalog for async format lookup', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: async () => SAMPLE_MDX,
+      } as Response);
+
+      await expect(service.resolveFormat('opencode-go/qwen3.7-max')).resolves.toBe('anthropic');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
     it('returns null for a known model with no published limit', async () => {
@@ -288,7 +316,7 @@ describe('OpencodeGoCatalogService', () => {
       } as Response);
 
       const first = await service.list();
-      expect(first).toHaveLength(7);
+      expect(first).toHaveLength(8);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
 
       const second = await service.list();
@@ -303,7 +331,7 @@ describe('OpencodeGoCatalogService', () => {
         text: async () => SAMPLE_MDX,
       } as Response);
       const good = await service.list();
-      expect(good).toHaveLength(7);
+      expect(good).toHaveLength(8);
 
       // Force the success cache to look expired, but keep lastGood populated.
       (service as unknown as { cache: unknown }).cache = null;
