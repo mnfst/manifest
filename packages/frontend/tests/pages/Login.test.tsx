@@ -277,4 +277,29 @@ describe("Login", () => {
       expect(container.textContent).toContain("Rate limited");
     });
   });
+
+  it("clears the cooldown interval on unmount", async () => {
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+    mockSignInEmail.mockResolvedValue({
+      error: { message: "Email is not verified", code: "EMAIL_NOT_VERIFIED" },
+    });
+    mockSendVerificationEmail.mockResolvedValue({ error: null });
+    const { container, unmount } = render(() => <Login />);
+    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "u@t.com" } });
+    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend verification email");
+    });
+    const resendBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Resend verification email"),
+    )!;
+    fireEvent.click(resendBtn);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend in");
+    });
+    unmount();
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    clearIntervalSpy.mockRestore();
+  });
 });

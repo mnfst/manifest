@@ -12,6 +12,7 @@ const mockDisconnectProvider = vi.fn();
 const mockRenameProviderKey = vi.fn();
 const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
+const mockDisposeMonitor = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
@@ -44,7 +45,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 }));
 
 vi.mock('../../src/services/oauth-popup.js', () => ({
-  monitorOAuthPopup: vi.fn(),
+  monitorOAuthPopup: vi.fn(() => mockDisposeMonitor),
 }));
 
 import OAuthDetailView from '../../src/components/OAuthDetailView';
@@ -688,5 +689,17 @@ describe('OAuthDetailView', () => {
     // Typing again should clear the error
     fireEvent.input(input, { target: { value: 'http://other' } });
     expect(screen.queryByText(/URL is missing the authorization code/)).toBeNull();
+  });
+
+  it('disposes the OAuth popup monitor when unmounted mid-flow', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { unmount } = renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+    await waitFor(() => expect(monitorOAuthPopup).toHaveBeenCalled());
+
+    unmount();
+    expect(mockDisposeMonitor).toHaveBeenCalledTimes(1);
   });
 });

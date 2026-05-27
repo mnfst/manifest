@@ -8,7 +8,7 @@ export function monitorOAuthPopup(
   popup: Window,
   callbacks: { onSuccess: () => void; onFailure: () => void },
   donePath = '/oauth/openai/done',
-): void {
+): () => void {
   let handled = false;
   let bc: BroadcastChannel | null = null;
   let bcTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -81,4 +81,16 @@ export function monitorOAuthPopup(
       }, 30_000);
     }
   }, 300);
+
+  // Stop polling and tear down listeners without firing either callback — for
+  // callers that unmount before the popup resolves. The 300ms URL poll would
+  // otherwise run forever. The popup window itself is left open for the user.
+  const dispose = () => {
+    if (handled) return;
+    handled = true;
+    clearInterval(pollRef);
+    fullCleanup();
+  };
+
+  return dispose;
 }

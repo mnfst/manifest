@@ -67,6 +67,11 @@ const OAuthDetailView: Component<Props> = (props) => {
   const [renameValue, setRenameValue] = createSignal('');
   const [addingAccount, setAddingAccount] = createSignal(false);
 
+  // Dispose the OAuth popup monitor if the view unmounts mid-flow, otherwise its
+  // 300ms URL poll keeps running after the component is gone.
+  let disposeOAuthMonitor: (() => void) | null = null;
+  onCleanup(() => disposeOAuthMonitor?.());
+
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
   const isXaiProvider = () => props.provId === 'xai';
   const callbackPlaceholder = () =>
@@ -145,7 +150,10 @@ const OAuthDetailView: Component<Props> = (props) => {
       setSuccessHandled(false);
       props.setBusy(false);
 
-      monitorOAuthPopup(
+      // Dispose any in-flight monitor from a previous start before replacing it,
+      // so repeated logins don't orphan the earlier poll/listener handle.
+      disposeOAuthMonitor?.();
+      disposeOAuthMonitor = monitorOAuthPopup(
         popup,
         {
           onSuccess: finishOAuthSuccess,

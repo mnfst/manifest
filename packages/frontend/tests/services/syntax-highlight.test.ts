@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { highlight } from "../../src/services/syntax-highlight";
+import { highlight, isSupported } from "../../src/services/syntax-highlight";
 
 describe("highlight", () => {
   it("highlights Python code with span tags", () => {
@@ -54,5 +54,29 @@ describe("highlight", () => {
     const result = highlight("a > b < c", "nonexistent_lang");
     expect(result).toContain("&gt;");
     expect(result).toContain("&lt;");
+  });
+
+  it("highlights JSON", () => {
+    const result = highlight('{"enabled": true}', "json");
+    expect(result).toContain("<span");
+  });
+
+  it("highlights JavaScript via the js alias", () => {
+    const result = highlight("const x = 1;", "js");
+    expect(result).toContain("hljs-keyword");
+  });
+});
+
+describe("isSupported", () => {
+  it("returns true for registered languages and their aliases", () => {
+    for (const lang of ["python", "typescript", "javascript", "js", "bash", "yaml", "json"]) {
+      expect(isSupported(lang)).toBe(true);
+    }
+  });
+
+  it("returns false for unregistered languages and empty input", () => {
+    expect(isSupported("rust")).toBe(false);
+    expect(isSupported("nonexistent_lang")).toBe(false);
+    expect(isSupported("")).toBe(false);
   });
 });

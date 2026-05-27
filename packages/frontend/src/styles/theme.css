@@ -19,10 +19,8 @@
 @import './model-filter.css';
 @import './version-indicator.css';
 @import './skeleton.css';
-@import './syntax-highlight.css';
 @import './agent-type-select.css';
 @import './feedback.css';
-@import './recording.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

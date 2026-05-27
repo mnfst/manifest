@@ -1,7 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 describe("sse", () => {
   let mockEventSource: any;
+
+  function getHandler(type: string) {
+    return mockEventSource.addEventListener.mock.calls.find(
+      (c: any[]) => c[0] === type,
+    )?.[1];
+  }
 
   beforeEach(() => {
     mockEventSource = {
@@ -10,6 +16,10 @@ describe("sse", () => {
     };
     vi.stubGlobal("EventSource", vi.fn(() => mockEventSource));
     vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("creates EventSource with correct URL", async () => {
@@ -25,48 +35,81 @@ describe("sse", () => {
     expect(mockEventSource.close).toHaveBeenCalled();
   });
 
-  it("increments pingCount AND messagePing when legacy 'ping' event is received", async () => {
+  it("bumps pingCount immediately but debounces messagePing on legacy 'ping'", async () => {
+    vi.useFakeTimers();
     const { connectSse, pingCount, messagePing } = await import(
       "../../src/services/sse"
     );
     connectSse();
-    const pingHandler = mockEventSource.addEventListener.mock.calls.find(
-      (c: any[]) => c[0] === "ping",
-    )?.[1];
+    const pingHandler = getHandler("ping");
     expect(pingHandler).toBeDefined();
     const beforePing = pingCount();
     const beforeMessage = messagePing();
     pingHandler();
+    // pingCount is the legacy counter — bumped synchronously.
     expect(pingCount()).toBe(beforePing + 1);
-    // legacy ping is treated as a message-class change so MessageLog/Overview
-    // stay reactive when talking to an older backend.
+    // messagePing is coalesced — nothing until the 500ms window elapses.
+    expect(messagePing()).toBe(beforeMessage);
+    vi.advanceTimersByTime(500);
     expect(messagePing()).toBe(beforeMessage + 1);
   });
 
-  it("increments messagePing AND pingCount on 'message' event", async () => {
+  it("bumps pingCount immediately but debounces messagePing on 'message'", async () => {
+    vi.useFakeTimers();
     const { connectSse, pingCount, messagePing } = await import(
       "../../src/services/sse"
     );
     connectSse();
-    const handler = mockEventSource.addEventListener.mock.calls.find(
-      (c: any[]) => c[0] === "message",
-    )?.[1];
+    const handler = getHandler("message");
     expect(handler).toBeDefined();
     const beforePing = pingCount();
     const beforeMessage = messagePing();
     handler();
-    expect(messagePing()).toBe(beforeMessage + 1);
     expect(pingCount()).toBe(beforePing + 1);
+    expect(messagePing()).toBe(beforeMessage);
+    vi.advanceTimersByTime(500);
+    expect(messagePing()).toBe(beforeMessage + 1);
   });
 
-  it("increments agentPing AND pingCount on 'agent' event", async () => {
+  it("coalesces a burst of 'message' events into a single bump per window", async () => {
+    vi.useFakeTimers();
+    const { connectSse, messagePing } = await import("../../src/services/sse");
+    connectSse();
+    const handler = getHandler("message");
+    const before = messagePing();
+    // Five events inside 100ms collapse into one scheduled bump.
+    for (let i = 0; i < 5; i++) handler();
+    vi.advanceTimersByTime(100);
+    expect(messagePing()).toBe(before);
+    vi.advanceTimersByTime(400);
+    expect(messagePing()).toBe(before + 1);
+    // A later event opens a fresh window.
+    handler();
+    vi.advanceTimersByTime(500);
+    expect(messagePing()).toBe(before + 2);
+  });
+
+  it("clears the pending message bump timer on cleanup", async () => {
+    vi.useFakeTimers();
+    const { connectSse, messagePing } = await import("../../src/services/sse");
+    const cleanup = connectSse();
+    const handler = getHandler("message");
+    const before = messagePing();
+    handler();
+    cleanup();
+    vi.advanceTimersByTime(1000);
+    // The scheduled bump must not fire after cleanup.
+    expect(messagePing()).toBe(before);
+    expect(mockEventSource.close).toHaveBeenCalled();
+  });
+
+  it("increments agentPing AND pingCount on 'agent' event without touching messagePing", async () => {
+    vi.useFakeTimers();
     const { connectSse, pingCount, agentPing, messagePing } = await import(
       "../../src/services/sse"
     );
     connectSse();
-    const handler = mockEventSource.addEventListener.mock.calls.find(
-      (c: any[]) => c[0] === "agent",
-    )?.[1];
+    const handler = getHandler("agent");
     expect(handler).toBeDefined();
     const beforePing = pingCount();
     const beforeAgent = agentPing();
@@ -74,7 +117,8 @@ describe("sse", () => {
     handler();
     expect(agentPing()).toBe(beforeAgent + 1);
     expect(pingCount()).toBe(beforePing + 1);
-    // 'agent' event must NOT bump messagePing
+    // 'agent' must NOT schedule a messagePing bump.
+    vi.advanceTimersByTime(500);
     expect(messagePing()).toBe(beforeMessage);
   });
 
@@ -83,9 +127,7 @@ describe("sse", () => {
       "../../src/services/sse"
     );
     connectSse();
-    const handler = mockEventSource.addEventListener.mock.calls.find(
-      (c: any[]) => c[0] === "routing",
-    )?.[1];
+    const handler = getHandler("routing");
     expect(handler).toBeDefined();
     const beforePing = pingCount();
     const beforeRouting = routingPing();

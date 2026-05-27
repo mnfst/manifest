@@ -39,6 +39,9 @@ import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+// The recorded-message drawer/modal styles. Only the Messages log mounts
+// RecordedMessageModal, so this CSS stays out of the global theme bundle.
+import '../styles/recording.css';
 
 interface MessagesData {
   items: MessageRow[];
