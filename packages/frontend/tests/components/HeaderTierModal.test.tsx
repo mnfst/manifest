@@ -706,6 +706,171 @@ describe("HeaderTierModal", () => {
     });
   });
 
+  describe("stream mode and incompatible models", () => {
+    const tierWithRoute: HeaderTier = {
+      ...existingTier,
+      override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      fallback_routes: [{ provider: "anthropic", authType: "api_key", model: "claude-3" }],
+    };
+
+    it("lists incompatible models that do not support streaming (primary + fallbacks)", () => {
+      const modelsWithCaps = [
+        { model_name: "gpt-4o", capabilities: ["text"] as const },
+        { model_name: "claude-3", capabilities: ["text"] as const },
+      ];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[tierWithRoute]}
+          editing={tierWithRoute}
+          models={modelsWithCaps as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      // Stream toggle should be disabled since models lack stream capability
+      const switchBtn = container.querySelector(".routing-switch") as HTMLButtonElement;
+      expect(switchBtn.classList.contains("routing-switch--disabled")).toBe(true);
+      // Blocker text should show plural form
+      expect(container.textContent).toContain("These models do");
+      expect(container.textContent).toContain("not support streaming");
+      // Blocker rows should be rendered
+      const blockerRows = container.querySelectorAll(".response-mode-modal__blocker-row");
+      expect(blockerRows.length).toBe(2);
+      expect(blockerRows[0].textContent).toContain("gpt-4o");
+      expect(blockerRows[0].textContent).toContain("Primary");
+      expect(blockerRows[1].textContent).toContain("claude-3");
+      expect(blockerRows[1].textContent).toContain("Fallback 1");
+    });
+
+    it("shows singular blocker text when only one model is incompatible", () => {
+      const tierSingleRoute: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        fallback_routes: [],
+      };
+      const modelsWithCaps = [
+        { model_name: "gpt-4o", capabilities: ["text"] as const },
+      ];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[tierSingleRoute]}
+          editing={tierSingleRoute}
+          models={modelsWithCaps as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      expect(container.textContent).toContain("This model does");
+      expect(container.textContent).toContain("Change it to");
+    });
+
+    it("enables the stream toggle when all models support streaming", () => {
+      const modelsWithStream = [
+        { model_name: "gpt-4o", capabilities: ["text", "stream"] as const },
+        { model_name: "claude-3", capabilities: ["text", "stream"] as const },
+      ];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[tierWithRoute]}
+          editing={tierWithRoute}
+          models={modelsWithStream as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const switchBtn = container.querySelector(".routing-switch") as HTMLButtonElement;
+      expect(switchBtn.classList.contains("routing-switch--disabled")).toBe(false);
+    });
+
+    it("toggles stream mode on and off when clicked", () => {
+      const modelsWithStream = [
+        { model_name: "gpt-4o", capabilities: ["text", "stream"] as const },
+        { model_name: "claude-3", capabilities: ["text", "stream"] as const },
+      ];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[tierWithRoute]}
+          editing={tierWithRoute}
+          models={modelsWithStream as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const switchBtn = container.querySelector(".routing-switch") as HTMLButtonElement;
+      // Initially buffered (existingTier.response_mode = "buffered")
+      expect(switchBtn.classList.contains("routing-switch--on")).toBe(false);
+      // Click to enable stream
+      fireEvent.click(switchBtn);
+      expect(switchBtn.classList.contains("routing-switch--on")).toBe(true);
+      // Shows streaming description
+      expect(container.textContent).toContain("streamed token by token");
+      // Click to disable stream
+      fireEvent.click(switchBtn);
+      expect(switchBtn.classList.contains("routing-switch--on")).toBe(false);
+      expect(container.textContent).toContain("returned as a single payload");
+    });
+
+    it("calls setHeaderTierResponseMode when stream mode changed during submit", async () => {
+      const modelsWithStream = [
+        { model_name: "gpt-4o", capabilities: ["text", "stream"] as const },
+        { model_name: "claude-3", capabilities: ["text", "stream"] as const },
+      ];
+      const onSaved = vi.fn();
+      const onClose = vi.fn();
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[tierWithRoute]}
+          editing={tierWithRoute}
+          models={modelsWithStream as any}
+          onClose={onClose}
+          onSaved={onSaved}
+        />
+      ));
+      // Toggle stream on
+      const switchBtn = container.querySelector(".routing-switch") as HTMLButtonElement;
+      fireEvent.click(switchBtn);
+      // Submit the form
+      const submitBtn = Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Save changes"),
+      ) as HTMLButtonElement;
+      fireEvent.click(submitBtn);
+      await waitFor(() => {
+        expect(mockUpdateHeaderTier).toHaveBeenCalled();
+        expect(mockSetHeaderTierResponseMode).toHaveBeenCalledWith("demo", existingTier.id, "stream");
+        expect(onSaved).toHaveBeenCalled();
+      });
+    });
+
+    it("handles models with capabilities set on available models (caps.set path)", () => {
+      const modelsWithCaps = [
+        { model_name: "gpt-4o", capabilities: ["text", "stream"] as const },
+      ];
+      const tierOneRoute: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        fallback_routes: [],
+      };
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[tierOneRoute]}
+          editing={tierOneRoute}
+          models={modelsWithCaps as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      // Stream toggle should be enabled
+      const switchBtn = container.querySelector(".routing-switch") as HTMLButtonElement;
+      expect(switchBtn.classList.contains("routing-switch--disabled")).toBe(false);
+    });
+  });
+
   describe("keyboard shortcuts", () => {
     it("submits when Enter is pressed on the name input", async () => {
       const onSaved = vi.fn();

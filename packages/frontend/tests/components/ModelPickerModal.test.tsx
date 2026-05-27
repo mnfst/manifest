@@ -1064,6 +1064,77 @@ describe('ModelPickerModal', () => {
     expect(subTab.getAttribute('aria-selected')).toBe('true');
   });
 
+  describe('capability filter pills', () => {
+    const modelsWithCapabilities: AvailableModel[] = [
+      { ...baseModels[0]!, capabilities: ['text', 'stream', 'tools'] },
+      { ...baseModels[1]!, capabilities: ['text', 'stream'] },
+      { ...baseModels[2]!, capabilities: ['text', 'image'], auth_type: 'api_key', provider: 'OpenAI' },
+    ];
+
+    it('renders capability filter pills for capabilities present in the model list', () => {
+      const { container } = render(() => (
+        <ModelPickerModal
+          tierId="simple"
+          models={modelsWithCapabilities}
+          tiers={tiers}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      const pills = container.querySelectorAll('.routing-modal__filter-right .routing-modal__cap-pill');
+      // Should have pills for stream, tools, image (the caps found in models)
+      const pillTexts = Array.from(pills).map((p) => p.textContent?.trim());
+      expect(pillTexts.some((t) => t?.includes('Stream'))).toBe(true);
+      expect(pillTexts.some((t) => t?.includes('Tools'))).toBe(true);
+      expect(pillTexts.some((t) => t?.includes('Image'))).toBe(true);
+    });
+
+    it('toggles a capability filter on and off when clicking a pill', () => {
+      const { container } = render(() => (
+        <ModelPickerModal
+          tierId="simple"
+          models={modelsWithCapabilities}
+          tiers={tiers}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      const pills = container.querySelectorAll('.routing-modal__filter-right .routing-modal__cap-pill');
+      // Find the "Tools" pill
+      const toolsPill = Array.from(pills).find((p) => p.textContent?.includes('Tools')) as HTMLButtonElement;
+      expect(toolsPill).toBeDefined();
+      // Toggle on
+      fireEvent.click(toolsPill);
+      expect(toolsPill.classList.contains('routing-modal__cap-pill--active')).toBe(true);
+      // Only one model has tools capability (gpt-4o)
+      const modelButtons = container.querySelectorAll('.routing-modal__model');
+      expect(modelButtons.length).toBe(1);
+      expect(modelButtons[0].textContent).toContain('GPT-4o');
+      // Toggle off
+      fireEvent.click(toolsPill);
+      expect(toolsPill.classList.contains('routing-modal__cap-pill--active')).toBe(false);
+    });
+
+    it('availableCapabilities returns correct set from model list', () => {
+      const { container } = render(() => (
+        <ModelPickerModal
+          tierId="simple"
+          models={modelsWithCapabilities}
+          tiers={tiers}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      const pills = container.querySelectorAll('.routing-modal__filter-right .routing-modal__cap-pill');
+      // stream, tools, image should be present (text is not in capOrder so it is filtered out)
+      // audio and video are not in any model so they are not shown
+      expect(pills.length).toBe(3);
+    });
+  });
+
   it('clicks the Local tab when local + api_key are both connected', () => {
     const localAndApi: RoutingProvider[] = [
       ...apiKeyOnly,
