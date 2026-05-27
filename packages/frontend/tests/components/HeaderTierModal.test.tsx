@@ -544,6 +544,178 @@ describe("HeaderTierModal", () => {
     });
   });
 
+  describe("stream mode toggle", () => {
+    it("renders the stream mode switch in edit mode, defaults to off for buffered tier", () => {
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[existingTier]}
+          editing={existingTier}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const sw = container.querySelector(".routing-switch") as HTMLButtonElement;
+      expect(sw).not.toBeNull();
+      expect(sw.classList.contains("routing-switch--on")).toBe(false);
+    });
+
+    it("toggles stream mode on when clicked and all models support streaming", () => {
+      const streamTier: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      };
+      const models = [{ model_name: "gpt-4o", capabilities: ["text", "stream"] as const }];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[streamTier]}
+          editing={streamTier}
+          models={models as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const sw = container.querySelector(".routing-switch") as HTMLButtonElement;
+      fireEvent.click(sw);
+      expect(sw.classList.contains("routing-switch--on")).toBe(true);
+      // Clicking again toggles it off
+      fireEvent.click(sw);
+      expect(sw.classList.contains("routing-switch--on")).toBe(false);
+    });
+
+    it("disables the stream toggle when models don't support streaming", () => {
+      const noStreamTier: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        fallback_routes: [{ provider: "openai", authType: "api_key", model: "gpt-3.5" }],
+      };
+      const models = [
+        { model_name: "gpt-4o", capabilities: ["text"] as const },
+        { model_name: "gpt-3.5", capabilities: ["text"] as const },
+      ];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[noStreamTier]}
+          editing={noStreamTier}
+          models={models as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const sw = container.querySelector(".routing-switch") as HTMLButtonElement;
+      expect(sw.disabled).toBe(true);
+      expect(sw.classList.contains("routing-switch--disabled")).toBe(true);
+    });
+
+    it("shows incompatible models blocker when models lack stream capability", () => {
+      const noStreamTier: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+        fallback_routes: [{ provider: "openai", authType: "api_key", model: "gpt-3.5" }],
+      };
+      const models = [
+        { model_name: "gpt-4o", capabilities: ["text"] as const },
+        { model_name: "gpt-3.5", capabilities: ["text"] as const },
+      ];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[noStreamTier]}
+          editing={noStreamTier}
+          models={models as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const blocker = container.querySelector(".response-mode-modal__blocker");
+      expect(blocker).not.toBeNull();
+      expect(blocker?.textContent).toContain("These models do");
+      expect(blocker?.textContent).toContain("them");
+      const rows = container.querySelectorAll(".response-mode-modal__blocker-row");
+      expect(rows.length).toBe(2);
+      expect(rows[0].textContent).toContain("gpt-4o");
+      expect(rows[0].textContent).toContain("Primary");
+      expect(rows[1].textContent).toContain("gpt-3.5");
+      expect(rows[1].textContent).toContain("Fallback 1");
+    });
+
+    it("shows singular blocker text when only one model is incompatible", () => {
+      const singleNoStream: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      };
+      const models = [{ model_name: "gpt-4o", capabilities: ["text"] as const }];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[singleNoStream]}
+          editing={singleNoStream}
+          models={models as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      const blocker = container.querySelector(".response-mode-modal__blocker");
+      expect(blocker?.textContent).toContain("This model does");
+      expect(blocker?.textContent).toContain(" it ");
+    });
+
+    it("persists stream mode change via setHeaderTierResponseMode on save", async () => {
+      const streamTier: HeaderTier = {
+        ...existingTier,
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      };
+      const models = [{ model_name: "gpt-4o", capabilities: ["text", "stream"] as const }];
+      const onSaved = vi.fn();
+      const onClose = vi.fn();
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[streamTier]}
+          editing={streamTier}
+          models={models as any}
+          onClose={onClose}
+          onSaved={onSaved}
+        />
+      ));
+      // Toggle stream mode on
+      fireEvent.click(container.querySelector(".routing-switch") as HTMLButtonElement);
+      // Submit
+      fireEvent.click(
+        Array.from(container.querySelectorAll("button")).find((b) =>
+          b.textContent?.includes("Save changes"),
+        ) as HTMLButtonElement,
+      );
+      await waitFor(() => {
+        expect(mockUpdateHeaderTier).toHaveBeenCalled();
+        expect(mockSetHeaderTierResponseMode).toHaveBeenCalledWith("demo", existingTier.id, "stream");
+      });
+      expect(onSaved).toHaveBeenCalled();
+    });
+
+    it("shows stream description when stream mode is active", () => {
+      const streamTier: HeaderTier = {
+        ...existingTier,
+        response_mode: "stream",
+        override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      };
+      const models = [{ model_name: "gpt-4o", capabilities: ["text", "stream"] as const }];
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[streamTier]}
+          editing={streamTier}
+          models={models as any}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      expect(container.textContent).toContain("streamed token by token");
+    });
+  });
+
   describe("badge color picker", () => {
     it("renders one swatch per TIER_COLORS entry", () => {
       const { container } = render(() => (
