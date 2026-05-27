@@ -46,6 +46,7 @@ export class OpencodeGoCatalogService implements OnModuleInit {
   private cache: { entries: OpencodeGoCatalogEntry[]; expiresAt: number } | null = null;
   private lastGood: OpencodeGoCatalogEntry[] | null = null;
   private costByModelId = new Map<string, number>();
+  private formatByModelId = new Map<string, OpencodeGoCatalogEntry['format']>();
   /**
    * In-flight fetch promise — concurrent callers (e.g. the onModuleInit
    * warmup plus the first proxy request) share the same fetch instead of
@@ -101,7 +102,7 @@ export class OpencodeGoCatalogService implements OnModuleInit {
       }
       this.cache = { entries, expiresAt: now + CACHE_TTL_MS };
       this.lastGood = entries;
-      this.rebuildCostIndex(entries);
+      this.rebuildIndexes(entries);
       this.logger.log(`OpenCode Go catalog loaded: ${entries.length} models`);
       return entries;
     } catch (err) {
@@ -119,11 +120,19 @@ export class OpencodeGoCatalogService implements OnModuleInit {
    * (`opencode-go/glm-5.1`) — callers don't need to strip the prefix.
    */
   getCostPerRequest(modelId: string | null | undefined): number | null {
-    if (!modelId) return null;
-    const bare = modelId.startsWith('opencode-go/')
-      ? modelId.slice('opencode-go/'.length)
-      : modelId;
+    const bare = bareOpencodeGoModelId(modelId);
+    if (!bare) return null;
     return this.costByModelId.get(bare) ?? null;
+  }
+
+  /**
+   * Sync lookup for the API format an OpenCode Go model expects. Returns
+   * `null` before the docs catalog has loaded or when the model is unknown.
+   */
+  getFormat(modelId: string | null | undefined): OpencodeGoCatalogEntry['format'] | null {
+    const bare = bareOpencodeGoModelId(modelId);
+    if (!bare) return null;
+    return this.formatByModelId.get(bare) ?? null;
   }
 
   /**
@@ -140,6 +149,20 @@ export class OpencodeGoCatalogService implements OnModuleInit {
       await this.list();
     }
     return this.getCostPerRequest(modelId);
+  }
+
+  /**
+   * Async format lookup for cold processes. Shares the same cached docs fetch
+   * as list()/resolveCostPerRequest(), so concurrent first calls coalesce.
+   */
+  async resolveFormat(
+    modelId: string | null | undefined,
+  ): Promise<OpencodeGoCatalogEntry['format'] | null> {
+    if (!modelId) return null;
+    if (this.formatByModelId.size === 0) {
+      await this.list();
+    }
+    return this.getFormat(modelId);
   }
 
   /**
@@ -200,14 +223,17 @@ export class OpencodeGoCatalogService implements OnModuleInit {
     return out;
   }
 
-  private rebuildCostIndex(entries: OpencodeGoCatalogEntry[]): void {
-    const next = new Map<string, number>();
+  private rebuildIndexes(entries: OpencodeGoCatalogEntry[]): void {
+    const nextCosts = new Map<string, number>();
+    const nextFormats = new Map<string, OpencodeGoCatalogEntry['format']>();
     for (const entry of entries) {
+      nextFormats.set(entry.id, entry.format);
       if (entry.costPerRequestUsd != null) {
-        next.set(entry.id, entry.costPerRequestUsd);
+        nextCosts.set(entry.id, entry.costPerRequestUsd);
       }
     }
-    this.costByModelId = next;
+    this.costByModelId = nextCosts;
+    this.formatByModelId = nextFormats;
   }
 
   /** Test hook: clear in-memory state. */
@@ -215,8 +241,14 @@ export class OpencodeGoCatalogService implements OnModuleInit {
     this.cache = null;
     this.lastGood = null;
     this.costByModelId = new Map();
+    this.formatByModelId = new Map();
     this.inflight = null;
   }
+}
+
+function bareOpencodeGoModelId(modelId: string | null | undefined): string | null {
+  if (!modelId) return null;
+  return modelId.startsWith('opencode-go/') ? modelId.slice('opencode-go/'.length) : modelId;
 }
 
 /**

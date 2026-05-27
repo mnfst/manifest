@@ -40,6 +40,14 @@ describe('assertStreamableResponseMode', () => {
       assertStreamableResponseMode('stream', 'tier "default"', openai, [custom]),
     ).not.toThrow();
   });
+
+  it('allows OpenCode Go routes in stream mode', () => {
+    const opencodeGo = route('opencode-go', 'opencode-go/qwen3.7-max');
+
+    expect(() =>
+      assertStreamableResponseMode('stream', 'tier "reasoning"', opencodeGo, null),
+    ).not.toThrow();
+  });
 });
 
 describe('effectiveRoutesForResponseMode', () => {

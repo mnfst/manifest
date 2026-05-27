@@ -183,12 +183,17 @@ export function createReasoningContentStreamTransformer(
 ): (chunk: string) => string | null {
   let accumulatedReasoning = '';
   let firstToolCallId: string | null = null;
-  let fired = false;
+  let storedReasoning = '';
 
-  const tryFire = (): void => {
-    if (!fired && onReasoningContent && accumulatedReasoning && firstToolCallId) {
+  const storeIfReady = (): void => {
+    if (
+      onReasoningContent &&
+      accumulatedReasoning &&
+      firstToolCallId &&
+      accumulatedReasoning !== storedReasoning
+    ) {
       onReasoningContent(firstToolCallId, accumulatedReasoning);
-      fired = true;
+      storedReasoning = accumulatedReasoning;
     }
   };
 
@@ -201,6 +206,7 @@ export function createReasoningContentStreamTransformer(
       if (delta) {
         if (typeof delta.reasoning_content === 'string') {
           accumulatedReasoning += delta.reasoning_content;
+          storeIfReady();
         }
         const toolCalls = delta.tool_calls as Array<Record<string, unknown>> | undefined;
         if (Array.isArray(toolCalls)) {
@@ -210,10 +216,11 @@ export function createReasoningContentStreamTransformer(
               firstToolCallId = toolCall.id;
             }
           }
+          storeIfReady();
         }
       }
 
-      if (choice?.finish_reason === 'tool_calls') tryFire();
+      if (choice?.finish_reason === 'tool_calls') storeIfReady();
     } catch {
       // Pass malformed/non-JSON chunks through unchanged.
     }
