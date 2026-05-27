@@ -4,10 +4,12 @@ import { render, fireEvent, waitFor } from "@solidjs/testing-library";
 const mockCreateHeaderTier = vi.fn();
 const mockUpdateHeaderTier = vi.fn();
 const mockGetSeenHeaders = vi.fn();
+const mockSetHeaderTierResponseMode = vi.fn();
 vi.mock("../../src/services/api/header-tiers.js", () => ({
   createHeaderTier: (...args: unknown[]) => mockCreateHeaderTier(...args),
   updateHeaderTier: (...args: unknown[]) => mockUpdateHeaderTier(...args),
   getSeenHeaders: (...args: unknown[]) => mockGetSeenHeaders(...args),
+  setHeaderTierResponseMode: (...args: unknown[]) => mockSetHeaderTierResponseMode(...args),
 }));
 
 const mockToastError = vi.fn();
@@ -65,6 +67,7 @@ const existingTier: HeaderTier = {
   enabled: true,
   override_route: null,
   fallback_routes: null,
+  response_mode: "buffered",
   created_at: "2025-01-01",
   updated_at: "2025-01-01",
 };
@@ -74,8 +77,9 @@ describe("HeaderTierModal", () => {
     vi.clearAllMocks();
     comboCalls.length = 0;
     mockGetSeenHeaders.mockResolvedValue([]);
-    mockCreateHeaderTier.mockResolvedValue({ ...existingTier, id: "ht-new", name: "Created" });
-    mockUpdateHeaderTier.mockResolvedValue({ ...existingTier });
+    mockCreateHeaderTier.mockResolvedValue({ ...existingTier, id: "ht-new", name: "Created", response_mode: "buffered" });
+    mockUpdateHeaderTier.mockResolvedValue({ ...existingTier, response_mode: "buffered" });
+    mockSetHeaderTierResponseMode.mockResolvedValue({ ...existingTier, response_mode: "stream" });
   });
 
   describe("create mode", () => {

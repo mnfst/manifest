@@ -422,15 +422,21 @@ const OAuthDetailView: Component<Props> = (props) => {
               </For>
             </ul>
           </div>
-          <button
-            class="btn btn--outline provider-detail__action provider-detail__disconnect"
-            disabled={props.busy()}
-            onClick={handleDisconnect}
-          >
-            <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Disconnect all
-            </Show>
-          </button>
+          <div class="provider-detail__footer">
+            <button
+              class="btn btn--outline provider-detail__disconnect"
+              disabled={props.busy()}
+              onClick={handleDisconnect}
+            >
+              <Show when={!props.busy()} fallback={<span class="spinner" />}>
+                Disconnect all
+              </Show>
+            </button>
+            <div style="flex: 1;" />
+            <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>
+              Done
+            </button>
+          </div>
         </Show>
         {/* Single key — original view */}
         <Show when={!isMultiKey()}>
@@ -439,15 +445,21 @@ const OAuthDetailView: Component<Props> = (props) => {
               Connected via {props.provDef.subscriptionLabel ?? 'subscription'}
             </span>
           </div>
-          <button
-            class="btn btn--outline provider-detail__action provider-detail__disconnect"
-            disabled={props.busy()}
-            onClick={handleDisconnect}
-          >
-            <Show when={!props.busy()} fallback={<span class="spinner" />}>
-              Disconnect
-            </Show>
-          </button>
+          <div class="provider-detail__footer">
+            <button
+              class="btn btn--outline provider-detail__disconnect"
+              disabled={props.busy()}
+              onClick={handleDisconnect}
+            >
+              <Show when={!props.busy()} fallback={<span class="spinner" />}>
+                Disconnect
+              </Show>
+            </button>
+            <div style="flex: 1;" />
+            <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>
+              Done
+            </button>
+          </div>
         </Show>
       </Show>
     </>

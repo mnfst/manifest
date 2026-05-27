@@ -13,7 +13,10 @@ import { customProviderColor, formatPerRequestCost } from '../services/formatter
 import { inferProviderFromModel, pricePerM, resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { toast } from '../services/toast-store.js';
-import ModelCapabilityBadges from './ModelCapabilityBadges.js';
+import ModelCapabilityBadges, {
+  CAPABILITY_ICONS,
+  CAPABILITY_LABELS,
+} from './ModelCapabilityBadges.js';
 
 interface Props {
   tierId: string;
@@ -79,7 +82,30 @@ const ModelPickerModal: Component<Props> = (props) => {
   const [activeTab, setActiveTab] = createSignal<AuthType>(resolveInitialTab());
   const [search, setSearch] = createSignal('');
   const [showFreeOnly, setShowFreeOnly] = createSignal(false);
+  /** Required capabilities: only show models that have ALL of these. */
+  const [requiredCapabilities, setRequiredCapabilities] = createSignal<Set<ModelCapability>>(
+    props.requiredCapability ? new Set([props.requiredCapability]) : new Set(),
+  );
   const [refreshingProvId, setRefreshingProvId] = createSignal<string | null>(null);
+
+  const toggleCapability = (cap: ModelCapability) => {
+    const current = new Set(requiredCapabilities());
+    if (current.has(cap)) current.delete(cap);
+    else current.add(cap);
+    setRequiredCapabilities(current);
+  };
+
+  const isCapabilityRequired = (cap: ModelCapability) => requiredCapabilities().has(cap);
+
+  /** Capabilities that exist on at least one model in the current tab, including stream. */
+  const availableCapabilities = (): ModelCapability[] => {
+    const capOrder: ModelCapability[] = ['stream', 'tools', 'image', 'audio', 'video'];
+    const found = new Set<ModelCapability>();
+    for (const m of props.models) {
+      for (const c of m.capabilities ?? []) found.add(c);
+    }
+    return capOrder.filter((c) => found.has(c));
+  };
 
   const handleRefreshGroup = async (provId: string, displayName: string) => {
     if (!props.agentName) return;
@@ -151,6 +177,18 @@ const ModelPickerModal: Component<Props> = (props) => {
       // different model access levels).
       if (showTabs() && m.auth_type && m.auth_type !== tab) continue;
       if (freeOnly && !isFreeModel(m)) continue;
+      const required = requiredCapabilities();
+      if (required.size > 0) {
+        const caps = m.capabilities ?? [];
+        let pass = true;
+        for (const r of required) {
+          if (!caps.includes(r)) {
+            pass = false;
+            break;
+          }
+        }
+        if (!pass) continue;
+      }
       const dbProvId = resolveProviderId(m.provider);
       const prefixProvId = inferProviderFromModel(m.model_name);
       // OpenRouter is the one provider where the vendor prefix is genuinely
@@ -438,46 +476,37 @@ const ModelPickerModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        <Show when={isPaid()}>
-          <div class="routing-modal__filter-bar">
-            <button
-              type="button"
-              class="routing-modal__filter-pill"
-              classList={{ 'routing-modal__filter-pill--active': showFreeOnly() }}
-              onClick={() => setShowFreeOnly(!showFreeOnly())}
-            >
-              <svg
-                class="routing-modal__filter-check"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
+        <div class="routing-modal__filter-bar">
+          <div class="routing-modal__filter-left">
+            <Show when={isPaid()}>
+              <button
+                type="button"
+                class="routing-modal__cap-pill"
+                classList={{ 'routing-modal__cap-pill--active': showFreeOnly() }}
+                onClick={() => setShowFreeOnly(!showFreeOnly())}
               >
-                <Show
-                  when={showFreeOnly()}
-                  fallback={<rect x="3" y="3" width="18" height="18" rx="3" stroke-width="2" />}
-                >
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="3"
-                    stroke-width="2"
-                    fill="currentColor"
-                  />
-                  <path d="m9 12 2 2 4-4" stroke="hsl(var(--card))" />
-                </Show>
-              </svg>
-              Free models only
-            </button>
+                Free models only
+              </button>
+            </Show>
           </div>
-        </Show>
+          <div class="routing-modal__filter-right">
+            <For each={availableCapabilities()}>
+              {(cap) => (
+                <button
+                  type="button"
+                  class="routing-modal__cap-pill"
+                  classList={{
+                    'routing-modal__cap-pill--active': isCapabilityRequired(cap),
+                  }}
+                  onClick={() => toggleCapability(cap)}
+                >
+                  <span class="routing-modal__filter-pill-icon" innerHTML={CAPABILITY_ICONS[cap]} />
+                  {CAPABILITY_LABELS[cap]}
+                </button>
+              )}
+            </For>
+          </div>
+        </div>
 
         <div class="routing-modal__list">
           <For each={groupedModels()}>
@@ -556,48 +585,41 @@ const ModelPickerModal: Component<Props> = (props) => {
                           props.onSelect(props.tierId, model.value, group.provId, activeTab())
                         }
                       >
-                        <span class="routing-modal__model-label">
-                          {model.label}
-                          <Show when={isRecommended(model.value, group.provId, activeTab())}>
-                            <span class="routing-modal__recommended"> (recommended)</span>
-                          </Show>
-                          <Show when={modelRole(model.value, group.provId, activeTab())}>
-                            {(role) => <span class="routing-modal__role-tag">{role()}</span>}
-                          </Show>
+                        <span class="routing-modal__model-left">
+                          <span class="routing-modal__model-label">
+                            {model.label}
+                            <Show when={isRecommended(model.value, group.provId, activeTab())}>
+                              <span class="routing-modal__recommended"> (recommended)</span>
+                            </Show>
+                            <Show when={modelRole(model.value, group.provId, activeTab())}>
+                              {(role) => <span class="routing-modal__role-tag">{role()}</span>}
+                            </Show>
+                          </span>
+                          <ModelCapabilityBadges
+                            capabilities={model.pricing.capabilities}
+                            compact
+                            iconOnly
+                          />
                         </span>
                         <Show
                           when={isPaid()}
                           fallback={
-                            <span class="routing-modal__model-meta">
-                              <span class="routing-modal__model-id routing-modal__model-id--subscription">
-                                {isLocal()
-                                  ? 'Runs on your machine'
-                                  : (formatPerRequestCost(model.pricing.cost_per_request) ??
-                                    'Included in subscription')}
-                              </span>
-                              <ModelCapabilityBadges
-                                capabilities={model.pricing.capabilities}
-                                compact
-                              />
+                            <span class="routing-modal__model-price">
+                              {isLocal()
+                                ? 'Runs on your machine'
+                                : (formatPerRequestCost(model.pricing.cost_per_request) ??
+                                  'Included in subscription')}
                             </span>
                           }
                         >
                           <Show when={model.pricing}>
                             {(p) => (
-                              <span class="routing-modal__model-meta">
-                                <span class="routing-modal__model-id">
-                                  {pricePerM(p().input_price_per_token)} in ·{' '}
-                                  {pricePerM(p().output_price_per_token)} out per 1M
-                                </span>
-                                <ModelCapabilityBadges capabilities={p().capabilities} compact />
+                              <span class="routing-modal__model-price">
+                                {pricePerM(p().input_price_per_token)} in ·{' '}
+                                {pricePerM(p().output_price_per_token)} out
                               </span>
                             )}
                           </Show>
-                        </Show>
-                        <Show when={disabledReason()}>
-                          {(reason) => (
-                            <span class="routing-modal__model-disabled-reason">{reason()}</span>
-                          )}
                         </Show>
                       </button>
                     );

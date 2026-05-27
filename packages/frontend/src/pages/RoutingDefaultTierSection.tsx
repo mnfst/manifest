@@ -155,16 +155,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       ? 'Analyzes the complexity of each request on the fly and routes it to the matching tier.'
       : 'Pick one model and up to 5 fallbacks as your default routing.';
 
-  const controls = () => (
-    <div class="routing-section__controls">
-      <OutputControls
-        responseMode={props.responseMode}
-        disabled={props.changingResponseMode}
-        onResponseModeChange={props.onResponseModeChange}
-      />
-      {switchButton()}
-    </div>
-  );
+  const controls = () => <div class="routing-section__controls">{switchButton()}</div>;
 
   if (props.embedded) {
     return (

@@ -593,6 +593,17 @@
 .provider-detail__disconnect {
   color: hsl(var(--destructive));
   border-color: hsl(var(--destructive) / 0.3);
+  float: none;
+  margin-top: 0;
+}
+
+.provider-detail__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid hsl(var(--border));
 }
 
 /* AnthropicOAuthDetailView layout. Stacks primary OAuth above the

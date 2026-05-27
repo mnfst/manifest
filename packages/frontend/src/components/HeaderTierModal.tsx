@@ -4,11 +4,13 @@ import HeaderComboBox, { type HeaderSuggestion } from './HeaderComboBox.js';
 import {
   createHeaderTier,
   getSeenHeaders,
+  setHeaderTierResponseMode,
   updateHeaderTier,
   type HeaderTier,
   type SeenHeader,
 } from '../services/api/header-tiers.js';
 import { toast } from '../services/toast-store.js';
+import type { AvailableModel, ModelCapability, ResponseMode } from '../services/api.js';
 
 const RESERVED_KEYS = new Set([
   'authorization',
@@ -32,6 +34,8 @@ interface Props {
   onBack?: () => void;
   /** When set and editing, shows a Delete tier button. */
   onDelete?: (id: string) => void;
+  /** Available models for stream compatibility check. */
+  models?: AvailableModel[];
 }
 
 const HeaderTierModal: Component<Props> = (props) => {
@@ -42,6 +46,9 @@ const HeaderTierModal: Component<Props> = (props) => {
   const [headerValue, setHeaderValue] = createSignal(editingTier?.header_value ?? '');
   const [badgeColor, setBadgeColor] = createSignal<TierColor>(
     (editingTier?.badge_color as TierColor | undefined) ?? 'indigo',
+  );
+  const [streamMode, setStreamMode] = createSignal<boolean>(
+    editingTier?.response_mode === 'stream',
   );
   const [submitting, setSubmitting] = createSignal(false);
   const [triedSubmit, setTriedSubmit] = createSignal(false);
@@ -55,6 +62,28 @@ const HeaderTierModal: Component<Props> = (props) => {
   const otherTiers = createMemo(() =>
     editingTier ? props.existingTiers.filter((t) => t.id !== editingTier.id) : props.existingTiers,
   );
+
+  /** Models in this tier that don't support streaming. */
+  const incompatibleModels = () => {
+    if (!editingTier) return [];
+    const caps = new Map<string, readonly ModelCapability[]>();
+    for (const m of props.models ?? []) {
+      if (m.capabilities) caps.set(m.model_name, m.capabilities);
+    }
+    const hasStream = (model: string) => caps.get(model)?.includes('stream') ?? false;
+    const result: { model: string; position: string }[] = [];
+    const route = editingTier.override_route;
+    if (route && !hasStream(route.model)) {
+      result.push({ model: route.model, position: 'Primary' });
+    }
+    for (const [i, fb] of (editingTier.fallback_routes ?? []).entries()) {
+      if (!hasStream(fb.model)) {
+        result.push({ model: fb.model, position: `Fallback ${i + 1}` });
+      }
+    }
+    return result;
+  };
+  const canEnableStream = () => incompatibleModels().length === 0;
 
   const keySuggestions = (): HeaderSuggestion[] => {
     const rows = seen() ?? [];
@@ -141,9 +170,14 @@ const HeaderTierModal: Component<Props> = (props) => {
         header_value: headerValue().trim(),
         badge_color: badgeColor(),
       };
-      const saved = editingTier
+      let saved = editingTier
         ? await updateHeaderTier(props.agentName, editingTier.id, payload)
         : await createHeaderTier(props.agentName, payload);
+      // Persist response mode change if toggled
+      const newMode: ResponseMode = streamMode() ? 'stream' : 'buffered';
+      if (saved.response_mode !== newMode) {
+        saved = await setHeaderTierResponseMode(props.agentName, saved.id, newMode);
+      }
       props.onSaved(saved);
       props.onClose();
     } catch (err) {
@@ -286,6 +320,57 @@ const HeaderTierModal: Component<Props> = (props) => {
             )}
           </For>
         </div>
+
+        <div class="response-mode-modal__field-header" style="margin-top: 16px;">
+          <span class="response-mode-modal__field-title">Stream mode</span>
+          <button
+            class="routing-switch"
+            classList={{
+              'routing-switch--on': streamMode(),
+              'routing-switch--disabled': !streamMode() && !canEnableStream(),
+            }}
+            disabled={!streamMode() && !canEnableStream()}
+            onClick={() => {
+              if (streamMode()) setStreamMode(false);
+              else if (canEnableStream()) setStreamMode(true);
+            }}
+          >
+            <span class="routing-switch__track">
+              <span class="routing-switch__thumb" />
+            </span>
+          </button>
+        </div>
+        <Show
+          when={streamMode()}
+          fallback={
+            <p class="response-mode-modal__desc">
+              Responses are returned as a single payload once the model finishes generating.
+            </p>
+          }
+        >
+          <p class="response-mode-modal__desc">
+            Responses are streamed token by token as the model generates them.
+          </p>
+        </Show>
+        <Show when={!streamMode() && incompatibleModels().length > 0}>
+          <div class="response-mode-modal__blocker" style="margin-top: 8px;">
+            <p class="response-mode-modal__blocker-text">
+              {incompatibleModels().length === 1 ? 'This model does' : 'These models do'} not
+              support streaming. Change {incompatibleModels().length === 1 ? 'it' : 'them'} to
+              enable stream mode.
+            </p>
+            <div class="response-mode-modal__blocker-list">
+              <For each={incompatibleModels()}>
+                {(item) => (
+                  <div class="response-mode-modal__blocker-row">
+                    <span class="response-mode-modal__blocker-model">{item.model}</span>
+                    <span class="response-mode-modal__blocker-meta">{item.position}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Show>
 
         <div class="header-tier-modal__footer">
           <Show when={editingTier && props.onDelete}>
