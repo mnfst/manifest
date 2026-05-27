@@ -18,13 +18,14 @@ describe('ModelCapabilityBadges', () => {
   it('shows text-only metadata without rendering unchecked capabilities', () => {
     render(() => <ModelCapabilityBadges capabilities={['text']} />);
 
-    expect(screen.getByText('Text only')).toBeTruthy();
+    expect(screen.getByLabelText('Text only')).toBeTruthy();
     expect(screen.queryByText('Stream')).toBeNull();
   });
 
   it('shows unknown state when no capability metadata is present', () => {
-    render(() => <ModelCapabilityBadges />);
+    const { container } = render(() => <ModelCapabilityBadges />);
 
-    expect(screen.getByText('Capabilities unknown')).toBeTruthy();
+    expect(screen.getByLabelText('Capabilities unknown')).toBeTruthy();
+    expect(container.querySelector('.model-capability-badge--unknown')).toBeTruthy();
   });
 });

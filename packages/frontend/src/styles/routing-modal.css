@@ -62,8 +62,55 @@
 
 .routing-modal__filter-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 8px 24px 0;
   flex-shrink: 0;
+}
+
+.routing-modal__filter-left,
+.routing-modal__filter-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.routing-modal__filter-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.routing-modal__cap-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.routing-modal__cap-pill:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.routing-modal__cap-pill--active {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.7);
+  border-color: hsl(var(--foreground) / 0.3);
 }
 
 .routing-modal__filter-pill {
@@ -189,10 +236,8 @@
 .routing-modal__model {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  column-gap: 10px;
-  row-gap: 4px;
+  justify-content: space-between;
+  gap: 8px;
   width: 100%;
   padding: 9px 24px 9px 48px;
   background: none;
@@ -229,11 +274,31 @@
   outline-offset: -2px;
 }
 
+.routing-modal__model-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
 .routing-modal__model-label {
   min-width: 0;
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.routing-modal__model-price {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono, monospace);
+  line-height: 1.35;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .routing-modal__model-id {

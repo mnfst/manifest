@@ -126,6 +126,37 @@ describe('RoutingFooter', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Setup instructions' }));
     expect(onShowInstructions).toHaveBeenCalled();
   });
+
+  it('renders and fires onShowHowRoutingWorks when provided', () => {
+    const onShowHowRoutingWorks = vi.fn();
+    render(() => (
+      <RoutingFooter
+        hasOverrides={() => false}
+        resettingAll={() => false}
+        resettingTier={() => null}
+        onResetAll={vi.fn()}
+        onShowInstructions={vi.fn()}
+        onShowHowRoutingWorks={onShowHowRoutingWorks}
+      />
+    ));
+    const btn = screen.getByRole('button', { name: 'How routing works' });
+    expect(btn).toBeDefined();
+    fireEvent.click(btn);
+    expect(onShowHowRoutingWorks).toHaveBeenCalled();
+  });
+
+  it('does not render How routing works button when handler is not provided', () => {
+    render(() => (
+      <RoutingFooter
+        hasOverrides={() => false}
+        resettingAll={() => false}
+        resettingTier={() => null}
+        onResetAll={vi.fn()}
+        onShowInstructions={vi.fn()}
+      />
+    ));
+    expect(screen.queryByRole('button', { name: 'How routing works' })).toBeNull();
+  });
 });
 
 describe('RoutingLoadingSkeleton', () => {

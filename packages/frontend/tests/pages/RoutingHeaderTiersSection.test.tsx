@@ -109,8 +109,9 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
 vi.mock('../../src/components/HeaderTierModal.js', () => ({
   default: (props: Record<string, unknown>) => {
     const editing = props.editing as { id: string; name: string } | undefined;
-    // Read every prop including agentName + existingTiers so JSX getters fire.
-    const _read = [props.agentName, props.existingTiers];
+    // Read every prop including agentName, existingTiers, models so JSX getters fire
+    // (covers line 330: models={props.models()}).
+    const _read = [props.agentName, props.existingTiers, props.models];
     void _read;
     return (
       <div data-testid="tier-modal">

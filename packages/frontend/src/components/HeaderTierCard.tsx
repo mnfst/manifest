@@ -280,13 +280,6 @@ const HeaderTierCard: Component<Props> = (props) => {
         {props.tier.header_key}: {props.tier.header_value}
       </code>
 
-      <OutputControls
-        compact
-        responseMode={() => props.tier.response_mode ?? 'buffered'}
-        disabled={() => !!props.changingResponseMode || !props.onResponseModeChange}
-        onResponseModeChange={(mode) => props.onResponseModeChange?.(mode)}
-      />
-
       <div class="routing-card__body">
         <Show when={currentModel()}>
           {(modelName) => (
@@ -392,7 +385,6 @@ const HeaderTierCard: Component<Props> = (props) => {
                         {formatPerRequestCost(modelInfo()?.cost_per_request) ??
                           'Included in subscription'}
                       </span>
-                      <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
                       <Show when={primarySkipped()}>
                         <span class="routing-card__skipped-badge">Skipped in Stream</span>
                       </Show>
@@ -401,7 +393,6 @@ const HeaderTierCard: Component<Props> = (props) => {
                 >
                   <span class="routing-card__chip-meta">
                     <span class="routing-card__chip-price">{priceLabel()}</span>
-                    <ModelCapabilityBadges capabilities={modelInfo()?.capabilities} compact />
                     <Show when={primarySkipped()}>
                       <span class="routing-card__skipped-badge">Skipped in Stream</span>
                     </Show>
