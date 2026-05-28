@@ -73,7 +73,13 @@ const LimitRuleModal: Component<Props> = (props) => {
   return (
     <Portal>
       <Show when={props.open}>
-        <div class="modal-overlay" onClick={() => handleClose()}>
+        <div
+          class="modal-overlay"
+          onClick={() => handleClose()}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') handleClose();
+          }}
+        >
           <div
             class="modal-card"
             role="dialog"
@@ -92,7 +98,7 @@ const LimitRuleModal: Component<Props> = (props) => {
             }}
           >
             <h2 class="modal-card__title" id="limit-modal-title">
-              {isEdit() ? 'Edit rule' : 'Create rule'}
+              {isEdit() ? 'Edit guardrail' : 'Create guardrail'}
             </h2>
             <p class="modal-card__desc">
               You'll receive an email alert when usage exceeds the threshold.
@@ -164,7 +170,13 @@ const LimitRuleModal: Component<Props> = (props) => {
                 disabled={!threshold() || Number(threshold()) <= 0 || saving()}
                 onClick={handleSave}
               >
-                {saving() ? <span class="spinner" /> : isEdit() ? 'Save changes' : 'Create rule'}
+                {saving() ? (
+                  <span class="spinner" />
+                ) : isEdit() ? (
+                  'Save changes'
+                ) : (
+                  'Create guardrail'
+                )}
               </button>
             </div>
           </div>

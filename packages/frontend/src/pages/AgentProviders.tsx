@@ -3,6 +3,7 @@ import { createResource, createSignal, For, Show, type Component } from 'solid-j
 import { fetchJson, fetchMutate } from '../services/api/core.js';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { toast } from '../services/toast-store.js';
 
 interface Connection {
   id: string;
@@ -47,10 +48,11 @@ const AgentProviders: Component = () => {
       try {
         const res = (await fetchJson(`/agents/${encodeURIComponent(name)}/provider-access`)) as {
           enabled: string[];
+          explicit: boolean;
         };
-        return new Set(res.enabled);
+        return { set: new Set(res.enabled), explicit: res.explicit };
       } catch {
-        return new Set<string>();
+        return { set: new Set<string>(), explicit: false };
       }
     },
   );
@@ -77,28 +79,64 @@ const AgentProviders: Component = () => {
     return list;
   };
 
+  // Track if the user has ever toggled — once explicit, stays explicit even if table empties
+  const [everExplicit, setEverExplicit] = createSignal(false);
+
+  const isExplicit = () => {
+    const a = access();
+    if (a?.explicit) {
+      setEverExplicit(true);
+      return true;
+    }
+    return everExplicit();
+  };
+
   const isEnabled = (id: string) => {
-    const set = access();
-    if (!set || set.size === 0) return true; // default: all enabled when no entries
-    return set.has(id);
+    if (!isExplicit()) return true;
+    const a = access();
+    return a?.set.has(id) ?? false;
   };
 
   const [busy, setBusy] = createSignal<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = createSignal<{
+    id: string;
+    provider: string;
+    label: string;
+  } | null>(null);
 
-  const toggle = async (userProviderId: string, currentlyEnabled: boolean) => {
+  const doDisable = async (userProviderId: string) => {
     setBusy(userProviderId);
+    setEverExplicit(true);
     try {
       const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}`;
-      if (currentlyEnabled) {
-        await fetchMutate(url, { method: 'DELETE' });
-      } else {
-        await fetchMutate(url, { method: 'PUT' });
-      }
+      await fetchMutate(url, { method: 'DELETE' });
       refetchAccess();
     } catch {
       // toast from fetchMutate
     } finally {
       setBusy(null);
+      setConfirmTarget(null);
+    }
+  };
+
+  const doEnable = async (userProviderId: string) => {
+    setBusy(userProviderId);
+    try {
+      const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}`;
+      await fetchMutate(url, { method: 'PUT' });
+      refetchAccess();
+    } catch {
+      // toast from fetchMutate
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleToggle = (conn: { userProviderId: string; provider: string; label: string }) => {
+    if (isEnabled(conn.userProviderId)) {
+      setConfirmTarget(conn);
+    } else {
+      doEnable(conn.userProviderId);
     }
   };
 
@@ -114,11 +152,11 @@ const AgentProviders: Component = () => {
       <Show
         when={allConnections().length > 0}
         fallback={
-          <div class="section-empty">
-            <p style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+            <p style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin: 0;">
               No providers connected
             </p>
-            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0;">
               Connect providers in the Subscriptions, BYOK, or Local pages first.
             </p>
           </div>
@@ -165,15 +203,16 @@ const AgentProviders: Component = () => {
                       <td style="color: hsl(var(--muted-foreground));">{conn.label}</td>
                       <td>{conn.models || '—'}</td>
                       <td style="text-align: right;">
-                        <label class="toggle" style="cursor: pointer;">
-                          <input
-                            type="checkbox"
-                            checked={enabled()}
-                            disabled={busy() === conn.userProviderId}
-                            onChange={() => toggle(conn.userProviderId, enabled())}
-                          />
-                          <span class="toggle__slider" />
-                        </label>
+                        <button
+                          class="routing-switch"
+                          classList={{ 'routing-switch--on': enabled() }}
+                          disabled={busy() === conn.userProviderId}
+                          onClick={() => handleToggle(conn)}
+                        >
+                          <span class="routing-switch__track">
+                            <span class="routing-switch__thumb" />
+                          </span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -181,6 +220,49 @@ const AgentProviders: Component = () => {
               </For>
             </tbody>
           </table>
+        </div>
+      </Show>
+
+      {/* Confirmation modal for disabling */}
+      <Show when={confirmTarget()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmTarget(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setConfirmTarget(null);
+            if (e.key === 'Enter') doDisable(confirmTarget()!.userProviderId);
+          }}
+        >
+          <div
+            class="modal-card"
+            style="max-width: 420px;"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 class="modal-card__title">Disable provider</h2>
+            <p class="modal-card__desc">
+              This agent will no longer be able to route requests through{' '}
+              <strong style="color: hsl(var(--foreground));">
+                {provDef(confirmTarget()!.provider)?.name ?? confirmTarget()!.provider}
+              </strong>
+              . You can re-enable it at any time.
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+              <button class="btn btn--ghost btn--sm" onClick={() => setConfirmTarget(null)}>
+                Keep enabled
+              </button>
+              <button
+                class="btn btn--primary btn--sm"
+                disabled={busy() === confirmTarget()!.id}
+                onClick={() => doDisable(confirmTarget()!.userProviderId)}
+              >
+                Disable
+              </button>
+            </div>
+          </div>
         </div>
       </Show>
     </div>

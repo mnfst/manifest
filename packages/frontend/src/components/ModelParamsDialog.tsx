@@ -488,24 +488,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
                   when={hasSpecs()}
                   fallback={
                     <div class="model-params__empty">
-                      <Show
-                        when={props.requestParamsUrl}
-                        fallback={
-                          <p class="model-params__status">
-                            This model has no configurable parameters.
-                          </p>
-                        }
-                      >
-                        <a
-                          class="btn btn--outline btn--sm model-params__empty-link"
-                          href={props.requestParamsUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Request model parameters for ${props.slotLabel}`}
-                        >
-                          Request parameters for this model
-                        </a>
-                      </Show>
+                      <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0;">
+                        You can request parameter controls for this model and we will add them in a
+                        future update.
+                      </p>
                     </div>
                   }
                 >
@@ -534,27 +520,30 @@ const ModelParamsDialog: Component<Props> = (props) => {
               </Show>
             </div>
 
-            <div class="modal-card__footer model-params__footer">
-              <Show when={!props.loading && hasSpecs() && props.requestParamsUrl}>
-                <a
-                  class="model-params__request-link"
-                  href={props.requestParamsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Request parameters for ${props.slotLabel}`}
-                >
-                  Request
-                </a>
-              </Show>
+            <div
+              class="modal-card__footer model-params__footer"
+              style="justify-content: space-between;"
+            >
+              <button
+                class="btn btn--ghost btn--sm"
+                onClick={props.onClose}
+                disabled={saving()}
+                type="button"
+              >
+                Close
+              </button>
               <div class="model-params__footer-actions">
-                <button
-                  class="btn btn--ghost btn--sm"
-                  onClick={props.onClose}
-                  disabled={saving()}
-                  type="button"
-                >
-                  {!props.loading && hasSpecs() ? 'Cancel' : 'Close'}
-                </button>
+                <Show when={!props.loading && !hasSpecs() && props.requestParamsUrl}>
+                  <a
+                    class="btn btn--primary btn--sm"
+                    href={props.requestParamsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style="text-decoration: none;"
+                  >
+                    Request parameters for {props.slotLabel}
+                  </a>
+                </Show>
                 <Show when={!props.loading && hasSpecs()}>
                   <button
                     class="btn btn--primary btn--sm"

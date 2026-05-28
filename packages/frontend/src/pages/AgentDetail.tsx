@@ -27,12 +27,12 @@ const AgentDetail: ParentComponent = (props) => {
     <div class="container--lg">
       <Title>{agentName()} | Manifest</Title>
 
-      <div class="page-header" style="margin-bottom: 0;">
+      <div style="border: none; margin-bottom: 0; padding-bottom: 0;">
         <h1 class="page-header__title">{agentName()}</h1>
       </div>
 
       {/* Horizontal tabs */}
-      <div class="panel__tabs" role="tablist" style="margin-bottom: 24px; margin-top: 16px;">
+      <div class="panel__tabs" role="tablist" style="margin-top: 12px; margin-bottom: 0;">
         <A
           href={path('/routing')}
           role="tab"
@@ -70,6 +70,7 @@ const AgentDetail: ParentComponent = (props) => {
           Settings
         </A>
       </div>
+      <hr style="border: none; border-top: 1px solid hsl(var(--border)); margin: 8px 0 24px;" />
 
       {/* Tab content from child routes */}
       {props.children}

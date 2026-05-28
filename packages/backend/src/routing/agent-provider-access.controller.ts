@@ -6,6 +6,7 @@ import type { AuthUser } from '../auth/auth.instance';
 import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
+import { UserProvider } from '../entities/user-provider.entity';
 
 @Controller('api/v1/agents/:agentName/provider-access')
 export class AgentProviderAccessController {
@@ -16,6 +17,8 @@ export class AgentProviderAccessController {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(Tenant)
     private readonly tenantRepo: Repository<Tenant>,
+    @InjectRepository(UserProvider)
+    private readonly userProviderRepo: Repository<UserProvider>,
   ) {}
 
   private async resolveAgent(agentName: string, userId: string) {
@@ -29,10 +32,13 @@ export class AgentProviderAccessController {
   @Get()
   async listEnabled(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgent(agentName, user.id);
-    if (!agent) return { enabled: [] };
+    if (!agent) return { enabled: [], explicit: false };
 
     const rows = await this.accessRepo.find({ where: { agent_id: agent.id } });
-    return { enabled: rows.map((r) => r.user_provider_id) };
+    return {
+      enabled: rows.map((r) => r.user_provider_id),
+      explicit: rows.length > 0,
+    };
   }
 
   @Put(':userProviderId')
@@ -64,6 +70,24 @@ export class AgentProviderAccessController {
     const agent = await this.resolveAgent(agentName, user.id);
     if (!agent) return { ok: false };
 
+    // If no explicit entries exist yet, populate with all user providers first
+    const existing = await this.accessRepo.count({ where: { agent_id: agent.id } });
+    if (existing === 0) {
+      const allProviders = await this.userProviderRepo.find({
+        where: { user_id: user.id, is_active: true },
+      });
+      if (allProviders.length > 0) {
+        await this.accessRepo
+          .createQueryBuilder()
+          .insert()
+          .into(AgentProviderAccess)
+          .values(allProviders.map((p) => ({ agent_id: agent.id, user_provider_id: p.id })))
+          .orIgnore()
+          .execute();
+      }
+    }
+
+    // Remove the one being disabled
     await this.accessRepo.delete({ agent_id: agent.id, user_provider_id: userProviderId });
     return { ok: true };
   }

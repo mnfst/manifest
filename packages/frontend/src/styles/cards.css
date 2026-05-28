@@ -214,6 +214,7 @@
   border: none;
   border-radius: calc(var(--radius) - 2px);
   cursor: pointer;
+  text-decoration: none;
   transition: all var(--transition-fast);
 }
 

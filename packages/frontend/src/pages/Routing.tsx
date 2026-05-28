@@ -431,47 +431,65 @@ const Routing: Component = () => {
         content={`Configure model routing for ${agentDisplayName() ?? agentName()}.`}
       />
 
-      <div class="page-header routing-page-header">
-        <div>
-          <h1>Routing</h1>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Pick which model handles each type of
-            request
-          </span>
-        </div>
-        <Show when={!connectedProviders.loading}>
-          <div style="display: flex; gap: 8px;">
-            <Show when={isEnabled()}>
-              <button
-                class="btn btn--outline btn--sm"
-                disabled={refreshingModels()}
-                onClick={async () => {
-                  setRefreshingModels(true);
-                  try {
-                    await refreshModels(agentName());
-                    refetchModels();
-                    refetchTiers();
-                    toast.success('Models refreshed');
-                  } catch {
-                    toast.error('Failed to refresh models');
-                  } finally {
-                    setRefreshingModels(false);
-                  }
-                }}
-              >
-                {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
-              </button>
-            </Show>
-            <a
-              class="btn btn--primary btn--sm"
-              href="/providers/subscriptions"
-              style="text-decoration: none;"
+      <Show when={!connectedProviders.loading && isEnabled()}>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <ActiveProviderIcons
+            activeProviders={activeProviders}
+            customProviders={() => customProviders() ?? []}
+          />
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button
+              class="btn btn--outline btn--sm"
+              disabled={refreshingModels()}
+              onClick={async () => {
+                setRefreshingModels(true);
+                try {
+                  await refreshModels(agentName());
+                  refetchModels();
+                  refetchTiers();
+                  toast.success('Models refreshed');
+                } catch {
+                  toast.error('Failed to refresh models');
+                } finally {
+                  setRefreshingModels(false);
+                }
+              }}
             >
-              Manage providers
-            </a>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                style="margin-right: 4px;"
+              >
+                <path d="M19.07 4.93c-.45-.45-.95-.86-1.48-1.22a9.6 9.6 0 0 0-1.7-.92c-.6-.25-1.24-.45-1.88-.58-1.32-.27-2.71-.27-4.03 0-.64.13-1.27.33-1.88.58a9.96 9.96 0 0 0-4.4 3.62 9.6 9.6 0 0 0-.92 1.7c-.25.6-.45 1.24-.58 1.88-.13.66-.2 1.34-.2 2.01s.07 1.35.2 2.01c.13.64.33 1.27.58 1.88a9.96 9.96 0 0 0 3.62 4.4c.53.36 1.1.67 1.7.92s1.24.45 1.88.58c.66.13 1.34.2 2.01.2s1.35-.07 2.01-.2c.64-.13 1.27-.33 1.88-.58a9.96 9.96 0 0 0 4.4-3.62c.36-.53.67-1.1.92-1.7s.45-1.24.58-1.88c.13-.66.2-1.34.2-2.01h-2a7.85 7.85 0 0 1-.63 3.11c-.2.48-.45.93-.74 1.36-.28.42-.61.82-.98 1.19-.36.36-.76.69-1.18.98-.43.29-.88.54-1.36.74s-.99.36-1.5.47a8 8 0 0 1-4.73-.47c-.48-.2-.93-.45-1.36-.74-.42-.29-.82-.62-1.18-.98s-.69-.76-.98-1.19a8 8 0 0 1-.74-1.36c-.2-.48-.36-.99-.47-1.5A8 8 0 0 1 3.97 12a7.85 7.85 0 0 1 .63-3.11c.2-.48.45-.93.74-1.36.29-.42.62-.82.98-1.18s.76-.69 1.18-.98c.43-.29.88-.54 1.36-.74s.99-.36 1.5-.47a8 8 0 0 1 4.73.47c.48.2.93.45 1.36.74.42.29.82.62 1.18.98.17.17.32.34.48.52L15.98 9h6V3l-2.45 2.45c-.15-.18-.31-.36-.48-.52Z" />
+              </svg>
+              {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+            </button>
+            <button class="response-mode-btn" onClick={() => setResponseModeModalOpen(true)}>
+              <span class="response-mode-btn__icon">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </span>
+              Response mode: {defaultResponseMode() === 'stream' ? 'Stream' : 'Buffered'}
+            </button>
           </div>
-        </Show>
-      </div>
+        </div>
+      </Show>
 
       <Show when={!connectedProviders.loading} fallback={<RoutingLoadingSkeleton />}>
         <Show
@@ -503,13 +521,6 @@ const Routing: Component = () => {
             </div>
           }
         >
-          <Show when={isEnabled()}>
-            <ActiveProviderIcons
-              activeProviders={activeProviders}
-              customProviders={() => customProviders() ?? []}
-            />
-          </Show>
-
           <RoutingTabs
             specificityEnabled={hasAnySpecificityActive}
             customEnabled={hasCustomTiersEnabled}
@@ -519,27 +530,6 @@ const Routing: Component = () => {
                 hasCustomTiersEnabled(),
                 complexityEnabled(),
               )
-            }
-            headerRight={
-              <button class="response-mode-btn" onClick={() => setResponseModeModalOpen(true)}>
-                <span class="response-mode-btn__icon">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                </span>
-                Response mode: {defaultResponseMode() === 'stream' ? 'Stream' : 'Buffered'}
-              </button>
             }
           >
             {{

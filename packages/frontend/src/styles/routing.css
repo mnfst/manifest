@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: var(--gap-lg);
+  margin-bottom: 0;
 }
 
 .routing-providers-info__icons {
@@ -451,7 +451,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  height: 32px;
+  padding: 0 12px;
   background: hsl(var(--muted));
   border: none;
   border-radius: var(--radius);
@@ -471,6 +472,7 @@
 .response-mode-btn__icon {
   display: inline-flex;
   align-items: center;
+  color: hsl(var(--muted-foreground));
 }
 
 /* ── Complexity empty state ───────────────────────── */
@@ -906,17 +908,17 @@
 }
 
 .model-params-modal--empty {
-  max-width: 360px;
+  max-width: 480px;
   padding: 28px;
 }
 
 .model-params-modal--empty .modal-card__title,
 .model-params-modal--empty .modal-card__desc {
-  text-align: center;
+  text-align: left;
 }
 
 .model-params-modal--empty .modal-card__desc {
-  margin-bottom: 18px;
+  margin-bottom: 8px;
 }
 
 .model-params__group {
@@ -949,6 +951,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin-top: 8px;
 }
 
 .model-params__footer-actions {

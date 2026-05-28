@@ -746,8 +746,8 @@ h6 {
 }
 
 .btn--sm {
-  height: 2rem;
-  line-height: 2rem;
+  height: 32px;
+  line-height: 32px;
   padding: 0 0.75rem;
   font-size: var(--font-size-xs);
 }

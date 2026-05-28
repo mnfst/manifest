@@ -229,7 +229,7 @@ const Subscriptions: Component = () => {
               <tr>
                 <th>Provider</th>
                 <th>Models</th>
-                <th>Subscription</th>
+                <th>Subscription name</th>
                 <th>Usage (30d)</th>
                 <th />
               </tr>
@@ -253,14 +253,14 @@ const Subscriptions: Component = () => {
                       <td style="color: hsl(var(--muted-foreground));">{row.conn.label}</td>
                       <td>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                          <span>{formatNumber(perKeyTokens())} tokens</span>
                           <Show when={row.cp.sparkline_7d?.length}>
-                            <Sparkline data={row.cp.sparkline_7d!} width={80} height={24} />
+                            <Sparkline data={row.cp.sparkline_7d!} width={60} height={20} />
                           </Show>
+                          <span>{formatNumber(perKeyTokens())} tokens</span>
                         </div>
                       </td>
                       <td>
-                        <span style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                        <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                           <button
                             class="btn btn--outline btn--sm"
                             style="font-size: var(--font-size-xs);"
@@ -321,7 +321,17 @@ const Subscriptions: Component = () => {
                     <td>
                       <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
                         <Show when={has()}>
-                          <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap;">
+                          <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="8"
+                              height="8"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                            >
+                              <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                            </svg>
                             {cp()!.connection_count}{' '}
                             {cp()!.connection_count === 1 ? 'connection' : 'connections'}
                           </span>

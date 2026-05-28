@@ -182,15 +182,6 @@ const Settings: Component = () => {
         name="description"
         content={`Configure settings for ${agentDisplayName() ?? agentName()}.`}
       />
-      <div class="page-header">
-        <div>
-          <h1>Settings</h1>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Rename your agent, manage API keys, and
-            view setup instructions
-          </span>
-        </div>
-      </div>
 
       {/* -- Agent Name ------------------------------ */}
       <div class="settings-card">

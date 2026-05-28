@@ -20,17 +20,33 @@ interface LimitRuleTableProps {
   loading: boolean;
   hasProvider: boolean;
   onToggleMenu: (ruleId: string, e: MouseEvent) => void;
+  onCreateRule?: () => void;
 }
 
 const hasEmailAction = (action: string) => action === 'notify' || action === 'both';
 const hasBlockAction = (action: string) => action === 'block' || action === 'both';
 
 const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
-  <div class="panel">
-    <div class="panel__title">Rules</div>
-    <Show
-      when={!props.loading}
-      fallback={
+  <>
+    {/* Empty state — outside any panel, beige background */}
+    <Show when={!props.loading && (props.rules ?? []).length === 0}>
+      <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+        <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+          No guardrails yet
+        </div>
+        <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0 0 8px;">
+          Set up alerts for usage spikes, or hard limits to block requests over budget.
+        </p>
+        <button class="btn btn--primary btn--sm" onClick={() => props.onCreateRule?.()}>
+          Create guardrail
+        </button>
+      </div>
+    </Show>
+
+    {/* Loading skeleton — inside panel */}
+    <Show when={props.loading}>
+      <div class="panel">
+        <div class="panel__title">Guardrails</div>
         <table class="notif-table notif-table--flush">
           <thead>
             <tr>
@@ -61,17 +77,13 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
             </For>
           </tbody>
         </table>
-      }
-    >
-      <Show
-        when={(props.rules ?? []).length > 0}
-        fallback={
-          <div class="empty-state">
-            <div class="empty-state__title">No rules yet</div>
-            <p>Set up alerts for usage spikes, or hard limits to block requests over budget.</p>
-          </div>
-        }
-      >
+      </div>
+    </Show>
+
+    {/* Data table — inside panel */}
+    <Show when={!props.loading && (props.rules ?? []).length > 0}>
+      <div class="panel">
+        <div class="panel__title">Guardrails</div>
         <table class="notif-table notif-table--flush">
           <thead>
             <tr>
@@ -131,7 +143,7 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
                       <button
                         class="rule-menu__btn"
                         onClick={(e) => props.onToggleMenu(rule.id, e)}
-                        aria-label="Rule options"
+                        aria-label="Guardrail options"
                       >
                         <svg
                           width="16"
@@ -152,9 +164,9 @@ const LimitRuleTable: Component<LimitRuleTableProps> = (props) => (
             </For>
           </tbody>
         </table>
-      </Show>
+      </div>
     </Show>
-  </div>
+  </>
 );
 
 export { formatThreshold, PERIOD_LABELS };
