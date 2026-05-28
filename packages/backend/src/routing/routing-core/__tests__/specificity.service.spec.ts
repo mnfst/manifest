@@ -297,7 +297,7 @@ describe('SpecificityService', () => {
       expect(await svc.setFallbacks('agent-1', 'coding', [])).toEqual([]);
     });
 
-    it('returns [] when any model cannot be unambiguously resolved', async () => {
+    it('throws when any model cannot be unambiguously resolved', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
@@ -305,8 +305,35 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue({
         fallback_routes: null,
       } as SpecificityAssignment);
-      const result = await svc.setFallbacks('agent-1', 'coding', ['gpt-4o']);
-      expect(result).toEqual([]);
+      await expect(svc.setFallbacks('agent-1', 'coding', ['gpt-4o'])).rejects.toThrow(
+        /Cannot resolve fallback model "gpt-4o"/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    // Regression: issue #1790. See tier.service.spec for the full rationale.
+    it('preserves existing fallbacks when an unresolvable model is added (issue #1790)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+      ];
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+        discovered('gpt-4o', 'openai', 'subscription'),
+        discovered('claude-3-5-sonnet', 'anthropic', 'api_key'),
+      ]);
+      repo.findOne.mockResolvedValue({
+        fallback_routes: existing,
+      } as SpecificityAssignment);
+      await expect(
+        svc.setFallbacks(
+          'agent-1',
+          'coding',
+          ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
+          [...existing, route('minimax', 'api_key', 'minmax-27')],
+        ),
+      ).rejects.toThrow(/Cannot resolve fallback model/);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -327,6 +354,21 @@ describe('SpecificityService', () => {
       expect(repo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
+
+    it('rejects clearing the only stream-capable route while stream mode is active', async () => {
+      repo.findOne.mockResolvedValue({
+        category: 'coding',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+        response_mode: 'stream',
+      } as SpecificityAssignment);
+
+      await expect(svc.clearFallbacks('agent-1', 'coding')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('resetAll', () => {
@@ -341,6 +383,51 @@ describe('SpecificityService', () => {
         }),
       );
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  describe('stream response mode enforcement', () => {
+    it('rejects stream mode when the category has no primary route', async () => {
+      repo.findOne.mockResolvedValue({
+        category: 'coding',
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+      } as SpecificityAssignment);
+
+      await expect(svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('allows stream mode when only the category primary is stream-capable', async () => {
+      const existing = {
+        category: 'coding',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+      } as SpecificityAssignment;
+      repo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(repo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('rejects assigning a non-stream primary while category stream mode is active with no stream fallback', async () => {
+      repo.findOne.mockResolvedValue({
+        category: 'coding',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        response_mode: 'stream',
+      } as SpecificityAssignment);
+
+      await expect(
+        svc.setOverride('agent-1', 'user-1', 'coding', 'local-model', 'custom:local', 'api_key'),
+      ).rejects.toThrow(/add at least one stream-capable model/);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 });

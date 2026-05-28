@@ -33,7 +33,7 @@
     "packages/manifest"
   ],
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=manifest-frontend",
     "build": "turbo build",
     "test": "turbo test",
     "start": "node packages/backend/dist/main.js",

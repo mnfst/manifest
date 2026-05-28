@@ -51,8 +51,25 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
     private readonly customProviderRepo: Repository<CustomProvider> | null = null,
   ) {}
 
-  async onApplicationBootstrap(): Promise<void> {
-    await this.reload();
+  onApplicationBootstrap(): void {
+    // Warm up the pricing cache in the background. The OpenRouter / models.dev
+    // syncs it reads from are now fire-and-forget (see #1894), so awaiting
+    // reload() here would just re-introduce the slow-boot problem. Wait for
+    // those syncs' initial fetch to settle, then build the cache — all off the
+    // app.listen() critical path.
+    void this.warmup();
+  }
+
+  private async warmup(): Promise<void> {
+    try {
+      await Promise.allSettled([
+        this.pricingSync.whenInitialized(),
+        this.modelsDevSync?.whenInitialized() ?? Promise.resolve(),
+      ]);
+      await this.reload();
+    } catch (err) {
+      this.logger.error(`Pricing cache warmup failed: ${err}`);
+    }
   }
 
   /** Rebuild the pricing cache after sync services refresh their data. */

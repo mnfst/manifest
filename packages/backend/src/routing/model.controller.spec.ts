@@ -3,8 +3,11 @@ import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
+import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
 import { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
@@ -35,6 +38,9 @@ describe('ModelController', () => {
   let mockResolveAgent: Record<string, jest.Mock>;
   let mockCustomProviderService: Record<string, jest.Mock>;
   let mockPricingSync: Record<string, jest.Mock>;
+  let mockProviderParamSpecs: Record<string, jest.Mock>;
+  let mockModelsDevSync: Record<string, jest.Mock>;
+  let mockOpencodeGoCatalog: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -44,6 +50,12 @@ describe('ModelController', () => {
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
       discoverAllForAgent: jest.fn().mockResolvedValue(undefined),
+      refreshProvider: jest.fn().mockResolvedValue({
+        ok: true,
+        model_count: 0,
+        last_fetched_at: null,
+        error: null,
+      }),
     };
     mockOllamaSync = {
       sync: jest.fn().mockResolvedValue({ count: 0 }),
@@ -59,6 +71,15 @@ describe('ModelController', () => {
       getLastFetchedAt: jest.fn().mockReturnValue(new Date('2026-04-13T00:00:00Z')),
       refreshCache: jest.fn().mockResolvedValue(42),
     };
+    mockProviderParamSpecs = {
+      getCapabilities: jest.fn().mockResolvedValue(null),
+    };
+    mockModelsDevSync = {
+      lookupModel: jest.fn().mockReturnValue(null),
+    };
+    mockOpencodeGoCatalog = {
+      resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+    };
 
     controller = new ModelController(
       mockProviderService as unknown as ProviderService,
@@ -67,6 +88,9 @@ describe('ModelController', () => {
       mockResolveAgent as unknown as ResolveAgentService,
       mockCustomProviderService as unknown as CustomProviderService,
       mockPricingSync as unknown as PricingSyncService,
+      mockProviderParamSpecs as unknown as ProviderParamSpecService,
+      mockModelsDevSync as unknown as ModelsDevSyncService,
+      mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
     );
   });
 
@@ -149,6 +173,60 @@ describe('ModelController', () => {
     });
   });
 
+  /* ── refreshProviderModels ── */
+
+  describe('refreshProviderModels', () => {
+    const mockParams = { agentName: 'test-agent', provider: 'anthropic' } as never;
+
+    it('returns the discovery result and recalculates tiers when ok', async () => {
+      mockDiscoveryService.refreshProvider.mockResolvedValue({
+        ok: true,
+        model_count: 7,
+        last_fetched_at: '2026-04-12T12:00:00.000Z',
+        error: null,
+      });
+
+      const result = await controller.refreshProviderModels(mockUser, mockParams, {});
+
+      expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        undefined,
+      );
+      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(result).toEqual({
+        ok: true,
+        model_count: 7,
+        last_fetched_at: '2026-04-12T12:00:00.000Z',
+        error: null,
+      });
+    });
+
+    it('forwards the optional authType query param', async () => {
+      await controller.refreshProviderModels(mockUser, mockParams, { authType: 'subscription' });
+      expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        'subscription',
+      );
+    });
+
+    it('skips tier recalculation when refresh failed', async () => {
+      mockDiscoveryService.refreshProvider.mockResolvedValue({
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: 'Provider returned no models',
+      });
+
+      const result = await controller.refreshProviderModels(mockUser, mockParams, {});
+
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe('Provider returned no models');
+    });
+  });
+
   /* ── getAvailableModels ── */
 
   describe('getAvailableModels', () => {
@@ -198,9 +276,54 @@ describe('ModelController', () => {
         context_window: 128000,
         capability_reasoning: false,
         capability_code: true,
+        capabilities: ['stream'],
         quality_score: 3,
         display_name: 'GPT-4o',
       });
+    });
+
+    it('includes the per-request cost for OpenCode Go subscription models', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'opencode-go/glm-5.1',
+          provider: 'opencode-go',
+          authType: 'subscription',
+        }),
+      ]);
+      mockOpencodeGoCatalog.resolveCostPerRequest.mockResolvedValue(0.013636);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(mockOpencodeGoCatalog.resolveCostPerRequest).toHaveBeenCalledWith(
+        'opencode-go/glm-5.1',
+      );
+      expect(result[0].cost_per_request).toBe(0.013636);
+    });
+
+    it('omits cost_per_request when OpenCode Go has no published limit', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'opencode-go/mimo-v25',
+          provider: 'opencode-go',
+          authType: 'subscription',
+        }),
+      ]);
+      mockOpencodeGoCatalog.resolveCostPerRequest.mockResolvedValue(null);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result[0]).not.toHaveProperty('cost_per_request');
+    });
+
+    it('does not query OpenCode Go cost for non-gateway providers', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({ id: 'gpt-4o', provider: 'openai' }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(mockOpencodeGoCatalog.resolveCostPerRequest).not.toHaveBeenCalled();
+      expect(result[0]).not.toHaveProperty('cost_per_request');
     });
 
     it('should return only whitelisted fields for non-custom models', async () => {
@@ -212,6 +335,7 @@ describe('ModelController', () => {
 
       expect(Object.keys(result[0]).sort()).toEqual([
         'auth_type',
+        'capabilities',
         'capability_code',
         'capability_reasoning',
         'context_window',
@@ -222,6 +346,55 @@ describe('ModelController', () => {
         'provider',
         'quality_score',
       ]);
+    });
+
+    it('should include model-scoped capabilities from models.dev metadata', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({ id: 'gpt-4o', provider: 'openai' }),
+      ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        capabilities: ['text', 'image', 'tools', 'stream'],
+      });
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      expect(result[0].capabilities).toEqual(['text', 'image', 'tools', 'stream']);
+    });
+
+    it('resolves gateway models to the underlying provider for capability metadata', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'opencode-go/glm-5.1',
+          provider: 'opencode-go',
+          authType: 'subscription',
+        }),
+      ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        capabilities: ['text', 'tools', 'stream'],
+      });
+
+      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+
+      // The gateway prefix is stripped and the provider inferred from the
+      // underlying id, so models.dev is queried as the real provider.
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('zai', 'glm-5.1');
+      expect(result[0].capabilities).toEqual(['text', 'tools', 'stream']);
+    });
+
+    it('falls back to the gateway provider when the underlying id is unknown', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'opencode-go/mimo-v25',
+          provider: 'opencode-go',
+          authType: 'subscription',
+        }),
+      ]);
+
+      await controller.getAvailableModels(mockUser, mockAgentName);
+
+      // `mimo-v25` matches no known provider, so the lookup keeps the gateway
+      // provider rather than passing `undefined`.
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('opencode-go', 'mimo-v25');
     });
 
     it('should use null for display_name when displayName is empty', async () => {

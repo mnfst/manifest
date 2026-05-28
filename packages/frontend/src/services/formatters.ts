@@ -2,6 +2,7 @@
  * Format large numbers with suffix (1.2k, 304.3k, 1.2M).
  */
 export function formatNumber(n: number): string {
+  n = Number(n);
   if (n >= 1_000_000) {
     const v = n / 1_000_000;
     return `${v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)}M`;
@@ -19,9 +20,23 @@ export function formatNumber(n: number): string {
  * Returns "< $0.01" for small sub-cent positive costs to avoid misleading "$0.00".
  */
 export function formatCost(n: number): string | null {
+  n = Number(n);
   if (n < 0) return null;
   if (n > 0 && n < 0.01) return '< $0.01';
   return `$${n.toFixed(2)}`;
+}
+
+/**
+ * Format a per-request subscription cost (e.g. OpenCode Go's docs-attributed
+ * USD per call) as a compact `$0.0136/req` label. Returns null for a missing,
+ * zero, or negative value so callers fall back to a flat-fee label.
+ */
+export function formatPerRequestCost(cost: number | null | undefined): string | null {
+  if (cost == null) return null;
+  const n = Number(cost);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n < 0.0001) return '< $0.0001/req';
+  return `$${n.toFixed(4)}/req`;
 }
 
 /**
@@ -82,6 +97,7 @@ export function formatMetricType(metricType: string): string {
  * Format a duration in milliseconds (e.g., "423ms", "1.2s").
  */
 export function formatDuration(ms: number): string {
+  ms = Number(ms);
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(1)}s`;
 }
@@ -143,4 +159,29 @@ export function formatRelativeTime(ts: string): string {
   if (diffDays === 0) return formatTime(ts);
   if (diffDays === 1) return 'Yesterday';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+export function formatTimeAgo(ts: string | null | undefined): string | null {
+  if (!ts) return null;
+  const normalized = ts.replace(' ', 'T');
+  const d = new Date(normalized.endsWith('Z') ? normalized : normalized + 'Z');
+  const diffMs = Date.now() - d.getTime();
+  if (!Number.isFinite(diffMs) || diffMs < 0) return null;
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 45) return 'Just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+export function sortedHeaderEntries(
+  headers: Record<string, string> | null | undefined,
+): Array<[string, string]> {
+  if (!headers) return [];
+  return Object.entries(headers).sort(([a], [b]) => a.localeCompare(b));
 }

@@ -13,7 +13,13 @@ const STAR_CACHE_KEY = 'github-star-count';
 const STAR_CACHE_TS_KEY = 'github-star-ts';
 const STAR_CACHE_TTL = 3600000; // 1 hour
 
-const Header: Component = () => {
+interface HeaderProps {
+  showMobileNavToggle?: boolean;
+  mobileNavOpen?: boolean;
+  onMobileNavToggle?: () => void;
+}
+
+const Header: Component<HeaderProps> = (props) => {
   const getAgentName = useAgentName();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = createSignal(false);
@@ -118,6 +124,14 @@ const Header: Component = () => {
             Self-hosted
           </span>
         </Show>
+        {__DEV_MODE__ && (
+          <span
+            class="header__mode-badge header__mode-badge--dev"
+            title="Vite dev server (npm run dev). Not a production build."
+          >
+            Dev
+          </span>
+        )}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
           <A href="/" class="header__breadcrumb-link">
@@ -206,6 +220,22 @@ const Header: Component = () => {
         </Show>
       </div>
       <div class="header__right">
+        <Show when={props.showMobileNavToggle}>
+          <button
+            type="button"
+            class="mobile-nav-toggle"
+            aria-label={
+              props.mobileNavOpen === true ? 'Close navigation menu' : 'Open navigation menu'
+            }
+            aria-controls="agent-navigation"
+            aria-expanded={props.mobileNavOpen === true}
+            onClick={props.onMobileNavToggle}
+          >
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
+          </button>
+        </Show>
         <a href={docsUrl()} target="_blank" rel="noopener noreferrer" class="header__docs-link">
           <svg
             width="13"

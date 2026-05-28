@@ -3,8 +3,9 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 import InfoTooltip from "../../src/components/InfoTooltip";
 
 describe("InfoTooltip", () => {
-  it("renders tooltip text", () => {
+  it("renders tooltip text when expanded", () => {
     render(() => <InfoTooltip text="Helpful info" />);
+    fireEvent.click(screen.getByRole("button"));
     expect(screen.getByText("Helpful info")).toBeDefined();
   });
 
@@ -33,11 +34,18 @@ describe("InfoTooltip", () => {
     expect(svg?.getAttribute("aria-hidden")).toBe("true");
   });
 
-  it("has role=tooltip on bubble", () => {
-    const { container } = render(() => <InfoTooltip text="Bubble text" />);
-    const bubble = container.querySelector('[role="tooltip"]');
+  it("has role=tooltip on bubble when expanded", () => {
+    render(() => <InfoTooltip text="Bubble text" />);
+    fireEvent.click(screen.getByRole("button"));
+    const bubble = screen.getByRole("tooltip");
     expect(bubble).not.toBeNull();
-    expect(bubble?.textContent).toBe("Bubble text");
+    expect(bubble.textContent).toBe("Bubble text");
+  });
+
+  it("shows tooltip text on hover", () => {
+    render(() => <InfoTooltip text="Hover text" />);
+    fireEvent.mouseEnter(screen.getByRole("button"));
+    expect(screen.getByRole("tooltip").textContent).toBe("Hover text");
   });
 
   it("toggles expanded on click", () => {

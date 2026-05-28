@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomUUID } from 'crypto';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { OAuthTokenBlob } from './openai-oauth.types';
 import {
   MinimaxRegion,
@@ -13,6 +14,7 @@ import {
   buildMinimaxResourceUrl,
   getMinimaxResourceUrl,
   getMinimaxOauthBaseUrl,
+  normalizeMinimaxVerificationUri,
   toAbsoluteExpiryTimestamp,
   toPollIntervalMs,
   isOAuthTokenBlob,
@@ -123,6 +125,7 @@ export class MinimaxOauthService {
     if (payload.state !== flowId) throw new Error('MiniMax OAuth state mismatch');
     const pollIntervalMs = toPollIntervalMs(payload.interval);
     const expiresAt = toAbsoluteExpiryTimestamp(payload.expired_in);
+    const verificationUri = normalizeMinimaxVerificationUri(payload.verification_uri);
     this.pending.set(flowId, {
       verifier,
       userCode: payload.user_code,
@@ -136,7 +139,7 @@ export class MinimaxOauthService {
     return {
       flowId,
       userCode: payload.user_code,
-      verificationUri: payload.verification_uri,
+      verificationUri,
       expiresAt,
       pollIntervalMs,
     };
@@ -202,12 +205,15 @@ export class MinimaxOauthService {
       e: toAbsoluteExpiryTimestamp(payload.expired_in),
       u: resourceUrl,
     };
+    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'minimax');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
       'minimax',
       JSON.stringify(blob),
       'subscription',
+      undefined,
+      label,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
@@ -235,7 +241,7 @@ export class MinimaxOauthService {
     });
     if (!response.ok) {
       const text = await response.text();
-      this.logger.error(`MiniMax token refresh failed: ${text}`);
+      this.logger.error(`MiniMax token refresh failed: ${scrubSecrets(text)}`);
       throw new Error('Token refresh failed');
     }
     const payload = (await response.json()) as MinimaxTokenResponse;

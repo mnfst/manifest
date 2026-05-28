@@ -20,6 +20,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - name: DB diagram renderer smoke test
+        run: node .github/scripts/db-diagram/smoke-test.cjs
 
   backend-postgres:
     name: Backend (PostgreSQL)

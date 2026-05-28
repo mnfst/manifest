@@ -26,6 +26,7 @@ vi.mock('../../src/services/providers.js', () => ({
   PROVIDERS: [
     { id: 'ollama', name: 'Ollama', localOnly: true, color: '#1a1a1a', initial: 'Ol', subtitle: '', keyPrefix: '', minKeyLength: 0, keyPlaceholder: '', noKeyRequired: true, models: [] },
     { id: 'gemini', name: 'Google', color: '#4285f4', initial: 'G', subtitle: '', keyPrefix: '', minKeyLength: 30, keyPlaceholder: '', models: [] },
+    { id: 'nvidia', name: 'NVIDIA NIM', color: '#76B900', initial: 'Nv', subtitle: '', keyPrefix: '', minKeyLength: 20, keyPlaceholder: 'nvapi-...', models: [] },
   ],
 }));
 
@@ -75,6 +76,20 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         flag: '\u{1F1FA}\u{1F1F8}',
         models: [
           { id: 'gpt-4o', name: 'GPT-4o', context: '128K', max_output: '16K', modality: 'Text', rate_limit: '10 RPM' },
+        ],
+      },
+      {
+        name: 'NVIDIA NIM',
+        logo: '/icons/nvidia.svg',
+        description: 'Free tier on NVIDIA-hosted NIM endpoints.',
+        tags: ['Hosted API key access'],
+        api_key_url: 'https://build.nvidia.com/settings/api-keys',
+        base_url: 'https://integrate.api.nvidia.com/v1',
+        warning: null,
+        country: 'US',
+        flag: '\u{1F1FA}\u{1F1F8}',
+        models: [
+          { id: 'nvidia/nemotron-3-super-120b-a12b', name: 'Nemotron 3 Super', context: '128K', max_output: '8K', modality: 'Text', rate_limit: '' },
         ],
       },
       {
@@ -163,7 +178,7 @@ describe('FreeModels', () => {
   it('renders base URL with copy button for providers that have one', async () => {
     render(() => <FreeModels />);
     await vi.waitFor(() => {
-      expect(screen.getAllByText('Base URL:').length).toBe(3);
+      expect(screen.getAllByText('Base URL:').length).toBe(4);
       expect(screen.getByText('https://api.cohere.ai/compatibility/v1')).toBeDefined();
     });
   });
@@ -214,6 +229,17 @@ describe('FreeModels', () => {
       expect(connectBtn.tagName).toBe('A');
       const href = connectBtn.getAttribute('href')!;
       expect(href).toContain('provider=gemini');
+    });
+  });
+
+  it('renders NVIDIA NIM Connect button linking to built-in provider', async () => {
+    render(() => <FreeModels />);
+    await vi.waitFor(() => {
+      const connectBtn = screen.getByText('Connect NVIDIA NIM');
+      expect(connectBtn.tagName).toBe('A');
+      const href = connectBtn.getAttribute('href')!;
+      expect(href).toContain('provider=nvidia');
+      expect(href).not.toContain('provider=custom');
     });
   });
 

@@ -4,6 +4,7 @@ export interface ModelRoute {
   provider: string;
   authType: AuthType;
   model: string;
+  keyLabel?: string | null;
 }
 
 export function routeEquals(
@@ -14,16 +15,34 @@ export function routeEquals(
   return (
     a.provider.toLowerCase() === b.provider.toLowerCase() &&
     a.authType === b.authType &&
-    a.model === b.model
+    a.model === b.model &&
+    normalizeKeyLabel(a.keyLabel) === normalizeKeyLabel(b.keyLabel)
   );
+}
+
+function normalizeKeyLabel(label: string | null | undefined): string | null {
+  if (label === null || label === undefined) return null;
+  const trimmed = label.trim();
+  return trimmed === '' ? null : trimmed.toLowerCase();
 }
 
 export function isModelRoute(value: unknown): value is ModelRoute {
   if (!value || typeof value !== 'object') return false;
   const v = value as Record<string, unknown>;
-  return (
-    typeof v.provider === 'string' && typeof v.authType === 'string' && typeof v.model === 'string'
-  );
+  if (
+    typeof v.provider !== 'string' ||
+    typeof v.authType !== 'string' ||
+    typeof v.model !== 'string'
+  )
+    return false;
+  if (
+    'keyLabel' in v &&
+    v.keyLabel !== undefined &&
+    v.keyLabel !== null &&
+    typeof v.keyLabel !== 'string'
+  )
+    return false;
+  return true;
 }
 
 export function isModelRouteArray(value: unknown): value is ModelRoute[] {

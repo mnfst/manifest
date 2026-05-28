@@ -20,8 +20,11 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'groq',
+      'kilo',
       'mistral',
       'moonshot',
+      'nvidia',
       'xai',
       'minimax',
       'minimax-subscription',
@@ -288,6 +291,30 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  /* ── xAI provider ── */
+
+  describe('xai provider', () => {
+    it('uses the dynamic xAI models endpoint for subscription auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'grok-3' }, { id: 'grok-4' }],
+        }),
+      });
+
+      const result = await service.fetch('xai', 'xai-test-key', 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer xai-test-key' },
+        }),
+      );
+      expect(result.map((m) => m.id)).toEqual(['grok-3', 'grok-4']);
+      expect(result.every((m) => m.provider === 'xai')).toBe(true);
+    });
+  });
+
   /* ── Mistral-specific filter ── */
 
   describe('parseMistralChatOnly (via mistral provider)', () => {
@@ -457,6 +484,284 @@ describe('ProviderModelFetcherService', () => {
       'https://open.bigmodel.cn/api/paas/v4/models',
       expect.any(Object),
     );
+  });
+
+  /* ── Kiro subscription provider ── */
+
+  it('should fetch Kiro models dynamically through the Kiro model-list operation', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              model_id: 'auto',
+              model_name: 'auto',
+              context_window_tokens: 1000000,
+            },
+          ],
+          nextToken: 'next-page',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              modelId: 'claude-sonnet-4.5',
+              modelName: 'Claude Sonnet 4.5',
+              tokenLimits: { maxInputTokens: 200000 },
+            },
+          ],
+        }),
+      });
+
+    const result = await service.fetch('kiro', 'ksk_test', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://q.us-east-1.amazonaws.com',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ksk_test',
+          'Content-Type': 'application/x-amz-json-1.0',
+          'x-amz-target': 'AmazonCodeWhispererService.ListAvailableModels',
+        },
+      }),
+    );
+    expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+      origin: 'KIRO_CLI',
+      maxResults: 100,
+    });
+    expect(JSON.parse(fetchSpy.mock.calls[1][1].body)).toEqual({
+      origin: 'KIRO_CLI',
+      maxResults: 100,
+      nextToken: 'next-page',
+    });
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'kiro/auto',
+        displayName: 'auto',
+        provider: 'kiro',
+        contextWindow: 1000000,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        capabilityCode: true,
+      }),
+      expect.objectContaining({
+        id: 'kiro/claude-sonnet-4.5',
+        displayName: 'Claude Sonnet 4.5',
+        contextWindow: 200000,
+      }),
+    ]);
+  });
+
+  it('should return [] when Kiro model discovery rejects the API key', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: false,
+      status: 403,
+    });
+
+    const result = await service.fetch('kiro', 'ksk_bad', 'subscription');
+
+    expect(result).toEqual([]);
+  });
+
+  it('should clear the Kiro model discovery timeout when fetch rejects', async () => {
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+    fetchSpy.mockRejectedValue(new Error('network failure'));
+
+    const result = await service.fetch('kiro', 'ksk_test', 'subscription');
+
+    expect(result).toEqual([]);
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+    clearTimeoutSpy.mockRestore();
+  });
+
+  /* ── Groq provider ── */
+
+  describe('groq provider', () => {
+    it('should parse Groq models and filter non-chat entries', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'llama-3.3-70b-versatile' },
+            { id: 'llama-3.1-8b-instant' },
+            { id: 'whisper-large-v3' },
+            { id: 'whisper-large-v3-turbo' },
+            { id: 'meta-llama/llama-prompt-guard-2-86m' },
+            { id: 'openai/gpt-oss-20b' },
+            { id: 'openai/gpt-oss-safeguard-20b' },
+            { id: 'compound-beta' },
+            { id: 'compound-mini' },
+            { id: 'groq/compound' },
+            { id: 'groq/compound-mini' },
+            { id: 'canopylabs/orpheus-v1-english' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('groq', 'gsk_test');
+      // whisper filtered by universal filter; prompt-guard, orpheus and
+      // every compound variant (start-of-string, slash-prefixed, hyphen-
+      // prefixed) filtered by groq-specific filter. gpt-oss-safeguard-20b
+      // is a real chat model and must NOT be filtered.
+      expect(result.map((m) => m.id)).toEqual([
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'openai/gpt-oss-20b',
+        'openai/gpt-oss-safeguard-20b',
+      ]);
+    });
+
+    it('should hit the Groq models endpoint with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('groq', 'gsk_test_key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.groq.com/openai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer gsk_test_key' },
+        }),
+      );
+    });
+  });
+
+  describe('kilo provider', () => {
+    it('fetches the public Kilo Gateway model catalog with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'kilo-auto/frontier',
+              name: 'Auto Frontier',
+              context_length: 1000000,
+              pricing: { prompt: '0.000005', completion: '0.000025' },
+              supported_parameters: ['max_tokens', 'temperature', 'tools', 'reasoning'],
+              architecture: { output_modalities: ['text'] },
+            },
+            {
+              id: 'anthropic/claude-sonnet-4.5',
+              name: 'Claude Sonnet 4.5',
+              top_provider: { context_length: 200000 },
+              supported_parameters: ['max_tokens', 'tools'],
+              architecture: { output_modalities: ['text'] },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.kilo.ai/api/gateway/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer kilo-token' },
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'kilo-auto/frontier',
+          displayName: 'Auto Frontier',
+          provider: 'kilo',
+          contextWindow: 1000000,
+          inputPricePerToken: 0.000005,
+          outputPricePerToken: 0.000025,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+        expect.objectContaining({
+          id: 'anthropic/claude-sonnet-4.5',
+          displayName: 'Claude Sonnet 4.5',
+          provider: 'kilo',
+          contextWindow: 200000,
+          capabilityReasoning: false,
+          capabilityCode: true,
+        }),
+      ]);
+    });
+
+    it('filters non-text output models from the Kilo catalog', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'openai/gpt-5.4', architecture: { output_modalities: ['text'] } },
+            { id: 'openai/gpt-image-2', architecture: { output_modalities: ['image'] } },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(result.map((m) => m.id)).toEqual(['openai/gpt-5.4']);
+    });
+
+    it('returns [] when the Kilo catalog data field is missing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  /* ── NVIDIA NIM provider ── */
+
+  describe('nvidia provider', () => {
+    it('should hit the hosted NVIDIA NIM models endpoint with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('nvidia', 'nvapi-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://integrate.api.nvidia.com/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer nvapi-test-key' },
+        }),
+      );
+    });
+
+    it('should deduplicate models and filter non-chat NIM catalog entries', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'deepseek-ai/deepseek-v4-pro' },
+            { id: 'deepseek-ai/deepseek-v4-pro' },
+            { id: 'nvidia/nemotron-3-super-120b-a12b' },
+            { id: 'openai/gpt-oss-20b' },
+            { id: 'nvidia/embed-qa-4' },
+            { id: 'black-forest-labs/flux_1-schnell' },
+            { id: 'nvidia/ai-synthetic-video-detector' },
+            { id: 'nvidia/nemotron-4-340b-reward' },
+            { id: 'nvidia/llama-3.1-nemoguard-8b-content-safety' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('nvidia', 'nvapi-test-key');
+      expect(result.map((m) => m.id)).toEqual([
+        'deepseek-ai/deepseek-v4-pro',
+        'nvidia/nemotron-3-super-120b-a12b',
+        'openai/gpt-oss-20b',
+      ]);
+      expect(result.every((m) => m.provider === 'nvidia')).toBe(true);
+    });
   });
 
   /* ── OpenAI-compatible providers use same parser ── */
@@ -828,6 +1133,15 @@ describe('ProviderModelFetcherService', () => {
         expect.stringContaining('key=my-gem-key'),
         expect.objectContaining({ headers: {} }),
       );
+    });
+
+    it('should return [] immediately without any HTTP call when authType is subscription', async () => {
+      // CodeAssist does not expose a /models endpoint; the discovery fallback
+      // chain handles Gemini subscription models via the OpenRouter cache.
+      const result = await service.fetch('gemini', 'ya29.some-oauth-access-token', 'subscription');
+
+      expect(result).toEqual([]);
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -1287,7 +1601,7 @@ describe('ProviderModelFetcherService', () => {
       await service.fetch('openai', 'my-oauth-token', 'subscription');
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://chatgpt.com/backend-api/codex/models?client_version=0.99.0',
+        'https://chatgpt.com/backend-api/codex/models?client_version=0.128.0',
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer my-oauth-token',

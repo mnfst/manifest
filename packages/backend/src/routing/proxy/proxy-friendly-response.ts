@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { Response as ExpressResponse } from 'express';
 import { Tier } from '../../scoring/types';
+import type { ResponseMode } from 'manifest-shared';
 
 export interface FriendlyForward {
   response: Response;
@@ -18,6 +19,7 @@ export interface FriendlyResult {
     provider: string;
     confidence: number;
     reason: string;
+    response_mode: ResponseMode;
   };
 }
 
@@ -44,12 +46,13 @@ export function buildFriendlyResponse(
   const id = `chatcmpl-manifest-${randomUUID()}`;
   const created = Math.floor(Date.now() / 1000);
 
-  const meta = {
+  const meta: FriendlyResult['meta'] = {
     tier: 'simple' as Tier,
     model: 'manifest',
     provider: 'manifest',
     confidence: 1,
     reason,
+    response_mode: stream ? 'stream' : 'buffered',
   };
 
   if (stream) {

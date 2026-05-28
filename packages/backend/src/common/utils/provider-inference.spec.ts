@@ -67,6 +67,11 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('qwq-32b')).toBe('qwen');
   });
 
+  it('returns "kiro" for Kiro subscription model IDs before generic vendor fallback', () => {
+    expect(inferProviderFromModel('kiro/auto')).toBe('kiro');
+    expect(inferProviderFromModel('kiro/claude-sonnet-4.5')).toBe('kiro');
+  });
+
   it('returns "openrouter" for vendor/model format', () => {
     expect(inferProviderFromModel('stepfun/step-3.5-flash:free')).toBe('openrouter');
   });

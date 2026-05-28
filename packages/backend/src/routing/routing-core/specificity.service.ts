@@ -2,11 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import type { AuthType, ModelRoute, ResponseMode } from 'manifest-shared';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { explicitRoute, unambiguousRoute } from './route-helpers';
+import { assertStreamableResponseMode } from './response-mode-guard';
 
 @Injectable()
 export class SpecificityService {
@@ -56,6 +58,8 @@ export class SpecificityService {
       override_route: null,
       auto_assigned_route: null,
       fallback_routes: null,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      response_mode: DEFAULT_RESPONSE_MODE,
     });
 
     try {
@@ -75,10 +79,16 @@ export class SpecificityService {
     model: string,
     provider?: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ): Promise<SpecificityAssignment> {
-    const explicit = explicitRoute(model, provider, authType);
+    const explicit = explicitRoute(model, provider, authType, providerKeyLabel);
     const route =
-      explicit ?? unambiguousRoute(model, await this.discoveryService.getModelsForAgent(agentId));
+      explicit ??
+      unambiguousRoute(
+        model,
+        await this.discoveryService.getModelsForAgent(agentId),
+        providerKeyLabel,
+      );
     if (!route) {
       throw new BadRequestException(
         `Model "${model}" is offered by multiple providers — pass an explicit ` +
@@ -88,6 +98,12 @@ export class SpecificityService {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
 
     if (existing) {
+      assertStreamableResponseMode(
+        existing.response_mode,
+        `task-specific tier "${category}"`,
+        route,
+        existing.fallback_routes,
+      );
       existing.override_route = route;
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
@@ -105,14 +121,64 @@ export class SpecificityService {
       override_route: route,
       auto_assigned_route: null,
       fallback_routes: null,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      response_mode: DEFAULT_RESPONSE_MODE,
     });
 
     try {
       await this.repo.insert(record);
     } catch {
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.setOverride(agentId, userId, category, model, provider, authType);
+      if (retry)
+        return this.setOverride(
+          agentId,
+          userId,
+          category,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
     }
+    this.routingCache.invalidateAgent(agentId);
+    return record;
+  }
+
+  async setResponseMode(
+    agentId: string,
+    userId: string,
+    category: string,
+    responseMode: ResponseMode,
+  ): Promise<SpecificityAssignment> {
+    const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
+    if (existing) {
+      assertStreamableResponseMode(
+        responseMode,
+        `task-specific tier "${category}"`,
+        existing.override_route ?? existing.auto_assigned_route,
+        existing.fallback_routes,
+      );
+      existing.response_mode = responseMode;
+      existing.updated_at = new Date().toISOString();
+      await this.repo.save(existing);
+      this.routingCache.invalidateAgent(agentId);
+      return existing;
+    }
+
+    const record = Object.assign(new SpecificityAssignment(), {
+      id: randomUUID(),
+      user_id: userId,
+      agent_id: agentId,
+      category,
+      is_active: false,
+      override_route: null,
+      auto_assigned_route: null,
+      fallback_routes: null,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      response_mode: responseMode,
+    });
+    assertStreamableResponseMode(responseMode, `task-specific tier "${category}"`, null, null);
+    await this.repo.insert(record);
     this.routingCache.invalidateAgent(agentId);
     return record;
   }
@@ -123,6 +189,12 @@ export class SpecificityService {
 
     existing.override_route = null;
     existing.fallback_routes = null;
+    assertStreamableResponseMode(
+      existing.response_mode,
+      `task-specific tier "${category}"`,
+      existing.auto_assigned_route,
+      null,
+    );
     existing.updated_at = new Date().toISOString();
     await this.repo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -136,7 +208,14 @@ export class SpecificityService {
   ): Promise<ModelRoute[]> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return [];
-    existing.fallback_routes = await this.buildFallbackRoutes(agentId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
+    assertStreamableResponseMode(
+      existing.response_mode,
+      `task-specific tier "${category}"`,
+      existing.override_route ?? existing.auto_assigned_route,
+      fallbackRoutes,
+    );
+    existing.fallback_routes = fallbackRoutes;
     existing.updated_at = new Date().toISOString();
     await this.repo.save(existing);
     this.routingCache.invalidateAgent(agentId);
@@ -146,6 +225,12 @@ export class SpecificityService {
   async clearFallbacks(agentId: string, category: string): Promise<void> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return;
+    assertStreamableResponseMode(
+      existing.response_mode,
+      `task-specific tier "${category}"`,
+      existing.override_route ?? existing.auto_assigned_route,
+      null,
+    );
     existing.fallback_routes = null;
     existing.updated_at = new Date().toISOString();
     await this.repo.save(existing);
@@ -165,6 +250,10 @@ export class SpecificityService {
     this.routingCache.invalidateAgent(agentId);
   }
 
+  /**
+   * Mirror of {@link TierService.buildFallbackRoutes} — see that docblock for
+   * the issue #1790 rationale on why this throws instead of returning null.
+   */
   private async buildFallbackRoutes(
     agentId: string,
     models: string[],
@@ -189,7 +278,12 @@ export class SpecificityService {
     const resolved: ModelRoute[] = [];
     for (const m of models) {
       const route = unambiguousRoute(m, available);
-      if (!route) return null;
+      if (!route) {
+        throw new BadRequestException(
+          `Cannot resolve fallback model "${m}" to a single connected provider. ` +
+            `Pass an explicit (provider, authType, model) route, or connect exactly one provider that offers this model.`,
+        );
+      }
       resolved.push(route);
     }
     return resolved;

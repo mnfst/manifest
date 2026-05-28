@@ -15,17 +15,30 @@ export function connectSse(): () => void {
 
   const bumpPing = () => setPingCount((n) => n + 1);
 
+  // Coalesce message-class bumps. A chatty agent emits one SSE `message` event
+  // per ingested record, and every bump refetches the Overview/MessageLog
+  // resources. Collapsing a burst into a single bump every 500ms keeps backend
+  // QPS sane at the cost of a small refresh delay on the dashboard.
+  let messageBumpTimer: ReturnType<typeof setTimeout> | null = null;
+  const bumpMessagePing = () => {
+    if (messageBumpTimer) return;
+    messageBumpTimer = setTimeout(() => {
+      messageBumpTimer = null;
+      setMessagePing((n) => n + 1);
+    }, 500);
+  };
+
   // Legacy generic 'ping' from older deployments — keep listening so a partial
   // upgrade (old backend, new frontend) still triggers refetches. The safe
   // default is to treat unknown 'ping' as a message-class change since that's
   // the kind the bus emitted before typed events landed.
   es.addEventListener('ping', () => {
-    setMessagePing((n) => n + 1);
+    bumpMessagePing();
     bumpPing();
   });
 
   es.addEventListener('message', () => {
-    setMessagePing((n) => n + 1);
+    bumpMessagePing();
     bumpPing();
   });
   es.addEventListener('agent', () => {
@@ -37,5 +50,9 @@ export function connectSse(): () => void {
     bumpPing();
   });
 
-  return () => es.close();
+  return () => {
+    if (messageBumpTimer) clearTimeout(messageBumpTimer);
+    messageBumpTimer = null;
+    es.close();
+  };
 }

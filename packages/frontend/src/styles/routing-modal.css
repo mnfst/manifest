@@ -62,8 +62,55 @@
 
 .routing-modal__filter-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 8px 24px 0;
   flex-shrink: 0;
+}
+
+.routing-modal__filter-left,
+.routing-modal__filter-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.routing-modal__filter-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.routing-modal__cap-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.routing-modal__cap-pill:hover {
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--foreground));
+}
+
+.routing-modal__cap-pill--active {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted) / 0.7);
+  border-color: hsl(var(--foreground) / 0.3);
 }
 
 .routing-modal__filter-pill {
@@ -143,13 +190,54 @@
   color: hsl(var(--muted-foreground));
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  flex: 1;
+}
+
+.routing-modal__group-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.routing-modal__group-refresh:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+  background: hsl(var(--muted) / 0.6);
+}
+
+.routing-modal__group-refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.routing-modal__group-refresh-icon--spinning {
+  animation: routing-modal-group-refresh-spin 0.9s linear infinite;
+}
+
+@keyframes routing-modal-group-refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .routing-modal__model {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--gap-md);
+  gap: 8px;
   width: 100%;
   padding: 9px 24px 9px 48px;
   background: none;
@@ -169,21 +257,75 @@
   background: hsl(var(--muted) / 0.5);
 }
 
+.routing-modal__model:disabled {
+  cursor: not-allowed;
+}
+
+.routing-modal__model--disabled {
+  opacity: 0.48;
+}
+
+.routing-modal__model--disabled:hover {
+  background: none;
+}
+
 .routing-modal__model:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: -2px;
 }
 
+.routing-modal__model-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
 .routing-modal__model-label {
+  min-width: 0;
   font-size: var(--font-size-sm);
   font-weight: 500;
   color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.routing-modal__model-id {
+.routing-modal__model-price {
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
   font-family: var(--font-mono, monospace);
+  line-height: 1.35;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.routing-modal__model-id {
+  max-width: 100%;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono, monospace);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.routing-modal__model-meta {
+  display: contents;
+}
+
+.routing-modal__model-disabled-reason {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 4px;
+  background: hsl(var(--muted) / 0.45);
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .routing-modal__inline-picker .routing-modal__model-id {
@@ -271,4 +413,10 @@
 .routing-modal__selected-hint {
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  .routing-modal__model {
+    padding: 10px 16px 10px 48px;
+  }
 }

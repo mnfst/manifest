@@ -3,6 +3,7 @@ import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, createUniqueId, onCleanup, onMount, Show } from 'solid-js';
 import SocialButtons from '../components/SocialButtons.jsx';
 import { authClient } from '../services/auth-client.js';
+import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
 import { checkSocialProviders } from '../services/setup-status.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -17,6 +18,7 @@ const Register: Component = () => {
   const [alreadyExists, setAlreadyExists] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
   const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
+  const [lastAuthMethod] = createSignal(getLastAuthMethod());
   const nameId = createUniqueId();
   const emailId = createUniqueId();
   const passwordId = createUniqueId();
@@ -68,6 +70,7 @@ const Register: Component = () => {
       return;
     }
     setAlreadyExists(false);
+    setLastAuthMethod('email');
 
     if (data?.token) {
       window.location.href = '/';
@@ -110,7 +113,7 @@ const Register: Component = () => {
               <p class="auth-header__subtitle">Monitor your AI agents' costs and usage</p>
             </div>
 
-            <SocialButtons enabledProviders={socialProviders()} />
+            <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
 
             <Show when={socialProviders().length > 0}>
               <div class="auth-divider">
@@ -140,6 +143,7 @@ const Register: Component = () => {
               <label class="auth-form__label" for={nameId}>
                 Name
                 <input
+                  ref={(el) => requestAnimationFrame(() => el.focus())}
                   id={nameId}
                   class="auth-form__input"
                   type="text"

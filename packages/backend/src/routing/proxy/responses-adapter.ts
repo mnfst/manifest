@@ -136,20 +136,54 @@ function toChatToolChoice(toolChoice: unknown): unknown {
   return { type: 'function', function: { name: toolChoice.name } };
 }
 
+/**
+ * Responses API parameters the ChatGPT subscription backend
+ * (chatgpt.com/backend-api/codex/responses) rejects with HTTP 400. Sampling
+ * controls (`temperature`, `top_p`) are locked upstream; `max_output_tokens`,
+ * `metadata`, `safety_identifier`, `prompt_cache_retention`, `truncation` are
+ * not part of its allowlist. Forwarding any of them returns
+ * `unsupported_parameter` and breaks OpenAI-SDK clients.
+ */
+const CODEX_SUBSCRIPTION_UNSUPPORTED_PARAMS = [
+  'temperature',
+  'top_p',
+  'max_output_tokens',
+  'metadata',
+  'safety_identifier',
+  'prompt_cache_retention',
+  'truncation',
+] as const;
+
 export function toNativeResponsesRequest(
   body: JsonRecord,
   model: string,
-  opts?: { defaultInstructions?: boolean; inputList?: boolean; forceStream?: boolean },
+  opts?: {
+    defaultInstructions?: boolean;
+    inputList?: boolean;
+    forceStream?: boolean;
+    stripCodexUnsupported?: boolean;
+  },
 ): JsonRecord {
   const request: JsonRecord = { ...body, model };
+  if (opts?.stripCodexUnsupported) {
+    for (const key of CODEX_SUBSCRIPTION_UNSUPPORTED_PARAMS) {
+      delete request[key];
+    }
+    // The backend also rejects `store: true`. Force it off rather than
+    // letting the request fail on something the caller cannot influence.
+    request.store = false;
+  } else if (body.store === undefined) {
+    request.store = false;
+  }
   if (opts?.forceStream) {
     request.stream = true;
   } else if (body.stream === undefined) {
     request.stream = false;
   }
-  if (body.store === undefined) request.store = false;
   if (opts?.inputList) {
     request.input = toNativeResponsesInput(body.input);
+  } else if (body.input !== undefined) {
+    request.input = normalizeNativeResponsesInput(body.input);
   }
   if (
     opts?.defaultInstructions &&
@@ -158,6 +192,18 @@ export function toNativeResponsesRequest(
     request.instructions = DEFAULT_INSTRUCTIONS;
   }
   return request;
+}
+
+function normalizeNativeResponsesInput(input: unknown): unknown {
+  if (!Array.isArray(input)) return input;
+
+  return input.map((item) => {
+    if (!isRecord(item)) return item;
+    if (item.type === 'function_call' || item.type === 'function_call_output') return item;
+
+    const role = typeof item.role === 'string' ? item.role : 'user';
+    return { ...item, content: toNativeResponsesContent(item.content, role) };
+  });
 }
 
 function toNativeResponsesInput(input: unknown): unknown {
@@ -189,8 +235,26 @@ function toNativeResponsesContent(content: unknown, role: string): unknown {
     if (typeof part.text === 'string' && (part.type === 'text' || part.type === undefined)) {
       return { ...part, type: partType };
     }
+    if (part.type === 'image_url' && role !== 'assistant') {
+      const imageUrl = extractImageUrl(part.image_url);
+      if (imageUrl) {
+        return { type: 'input_image', image_url: imageUrl, ...extractImageDetail(part) };
+      }
+    }
     return part;
   });
+}
+
+function extractImageUrl(imageUrl: unknown): string | null {
+  if (typeof imageUrl === 'string') return imageUrl;
+  if (!isRecord(imageUrl) || typeof imageUrl.url !== 'string') return null;
+  return imageUrl.url;
+}
+
+function extractImageDetail(part: JsonRecord): { detail?: string } {
+  const nested = isRecord(part.image_url) ? part.image_url.detail : undefined;
+  const detail = typeof part.detail === 'string' ? part.detail : nested;
+  return typeof detail === 'string' ? { detail } : {};
 }
 
 export function fromChatCompletionResponse(body: JsonRecord, model: string): JsonRecord {
@@ -276,6 +340,13 @@ function toResponsesUsage(usage: unknown): JsonRecord | null {
 export function collectResponsesSseResponse(sseText: string): JsonRecord {
   let text = '';
   let completed: JsonRecord | null = null;
+  // Track function_call output items emitted incrementally. Keyed by
+  // `output_index` so a tool call can sit at any position in a mixed-output
+  // stream (e.g. assistant message + function_call). Some Codex Responses
+  // streams emit `response.completed` with `output: []` and surface the call
+  // only via `response.output_item.added` + `.function_call_arguments.delta`,
+  // so dropping these events causes the SDK to see no tool call at all.
+  const functionCalls = new Map<number, JsonRecord>();
 
   for (const event of sseText.split('\n\n')) {
     const parsed = parseSseEvent(event);
@@ -283,14 +354,70 @@ export function collectResponsesSseResponse(sseText: string): JsonRecord {
     if (parsed.event === 'response.output_text.delta') {
       const data = safeParse(parsed.data);
       if (typeof data?.delta === 'string') text += data.delta;
-    }
-    if (parsed.event === 'response.completed') {
+    } else if (parsed.event === 'response.output_item.added') {
+      const data = safeParse(parsed.data);
+      const item = isRecord(data?.item) ? (data.item as JsonRecord) : null;
+      if (item && item.type === 'function_call') {
+        const idx = typeof data?.output_index === 'number' ? data.output_index : functionCalls.size;
+        functionCalls.set(idx, {
+          type: 'function_call',
+          id: typeof item.id === 'string' ? item.id : '',
+          call_id: typeof item.call_id === 'string' ? item.call_id : '',
+          name: typeof item.name === 'string' ? item.name : '',
+          arguments: typeof item.arguments === 'string' ? item.arguments : '',
+          ...(typeof item.status === 'string' ? { status: item.status } : {}),
+        });
+      }
+    } else if (parsed.event === 'response.function_call_arguments.delta') {
+      const data = safeParse(parsed.data);
+      if (!data) continue;
+      const idx = typeof data.output_index === 'number' ? data.output_index : 0;
+      const fc = functionCalls.get(idx);
+      if (fc && typeof data.delta === 'string') {
+        const prev = typeof fc.arguments === 'string' ? fc.arguments : '';
+        fc.arguments = prev + data.delta;
+      }
+    } else if (parsed.event === 'response.function_call_arguments.done') {
+      // Some streams (e.g. no-argument calls) skip deltas and only ship the
+      // final argument string here. Two shapes are documented: top-level
+      // `arguments` and a nested `item.arguments`. Treat either as
+      // authoritative.
+      const data = safeParse(parsed.data);
+      if (!data) continue;
+      const idx = typeof data.output_index === 'number' ? data.output_index : 0;
+      const fc = functionCalls.get(idx);
+      const nestedItem = isRecord(data.item) ? (data.item as JsonRecord) : null;
+      const finalArgs =
+        typeof data.arguments === 'string'
+          ? data.arguments
+          : nestedItem && typeof nestedItem.arguments === 'string'
+            ? (nestedItem.arguments as string)
+            : null;
+      if (fc && finalArgs !== null) {
+        fc.arguments = finalArgs;
+      }
+    } else if (parsed.event === 'response.output_item.done') {
+      const data = safeParse(parsed.data);
+      const item = isRecord(data?.item) ? (data.item as JsonRecord) : null;
+      if (item && item.type === 'function_call') {
+        const idx = typeof data?.output_index === 'number' ? data.output_index : functionCalls.size;
+        // The `done` event carries the authoritative final item — replace any
+        // partial state we accumulated from `added` + delta events.
+        functionCalls.set(idx, item);
+      }
+    } else if (parsed.event === 'response.completed') {
       const data = safeParse(parsed.data);
       completed = isRecord(data?.response) ? data.response : null;
     }
   }
 
-  if (completed) return withCollectedTextOutput(completed, text);
+  if (completed) {
+    let result = withCollectedTextOutput(completed, text);
+    if (functionCalls.size > 0) {
+      result = withCollectedFunctionCalls(result, functionCalls);
+    }
+    return result;
+  }
   return fromChatCompletionResponse(
     {
       choices: [{ message: { content: text } }],
@@ -298,6 +425,33 @@ export function collectResponsesSseResponse(sseText: string): JsonRecord {
     },
     'unknown',
   );
+}
+
+function withCollectedFunctionCalls(
+  response: JsonRecord,
+  collected: Map<number, JsonRecord>,
+): JsonRecord {
+  if (collected.size === 0) return response;
+  const existing = Array.isArray(response.output) ? (response.output as JsonRecord[]) : [];
+  const existingIds = new Set<string>();
+  const existingCallIds = new Set<string>();
+  for (const item of existing) {
+    if (!isRecord(item) || item.type !== 'function_call') continue;
+    if (typeof item.id === 'string' && item.id) existingIds.add(item.id);
+    if (typeof item.call_id === 'string' && item.call_id) existingCallIds.add(item.call_id);
+  }
+  const ordered = [...collected.entries()].sort(([a], [b]) => a - b).map(([, v]) => v);
+  const toAdd = ordered.filter((fc) => {
+    const id = typeof fc.id === 'string' ? fc.id : '';
+    const callId = typeof fc.call_id === 'string' ? fc.call_id : '';
+    if (id && existingIds.has(id)) return false;
+    // Fall back to call_id when item id is missing on either side — upstream
+    // can omit `id` on `output_item.added`, but `call_id` is always present.
+    if (callId && existingCallIds.has(callId)) return false;
+    return true;
+  });
+  if (toAdd.length === 0) return response;
+  return { ...response, output: [...existing, ...toAdd] };
 }
 
 function withCollectedTextOutput(response: JsonRecord, text: string): JsonRecord {

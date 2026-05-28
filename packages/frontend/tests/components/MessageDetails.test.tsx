@@ -14,6 +14,8 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatDuration: (ms: number) => `${ms}ms`,
   formatTime: (t: string) => t,
   formatNumber: (v: number) => String(v),
+  sortedHeaderEntries: (h: Record<string, string> | null | undefined) =>
+    h ? Object.entries(h).sort(([a], [b]) => a.localeCompare(b)) : [],
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({
@@ -458,10 +460,15 @@ describe('MessageDetails', () => {
     expect(toggle!.tagName).toBe('BUTTON');
     expect(toggle!.getAttribute('aria-expanded')).toBe('false');
 
-    // Count badge stays visible when collapsed.
+    // Count badge stays visible when collapsed. Request Headers uses the
+    // distinct `msg-detail__count-badge` styling (border + bg) merged in from
+    // the header-tier work, while the table sections still use the plain
+    // `msg-detail__count`. Together they cover all four section counts.
+    const headerCount = container.querySelector('.msg-detail__count-badge');
+    expect(headerCount).not.toBeNull();
+    expect(headerCount!.textContent).toBe('3');
     const counts = container.querySelectorAll('.msg-detail__count');
-    expect(counts.length).toBe(4);
-    expect(counts[0]!.textContent).toBe('3');
+    expect(counts.length).toBe(3);
 
     // Table body is not rendered while collapsed.
     expect(container.textContent).not.toContain('curl/8.14.1');
@@ -812,6 +819,310 @@ describe('MessageDetails', () => {
       resolveFlag!();
       await vi.waitFor(() => {
         expect(mockFlagMiscategorized).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  // The Model Parameters section is purely additive — every existing test
+  // above this block uses a `detailsResponse` fixture that never sets
+  // `request_params`, so they implicitly verify the back-compat property
+  // (rows recorded before this feature stay visually unchanged).
+  describe('Model Parameters section', () => {
+    it('stays hidden for messages without request_params (back-compat for pre-feature rows)', async () => {
+      // No `request_params` on the base fixture → the dashboard renders
+      // exactly as it did before the column existed, so nothing breaks for
+      // historical data captured before the migration ran.
+      mockGetMessageDetails.mockResolvedValue(detailsResponse);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Message');
+      });
+      expect(container.textContent).not.toContain('Model Parameters');
+    });
+
+    it('stays hidden when request_params is explicitly null', async () => {
+      const nullParams = {
+        ...detailsResponse,
+        message: { ...detailsResponse.message, request_params: null },
+      };
+      mockGetMessageDetails.mockResolvedValue(nullParams);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Message');
+      });
+      expect(container.textContent).not.toContain('Model Parameters');
+    });
+
+    it('stays hidden when request_params is an empty object', async () => {
+      const emptyParams = {
+        ...detailsResponse,
+        message: { ...detailsResponse.message, request_params: {} },
+      };
+      mockGetMessageDetails.mockResolvedValue(emptyParams);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Message');
+      });
+      expect(container.textContent).not.toContain('Model Parameters');
+    });
+
+    it('renders the section with a count badge for a DeepSeek thinking-disabled request', async () => {
+      const withParams = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: { thinking: { type: 'disabled' } },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(withParams);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Model Parameters');
+      });
+      // The section header shows a "1" count to match the single param key.
+      const titleButton = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+      ).find((b) => b.textContent?.includes('Model Parameters'));
+      expect(titleButton).toBeDefined();
+      expect(titleButton!.textContent).toContain('1');
+    });
+
+    it('expands on toggle and pretty-prints the thinking object value across multiple lines', async () => {
+      const withParams = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: { thinking: { type: 'disabled' } },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(withParams);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const titleButton = await vi.waitFor(() => {
+        const b = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+        ).find((btn) => btn.textContent?.includes('Model Parameters'));
+        expect(b).toBeDefined();
+        return b!;
+      });
+      titleButton.click();
+      await vi.waitFor(() => {
+        const valueCell = container.querySelector('.msg-detail__param-value');
+        expect(valueCell).not.toBeNull();
+        // Pretty-printed JSON keeps the inner key on its own line, so a long
+        // value never collapses into an unbreakable single token in the cell.
+        expect(valueCell!.textContent).toContain('"type": "disabled"');
+        expect(valueCell!.textContent).toContain('\n');
+      });
+    });
+
+    it('toggles the chevron when expanded', async () => {
+      const withParams = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: { thinking: { type: 'enabled' } },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(withParams);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const titleButton = await vi.waitFor(() => {
+        const b = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+        ).find((btn) => btn.textContent?.includes('Model Parameters'));
+        expect(b).toBeDefined();
+        return b!;
+      });
+      const chevron = titleButton.querySelector('.msg-detail__chevron')!;
+      expect(chevron.classList.contains('msg-detail__chevron--open')).toBe(false);
+      titleButton.click();
+      expect(chevron.classList.contains('msg-detail__chevron--open')).toBe(true);
+    });
+
+    it("renders an info tooltip explaining what model parameters are and that the surface will grow", async () => {
+      const withParams = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: { thinking: { type: 'disabled' } },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(withParams);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Model Parameters');
+      });
+      // The tooltip lives next to the toggle button as a sibling — putting
+      // it inside the button would nest interactive elements (invalid HTML).
+      const row = container.querySelector('.msg-detail__section-row');
+      expect(row).not.toBeNull();
+      const tooltip = row!.querySelector('.info-tooltip');
+      expect(tooltip).not.toBeNull();
+      const aria = tooltip!.getAttribute('aria-label') ?? '';
+      // Today's only example — DeepSeek's `thinking` toggle.
+      expect(aria.toLowerCase()).toContain('thinking');
+      // Forward-compat promise — the tooltip explicitly hints at custom
+      // user-defined parameters landing here as the feature ships.
+      expect(aria.toLowerCase()).toContain('custom');
+    });
+
+    it('renders Model Parameters above Request Headers — user intent before protocol noise', async () => {
+      // When both sections are present, Model Parameters comes first in the
+      // DOM. Headers are protocol noise; params are user intent. The reading
+      // order in routing analytics is intent → wire → response.
+      const withBoth = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_headers: { 'a-first': '1' },
+          request_params: { thinking: { type: 'disabled' } },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(withBoth);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('Model Parameters');
+        expect(container.textContent).toContain('Request Headers');
+      });
+      const html = container.innerHTML;
+      expect(html.indexOf('Model Parameters')).toBeLessThan(html.indexOf('Request Headers'));
+    });
+
+    it('renders multiple parameter keys as separate rows, sorted alphabetically — forward-compat for new providers', async () => {
+      // Demonstrates the surface stays sane as we add more provider knobs
+      // (`reasoning_effort` for OpenAI o-series, `safety` for Gemini, etc.)
+      // and as users define their own per-custom-provider keys.
+      const futureMultiKey = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: {
+            thinking: { type: 'enabled' },
+            reasoning_effort: 'high',
+            // A user-defined custom-provider param — the JSONB column accepts
+            // arbitrary keys so future custom-model UIs can land here without
+            // a migration.
+            custom_safety_level: 'permissive',
+          },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(futureMultiKey);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const titleButton = await vi.waitFor(() => {
+        const b = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+        ).find((btn) => btn.textContent?.includes('Model Parameters'));
+        expect(b).toBeDefined();
+        return b!;
+      });
+      // Three keys → count badge shows 3.
+      expect(titleButton.textContent).toContain('3');
+      titleButton.click();
+      // Scope the key-extraction to the Model Parameters table specifically;
+      // the LLM Calls / Tool Executions / Agent Logs sections also use
+      // `.msg-detail__table` and would dilute a global selector. The
+      // wrapper id starts with `msg-detail-model-params-` for exactly this
+      // kind of disambiguation.
+      await vi.waitFor(() => {
+        const wrapper = Array.from(container.querySelectorAll<HTMLElement>('[id]')).find((el) =>
+          el.id.startsWith('msg-detail-model-params-'),
+        );
+        expect(wrapper).toBeDefined();
+        const keyCells = Array.from(
+          wrapper!.querySelectorAll<HTMLTableCellElement>('tbody tr td:first-child'),
+        ).map((c) => c.textContent?.trim());
+        expect(keyCells).toEqual(['custom_safety_level', 'reasoning_effort', 'thinking']);
+      });
+    });
+
+    it('renders primitive parameter values directly without JSON quoting', async () => {
+      // Forward-compat: not every future param is an object. Strings,
+      // numbers, booleans should render as their natural string form so a
+      // value like `reasoning_effort: "high"` shows as `high`, not `"high"`.
+      const primitives = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: {
+            string_param: 'high',
+            number_param: 42,
+            boolean_param: true,
+          },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(primitives);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const titleButton = await vi.waitFor(() => {
+        const b = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+        ).find((btn) => btn.textContent?.includes('Model Parameters'));
+        expect(b).toBeDefined();
+        return b!;
+      });
+      titleButton.click();
+      await vi.waitFor(() => {
+        const cells = Array.from(
+          container.querySelectorAll<HTMLTableCellElement>('.msg-detail__param-value'),
+        ).map((c) => c.textContent?.trim());
+        expect(cells).toContain('high');
+        expect(cells).toContain('42');
+        expect(cells).toContain('true');
+        // Specifically NOT quoted as JSON literals.
+        expect(cells).not.toContain('"high"');
+      });
+    });
+
+    it("renders 'null' for a parameter explicitly set to null", async () => {
+      const nullValue = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: { thinking: null },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(nullValue);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const titleButton = await vi.waitFor(() => {
+        const b = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+        ).find((btn) => btn.textContent?.includes('Model Parameters'));
+        expect(b).toBeDefined();
+        return b!;
+      });
+      titleButton.click();
+      await vi.waitFor(() => {
+        const valueCell = container.querySelector('.msg-detail__param-value');
+        expect(valueCell).not.toBeNull();
+        expect(valueCell!.textContent?.trim()).toBe('null');
+      });
+    });
+
+    it('renders an em-dash for a parameter whose value is undefined (defensive — JSONB never stores undefined directly but the render path stays consistent with other empty cells)', async () => {
+      // JSONB can't actually store `undefined` — Postgres turns it into
+      // NULL. But the render helper handles `undefined` defensively so the
+      // table cell never collapses to blank if a future code path ever
+      // serializes that way (e.g. a TypeORM intermediate step). Em-dash
+      // matches the convention used everywhere else in this panel.
+      const undefValue = {
+        ...detailsResponse,
+        message: {
+          ...detailsResponse.message,
+          request_params: { ghost: undefined },
+        },
+      };
+      mockGetMessageDetails.mockResolvedValue(undefValue);
+      const { container } = render(() => <MessageDetails messageId="msg-1" />);
+      const titleButton = await vi.waitFor(() => {
+        const b = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('.msg-detail__section-title--toggle'),
+        ).find((btn) => btn.textContent?.includes('Model Parameters'));
+        expect(b).toBeDefined();
+        return b!;
+      });
+      titleButton.click();
+      await vi.waitFor(() => {
+        const valueCell = container.querySelector('.msg-detail__param-value');
+        expect(valueCell).not.toBeNull();
+        expect(valueCell!.textContent?.trim()).toBe('—');
       });
     });
   });

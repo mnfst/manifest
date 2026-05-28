@@ -6,23 +6,40 @@ export interface CostInput {
   model: string | null | undefined;
   pricing: PricingEntry | undefined;
   /**
-   * When true, cost is always 0 (subscription-based usage).
-   * Callers determine this from authType or subscription-provider sets.
+   * When true, cost is subscription-based and the per-token pricing is
+   * ignored. The default is `0` (flat-fee plans like Claude Max or ChatGPT
+   * Plus), but providers that publish a per-request rate (OpenCode Go) pass
+   * a non-null `perRequestCostUsd` to record the actual dollar value of the
+   * single request being logged.
    */
   isSubscription?: boolean;
+  /**
+   * For subscription providers that bill against a dollar quota on a
+   * per-request basis (e.g. OpenCode Go), the fixed USD cost the docs
+   * attribute to one request. Ignored unless `isSubscription` is true.
+   */
+  perRequestCostUsd?: number | null;
 }
 
 /**
  * Computes the USD cost for a set of tokens given a pricing entry.
  *
  * Returns:
- * - `0` when the usage is subscription-based
+ * - `perRequestCostUsd` when the usage is subscription-based AND a positive
+ *   per-request rate is provided (OpenCode Go pattern)
+ * - `0` when the usage is subscription-based with no per-request rate
+ *   (flat-fee subscriptions: Claude Max, ChatGPT Plus, GLM Coding, etc.)
  * - `null` when the model is unknown, tokens are zero, or pricing is unavailable
  * - the computed cost otherwise
  */
 export function computeTokenCost(input: CostInput): number | null {
   if (!input.model) return null;
-  if (input.isSubscription) return 0;
+  if (input.isSubscription) {
+    if (input.perRequestCostUsd != null && input.perRequestCostUsd > 0) {
+      return input.perRequestCostUsd;
+    }
+    return 0;
+  }
   if (input.inputTokens === 0 && input.outputTokens === 0) return null;
 
   const pricing = input.pricing;

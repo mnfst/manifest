@@ -12,7 +12,7 @@ export const FRAMEWORK_TABS: FrameworkTab[] = [
   { id: 'curl', label: 'cURL' },
 ];
 
-export type ToolkitId = 'openai-sdk' | 'vercel-ai-sdk' | 'langchain' | 'curl';
+export type ToolkitId = 'openai-sdk' | 'anthropic-sdk' | 'vercel-ai-sdk' | 'langchain' | 'curl';
 export type OpenAILangId = 'python' | 'typescript';
 export type OpenAIApiId = 'responses' | 'chat-completions';
 
@@ -24,6 +24,7 @@ export interface ToolkitTab {
 
 export const TOOLKIT_TABS: ToolkitTab[] = [
   { id: 'openai-sdk', label: 'OpenAI SDK', icon: '/icons/providers/openai.svg' },
+  { id: 'anthropic-sdk', label: 'Anthropic SDK', icon: '/icons/providers/anthropic.svg' },
   { id: 'vercel-ai-sdk', label: 'Vercel AI SDK', icon: '/icons/vercel.svg' },
   { id: 'langchain', label: 'LangChain', icon: '/icons/langchain.png' },
   { id: 'curl', label: 'cURL' },
@@ -158,6 +159,64 @@ const response = await client.chat.completions.create({
   };
 }
 
+/**
+ * The Anthropic SDK appends `/v1/messages` to the configured base URL, so
+ * the URL we render must NOT end in `/v1` — otherwise the SDK hits
+ * `/v1/v1/messages` and gets a 404. Other SDKs (OpenAI, Vercel) expect
+ * `/v1` in the base URL, so we only strip it for Anthropic.
+ */
+function stripV1Suffix(baseUrl: string): string {
+  return baseUrl.replace(/\/v1\/?$/, '');
+}
+
+function getAnthropicPythonSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const headersLine = headerLine(customHeaders, 'py-kwarg', 'default_headers');
+  const url = stripV1Suffix(baseUrl);
+  return {
+    title: 'Anthropic Python SDK',
+    code: `from anthropic import Anthropic
+
+client = Anthropic(
+    base_url="${url}",
+    auth_token="${apiKey}",${headersLine}
+)
+
+message = client.messages.create(
+    model="auto",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello"}],
+)`,
+  };
+}
+
+function getAnthropicTypeScriptSnippet(
+  baseUrl: string,
+  apiKey: string,
+  customHeaders?: CustomHeaders,
+): Snippet {
+  const headersLine = headerLine(customHeaders, 'ts-prop', 'defaultHeaders');
+  const url = stripV1Suffix(baseUrl);
+  return {
+    title: 'Anthropic TypeScript SDK',
+    code: `import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "${url}",
+  authToken: "${apiKey}",${headersLine}
+});
+
+const message = await client.messages.create({
+  model: "auto",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Hello" }],
+});`,
+  };
+}
+
 export function getPythonSnippets(
   baseUrl: string,
   apiKey: string,
@@ -276,6 +335,48 @@ openclaw config set agents.defaults.model.primary manifest/auto
 openclaw gateway restart`;
 }
 
+/**
+ * The JSON block to paste into ~/.claude/settings.json. Claude Code reads
+ * `env` keys from settings.json on every startup, so this is the persistent
+ * configuration path — no shell rc edits, no Node required, no command-line
+ * gymnastics. Pin the default model to Manifest's `auto` route so Claude
+ * Code does not send its built-in Anthropic model IDs to the gateway.
+ * Anthropic SDK auto-appends /v1/messages to baseURL, so we strip a trailing
+ * /v1 from the rendered URL.
+ */
+export function getClaudeCodeSettingsSnippet(baseUrl: string, apiKey: string): string {
+  const url = stripV1Suffix(baseUrl);
+  return `{
+  "model": "auto",
+  "env": {
+    "ANTHROPIC_BASE_URL": "${url}",
+    "ANTHROPIC_AUTH_TOKEN": "${apiKey}"
+  }
+}`;
+}
+
+/**
+ * The JSON block to merge into ~/.nanobot/config.json. Nanobot only accepts its
+ * predefined provider keys; "custom" is the built-in slot for arbitrary
+ * OpenAI-compatible endpoints, so we use that rather than an arbitrary name.
+ */
+export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string {
+  return `{
+  "agents": {
+    "defaults": {
+      "provider": "custom",
+      "model": "auto"
+    }
+  },
+  "providers": {
+    "custom": {
+      "apiKey": "${apiKey}",
+      "apiBase": "${baseUrl}"
+    }
+  }
+}`;
+}
+
 export function getOpenClawDisableSnippet(model: string): string {
   return `openclaw config unset models.providers.manifest
 openclaw config unset agents.defaults.models.manifest/auto
@@ -383,6 +484,10 @@ export function getSnippetForToolkit(
       return openaiLang === 'python'
         ? getPythonSnippets(baseUrl, apiKey, customHeaders)[1]!
         : getTypeScriptSnippets(baseUrl, apiKey, customHeaders)[1]!;
+    case 'anthropic-sdk':
+      return openaiLang === 'python'
+        ? getAnthropicPythonSnippet(baseUrl, apiKey, customHeaders)
+        : getAnthropicTypeScriptSnippet(baseUrl, apiKey, customHeaders);
     case 'vercel-ai-sdk':
       return openaiLang === 'python'
         ? getVercelPythonSnippet(baseUrl, apiKey, customHeaders)
@@ -397,6 +502,8 @@ export function getSnippetForToolkit(
 export function getLangForToolkit(id: ToolkitId, openaiLang?: OpenAILangId): string {
   switch (id) {
     case 'openai-sdk':
+      return openaiLang === 'typescript' ? 'typescript' : 'python';
+    case 'anthropic-sdk':
       return openaiLang === 'typescript' ? 'typescript' : 'python';
     case 'vercel-ai-sdk':
       return openaiLang === 'typescript' ? 'typescript' : 'python';

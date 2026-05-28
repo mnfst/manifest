@@ -1082,6 +1082,58 @@ describe("useChartLifecycle", () => {
     vi.advanceTimersByTime(50);
     expect(mockChart.setCursor).toHaveBeenCalledWith({ left: -1, top: -1 });
   });
+
+  it("effect updates data in place via setData when structureKey is unchanged", () => {
+    const mockChart = { destroy: vi.fn(), setSize: vi.fn(), setCursor: vi.fn(), setData: vi.fn() };
+    const buildChart = vi.fn().mockReturnValue(mockChart);
+    let currentData: unknown[] | undefined = [1, 2];
+    const alignedData = [[0, 1], [10, 20]];
+    useChartLifecycle({
+      el: () => mockEl,
+      data: () => currentData,
+      buildChart,
+      buildData: () => alignedData as any,
+      structureKey: () => "7d",
+    });
+
+    mountCb!();
+    vi.advanceTimersByTime(50);
+    expect(buildChart).toHaveBeenCalledTimes(1);
+
+    // Same structure → reuse instance, no destroy / rebuild
+    currentData = [3, 4, 5];
+    effectCb!();
+    expect(mockChart.setData).toHaveBeenCalledWith(alignedData);
+    expect(mockChart.destroy).not.toHaveBeenCalled();
+    expect(buildChart).toHaveBeenCalledTimes(1);
+  });
+
+  it("effect rebuilds the chart when structureKey changes", () => {
+    const mockChart = { destroy: vi.fn(), setSize: vi.fn(), setCursor: vi.fn(), setData: vi.fn() };
+    const buildChart = vi.fn().mockReturnValue(mockChart);
+    let currentData: unknown[] | undefined = [1, 2];
+    let key = "7d";
+    useChartLifecycle({
+      el: () => mockEl,
+      data: () => currentData,
+      buildChart,
+      buildData: () => [[0], [1]] as any,
+      structureKey: () => key,
+    });
+
+    mountCb!();
+    vi.advanceTimersByTime(50);
+    expect(buildChart).toHaveBeenCalledTimes(1);
+
+    // Range changed → must rebuild so axes/scales pick up the new structure
+    key = "24h";
+    currentData = [3, 4];
+    effectCb!();
+    expect(mockChart.setData).not.toHaveBeenCalled();
+    expect(mockChart.destroy).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(0);
+    expect(buildChart).toHaveBeenCalledTimes(2);
+  });
 });
 
 // ---------- createFormatLegendTimestamp ----------

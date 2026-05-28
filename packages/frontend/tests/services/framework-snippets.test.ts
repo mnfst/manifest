@@ -42,27 +42,35 @@ describe("FRAMEWORK_TABS", () => {
 });
 
 describe("TOOLKIT_TABS", () => {
-  it("has four tabs", () => {
-    expect(TOOLKIT_TABS).toHaveLength(4);
+  it("has five tabs", () => {
+    expect(TOOLKIT_TABS).toHaveLength(5);
   });
 
-  it("contains openai-sdk, vercel-ai-sdk, langchain, curl", () => {
+  it("contains openai-sdk, anthropic-sdk, vercel-ai-sdk, langchain, curl", () => {
     const ids = TOOLKIT_TABS.map((t) => t.id);
-    expect(ids).toEqual(["openai-sdk", "vercel-ai-sdk", "langchain", "curl"]);
+    expect(ids).toEqual([
+      "openai-sdk",
+      "anthropic-sdk",
+      "vercel-ai-sdk",
+      "langchain",
+      "curl",
+    ]);
   });
 
   it("has display labels", () => {
     expect(TOOLKIT_TABS[0].label).toBe("OpenAI SDK");
-    expect(TOOLKIT_TABS[1].label).toBe("Vercel AI SDK");
-    expect(TOOLKIT_TABS[2].label).toBe("LangChain");
-    expect(TOOLKIT_TABS[3].label).toBe("cURL");
+    expect(TOOLKIT_TABS[1].label).toBe("Anthropic SDK");
+    expect(TOOLKIT_TABS[2].label).toBe("Vercel AI SDK");
+    expect(TOOLKIT_TABS[3].label).toBe("LangChain");
+    expect(TOOLKIT_TABS[4].label).toBe("cURL");
   });
 
-  it("has icons for openai, vercel, and langchain", () => {
+  it("has icons for openai, anthropic, vercel, and langchain", () => {
     expect(TOOLKIT_TABS[0].icon).toBe("/icons/providers/openai.svg");
-    expect(TOOLKIT_TABS[1].icon).toBe("/icons/vercel.svg");
-    expect(TOOLKIT_TABS[2].icon).toBe("/icons/langchain.png");
-    expect(TOOLKIT_TABS[3].icon).toBeUndefined();
+    expect(TOOLKIT_TABS[1].icon).toBe("/icons/providers/anthropic.svg");
+    expect(TOOLKIT_TABS[2].icon).toBe("/icons/vercel.svg");
+    expect(TOOLKIT_TABS[3].icon).toBe("/icons/langchain.png");
+    expect(TOOLKIT_TABS[4].icon).toBeUndefined();
   });
 });
 
@@ -266,6 +274,56 @@ describe("getTypeScriptSnippets", () => {
   });
 });
 
+describe("getClaudeCodeSettingsSnippet", () => {
+  it("emits a paste-ready JSON block for ~/.claude/settings.json", async () => {
+    const { getClaudeCodeSettingsSnippet } = await import(
+      "../../src/services/framework-snippets"
+    );
+    const snippet = getClaudeCodeSettingsSnippet("http://localhost:38240/v1", "mnfst_key");
+    // Strict-parse to make sure it's valid JSON and shaped correctly.
+    const parsed = JSON.parse(snippet);
+    expect(parsed).toEqual({
+      model: "auto",
+      env: {
+        ANTHROPIC_BASE_URL: "http://localhost:38240",
+        ANTHROPIC_AUTH_TOKEN: "mnfst_key",
+      },
+    });
+    // No node command, no shell artifacts — pure JSON.
+    expect(snippet).not.toContain("node");
+    expect(snippet).not.toContain("require");
+  });
+});
+
+describe("getNanobotConfigSnippet", () => {
+  it("emits a paste-ready JSON block for ~/.nanobot/config.json", async () => {
+    const { getNanobotConfigSnippet } = await import(
+      "../../src/services/framework-snippets"
+    );
+    const snippet = getNanobotConfigSnippet("http://localhost:38240/v1", "mnfst_key");
+    // Strict-parse to make sure it's valid JSON and shaped correctly.
+    const parsed = JSON.parse(snippet);
+    expect(parsed).toEqual({
+      agents: {
+        defaults: {
+          provider: "custom",
+          model: "auto",
+        },
+      },
+      providers: {
+        custom: {
+          apiKey: "mnfst_key",
+          apiBase: "http://localhost:38240/v1",
+        },
+      },
+    });
+    // The OpenAI-compatible /v1 suffix must stay — nanobot's apiBase points
+    // straight at chat completions, unlike the Anthropic-compatible Claude
+    // Code env block.
+    expect(snippet).toContain("http://localhost:38240/v1");
+  });
+});
+
 describe("getOpenClawSnippet", () => {
   it("includes openclaw config set commands", () => {
     const snippet = getOpenClawSnippet("http://localhost/v1", "mnfst_key");
@@ -389,6 +447,28 @@ describe("getSnippetForToolkit", () => {
   it("defaults to python for openai-sdk", () => {
     const result = getSnippetForToolkit("openai-sdk", "http://x/v1", "key");
     expect(result.title).toBe("OpenAI Python SDK");
+  });
+
+  it("strips trailing /v1 from base_url for the Anthropic Python SDK", () => {
+    // The Anthropic SDK auto-appends /v1/messages — keeping /v1 in base_url
+    // would produce /v1/v1/messages and a 404.
+    const result = getSnippetForToolkit("anthropic-sdk", "http://x/v1", "key", "python");
+    expect(result.code).toContain('base_url="http://x"');
+    expect(result.code).not.toContain('base_url="http://x/v1"');
+    expect(result.code).toContain("from anthropic import Anthropic");
+    expect(result.code).toContain("client.messages.create");
+  });
+
+  it("strips trailing /v1 from baseURL for the Anthropic TypeScript SDK", () => {
+    const result = getSnippetForToolkit("anthropic-sdk", "http://x/v1", "key", "typescript");
+    expect(result.code).toContain('baseURL: "http://x"');
+    expect(result.code).not.toContain('baseURL: "http://x/v1"');
+    expect(result.code).toContain('import Anthropic from "@anthropic-ai/sdk"');
+  });
+
+  it("leaves the Anthropic base URL untouched when /v1 isn't present", () => {
+    const result = getSnippetForToolkit("anthropic-sdk", "https://gw.example.com", "key", "python");
+    expect(result.code).toContain('base_url="https://gw.example.com"');
   });
 
   it("returns Vercel AI SDK Python snippet by default", () => {

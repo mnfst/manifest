@@ -107,11 +107,17 @@ export class AgentMessage {
   @Column('boolean', { default: false })
   specificity_miscategorized!: boolean;
 
+  @Column('boolean', { default: false })
+  recorded!: boolean;
+
   @Column('simple-json', { nullable: true })
   caller_attribution!: CallerAttribution | null;
 
   @Column('simple-json', { nullable: true })
   request_headers!: Record<string, string> | null;
+
+  @Column('jsonb', { nullable: true })
+  request_params!: object | null;
 
   @Column('varchar', { nullable: true })
   header_tier_id!: string | null;
@@ -130,4 +136,7 @@ export class AgentMessage {
 
   @Column('text', { nullable: true })
   feedback_details!: string | null;
+
+  @Column('varchar', { nullable: true })
+  provider_key_label!: string | null;
 }

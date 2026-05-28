@@ -6,13 +6,13 @@ Thanks for your interest in contributing to Manifest! This guide will help you g
 
 ## Tech Stack
 
-| Layer     | Technology                                    |
-| --------- | --------------------------------------------- |
-| Frontend  | SolidJS, uPlot, custom CSS theme              |
-| Backend   | NestJS 11, TypeORM, PostgreSQL 16             |
-| Auth      | Better Auth (auto-login on localhost)          |
-| Routing   | OpenAI-compatible proxy (`/v1/chat/completions`) |
-| Build     | Turborepo + npm workspaces                    |
+| Layer    | Technology                                       |
+| -------- | ------------------------------------------------ |
+| Frontend | SolidJS, uPlot, custom CSS theme                 |
+| Backend  | NestJS 11, TypeORM, PostgreSQL 16                |
+| Auth     | Better Auth (auto-login on localhost)            |
+| Routing  | OpenAI-compatible proxy (`/v1/chat/completions`) |
+| Build    | Turborepo + npm workspaces                       |
 
 The full NestJS + SolidJS stack runs locally against PostgreSQL, and the same database backend is used in the [cloud version](https://app.manifest.build). For local development, the simplest option is to run PostgreSQL in Docker and point `DATABASE_URL` at it.
 
@@ -31,6 +31,14 @@ packages/
 ├── backend/              # NestJS API server (TypeORM, PostgreSQL, Better Auth)
 └── frontend/             # SolidJS single-page app (Vite, uPlot)
 ```
+
+> The Wingman gateway tester now lives in its own repository at
+> [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at
+> [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard
+> embeds it as an iframe drawer **in dev mode only** — it is dead-code-
+> eliminated from production / self-hosted bundles. To run Wingman
+> locally instead of the hosted SPA, clone that repo and set
+> `VITE_WINGMAN_URL=http://localhost:3002` when building the frontend.
 
 Self-hosting is supported via the [Docker image](https://hub.docker.com/r/manifestdotbuild/manifest).
 
@@ -92,20 +100,23 @@ docker rm -f manifest-postgres   # remove the container
 4. Start the development servers (in separate terminals):
 
 ```bash
-# Backend (must preload dotenv)
+# Backend (must preload dotenv — needs to start separately because nest's
+# CLI watcher doesn't compose with turbo's parallel runner)
 cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 
 # Frontend
-cd packages/frontend && npx vite
+npm run dev
 ```
 
-The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`.
+The frontend runs on `http://localhost:3000` and proxies API requests to the backend on `http://localhost:3001`. The Wingman drawer in the bottom-right (FAB or `⌘/Ctrl+Shift+W`) embeds the hosted SPA at `https://wingman.manifest.build` — no local setup required. It only renders in dev mode and is stripped from production bundles.
+
+`npm run dev` is filtered to exactly `manifest-frontend` — adding a new workspace with a `dev` script will not silently join the dev set.
 
 5. With `SEED_DATA=true`, you can log in with `admin@manifest.build` / `manifest`.
 
-## Testing Routing with a Personal AI Agent
+## Testing Routing with AI agents
 
-Manifest is a smart router for any personal AI agent that speaks OpenAI-compatible HTTP. The list of supported agents lives in `packages/shared/src/agent-type.ts` — OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, and cURL are all first-class. The dashboard's "Connect Agent" flow generates the right setup snippet for whichever platform you pick.
+Manifest is a smart router for any AI agent that speaks OpenAI-compatible HTTP. The list of supported agents lives in `packages/shared/src/agent-type.ts` — OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, and cURL are all first-class. The dashboard's "Connect Agent" flow generates the right setup snippet for whichever platform you pick.
 
 This section walks through **OpenClaw** because it's the deepest integration and the easiest to wire up end-to-end. The same backend also handles all other agents — just follow the dashboard instructions after creating the agent, or grab the snippet shown by the setup modal.
 
@@ -137,17 +148,25 @@ The backend runs standalone and OpenClaw talks to it as a regular OpenAI-compati
 - Debugging the proxy or message recording
 - Working on the dashboard UI with live data
 
+## Wingman — gateway tester (dev only)
+
+**Wingman** is an in-browser playground for sending one-shot requests at the gateway while impersonating any of the agents/SDKs Manifest tracks (OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, Raw). It lives in its own repo at [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard embeds it as an iframe drawer (FAB at bottom-right, or `⌘/Ctrl + Shift + W`) **only in dev mode** — it is dead-code-eliminated from production / self-hosted bundles via the `__DEV_MODE__` build constant in `packages/frontend/vite.config.ts`.
+
+Pick a profile, type a message, see the request and response side by side with the assistant's text, status pill, latency, tokens, and full headers/body dumps. Each send is saved to a localStorage history sidebar so you can compare runs and replay any of them.
+
+The hosted SPA is a static bundle with no first-party backend. Your API key is sent directly from the browser to whatever Manifest backend you configure as the base URL (the same endpoint the key is already used against); nothing is proxied through wingman.manifest.build. To point the drawer at a locally-running Wingman build instead, set `VITE_WINGMAN_URL=http://localhost:3002` when building the frontend, and run Wingman from the `mnfst/wingman` repo.
+
 ## Available Scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start frontend in watch mode (start backend separately) |
-| `npm run build` | Production build (shared, backend, frontend via Turborepo) |
-| `npm start` | Start the production server |
-| `npm test --workspace=packages/backend` | Run backend unit tests (Jest) |
-| `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest) |
-| `npm test --workspace=packages/frontend` | Run frontend tests (Vitest) |
-| `npm test --workspace=packages/shared` | Run shared tests (Jest) |
+| Command                                         | Description                                                |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| `npm run dev`                                   | Start frontend in watch mode (start backend separately)    |
+| `npm run build`                                 | Production build (shared, backend, frontend via Turborepo) |
+| `npm start`                                     | Start the production server                                |
+| `npm test --workspace=packages/backend`         | Run backend unit tests (Jest)                              |
+| `npm run test:e2e --workspace=packages/backend` | Run backend e2e tests (Jest + Supertest)                   |
+| `npm test --workspace=packages/frontend`        | Run frontend tests (Vitest)                                |
+| `npm test --workspace=packages/shared`          | Run shared tests (Jest)                                    |
 
 ## Working with Individual Packages
 

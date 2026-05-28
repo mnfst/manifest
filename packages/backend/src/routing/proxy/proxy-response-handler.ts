@@ -4,21 +4,42 @@ import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interf
 import { RoutingMeta } from './proxy.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
-import { ProxyMessageRecorder } from './proxy-message-recorder';
+import { ProxyMessageRecorder, SuccessRecordingPayload } from './proxy-message-recorder';
 import { ProviderClient } from './provider-client';
-import { initSseHeaders, parseUsageObject, pipeStream, StreamUsage } from './stream-writer';
+import {
+  initSseHeaders,
+  parseUsageObject,
+  pipePassthrough,
+  pipeStream,
+  StreamUsage,
+} from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
 import {
   chatCompletionStreamChunkToResponses,
   collectResponsesSseResponse,
   fromChatCompletionResponse,
 } from './responses-adapter';
+import {
+  chatCompletionsResponseToMessages,
+  createMessagesStreamTransformer,
+} from './anthropic-messages-adapter';
 import type { ProxyApiMode } from './proxy-types';
 import type { ThoughtSignatureCache } from './thought-signature-cache';
 import type { ThinkingBlockCache, ThinkingBlock } from './thinking-block-cache';
+import type { ReasoningContentCache } from './reasoning-content-cache';
 import type { ExtractedSignature } from './google-adapter';
-import type { ExtractedThinkingBlocks } from './anthropic-adapter';
+import {
+  extractThinkingBlocksFromMessagesResponse,
+  type ExtractedThinkingBlocks,
+} from './anthropic-adapter';
+import { supportsReasoningContent } from './provider-client-converters';
 import type { CallerAttribution } from './caller-classifier';
+import type { CaptureSink } from './recording-capture';
+import { sanitizeResponseHeaders } from './recording-capture';
+import {
+  unwrapCodeAssistResponse,
+  unwrapCodeAssistStreamPayload,
+} from '../oauth/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -33,6 +54,8 @@ export function buildMetaHeaders(meta: RoutingMeta): Record<string, string> {
     'X-Manifest-Provider': meta.provider,
     'X-Manifest-Confidence': String(meta.confidence),
     'X-Manifest-Reason': meta.reason,
+    'X-Manifest-Output-Modality': meta.output_modality ?? 'text',
+    'X-Manifest-Response-Mode': meta.response_mode ?? 'buffered',
   };
   if (meta.specificity_category) {
     headers['X-Manifest-Specificity'] = meta.specificity_category;
@@ -48,10 +71,6 @@ function setHeaders(res: ExpressResponse, headers: Record<string, string>): void
   for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);
 }
 
-/**
- * Handles non-OK provider responses: fallback-exhausted and single upstream errors.
- * Returns true if the response was handled (caller should return), false otherwise.
- */
 export async function handleProviderError(
   res: ExpressResponse,
   ctx: IngestionContext,
@@ -93,8 +112,10 @@ export async function handleProviderError(
       authType: meta.auth_type,
       reason: meta.reason,
       specificityCategory: meta.specificity_category,
+      providerKeyLabel: meta.provider_key_label,
       callerAttribution,
       requestHeaders,
+      requestParams: meta.request_params,
       headerTierId: meta.header_tier_id,
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
@@ -140,6 +161,7 @@ function handleFallbackExhausted(
       reason: meta.reason,
       callerAttribution,
       requestHeaders,
+      requestParams: meta.request_params,
       headerTierId: meta.header_tier_id,
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
@@ -161,6 +183,7 @@ function handleFallbackExhausted(
         reason: meta.reason,
         callerAttribution,
         requestHeaders,
+        requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
@@ -189,10 +212,6 @@ function handleFallbackExhausted(
   });
 }
 
-/**
- * Records fallback failures when a fallback model ultimately succeeded.
- * Returns the timestamp to use for the fallback success record.
- */
 export function recordFallbackFailures(
   ctx: IngestionContext,
   meta: RoutingMeta,
@@ -206,6 +225,10 @@ export function recordFallbackFailures(
   const fallbackBaseTime = Date.now();
   const failures = failedFallbacks ?? [];
 
+  // The primary's auth_type is preserved separately on a fallback-success flow
+  // (see RoutingMeta.primaryAuthType / #1173). Older meta shapes only carry
+  // `auth_type`, so fall back to it when primaryAuthType is absent.
+  const primaryAuthType = meta.primaryAuthType ?? meta.auth_type;
   recordSafely(
     recorder.recordPrimaryFailure(
       ctx,
@@ -213,7 +236,7 @@ export function recordFallbackFailures(
       meta.fallbackFromModel,
       meta.primaryErrorBody ?? `Provider returned HTTP ${meta.primaryErrorStatus ?? 500}`,
       new Date(fallbackBaseTime).toISOString(),
-      meta.auth_type,
+      primaryAuthType,
       {
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
@@ -221,6 +244,7 @@ export function recordFallbackFailures(
         reason: meta.reason,
         callerAttribution,
         requestHeaders,
+        requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
@@ -234,10 +258,11 @@ export function recordFallbackFailures(
       recorder.recordFailedFallbacks(ctx, meta.tier, meta.fallbackFromModel, failures, {
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
-        authType: meta.auth_type,
+        authType: primaryAuthType,
         reason: meta.reason,
         callerAttribution,
         requestHeaders,
+        requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
@@ -249,7 +274,6 @@ export function recordFallbackFailures(
   return new Date(fallbackBaseTime + (failures.length + 1) * 100).toISOString();
 }
 
-/** Pipes a streaming response, applying adapter transforms as needed. */
 export async function handleStreamResponse(
   res: ExpressResponse,
   forward: ForwardResult,
@@ -260,26 +284,50 @@ export async function handleStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  capture?: CaptureSink,
+  reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
-  initSseHeaders(res, metaHeaders);
+  initSseHeaders(res, metaHeaders, 200);
 
+  if (capture) {
+    capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
+  }
+  const onClient = capture ? (text: string) => capture.appendRaw(text) : undefined;
+
+  const messagesTransformer =
+    apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
+  const finalize = messagesTransformer ? () => messagesTransformer.finalize() : undefined;
   const toClientChunk =
-    apiMode === 'responses' ? chatCompletionStreamChunkToResponses : (chunk: string) => chunk;
+    apiMode === 'responses'
+      ? chatCompletionStreamChunkToResponses
+      : messagesTransformer
+        ? messagesTransformer.transform
+        : (chunk: string) => chunk;
 
   if (apiMode === 'responses' && forward.isResponses) {
-    return pipeStream(forward.response.body!, res);
+    return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
   }
 
   if (forward.isGoogle) {
-    return pipeStream(forward.response.body!, res, (chunk) => {
-      const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(chunk, meta.model);
-      if (signatureCache && sessionKey) {
-        for (const s of signatures) {
-          signatureCache.store(sessionKey, s.toolCallId, s.signature);
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const innerChunk = forward.isCodeAssist ? unwrapCodeAssistStreamPayload(chunk) : chunk;
+        const { chunk: out, signatures } = providerClient.convertGoogleStreamChunk(
+          innerChunk,
+          meta.model,
+        );
+        if (signatureCache && sessionKey) {
+          for (const s of signatures) {
+            signatureCache.store(sessionKey, s.toolCallId, s.signature);
+          }
         }
-      }
-      return out ? toClientChunk(out) : null;
-    });
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+      onClient,
+    );
   }
   if (forward.isAnthropic) {
     const onThinkingBlocks =
@@ -292,23 +340,93 @@ export async function handleStreamResponse(
       meta.model,
       onThinkingBlocks,
     );
-    return pipeStream(forward.response.body!, res, (chunk) => {
-      const out = anthropicTransformer(chunk);
-      return out ? toClientChunk(out) : null;
-    });
-  }
-  if (forward.isChatGpt) {
-    return pipeStream(forward.response.body!, res, (chunk) =>
-      providerClient.convertChatGptStreamChunk(chunk, meta.model),
+    // Anthropic Messages inbound + Anthropic upstream: forward the upstream
+    // SSE bytes byte-for-byte so Anthropic SSE framing (`event:` headers,
+    // multi-line `data:` payloads, blank-line separators) reaches the
+    // client intact, and Anthropic-only content blocks (`server_tool_use`,
+    // `web_search_tool_result`, etc.) are not lost to translation. The
+    // transformer runs purely as a tap — thinking-block cache via callback
+    // and OpenAI-shape usage parsed off its return value by pipePassthrough.
+    if (apiMode === 'messages') {
+      return pipePassthrough(forward.response.body!, res, anthropicTransformer, onClient);
+    }
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const out = anthropicTransformer(chunk);
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+      onClient,
     );
   }
-  if (apiMode === 'responses') {
-    return pipeStream(forward.response.body!, res, toClientChunk);
+  if (forward.isChatGpt) {
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const out = providerClient.convertChatGptStreamChunk(chunk, meta.model);
+        if (!messagesTransformer) return out;
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+      onClient,
+    );
   }
-  return pipeStream(forward.response.body!, res);
+  if (supportsReasoningContent(meta.provider, meta.model)) {
+    const onReasoningContent =
+      reasoningCache && sessionKey
+        ? (firstToolCallId: string, content: string) => {
+            reasoningCache.store(sessionKey, firstToolCallId, content);
+          }
+        : undefined;
+    const transformer = providerClient.createReasoningContentStreamTransformer(onReasoningContent);
+    return pipeStream(
+      forward.response.body!,
+      res,
+      (chunk) => {
+        const out = transformer(chunk);
+        return out ? toClientChunk(out) : null;
+      },
+      finalize,
+      onClient,
+    );
+  }
+  if (apiMode === 'responses' || apiMode === 'messages') {
+    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
+  }
+  return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
 }
 
-/** Reads and converts a non-streaming response, extracting usage data. */
+function cacheReasoningContent(
+  responseBody: unknown,
+  cache: ReasoningContentCache | undefined,
+  sessionKey: string | undefined,
+): void {
+  if (!cache || !sessionKey) return;
+  const body = responseBody as Record<string, unknown> | undefined;
+  const choices = body?.choices;
+  if (!Array.isArray(choices) || choices.length === 0) return;
+  const firstChoice = choices[0];
+  if (!firstChoice || typeof firstChoice !== 'object' || Array.isArray(firstChoice)) return;
+  const message = (firstChoice as Record<string, unknown>).message as
+    | Record<string, unknown>
+    | undefined;
+  if (!message) return;
+  const reasoningContent = message.reasoning_content;
+  if (typeof reasoningContent !== 'string' || !reasoningContent) return;
+  const toolCalls = message.tool_calls;
+  if (!Array.isArray(toolCalls) || toolCalls.length === 0) return;
+  const firstToolCall = toolCalls[0];
+  const firstToolCallId =
+    firstToolCall && typeof firstToolCall === 'object' && !Array.isArray(firstToolCall)
+      ? (firstToolCall as Record<string, unknown>).id
+      : undefined;
+  if (typeof firstToolCallId !== 'string' || !firstToolCallId) return;
+  cache.store(sessionKey, firstToolCallId, reasoningContent);
+}
+
 export async function handleNonStreamResponse(
   res: ExpressResponse,
   forward: ForwardResult,
@@ -319,13 +437,19 @@ export async function handleNonStreamResponse(
   sessionKey?: string,
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
+  capture?: CaptureSink,
+  reasoningCache?: ReasoningContentCache,
 ): Promise<StreamUsage | null> {
+  if (capture) {
+    capture.setHeaders(sanitizeResponseHeaders(forward.response.headers));
+  }
   let responseBody: unknown;
 
   if (apiMode === 'responses' && forward.isResponses) {
     responseBody = await readNativeResponsesBody(forward.response);
   } else if (forward.isGoogle) {
-    const googleData = (await forward.response.json()) as Record<string, unknown>;
+    const rawData = (await forward.response.json()) as Record<string, unknown>;
+    const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
       | ExtractedSignature[]
@@ -336,6 +460,18 @@ export async function handleNonStreamResponse(
     // Always strip the internal side-channel — it must never reach the client,
     // even if the cache wasn't provided for this request.
     delete (responseBody as Record<string, unknown>)._extractedSignatures;
+  } else if (apiMode === 'messages' && forward.isAnthropic) {
+    // Anthropic Messages inbound + Anthropic upstream: pass the response
+    // body through unchanged so Anthropic-only content blocks
+    // (`server_tool_use`, `web_search_tool_result`, etc.) survive. The
+    // OpenAI-shaped converter only knows `text` / `thinking` / `tool_use`
+    // and would silently drop the rest.
+    const anthropicData = (await forward.response.json()) as Record<string, unknown>;
+    const extracted = extractThinkingBlocksFromMessagesResponse(anthropicData);
+    if (extracted && thinkingCache && sessionKey) {
+      thinkingCache.store(sessionKey, extracted.firstToolUseId, extracted.blocks);
+    }
+    responseBody = anthropicData;
   } else if (forward.isAnthropic) {
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
@@ -353,14 +489,27 @@ export async function handleNonStreamResponse(
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
+    if (supportsReasoningContent(meta.provider, meta.model)) {
+      cacheReasoningContent(responseBody, reasoningCache, sessionKey);
+    }
   }
 
   if (apiMode === 'responses' && !forward.isResponses) {
     responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model);
+  } else if (apiMode === 'messages' && !forward.isAnthropic) {
+    // Anthropic upstreams already returned a Messages-shaped body via the
+    // passthrough branch above. Skip the round-trip translation that would
+    // strip Anthropic-only content blocks.
+    responseBody = chatCompletionsResponseToMessages(
+      responseBody as Record<string, unknown>,
+      meta.model,
+    );
   }
 
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
+
+  if (capture) capture.setJson(responseBody);
 
   res.status(200);
   setHeaders(res, metaHeaders);
@@ -373,9 +522,6 @@ async function readNativeResponsesBody(response: Response): Promise<unknown> {
   const text = await response.text();
   const trimmed = text.trimStart();
 
-  // ChatGPT subscription Responses can return SSE text without an SSE content
-  // type. Inspecting the body keeps non-streaming SDK calls from trying to parse
-  // `event: ...` as JSON.
   if (
     contentType.includes('text/event-stream') ||
     trimmed.startsWith('event:') ||
@@ -387,7 +533,6 @@ async function readNativeResponsesBody(response: Response): Promise<unknown> {
   return JSON.parse(text);
 }
 
-/** Records the success message or fallback success after response is sent. */
 export function recordSuccess(
   ctx: IngestionContext,
   meta: RoutingMeta,
@@ -399,6 +544,7 @@ export function recordSuccess(
   startTime?: number,
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
+  recording?: { requestBody: Record<string, unknown>; capture: CaptureSink },
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     recordSafely(
@@ -410,9 +556,11 @@ export function recordSuccess(
         timestamp: fallbackSuccessTs,
         authType: meta.auth_type,
         reason: meta.reason,
+        providerKeyLabel: meta.provider_key_label,
         usage: streamUsage ?? undefined,
         callerAttribution,
         requestHeaders,
+        requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
@@ -422,6 +570,23 @@ export function recordSuccess(
   } else {
     const usage = streamUsage ?? { prompt_tokens: 0, completion_tokens: 0 };
     const durationMs = startTime ? Date.now() - startTime : undefined;
+    let recordingPayload: SuccessRecordingPayload | undefined;
+    if (recording) {
+      const { capture, requestBody } = recording;
+      if (capture.overflowed) {
+        logger.warn('Recording skipped: payload exceeded size cap');
+      } else {
+        const responseBody = capture.buildResponseBody();
+        if (responseBody !== null) {
+          recordingPayload = {
+            request_body: requestBody,
+            response_body: responseBody,
+            response_headers: capture.responseHeaders,
+            size_bytes: capture.getSizeBytes(),
+          };
+        }
+      }
+    }
     recordSafely(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
         traceId,
@@ -430,11 +595,14 @@ export function recordSuccess(
         sessionKey,
         durationMs,
         specificityCategory: meta.specificity_category,
+        providerKeyLabel: meta.provider_key_label,
         callerAttribution,
         requestHeaders,
+        requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        recordingPayload,
       }),
       'success message',
     );

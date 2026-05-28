@@ -1,4 +1,9 @@
-import { MODEL_PREFIX_MAP, inferProviderFromModel } from '../src/provider-inference';
+import {
+  MODEL_PREFIX_MAP,
+  inferProviderFromModel,
+  resolveUnderlyingModelIdentity,
+  underlyingGatewayModel,
+} from '../src/provider-inference';
 
 describe('MODEL_PREFIX_MAP', () => {
   it('is a non-empty array of [RegExp, string] entries', () => {
@@ -68,5 +73,48 @@ describe('inferProviderFromModel', () => {
 
   it('returns undefined for unrecognized models', () => {
     expect(inferProviderFromModel('unknown-model')).toBeUndefined();
+  });
+});
+
+describe('underlyingGatewayModel', () => {
+  it('strips the gateway prefix from gateway model ids', () => {
+    expect(underlyingGatewayModel('opencode-go/deepseek-v4-pro')).toBe('deepseek-v4-pro');
+    expect(underlyingGatewayModel('opencode-go/kimi-k2.6')).toBe('kimi-k2.6');
+  });
+
+  it('returns null for non-gateway model ids', () => {
+    expect(underlyingGatewayModel('deepseek-v4-pro')).toBeNull();
+    expect(underlyingGatewayModel('openrouter/anthropic/claude-sonnet-4')).toBeNull();
+  });
+});
+
+describe('resolveUnderlyingModelIdentity', () => {
+  it('resolves a gateway model id to its provenance provider and bare model', () => {
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/glm-5.1')).toEqual({
+      provider: 'zai',
+      model: 'glm-5.1',
+    });
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/kimi-k2.6')).toEqual({
+      provider: 'moonshot',
+      model: 'kimi-k2.6',
+    });
+  });
+
+  it('returns an undefined provider when the underlying id matches no known provider', () => {
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/mimo-v25')).toEqual({
+      provider: undefined,
+      model: 'mimo-v25',
+    });
+  });
+
+  it('returns non-gateway pairs unchanged', () => {
+    expect(resolveUnderlyingModelIdentity('zai', 'glm-5.1')).toEqual({
+      provider: 'zai',
+      model: 'glm-5.1',
+    });
+    expect(resolveUnderlyingModelIdentity(undefined, 'deepseek-v4-pro')).toEqual({
+      provider: undefined,
+      model: 'deepseek-v4-pro',
+    });
   });
 });

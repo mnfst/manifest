@@ -213,6 +213,71 @@ describe('computeTokenCost', () => {
     ).toBe(0);
   });
 
+  it('returns the per-request cost when subscription has a positive perRequestCostUsd', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 700,
+        outputTokens: 150,
+        model: 'glm-5.1',
+        pricing: undefined,
+        isSubscription: true,
+        perRequestCostUsd: 0.0136,
+      }),
+    ).toBeCloseTo(0.0136, 10);
+  });
+
+  it('falls back to 0 when subscription perRequestCostUsd is zero', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'flat-fee-model',
+        pricing: undefined,
+        isSubscription: true,
+        perRequestCostUsd: 0,
+      }),
+    ).toBe(0);
+  });
+
+  it('falls back to 0 when subscription perRequestCostUsd is negative (defensive)', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'flat-fee-model',
+        pricing: undefined,
+        isSubscription: true,
+        perRequestCostUsd: -1,
+      }),
+    ).toBe(0);
+  });
+
+  it('falls back to 0 when subscription perRequestCostUsd is null', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'gpt-4o',
+        pricing,
+        isSubscription: true,
+        perRequestCostUsd: null,
+      }),
+    ).toBe(0);
+  });
+
+  it('ignores perRequestCostUsd entirely when isSubscription is false', () => {
+    const result = computeTokenCost({
+      inputTokens: 1000,
+      outputTokens: 500,
+      model: 'gpt-4o',
+      pricing,
+      isSubscription: false,
+      perRequestCostUsd: 0.05,
+    });
+    // 1000 * 0.0000025 + 500 * 0.00001 = 0.0075 — token math applies, not 0.05
+    expect(result).toBeCloseTo(0.0075, 10);
+  });
+
   it('subscription check takes priority over negative pricing guard', () => {
     const negativePricing: PricingEntry = {
       model_name: 'bad-model',

@@ -487,7 +487,7 @@ describe('TierService', () => {
       expect(result).toEqual([]);
     });
 
-    it('returns [] when a model cannot be unambiguously resolved', async () => {
+    it('throws when a model cannot be unambiguously resolved', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
@@ -498,8 +498,45 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      const result = await svc.setFallbacks('agent-1', 'standard', ['gpt-4o']);
-      expect(result).toEqual([]);
+      await expect(svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).rejects.toThrow(
+        /Cannot resolve fallback model "gpt-4o"/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    // Regression: issue #1790. Adding a new fallback whose (provider, authType,
+    // model) tuple isn't in the discovered list used to fall through to
+    // unambiguousRoute() for every model and return null on the first
+    // ambiguous one — wiping the previously-saved fallbacks. The fix throws
+    // before save, so the existing row is left untouched.
+    it('preserves existing fallbacks when an unresolvable model is added (issue #1790)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+      ];
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+        discovered('gpt-4o', 'openai', 'subscription'),
+        discovered('claude-3-5-sonnet', 'anthropic', 'api_key'),
+      ]);
+      tierRepo.findOne.mockResolvedValue({
+        agent_id: 'agent-1',
+        tier: 'standard',
+        fallback_routes: existing,
+      } as TierAssignment);
+
+      // Caller sends the existing two routes plus a new one whose tuple
+      // doesn't match any discovered model — validation fails, then
+      // unambiguousRoute hits gpt-4o which has two entries.
+      await expect(
+        svc.setFallbacks(
+          'agent-1',
+          'standard',
+          ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
+          [...existing, route('minimax', 'api_key', 'minmax-27')],
+        ),
+      ).rejects.toThrow(/Cannot resolve fallback model/);
+      expect(tierRepo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -520,6 +557,91 @@ describe('TierService', () => {
       expect(existing.fallback_routes).toBeNull();
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('rejects clearing the only stream-capable route while stream mode is active', async () => {
+      tierRepo.findOne.mockResolvedValue({
+        tier: 'standard',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+        response_mode: 'stream',
+      } as TierAssignment);
+
+      await expect(svc.clearFallbacks('agent-1', 'standard')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stream response mode enforcement', () => {
+    it('rejects stream mode when the route chain has no stream-capable model', async () => {
+      tierRepo.findOne.mockResolvedValue({
+        tier: 'standard',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: null,
+      } as TierAssignment);
+
+      await expect(svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('allows stream mode when only the primary route is stream-capable', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('allows stream mode when the active route chain supports streaming', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-3-5-sonnet')],
+        response_mode: 'buffered',
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('allows adding a non-stream fallback while tier stream mode is active when the primary streams', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        response_mode: 'stream',
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('local-model', 'custom:local', 'api_key'),
+      ]);
+
+      const result = await svc.setFallbacks(
+        'agent-1',
+        'standard',
+        ['local-model'],
+        [route('custom:local', 'api_key', 'local-model')],
+      );
+
+      expect(result).toEqual([route('custom:local', 'api_key', 'local-model')]);
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
     });
   });
 });

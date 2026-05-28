@@ -46,7 +46,10 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 describe('ResolveService', () => {
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let providerKeyService: jest.Mocked<
-    Pick<ProviderKeyService, 'isModelAvailable' | 'hasActiveProvider' | 'getAuthType'>
+    Pick<
+      ProviderKeyService,
+      'isModelAvailable' | 'hasActiveProvider' | 'getAuthType' | 'getDefaultKeyLabel'
+    >
   >;
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
@@ -65,6 +68,10 @@ describe('ResolveService', () => {
       isModelAvailable: jest.fn().mockResolvedValue(true),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
+      // Default to undefined so resolved routes carry no `keyLabel` unless a
+      // test explicitly sets one — keeps assertions on legacy route shapes
+      // (no keyLabel) passing.
+      getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
     };
     specificityService = { getActiveAssignments: jest.fn().mockResolvedValue([]) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
@@ -784,6 +791,43 @@ describe('ResolveService', () => {
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'haiku')]);
       expect(result.reason).toBe('heartbeat');
+    });
+
+    it('uses the first stream-capable fallback as the effective route in stream mode', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: route('custom:local', 'api_key', 'local-model'),
+          auto_assigned_route: null,
+          fallback_routes: [
+            route('openai', 'api_key', 'gpt-4o'),
+            route('anthropic', 'api_key', 'claude-3-5-sonnet'),
+          ],
+          response_mode: 'stream',
+        } as TierAssignment,
+      ]);
+
+      const result = await svc.resolveForTier('agent-1', 'simple');
+
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'claude-3-5-sonnet')]);
+    });
+
+    it('filters non-stream fallbacks from the effective route chain in stream mode', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: route('openai', 'api_key', 'gpt-4o'),
+          auto_assigned_route: null,
+          fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+          response_mode: 'stream',
+        } as TierAssignment,
+      ]);
+
+      const result = await svc.resolveForTier('agent-1', 'simple');
+
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.fallback_routes).toBeNull();
     });
 
     it('uses the default reason when the caller passes "default"', async () => {

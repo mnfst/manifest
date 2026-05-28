@@ -2,12 +2,18 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import type { AuthType, ModelRoute } from 'manifest-shared';
-import { TIER_COLORS, type TierColor } from 'manifest-shared';
+import type { AuthType, ModelRoute, ResponseMode } from 'manifest-shared';
+import {
+  DEFAULT_RESPONSE_MODE,
+  DEFAULT_OUTPUT_MODALITY,
+  TIER_COLORS,
+  type TierColor,
+} from 'manifest-shared';
 import { HeaderTier } from '../../entities/header-tier.entity';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { explicitRoute, unambiguousRoute } from '../routing-core/route-helpers';
+import { assertStreamableResponseMode } from '../routing-core/response-mode-guard';
 
 export const RESERVED_HEADER_KEYS = new Set<string>([
   'authorization',
@@ -87,6 +93,8 @@ export class HeaderTierService {
       enabled: true,
       override_route: null,
       fallback_routes: null,
+      output_modality: DEFAULT_OUTPUT_MODALITY,
+      response_mode: DEFAULT_RESPONSE_MODE,
       created_at: now,
       updated_at: now,
     });
@@ -124,6 +132,25 @@ export class HeaderTierService {
   async setEnabled(agentId: string, id: string, enabled: boolean): Promise<HeaderTier> {
     const row = await this.findOrThrow(agentId, id);
     row.enabled = enabled;
+    row.updated_at = new Date().toISOString();
+    await this.repo.save(row);
+    this.routingCache.invalidateAgent(agentId);
+    return row;
+  }
+
+  async setResponseMode(
+    agentId: string,
+    id: string,
+    responseMode: ResponseMode,
+  ): Promise<HeaderTier> {
+    const row = await this.findOrThrow(agentId, id);
+    assertStreamableResponseMode(
+      responseMode,
+      `custom tier "${row.name}"`,
+      row.override_route,
+      row.fallback_routes,
+    );
+    row.response_mode = responseMode;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
@@ -181,6 +208,12 @@ export class HeaderTierService {
     const route =
       explicit ??
       unambiguousRoute(model, await this.discoveryService.getModelsForAgent(row.agent_id));
+    assertStreamableResponseMode(
+      row.response_mode,
+      `custom tier "${row.name}"`,
+      route,
+      row.fallback_routes,
+    );
     row.override_route = route;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
@@ -192,6 +225,7 @@ export class HeaderTierService {
     const row = await this.findOrThrow(agentId, id);
     row.override_route = null;
     row.fallback_routes = null;
+    assertStreamableResponseMode(row.response_mode, `custom tier "${row.name}"`, null, null);
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
@@ -204,7 +238,14 @@ export class HeaderTierService {
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const row = await this.findOrThrow(agentId, id);
-    row.fallback_routes = await this.buildFallbackRoutes(row.agent_id, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(row.agent_id, models, routes);
+    assertStreamableResponseMode(
+      row.response_mode,
+      `custom tier "${row.name}"`,
+      row.override_route,
+      fallbackRoutes,
+    );
+    row.fallback_routes = fallbackRoutes;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
@@ -213,12 +254,22 @@ export class HeaderTierService {
 
   async clearFallbacks(agentId: string, id: string): Promise<void> {
     const row = await this.findOrThrow(agentId, id);
+    assertStreamableResponseMode(
+      row.response_mode,
+      `custom tier "${row.name}"`,
+      row.override_route,
+      null,
+    );
     row.fallback_routes = null;
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
     this.routingCache.invalidateAgent(agentId);
   }
 
+  /**
+   * Mirror of {@link TierService.buildFallbackRoutes} — see that docblock for
+   * the issue #1790 rationale on why this throws instead of returning null.
+   */
   private async buildFallbackRoutes(
     agentId: string,
     models: string[],
@@ -243,7 +294,12 @@ export class HeaderTierService {
     const resolved: ModelRoute[] = [];
     for (const m of models) {
       const route = unambiguousRoute(m, available);
-      if (!route) return null;
+      if (!route) {
+        throw new BadRequestException(
+          `Cannot resolve fallback model "${m}" to a single connected provider. ` +
+            `Pass an explicit (provider, authType, model) route, or connect exactly one provider that offers this model.`,
+        );
+      }
       resolved.push(route);
     }
     return resolved;

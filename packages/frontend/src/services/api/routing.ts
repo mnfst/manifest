@@ -1,7 +1,13 @@
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type {
+  AuthType,
+  ModelCapability,
+  ModelRoute,
+  ResponseMode,
+  OutputModality,
+} from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type { AuthType, ModelRoute };
+export type { AuthType, ModelCapability, ModelRoute, ResponseMode, OutputModality };
 
 export interface RoutingProvider {
   id: string;
@@ -10,8 +16,17 @@ export interface RoutingProvider {
   is_active: boolean;
   has_api_key: boolean;
   key_prefix?: string | null;
+  /**
+   * User-facing key label. Defaults to "Default" for legacy single-key
+   * providers; multi-key chains expose user-supplied names like "Personal"
+   * or "Work" and are ordered by `priority` (0 = primary).
+   */
+  label: string;
+  priority: number;
   region?: string | null;
   connected_at: string;
+  models_fetched_at?: string | null;
+  cached_model_count?: number;
 }
 
 /* -- Routing: Status -- */
@@ -39,13 +54,21 @@ export function getProviders(agentName: string) {
 
 export function connectProvider(
   agentName: string,
-  data: { provider: string; apiKey?: string; authType?: AuthType },
+  data: {
+    provider: string;
+    apiKey?: string;
+    authType?: AuthType;
+    label?: string;
+    region?: string;
+  },
 ) {
   return fetchMutate<{
     id: string;
     provider: string;
     auth_type: AuthType;
     is_active: boolean;
+    label: string;
+    priority: number;
     region?: string | null;
   }>(routingPath(agentName, 'providers'), {
     method: 'POST',
@@ -54,10 +77,55 @@ export function connectProvider(
   });
 }
 
-export function disconnectProvider(agentName: string, provider: string, authType?: AuthType) {
+export function disconnectProvider(
+  agentName: string,
+  provider: string,
+  authType?: AuthType,
+  label?: string,
+) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
-  const path = authType ? `${base}?authType=${authType}` : base;
+  const params = new URLSearchParams();
+  if (authType) params.set('authType', authType);
+  if (label) params.set('label', label);
+  const qs = params.toString();
+  const path = qs ? `${base}?${qs}` : base;
   return fetchMutate<{ ok: boolean; notifications: string[] }>(path, { method: 'DELETE' });
+}
+
+export function renameProviderKey(
+  agentName: string,
+  provider: string,
+  currentLabel: string,
+  newLabel: string,
+  authType?: AuthType,
+) {
+  return fetchMutate<{ id: string; label: string; priority: number }>(
+    routingPath(
+      agentName,
+      `providers/${encodeURIComponent(provider)}/keys/${encodeURIComponent(currentLabel)}`,
+    ),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newLabel, ...(authType && { authType }) }),
+    },
+  );
+}
+
+export function reorderProviderKeys(
+  agentName: string,
+  provider: string,
+  labels: string[],
+  authType?: AuthType,
+) {
+  return fetchMutate<Array<{ id: string; label: string; priority: number }>>(
+    routingPath(agentName, `providers/${encodeURIComponent(provider)}/keys/order`),
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ labels, ...(authType && { authType }) }),
+    },
+  );
 }
 
 /* -- Routing: Copilot Device Login -- */
@@ -107,6 +175,16 @@ export function toggleComplexity(agentName: string) {
 
 /* -- Routing: Tier Assignments -- */
 
+/**
+ * Per-route outbound request body parameters merged into the provider
+ * request before forwarding. Today's only knob is DeepSeek's `thinking`
+ * toggle; new keys (`reasoning_effort`, `safety`, custom-provider params)
+ * land here as their UI ships. Storage is per-(agent, route) on the
+ * `agent_model_params` table — see `services/api/model-params.ts` for the
+ * CRUD client.
+ */
+export type { RequestParamDefaults } from 'manifest-shared';
+
 export interface TierAssignment {
   id: string;
   agent_id: string;
@@ -114,6 +192,8 @@ export interface TierAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
+  output_modality?: OutputModality;
+  response_mode?: ResponseMode;
   updated_at: string;
 }
 
@@ -127,6 +207,7 @@ export function overrideTier(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   // The backend requires the structured (provider, authType, model) tuple now
   // that legacy column persistence is gone. authType is optional only for
@@ -136,8 +217,12 @@ export function overrideTier(
   const body: Record<string, unknown> = { model, provider };
   if (authType) {
     body.authType = authType;
-    body.route = { provider, authType, model };
+    const route: ModelRoute = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
+    body.route = route;
   }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<TierAssignment>(routingPath(agentName, `tiers/${encodeURIComponent(tier)}`), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -149,6 +234,17 @@ export function resetTier(agentName: string, tier: string) {
   return fetchMutate(routingPath(agentName, `tiers/${encodeURIComponent(tier)}`), {
     method: 'DELETE',
   });
+}
+
+export function setTierResponseMode(agentName: string, tier: string, responseMode: ResponseMode) {
+  return fetchMutate<TierAssignment>(
+    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/response-mode`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ response_mode: responseMode }),
+    },
+  );
 }
 
 export function resetAllTiers(agentName: string) {
@@ -195,9 +291,12 @@ export interface AvailableModel {
   auth_type?: AuthType;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
+  /** Per-request USD cost for per-request subscriptions (e.g. OpenCode Go). */
+  cost_per_request?: number | null;
   context_window: number;
   capability_reasoning: boolean;
   capability_code: boolean;
+  capabilities?: ModelCapability[];
   quality_score: number;
   display_name?: string;
   provider_display_name?: string;
@@ -211,6 +310,19 @@ export function refreshModels(agentName: string) {
   return fetchMutate<{ ok: boolean }>(routingPath(agentName, 'refresh-models'), {
     method: 'POST',
   });
+}
+
+export interface ProviderRefreshResult {
+  ok: boolean;
+  model_count: number;
+  last_fetched_at: string | null;
+  error: string | null;
+}
+
+export function refreshProviderModels(agentName: string, provider: string, authType?: AuthType) {
+  const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}/refresh-models`);
+  const path = authType ? `${base}?authType=${authType}` : base;
+  return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
 }
 
 /* -- Routing: Pricing cache health -- */
@@ -240,6 +352,7 @@ export interface CustomProviderModel {
   input_price_per_million_tokens?: number;
   output_price_per_million_tokens?: number;
   context_window?: number;
+  price_estimated?: boolean;
 }
 
 export interface CustomProviderData {
@@ -324,20 +437,21 @@ export async function probeCustomProvider(
   base_url: string,
   apiKey?: string,
   api_kind?: CustomProviderApiKind,
+  provider_name?: string,
 ) {
   const res = await fetch(`${BASE_URL}${routingPath(agentName, 'custom-providers/probe')}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base_url, apiKey, api_kind }),
+    body: JSON.stringify({ base_url, apiKey, api_kind, provider_name }),
   });
   if (!res.ok) {
     const message = await parseErrorMessage(res);
     throw new Error(message);
   }
   const text = await res.text();
-  if (!text) return { models: [] } as { models: { model_name: string }[] };
-  return JSON.parse(text) as { models: { model_name: string }[] };
+  if (!text) return { models: [] } as { models: CustomProviderModel[] };
+  return JSON.parse(text) as { models: CustomProviderModel[] };
 }
 
 export function deleteCustomProvider(agentName: string, id: string) {

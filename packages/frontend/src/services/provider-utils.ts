@@ -32,6 +32,7 @@ export function validateApiKey(
 
 const SUBSCRIPTION_PREFIXES: Record<string, string> = {
   anthropic: 'sk-ant-oat',
+  minimax: 'sk-cp-',
 };
 
 /** Prefixes that identify API keys — reject these in subscription mode. */
@@ -45,12 +46,6 @@ export function validateSubscriptionKey(
 ): { valid: boolean; error?: string } {
   const trimmed = key.replace(/\s/g, '');
   if (!trimmed) return { valid: false, error: 'Token is required' };
-  if (trimmed.length < 10) {
-    return {
-      valid: false,
-      error: 'Token is too short (minimum 10 characters)',
-    };
-  }
   const prefix = SUBSCRIPTION_PREFIXES[provider.id];
   if (prefix && !trimmed.startsWith(prefix)) {
     return {
@@ -65,6 +60,22 @@ export function validateSubscriptionKey(
       error: 'This looks like an API key. Use the API Key tab instead.',
     };
   }
+  // Providers that expose a paste-token alternative alongside an OAuth flow
+  // (currently MiniMax) bring their full API-key length envelope with them —
+  // a real `sk-cp-` token is ~100 chars, not 11. Enforce that here so the
+  // backend doesn't persist obviously truncated values. Other subscription
+  // providers (Anthropic setup-token, OpenAI ChatGPT JWT) stay on the generic
+  // 10-char floor since their tokens can be legitimately shorter.
+  const minLength =
+    provider.subscriptionTokenAlternative && provider.minKeyLength > 10
+      ? provider.minKeyLength
+      : 10;
+  if (trimmed.length < minLength) {
+    return {
+      valid: false,
+      error: `Token is too short (minimum ${minLength} characters)`,
+    };
+  }
   return { valid: true };
 }
 
@@ -74,6 +85,7 @@ function formatModelSlug(slug: string): string {
 }
 
 export function getModelLabel(providerId: string, modelValue: string): string {
+  if (!modelValue) return '';
   const prov = getProvider(providerId);
   if (!prov) return modelValue;
   // Exact match in provider's static models (if any remain)

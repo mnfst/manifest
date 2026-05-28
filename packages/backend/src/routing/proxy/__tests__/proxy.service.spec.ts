@@ -1,17 +1,29 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ModelRoute } from 'manifest-shared';
+import {
+  getProviderParamSpecs,
+  type AuthType,
+  type ModelRoute,
+  type ProviderParamSpecCatalog,
+} from 'manifest-shared';
 import { ProxyService } from '../proxy.service';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { TierService } from '../../routing-core/tier.service';
 import type { OpenaiOauthService } from '../../oauth/openai-oauth.service';
 import type { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import type { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
+import type { GeminiOauthService } from '../../oauth/gemini-oauth.service';
+import type { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import type { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import type { SessionMomentumService } from '../session-momentum.service';
 import type { LimitCheckService } from '../../../notifications/services/limit-check.service';
 import type { ProxyFallbackService } from '../proxy-fallback.service';
 import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
+import type { ReasoningContentCache } from '../reasoning-content-cache';
+import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
+import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -33,6 +45,25 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 const okResponse = (status = 200) =>
   new Response('{"ok":true}', { status, headers: { 'content-type': 'application/json' } });
 
+const specCatalog: ProviderParamSpecCatalog = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4-flash',
+    params: [
+      {
+        path: 'thinking.type',
+        type: 'enum',
+        label: 'Thinking mode',
+        description: 'Controls whether DeepSeek thinking mode is enabled.',
+        default: 'enabled',
+        values: ['enabled', 'disabled'],
+        group: 'reasoning',
+      },
+    ],
+  },
+];
+
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
   let providerKeyService: jest.Mocked<
@@ -41,6 +72,10 @@ describe('ProxyService — orchestration', () => {
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
   let minimaxOauth: jest.Mocked<Pick<MinimaxOauthService, 'unwrapToken'>>;
+  let anthropicOauth: jest.Mocked<Pick<AnthropicOauthService, 'unwrapToken'>>;
+  let geminiOauth: jest.Mocked<Pick<GeminiOauthService, 'unwrapToken'>>;
+  let kiroOauth: jest.Mocked<Pick<KiroOauthService, 'unwrapToken'>>;
+  let xaiOauth: jest.Mocked<Pick<XaiOauthService, 'unwrapToken'>>;
   let momentum: jest.Mocked<
     Pick<
       SessionMomentumService,
@@ -54,6 +89,9 @@ describe('ProxyService — orchestration', () => {
   let configService: ConfigService;
   let signatureCache: ThoughtSignatureCache;
   let thinkingCache: ThinkingBlockCache;
+  let reasoningCache: ReasoningContentCache;
+  let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
+  let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -70,6 +108,10 @@ describe('ProxyService — orchestration', () => {
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    anthropicOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    geminiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    kiroOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
+    xaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     momentum = {
       recordTier: jest.fn(),
       recordCategory: jest.fn(),
@@ -86,6 +128,22 @@ describe('ProxyService — orchestration', () => {
       retrieve: jest.fn().mockReturnValue(null),
     } as unknown as ThoughtSignatureCache;
     thinkingCache = { retrieve: jest.fn().mockReturnValue(null) } as unknown as ThinkingBlockCache;
+    reasoningCache = {
+      retrieve: jest.fn().mockReturnValue(null),
+    } as unknown as ReasoningContentCache;
+
+    modelParamsService = {
+      get: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue([]),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    providerParamSpecs = {
+      getSpecs: jest.fn(async (provider: string, authType: string, model: string) =>
+        getProviderParamSpecs(specCatalog, provider, authType as AuthType, model),
+      ),
+      list: jest.fn().mockResolvedValue(specCatalog),
+    };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -93,12 +151,19 @@ describe('ProxyService — orchestration', () => {
       tierService as unknown as TierService,
       openaiOauth as unknown as OpenaiOauthService,
       minimaxOauth as unknown as MinimaxOauthService,
+      anthropicOauth as unknown as AnthropicOauthService,
+      geminiOauth as unknown as GeminiOauthService,
+      kiroOauth as unknown as KiroOauthService,
+      xaiOauth as unknown as XaiOauthService,
       momentum as unknown as SessionMomentumService,
       limitCheck as unknown as LimitCheckService,
       fallbackService as unknown as ProxyFallbackService,
       configService,
       signatureCache,
       thinkingCache,
+      reasoningCache,
+      modelParamsService as unknown as AgentModelParamsService,
+      providerParamSpecs as unknown as ProviderParamSpecService,
     );
   });
 
@@ -286,6 +351,118 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
+    it('hands the fallback service a paramMergeContext carrying the agent and route scope', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      const call = fallbackService.tryForwardToProvider.mock.calls[0][0];
+      // Body stays raw — the merge happens per-attempt inside the fallback
+      // service so each fallback iteration looks up its own scoped route.
+      expect(call.body).toEqual({ messages: [{ role: 'user', content: 'hi' }] });
+      expect(call.paramMergeContext).toEqual({ agentId: 'agent-1', scopeKey: 'tier:standard' });
+    });
+
+    it('looks up the primary route model params for the snapshot', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'enabled' } });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(modelParamsService.get).toHaveBeenCalledWith(
+        'agent-1',
+        'tier:standard',
+        'deepseek',
+        'api_key',
+        'deepseek-v4-flash',
+      );
+    });
+
+    // Snapshot lookup must use the same normalized model id as the forward.
+    // Anthropic strips dots (claude-sonnet-4.6 -> claude-sonnet-4-6); using
+    // route.model would key the snapshot off a different row than the wire,
+    // letting metadata drift from what was actually sent.
+    it('snapshot lookup uses the normalized model id for Anthropic so it matches the forward', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('anthropic', 'api_key', 'claude-sonnet-4.6'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+      expect(modelParamsService.get).toHaveBeenCalledWith(
+        'agent-1',
+        'tier:standard',
+        'anthropic',
+        'api_key',
+        'claude-sonnet-4-6',
+      );
+    });
+
+    it('passes the inbound body through unchanged so the per-attempt merge can re-merge each fallback', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            messages: [{ role: 'user', content: 'hi' }],
+            thinking: { type: 'enabled' },
+          } as never,
+        }),
+      );
+      // The body still carries the client-supplied thinking field; the
+      // fallback service applies the resolved Manifest params last.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body.thinking).toEqual({
+        type: 'enabled',
+      });
+    });
+
     it('does not record momentum for non-scoring tiers (e.g. "default")', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'default',
@@ -303,6 +480,77 @@ describe('ProxyService — orchestration', () => {
       });
       await svc.proxyRequest(baseOpts());
       expect(momentum.recordTier).not.toHaveBeenCalled();
+    });
+
+    // Telemetry snapshot proofs. The `RoutingMeta.request_params` field
+    // drives the per-row Model Parameters accordion in the dashboard; these
+    // tests pin (a) it gets populated for the primary provider on success,
+    // (b) the snapshot is re-derived per provider so a fallback record
+    // never carries another vendor's knob, and (c) providers without a
+    // known param key (today: anything that isn't DeepSeek for `thinking`)
+    // produce a null snapshot so existing rows stay clean.
+    it("populates meta.request_params with the provider's effective default for known keys (DeepSeek thinking enabled)", async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      // No saved per-model params for this attempt, so the snapshot
+      // records the provider's own natural API default. DeepSeek's
+      // silent default is `enabled`.
+      expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
+    });
+
+    it("snapshot reflects the user's stored override when present", async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('deepseek', 'api_key', 'deepseek-v4-flash'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      modelParamsService.get.mockResolvedValueOnce({ thinking: { type: 'enabled' } });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.request_params).toEqual({ thinking: { type: 'enabled' } });
+    });
+
+    it('snapshot is null when the resolved model has no DB-backed param specs', async () => {
+      // Forward-compat property: models that never appear in the DB-backed
+      // spec catalog produce a null snapshot. New params light up by adding
+      // MPS catalog entries — no proxy code needed.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.request_params).toBeNull();
     });
   });
 
@@ -344,6 +592,89 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.provider).toBe('anthropic');
       expect(result.meta.primaryProvider).toBe('openai');
+    });
+
+    it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {
+      // Mixed-auth chain: primary openai/api_key fails, fallback
+      // anthropic/subscription succeeds. The recorder reads meta.auth_type to
+      // compute cost_usd (subscription => 0, api_key => priced). Returning
+      // the primary's auth_type here charges or zeros the wrong row.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: [route('anthropic', 'subscription', 'claude')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('rate limited', { status: 429 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'subscription',
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+      // Successful fallback row needs the FALLBACK's auth_type for correct cost.
+      expect(result.meta.auth_type).toBe('subscription');
+      // Primary failure row (recorded later by the response handler) needs the
+      // PRIMARY's auth_type — preserved separately so we don't lose it.
+      expect(result.meta.primaryAuthType).toBe('api_key');
+    });
+
+    it('records the api_key fallback auth_type when a subscription primary fails (#1173 inverse)', async () => {
+      // Inverse of the previous case: subscription primary fails to a billed
+      // api_key fallback. Without the fix, the success row would carry
+      // auth_type=subscription and write cost_usd=0 for what was actually
+      // a paid API call.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-4o'),
+        fallback_routes: [route('anthropic', 'api_key', 'claude')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('subscription expired', { status: 503 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'api_key',
+        },
+        failures: [],
+      } as never);
+
+      const result = await svc.proxyRequest(baseOpts());
+      expect(result.meta.auth_type).toBe('api_key');
+      expect(result.meta.primaryAuthType).toBe('subscription');
     });
 
     it('does not trigger fallback when the primary returns 200', async () => {
@@ -408,6 +739,66 @@ describe('ProxyService — orchestration', () => {
 
       await svc.proxyRequest(baseOpts());
       expect(tierService.getTiers).not.toHaveBeenCalled();
+    });
+
+    it('skips non-stream fallback routes when response mode is stream', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: [
+          route('custom:local', 'api_key', 'local-model'),
+          route('anthropic', 'api_key', 'claude'),
+        ],
+        response_mode: 'stream',
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('boom', { status: 500 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      const call = fallbackService.tryFallbacks.mock.calls[0];
+      expect(call[2]).toEqual(['claude']);
+      expect(call[14]).toEqual([route('anthropic', 'api_key', 'claude')]);
+    });
+
+    it('does not retry a lifted stream fallback as its own fallback', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('anthropic', 'api_key', 'claude'),
+        fallback_routes: null,
+        response_mode: 'stream',
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'standard',
+          fallback_routes: [route('anthropic', 'api_key', 'claude')],
+        } as never,
+      ]);
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('boom', { status: 500 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(500);
     });
 
     it('looks up tier fallbacks when the resolver returned null', async () => {
@@ -567,6 +958,81 @@ describe('ProxyService — orchestration', () => {
       );
       expect(result.forward.response.status).toBe(502);
     });
+    it('preserves isResponses on the peeked stream (warmup success path)', async () => {
+      const streamRes = new Response(new ReadableStream(), {
+        status: 200,
+        headers: { 'content-type': 'text/event-stream' },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: streamRes,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      });
+      mockedPeek.mockResolvedValue({ ok: true, stream: new ReadableStream() } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
+      );
+      expect(result.forward.isResponses).toBe(true);
+    });
+
+    it('preserves isResponses on the synthetic 502 forward (warmup failure, no fallbacks)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      tierService.getTiers.mockResolvedValue([]);
+      const streamRes = new Response(new ReadableStream(), {
+        status: 200,
+        headers: { 'content-type': 'text/event-stream' },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: streamRes,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      });
+      mockedPeek.mockResolvedValue({
+        ok: false,
+        reason: 'closed',
+        message: 'closed before data',
+      } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
+      );
+      expect(result.forward.isResponses).toBe(true);
+    });
+
+    it('preserves isResponses on the rebuilt forward when fallbacks are exhausted', async () => {
+      const streamRes = new Response('upstream error', {
+        status: 500,
+        headers: { 'content-type': 'text/event-stream' },
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: streamRes,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        isResponses: true,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [{ model: 'claude', provider: 'anthropic', status: 500, error: 'upstream' }],
+      } as never);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+      expect(result.forward.isResponses).toBe(true);
+    });
   });
 
   describe('routing dispatch', () => {
@@ -681,7 +1147,7 @@ describe('ProxyService — orchestration', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
     });
 
-    it('exercises the per-request signature and thinking lookup closures', async () => {
+    it('exercises the per-request signature, thinking, and reasoning lookup closures', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -694,6 +1160,7 @@ describe('ProxyService — orchestration', () => {
         // Invoke the lookups so coverage hits the closure bodies.
         opts.signatureLookup?.('tool-call-1');
         opts.thinkingLookup?.('first-use-1');
+        opts.reasoningContentLookup?.('reasoning-call-1');
         return {
           response: okResponse(),
           isGoogle: false,
@@ -705,6 +1172,7 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(signatureCache.retrieve).toHaveBeenCalledWith('sess-1', 'tool-call-1');
       expect(thinkingCache.retrieve).toHaveBeenCalledWith('sess-1', 'first-use-1');
+      expect(reasoningCache.retrieve).toHaveBeenCalledWith('sess-1', 'reasoning-call-1');
     });
 
     it('strips system / developer roles when scoring', async () => {

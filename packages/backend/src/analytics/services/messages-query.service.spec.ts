@@ -569,6 +569,122 @@ describe('MessagesQueryService', () => {
     expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
 
+  it('passes routing_tier filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 2 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'playground',
+    });
+
+    expect(result.total_count).toBe(2);
+    const tierCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('routing_tier'),
+    );
+    expect(tierCall).toBeDefined();
+    expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
+  });
+
+  it('passes specificity_category filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      specificity_category: 'coding',
+    });
+
+    expect(result.total_count).toBe(1);
+    const specificityCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('specificity_category'),
+    );
+    expect(specificityCall).toBeDefined();
+    expect(specificityCall?.[1]).toEqual({ specificityFilter: 'coding' });
+  });
+
+  it('passes header_tier_id filter through to the query builder', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      header_tier_id: 'ht-premium',
+    });
+
+    expect(result.total_count).toBe(1);
+    const headerTierCall = andWhereSpy.mock.calls.find(
+      ([clause]) => typeof clause === 'string' && clause.includes('header_tier_id'),
+    );
+    expect(headerTierCall).toBeDefined();
+    expect(headerTierCall?.[1]).toEqual({ headerTierFilter: 'ht-premium' });
+  });
+
+  it('different routing_tier values produce different count cache keys', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 3 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'a', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'playground',
+    });
+
+    mockGetRawOne.mockResolvedValueOnce({ total: 11 });
+    mockGetRawMany
+      .mockResolvedValueOnce([{ id: 'b', timestamp: '2026-04-24 10:00:00', model: 'x' }])
+      .mockResolvedValueOnce([{ model: 'x' }]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      userId: 'test-user',
+      limit: 20,
+      routing_tier: 'simple',
+    });
+
+    expect(result.total_count).toBe(11);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
+  });
+
   it('different service_type produces different count cache key', async () => {
     // First call with no service_type
     mockGetRawOne.mockResolvedValueOnce({ total: 10 });
@@ -898,5 +1014,40 @@ describe('MessagesQueryService', () => {
     });
 
     expect(result.items[0]).toHaveProperty('specificity_category', 'coding');
+  });
+
+  describe('recorded filter', () => {
+    it('adds a recorded = true where clause when the flag is set', async () => {
+      const repo = (
+        service as unknown as {
+          turnRepo: { createQueryBuilder: jest.Mock };
+        }
+      ).turnRepo;
+      const qb = repo.createQueryBuilder();
+      const andWhereCalls = () => qb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+
+      await service.getMessages({
+        userId: 'test-user',
+        limit: 10,
+        recorded: true,
+      });
+
+      expect(andWhereCalls()).toContain('at.recorded = true');
+    });
+
+    it('does not apply the recorded filter when the flag is omitted', async () => {
+      const repo = (
+        service as unknown as {
+          turnRepo: { createQueryBuilder: jest.Mock };
+        }
+      ).turnRepo;
+      const qb = repo.createQueryBuilder();
+
+      await service.getMessages({ userId: 'test-user', limit: 10 });
+
+      expect(qb.andWhere.mock.calls.map((c: unknown[]) => c[0])).not.toContain(
+        'at.recorded = true',
+      );
+    });
   });
 });

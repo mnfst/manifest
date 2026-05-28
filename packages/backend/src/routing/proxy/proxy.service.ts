@@ -5,13 +5,31 @@ import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
+import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
-import type { SpecificityCategory, TierSlot } from 'manifest-shared';
-import { SPECIFICITY_CATEGORIES } from 'manifest-shared';
+import type {
+  AuthType,
+  RequestParamDefaults,
+  ResponseMode,
+  OutputModality,
+  SpecificityCategory,
+  TierSlot,
+} from 'manifest-shared';
+import {
+  DEFAULT_RESPONSE_MODE,
+  SPECIFICITY_CATEGORIES,
+  modelParamsScopeForRouting,
+  routeEquals,
+  snapshotRequestParams,
+} from 'manifest-shared';
+import type { ParamMergeContext } from './proxy-fallback.service';
 import {
   ProxyFallbackService,
   FailedFallback,
@@ -23,21 +41,26 @@ import {
   ProxyRequestOptions,
   SignatureLookup,
   ThinkingBlockLookup,
+  ReasoningContentLookup,
 } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
+import { ReasoningContentCache } from './reasoning-content-cache';
+import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import { peekStream } from './stream-warmup';
-import type { AuthType } from 'manifest-shared';
 import { toChatCompletionsRequest } from './responses-adapter';
+import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
+import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 
 const STREAM_WARMUP_MS = 15_000;
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 
 /**
- * Roles excluded from scoring. Personal AI agents (OpenClaw, Hermes, and
+ * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
  * similar tools) inject a large, keyword-rich system prompt with every
  * request. Scoring it inflates every request to the most expensive tier.
  * We strip these before the scorer sees them, but forward the full
@@ -58,6 +81,7 @@ export interface RoutingMeta {
   header_tier_id?: string;
   header_tier_name?: string;
   header_tier_color?: string;
+  provider_key_label?: string;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -69,6 +93,24 @@ export interface RoutingMeta {
    * failure row to the correct vendor.
    */
   primaryProvider?: string;
+  /**
+   * Auth type of the primary model when a fallback ultimately succeeded.
+   * In a fallback-success flow, `auth_type` holds the fallback's auth so
+   * the recorder costs the success row correctly; this field preserves the
+   * primary's auth so the primary-failure row stays accurate too. See #1173.
+   */
+  primaryAuthType?: string;
+  /**
+   * Effective request body parameters for this attempt: client body values,
+   * route-scoped `agent_model_params`, and MPS provider param defaults.
+   * Persisted on `agent_messages.request_params` so the dashboard can show
+   * which model params were in play for the recorded request.
+   */
+  request_params?: RequestParamDefaults | null;
+  /** Effective output modality configured on the resolved routing chain. */
+  output_modality?: OutputModality;
+  /** Effective response transport configured on the resolved routing chain. */
+  response_mode?: ResponseMode;
 }
 
 export interface ProxyResult {
@@ -87,12 +129,19 @@ export class ProxyService {
     private readonly tierService: TierService,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
+    private readonly xaiOauth: XaiOauthService,
     private readonly momentum: SessionMomentumService,
     private readonly limitCheck: LimitCheckService,
     private readonly fallbackService: ProxyFallbackService,
     private readonly config: ConfigService,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
+    private readonly reasoningCache: ReasoningContentCache,
+    private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -108,7 +157,12 @@ export class ProxyService {
       headers,
     } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
-    const chatBody = apiMode === 'responses' ? toChatCompletionsRequest(body) : undefined;
+    const chatBody =
+      apiMode === 'responses'
+        ? toChatCompletionsRequest(body)
+        : apiMode === 'messages'
+          ? messagesToChatCompletionsRequest(body)
+          : undefined;
     const routingBody = chatBody ?? body;
     this.validatePayload(routingBody);
 
@@ -124,23 +178,26 @@ export class ProxyService {
       specificityOverride,
       headers,
     );
+    const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
+    const stream = body.stream === true || responseMode === 'stream';
     if (!resolved.route) {
       this.logger.warn(
         `No route available for agent=${agentId}: ` +
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
-      return this.buildNoProviderResult(body.stream === true, agentName);
+      return this.buildNoProviderResult(stream, agentName);
     }
 
     const route = resolved.route;
     const credentials = await this.resolveCredentials(agentId, userId, {
       provider: route.provider,
       auth_type: route.authType,
+      provider_key_label: route.keyLabel ?? undefined,
     });
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
       const content = formatManifestError('M100', { provider: route.provider, dashboardUrl });
-      return buildFriendlyResponse(content, body.stream === true, 'no_provider_key');
+      return buildFriendlyResponse(content, stream, 'no_provider_key');
     }
 
     const primaryModel = normalizeProviderModel(route.provider, route.model);
@@ -148,11 +205,48 @@ export class ProxyService {
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
     );
 
-    const stream = body.stream === true;
     const signatureLookup = (toolCallId: string) =>
       this.signatureCache.retrieve(sessionKey, toolCallId);
     const thinkingLookup = (firstToolUseId: string) =>
       this.thinkingCache.retrieve(sessionKey, firstToolUseId);
+    const reasoningContentLookup = (firstToolCallId: string) =>
+      this.reasoningCache.retrieve(sessionKey, firstToolCallId);
+
+    // Per-attempt param-defaults merge happens inside the fallback service
+    // so each forward (primary + every fallback iteration) looks up its
+    // own (provider, auth_type, model) tuple in the model-params service.
+    // Pass the agentId here as a thin context bag; the storage is already
+    // route-scoped, so no per-provider filter is needed downstream.
+    const scopeKey = modelParamsScopeForRouting({
+      tier: resolved.tier,
+      specificityCategory: resolved.specificity_category,
+      headerTierId: resolved.header_tier_id,
+    });
+    const paramMergeContext: ParamMergeContext = { agentId, scopeKey };
+
+    // Snapshot of which known param keys are *effectively in play* for the
+    // primary attempt. Stored on every `agent_messages` row recorded for
+    // this request so the dashboard can display the effective parameters
+    // (today: DeepSeek's `thinking` toggle) in the expanded message detail.
+    // Re-derived for fallback successes against the actual fallback
+    // provider so the persisted snapshot matches what was sent on that row.
+    const primaryModelParams = await this.modelParamsService.get(
+      agentId,
+      scopeKey,
+      route.provider,
+      route.authType,
+      primaryModel,
+    );
+    const primarySpecs = await this.providerParamSpecs.getSpecs(
+      route.provider,
+      route.authType,
+      primaryModel,
+    );
+    const primaryRequestParams = snapshotRequestParams({
+      body: routingBody as Record<string, unknown>,
+      modelParams: primaryModelParams,
+      specs: primarySpecs,
+    });
 
     const forward = await this.fallbackService.tryForwardToProvider({
       provider: route.provider,
@@ -169,6 +263,8 @@ export class ProxyService {
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
+      paramMergeContext,
     });
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -185,7 +281,9 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         apiMode,
+        paramMergeContext,
       });
       if (fallbackResult) return fallbackResult;
     }
@@ -205,10 +303,17 @@ export class ProxyService {
           isGoogle: forward.isGoogle,
           isAnthropic: forward.isAnthropic,
           isChatGpt: forward.isChatGpt,
+          isResponses: forward.isResponses,
+          isCodeAssist: forward.isCodeAssist,
         };
         this.recordTierIfScoring(sessionKey, resolved.tier);
         this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
-        return { forward: peeked, meta: this.buildBaseMeta(resolved, primaryModel) };
+        return {
+          forward: peeked,
+          meta: this.buildBaseMeta(resolved, primaryModel, {
+            request_params: primaryRequestParams,
+          }),
+        };
       }
 
       this.logger.warn(
@@ -223,6 +328,8 @@ export class ProxyService {
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
+        isResponses: forward.isResponses,
+        isCodeAssist: forward.isCodeAssist,
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
@@ -237,7 +344,9 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
         apiMode,
+        paramMergeContext,
       });
       if (fallbackResult) return fallbackResult;
 
@@ -245,14 +354,21 @@ export class ProxyService {
       // instead of the original forward (whose body was consumed by peekStream).
       this.recordTierIfScoring(sessionKey, resolved.tier);
       this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
-      return { forward: syntheticForward, meta: this.buildBaseMeta(resolved, primaryModel) };
+      return {
+        forward: syntheticForward,
+        meta: this.buildBaseMeta(resolved, primaryModel, {
+          request_params: primaryRequestParams,
+        }),
+      };
     }
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
     return {
       forward,
-      meta: this.buildBaseMeta(resolved, primaryModel),
+      meta: this.buildBaseMeta(resolved, primaryModel, {
+        request_params: primaryRequestParams,
+      }),
     };
   }
 
@@ -305,12 +421,13 @@ export class ProxyService {
   private async resolveCredentials(
     agentId: string,
     userId: string,
-    resolved: { provider: string; auth_type?: AuthType },
+    resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
   ): Promise<{ apiKey: string; resourceUrl?: string; providerRegion?: string | null } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
       agentId,
       resolved.provider,
       resolved.auth_type,
+      resolved.provider_key_label,
     );
     if (apiKey === null) return null;
 
@@ -322,11 +439,16 @@ export class ProxyService {
       userId,
       this.openaiOauth,
       this.minimaxOauth,
+      this.anthropicOauth,
+      this.geminiOauth,
+      this.kiroOauth,
+      this.xaiOauth,
     );
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
       resolved.provider,
       resolved.auth_type,
+      resolved.provider_key_label,
     );
     return { ...unwrapped, providerRegion };
   }
@@ -344,7 +466,9 @@ export class ProxyService {
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
+    reasoningContentLookup: ReasoningContentLookup;
     apiMode: ProxyApiMode;
+    paramMergeContext: ParamMergeContext;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -367,6 +491,16 @@ export class ProxyService {
       const tiers = await this.tierService.getTiers(agentId);
       const assignment = tiers.find((t) => t.tier === resolved.tier);
       fallbackRoutes = assignment?.fallback_routes ?? null;
+    }
+    if ((resolved.response_mode ?? DEFAULT_RESPONSE_MODE) === 'stream') {
+      const effectiveRoutes = effectiveRoutesForResponseMode(
+        resolved.response_mode,
+        resolved.route,
+        fallbackRoutes,
+      );
+      fallbackRoutes = (effectiveRoutes.fallbackRoutes ?? []).filter(
+        (route) => !routeEquals(route, resolved.route),
+      );
     }
     if (!fallbackRoutes || fallbackRoutes.length === 0) return null;
     const fallbackModels = fallbackRoutes.map((r) => r.model);
@@ -391,21 +525,46 @@ export class ProxyService {
       apiMode,
       chatBody,
       fallbackRoutes,
+      args.paramMergeContext,
+      args.reasoningContentLookup,
     );
 
     this.recordTierIfScoring(sessionKey, resolved.tier);
     this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
 
     if (success) {
+      // Re-snapshot for the fallback's actual provider — its model-scoped
+      // params row (if any) is what was actually applied. Different model
+      // → different lookup → different snapshot, matching the wire.
+      const fallbackModelParams = success.authType
+        ? await this.modelParamsService.get(
+            args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
+            success.provider,
+            success.authType,
+            success.model,
+          )
+        : null;
+      const fallbackSpecs = success.authType
+        ? await this.providerParamSpecs.getSpecs(success.provider, success.authType, success.model)
+        : [];
+      const fallbackRequestParams = snapshotRequestParams({
+        body: body as Record<string, unknown>,
+        modelParams: fallbackModelParams,
+        specs: fallbackSpecs,
+      });
       return {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {
           provider: success.provider,
+          auth_type: success.authType,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
           primaryErrorStatus: primaryStatus,
           primaryErrorBody,
           primaryProvider,
+          primaryAuthType: primaryAuth,
+          request_params: fallbackRequestParams,
         }),
         failedFallbacks: failures,
       };
@@ -420,14 +579,45 @@ export class ProxyService {
     safeHeaders.delete('transfer-encoding');
     const rebuilt = new Response(primaryErrorBody, { status: primaryStatus, headers: safeHeaders });
 
+    // Fallback exhausted — recorded against the primary provider, so use
+    // the primary-provider snapshot for the row. Look up the primary's
+    // model-params one more time so the snapshot reflects what was sent
+    // before the chain failed.
+    const primaryModelParams =
+      primaryProvider && primaryAuth && resolved.route
+        ? await this.modelParamsService.get(
+            args.paramMergeContext.agentId,
+            args.paramMergeContext.scopeKey,
+            primaryProvider,
+            primaryAuth as 'api_key' | 'subscription' | 'local',
+            primaryModel,
+          )
+        : null;
+    const exhaustedSpecs =
+      primaryProvider && primaryAuth && resolved.route
+        ? await this.providerParamSpecs.getSpecs(
+            primaryProvider,
+            primaryAuth as 'api_key' | 'subscription' | 'local',
+            primaryModel,
+          )
+        : [];
+    const exhaustedRequestParams = snapshotRequestParams({
+      body: body as Record<string, unknown>,
+      modelParams: primaryModelParams,
+      specs: exhaustedSpecs,
+    });
     return {
       forward: {
         response: rebuilt,
         isGoogle: forward.isGoogle,
         isAnthropic: forward.isAnthropic,
         isChatGpt: forward.isChatGpt,
+        isResponses: forward.isResponses,
+        isCodeAssist: forward.isCodeAssist,
       },
-      meta: this.buildBaseMeta(resolved, primaryModel),
+      meta: this.buildBaseMeta(resolved, primaryModel, {
+        request_params: exhaustedRequestParams,
+      }),
       failedFallbacks: failures,
     };
   }
@@ -445,9 +635,12 @@ export class ProxyService {
       reason: resolved.reason,
       auth_type: resolved.route?.authType,
       specificity_category: resolved.specificity_category,
+      provider_key_label: resolved.route?.keyLabel ?? undefined,
       header_tier_id: resolved.header_tier_id,
       header_tier_name: resolved.header_tier_name,
       header_tier_color: resolved.header_tier_color,
+      output_modality: resolved.output_modality,
+      response_mode: resolved.response_mode ?? DEFAULT_RESPONSE_MODE,
       ...overrides,
     };
   }

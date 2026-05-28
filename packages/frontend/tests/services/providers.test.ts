@@ -92,6 +92,20 @@ describe("validateApiKey", () => {
     });
     expect(validateApiKey(zai, "a".repeat(30))).toEqual({ valid: true });
   });
+
+  it("validates NVIDIA NIM key length without enforcing an undocumented prefix", () => {
+    const nvidia = getProvider("nvidia")!;
+    expect(nvidia.keyPlaceholder).toBe("nvapi-...");
+    expect(validateApiKey(nvidia, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+    expect(validateApiKey(nvidia, "short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 20 characters)",
+    });
+    expect(validateApiKey(nvidia, "x".repeat(20))).toEqual({ valid: true });
+  });
 });
 
 /* ── validateSubscriptionKey ────────────────────── */
@@ -105,9 +119,11 @@ describe("validateSubscriptionKey", () => {
     });
   });
 
-  it("returns invalid when token is too short", () => {
-    const anthropic = getProvider("anthropic")!;
-    expect(validateSubscriptionKey(anthropic, "short")).toEqual({
+  it("returns invalid when token is too short (no subscription prefix configured)", () => {
+    // Pick a provider without a SUBSCRIPTION_PREFIXES entry so the length
+    // check fires before any prefix gate would.
+    const deepseek = getProvider("deepseek")!;
+    expect(validateSubscriptionKey(deepseek, "short")).toEqual({
       valid: false,
       error: "Token is too short (minimum 10 characters)",
     });
@@ -163,6 +179,40 @@ describe("validateSubscriptionKey", () => {
     const deepseek = getProvider("deepseek")!;
     expect(validateSubscriptionKey(deepseek, "some-valid-token-here")).toEqual({
       valid: true,
+    });
+  });
+
+  it("rejects a MiniMax subscription token without the sk-cp- prefix", () => {
+    const minimax = getProvider("minimax")!;
+    expect(validateSubscriptionKey(minimax, "sk-api-some-long-enough-token")).toEqual({
+      valid: false,
+      error: 'MiniMax subscription tokens start with "sk-cp-"',
+    });
+  });
+
+  it("accepts a valid MiniMax sk-cp- Coding Plan token", () => {
+    const minimax = getProvider("minimax")!;
+    expect(validateSubscriptionKey(minimax, "sk-cp-" + "a".repeat(40))).toEqual({
+      valid: true,
+    });
+  });
+
+  it("rejects a MiniMax Coding Plan token shorter than the provider's minKeyLength", () => {
+    const minimax = getProvider("minimax")!;
+    // sk-cp- prefix (6) + 4 chars = 10 total: passes the generic 10-char floor
+    // but should fail MiniMax's stricter 30-char minimum.
+    expect(validateSubscriptionKey(minimax, "sk-cp-1234")).toEqual({
+      valid: false,
+      error: "Token is too short (minimum 30 characters)",
+    });
+  });
+
+  it("exposes the MiniMax Coding Plan token alternative on the provider def", () => {
+    const minimax = getProvider("minimax")!;
+    expect(minimax.subscriptionTokenAlternative).toEqual({
+      prefix: "sk-cp-",
+      placeholder: "sk-cp-...",
+      dividerLabel: expect.stringContaining("Coding Plan token"),
     });
   });
 });
@@ -278,11 +328,13 @@ describe("PROVIDERS", () => {
     expect(openai.subscriptionAuthMode).toBe("popup_oauth");
   });
 
-  it("Anthropic supports subscription", () => {
+  it("Anthropic supports subscription via paste-code OAuth", () => {
     const anthropic = PROVIDERS.find((p) => p.id === "anthropic")!;
     expect(anthropic.supportsSubscription).toBe(true);
     expect(anthropic.subscriptionLabel).toBe("Claude Max / Pro subscription");
-    expect(anthropic.subscriptionAuthMode).toBe("token");
+    expect(anthropic.subscriptionAuthMode).toBe("popup_paste");
+    expect(anthropic.subscriptionCommand).toBeUndefined();
+    expect(anthropic.subscriptionKeyPlaceholder).toBeUndefined();
   });
 
   it("GitHub Copilot is subscription-only", () => {
@@ -315,6 +367,17 @@ describe("PROVIDERS", () => {
     expect(cloud.subscriptionCommand).toBeUndefined();
   });
 
+  it("Kilo is an API-key gateway provider with dynamic models", () => {
+    const kilo = PROVIDERS.find((p) => p.id === "kilo")!;
+    expect(kilo).toBeDefined();
+    expect(kilo.name).toBe("Kilo");
+    expect(kilo.supportsSubscription).toBeUndefined();
+    expect(kilo.subscriptionOnly).toBeUndefined();
+    expect(kilo.keyPlaceholder).toBe("Kilo Gateway API key");
+    expect(kilo.minKeyLength).toBe(10);
+    expect(kilo.models).toEqual([]);
+  });
+
   it("provides an API key URL for ollama-cloud in both the API-key and subscription maps", () => {
     expect(getRoutingProviderApiKeyUrl("ollama-cloud")).toBe(
       "https://ollama.com/settings/keys",
@@ -322,6 +385,11 @@ describe("PROVIDERS", () => {
     expect(getSubscriptionProviderKeyUrl("ollama-cloud")).toBe(
       "https://ollama.com/settings/keys",
     );
+  });
+
+  it("provides an API-key URL for Kilo", () => {
+    expect(getRoutingProviderApiKeyUrl("kilo")).toBe("https://app.kilo.ai");
+    expect(getSubscriptionProviderKeyUrl("kilo")).toBeUndefined();
   });
 
   it("exposes a subscription-key URL for every token-mode subscription-only provider", () => {
@@ -344,10 +412,25 @@ describe("PROVIDERS", () => {
     expect(zai.subscriptionOnly).toBeUndefined();
   });
 
+  it("xAI supports Grok subscription with OAuth flow and dynamic models", () => {
+    const xai = PROVIDERS.find((p) => p.id === "xai")!;
+    expect(xai.supportsSubscription).toBe(true);
+    expect(xai.subscriptionLabel).toBe("Grok subscription");
+    expect(xai.subscriptionAuthMode).toBe("popup_oauth");
+    expect(xai.subscriptionCredentialKind).toBeUndefined();
+    expect(xai.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(xai.subscriptionOnly).toBeUndefined();
+    expect(xai.models).toEqual([]);
+  });
+
   it("provides a subscription-key URL for Z.ai pointing at the API key dashboard", () => {
     expect(getSubscriptionProviderKeyUrl("zai")).toBe(
       "https://z.ai/manage-apikey/apikey-list",
     );
+  });
+
+  it("provides an API key URL for NVIDIA NIM", () => {
+    expect(getRoutingProviderApiKeyUrl("nvidia")).toBe("https://build.nvidia.com/settings/api-keys");
   });
 
   it("OpenCode Go is subscription-only with a sign-in URL", () => {
@@ -370,6 +453,25 @@ describe("PROVIDERS", () => {
     expect(og.models).toEqual([]);
   });
 
+  it("Kiro is subscription-only with CLI OAuth flow and dynamic models", () => {
+    const kiro = PROVIDERS.find((p) => p.id === "kiro")!;
+    expect(kiro).toBeDefined();
+    expect(kiro.name).toBe("Kiro");
+    expect(kiro.supportsSubscription).toBe(true);
+    expect(kiro.subscriptionOnly).toBe(true);
+    expect(kiro.subscriptionAuthMode).toBe("device_code");
+    expect(kiro.subscriptionLabel).toBe("Kiro subscription");
+    expect(kiro.subscriptionKeyPlaceholder).toBeUndefined();
+    expect(kiro.subscriptionSignInUrl).toBeUndefined();
+    expect(kiro.beta).toBe(true);
+    expect(kiro.models).toEqual([]);
+  });
+
+  it("provides the Kiro account URL in both provider maps", () => {
+    expect(getRoutingProviderApiKeyUrl("kiro")).toBe("https://app.kiro.dev");
+    expect(getSubscriptionProviderKeyUrl("kiro")).toBe("https://app.kiro.dev");
+  });
+
   it("OpenCode Go subscription key is validated with generic min-length check", () => {
     const og = PROVIDERS.find((p) => p.id === "opencode-go")!;
     expect(validateSubscriptionKey(og, "")).toEqual({
@@ -381,6 +483,21 @@ describe("PROVIDERS", () => {
       error: "Token is too short (minimum 10 characters)",
     });
     expect(validateSubscriptionKey(og, "a-valid-opencode-token-1234")).toEqual({
+      valid: true,
+    });
+  });
+
+  it("Kilo API key is validated with generic min-length check", () => {
+    const kilo = PROVIDERS.find((p) => p.id === "kilo")!;
+    expect(validateApiKey(kilo, "")).toEqual({
+      valid: false,
+      error: "API key is required",
+    });
+    expect(validateApiKey(kilo, "short")).toEqual({
+      valid: false,
+      error: "Key is too short (minimum 10 characters)",
+    });
+    expect(validateApiKey(kilo, "eyJhbGciOiJKiloToken")).toEqual({
       valid: true,
     });
   });

@@ -27,6 +27,8 @@ describe('ProviderController', () => {
       getProviders: jest.fn().mockResolvedValue([]),
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: false }),
       removeProvider: jest.fn().mockResolvedValue({ notifications: 0 }),
+      renameKey: jest.fn(),
+      reorderKeys: jest.fn(),
       deactivateAllProviders: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
     };
@@ -132,6 +134,8 @@ describe('ProviderController', () => {
           connected_at: '2025-01-01',
           api_key_encrypted: 'enc',
           key_prefix: 'sk-proj-',
+          models_fetched_at: '2026-04-01T10:00:00.000Z',
+          cached_models: [{ id: 'gpt-4o' }, { id: 'gpt-4o-mini' }],
         },
       ]);
 
@@ -148,8 +152,27 @@ describe('ProviderController', () => {
           key_prefix: 'sk-proj-',
           region: null,
           connected_at: '2025-01-01',
+          models_fetched_at: '2026-04-01T10:00:00.000Z',
+          cached_model_count: 2,
         },
       ]);
+    });
+
+    it('returns null models_fetched_at and zero cached_model_count when never discovered', async () => {
+      mockProviderService.getProviders.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'anthropic',
+          is_active: true,
+          connected_at: '2025-01-01',
+          api_key_encrypted: 'enc',
+          key_prefix: 'sk-ant-',
+        },
+      ]);
+
+      const result = await controller.getProviders(mockUser, mockAgentName);
+      expect(result[0].models_fetched_at).toBeNull();
+      expect(result[0].cached_model_count).toBe(0);
     });
 
     it('should strip internal fields from response', async () => {
@@ -216,12 +239,15 @@ describe('ProviderController', () => {
         'sk-ant-test',
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'anthropic',
         auth_type: 'api_key',
         is_active: true,
+        label: undefined,
+        priority: undefined,
         region: null,
       });
     });
@@ -243,12 +269,15 @@ describe('ProviderController', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
       );
       expect(result).toEqual({
         id: 'p1',
         provider: 'openai',
         auth_type: 'api_key',
         is_active: true,
+        label: undefined,
+        priority: undefined,
         region: null,
       });
     });
@@ -346,6 +375,61 @@ describe('ProviderController', () => {
       expect(mockOllamaSync.sync).toHaveBeenCalled();
       expect(mockProviderService.upsertProvider).toHaveBeenCalled();
     });
+
+    it('should accept region=cn for MiniMax subscription', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'minimax',
+          is_active: true,
+          auth_type: 'subscription',
+          region: 'cn',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'minimax',
+        apiKey: 'sk-cp-abc123',
+        authType: 'subscription',
+        region: 'cn',
+      });
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'minimax',
+        'sk-cp-abc123',
+        'subscription',
+        'cn',
+        undefined,
+      );
+      expect(result.region).toBe('cn');
+    });
+
+    it('should reject invalid MiniMax subscription region', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'minimax',
+          apiKey: 'sk-cp-abc',
+          authType: 'subscription',
+          region: 'us-east',
+        }),
+      ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
+    });
+
+    it('should reject region when MiniMax is connected with api_key auth', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'minimax',
+          apiKey: 'sk-test',
+          authType: 'api_key',
+          region: 'cn',
+        }),
+      ).rejects.toThrow(
+        'region is only supported for Alibaba/Qwen providers and MiniMax subscriptions',
+      );
+    });
   });
 
   /* ── deactivateAllProviders ── */
@@ -375,6 +459,7 @@ describe('ProviderController', () => {
         TEST_AGENT_ID,
         'openai',
         undefined,
+        undefined,
       );
       expect(result).toEqual({ ok: true, notifications: 3 });
     });
@@ -403,6 +488,7 @@ describe('ProviderController', () => {
         TEST_AGENT_ID,
         'anthropic',
         'subscription',
+        undefined,
       );
     });
   });
@@ -463,6 +549,91 @@ describe('ProviderController', () => {
           {} as never,
         ),
       ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  /* ── multi-key endpoints ── */
+
+  describe('renameProviderKey', () => {
+    it('forwards label rename to service and returns mapped row', async () => {
+      mockProviderService.renameKey.mockResolvedValue({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        priority: 1,
+      });
+
+      const result = await controller.renameProviderKey(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai', label: 'Personal' } as never,
+        { newLabel: 'Work' } as never,
+      );
+
+      expect(mockProviderService.renameKey).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        'api_key',
+        'Personal',
+        'Work',
+      );
+      expect(result).toEqual({
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        priority: 1,
+      });
+    });
+
+    it('honors explicit authType in body', async () => {
+      mockProviderService.renameKey.mockResolvedValue({
+        id: 'p1',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Renamed',
+        priority: 0,
+      });
+
+      await controller.renameProviderKey(
+        mockUser,
+        { agentName: 'test-agent', provider: 'anthropic', label: 'Default' } as never,
+        { newLabel: 'Renamed', authType: 'subscription' } as never,
+      );
+
+      expect(mockProviderService.renameKey).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'anthropic',
+        'subscription',
+        'Default',
+        'Renamed',
+      );
+    });
+  });
+
+  describe('reorderProviderKeys', () => {
+    it('passes ordered labels to service and returns rows sorted by priority', async () => {
+      mockProviderService.reorderKeys.mockResolvedValue([
+        { id: 'p1', label: 'Personal', priority: 1 },
+        { id: 'p2', label: 'Work', priority: 0 },
+      ]);
+
+      const result = await controller.reorderProviderKeys(
+        mockUser,
+        { agentName: 'test-agent', provider: 'openai' } as never,
+        { labels: ['Work', 'Personal'] } as never,
+      );
+
+      expect(mockProviderService.reorderKeys).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'openai',
+        'api_key',
+        ['Work', 'Personal'],
+      );
+      expect(result).toEqual([
+        { id: 'p2', label: 'Work', priority: 0 },
+        { id: 'p1', label: 'Personal', priority: 1 },
+      ]);
     });
   });
 });

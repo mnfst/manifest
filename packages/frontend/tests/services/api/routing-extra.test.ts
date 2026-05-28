@@ -130,6 +130,18 @@ describe('routing API client (additional coverage)', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
+  it('setTierResponseMode PATCHes the response-mode endpoint', async () => {
+    const fetchMock = setupFetch({ tier: 'simple', response_mode: 'stream' });
+    const out = await routing.setTierResponseMode('demo', 'simple', 'stream');
+    expect(out).toEqual({ tier: 'simple', response_mode: 'stream' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/routing/demo/tiers/simple/response-mode');
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      response_mode: 'stream',
+    });
+  });
+
   it('resetAllTiers POSTs to /reset-all', async () => {
     const fetchMock = setupFetch({});
     await routing.resetAllTiers('demo');
@@ -229,7 +241,14 @@ describe('routing API client (additional coverage)', () => {
   });
 
   it('createCustomProvider invalidates the cache and POSTs', async () => {
-    const fetchMock = setupFetch({ id: 'cp-new', name: 'New', base_url: 'http://x', has_api_key: false, models: [], created_at: '2025-01-01' });
+    const fetchMock = setupFetch({
+      id: 'cp-new',
+      name: 'New',
+      base_url: 'http://x',
+      has_api_key: false,
+      models: [],
+      created_at: '2025-01-01',
+    });
     await routing.createCustomProvider('demo', {
       name: 'New',
       base_url: 'http://x',
@@ -241,7 +260,14 @@ describe('routing API client (additional coverage)', () => {
   });
 
   it('updateCustomProvider invalidates the cache and PUTs to the id-scoped endpoint', async () => {
-    const fetchMock = setupFetch({ id: 'cp-1', name: 'Updated', base_url: 'http://y', has_api_key: true, models: [], created_at: '2025-01-01' });
+    const fetchMock = setupFetch({
+      id: 'cp-1',
+      name: 'Updated',
+      base_url: 'http://y',
+      has_api_key: true,
+      models: [],
+      created_at: '2025-01-01',
+    });
     await routing.updateCustomProvider('demo', 'cp-1', { name: 'Updated' });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/routing/demo/custom-providers/cp-1');
@@ -271,6 +297,19 @@ describe('routing API client (additional coverage)', () => {
     await routing.probeCustomProvider('demo', 'http://x', undefined, 'anthropic');
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.api_kind).toBe('anthropic');
+  });
+
+  it('probeCustomProvider includes provider_name when provided', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ models: [] }),
+      text: async () => JSON.stringify({ models: [] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await routing.probeCustomProvider('demo', 'http://x', undefined, 'openai', 'Kilo Gateway');
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.provider_name).toBe('Kilo Gateway');
   });
 
   it('probeCustomProvider throws using parseErrorMessage on non-ok response', async () => {

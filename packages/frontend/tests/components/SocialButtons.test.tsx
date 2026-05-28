@@ -10,10 +10,12 @@ vi.mock("../../src/services/auth-client.js", () => ({
 }));
 
 import SocialButtons from "../../src/components/SocialButtons";
+import { getLastAuthMethod } from "../../src/services/last-auth-method";
 
 describe("SocialButtons", () => {
   beforeEach(() => {
     mockSignInSocial.mockClear();
+    localStorage.clear();
   });
 
   it("renders all 3 social buttons when no enabledProviders prop", () => {
@@ -51,5 +53,24 @@ describe("SocialButtons", () => {
     render(() => <SocialButtons />);
     await fireEvent.click(screen.getByText("Continue with Discord"));
     expect(mockSignInSocial).toHaveBeenCalledWith(expect.objectContaining({ provider: "discord" }));
+  });
+
+  it("renders the Last used badge only on the matching provider", () => {
+    const { container } = render(() => <SocialButtons lastUsed="github" />);
+    const badges = container.querySelectorAll(".auth-last-used");
+    expect(badges.length).toBe(1);
+    const githubBtn = container.querySelector(".auth-social-btn--github")!;
+    expect(githubBtn.querySelector(".auth-last-used")).not.toBeNull();
+  });
+
+  it("renders no badge when lastUsed does not match a social provider", () => {
+    const { container } = render(() => <SocialButtons lastUsed="email" />);
+    expect(container.querySelector(".auth-last-used")).toBeNull();
+  });
+
+  it("persists the chosen provider before redirecting", async () => {
+    render(() => <SocialButtons />);
+    await fireEvent.click(screen.getByText("Continue with Google"));
+    expect(getLastAuthMethod()).toBe("google");
   });
 });

@@ -31,12 +31,15 @@ export class CopilotController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const result = await this.copilotAuth.pollForToken(body.deviceCode);
     if (result.status === 'complete' && result.token) {
+      const label = await this.providerService.nextOAuthLabel(agent.id, 'copilot');
       const { provider: record } = await this.providerService.upsertProvider(
         agent.id,
         user.id,
         'copilot',
         result.token,
         'subscription',
+        undefined,
+        label,
       );
       try {
         await this.discoveryService.discoverModels(record);

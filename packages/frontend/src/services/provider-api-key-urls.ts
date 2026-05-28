@@ -2,9 +2,13 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
   deepseek: 'https://platform.deepseek.com/api_keys',
   gemini: 'https://aistudio.google.com/apikey',
-  minimax: 'https://platform.minimax.io/docs/api-reference/api-overview',
+  kiro: 'https://app.kiro.dev',
+  groq: 'https://console.groq.com/keys',
+  kilo: 'https://app.kilo.ai',
+  minimax: 'https://platform.minimax.io/user-center/basic-information/interface-key',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',
+  nvidia: 'https://build.nvidia.com/settings/api-keys',
   ollama: 'https://ollama.com/download',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   openai: 'https://platform.openai.com/api-keys',
@@ -25,6 +29,7 @@ export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefi
  */
 export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   'ollama-cloud': 'https://ollama.com/settings/keys',
+  kiro: 'https://app.kiro.dev',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
 

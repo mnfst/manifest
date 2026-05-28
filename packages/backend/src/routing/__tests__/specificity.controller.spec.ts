@@ -17,6 +17,7 @@ describe('SpecificityController', () => {
     resetAll: jest.Mock;
     setFallbacks: jest.Mock;
     clearFallbacks: jest.Mock;
+    setParamDefaults: jest.Mock;
   };
   let mockResolveAgentService: { resolve: jest.Mock };
 
@@ -30,6 +31,7 @@ describe('SpecificityController', () => {
       resetAll: jest.fn().mockResolvedValue(undefined),
       setFallbacks: jest.fn().mockResolvedValue([]),
       clearFallbacks: jest.fn().mockResolvedValue(undefined),
+      setParamDefaults: jest.fn(),
     };
     mockResolveAgentService = {
       resolve: jest.fn().mockResolvedValue(mockAgent),
@@ -69,6 +71,7 @@ describe('SpecificityController', () => {
         'gpt-4o',
         'openai',
         'api_key',
+        undefined,
       );
       expect(result).toBe(override);
     });

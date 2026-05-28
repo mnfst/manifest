@@ -32,6 +32,7 @@ interface GitHubDataJson {
 // frontend would render. Bump this SHA when refreshing the upstream data.
 const GITHUB_RAW_REF = '8b0feb0e3adda96455bcc380b815454944ff3832';
 const GITHUB_RAW_URL = `https://raw.githubusercontent.com/mnfst/awesome-free-llm-apis/${GITHUB_RAW_REF}/data.json`;
+const FETCH_TIMEOUT_MS = 10000;
 
 function isHttpsUrl(value: unknown): value is string {
   if (typeof value !== 'string') return false;
@@ -68,12 +69,13 @@ export class FreeModelsSyncService implements OnModuleInit {
   private cache: GitHubProvider[] = [];
   private lastFetchedAt: Date | null = null;
 
-  async onModuleInit(): Promise<void> {
-    try {
-      await this.refreshCache();
-    } catch (err) {
+  onModuleInit(): void {
+    // Fire-and-forget so a slow GitHub fetch can't delay app.listen() and trip
+    // Railway's healthcheck (see #1894). Nothing reads this cache during boot;
+    // the free-models endpoints tolerate an empty cache until the fetch lands.
+    void this.refreshCache().catch((err) => {
       this.logger.error(`Startup free models sync failed: ${err}`);
-    }
+    });
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -109,8 +111,10 @@ export class FreeModelsSyncService implements OnModuleInit {
   }
 
   private async fetchData(): Promise<GitHubDataJson | null> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
-      const res = await fetch(GITHUB_RAW_URL);
+      const res = await fetch(GITHUB_RAW_URL, { signal: controller.signal });
       if (!res.ok) {
         this.logger.error(`GitHub raw returned ${res.status}`);
         return null;
@@ -124,6 +128,8 @@ export class FreeModelsSyncService implements OnModuleInit {
     } catch (err) {
       this.logger.error(`Failed to fetch free models data: ${err}`);
       return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 }

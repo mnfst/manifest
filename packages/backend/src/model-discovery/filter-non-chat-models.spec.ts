@@ -182,6 +182,20 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
+    it('keeps canonical flash-lite-preview aliases without a date suffix', () => {
+      // Issue #1814: gemini-3.1-flash-lite-preview is the live, non-deprecated
+      // preview alias. Only the dated snapshot variants are deprecated.
+      const models = [
+        makeModel('gemini-3.1-flash-lite-preview'),
+        makeModel('gemini-3-flash-lite-preview'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual([
+        'gemini-3.1-flash-lite-preview',
+        'gemini-3-flash-lite-preview',
+      ]);
+    });
+
     it('keeps gemini-image models but filters robotics models', () => {
       const models = [
         makeModel('gemini-2.5-flash-image'),
@@ -291,16 +305,16 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('filters multi-agent models', () => {
+    it('keeps xAI multi-agent models because the proxy routes them to Responses API', () => {
       const models = [makeModel('grok-4.20-multi-agent-0309'), makeModel('grok-3')];
       const result = filterNonChatModels(models, 'xai');
-      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+      expect(result.map((m) => m.id)).toEqual(['grok-4.20-multi-agent-0309', 'grok-3']);
     });
 
-    it('filters any future multi-agent model', () => {
+    it('keeps future xAI multi-agent models for Responses API routing', () => {
       const models = [makeModel('grok-5-multi-agent-0612'), makeModel('grok-3')];
       const result = filterNonChatModels(models, 'xai');
-      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+      expect(result.map((m) => m.id)).toEqual(['grok-5-multi-agent-0612', 'grok-3']);
     });
   });
 

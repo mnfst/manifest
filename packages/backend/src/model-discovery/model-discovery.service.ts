@@ -13,6 +13,7 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -24,6 +25,7 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -73,13 +75,29 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+      if (
+        lowerProvider === 'openai' ||
+        lowerProvider === 'minimax' ||
+        lowerProvider === 'kiro' ||
+        lowerProvider === 'xai'
+      ) {
+        // Kiro's token blob is an OAuthTokenBlob superset (source 'kiro-oidc',
+        // plus client credentials), so the generic unwrap reads its access
+        // token too. Refresh-on-expiry happens in the provider OAuth services;
+        // discovery just uses the stored token.
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
           if (lowerProvider === 'minimax' && blob.u) {
             endpointOverride = blob.u;
           }
+        }
+        // Pasted MiniMax Coding Plan tokens (sk-cp-) have no OAuth blob, so
+        // discovery has no resource URL to use. Fall back to the persisted
+        // region column so CN tokens discover models against the CN host
+        // instead of incorrectly probing api.minimax.io.
+        if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
+          endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
         }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {
@@ -120,6 +138,19 @@ export class ModelDiscoveryService {
           provider.provider,
           raw.map((m) => m.id),
         );
+      }
+
+      // Subscription providers whose `/models` endpoint either does not
+      // exist (CodeAssist) or returns more than the subscription tier
+      // actually grants must use the curated `knownModels` list — otherwise
+      // the routing UI offers models that 404 at chat time.
+      if (raw.length === 0 && provider.auth_type === 'subscription') {
+        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        if (raw.length > 0) {
+          this.logger.log(
+            `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
+          );
+        }
       }
 
       // If native API returned no models, try models.dev first (native IDs), then OpenRouter
@@ -167,7 +198,7 @@ export class ModelDiscoveryService {
     }));
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
-    // Personal AI agents (OpenClaw, Hermes, SDK-based agents) almost always
+    // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
@@ -176,6 +207,17 @@ export class ModelDiscoveryService {
       if (mdEntry && mdEntry.toolCall === false) return false;
       return true;
     });
+
+    const previousCachedCount = Array.isArray(provider.cached_models)
+      ? provider.cached_models.length
+      : 0;
+
+    if (filtered.length === 0 && previousCachedCount > 0) {
+      this.logger.warn(
+        `Discovery returned 0 models for ${provider.provider} (agent ${provider.agent_id}); kept ${previousCachedCount} cached models`,
+      );
+      return provider.cached_models ?? [];
+    }
 
     provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
@@ -200,6 +242,63 @@ export class ModelDiscoveryService {
           }),
         ),
     );
+  }
+
+  async refreshProvider(
+    agentId: string,
+    providerId: string,
+    authType?: AuthType,
+  ): Promise<{
+    ok: boolean;
+    model_count: number;
+    last_fetched_at: string | null;
+    error: string | null;
+  }> {
+    const where: { agent_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
+      agent_id: agentId,
+      provider: providerId,
+      is_active: true,
+    };
+    if (authType) where.auth_type = authType;
+    const provider = await this.providerRepo.findOne({ where });
+    if (!provider) {
+      return { ok: false, model_count: 0, last_fetched_at: null, error: 'Provider not found' };
+    }
+    // Snapshot the pre-refresh state so error/skip paths can report the count
+    // and timestamp the user already had on disk, even after `discoverModels`
+    // mutates the entity in-memory.
+    const previousCount = Array.isArray(provider.cached_models) ? provider.cached_models.length : 0;
+    const previousFetchedAt = provider.models_fetched_at;
+
+    if (provider.provider.startsWith('custom:')) {
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: 'Custom providers are managed manually — edit the provider to update its model list',
+      };
+    }
+
+    try {
+      const models = await this.discoverModels(provider);
+      return {
+        ok: models.length > 0,
+        model_count: models.length,
+        last_fetched_at: provider.models_fetched_at,
+        error: models.length === 0 ? 'Provider returned no models' : null,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `Per-provider refresh failed for ${provider.provider} (agent ${agentId}): ${message}`,
+      );
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: message,
+      };
+    }
   }
 
   async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
@@ -290,7 +389,33 @@ export class ModelDiscoveryService {
       return this.computeScore(this.applyCapabilities(model, providerId));
     }
 
-    // Priority 1: models.dev — uses native provider IDs, no normalization needed
+    // Priority 1: hardcoded known prices — hand-curated, per-provider intent.
+    // These have to win over models.dev / OpenRouter because the same model id
+    // (e.g. `qwen/qwen3-32b`) can exist on multiple inference providers at
+    // different prices, and a connection's pricing must reflect THAT
+    // connection's provider, not the cheapest place the model id happens to
+    // appear in upstream catalogs. For models we don't curate (the vast
+    // majority), this is a no-op and we fall through to models.dev / OR.
+    //
+    // Even when known-prices wins on pricing we still consult models.dev for
+    // capability flags (reasoning / tool-call) — those drive tier auto-
+    // assignment quality scoring and shouldn't be lost just because we
+    // overrode the price. Mirrors the price-already-set branch above.
+    const known = lookupKnownPrice(model.id);
+    if (known) {
+      return this.computeScore(
+        this.applyCapabilities(
+          {
+            ...model,
+            inputPricePerToken: known.input,
+            outputPricePerToken: known.output,
+          },
+          providerId,
+        ),
+      );
+    }
+
+    // Priority 2: models.dev — uses native provider IDs, no normalization needed
     if (this.modelsDevSync) {
       const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
       if (mdEntry && mdEntry.inputPricePerToken !== null) {
@@ -302,11 +427,16 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          capabilities: mergeModelCapabilities(
+            model.capabilities,
+            mdEntry.capabilities,
+            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+          ),
         });
       }
     }
 
-    // Priority 2: OpenRouter cache — broader coverage, needs prefix + variant matching
+    // Priority 3: OpenRouter cache — broader coverage, needs prefix + variant matching
     if (this.pricingSync) {
       const orPrefix = findOpenRouterPrefix(providerId);
       if (orPrefix) {
@@ -333,16 +463,6 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Priority 3: hardcoded known prices — last resort for models no external source covers
-    const known = lookupKnownPrice(model.id);
-    if (known) {
-      return this.computeScore({
-        ...model,
-        inputPricePerToken: known.input,
-        outputPricePerToken: known.output,
-      });
-    }
-
     return this.computeScore(model);
   }
 
@@ -355,6 +475,11 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      capabilities: mergeModelCapabilities(
+        model.capabilities,
+        mdEntry.capabilities,
+        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+      ),
     };
   }
 

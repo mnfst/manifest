@@ -4,9 +4,13 @@ Last updated: 2026-04-12
 
 ## What Manifest Is
 
-Manifest is a smart model router for **personal AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks costs, tokens, and messages across any agent that speaks OpenAI-compatible HTTP.
+Manifest is a smart model router for **AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks costs, tokens, and messages across any agent that speaks OpenAI-compatible HTTP.
 
-**Supported agents** (configured in `packages/shared/src/agent-type.ts`): OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, and a generic `other` slot. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "personal AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
+**Supported agents** (configured in `packages/shared/src/agent-type.ts`): OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL, and a generic `other` slot. OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
+
+Wingman — the gateway tester for sending requests against a Manifest backend while impersonating any of the supported agents (useful for routing/header-classifier reproductions) — lives in its own repo at [`mnfst/wingman`](https://github.com/mnfst/wingman) and is hosted at [`wingman.manifest.build`](https://wingman.manifest.build). The dashboard embeds it as an iframe drawer **in dev mode only** — it is dead-code-eliminated from production / self-hosted bundles via `__DEV_MODE__`, and the backend never enables CORS in production. The dev-mode allow-list + CSP `frame-src` is wired in `packages/backend/src/cors-csp-config.ts`.
+
+**Whenever working in dev mode (`/serve`, `npm run dev`, etc.), the Wingman drawer is expected to be available** — open the FAB at the bottom-right of the dashboard (or hit ⌘/Ctrl+Shift+W) and confirm the iframe loads `https://wingman.manifest.build` cleanly. The drawer is part of the dev surface area, so a broken iframe means the dev environment is broken. `/serve` is **dev-only** — never use it to validate production behavior.
 
 ## IMPORTANT: Cloud Mode Always
 
@@ -120,7 +124,11 @@ packages/
 │   │   ├── notifications/                   # Alert rules, email providers, cron
 │   │   ├── github/                          # GitHub stars endpoint
 │   │   ├── sse/                             # Server-Sent Events for real-time updates
-│   │   └── security/                        # GET /api/v1/security
+│   │   ├── setup/                           # First-run admin setup wizard
+│   │   ├── public-stats/                    # Public aggregate usage endpoints (opt-in)
+│   │   ├── free-models/                     # Free LLM model catalog
+│   │   ├── model-discovery/                 # Per-provider model fetching + fallback
+│   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
 ├── frontend/
 │   ├── src/
@@ -333,6 +341,8 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
+| POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
+| POST | `/v1/messages` | Bearer (mnfst_*) | LLM proxy (Anthropic Messages API) |
 | GET | `/api/v1/events` | Session | SSE real-time events |
 | GET | `/api/v1/github/stars` | Public | GitHub star count |
 
@@ -444,7 +454,7 @@ values with 400, so downgrades stay safe.
 - **Agent key auth caching**: `AgentKeyAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot (`migrationsRun: true`) wrapped in a single transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
-- **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SMTP email providers.
+- **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
   - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions.
   - **Specificity routing** (opt-in): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
@@ -479,7 +489,7 @@ The `specificity_assignments` table and UI components handle new categories auto
 ### Adding a New Provider
 
 1. Add entry to `PROVIDER_REGISTRY` in `common/constants/providers.ts`
-2. Add `FetcherConfig` in `routing/model-discovery/provider-model-fetcher.service.ts`
+2. Add `FetcherConfig` in `model-discovery/provider-model-fetcher.service.ts`
 3. Add `ProviderEndpoint` in `routing/proxy/provider-endpoints.ts`
 4. Add `ProviderDef` in `frontend/src/services/providers.ts`
 

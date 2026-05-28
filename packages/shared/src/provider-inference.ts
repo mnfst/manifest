@@ -16,11 +16,31 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^qwen[23]|^qwq-/, 'qwen'],
   [/^copilot\//, 'copilot'],
   [/^opencode-go\//, 'opencode-go'],
+  [/^kiro\//, 'kiro'],
   [/^llamacpp\//, 'llamacpp'],
   [/^[a-z][\w-]*\//, 'openrouter'],
 ];
 
 export { MODEL_PREFIX_MAP };
+
+/**
+ * Gateway model-id prefixes. A gateway transparently proxies another
+ * provider's API, so the id after the prefix is the underlying provider's
+ * own model id (e.g. `opencode-go/deepseek-v4-pro` -> `deepseek-v4-pro`).
+ */
+const GATEWAY_MODEL_PREFIXES = ['opencode-go/'] as const;
+
+/**
+ * If `model` is a gateway model id, return the underlying provider's model
+ * id; otherwise return `null`. Used to resolve gateway models to the
+ * provenance provider whose parameters and capabilities they inherit.
+ */
+export function underlyingGatewayModel(model: string): string | null {
+  for (const prefix of GATEWAY_MODEL_PREFIXES) {
+    if (model.startsWith(prefix)) return model.slice(prefix.length);
+  }
+  return null;
+}
 
 export function inferProviderFromModel(model: string): string | undefined {
   if (model.startsWith('custom:')) return 'custom';
@@ -30,4 +50,24 @@ export function inferProviderFromModel(model: string): string | undefined {
     if (re.test(lower)) return id;
   }
   return undefined;
+}
+
+/**
+ * Resolve a `(provider, model)` pair to the underlying provider and model that
+ * own its metadata, transparently unwrapping gateway transports. For a gateway
+ * model id (e.g. `opencode-go/glm-5.1`) this returns the provenance provider
+ * inferred from the underlying id and that bare id
+ * (`{ provider: 'zai', model: 'glm-5.1' }`); non-gateway pairs are returned
+ * unchanged. The provider is `undefined` when the underlying id matches no
+ * known provider, so callers decide whether to fall back. Capability and
+ * parameter lookups route through this so any gateway model inherits the
+ * underlying model's metadata, not just OpenCode Go's.
+ */
+export function resolveUnderlyingModelIdentity(
+  provider: string | undefined,
+  model: string,
+): { provider: string | undefined; model: string } {
+  const underlying = underlyingGatewayModel(model);
+  if (underlying === null) return { provider, model };
+  return { provider: inferProviderFromModel(underlying), model: underlying };
 }

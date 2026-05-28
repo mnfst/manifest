@@ -179,6 +179,25 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('openai', '', 'api_key', undefined);
     });
 
+    it('should unwrap the Kiro OIDC token blob before fetching models', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({
+          source: 'kiro-oidc',
+          t: 'kiro-access',
+          r: 'kiro-refresh',
+          e: Date.now() + 10 * 60_000,
+          cid: 'client-id',
+          cs: 'client-secret',
+          region: 'us-east-1',
+        }),
+      );
+      const provider = makeProvider({ provider: 'kiro', auth_type: 'subscription' });
+
+      await service.discoverModels(provider);
+
+      expect(fetcher.fetch).toHaveBeenCalledWith('kiro', 'kiro-access', 'subscription', undefined);
+    });
+
     it('should enrich models with openRouter pricing when available', async () => {
       mockPricingSync.lookupPricing.mockImplementation((key: string) => {
         if (key === 'openai/gpt-4') {
@@ -407,6 +426,120 @@ describe('ModelDiscoveryService', () => {
         .mockResolvedValueOnce({});
 
       await expect(service.discoverAllForAgent('agent-1')).resolves.not.toThrow();
+    });
+  });
+
+  /* ── refreshProvider ── */
+
+  describe('refreshProvider', () => {
+    it('returns Provider not found when no row matches', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+      const result = await service.refreshProvider('agent-1', 'openai');
+      expect(result).toEqual({
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: 'Provider not found',
+      });
+    });
+
+    it('refuses custom providers and reports the cached count', async () => {
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({
+          provider: 'custom:cp-1',
+          cached_models: [makeModel({ id: 'foo' }), makeModel({ id: 'bar' })],
+          models_fetched_at: '2026-04-12T08:00:00.000Z',
+        }),
+      );
+      const result = await service.refreshProvider('agent-1', 'custom:cp-1');
+      expect(result.ok).toBe(false);
+      expect(result.model_count).toBe(2);
+      expect(result.last_fetched_at).toBe('2026-04-12T08:00:00.000Z');
+      expect(result.error).toContain('Custom providers are managed manually');
+    });
+
+    it('returns ok with the discovered count on success', async () => {
+      const provider = makeProvider({ provider: 'openai' });
+      providerRepo.findOne.mockResolvedValue(provider);
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'gpt-4o' }),
+        makeModel({ id: 'gpt-4o-mini' }),
+      ]);
+
+      const result = await service.refreshProvider('agent-1', 'openai', 'api_key');
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { agent_id: 'agent-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
+      });
+      expect(result.ok).toBe(true);
+      expect(result.model_count).toBe(2);
+      expect(result.error).toBeNull();
+      expect(result.last_fetched_at).toBeDefined();
+    });
+
+    it('returns ok=false with hint when provider returns no models', async () => {
+      const provider = makeProvider({ provider: 'openai', cached_models: null });
+      providerRepo.findOne.mockResolvedValue(provider);
+      fetcher.fetch.mockResolvedValue([]);
+
+      const result = await service.refreshProvider('agent-1', 'openai');
+      expect(result.ok).toBe(false);
+      expect(result.model_count).toBe(0);
+      expect(result.error).toBe('Provider returned no models');
+    });
+
+    it('preserves cached models and reports prior count when discovery throws', async () => {
+      const cachedModels = [makeModel({ id: 'gpt-4o' }), makeModel({ id: 'gpt-4o-mini' })];
+      providerRepo.findOne.mockResolvedValue(
+        makeProvider({
+          provider: 'openai',
+          cached_models: cachedModels,
+          models_fetched_at: '2026-04-01T08:00:00.000Z',
+        }),
+      );
+      // discoverModels itself swallows fetcher errors, so to land in the
+      // refreshProvider catch we make the cache-write throw instead.
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
+      providerRepo.save.mockRejectedValueOnce(new Error('DB write failed'));
+
+      const result = await service.refreshProvider('agent-1', 'openai');
+      expect(result.ok).toBe(false);
+      expect(result.model_count).toBe(2);
+      expect(result.error).toBe('DB write failed');
+      expect(result.last_fetched_at).toBe('2026-04-01T08:00:00.000Z');
+    });
+
+    it('reports a non-Error thrown value via String() in the error field', async () => {
+      providerRepo.findOne.mockResolvedValue(makeProvider({ provider: 'openai' }));
+      fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
+      providerRepo.save.mockRejectedValueOnce('plain-string-failure');
+
+      const result = await service.refreshProvider('agent-1', 'openai');
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe('plain-string-failure');
+    });
+  });
+
+  /* ── empty-result cache preservation ── */
+
+  describe('discoverModels — empty result preserves cache', () => {
+    it('keeps the previous cache when the fetcher returns no models', async () => {
+      const cachedModels = [makeModel({ id: 'gpt-4o' }), makeModel({ id: 'gpt-4o-mini' })];
+      const provider = makeProvider({
+        provider: 'openai',
+        cached_models: cachedModels,
+        models_fetched_at: '2026-04-01T08:00:00.000Z',
+      });
+      fetcher.fetch.mockResolvedValue([]);
+      // Disable fallback sources so the result stays empty.
+      mockPricingSync.getAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockReturnValue([]);
+
+      const result = await service.discoverModels(provider);
+
+      expect(result).toEqual(cachedModels);
+      expect(provider.cached_models).toEqual(cachedModels);
+      expect(provider.models_fetched_at).toBe('2026-04-01T08:00:00.000Z');
+      expect(providerRepo.save).not.toHaveBeenCalled();
     });
   });
 
@@ -1139,6 +1272,49 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('routes pasted-token MiniMax CN subscription discovery to the CN host', async () => {
+      // Pasted sk-cp- token: not a JSON blob, region=cn stored alongside
+      mockDecrypt.mockReturnValue('sk-cp-cn-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'cn',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'sk-cp-cn-token',
+        'subscription',
+        'https://api.minimaxi.com/anthropic',
+      );
+    });
+
+    it('leaves discovery on the default host for pasted-token MiniMax global subscription', async () => {
+      mockDecrypt.mockReturnValue('sk-cp-global-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'minimax',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'global',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'minimax',
+        'sk-cp-global-token',
+        'subscription',
+        undefined,
+      );
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);
@@ -1489,6 +1665,150 @@ describe('ModelDiscoveryService', () => {
         expect(m.authType).toBe('subscription');
       }
     });
+
+    it('should use subscription fallback for gemini when token present but fetcher returns empty', async () => {
+      // Gemini CodeAssist does not expose a /models endpoint, so the fetcher
+      // returns [] immediately (no HTTP). The discovery service then falls through
+      // to buildSubscriptionFallbackModels (exact match) to produce the curated
+      // model list from the OpenRouter cache.
+      const blob = JSON.stringify({
+        t: 'ya29.google-access-token',
+        r: 'refresh-token',
+        e: Date.now() + 3600000,
+        u: 'my-gcp-project-123',
+      });
+      mockDecrypt.mockReturnValue(blob);
+      // fetcher returns [] because gemini+subscription short-circuits
+      fetcher.fetch.mockResolvedValue([]);
+
+      const orMap = new Map([
+        // Exact matches — should be included
+        [
+          'google/gemini-2.5-pro',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro',
+          },
+        ],
+        [
+          'google/gemini-2.5-flash',
+          {
+            input: 0.0000003,
+            output: 0.0000025,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Flash',
+          },
+        ],
+        [
+          'google/gemini-3.1-pro-preview',
+          {
+            input: 0.000002,
+            output: 0.000012,
+            contextWindow: 1000000,
+            displayName: 'Gemini 3.1 Pro Preview',
+          },
+        ],
+        // Suffixed variants — should be EXCLUDED in exact mode
+        [
+          'google/gemini-2.5-pro-preview-06-05',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro Preview',
+          },
+        ],
+        // Non-gemini model — excluded
+        [
+          'openai/gpt-4o',
+          { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'gemini',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-blob',
+        }),
+      );
+
+      const ids = result.map((m) => m.id);
+      // Exact matches included
+      expect(ids).toContain('gemini-2.5-pro');
+      expect(ids).toContain('gemini-2.5-flash');
+      expect(ids).toContain('gemini-3.1-pro-preview');
+      // Suffixed preview NOT included (exact match mode)
+      expect(ids).not.toContain('gemini-2.5-pro-preview-06-05');
+      // Non-gemini models excluded
+      expect(ids).not.toContain('gpt-4o');
+      // gemini-2.5-flash-lite added directly (not in OpenRouter cache) as zero-cost
+      expect(ids).toContain('gemini-2.5-flash-lite');
+      // All stamped as subscription
+      for (const m of result) {
+        expect(m.authType).toBe('subscription');
+      }
+      // Fetcher IS called but returns [] (it short-circuits internally without HTTP).
+      // Gemini blobs are NOT unwrapped in the service (only openai/minimax are),
+      // so the raw JSON blob string is passed to the fetcher.
+      // The service then falls through to buildSubscriptionFallbackModels.
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'gemini',
+        expect.stringContaining('ya29.google-access-token'),
+        'subscription',
+        undefined,
+      );
+    });
+
+    it('should use exact-match subscription fallback for gemini when no token', async () => {
+      // When there is no encrypted key, gemini subscription shows the curated list
+      const orMap = new Map([
+        [
+          'google/gemini-2.5-flash',
+          {
+            input: 0.0000003,
+            output: 0.0000025,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Flash',
+          },
+        ],
+        [
+          'google/gemini-2.5-flash-preview-05-20',
+          {
+            input: 0.0000003,
+            output: 0.0000025,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Flash Preview',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'gemini',
+          auth_type: 'subscription',
+          api_key_encrypted: null,
+        }),
+      );
+
+      const ids = result.map((m) => m.id);
+      // Exact match: gemini-2.5-flash included
+      expect(ids).toContain('gemini-2.5-flash');
+      // Preview suffix: excluded in exact mode
+      expect(ids).not.toContain('gemini-2.5-flash-preview-05-20');
+      // knownModels not in cache added as zero-cost
+      expect(ids).toContain('gemini-2.5-pro');
+      expect(ids).toContain('gemini-2.5-flash-lite');
+      expect(ids).toContain('gemini-3.1-pro-preview');
+      expect(ids).toContain('gemini-3-flash-preview');
+      expect(ids).toContain('gemini-3.1-flash-lite');
+      expect(ids).toContain('gemini-3.1-flash-lite-preview');
+      expect(fetcher.fetch).not.toHaveBeenCalled();
+    });
   });
 
   /* ── getModelsForAgent auth-type deduplication ── */
@@ -1593,7 +1913,7 @@ describe('ModelDiscoveryService', () => {
 
   describe('buildSubscriptionFallbackModels', () => {
     it('should return empty for unsupported providers', () => {
-      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'gemini');
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'unknown-provider');
       expect(result).toEqual([]);
     });
 
@@ -1775,9 +2095,11 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
 
       // gpt-5.2 is covered by gpt-5.2-codex prefix, gpt-5.1-codex covered by gpt-5.1-codex-max prefix
-      expect(result.length).toBe(4);
+      expect(result.length).toBe(7);
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex');
+      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
       expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
       expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-max');
       // All zero-cost subscription models
@@ -1800,6 +2122,133 @@ describe('ModelDiscoveryService', () => {
         'MiniMax-M2',
       ]);
     });
+
+    it('should use exact match mode for gemini — excludes suffixed cache entries', () => {
+      const orMap = new Map([
+        // Exact knownModel matches — included
+        [
+          'google/gemini-2.5-pro',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro',
+          },
+        ],
+        [
+          'google/gemini-2.5-flash',
+          {
+            input: 0.0000003,
+            output: 0.0000025,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Flash',
+          },
+        ],
+        [
+          'google/gemini-3.1-pro-preview',
+          {
+            input: 0.000002,
+            output: 0.000012,
+            contextWindow: 1000000,
+            displayName: 'Gemini 3.1 Pro Preview',
+          },
+        ],
+        // Suffixed variants — excluded because gemini uses 'exact' mode
+        [
+          'google/gemini-2.5-pro-preview-06-05',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro Preview',
+          },
+        ],
+        [
+          'google/gemini-2.5-flash-lite-preview-06-17',
+          {
+            input: 0.0000001,
+            output: 0.0000008,
+            contextWindow: 1000000,
+            displayName: 'Flash Lite Preview',
+          },
+        ],
+        // Unrelated provider — excluded
+        [
+          'openai/gpt-4o',
+          { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'gemini');
+      const ids = result.map((m) => m.id);
+
+      // Exact matches included
+      expect(ids).toContain('gemini-2.5-pro');
+      expect(ids).toContain('gemini-2.5-flash');
+      expect(ids).toContain('gemini-3.1-pro-preview');
+      // Suffixed entries excluded (exact mode vs prefix mode)
+      expect(ids).not.toContain('gemini-2.5-pro-preview-06-05');
+      expect(ids).not.toContain('gemini-2.5-flash-lite-preview-06-17');
+      // gpt-4o is not a gemini model
+      expect(ids).not.toContain('gpt-4o');
+      // gemini-2.5-flash-lite not in cache → added as zero-cost known model
+      expect(ids).toContain('gemini-2.5-flash-lite');
+      expect(result.find((m) => m.id === 'gemini-2.5-flash-lite')!.inputPricePerToken).toBe(0);
+    });
+
+    it('gemini exact mode vs anthropic prefix mode — illustrates the difference', () => {
+      // For a prefix-mode provider (anthropic), a suffixed model IS included.
+      // For gemini (exact mode), only verbatim knownModels entries are included.
+      const orMap = new Map([
+        // This would match the 'claude-opus-4' prefix → included for anthropic
+        [
+          'anthropic/claude-opus-4-20260301',
+          {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4',
+          },
+        ],
+        // This has a preview suffix → excluded for gemini (exact), would be included for prefix
+        [
+          'google/gemini-2.5-pro-preview-06-05',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro Preview',
+          },
+        ],
+        // Exact match → included for gemini
+        [
+          'google/gemini-2.5-pro',
+          {
+            input: 0.00000125,
+            output: 0.00001,
+            contextWindow: 1000000,
+            displayName: 'Gemini 2.5 Pro',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const geminiResult = buildSubscriptionFallbackModels(mockPricingSync as never, 'gemini');
+      const anthropicResult = buildSubscriptionFallbackModels(
+        mockPricingSync as never,
+        'anthropic',
+      );
+
+      // Anthropic includes the dated suffix via prefix match
+      expect(anthropicResult.map((m) => m.id)).toContain('claude-opus-4-20260301');
+      // Gemini excludes the preview suffix (exact mode)
+      expect(geminiResult.map((m) => m.id)).not.toContain('gemini-2.5-pro-preview-06-05');
+      // Gemini only has the verbatim match
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-2.5-pro');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-3.1-pro-preview');
+      expect(geminiResult.map((m) => m.id)).toContain('gemini-3.1-flash-lite-preview');
+    });
   });
 
   /* ── supplementWithKnownModels ── */
@@ -1810,10 +2259,12 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      // 1 discovered + 4 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
-      expect(result.length).toBe(5);
+      // 1 discovered + 7 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
+      expect(result.length).toBe(8);
       expect(result[0].id).toBe('gpt-oss-120b');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
+      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
       expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
     });
 
@@ -1847,7 +2298,7 @@ describe('ModelDiscoveryService', () => {
     it('should return raw unchanged for non-subscription providers', () => {
       const raw: DiscoveredModel[] = [makeModel({ id: 'model-1' })];
 
-      const result = supplementWithKnownModels(raw, 'gemini');
+      const result = supplementWithKnownModels(raw, 'deepseek');
 
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('model-1');
@@ -2105,7 +2556,7 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].capabilityCode).toBe(true);
     });
 
-    it('should fall back to known-model-prices when models.dev and OpenRouter have no data', async () => {
+    it('uses known-model-prices when no upstream source has data', async () => {
       mockModelsDevSync.lookupModel.mockReturnValue(null);
       mockPricingSync.lookupPricing.mockReturnValue(null);
 
@@ -2122,6 +2573,121 @@ describe('ModelDiscoveryService', () => {
 
       expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
       expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('known-model-prices wins over models.dev for curated models', async () => {
+      // Same model id can appear in models.dev under a different inference
+      // provider with different pricing. The hand-curated entry must win so
+      // a connection's reported pricing reflects THAT connection's provider.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'moonshot-v1-8k',
+        name: 'Moonshot v1 8k (cheap-reseller pricing)',
+        inputPricePerToken: 0.000_000_1, // models.dev cheap reseller price
+        outputPricePerToken: 0.000_000_2,
+        contextWindow: 8192,
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Known-prices ($1.66/1M) wins over models.dev ($0.0001/1M).
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('known-model-prices wins over OpenRouter for curated models', async () => {
+      // Mirrors the Groq-served `qwen/qwen3-32b` scenario: OR has the model
+      // id at one provider's price; the connection's actual provider lists
+      // it at a different price in known-model-prices.
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockReturnValue({
+        input: 0.000_000_08, // OpenRouter's cheap-resale price
+        output: 0.000_000_24,
+        contextWindow: 32768,
+        displayName: 'Moonshot v1 8k via OR',
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+    });
+
+    it('falls through to models.dev when no known-prices entry exists', async () => {
+      // Non-curated models keep the existing upstream-first behaviour.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'totally-novel-model',
+        name: 'Novel Model',
+        inputPricePerToken: 0.001,
+        outputPricePerToken: 0.002,
+        contextWindow: 128_000,
+      });
+
+      const models = [
+        makeModel({
+          id: 'totally-novel-model',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      expect(result[0].inputPricePerToken).toBe(0.001);
+      expect(result[0].outputPricePerToken).toBe(0.002);
+    });
+
+    it('still merges capability flags from models.dev when known-prices wins on pricing', async () => {
+      // Identified by cubic: when known-prices wins, we still want the
+      // reasoning / tool-call flags from models.dev applied — they drive
+      // tier auto-assignment scoring and shouldn't be silently dropped.
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        id: 'moonshot-v1-8k',
+        name: 'Moonshot v1 8k',
+        inputPricePerToken: 0.000_000_1, // ignored — known-prices wins
+        outputPricePerToken: 0.000_000_2,
+        contextWindow: 8192,
+        reasoning: true,
+        toolCall: true,
+      });
+
+      const models = [
+        makeModel({
+          id: 'moonshot-v1-8k',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+          capabilityReasoning: false,
+          capabilityCode: false,
+        }),
+      ];
+      fetcher.fetch.mockResolvedValue(models);
+
+      const result = await service.discoverModels(makeProvider());
+
+      // Pricing from known-prices.
+      expect(result[0].inputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      expect(result[0].outputPricePerToken).toBeCloseTo(1.66 / 1_000_000, 12);
+      // Capabilities still merged from models.dev.
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].capabilityCode).toBe(true);
     });
 
     it('should return model without pricing when no source has data', async () => {

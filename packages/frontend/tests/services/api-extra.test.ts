@@ -4,6 +4,7 @@ import { submitOpenaiOAuthCallback } from '../../src/services/api/oauth.js';
 import {
   probeCustomProvider,
   refreshModels,
+  refreshProviderModels,
   deleteCustomProvider,
   updateCustomProvider,
   createCustomProvider,
@@ -72,6 +73,29 @@ describe('api/routing', () => {
     expect(init.method).toBe('POST');
   });
 
+  it('refreshProviderModels POSTs to the per-provider refresh endpoint and forwards the result', async () => {
+    mockOk({ ok: true, model_count: 5, last_fetched_at: '2026-04-12T10:00:00Z', error: null });
+    const out = await refreshProviderModels('demo-agent', 'anthropic', 'subscription');
+    expect(out).toEqual({
+      ok: true,
+      model_count: 5,
+      last_fetched_at: '2026-04-12T10:00:00Z',
+      error: null,
+    });
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe(
+      '/api/v1/routing/demo-agent/providers/anthropic/refresh-models?authType=subscription',
+    );
+    expect(init.method).toBe('POST');
+  });
+
+  it('refreshProviderModels omits the authType query when not provided', async () => {
+    mockOk({ ok: true, model_count: 0, last_fetched_at: null, error: null });
+    await refreshProviderModels('demo-agent', 'openai');
+    const [url] = mockFetch.mock.calls[0];
+    expect(url).toBe('/api/v1/routing/demo-agent/providers/openai/refresh-models');
+  });
+
   it('probeCustomProvider POSTs the base URL + optional key and returns the model list', async () => {
     mockOk({ models: [{ model_name: 'llama-3.1-8b' }, { model_name: 'qwen2.5-7b' }] });
     const out = await probeCustomProvider(
@@ -99,6 +123,25 @@ describe('api/routing', () => {
     const body = JSON.parse(init.body);
     expect(body.base_url).toBe('http://127.0.0.1:11434/v1');
     expect(body.apiKey).toBeUndefined();
+  });
+
+  it('probeCustomProvider can include a provider name for price enrichment', async () => {
+    mockOk({
+      models: [{ model_name: 'openai/gpt-4o-mini', input_price_per_million_tokens: 0.15 }],
+    });
+    await probeCustomProvider(
+      'demo-agent',
+      'https://api.kilo.ai/api/gateway',
+      undefined,
+      'openai',
+      'Kilo Gateway',
+    );
+    const [, init] = mockFetch.mock.calls[0];
+    expect(JSON.parse(init.body)).toEqual({
+      base_url: 'https://api.kilo.ai/api/gateway',
+      api_kind: 'openai',
+      provider_name: 'Kilo Gateway',
+    });
   });
 
   it('deleteCustomProvider DELETEs the custom provider by ID', async () => {

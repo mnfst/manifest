@@ -1,11 +1,14 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import type { RequestParamDefaults } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { RecordingResponseBody } from '../../entities/message-recording.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
+import { MessageRecordingService } from '../../analytics/services/message-recording.service';
 import { FailedFallback } from './proxy-fallback.service';
 import { StreamUsage } from './stream-writer';
 import { ProxyMessageDedup } from './proxy-message-dedup';
@@ -18,6 +21,8 @@ import { computeBaselineCost, collectRoutedModelIds } from '../../common/utils/b
 import { TierService } from '../routing-core/tier.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { HeaderTierService } from '../header-tiers/header-tier.service';
+import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 export interface HeaderTierRef {
   headerTierId?: string | null;
@@ -40,8 +45,14 @@ export interface ProviderErrorOpts extends HeaderTierRef {
    */
   reason?: string;
   specificityCategory?: string;
+  providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /**
+   * Snapshot of effective request body parameters merged into the outbound
+   * provider request. Persisted to `agent_messages.request_params`.
+   */
+  requestParams?: RequestParamDefaults | null;
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
@@ -57,9 +68,23 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
    * keep the same audit context as their non-fallback siblings.
    */
   reason?: string;
+  providerKeyLabel?: string;
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /**
+   * Snapshot of effective request body parameters (today: DeepSeek
+   * `thinking`) merged into the outbound provider request. `null` when no
+   * known params apply. Persisted to `agent_messages.request_params`.
+   */
+  requestParams?: RequestParamDefaults | null;
+}
+
+export interface SuccessRecordingPayload {
+  request_body: Record<string, unknown>;
+  response_body: RecordingResponseBody | null;
+  response_headers: Record<string, string>;
+  size_bytes: number;
 }
 
 export interface SuccessMessageOpts extends HeaderTierRef {
@@ -69,8 +94,11 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   sessionKey?: string;
   durationMs?: number;
   specificityCategory?: string;
+  providerKeyLabel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  requestParams?: RequestParamDefaults | null;
+  recordingPayload?: SuccessRecordingPayload;
 }
 
 /**
@@ -107,6 +135,7 @@ function buildMessageRow(
 
 @Injectable()
 export class ProxyMessageRecorder implements OnModuleDestroy {
+  private readonly logger = new Logger(ProxyMessageRecorder.name);
   private readonly rateLimitCooldown = new Map<string, number>();
   private readonly RATE_LIMIT_COOLDOWN_MS = 60_000;
   private readonly MAX_COOLDOWN_ENTRIES = 1_000;
@@ -123,6 +152,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly tierService: TierService,
     private readonly specificityService: SpecificityService,
     private readonly headerTierService: HeaderTierService,
+    private readonly opencodeGoCatalog: OpencodeGoCatalogService,
+    private readonly recordingService: MessageRecordingService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -150,8 +181,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       authType,
       reason,
       specificityCategory,
+      providerKeyLabel,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -194,8 +227,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_index: fallbackIndex ?? null,
         auth_type: authType ?? null,
         specificity_category: specificityCategory ?? null,
+        provider_key_label: providerKeyLabel ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
+        request_params: requestParams ?? null,
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
@@ -218,6 +253,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
+      requestParams?: RequestParamDefaults | null;
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
@@ -232,6 +268,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -284,6 +321,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           auth_type: recordedAuth,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
+          request_params: requestParams ?? null,
           header_tier_id: headerTierId ?? null,
           header_tier_name: headerTierName ?? null,
           header_tier_color: headerTierColor ?? null,
@@ -306,6 +344,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
+      requestParams?: RequestParamDefaults | null;
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
@@ -330,6 +369,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
         caller_attribution: opts?.callerAttribution ?? null,
         request_headers: opts?.requestHeaders ?? null,
+        request_params: opts?.requestParams ?? null,
         header_tier_id: opts?.headerTierId ?? null,
         header_tier_name: opts?.headerTierName ?? null,
         header_tier_color: opts?.headerTierColor ?? null,
@@ -352,9 +392,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       timestamp,
       authType,
       reason,
+      providerKeyLabel,
       usage,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
@@ -369,6 +411,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
       pricing: usage ? this.pricingCache.getByModel(model) : undefined,
       isSubscription: authType === 'subscription',
+      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
     const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
@@ -401,8 +444,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
         fallback_from_model: canonicalFallbackFrom.model,
         fallback_index: fallbackIndex ?? null,
+        provider_key_label: providerKeyLabel ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
+        request_params: requestParams ?? null,
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
@@ -428,12 +473,16 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       sessionKey,
       durationMs,
       specificityCategory,
+      providerKeyLabel,
       callerAttribution,
       requestHeaders,
+      requestParams,
       headerTierId,
       headerTierName,
       headerTierColor,
+      recordingPayload,
     } = opts ?? {};
+    const recorded = !!recordingPayload;
 
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
@@ -441,6 +490,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
       pricing: this.pricingCache.getByModel(model),
       isSubscription: authType === 'subscription',
+      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
     const baseline = await this.computeBaseline(
@@ -466,6 +516,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const errorMessage = cannedMessage ?? null;
 
     let wrote = false;
+    let writtenMessageId: string | null = null;
     await this.dedup.withSuccessWriteLock(
       this.dedup.getSuccessWriteLockKey(ctx, canonicalModel, traceId, normalizedSessionKey),
       async () => {
@@ -500,23 +551,29 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               user_id: ctx.userId,
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
+              provider_key_label: providerKeyLabel ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
+              request_params: requestParams ?? null,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
               baseline_model_id: baseline?.modelId ?? null,
               baseline_cost_usd: baseline?.cost ?? null,
+              recorded,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
 
             await messageRepo.update({ id: existing.id }, updatePayload);
             wrote = true;
+            writtenMessageId = existing.id;
             return;
           }
 
+          const newId = uuid();
           await messageRepo.insert(
             buildMessageRow(ctx, {
+              id: newId,
               trace_id: traceId ?? null,
               session_key: normalizedSessionKey,
               timestamp: new Date().toISOString(),
@@ -536,20 +593,54 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               fallback_index: null,
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
+              provider_key_label: providerKeyLabel ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
+              request_params: requestParams ?? null,
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
               baseline_model_id: baseline?.modelId ?? null,
               baseline_cost_usd: baseline?.cost ?? null,
+              recorded,
             }),
           );
           wrote = true;
+          writtenMessageId = newId;
         });
       },
     );
-    if (wrote) this.eventBus.emit(ctx.userId);
+    if (wrote) {
+      this.eventBus.emit(ctx.userId);
+      if (recordingPayload && writtenMessageId) {
+        try {
+          await this.recordingService.save(writtenMessageId, recordingPayload);
+        } catch (err) {
+          this.logger.warn(`Failed to save message recording: ${String(err)}`);
+        }
+      }
+    }
+  }
+
+  /**
+   * Resolve the per-request USD cost for subscription providers that bill
+   * against a dollar quota (today: OpenCode Go). Returns `null` for every
+   * other provider, leaving the existing "subscription → $0" path intact.
+   * Canonicalizes the provider through the registry so aliases (e.g.
+   * `opencodego`, `OpenCode-Go`) resolve identically. Awaits the catalog
+   * `list()` once if its in-memory index is still cold so the first request
+   * after a process restart doesn't undercount as $0.
+   */
+  private async perRequestSubscriptionCost(
+    provider: string | null | undefined,
+    authType: string | null | undefined,
+    model: string | null | undefined,
+  ): Promise<number | null> {
+    if (authType !== 'subscription') return null;
+    if (!provider) return null;
+    const canonical = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id;
+    if (canonical !== 'opencode-go') return null;
+    return this.opencodeGoCatalog.resolveCostPerRequest(model);
   }
 
   private async computeBaseline(

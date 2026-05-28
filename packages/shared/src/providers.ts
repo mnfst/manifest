@@ -46,7 +46,7 @@ export interface SharedProviderEntry {
 export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
   {
     id: 'qwen',
-    displayName: 'Alibaba',
+    displayName: 'Alibaba Cloud',
     aliases: ['alibaba'],
     openRouterPrefixes: ['qwen', 'alibaba'],
     requiresApiKey: true,
@@ -81,6 +81,37 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'groq',
+    displayName: 'Groq',
+    aliases: [],
+    // Groq has its own native /models endpoint, so we never want to attribute
+    // Groq models from the OpenRouter pricing cache here. Mapping OR's
+    // `groq/*` prefix to this entry would surface models the user can't
+    // actually call (e.g. compound-*) and render them with the OpenRouter
+    // logo. Pricing for the native Groq catalog comes from
+    // known-model-prices.ts as a last-resort fallback.
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    // Brand orange from groq.com/favicon.svg
+    color: '#F43E01',
+    keyPrefix: 'gsk_',
+    minKeyLength: 50,
+    keyPlaceholder: 'gsk_...',
+  },
+  {
+    id: 'kilo',
+    displayName: 'Kilo',
+    aliases: ['kilocode', 'kilo-code'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#f0e68c',
+    keyPrefix: '',
+    minKeyLength: 10,
+    keyPlaceholder: 'Kilo Gateway API key',
+  },
+  {
     id: 'copilot',
     displayName: 'GitHub Copilot',
     aliases: [],
@@ -103,6 +134,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPrefix: '',
     minKeyLength: 30,
     keyPlaceholder: 'API key',
+  },
+  {
+    id: 'kiro',
+    displayName: 'Kiro',
+    aliases: [],
+    openRouterPrefixes: [],
+    requiresApiKey: false,
+    localOnly: false,
+    color: '#6D5EF9',
+    keyPrefix: '',
+    minKeyLength: 0,
+    keyPlaceholder: '',
   },
   {
     id: 'minimax',
@@ -139,6 +182,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPrefix: 'sk-',
     minKeyLength: 30,
     keyPlaceholder: 'sk-...',
+  },
+  {
+    id: 'nvidia',
+    displayName: 'NVIDIA NIM',
+    aliases: ['nvidia-nim', 'nvidia nim', 'nvidianim', 'nim'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#76B900',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'nvapi-...',
   },
   {
     id: 'llamacpp',

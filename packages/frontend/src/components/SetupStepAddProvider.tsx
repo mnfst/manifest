@@ -2,10 +2,14 @@ import { createSignal, createMemo, Show, Switch, Match, type Component } from 's
 import FrameworkSnippets from './FrameworkSnippets.jsx';
 import OpenClawSetup from './OpenClawSetup.jsx';
 import HermesSetup from './HermesSetup.jsx';
+import NanobotSetup from './NanobotSetup.jsx';
+import CraftAgentSetup from './CraftAgentSetup.jsx';
+import ClaudeCodeSetup from './ClaudeCodeSetup.jsx';
+import OpenCodeSetup from './OpenCodeSetup.jsx';
 import type { ToolkitId } from '../services/framework-snippets.js';
 
 type SetupTab = 'toolkits' | 'agents';
-type AgentId = 'openclaw' | 'hermes';
+type AgentId = 'openclaw' | 'hermes' | 'nanobot' | 'craft' | 'claude-code' | 'opencode';
 
 interface Props {
   apiKey: string | null;
@@ -17,6 +21,7 @@ interface Props {
 
 const PLATFORM_TO_TOOLKIT: Record<string, ToolkitId> = {
   'openai-sdk': 'openai-sdk',
+  'anthropic-sdk': 'anthropic-sdk',
   'vercel-ai-sdk': 'vercel-ai-sdk',
   langchain: 'langchain',
   curl: 'curl',
@@ -33,7 +38,6 @@ const SetupStepAddProvider: Component<Props> = (props) => {
   }));
 
   const isFiltered = () => !!props.platform;
-  const isPersonalAgent = () => props.platform === 'openclaw' || props.platform === 'hermes';
   const toolkitId = () => (props.platform ? PLATFORM_TO_TOOLKIT[props.platform] : undefined);
 
   return (
@@ -43,7 +47,15 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           ? 'Connect your Hermes agent to Manifest'
           : props.platform === 'openclaw'
             ? 'Connect your OpenClaw agent to Manifest'
-            : 'Connect your agent to Manifest'}
+            : props.platform === 'nanobot'
+              ? 'Connect your Nanobot agent to Manifest'
+              : props.platform === 'craft'
+                ? 'Connect your Craft agent to Manifest'
+                : props.platform === 'claude-code'
+                  ? 'Connect Claude Code to Manifest'
+                  : props.platform === 'opencode'
+                    ? 'Connect OpenCode to Manifest'
+                    : 'Connect your agent to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -54,6 +66,18 @@ const SetupStepAddProvider: Component<Props> = (props) => {
           </Match>
           <Match when={props.platform === 'hermes'}>
             <HermesSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'nanobot'}>
+            <NanobotSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'craft'}>
+            <CraftAgentSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'claude-code'}>
+            <ClaudeCodeSetup {...snippetProps()} />
+          </Match>
+          <Match when={props.platform === 'opencode'}>
+            <OpenCodeSetup {...snippetProps()} />
           </Match>
           <Match when={toolkitId()}>
             <FrameworkSnippets
@@ -139,6 +163,64 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 />
                 Hermes Agent
               </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'nanobot' }}
+                onClick={() => setActiveAgent('nanobot')}
+                role="tab"
+                aria-selected={activeAgent() === 'nanobot'}
+              >
+                <img
+                  src="/icons/nanobot.png"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Nanobot
+              </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'craft' }}
+                onClick={() => setActiveAgent('craft')}
+                role="tab"
+                aria-selected={activeAgent() === 'craft'}
+              >
+                <img src="/icons/craft.png" alt="" class="panel__tab-icon" width="16" height="16" />
+                Craft Agent
+              </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'claude-code' }}
+                onClick={() => setActiveAgent('claude-code')}
+                role="tab"
+                aria-selected={activeAgent() === 'claude-code'}
+              >
+                <img
+                  src="/icons/providers/claude-code.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                Claude Code
+              </button>
+              <button
+                class="panel__tab"
+                classList={{ 'panel__tab--active': activeAgent() === 'opencode' }}
+                onClick={() => setActiveAgent('opencode')}
+                role="tab"
+                aria-selected={activeAgent() === 'opencode'}
+              >
+                <img
+                  src="/icons/providers/opencode.svg"
+                  alt=""
+                  class="panel__tab-icon"
+                  width="16"
+                  height="16"
+                />
+                OpenCode
+              </button>
             </div>
           </div>
 
@@ -148,6 +230,18 @@ const SetupStepAddProvider: Component<Props> = (props) => {
             </Match>
             <Match when={activeAgent() === 'hermes'}>
               <HermesSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'nanobot'}>
+              <NanobotSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'craft'}>
+              <CraftAgentSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'claude-code'}>
+              <ClaudeCodeSetup {...snippetProps()} />
+            </Match>
+            <Match when={activeAgent() === 'opencode'}>
+              <OpenCodeSetup {...snippetProps()} />
             </Match>
           </Switch>
         </Show>

@@ -80,6 +80,16 @@ const LimitRuleModal: Component<Props> = (props) => {
             aria-modal="true"
             aria-labelledby="limit-modal-title"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (
+                e.key === 'Enter' &&
+                (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)
+              ) {
+                e.preventDefault();
+                handleSave();
+              }
+              if (e.key === 'Escape') handleClose();
+            }}
           >
             <h2 class="modal-card__title" id="limit-modal-title">
               {isEdit() ? 'Edit rule' : 'Create rule'}
@@ -96,6 +106,7 @@ const LimitRuleModal: Component<Props> = (props) => {
               class="select notification-modal__select"
               value={metricType()}
               onChange={(e) => setMetricType(e.currentTarget.value)}
+              ref={(el) => requestAnimationFrame(() => el.focus())}
             >
               <option value="tokens">Tokens</option>
               <option value="cost">Cost (USD)</option>
@@ -103,7 +114,9 @@ const LimitRuleModal: Component<Props> = (props) => {
 
             <div class="limit-modal__row">
               <div class="limit-modal__col">
-                <label class="modal-card__field-label" for="limit-threshold-input">Threshold</label>
+                <label class="modal-card__field-label" for="limit-threshold-input">
+                  Threshold
+                </label>
                 <input
                   id="limit-threshold-input"
                   class="modal-card__input"
@@ -113,13 +126,12 @@ const LimitRuleModal: Component<Props> = (props) => {
                   placeholder={metricType() === 'cost' ? 'e.g. 10.00' : 'e.g. 50000'}
                   value={threshold()}
                   onInput={(e) => setThreshold(e.currentTarget.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSave();
-                  }}
                 />
               </div>
               <div class="limit-modal__col">
-                <label class="modal-card__field-label" for="limit-period-select">Period</label>
+                <label class="modal-card__field-label" for="limit-period-select">
+                  Period
+                </label>
                 <select
                   id="limit-period-select"
                   class="select notification-modal__select"

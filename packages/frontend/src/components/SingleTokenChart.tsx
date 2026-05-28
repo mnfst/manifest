@@ -25,9 +25,24 @@ interface SingleTokenChartProps {
 const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
   let el!: HTMLDivElement;
 
+  const buildData = (): uPlot.AlignedData => {
+    const filled = fillDailyGaps(props.data, props.range ?? '', 'time', (date) => ({
+      time: date,
+      value: 0,
+    }));
+    // Convert to hour/date format so parseTimestamps handles both
+    // intraday ("2026-03-11T10:00:00") and daily ("2026-03-11") consistently
+    const forParse = filled.map((d) =>
+      d.time.includes('T') || d.time.includes(' ') ? { hour: d.time } : { date: d.time },
+    );
+    return [parseTimestamps(forParse), sanitizeNumbers(filled.map((d) => d.value))];
+  };
+
   useChartLifecycle({
     el: () => el,
     data: () => props.data,
+    buildData,
+    structureKey: () => props.range,
     buildChart() {
       if (!el) return null;
       const w = el.clientWidth || el.getBoundingClientRect().width;
@@ -59,18 +74,7 @@ const SingleTokenChart: Component<SingleTokenChartProps> = (props) => {
             },
           ],
         },
-        (() => {
-          const filled = fillDailyGaps(props.data, props.range ?? '', 'time', (date) => ({
-            time: date,
-            value: 0,
-          }));
-          // Convert to hour/date format so parseTimestamps handles both
-          // intraday ("2026-03-11T10:00:00") and daily ("2026-03-11") consistently
-          const forParse = filled.map((d) =>
-            d.time.includes('T') || d.time.includes(' ') ? { hour: d.time } : { date: d.time },
-          );
-          return [parseTimestamps(forParse), sanitizeNumbers(filled.map((d) => d.value))];
-        })(),
+        buildData(),
         el,
       );
     },

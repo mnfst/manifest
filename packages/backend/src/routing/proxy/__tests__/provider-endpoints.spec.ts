@@ -5,6 +5,7 @@ import {
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
+import { resolveSubscriptionEndpointKey } from '../provider-hooks';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -36,6 +37,12 @@ describe('buildCustomEndpoint', () => {
     expect(path).toBe('/v1/chat/completions');
   });
 
+  it('requests exact streamed usage for OpenAI-compatible custom providers', () => {
+    const endpoint = buildCustomEndpoint('http://localhost:8000');
+
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
   it('returns an Anthropic-shaped endpoint when apiKind="anthropic"', () => {
     const endpoint = buildCustomEndpoint('https://api.anthropic.com', 'anthropic');
 
@@ -61,7 +68,9 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
   });
 
@@ -102,8 +111,10 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
     expect(known).toContain('openrouter');
+    expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
+    expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
   });
@@ -117,6 +128,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
     expect(resolveEndpointKey('OpenCode-Go')).toBe('opencode-go');
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
+  });
+
+  it('resolves kilo and its aliases', () => {
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
+    expect(resolveEndpointKey('KiloCode')).toBe('kilo');
+    expect(resolveEndpointKey('kilo-code')).toBe('kilo');
   });
 
   it('resolves every proxy-capable provider id and alias from the registry', () => {
@@ -150,6 +167,47 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
+  });
+
+  it('groq uses OpenAI-compatible format at api.groq.com/openai', () => {
+    const ep = PROVIDER_ENDPOINTS['groq'];
+    expect(ep.baseUrl).toBe('https://api.groq.com/openai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('llama-3.3-70b-versatile')).toBe('/v1/chat/completions');
+  });
+
+  it('groq uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['groq'].buildHeaders('gsk_test_key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer gsk_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('kilo uses the Kilo Gateway OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['kilo'];
+    expect(ep.baseUrl).toBe('https://api.kilo.ai/api/gateway');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/chat/completions');
+    expect(ep.buildHeaders('kilo-token')).toEqual({
+      Authorization: 'Bearer kilo-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('nvidia uses the hosted NIM OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['nvidia'];
+    expect(ep.baseUrl).toBe('https://integrate.api.nvidia.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('nvidia/nemotron-3-super-120b-a12b')).toBe('/v1/chat/completions');
+  });
+
+  it('nvidia uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['nvidia'].buildHeaders('nvapi-test-key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer nvapi-test-key',
+      'Content-Type': 'application/json',
+    });
   });
 
   it('qwen uses DashScope compatible-mode endpoint', () => {
@@ -188,6 +246,31 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Editor-Version': 'vscode/1.100.0',
       'Editor-Plugin-Version': 'copilot/1.300.0',
       'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
+  it('copilot-responses targets /responses with chatgpt format and Copilot headers', () => {
+    const ep = PROVIDER_ENDPOINTS['copilot-responses'];
+    expect(ep.baseUrl).toBe('https://api.githubcopilot.com');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('gpt-5.3-codex')).toBe('/responses');
+    expect(ep.buildHeaders('ghu_token')).toEqual({
+      Authorization: 'Bearer ghu_token',
+      'Content-Type': 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
+  it('xai-responses targets /v1/responses with OpenAI-compatible auth headers', () => {
+    const ep = PROVIDER_ENDPOINTS['xai-responses'];
+    expect(ep.baseUrl).toBe('https://api.x.ai');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('grok-4.20-multi-agent')).toBe('/v1/responses');
+    expect(ep.buildHeaders('xai-test-key')).toEqual({
+      Authorization: 'Bearer xai-test-key',
+      'Content-Type': 'application/json',
     });
   });
 
@@ -265,6 +348,18 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('kiro uses the Kiro AWS JSON endpoint and target header', () => {
+    const ep = PROVIDER_ENDPOINTS['kiro'];
+    expect(ep.baseUrl).toBe('https://q.us-east-1.amazonaws.com');
+    expect(ep.format).toBe('kiro');
+    expect(ep.buildPath('kiro/auto')).toBe('/');
+    expect(ep.buildHeaders('ksk_test')).toEqual({
+      Authorization: 'Bearer ksk_test',
+      'Content-Type': 'application/x-amz-json-1.0',
+      'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
+    });
+  });
+
   it('zai-subscription uses Coding Plan base URL', () => {
     const ep = PROVIDER_ENDPOINTS['zai-subscription'];
     expect(ep.baseUrl).toBe('https://open.bigmodel.cn/api/coding/paas/v4');
@@ -318,6 +413,51 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
     expect(headers['Authorization']).toBeUndefined();
   });
+
+  it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
+    const endpointKeys = [
+      'openai',
+      'deepseek',
+      'groq',
+      'kilo',
+      'mistral',
+      'xai',
+      'minimax',
+      'moonshot',
+      'nvidia',
+      'qwen',
+      'zai',
+      'zai-subscription',
+      'copilot',
+      'openrouter',
+      'ollama',
+      'ollama-cloud',
+      'opencode-go',
+    ];
+
+    for (const key of endpointKeys) {
+      expect(PROVIDER_ENDPOINTS[key].streamUsageReporting).toBe('openai_stream_options');
+    }
+  });
+
+  it('does not send OpenAI stream usage options to native or Responses endpoints', () => {
+    const endpointKeys = [
+      'anthropic',
+      'google',
+      'gemini-subscription',
+      'kiro',
+      'openai-subscription',
+      'openai-responses',
+      'xai-responses',
+      'copilot-responses',
+      'minimax-subscription',
+      'opencode-go-anthropic',
+    ];
+
+    for (const key of endpointKeys) {
+      expect(PROVIDER_ENDPOINTS[key].streamUsageReporting).toBeUndefined();
+    }
+  });
 });
 
 describe('buildEndpointOverride', () => {
@@ -333,5 +473,59 @@ describe('buildEndpointOverride', () => {
     expect(() => buildEndpointOverride('https://example.com', 'nonexistent-template')).toThrow(
       'No provider endpoint template configured for: nonexistent-template',
     );
+  });
+});
+
+describe('resolveSubscriptionEndpointKey', () => {
+  it('returns gemini-subscription for google (the Gemini API-key endpoint key)', () => {
+    expect(resolveSubscriptionEndpointKey('google')).toBe('gemini-subscription');
+  });
+
+  it('returns openai-subscription for openai', () => {
+    expect(resolveSubscriptionEndpointKey('openai')).toBe('openai-subscription');
+  });
+
+  it('returns minimax-subscription for minimax', () => {
+    expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns undefined for providers with no subscription override', () => {
+    expect(resolveSubscriptionEndpointKey('anthropic')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('deepseek')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('unknown')).toBeUndefined();
+  });
+});
+
+describe('gemini-subscription endpoint', () => {
+  const ep = PROVIDER_ENDPOINTS['gemini-subscription'];
+
+  it('exists in PROVIDER_ENDPOINTS', () => {
+    expect(ep).toBeDefined();
+  });
+
+  it('uses the CodeAssist base URL', () => {
+    expect(ep.baseUrl).toBe('https://cloudcode-pa.googleapis.com');
+  });
+
+  it('uses google format', () => {
+    expect(ep.format).toBe('google');
+  });
+
+  it('has codeAssistEnvelope set to true', () => {
+    expect(ep.codeAssistEnvelope).toBe(true);
+  });
+
+  it('buildHeaders returns Authorization: Bearer and Content-Type', () => {
+    const headers = ep.buildHeaders('my-access-token');
+    expect(headers['Authorization']).toBe('Bearer my-access-token');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('buildPath returns the non-streaming generateContent path', () => {
+    expect(ep.buildPath('gemini-2.5-pro')).toBe('/v1internal:generateContent');
+  });
+
+  it('buildStreamPath returns the streamGenerateContent path', () => {
+    expect(ep.buildStreamPath!('gemini-2.5-pro')).toBe('/v1internal:streamGenerateContent');
   });
 });

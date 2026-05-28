@@ -23,6 +23,12 @@ export interface RoutingComplexitySectionProps {
   addingFallback: () => string | null;
   onDropdownOpen: (tierId: string) => void;
   onOverride: (tierId: string, model: string, provider: string, authType?: AuthType) => void;
+  onPinKey: (
+    tierId: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
@@ -53,6 +59,7 @@ const RoutingComplexitySection: Component<RoutingComplexitySectionProps> = (prop
             agentName={props.agentName}
             onDropdownOpen={props.onDropdownOpen}
             onOverride={props.onOverride}
+            onPinKey={props.onPinKey}
             onReset={props.onReset}
             onFallbackUpdate={props.onFallbackUpdate}
             onAddFallback={props.onAddFallback}

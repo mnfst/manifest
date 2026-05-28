@@ -149,6 +149,52 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  groq: {
+    id: 'groq',
+    name: 'Groq',
+    models: {
+      'llama-3.3-70b-versatile': {
+        id: 'llama-3.3-70b-versatile',
+        name: 'Llama 3.3 70B Versatile',
+        cost: { input: 0.59, output: 0.79 },
+        limit: { context: 128000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen/qwen3-32b': {
+        id: 'qwen/qwen3-32b',
+        name: 'Qwen3 32B (Groq)',
+        cost: { input: 0.29, output: 0.59 },
+        limit: { context: 131072 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
+  kilo: {
+    id: 'kilo',
+    name: 'Kilo Gateway',
+    models: {
+      'openai/gpt-4o-mini': {
+        id: 'openai/gpt-4o-mini',
+        name: 'GPT-4o mini',
+        cost: { input: 0.15, output: 0.6, cache_read: 0.075 },
+        limit: { context: 128000, output: 16384 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
+  nvidia: {
+    id: 'nvidia',
+    name: 'NVIDIA',
+    models: {
+      'nvidia/nemotron-3-super-120b-a12b': {
+        id: 'nvidia/nemotron-3-super-120b-a12b',
+        name: 'Nemotron 3 Super 120B A12B',
+        cost: { input: 0.8, output: 2.4 },
+        limit: { context: 128000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'unknown-provider': {
     id: 'unknown-provider',
     name: 'Unknown',
@@ -182,8 +228,9 @@ describe('ModelsDevSyncService', () => {
         'https://models.dev/api.json',
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
-      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1, mistral: 6, xai: 3 = 14
-      expect(count).toBe(14);
+      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
+      // mistral: 6, xai: 3, groq: 2, nvidia: 1 = 17
+      expect(count).toBe(17);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -254,6 +301,25 @@ describe('ModelsDevSyncService', () => {
       expect(model).not.toBeNull();
       expect(model!.name).toBe('Gemini 2.5 Pro');
       expect(model!.inputPricePerToken).toBe(1.25 / 1_000_000);
+    });
+
+    it('should find Groq models, including slash-prefixed model IDs', () => {
+      const flat = service.lookupModel('groq', 'llama-3.3-70b-versatile');
+      expect(flat).not.toBeNull();
+      expect(flat!.name).toBe('Llama 3.3 70B Versatile');
+      expect(flat!.inputPricePerToken).toBe(0.59 / 1_000_000);
+
+      const prefixed = service.lookupModel('groq', 'qwen/qwen3-32b');
+      expect(prefixed).not.toBeNull();
+      expect(prefixed!.name).toBe('Qwen3 32B (Groq)');
+      expect(prefixed!.inputPricePerToken).toBe(0.29 / 1_000_000);
+    });
+
+    it('should find NVIDIA NIM models via our nvidia provider ID', () => {
+      const model = service.lookupModel('nvidia', 'nvidia/nemotron-3-super-120b-a12b');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Nemotron 3 Super 120B A12B');
+      expect(model!.inputPricePerToken).toBe(0.8 / 1_000_000);
     });
 
     it('should return null for unknown model', () => {
@@ -436,6 +502,7 @@ describe('ModelsDevSyncService', () => {
     it('should return true for mapped providers', () => {
       expect(service.isProviderSupported('anthropic')).toBe(true);
       expect(service.isProviderSupported('gemini')).toBe(true);
+      expect(service.isProviderSupported('nvidia')).toBe(true);
       expect(service.isProviderSupported('qwen')).toBe(true);
     });
 
@@ -461,21 +528,33 @@ describe('ModelsDevSyncService', () => {
   });
 
   describe('onModuleInit', () => {
-    it('should call refreshCache on module init', async () => {
+    it('kicks off refreshCache without blocking', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({}),
       });
 
-      await service.onModuleInit();
+      // Fire-and-forget (must not block boot — see #1894); whenInitialized()
+      // resolves once the startup fetch has settled.
+      service.onModuleInit();
+      await service.whenInitialized();
 
       expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should not throw when fetch fails during init', async () => {
-      fetchSpy.mockRejectedValue(new Error('Network error'));
+    it('does not reject when refreshCache rejects', async () => {
+      // Reject refreshCache itself (not just fetch, which it swallows internally)
+      // to exercise onModuleInit's .catch handler.
+      jest.spyOn(service, 'refreshCache').mockRejectedValue(new Error('Network error'));
 
-      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      service.onModuleInit();
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('whenInitialized', () => {
+    it('resolves immediately when onModuleInit has not run', async () => {
+      await expect(service.whenInitialized()).resolves.toBeUndefined();
     });
   });
 
@@ -921,6 +1000,69 @@ describe('ModelsDevSyncService', () => {
       const upper = service.getModelsForProvider('ANTHROPIC');
       expect(lower).toEqual(upper);
       expect(lower.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('lookupCustomProviderModel', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should find arbitrary models.dev providers by display name', () => {
+      const model = service.lookupCustomProviderModel('Kilo Gateway', 'openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+      expect(model!.inputPricePerToken).toBe(0.15 / 1_000_000);
+      expect(model!.outputPricePerToken).toBe(0.6 / 1_000_000);
+      expect(model!.contextWindow).toBe(128000);
+    });
+
+    it('should normalize custom provider names and IDs', () => {
+      expect(service.lookupCustomProviderModel('kilo', 'openai/gpt-4o-mini')).not.toBeNull();
+      expect(
+        service.lookupCustomProviderModel('kilo-gateway', 'openai/gpt-4o-mini'),
+      ).not.toBeNull();
+    });
+
+    it('should keep native provider support scoped to PROVIDER_ID_MAP', () => {
+      expect(service.getModelsForProvider('kilo')).toEqual([]);
+    });
+
+    it('should return null when provider or model is missing', () => {
+      expect(service.lookupCustomProviderModel('Mammouth', 'openai/gpt-4o-mini')).toBeNull();
+      expect(service.lookupCustomProviderModel('Kilo Gateway', 'missing-model')).toBeNull();
+    });
+  });
+
+  describe('lookupModelAcrossProviders', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should match provider-prefixed model IDs against official provider catalogs first', () => {
+      const model = service.lookupModelAcrossProviders('openai/gpt-4o');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o');
+      expect(model!.inputPricePerToken).toBe(2.5 / 1_000_000);
+    });
+
+    it('should fall back to exact model IDs from non-native provider catalogs', () => {
+      const model = service.lookupModelAcrossProviders('openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+      expect(model!.inputPricePerToken).toBe(0.15 / 1_000_000);
+    });
+
+    it('should return null when no provider contains the model ID', () => {
+      expect(service.lookupModelAcrossProviders('missing-model')).toBeNull();
     });
   });
 });

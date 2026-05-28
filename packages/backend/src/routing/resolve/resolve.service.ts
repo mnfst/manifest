@@ -10,11 +10,20 @@ import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { readFallbackRoutes, readOverrideRoute } from '../routing-core/route-helpers';
+import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
-import type { AuthType, ModelRoute, SpecificityCategory, TierSlot } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import type {
+  AuthType,
+  ModelRoute,
+  ResponseMode,
+  OutputModality,
+  SpecificityCategory,
+  TierSlot,
+} from 'manifest-shared';
 import type { HeaderTier } from '../../entities/header-tier.entity';
 import type { TierAssignment } from '../../entities/tier-assignment.entity';
 import type { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -96,8 +105,12 @@ export class ResolveService {
       return this.resolveForTier(agentId, 'default', 'default');
     }
 
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
     const route = await this.buildResolvedRoute(agentId, assignment);
-    if (!route) {
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
+    if (!effectiveRoutes.primaryRoute) {
       this.logger.warn(
         `No route resolved for agent=${agentId} tier=${result.tier} ` +
           `(override=${assignment.override_route?.model ?? 'null'} ` +
@@ -106,7 +119,9 @@ export class ResolveService {
       return {
         tier: result.tier,
         route: null,
-        fallback_routes: readFallbackRoutes(assignment),
+        fallback_routes: effectiveRoutes.fallbackRoutes,
+        output_modality: outputModality,
+        response_mode: responseMode,
         confidence: result.confidence,
         score: result.score,
         reason: result.reason,
@@ -115,8 +130,10 @@ export class ResolveService {
 
     return {
       tier: result.tier,
-      route,
-      fallback_routes: readFallbackRoutes(assignment),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: result.confidence,
       score: result.score,
       reason: result.reason,
@@ -132,14 +149,29 @@ export class ResolveService {
     const assignment = tiers.find((t) => t.tier === tier);
 
     if (!assignment) {
-      return { tier, route: null, fallback_routes: null, confidence: 1, score: 0, reason };
+      return {
+        tier,
+        route: null,
+        fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason,
+      };
     }
 
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
     const route = await this.buildResolvedRoute(agentId, assignment);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
     return {
       tier,
-      route,
-      fallback_routes: readFallbackRoutes(assignment),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: 1,
       score: 0,
       reason,
@@ -177,14 +209,26 @@ export class ResolveService {
 
     const provider =
       overrideRoute.provider || (await this.resolveProviderForModel(agentId, overrideRoute.model));
-    const authType =
+    const authType: AuthType =
       overrideRoute.authType ??
       (await this.providerKeyService.getAuthType(agentId, provider ?? ''));
+    const baseRoute: ModelRoute | null =
+      provider && authType
+        ? { provider, authType, model: overrideRoute.model, keyLabel: overrideRoute.keyLabel }
+        : null;
+    const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, baseRoute) : null;
+
+    const outputModality = outputModalityFor(match);
+    const responseMode = responseModeFor(match);
+    const fallbackRoutes = readFallbackRoutes(match);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
 
     return {
       tier: 'standard',
-      route: provider && authType ? { provider, authType, model: overrideRoute.model } : null,
-      fallback_routes: readFallbackRoutes(match),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: 1,
       score: 0,
       reason: 'header-match',
@@ -251,10 +295,22 @@ export class ResolveService {
       return null;
     }
 
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
+    const enrichedRoute = await this.enrichRouteKeyLabel(agentId, route);
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      enrichedRoute,
+      fallbackRoutes,
+    );
+
     return {
       tier: 'standard',
-      route,
-      fallback_routes: readFallbackRoutes(assignment),
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
       confidence: detected.confidence,
       score: 0,
       reason: 'specificity',
@@ -265,7 +321,8 @@ export class ResolveService {
   /**
    * Build the resolved route for a tier assignment. Validates the override
    * still points to an available model; falls through to auto-assigned when
-   * the override is orphaned.
+   * the override is orphaned. Enriches with the default key label when no
+   * explicit pin is present.
    */
   private async buildResolvedRoute(
     agentId: string,
@@ -274,13 +331,36 @@ export class ResolveService {
     const override = readOverrideRoute(assignment);
     if (override) {
       if (await this.providerKeyService.isModelAvailable(agentId, override.model)) {
-        return override;
+        return this.enrichRouteKeyLabel(agentId, override);
       }
       this.logger.warn(
         `Override ${override.model} unavailable for agent=${agentId} — falling back to auto`,
       );
     }
-    return assignment.auto_assigned_route ?? null;
+    return assignment.auto_assigned_route
+      ? this.enrichRouteKeyLabel(agentId, assignment.auto_assigned_route)
+      : null;
+  }
+
+  /**
+   * Fill in `route.keyLabel` from the agent's default (priority-0) key for
+   * (route.provider, route.authType) when the route doesn't already pin a
+   * specific label. The proxy needs a concrete keyLabel to pick the right
+   * row in `user_providers`; without this, multi-key users would always hit
+   * the first key, ignoring per-tier pins set on auto-assigned routes.
+   *
+   * authType is taken from the route itself (not from any assignment-level
+   * legacy field), so this can't accidentally use the override's authType
+   * for an auto-assigned model picked under a different auth mode.
+   */
+  private async enrichRouteKeyLabel(agentId: string, route: ModelRoute): Promise<ModelRoute> {
+    if (route.keyLabel) return route;
+    const label = await this.providerKeyService.getDefaultKeyLabel(
+      agentId,
+      route.provider,
+      route.authType,
+    );
+    return label ? { ...route, keyLabel: label } : route;
   }
 
   /**
@@ -302,10 +382,6 @@ export class ResolveService {
     if (pricing && pricing.provider !== 'OpenRouter') return pricing.provider;
     return null;
   }
-
-  /** Suppress lint for unused type — kept for future provider-key integrations. */
-
-  private _typeMarker?: AuthType;
 }
 
 function matchesHeaderRule(headers: IncomingHttpHeaders, tier: HeaderTier): boolean {
@@ -314,4 +390,12 @@ function matchesHeaderRule(headers: IncomingHttpHeaders, tier: HeaderTier): bool
   // Node gives repeated headers as string[]; match if any entry equals the rule.
   if (Array.isArray(raw)) return raw.some((v) => v === tier.header_value);
   return raw === tier.header_value;
+}
+
+function outputModalityFor(row: { output_modality?: OutputModality | null }): OutputModality {
+  return row.output_modality ?? DEFAULT_OUTPUT_MODALITY;
+}
+
+function responseModeFor(row: { response_mode?: ResponseMode | null }): ResponseMode {
+  return row.response_mode ?? DEFAULT_RESPONSE_MODE;
 }

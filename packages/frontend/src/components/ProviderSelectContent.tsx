@@ -68,12 +68,21 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
+  const [addKeyIntent, setAddKeyIntent] = createSignal(false);
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
   const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find((p) => p.provider === provId && p.auth_type === authType);
+
+  const getActiveProviderKeys = (provId: string, authType: AuthType) =>
+    props.providers
+      .filter(
+        (p) => p.provider === provId && p.auth_type === authType && p.is_active && p.has_api_key,
+      )
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
 
   const isConnected = (provId: string): boolean => {
     const p = getProviderByAuth(provId, 'api_key');
@@ -130,13 +139,15 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     resetToList();
   };
 
-  const openDetail = (provId: string, authType: AuthType) => {
+  const openDetail = (provId: string, authType: AuthType, addKey?: boolean) => {
     setDirection('forward');
+    setAddKeyIntent(false);
     setSelectedProvider(provId);
     setSelectedAuthType(authType);
     setKeyInput('');
     setEditing(false);
     setValidationError(null);
+    if (addKey) queueMicrotask(() => setAddKeyIntent(true));
   };
 
   const openCustomForm = (prefill?: CustomProviderPrefill) => {
@@ -392,6 +403,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               isSubscriptionConnected={isSubscriptionConnected}
               isSubscriptionWithToken={isSubscriptionWithToken}
               onOpenDetail={openDetail}
+              onAddKey={(provId, authType) => openDetail(provId, authType, true)}
               onToggle={handleSubscriptionToggle}
             />
           </Show>
@@ -404,6 +416,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               isConnected={isConnected}
               isNoKeyConnected={isNoKeyConnected}
               onOpenDetail={openDetail}
+              onAddKey={(provId, authType) => openDetail(provId, authType, true)}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
             />
@@ -446,11 +459,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <CopilotDeviceLogin
             agentName={props.agentName}
             connected={isSubscriptionWithToken(selectedProvider()!)}
+            activeKeys={getActiveProviderKeys(selectedProvider()!, 'subscription')}
             onBack={goBack}
             onConnected={async () => {
               await props.onUpdate();
               goBack();
             }}
+            onUpdated={props.onUpdate}
             onDisconnected={() => {
               goBack();
               props.onUpdate();
@@ -485,6 +500,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             onBack={goBack}
             onUpdate={props.onUpdate}
             onClose={closeHandler()}
+            initialAddKey={addKeyIntent()}
           />
         </div>
       </Show>

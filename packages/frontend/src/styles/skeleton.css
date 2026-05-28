@@ -1,8 +1,8 @@
 /* ── Skeleton Loaders ─────────────────────────────── */
 .skeleton {
-  background: hsl(var(--muted));
+  background: hsl(var(--muted-foreground) / 0.2);
   border-radius: calc(var(--radius) - 2px);
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
 
 .skeleton--text {
@@ -66,7 +66,7 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.3;
   }
   100% {
     opacity: 1;

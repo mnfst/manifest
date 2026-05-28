@@ -10,6 +10,7 @@ import {
 import { formatDuration, formatTime, formatNumber } from '../services/formatters.js';
 import { inferProviderName } from '../services/routing-utils.js';
 import { getModelDisplayName } from '../services/model-display.js';
+import { ModelParamsSection, RequestHeadersSection } from './MessageDetailsSections.jsx';
 
 export interface MessageDetailsProps {
   messageId: string;
@@ -84,56 +85,6 @@ function LogRow(props: { log: MessageDetailLog }): JSX.Element {
       </td>
       <td class="msg-detail__mono-xs msg-detail__log-body">{l.body ?? '\u2014'}</td>
     </tr>
-  );
-}
-
-function RequestHeadersSection(props: { headers: Record<string, string> }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
-  const entries = (): Array<[string, string]> =>
-    Object.entries(props.headers).sort(([a], [b]) => a.localeCompare(b));
-  const tableId = `msg-detail-request-headers-${Math.random().toString(36).slice(2, 10)}`;
-  return (
-    <div class="msg-detail__section">
-      <button
-        type="button"
-        class="msg-detail__section-title msg-detail__section-title--toggle"
-        aria-expanded={open() ? 'true' : 'false'}
-        aria-controls={tableId}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span
-          class="msg-detail__chevron"
-          classList={{ 'msg-detail__chevron--open': open() }}
-          aria-hidden="true"
-        >
-          &#9656;
-        </span>
-        Request Headers
-        <span class="msg-detail__count">{entries().length}</span>
-      </button>
-      <Show when={open()}>
-        <div class="data-table-scroll" id={tableId}>
-          <table class="data-table msg-detail__table">
-            <thead>
-              <tr>
-                <th>Header</th>
-                <th>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={entries()}>
-                {([k, v]) => (
-                  <tr>
-                    <td class="msg-detail__mono-xs">{k}</td>
-                    <td class="msg-detail__mono-xs msg-detail__log-body">{v}</td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
-        </div>
-      </Show>
-    </div>
   );
 }
 
@@ -239,6 +190,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   <MetaField label="ID" value={m.id} />
                   <MetaField label="Provider" value={provider} />
                   <MetaField label="Auth" value={m.auth_type} />
+                  <MetaField label="API Key" value={m.provider_key_label ?? 'Default'} />
                   <MetaField label="Model" value={m.model ? getModelDisplayName(m.model) : null} />
                   <MetaField label="Model ID" value={m.model} />
                   <MetaField label="Trace" value={m.trace_id?.slice(0, 16)} />
@@ -266,6 +218,14 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
                   <MetaField label="Skill" value={m.skill_name} />
                 </div>
               </div>
+
+              {/* Model Parameters renders above Request Headers — params
+                  are user intent (what the request asked for); headers are
+                  protocol noise. The natural top-down reading order in a
+                  routing-analytics context is intent → wire → response. */}
+              <Show when={m.request_params && Object.keys(m.request_params).length > 0}>
+                <ModelParamsSection params={m.request_params!} />
+              </Show>
 
               <Show when={m.request_headers && Object.keys(m.request_headers).length > 0}>
                 <RequestHeadersSection headers={m.request_headers!} />

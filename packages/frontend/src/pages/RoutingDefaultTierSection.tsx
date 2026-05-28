@@ -3,10 +3,13 @@ import type {
   AuthType,
   AvailableModel,
   CustomProviderData,
+  RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
   TierAssignment,
 } from '../services/api.js';
 import { DEFAULT_STAGE, STAGES } from '../services/providers.js';
+import OutputControls from '../components/OutputControls.js';
 import RoutingTierCard from './RoutingTierCard.js';
 
 export interface RoutingDefaultTierSectionProps {
@@ -23,6 +26,12 @@ export interface RoutingDefaultTierSectionProps {
   addingFallback: () => string | null;
   onDropdownOpen: (tierId: string) => void;
   onOverride: (tierId: string, model: string, provider: string, authType?: AuthType) => void;
+  onPinKey: (
+    tierId: string,
+    providerId: string,
+    providerKeyLabel: string | null,
+    authType?: AuthType,
+  ) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
@@ -31,7 +40,33 @@ export interface RoutingDefaultTierSectionProps {
   complexityEnabled: () => boolean;
   togglingComplexity: () => boolean;
   onToggleComplexity: () => void;
+  responseMode: () => ResponseMode;
+  changingResponseMode: () => boolean;
+  onResponseModeChange: (mode: ResponseMode) => void | Promise<void>;
   embedded?: boolean;
+  /**
+   * Read saved per-route params from the parent's loaded map. Threaded
+   * down to every model row across the tier card + fallback list so each
+   * affordance shows the configured-state badge without per-row fetches.
+   */
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  /**
+   * Persist new params for a single route. Parent is responsible for the
+   * server call and the local cache update; this section just threads the
+   * callback down to the affordance.
+   */
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
 }
 
 const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (props) => {
@@ -57,11 +92,14 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         agentName={props.agentName}
         onDropdownOpen={props.onDropdownOpen}
         onOverride={props.onOverride}
+        onPinKey={props.onPinKey}
         onReset={props.onReset}
         onFallbackUpdate={props.onFallbackUpdate}
         onAddFallback={props.onAddFallback}
         getFallbacksFor={props.getFallbacksFor}
         connectedProviders={props.connectedProviders}
+        getModelParams={props.getModelParams}
+        setModelParams={props.setModelParams}
       />
     </div>
   );
@@ -84,11 +122,14 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             agentName={props.agentName}
             onDropdownOpen={props.onDropdownOpen}
             onOverride={props.onOverride}
+            onPinKey={props.onPinKey}
             onReset={props.onReset}
             onFallbackUpdate={props.onFallbackUpdate}
             onAddFallback={props.onAddFallback}
             getFallbacksFor={props.getFallbacksFor}
             connectedProviders={props.connectedProviders}
+            getModelParams={props.getModelParams}
+            setModelParams={props.setModelParams}
           />
         )}
       </For>
@@ -114,6 +155,8 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
       ? 'Analyzes the complexity of each request on the fly and routes it to the matching tier.'
       : 'Pick one model and up to 5 fallbacks as your default routing.';
 
+  const controls = () => <div class="routing-section__controls">{switchButton()}</div>;
+
   if (props.embedded) {
     return (
       <div>
@@ -122,7 +165,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           style="margin-bottom: 16px;"
         >
           <span class="routing-section__subtitle">{subtitle()}</span>
-          {switchButton()}
+          {controls()}
         </div>
         <Show
           when={props.complexityEnabled()}
@@ -141,7 +184,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
           <span class="routing-section__title">Default routing</span>
           <span class="routing-section__subtitle">{subtitle()}</span>
         </div>
-        {switchButton()}
+        {controls()}
       </div>
       <Show when={props.complexityEnabled()} fallback={defaultCard()}>
         {complexityCards()}

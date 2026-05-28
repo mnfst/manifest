@@ -127,6 +127,12 @@
   margin-bottom: 20px;
 }
 
+.routing-tabs__header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .routing-tabs .panel__tab {
   gap: 8px;
 }

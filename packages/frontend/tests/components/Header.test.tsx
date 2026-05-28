@@ -118,6 +118,29 @@ describe("Header", () => {
     await fireEvent.click(document.body);
     expect(screen.queryByText("Alice")).toBeNull();
   });
+
+  it("renders the closed mobile navigation toggle", () => {
+    render(() => <Header showMobileNavToggle mobileNavOpen={false} />);
+
+    const toggle = screen.getByLabelText("Open navigation menu");
+    expect(toggle.getAttribute("aria-controls")).toBe("agent-navigation");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("renders the open mobile navigation toggle and handles clicks", async () => {
+    const onMobileNavToggle = vi.fn();
+
+    render(() => (
+      <Header showMobileNavToggle mobileNavOpen onMobileNavToggle={onMobileNavToggle} />
+    ));
+
+    const toggle = screen.getByLabelText("Close navigation menu");
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+
+    await fireEvent.click(toggle);
+
+    expect(onMobileNavToggle).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("Header - GitHub star button", () => {
@@ -324,15 +347,19 @@ describe("Header - self-hosted badge", () => {
     mockCheckIsSelfHosted.mockResolvedValue(true);
     const { container } = render(() => <Header />);
     await new Promise((r) => setTimeout(r, 0));
-    const badge = container.querySelector(".header__mode-badge");
+    const badge = container.querySelector(
+      ".header__mode-badge:not(.header__mode-badge--dev)",
+    );
     expect(badge).not.toBeNull();
     expect(badge?.textContent?.trim()).toBe("Self-hosted");
   });
 
-  it("does not render the badge in cloud mode", async () => {
+  it("does not render the Self-hosted badge in cloud mode", async () => {
     mockCheckIsSelfHosted.mockResolvedValue(false);
     const { container } = render(() => <Header />);
     await new Promise((r) => setTimeout(r, 0));
-    expect(container.querySelector(".header__mode-badge")).toBeNull();
+    expect(
+      container.querySelector(".header__mode-badge:not(.header__mode-badge--dev)"),
+    ).toBeNull();
   });
 });

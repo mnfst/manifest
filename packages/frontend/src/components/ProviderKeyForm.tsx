@@ -1,17 +1,33 @@
-import { Show, onMount, type Component, type Accessor, type Setter } from 'solid-js';
+import {
+  For,
+  Show,
+  createMemo,
+  createEffect,
+  createSignal,
+  onMount,
+  type Component,
+  type Accessor,
+  type Setter,
+} from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
 import {
   connectProvider,
   disconnectProvider,
+  renameProviderKey,
   revokeOpenaiOAuth,
   type AuthType,
+  type RoutingProvider,
 } from '../services/api.js';
 import {
   getRoutingProviderApiKeyUrl,
   getSubscriptionProviderKeyUrl,
 } from '../services/provider-api-key-urls.js';
+import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { toast } from '../services/toast-store.js';
+
+export const MAX_KEYS_PER_PROVIDER = 5;
+const MAX_LABEL_LENGTH = 50;
 
 export interface ProviderKeyFormProps {
   provDef: ProviderDef;
@@ -29,6 +45,15 @@ export interface ProviderKeyFormProps {
   validationError: Accessor<string | null>;
   setValidationError: Setter<string | null>;
   getKeyPrefixDisplay: (authType: AuthType) => string;
+  /**
+   * Full set of providers from the modal — used to derive the active key
+   * chain for the current `(provId, selectedAuthType)` tuple. Optional for
+   * back-compat with callers that haven't been updated yet (in which case
+   * the form falls back to legacy single-key UX).
+   */
+  providers?: RoutingProvider[];
+  addKeyOpen?: Accessor<boolean>;
+  setAddKeyOpen?: Setter<boolean>;
   onBack: () => void;
   onUpdate: () => void;
 }
@@ -39,20 +64,45 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.provId === 'openai' && isPopupOAuth() && props.selectedAuthType() === 'subscription';
   const isApiKeyCredential = () =>
     !props.isSubMode() || props.provDef.subscriptionCredentialKind === 'api-key';
-  const fieldLabel = () => (isApiKeyCredential() ? 'API Key' : 'Setup Token');
+  const credentialNoun = () => (isApiKeyCredential() ? 'API key' : 'setup token');
+  const inputAriaLabel = () => `${props.provDef.name} ${credentialNoun()}`;
+  const editAriaLabel = () => `New ${props.provDef.name} ${credentialNoun()}`;
   const placeholder = () =>
     props.isSubMode()
       ? (props.provDef.subscriptionKeyPlaceholder ?? 'Paste token')
       : props.provDef.keyPlaceholder;
-  const credentialNoun = () => (isApiKeyCredential() ? 'API key' : 'setup token');
-  const inputAriaLabel = () => `${props.provDef.name} ${credentialNoun()}`;
-  const editAriaLabel = () => `New ${props.provDef.name} ${credentialNoun()}`;
   const whereToGetUrl = () =>
     props.isSubMode()
       ? getSubscriptionProviderKeyUrl(props.provId)
       : getRoutingProviderApiKeyUrl(props.provId);
 
-  const handleConnect = async () => {
+  // Multi-key chains are supported for api_key and subscription. Local
+  // providers (Ollama / LM Studio) don't carry credentials, so they stay
+  // on the single-row surface.
+  const supportsMultiKey = () => props.selectedAuthType() !== 'local';
+
+  const activeKeys = createMemo<RoutingProvider[]>(() => {
+    if (!props.providers) return [];
+    return props.providers
+      .filter(
+        (p) =>
+          p.provider === props.provId &&
+          p.auth_type === props.selectedAuthType() &&
+          p.is_active &&
+          p.has_api_key,
+      )
+      .slice()
+      .sort((a, b) => a.priority - b.priority);
+  });
+
+  const isListMode = () => supportsMultiKey() && activeKeys().length > 1;
+
+  const fieldLabel = () => {
+    if (isListMode()) return 'API Keys';
+    return isApiKeyCredential() ? 'API Key' : 'Setup Token';
+  };
+
+  const handleConnect = async (label?: string) => {
     const result = props.isSubMode()
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
@@ -67,6 +117,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         provider: props.provId,
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
+        ...(label && { label }),
       });
       toast.success(`${props.provDef.name} connected`);
       props.onBack();
@@ -78,7 +129,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     }
   };
 
-  const handleUpdateKey = async () => {
+  const handleUpdateKey = async (label?: string) => {
     const result = props.isSubMode()
       ? validateSubscriptionKey(props.provDef, props.keyInput())
       : validateApiKey(props.provDef, props.keyInput());
@@ -93,9 +144,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         provider: props.provId,
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
+        ...(label && { label }),
       });
-      const label = props.isSubMode() && !isApiKeyCredential() ? 'token' : 'key';
-      toast.success(`${props.provDef.name} ${label} updated`);
+      const noun = props.isSubMode() && !isApiKeyCredential() ? 'token' : 'key';
+      toast.success(`${props.provDef.name} ${noun} updated`);
       props.onBack();
       props.onUpdate();
     } catch {
@@ -105,23 +157,29 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleDisconnect = async (label?: string) => {
     props.setBusy(true);
     try {
-      if (shouldRevokeOpenaiOAuth()) {
+      // OpenAI subscription OAuth needs an explicit revoke call. Skip for
+      // labeled deletes inside list mode (those are api_key keys, never the
+      // OAuth subscription token).
+      if (!label && shouldRevokeOpenaiOAuth()) {
         await revokeOpenaiOAuth(props.agentName).catch(() => {});
       }
       const result = await disconnectProvider(
         props.agentName,
         props.provId,
         props.selectedAuthType(),
+        label,
       );
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
         }
       }
-      props.onBack();
+      // For labeled deletes, stay on the modal so the user can keep editing
+      // the remaining chain. For full disconnects, return to the list.
+      if (!label) props.onBack();
       props.onUpdate();
     } catch {
       // error toast from fetchMutate
@@ -139,7 +197,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
 
   return (
     <>
-      {/* Not yet connected */}
+      {/* Not yet connected — first key */}
       <Show when={!props.connected()}>
         <div class="provider-detail__field">
           <label class="provider-detail__label">{fieldLabel()}</label>
@@ -179,7 +237,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         <button
           class="btn btn--primary provider-detail__action"
           disabled={props.busy() || !props.keyInput().trim()}
-          onClick={handleConnect}
+          onClick={() => handleConnect()}
         >
           <Show when={!props.busy()} fallback={<span class="spinner" />}>
             Connect
@@ -187,8 +245,8 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
         </button>
       </Show>
 
-      {/* Already connected */}
-      <Show when={props.connected()}>
+      {/* Connected — single key (legacy view, pixel-identical to pre-multi-key) */}
+      <Show when={props.connected() && !isListMode()}>
         <div class="provider-detail__field">
           <label class="provider-detail__label">{fieldLabel()}</label>
           <Show when={!props.editing()}>
@@ -215,7 +273,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
               <button
                 class="provider-detail__disconnect-icon"
                 disabled={props.busy()}
-                onClick={handleDisconnect}
+                onClick={() => handleDisconnect()}
                 aria-label="Disconnect provider"
                 title="Disconnect"
               >
@@ -238,6 +296,21 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 </Show>
               </button>
             </div>
+            <Show when={supportsMultiKey() && activeKeys().length < MAX_KEYS_PER_PROVIDER}>
+              <AddAnotherKeyAction
+                onAdd={(label, apiKey) => handleAddKey(props, label, apiKey)}
+                busy={props.busy}
+                setBusy={props.setBusy}
+                provDef={props.provDef}
+                placeholder={placeholder() ?? 'Paste API key'}
+                whereToGetUrl={whereToGetUrl}
+                credentialNoun={credentialNoun}
+                existingLabels={() => activeKeys().map((k) => k.label)}
+                open={props.addKeyOpen}
+                setOpen={props.setAddKeyOpen}
+                isSubscription={props.isSubMode()}
+              />
+            </Show>
           </Show>
           <Show when={props.editing()}>
             <input
@@ -274,7 +347,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
             <button
               class="btn btn--primary provider-detail__action"
               disabled={props.busy() || !props.keyInput().trim()}
-              onClick={handleUpdateKey}
+              onClick={() => handleUpdateKey()}
               style="margin-top: 12px;"
             >
               Save
@@ -282,7 +355,388 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           </Show>
         </div>
       </Show>
+
+      {/* Connected — list mode (multi-key) */}
+      <Show when={props.connected() && isListMode()}>
+        <KeyChainView
+          provDef={props.provDef}
+          provId={props.provId}
+          agentName={props.agentName}
+          authType={props.selectedAuthType}
+          activeKeys={activeKeys}
+          busy={props.busy}
+          setBusy={props.setBusy}
+          placeholder={placeholder() ?? 'Paste API key'}
+          credentialNoun={credentialNoun}
+          whereToGetUrl={whereToGetUrl}
+          addKeyOpen={props.addKeyOpen}
+          setAddKeyOpen={props.setAddKeyOpen}
+          onUpdate={props.onUpdate}
+          onDelete={(label) => handleDisconnect(label)}
+        />
+      </Show>
     </>
+  );
+};
+
+async function handleAddKey(
+  props: ProviderKeyFormProps,
+  label: string,
+  apiKey: string,
+): Promise<boolean> {
+  // Subscription-mode providers (Anthropic Pro, ChatGPT Plus, etc.) often
+  // validate paste tokens with a different prefix/format than their api_key
+  // counterparts. Branch the validator so the chain-add flow doesn't reject
+  // a valid setup token using the api-key rules.
+  const result = props.isSubMode()
+    ? validateSubscriptionKey(props.provDef, apiKey)
+    : validateApiKey(props.provDef, apiKey);
+  if (!result.valid) {
+    toast.error(result.error!);
+    return false;
+  }
+  props.setBusy(true);
+  try {
+    await connectProvider(props.agentName, {
+      provider: props.provId,
+      apiKey: apiKey.replace(/\s/g, ''),
+      authType: props.selectedAuthType(),
+      label,
+    });
+    toast.success(`${props.provDef.name} key "${label}" added`);
+    props.onUpdate();
+    return true;
+  } catch {
+    return false;
+  } finally {
+    props.setBusy(false);
+  }
+}
+
+/** @internal Exported for testing only. */
+export interface AddAnotherKeyActionProps {
+  onAdd: (label: string, apiKey: string) => Promise<boolean>;
+  busy: Accessor<boolean>;
+  setBusy: Setter<boolean>;
+  provDef: ProviderDef;
+  placeholder: string;
+  whereToGetUrl: () => string | undefined;
+  credentialNoun: () => string;
+  existingLabels: () => string[];
+  open?: Accessor<boolean>;
+  setOpen?: Setter<boolean>;
+  isSubscription?: boolean;
+}
+
+/** @internal Exported for testing only. */
+export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
+  const [localOpen, setLocalOpen] = createSignal(false);
+  const isOpen = () => (props.open ?? localOpen)();
+  const setIsOpen = (v: boolean) => {
+    (props.setOpen ?? setLocalOpen)(v);
+  };
+  const [label, setLabel] = createSignal('');
+  const [apiKey, setApiKey] = createSignal('');
+  let apiKeyInputRef: HTMLInputElement | undefined;
+
+  const defaultLabel = () => suggestNextProviderKeyLabel(props.existingLabels());
+
+  // Sync label suggestion when opened externally and auto-focus the API key field
+  createEffect(() => {
+    if (isOpen() && !label().trim()) {
+      setLabel(defaultLabel());
+    }
+    if (isOpen()) {
+      requestAnimationFrame(() => apiKeyInputRef?.focus());
+    }
+  });
+
+  const submit = async () => {
+    const labelToUse = (label().trim() || defaultLabel()).slice(0, MAX_LABEL_LENGTH);
+    const ok = await props.onAdd(labelToUse, apiKey().trim());
+    if (ok) {
+      setIsOpen(false);
+      setLabel('');
+      setApiKey('');
+    }
+  };
+
+  return (
+    <Show
+      when={isOpen()}
+      fallback={
+        !props.open ? (
+          <button
+            type="button"
+            class="provider-detail__add-link"
+            style="margin-top: 12px; background: none; border: none; padding: 0; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); cursor: pointer; text-align: left;"
+            onClick={() => {
+              setLabel(defaultLabel());
+              setIsOpen(true);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style="vertical-align: -2px; margin-right: 2px;"
+            >
+              <path d="M4 11h11v2H4zm0-5h16v2H4zm0 10h8v2H4zm15-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
+            </svg>
+            {props.isSubscription ? ' Add connection' : ' Add another key'}
+          </button>
+        ) : undefined
+      }
+    >
+      <div
+        class="provider-detail__add-form"
+        style="margin-top: 12px; padding: 12px; border: 1px solid hsl(var(--border)); border-radius: 6px;"
+      >
+        <label class="provider-detail__label" for="add-key-label">
+          Name
+        </label>
+        <input
+          id="add-key-label"
+          class="provider-detail__input"
+          type="text"
+          maxlength={MAX_LABEL_LENGTH}
+          aria-label="Key name"
+          value={label()}
+          placeholder={defaultLabel()}
+          onInput={(e) => setLabel(e.currentTarget.value)}
+        />
+        <label class="provider-detail__label" for="add-key-value" style="margin-top: 8px;">
+          {props.provDef.name} {props.credentialNoun()}
+        </label>
+        <input
+          ref={apiKeyInputRef}
+          id="add-key-value"
+          class="provider-detail__input provider-detail__input--masked"
+          type="text"
+          autocomplete="off"
+          aria-label={`New ${props.provDef.name} ${props.credentialNoun()}`}
+          placeholder={props.placeholder}
+          value={apiKey()}
+          onInput={(e) => setApiKey(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') submit();
+          }}
+        />
+        <Show when={props.whereToGetUrl()}>
+          <p class="provider-detail__key-help">
+            <a
+              class="provider-detail__key-help-link"
+              href={props.whereToGetUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get {props.provDef.name} {props.credentialNoun()}
+            </a>
+          </p>
+        </Show>
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+          <button
+            class="btn btn--outline btn--sm"
+            onClick={() => setIsOpen(false)}
+            disabled={props.busy()}
+          >
+            Cancel
+          </button>
+          <button
+            class="btn btn--primary btn--sm"
+            disabled={props.busy() || !apiKey().trim()}
+            onClick={submit}
+          >
+            <Show when={!props.busy()} fallback={<span class="spinner" />}>
+              Add key
+            </Show>
+          </button>
+        </div>
+      </div>
+    </Show>
+  );
+};
+
+interface KeyChainViewProps {
+  provDef: ProviderDef;
+  provId: string;
+  agentName: string;
+  authType: Accessor<AuthType>;
+  activeKeys: Accessor<RoutingProvider[]>;
+  busy: Accessor<boolean>;
+  setBusy: Setter<boolean>;
+  placeholder: string;
+  credentialNoun: () => string;
+  whereToGetUrl: () => string | undefined;
+  addKeyOpen?: Accessor<boolean>;
+  setAddKeyOpen?: Setter<boolean>;
+  onUpdate: () => void;
+  onDelete: (label: string) => void;
+}
+
+const KeyChainView: Component<KeyChainViewProps> = (props) => {
+  const [renamingId, setRenamingId] = createSignal<string | null>(null);
+  const [renameValue, setRenameValue] = createSignal('');
+
+  const startRename = (k: RoutingProvider) => {
+    setRenamingId(k.id);
+    setRenameValue(k.label);
+  };
+
+  const commitRename = async (k: RoutingProvider) => {
+    const newLabel = renameValue().trim();
+    if (!newLabel || newLabel === k.label) {
+      setRenamingId(null);
+      return;
+    }
+    props.setBusy(true);
+    try {
+      await renameProviderKey(props.agentName, props.provId, k.label, newLabel, props.authType());
+      toast.success(`Renamed to "${newLabel}"`);
+      setRenamingId(null);
+      props.onUpdate();
+    } catch {
+      // toast handled upstream
+    } finally {
+      props.setBusy(false);
+    }
+  };
+
+  return (
+    <div class="provider-detail__field">
+      <label class="provider-detail__label">API Keys</label>
+      <ul
+        role="list"
+        aria-label={`API keys for ${props.provDef.name}`}
+        style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
+      >
+        <For each={props.activeKeys()}>
+          {(k) => (
+            <li style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted) / 0.3);">
+              <Show
+                when={renamingId() === k.id}
+                fallback={
+                  <>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {k.label}
+                      </div>
+                      <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                        {k.key_prefix ? `${k.key_prefix}${'•'.repeat(12)}` : '••••••••••••'}
+                      </div>
+                    </div>
+                    <button
+                      class="btn btn--outline btn--sm"
+                      style="flex-shrink: 0;"
+                      disabled={props.busy()}
+                      onClick={() => startRename(k)}
+                    >
+                      Rename
+                    </button>
+                    <button
+                      class="provider-detail__disconnect-icon"
+                      disabled={props.busy()}
+                      onClick={() => props.onDelete(k.label)}
+                      aria-label={`Delete key ${k.label}`}
+                      title="Delete key"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </>
+                }
+              >
+                <input
+                  class="provider-detail__input"
+                  type="text"
+                  maxlength={MAX_LABEL_LENGTH}
+                  aria-label={`Rename ${k.label}`}
+                  value={renameValue()}
+                  onInput={(e) => setRenameValue(e.currentTarget.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitRename(k);
+                    if (e.key === 'Escape') setRenamingId(null);
+                  }}
+                />
+                <button
+                  class="btn btn--primary btn--sm"
+                  disabled={props.busy()}
+                  onClick={() => commitRename(k)}
+                >
+                  Save
+                </button>
+                <button
+                  class="btn btn--outline btn--sm"
+                  disabled={props.busy()}
+                  onClick={() => setRenamingId(null)}
+                >
+                  Cancel
+                </button>
+              </Show>
+            </li>
+          )}
+        </For>
+      </ul>
+      <Show when={props.activeKeys().length < MAX_KEYS_PER_PROVIDER}>
+        <AddAnotherKeyAction
+          onAdd={async (label, apiKey) => {
+            // Subscription chains paste setup tokens, which validate
+            // differently from api keys. Pick the right validator based on
+            // the chain's auth_type.
+            const result =
+              props.authType() === 'subscription'
+                ? validateSubscriptionKey(props.provDef, apiKey)
+                : validateApiKey(props.provDef, apiKey);
+            if (!result.valid) {
+              toast.error(result.error!);
+              return false;
+            }
+            props.setBusy(true);
+            try {
+              await connectProvider(props.agentName, {
+                provider: props.provId,
+                apiKey: apiKey.replace(/\s/g, ''),
+                authType: props.authType(),
+                label,
+              });
+              toast.success(`${props.provDef.name} key "${label}" added`);
+              props.onUpdate();
+              return true;
+            } catch {
+              return false;
+            } finally {
+              props.setBusy(false);
+            }
+          }}
+          busy={props.busy}
+          setBusy={props.setBusy}
+          provDef={props.provDef}
+          placeholder={props.placeholder}
+          whereToGetUrl={props.whereToGetUrl}
+          credentialNoun={props.credentialNoun}
+          existingLabels={() => props.activeKeys().map((k) => k.label)}
+          open={props.addKeyOpen}
+          setOpen={props.setAddKeyOpen}
+          isSubscription={props.authType() === 'subscription'}
+        />
+      </Show>
+    </div>
   );
 };
 

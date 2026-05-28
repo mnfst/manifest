@@ -2,11 +2,35 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType, ModelRoute } from 'manifest-shared';
+import { applyRequestParamDefaults } from 'manifest-shared';
+import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
+import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
+
+/**
+ * Context for the per-attempt param-defaults merge. Carries the agentId so
+ * `applyParamMerge` can ask the model-params service for the configuration
+ * that belongs to this attempt's (provider, auth_type, model) tuple — not
+ * the primary route's. Storage is model-scoped on the new
+ * `agent_model_params` table, so cross-provider leak is structurally
+ * impossible; we no longer need a provider-keyed filter, and Manifest's
+ * old tier-aware opinion layer is gone too (only the user's explicit
+ * config and the provider's natural default participate).
+ */
+export interface ParamMergeContext {
+  agentId: string;
+  scopeKey: string;
+}
+
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../oauth/gemini-oauth.service';
+import { parseOAuthTokenBlob } from '../oauth/core';
+import { KiroOauthService } from '../oauth/kiro-oauth.service';
+import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
 import {
@@ -16,10 +40,12 @@ import {
   resolveEndpointKey,
 } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
@@ -27,7 +53,7 @@ import {
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
-import type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
+import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 
 export interface FailedFallback {
@@ -53,10 +79,46 @@ export class ProxyFallbackService {
     private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly openaiOauth: OpenaiOauthService,
     private readonly minimaxOauth: MinimaxOauthService,
+    private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
+    private readonly xaiOauth: XaiOauthService,
     private readonly providerClient: ProviderClient,
     private readonly copilotToken: CopilotTokenService,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly modelParamsService: AgentModelParamsService,
+    private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly reasoningCache?: ReasoningContentCache,
   ) {}
+
+  /**
+   * Per-attempt merge: look up the user's saved params for this
+   * (agent, provider, auth_type, model) tuple and fold them into the
+   * outbound body. Returns the original body unchanged when no config
+   * exists — the provider's natural default applies in that case.
+   *
+   * Async because saved values still live in the route-scoped params table;
+   * the service caches the agent's full row set, so steady-state cost is a
+   * Map lookup, not a query. The MPS catalog itself is static/fetched metadata.
+   */
+  private async applyParamMerge(
+    body: Record<string, unknown>,
+    ctx: ParamMergeContext | undefined,
+    provider: string,
+    authType: AuthType | string | undefined,
+    model: string,
+  ): Promise<Record<string, unknown>> {
+    if (!ctx || !authType) return body;
+    const modelParams = await this.modelParamsService.get(
+      ctx.agentId,
+      ctx.scopeKey,
+      provider,
+      authType as AuthType,
+      model,
+    );
+    const specs = await this.providerParamSpecs.getSpecs(provider, authType as AuthType, model);
+    return applyRequestParamDefaults(body, modelParams, specs);
+  }
 
   async tryFallbacks(
     agentId: string,
@@ -74,6 +136,8 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode,
     chatBody?: Record<string, unknown>,
     fallbackRoutes?: ModelRoute[] | null,
+    paramMergeContext?: ParamMergeContext,
+    reasoningContentLookup?: ReasoningContentLookup,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -103,6 +167,12 @@ export class ProxyFallbackService {
       const route = useStructuredRoutes ? fallbackRoutes![i] : null;
       let provider: string | undefined;
       let authType: AuthType;
+      // Pinned key label: prefer the structured route's keyLabel. Each
+      // fallback can be pinned to a specific provider key (e.g. "Work" vs
+      // "Personal" Anthropic Console). When no route is supplied (legacy
+      // string-only inputs), the pin is undefined and we fall back to the
+      // priority-0 default key inside getProviderApiKey().
+      const providerKeyLabel = route?.keyLabel ?? undefined;
 
       if (route) {
         provider = route.provider;
@@ -134,7 +204,12 @@ export class ProxyFallbackService {
       }
 
       const model = normalizeProviderModel(provider, requestedModel);
-      const apiKey = await this.providerKeyService.getProviderApiKey(agentId, provider, authType);
+      const apiKey = await this.providerKeyService.getProviderApiKey(
+        agentId,
+        provider,
+        authType,
+        providerKeyLabel,
+      );
       if (apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
@@ -150,11 +225,16 @@ export class ProxyFallbackService {
         userId,
         this.openaiOauth,
         this.minimaxOauth,
+        this.anthropicOauth,
+        this.geminiOauth,
+        this.kiroOauth,
+        this.xaiOauth,
       );
       const providerRegion = await this.providerKeyService.getProviderRegion(
         agentId,
         provider,
         authType,
+        providerKeyLabel,
       );
 
       this.logger.log(
@@ -176,6 +256,8 @@ export class ProxyFallbackService {
         providerRegion,
         signatureLookup,
         thinkingLookup,
+        reasoningContentLookup,
+        paramMergeContext,
       });
 
       if (forward.response.ok) {
@@ -220,6 +302,8 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
+    paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -257,11 +341,11 @@ export class ProxyFallbackService {
     apiMode?: ProxyApiMode;
     signatureLookup?: SignatureLookup;
     thinkingLookup?: ThinkingBlockLookup;
+    reasoningContentLookup?: ReasoningContentLookup;
+    paramMergeContext?: ParamMergeContext;
   }): Promise<ForwardResult> {
     const {
       provider,
-      body,
-      chatBody,
       stream,
       signal,
       authType,
@@ -269,7 +353,29 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
     } = opts;
+    // Per-attempt merge: ask the model-params service for this iteration's
+    // (provider, auth_type, model) config. Storage is model-scoped on the
+    // new agent_model_params table, so a primary OpenAI route with a
+    // DeepSeek fallback no longer needs the old per-provider filter —
+    // OpenAI's lookup returns null, DeepSeek's returns its own row.
+    let body = await this.applyParamMerge(
+      opts.body,
+      opts.paramMergeContext,
+      provider,
+      authType,
+      opts.model,
+    );
+    let chatBody = opts.chatBody
+      ? await this.applyParamMerge(
+          opts.chatBody,
+          opts.paramMergeContext,
+          provider,
+          authType,
+          opts.model,
+        )
+      : undefined;
 
     const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
 
@@ -287,6 +393,21 @@ export class ProxyFallbackService {
       forwardModel = forwardModel.substring('copilot/'.length);
     }
 
+    // Strip the "minimax/" prefix for MiniMax subscription routes. Vendor-
+    // prefixed model IDs can come in from OpenRouter pricing fallbacks
+    // (e.g. `minimax/MiniMax-M2.7`), and when we set a custom endpoint below
+    // for the CN region the request would otherwise reach MiniMax with the
+    // prefix intact and 404. The provider-endpoint resolver normally strips
+    // it for `minimax-subscription`, but a `customEndpoint` short-circuits
+    // that and ProviderClient.stripModelPrefix leaves `custom` keys alone.
+    if (
+      provider.toLowerCase() === 'minimax' &&
+      authType === 'subscription' &&
+      forwardModel.toLowerCase().startsWith('minimax/')
+    ) {
+      forwardModel = forwardModel.substring('minimax/'.length);
+    }
+
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
       const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
@@ -296,14 +417,56 @@ export class ProxyFallbackService {
       }
     } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
       customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax' && resourceUrl) {
-      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
-      if (minimaxBaseUrl) {
-        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
-      } else {
-        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax') {
+      // OAuth-issued tokens carry the chosen region inside the JSON blob's
+      // resource_url (resourceUrl). Pasted Coding Plan tokens (`sk-cp-`)
+      // don't — for those we read the persisted region column. We only
+      // build a custom endpoint when the region is CN; global already
+      // matches the built-in `minimax-subscription` endpoint base URL, and
+      // overriding it would shift the route through the `custom` endpoint
+      // key, which preserves vendor-prefixed model IDs that this provider
+      // would otherwise strip and reject.
+      if (resourceUrl) {
+        const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
+        if (minimaxBaseUrl) {
+          customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+        } else {
+          this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
+        }
+      } else if (providerRegion === 'cn') {
+        const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
+        customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
       }
     }
+
+    const reasoningEndpointKey =
+      customEndpoint && customEndpoint.format !== 'openai'
+        ? null
+        : customEndpoint
+          ? 'custom'
+          : resolveEndpointKey(provider);
+    if (this.reasoningCache) {
+      body = await this.reasoningCache.reinjectMissingReasoningContent(
+        body,
+        opts.sessionKey,
+        reasoningEndpointKey,
+        forwardModel,
+      );
+      if (chatBody) {
+        chatBody = await this.reasoningCache.reinjectMissingReasoningContent(
+          chatBody,
+          opts.sessionKey,
+          reasoningEndpointKey,
+          forwardModel,
+        );
+      }
+    }
+
+    // For Gemini OAuth, the OAuth blob's `u` field is the
+    // CodeAssist project id (not a URL). It must be forwarded so the
+    // CodeAssist envelope wrap can include it.
+    const providerResource =
+      authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
 
     return this.providerClient.forward({
       provider,
@@ -319,6 +482,8 @@ export class ProxyFallbackService {
       apiMode: opts.apiMode,
       signatureLookup,
       thinkingLookup,
+      reasoningContentLookup,
+      providerResource,
     });
   }
 }
@@ -339,6 +504,10 @@ export async function resolveApiKey(
   userId: string,
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
+  anthropicOauth: AnthropicOauthService,
+  geminiOauth: GeminiOauthService,
+  kiroOauth: KiroOauthService,
+  xaiOauth: XaiOauthService,
 ): Promise<{ apiKey: string; resourceUrl?: string }> {
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
@@ -349,6 +518,27 @@ export async function resolveApiKey(
     if (lower === 'minimax') {
       const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId);
       if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
+    }
+    if (lower === 'anthropic') {
+      const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
+    }
+    if (lower === 'gemini') {
+      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) {
+        // The CodeAssist project id was stored in `blob.u` by enrichBlob.
+        // Read it from the input blob (refreshes preserve the field).
+        const projectId = parseOAuthTokenBlob(apiKey)?.u;
+        return { apiKey: unwrapped, resourceUrl: projectId };
+      }
+    }
+    if (lower === 'kiro') {
+      const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
+    }
+    if (lower === 'xai') {
+      const unwrapped = await xaiOauth.unwrapToken(apiKey, agentId, userId);
+      if (unwrapped) return { apiKey: unwrapped };
     }
   }
   return { apiKey };

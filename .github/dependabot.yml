@@ -14,3 +14,29 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "gcr.io/distroless/nodejs*"
         update-types: ["version-update:semver-major"]
+
+  # npm workspaces — Dependabot reads root package.json + every workspace
+  # package.json automatically. Weekly schedule keeps PR volume manageable.
+  # Majors are surfaced individually so we can review breaking changes;
+  # patches/minors are grouped to reduce review overhead.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      patch-and-minor:
+        applies-to: version-updates
+        update-types:
+          - patch
+          - minor
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # Pinned to match the runtime Node version (CLAUDE.md: Node 24.x).
+      # Bump @types/node manually when we move to a new Node LTS.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]

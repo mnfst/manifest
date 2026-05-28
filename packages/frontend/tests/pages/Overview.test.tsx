@@ -425,17 +425,17 @@ describe("Overview", () => {
     };
 
     it("renders custom provider icon in recent messages", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const img = container.querySelector('img[alt="Groq"]');
+        const img = container.querySelector('img[alt="Cerebras"]');
         expect(img).not.toBeNull();
       });
     });
 
     it("strips custom prefix from model name display", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
@@ -445,11 +445,11 @@ describe("Overview", () => {
     });
 
     it("renders custom provider icon in cost by model table", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Groq" }]);
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
-        const imgs = container.querySelectorAll('img[alt="Groq"]');
+        const imgs = container.querySelectorAll('img[alt="Cerebras"]');
         // At least one in recent messages and one in cost by model
         expect(imgs.length).toBeGreaterThanOrEqual(2);
       });
@@ -721,11 +721,11 @@ describe("Overview", () => {
     });
   });
 
-  it("shows $0.00 cost for subscription auth_type messages in recent activity", async () => {
+  it("shows $0.00 cost for flat-fee subscription messages (cost null) in recent activity", async () => {
     const dataWithSub = {
       ...overviewData,
       recent_activity: [
-        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: 0.05 },
+        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: null },
       ],
     };
     mockGetOverview.mockResolvedValue(dataWithSub);
@@ -734,6 +734,23 @@ describe("Overview", () => {
       const subCost = container.querySelector('[title="Included in subscription"]');
       expect(subCost).not.toBeNull();
       expect(subCost!.textContent).toBe("$0.00");
+    });
+  });
+
+  it("renders the recorded cost for per-request subscriptions (e.g. OpenCode Go)", async () => {
+    const dataWithPerRequestSub = {
+      ...overviewData,
+      recent_activity: [
+        { ...overviewData.recent_activity[0], auth_type: "subscription", cost: 0.013636 },
+      ],
+    };
+    mockGetOverview.mockResolvedValue(dataWithPerRequestSub);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      // Per-request subscription rows should show the real cost, not $0.00.
+      expect(container.textContent).toContain("$0.01");
+      const tooltip = container.querySelector('[title^="Per-request subscription cost:"]');
+      expect(tooltip).not.toBeNull();
     });
   });
 

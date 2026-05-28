@@ -222,12 +222,16 @@
 }
 
 .btn--danger {
-  background: hsl(var(--destructive));
-  color: white;
+  background: hsl(var(--background));
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--foreground) / 0.2);
+  border-radius: var(--radius);
 }
 
 .btn--danger:hover {
-  background: hsl(var(--destructive) / 0.9);
+  background: hsl(var(--destructive));
+  color: white;
+  border-color: hsl(var(--destructive));
 }
 
 /* ── Danger zone ──────────────────────────────────── */
@@ -240,6 +244,7 @@
 }
 
 .settings-card--danger .settings-card__control {
+  width: auto;
   display: flex;
   justify-content: flex-end;
 }
@@ -312,7 +317,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--gap-lg);
-  z-index: 40;
+  z-index: 60;
 }
 
 .header__left {
@@ -402,6 +407,7 @@
 }
 
 .dark .header__breadcrumb-icon[src*='openai'],
+.dark .header__breadcrumb-icon[src*='anthropic'],
 .dark .header__breadcrumb-icon[src*='vercel'],
 .dark .header__breadcrumb-icon[src*='other'] {
   filter: invert(1);
@@ -454,7 +460,7 @@
   border-radius: var(--radius);
   box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
   padding: 4px;
-  z-index: 50;
+  z-index: 200;
   animation: fadeInUp 100ms ease-out;
 }
 
@@ -557,6 +563,193 @@
 .header__docs-link:hover {
   border-color: hsl(var(--ring) / 0.3);
   background: hsl(var(--muted));
+}
+
+/* ── Wingman dev tools (dev-only) ─────────────────── */
+/* Floating action button — bottom-right when drawer is closed.        */
+/* Pink gradient so contributors notice it but never confuse it with   */
+/* the rest of the dashboard chrome.                                   */
+.wingman-fab {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  z-index: 8000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ec4899, #db2777);
+  color: white;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow:
+    0 6px 20px rgba(236, 72, 153, 0.32),
+    0 1px 3px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.18s ease,
+    background 0.15s ease;
+}
+
+.wingman-fab:hover {
+  background: linear-gradient(135deg, #db2777, #be185d);
+  box-shadow:
+    0 10px 28px rgba(236, 72, 153, 0.42),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.wingman-fab:active {
+  transform: translateY(0);
+}
+
+.wingman-fab__label {
+  line-height: 1;
+}
+
+@media (max-width: 540px) {
+  .wingman-fab__label {
+    display: none;
+  }
+  .wingman-fab {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Slide-up drawer — DevTools-style.                                   */
+.wingman-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8000;
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.18);
+  animation: wingman-drawer-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 200px;
+}
+
+.wingman-drawer--resizing {
+  user-select: none;
+}
+
+.wingman-drawer--resizing iframe {
+  pointer-events: none;
+}
+
+@keyframes wingman-drawer-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0.6;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.wingman-drawer__resizer {
+  height: 6px;
+  margin-top: -3px;
+  cursor: ns-resize;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wingman-drawer__resizer::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: hsl(var(--border));
+  transition: background 0.15s;
+}
+
+.wingman-drawer__resizer:hover::before,
+.wingman-drawer--resizing .wingman-drawer__resizer::before {
+  background: #ec4899;
+}
+
+.wingman-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px 6px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  flex-shrink: 0;
+}
+
+.wingman-drawer__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wingman-drawer__title strong {
+  font-size: 13px;
+  color: hsl(var(--foreground));
+}
+
+.wingman-drawer__sub {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wingman-drawer__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.wingman-drawer__icon-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    border-color 0.12s;
+}
+
+.wingman-drawer__icon-btn:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.wingman-drawer__frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: hsl(var(--background));
 }
 
 /* ── GitHub Star Button ──────────────────────────── */

@@ -22,8 +22,11 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
     subscriptionAuthMode: 'popup_oauth' as const,
     knownModels: Object.freeze([
+      'gpt-5.5',
       'gpt-5.4',
+      'gpt-5.4-mini',
       'gpt-5.3-codex',
+      'gpt-5.3-codex-spark',
       'gpt-5.2-codex',
       'gpt-5.2',
       'gpt-5.1-codex-max',
@@ -66,6 +69,27 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  kiro: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Kiro subscription',
+    subscriptionAuthMode: 'device_code' as const,
+    knownModels: Object.freeze([
+      'kiro/auto',
+      'kiro/claude-sonnet-4.5',
+      'kiro/claude-sonnet-4',
+      'kiro/claude-haiku-4.5',
+      'kiro/deepseek-3.2',
+      'kiro/minimax-m2.5',
+      'kiro/minimax-m2.1',
+      'kiro/glm-5',
+      'kiro/qwen3-coder-next',
+    ]),
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   zai: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'GLM Coding Plan',
@@ -96,6 +120,42 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     // see OpencodeGoCatalogService in the backend.
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  gemini: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Sign in with Google',
+    subscriptionAuthMode: 'popup_oauth' as const,
+    // CodeAssist (gemini-cli) supports a fixed list of Gemini models. The
+    // dashboard uses these as fallback when no native /models call returns
+    // (CodeAssist does not expose one). Keep this list strict to models that
+    // the CodeAssist route recognizes; some current Gemini API model IDs still
+    // 404 on the CodeAssist API.
+    knownModels: Object.freeze([
+      'gemini-3.1-pro-preview',
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite',
+      'gemini-3.1-flash-lite-preview',
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+    ]),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  xai: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Grok subscription',
+    subscriptionAuthMode: 'popup_oauth' as const,
+    // Model list is fetched dynamically from xAI's OpenAI-compatible /v1/models endpoint.
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 128000,
       supportsPromptCaching: false,
       supportsBatching: false,
     }),

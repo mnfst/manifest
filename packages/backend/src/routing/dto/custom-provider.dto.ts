@@ -13,11 +13,14 @@ import {
   IsUrl,
   IsIn,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export const CUSTOM_PROVIDER_API_KINDS = ['openai', 'anthropic'] as const;
 export type CustomProviderApiKindDto = (typeof CUSTOM_PROVIDER_API_KINDS)[number];
+export const CUSTOM_PROVIDER_MODEL_LIMIT = 500;
+
 export class CustomProviderModelDto {
   @IsString()
   @IsNotEmpty()
@@ -41,6 +44,10 @@ export class CustomProviderModelDto {
   @Min(1)
   @Type(() => Number)
   context_window?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  price_estimated?: boolean;
 }
 
 export class CreateCustomProviderDto {
@@ -68,7 +75,7 @@ export class CreateCustomProviderDto {
 
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(50)
+  @ArrayMaxSize(CUSTOM_PROVIDER_MODEL_LIMIT)
   @ValidateNested({ each: true })
   @Type(() => CustomProviderModelDto)
   models!: CustomProviderModelDto[];
@@ -79,6 +86,11 @@ export class ProbeCustomProviderDto {
   @IsNotEmpty()
   @IsUrl({ require_tld: false, require_protocol: true }, { message: 'Must be a valid URL' })
   base_url!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  provider_name?: string;
 
   @IsOptional()
   @IsIn(CUSTOM_PROVIDER_API_KINDS, { message: 'api_kind must be "openai" or "anthropic"' })
@@ -117,7 +129,7 @@ export class UpdateCustomProviderDto {
   @IsOptional()
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(50)
+  @ArrayMaxSize(CUSTOM_PROVIDER_MODEL_LIMIT)
   @ValidateNested({ each: true })
   @Type(() => CustomProviderModelDto)
   models?: CustomProviderModelDto[];

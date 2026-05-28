@@ -5,6 +5,7 @@ import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -154,6 +155,11 @@ describe('ProxyController', () => {
       { getTiers: jest.fn().mockResolvedValue([]) } as never,
       { getAssignments: jest.fn().mockResolvedValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
+      {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never,
+      { save: jest.fn() } as never,
     );
     controller = new ProxyController(
       proxyService as never,
@@ -162,11 +168,30 @@ describe('ProxyController', () => {
       recorder,
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
+      new ReasoningContentCache(),
+      { isRecording: jest.fn().mockResolvedValue(false), invalidate: jest.fn() } as never,
     );
   });
 
   afterEach(() => {
     recorder.onModuleDestroy();
+  });
+
+  it('should expose /v1/models with the Manifest auto route', () => {
+    expect(controller.models()).toEqual({
+      object: 'list',
+      data: [
+        {
+          id: 'auto',
+          object: 'model',
+          type: 'model',
+          display_name: 'Manifest Auto',
+        },
+      ],
+      has_more: false,
+      first_id: 'auto',
+      last_id: 'auto',
+    });
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -250,6 +275,54 @@ describe('ProxyController', () => {
       annotations: [],
     });
     expect(json.usage.input_tokens).toBe(4);
+  });
+
+  it('should expose /v1/messages and convert chat completions output to Anthropic Messages format', async () => {
+    const responseBody = {
+      id: 'cc_1',
+      model: 'claude-sonnet-4',
+      choices: [{ message: { content: 'hi there' }, finish_reason: 'stop' }],
+      usage: { prompt_tokens: 4, completion_tokens: 2, total_tokens: 6 },
+    };
+    const mockProviderResp = new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: mockProviderResp,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'simple',
+        model: 'claude-sonnet-4',
+        provider: 'Anthropic',
+        confidence: 0.9,
+        reason: 'scored',
+      },
+    });
+
+    const req = mockRequest({
+      model: 'claude-sonnet-4',
+      max_tokens: 64,
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    const { res } = mockResponse();
+
+    await controller.messages(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ apiMode: 'messages' }),
+    );
+    const json = (res.json as jest.Mock).mock.calls[0][0];
+    expect(json.type).toBe('message');
+    expect(json.role).toBe('assistant');
+    expect(json.content).toEqual([{ type: 'text', text: 'hi there' }]);
+    expect(json.stop_reason).toBe('end_turn');
+    expect(json.usage).toMatchObject({ input_tokens: 4, output_tokens: 2 });
   });
 
   it('should pass through native Responses JSON bodies', async () => {
@@ -1859,6 +1932,11 @@ describe('ProxyController', () => {
         { getTiers: jest.fn().mockResolvedValue([]) } as never,
         { getAssignments: jest.fn().mockResolvedValue([]) } as never,
         { list: jest.fn().mockResolvedValue([]) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
+        { save: jest.fn() } as never,
       );
 
       const cooldownMap = (timedRecorder as any).rateLimitCooldown as Map<string, number>;
@@ -1894,6 +1972,11 @@ describe('ProxyController', () => {
         { getTiers: jest.fn().mockResolvedValue([]) } as never,
         { getAssignments: jest.fn().mockResolvedValue([]) } as never,
         { list: jest.fn().mockResolvedValue([]) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
+        { save: jest.fn() } as never,
       );
 
       timedRecorder.onModuleDestroy();
@@ -2022,8 +2105,8 @@ describe('ProxyController', () => {
 
     it('should transform Anthropic streaming through createAnthropicStreamTransformer', async () => {
       const mockProviderResp = createMockStreamResponse([
-        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}\n\n',
-        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"hi"}}\n\n',
+        'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":10}}}\n\n',
+        'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":"hi"}}\n\n',
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({

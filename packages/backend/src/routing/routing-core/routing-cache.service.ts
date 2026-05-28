@@ -4,6 +4,7 @@ import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { HeaderTier } from '../../entities/header-tier.entity';
+import { AgentModelParams } from '../../entities/agent-model-params.entity';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -11,6 +12,14 @@ const MAX_ENTRIES = 5_000;
 interface CachedEntry<T> {
   data: T;
   expiresAt: number;
+}
+
+export interface CachedProviderKey {
+  id: string;
+  label: string;
+  priority: number;
+  apiKey: string | null;
+  region: string | null;
 }
 
 function getOrExpire<T>(map: Map<string, CachedEntry<T>>, key: string): T | undefined {
@@ -34,9 +43,10 @@ export class RoutingCacheService {
   private readonly tiers = new Map<string, CachedEntry<TierAssignment[]>>();
   private readonly providers = new Map<string, CachedEntry<UserProvider[]>>();
   private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
-  private readonly apiKeys = new Map<string, CachedEntry<string | null>>();
+  private readonly providerKeys = new Map<string, CachedEntry<CachedProviderKey[]>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
   private readonly headerTiers = new Map<string, CachedEntry<HeaderTier[]>>();
+  private readonly modelParams = new Map<string, CachedEntry<AgentModelParams[]>>();
 
   getTiers(agentId: string): TierAssignment[] | null {
     return getOrExpire(this.tiers, agentId) ?? null;
@@ -62,12 +72,21 @@ export class RoutingCacheService {
     setWithEviction(this.customProviders, agentId, data);
   }
 
-  getApiKey(agentId: string, provider: string, authType?: string): string | null | undefined {
-    return getOrExpire(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
+  getProviderKeys(
+    agentId: string,
+    provider: string,
+    authType?: string,
+  ): CachedProviderKey[] | undefined {
+    return getOrExpire(this.providerKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
   }
 
-  setApiKey(agentId: string, provider: string, apiKey: string | null, authType?: string): void {
-    setWithEviction(this.apiKeys, `${agentId}:${provider}:${authType ?? 'default'}`, apiKey);
+  setProviderKeys(
+    agentId: string,
+    provider: string,
+    keys: CachedProviderKey[],
+    authType?: string,
+  ): void {
+    setWithEviction(this.providerKeys, `${agentId}:${provider}:${authType ?? 'default'}`, keys);
   }
 
   getSpecificity(agentId: string): SpecificityAssignment[] | null {
@@ -86,14 +105,27 @@ export class RoutingCacheService {
     setWithEviction(this.headerTiers, agentId, data);
   }
 
+  getModelParams(agentId: string): AgentModelParams[] | null {
+    return getOrExpire(this.modelParams, agentId) ?? null;
+  }
+
+  setModelParams(agentId: string, data: AgentModelParams[]): void {
+    setWithEviction(this.modelParams, agentId, data);
+  }
+
+  invalidateModelParams(agentId: string): void {
+    this.modelParams.delete(agentId);
+  }
+
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
     this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
+    this.modelParams.delete(agentId);
     const prefix = `${agentId}:`;
-    const toDelete = [...this.apiKeys.keys()].filter((k) => k.startsWith(prefix));
-    for (const k of toDelete) this.apiKeys.delete(k);
+    const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
+    for (const k of toDelete) this.providerKeys.delete(k);
   }
 }

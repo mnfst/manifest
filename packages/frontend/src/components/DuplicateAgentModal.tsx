@@ -56,7 +56,9 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   const totalCopied = () => {
     const c = preview()?.copied;
     if (!c) return 0;
-    return c.providers + c.customProviders + c.tierAssignments + c.specificityAssignments;
+    return (
+      c.providers + c.customProviders + c.tierAssignments + c.specificityAssignments + c.modelParams
+    );
   };
 
   const handleNameInput = (value: string) => {
@@ -95,7 +97,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter') handleDuplicate();
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) handleDuplicate();
     if (e.key === 'Escape') requestClose();
   };
 
@@ -114,6 +116,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
           aria-modal="true"
           aria-labelledby="duplicate-agent-title"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="duplicate-agent-title">
             Duplicate "{props.sourceName}"
@@ -139,7 +142,6 @@ const DuplicateAgentModal: Component<Props> = (props) => {
             placeholder={preview()?.suggested_name ?? `${props.sourceName}-copy`}
             value={name()}
             onInput={(e) => handleNameInput(e.currentTarget.value)}
-            onKeyDown={handleKeyDown}
             disabled={submitting()}
           />
 
