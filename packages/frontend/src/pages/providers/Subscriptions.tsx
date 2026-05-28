@@ -262,7 +262,7 @@ const Subscriptions: Component = () => {
                       <td>
                         <span style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
                           <button
-                            class="btn btn--sm"
+                            class="btn btn--outline btn--sm"
                             style="font-size: var(--font-size-xs);"
                             onClick={() => navigate(`/providers/connections/${row.conn.id}`)}
                           >

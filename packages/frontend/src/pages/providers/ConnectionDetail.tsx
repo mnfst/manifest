@@ -181,7 +181,7 @@ const ConnectionDetail: Component = () => {
                   </h1>
                 </div>
                 <button
-                  class="btn btn--sm"
+                  class="btn btn--outline btn--sm"
                   onClick={() => {
                     refetchModalProviders();
                     setShowManageModal(true);
