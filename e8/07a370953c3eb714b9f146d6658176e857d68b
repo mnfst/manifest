@@ -1,0 +1,35 @@
+packages/backend/src/playground/playground-stream.ts
+  s_0cd87d2f4d2dd2::t_5d7b60237271de 2-3,15,95,116-117,122,124-125
+packages/backend/src/playground/playground-stream.spec.ts
+  s_0cd87d2f4d2dd2::t_87f0d44a61a850 81,242
+packages/backend/src/routing/proxy/sse-parser.ts
+  s_0cd87d2f4d2dd2::t_c1577ee5a13cb3 100-106,117-124,126-128,152-158,169-175,180
+  s_0cd87d2f4d2dd2::t_d86323d7bb7871 1-95,97-99,107-116,125,129-151,159-168,176-179,181-186
+  s_0cd87d2f4d2dd2::t_e7e338331de97b 96
+packages/backend/package.json
+  s_0cd87d2f4d2dd2::t_6eabd95a44318a 38
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_0cd87d2f4d2dd2::t_8bc0936111f3e1 2-7,126,128,152,166,175-178,185-191,215-264,276,280-284
+.changeset/sse-comment-parser.md
+  s_0cd87d2f4d2dd2::t_9bda599b7adeba 1,3-5
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_0cd87d2f4d2dd2::t_8f1f4cde92d208 144-157,165,169,225-239,755-760,762-773
+  s_0cd87d2f4d2dd2::t_e7df19adf6cc05 107-114,761
+  s_0cd87d2f4d2dd2::t_f0592e234e822d 92-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e807a370953c3eb714b9f146d6658176e857d68b",
+  "prompts": {},
+  "sessions": {
+    "s_0cd87d2f4d2dd2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6ea4-e8d6-7d00-a928-82c8785f7475",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
