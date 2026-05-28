@@ -27,6 +27,7 @@ const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
 const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.jsx'));
 const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
 const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
+const ConnectionDetail = lazyReload(() => import('./pages/providers/ConnectionDetail.jsx'));
 
 // Auth / account pages
 const Account = lazyReload(() => import('./pages/Account.jsx'));
@@ -68,6 +69,7 @@ render(
           <Route path="/providers/subscriptions" component={Subscriptions} />
           <Route path="/providers/byok" component={Byok} />
           <Route path="/providers/local" component={LocalProviders} />
+          <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
           <Route path="/providers" component={() => <Navigate href="/providers/subscriptions" />} />
 
           {/* Agent detail: horizontal tabs (routing, settings, providers) */}

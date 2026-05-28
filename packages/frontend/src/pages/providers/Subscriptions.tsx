@@ -1,4 +1,5 @@
 import { Title } from '@solidjs/meta';
+import { useNavigate } from '@solidjs/router';
 import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
@@ -9,6 +10,8 @@ import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { formatNumber } from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import Sparkline from '../../components/Sparkline.jsx';
+import ActionMenu from '../../components/ActionMenu.jsx';
 import Select from '../../components/Select.jsx';
 import type { RoutingProvider } from '../../services/api/routing.js';
 import '../../styles/charts.css';
@@ -28,6 +31,7 @@ interface ConnectedProvider {
   total_models: number;
   consumption_tokens: number;
   consumption_messages: number;
+  sparkline_7d?: number[];
 }
 
 interface ProvidersResponse {
@@ -38,6 +42,7 @@ interface ProvidersResponse {
 const SUBSCRIPTION_PROVIDERS = PROVIDERS.filter((p) => p.supportsSubscription);
 
 const Subscriptions: Component = () => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
   const [deepLinkProvider, setDeepLinkProvider] = createSignal<string | null>(null);
 
@@ -225,7 +230,7 @@ const Subscriptions: Component = () => {
                 <th>Provider</th>
                 <th>Models</th>
                 <th>Subscription</th>
-                <th>Usage / month</th>
+                <th>Usage (30d)</th>
                 <th />
               </tr>
             </thead>
@@ -247,28 +252,23 @@ const Subscriptions: Component = () => {
                       <td>{row.conn.cached_model_count || getModelCount(row.prov.id) || '—'}</td>
                       <td style="color: hsl(var(--muted-foreground));">{row.conn.label}</td>
                       <td>
-                        <Show when={perKeyTokens() > 0} fallback="—">
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <span>{formatNumber(perKeyTokens())} tokens</span>
-                            <div class="usage-bar">
-                              <div
-                                class="usage-bar__fill"
-                                style={{
-                                  width: `${Math.min(100, Math.round((perKeyTokens() / 1_000_000) * 100))}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </Show>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <span>{formatNumber(perKeyTokens())} tokens</span>
+                          <Show when={row.cp.sparkline_7d?.length}>
+                            <Sparkline data={row.cp.sparkline_7d!} width={80} height={24} />
+                          </Show>
+                        </div>
                       </td>
                       <td style="text-align: right;">
-                        <button
-                          class="btn btn--sm"
-                          style="font-size: var(--font-size-xs);"
-                          onClick={() => openConnect(row.prov.id)}
-                        >
-                          Manage
-                        </button>
+                        <ActionMenu
+                          items={[
+                            {
+                              label: 'View details',
+                              onClick: () => navigate(`/providers/connections/${row.conn.id}`),
+                            },
+                            { label: 'Manage', onClick: () => openConnect(row.prov.id) },
+                          ]}
+                        />
                       </td>
                     </tr>
                   );

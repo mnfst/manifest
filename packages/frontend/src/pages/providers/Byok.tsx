@@ -1,12 +1,19 @@
 import { Title } from '@solidjs/meta';
-import { createResource, createSignal, For, Show, type Component } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
+import { getProviderAnalytics, getProviderAnalyticsAgents } from '../../services/api/analytics.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { formatNumber, formatCost } from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
+import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import Sparkline from '../../components/Sparkline.jsx';
+import ActionMenu from '../../components/ActionMenu.jsx';
+import Select from '../../components/Select.jsx';
+import '../../styles/charts.css';
 
 interface Connection {
   id: string;
@@ -23,6 +30,7 @@ interface ConnectedProvider {
   consumption_tokens: number;
   consumption_messages: number;
   consumption_cost: number;
+  sparkline_7d?: number[];
 }
 interface ProvidersResponse {
   providers: ConnectedProvider[];
@@ -32,6 +40,7 @@ interface ProvidersResponse {
 const BYOK_PROVIDERS = PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
 
 const Byok: Component = () => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
   const [deepLinkProvider, setDeepLinkProvider] = createSignal<string | null>(null);
   const [data, { refetch }] = createResource(async () => {
@@ -104,6 +113,45 @@ const Byok: Component = () => {
     setDeepLinkProvider(null);
     refetch();
   };
+  // Chart state
+  const [chartRange, setChartRange] = createSignal('24h');
+  const [chartView, setChartView] = createSignal<'messages' | 'tokens'>('tokens');
+  const [chartAgent, setChartAgent] = createSignal('');
+
+  const [chartAgents] = createResource(() =>
+    getProviderAnalyticsAgents('api_key').catch(() => ({ agents: [] as string[] })),
+  );
+
+  interface AnalyticsResponse {
+    summary: {
+      messages: { value: number; trend_pct: number };
+      tokens: { value: number; trend_pct: number };
+    };
+    token_usage: Array<{
+      hour?: string;
+      date?: string;
+      input_tokens: number;
+      output_tokens: number;
+    }>;
+    message_usage: Array<{ hour?: string; date?: string; count: number }>;
+  }
+
+  const [analytics] = createResource(
+    () => ({ range: chartRange(), agent: chartAgent() }),
+    (p) =>
+      getProviderAnalytics('api_key', p.range, p.agent || undefined) as Promise<AnalyticsResponse>,
+  );
+
+  const messageChartData = createMemo(() => {
+    const src = analytics()?.message_usage;
+    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
+  });
+
+  const agentOptions = () => {
+    const list = chartAgents()?.agents ?? [];
+    return [{ label: 'All agents', value: '' }, ...list.map((a) => ({ label: a, value: a }))];
+  };
+
   const providerDeepLink = () => {
     const p = deepLinkProvider();
     return p ? { providerId: p, authType: 'api_key' as const, closeOnBack: true } : null;
@@ -118,6 +166,33 @@ const Byok: Component = () => {
           Connect providers using your own API keys for pay-as-you-go usage.
         </p>
       </div>
+
+      {/* Chart */}
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+        <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
+        <Select
+          value={chartRange()}
+          onChange={setChartRange}
+          options={[
+            { label: 'Last 24 hours', value: '24h' },
+            { label: 'Last 7 days', value: '7d' },
+            { label: 'Last 30 days', value: '30d' },
+          ]}
+        />
+      </div>
+      <Show when={analytics()}>
+        <ProviderChartCard
+          activeView={chartView()}
+          onViewChange={setChartView}
+          messagesValue={analytics()!.summary.messages.value}
+          messagesTrendPct={analytics()!.summary.messages.trend_pct}
+          tokensValue={analytics()!.summary.tokens.value}
+          tokensTrendPct={analytics()!.summary.tokens.trend_pct}
+          tokenUsage={analytics()!.token_usage}
+          messageChartData={messageChartData()}
+          range={chartRange()}
+        />
+      </Show>
 
       {/* TABLE 1: Connected — one row per connection */}
       <Show when={connectedRows().length > 0}>
@@ -139,8 +214,8 @@ const Byok: Component = () => {
                 <th>Provider</th>
                 <th>Models</th>
                 <th>Key name</th>
-                <th>Usage / month</th>
-                <th>Cost / month</th>
+                <th>Usage (30d)</th>
+                <th>Cost (30d)</th>
                 <th />
               </tr>
             </thead>
@@ -163,33 +238,24 @@ const Byok: Component = () => {
                       <td>{row.conn.cached_model_count || getModelCount(row.prov.id) || '—'}</td>
                       <td style="color: hsl(var(--muted-foreground));">{row.conn.label}</td>
                       <td>
-                        <Show when={perKeyTokens() > 0} fallback="—">
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <span>{formatNumber(perKeyTokens())} tokens</span>
-                            <div class="usage-bar">
-                              <div
-                                class="usage-bar__fill"
-                                style={{
-                                  width: `${Math.min(100, Math.round((perKeyTokens() / 1_000_000) * 100))}%`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </Show>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <span>{formatNumber(perKeyTokens())} tokens</span>
+                          <Show when={row.cp.sparkline_7d?.length}>
+                            <Sparkline data={row.cp.sparkline_7d!} width={80} height={24} />
+                          </Show>
+                        </div>
                       </td>
-                      <td>
-                        <Show when={perKeyCost() > 0} fallback="—">
-                          {formatCost(perKeyCost()) ?? '—'}
-                        </Show>
-                      </td>
+                      <td>{formatCost(perKeyCost()) ?? '$0.00'}</td>
                       <td style="text-align: right;">
-                        <button
-                          class="btn btn--sm"
-                          style="font-size: var(--font-size-xs);"
-                          onClick={() => openConnect(row.prov.id)}
-                        >
-                          Manage
-                        </button>
+                        <ActionMenu
+                          items={[
+                            {
+                              label: 'View details',
+                              onClick: () => navigate(`/providers/connections/${row.conn.id}`),
+                            },
+                            { label: 'Manage', onClick: () => openConnect(row.prov.id) },
+                          ]}
+                        />
                       </td>
                     </tr>
                   );

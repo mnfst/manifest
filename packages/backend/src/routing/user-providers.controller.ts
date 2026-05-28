@@ -120,6 +120,47 @@ export class UserProvidersController {
       }
     }
 
+    // 7-day daily token sparkline per (provider, auth_type)
+    const sparklines = new Map<string, number[]>();
+    if (tenant) {
+      const sparkRows = await this.messageRepo
+        .createQueryBuilder('m')
+        .select('m.provider', 'provider')
+        .addSelect('m.auth_type', 'auth_type')
+        .addSelect("to_char(date_trunc('day', m.timestamp), 'YYYY-MM-DD')", 'day')
+        .addSelect('COALESCE(SUM(m.input_tokens + m.output_tokens), 0)', 'tokens')
+        .where('m.tenant_id = :tenantId', { tenantId: tenant.id })
+        .andWhere("m.timestamp >= NOW() - INTERVAL '7 days'")
+        .groupBy('m.provider')
+        .addGroupBy('m.auth_type')
+        .addGroupBy('day')
+        .orderBy('day', 'ASC')
+        .getRawMany();
+
+      // Build a 7-element array for each provider key
+      const today = new Date();
+      const days: string[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().slice(0, 10));
+      }
+
+      const byKey = new Map<string, Map<string, number>>();
+      for (const r of sparkRows) {
+        if (!r.provider) continue;
+        const key = `${r.provider}::${r.auth_type ?? 'api_key'}`;
+        if (!byKey.has(key)) byKey.set(key, new Map());
+        byKey.get(key)!.set(String(r.day), Number(r.tokens) || 0);
+      }
+      for (const [key, dayMap] of byKey) {
+        sparklines.set(
+          key,
+          days.map((d) => dayMap.get(d) ?? 0),
+        );
+      }
+    }
+
     const result = Array.from(grouped.values()).map((g) => {
       const cons = consumption.get(`${g.provider}::${g.auth_type}`) ?? {
         tokens: 0,
@@ -135,6 +176,7 @@ export class UserProvidersController {
         consumption_tokens: cons.tokens,
         consumption_messages: cons.messages,
         consumption_cost: cons.cost,
+        sparkline_7d: sparklines.get(`${g.provider}::${g.auth_type}`) ?? [],
       };
     });
 
