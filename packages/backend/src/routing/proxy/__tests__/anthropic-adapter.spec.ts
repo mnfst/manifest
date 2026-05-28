@@ -1228,6 +1228,27 @@ describe('Anthropic Adapter', () => {
       expect(usage.usage.cache_creation_tokens).toBe(5);
       expect(usage.usage.prompt_tokens_details.cached_tokens).toBe(10);
     });
+
+    it('prefers cumulative input and cache tokens from message_delta usage when present', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+
+      transform(
+        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":42,"cache_read_input_tokens":10,"cache_creation_input_tokens":5}}}',
+      );
+
+      const result = transform(
+        'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"input_tokens":100,"cache_read_input_tokens":20,"cache_creation_input_tokens":7,"output_tokens":30}}',
+      );
+
+      const parts = result!.split('\n\n').filter(Boolean);
+      const usage = JSON.parse(parts[1].replace('data: ', ''));
+      expect(usage.usage.prompt_tokens).toBe(127);
+      expect(usage.usage.completion_tokens).toBe(30);
+      expect(usage.usage.total_tokens).toBe(157);
+      expect(usage.usage.cache_read_tokens).toBe(20);
+      expect(usage.usage.cache_creation_tokens).toBe(7);
+      expect(usage.usage.prompt_tokens_details.cached_tokens).toBe(20);
+    });
   });
 
   describe('extended-thinking round-trip (Fix 3)', () => {

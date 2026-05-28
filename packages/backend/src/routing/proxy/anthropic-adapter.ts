@@ -523,6 +523,20 @@ function handleMessageStart(state: StreamState, data: Record<string, unknown>): 
   return makeChunkSse(state.model, { role: 'assistant', content: '' }, null);
 }
 
+function applyMessageDeltaUsage(
+  state: StreamState,
+  usage: Record<string, unknown> | undefined,
+): void {
+  if (!usage) return;
+  if (typeof usage.input_tokens === 'number') state.inputTokens = usage.input_tokens;
+  if (typeof usage.cache_read_input_tokens === 'number') {
+    state.cacheReadTokens = usage.cache_read_input_tokens;
+  }
+  if (typeof usage.cache_creation_input_tokens === 'number') {
+    state.cacheCreationTokens = usage.cache_creation_input_tokens;
+  }
+}
+
 function handleContentBlockStart(state: StreamState, data: Record<string, unknown>): string | null {
   const block = data.content_block as Record<string, unknown> | undefined;
   const blockIndex = data.index as number;
@@ -620,8 +634,9 @@ function flushThinkingBlocks(state: StreamState): void {
 function handleMessageDelta(state: StreamState, data: Record<string, unknown>): string {
   flushThinkingBlocks(state);
   const delta = data.delta as Record<string, unknown> | undefined;
-  const usage = data.usage as Record<string, number> | undefined;
-  const outputTokens = usage?.output_tokens ?? 0;
+  const usage = data.usage as Record<string, unknown> | undefined;
+  applyMessageDeltaUsage(state, usage);
+  const outputTokens = typeof usage?.output_tokens === 'number' ? usage.output_tokens : 0;
   // inputTokens is non-cached only; total = non-cached + cache reads + cache creation
   const totalInput = state.inputTokens + state.cacheReadTokens + state.cacheCreationTokens;
 
