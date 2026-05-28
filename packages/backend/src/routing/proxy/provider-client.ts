@@ -52,30 +52,6 @@ const PROVIDER_TIMEOUT_MS =
     : 180_000;
 
 /**
- * Endpoint keys (OpenAI-compatible format) whose streaming responses support
- * `stream_options.include_usage`. Token usage is needed for DB logging and for
- * downstream clients (e.g. OpenClaw context management).
- */
-const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
-  'openai',
-  'openrouter',
-  'ollama',
-  'ollama-cloud',
-  'mistral',
-  'deepseek',
-  'moonshot',
-  'minimax',
-  'qwen',
-  'xai',
-  'zai',
-  'zai-subscription',
-  'copilot',
-  'opencode-go',
-  'custom',
-  'groq',
-]);
-
-/**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
@@ -382,7 +358,7 @@ export class ProviderClient {
       ctx.model,
       ctx.reasoningContentLookup,
     );
-    if (stream && SUPPORTS_USAGE_STREAM_OPTIONS.has(endpointKey)) {
+    if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
           ? (sanitized.stream_options as Record<string, unknown>)

@@ -1,4 +1,5 @@
 import { ProviderClient } from '../provider-client';
+import { buildCustomEndpoint } from '../provider-endpoints';
 
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
@@ -2593,7 +2594,9 @@ describe('ProviderClient', () => {
       ['mistral', 'mistral-small'],
       ['deepseek', 'deepseek-chat'],
       ['moonshot', 'kimi-k2-0905-preview'],
+      ['kilo', 'kilo-auto/free'],
       ['minimax', 'MiniMax-M2'],
+      ['nvidia', 'nvidia/nemotron-3-super-120b-a12b'],
       ['qwen', 'qwen-max'],
       ['xai', 'grok-3'],
       ['zai', 'glm-4.6'],
@@ -2688,15 +2691,7 @@ describe('ProviderClient', () => {
     it('uses custom endpoint with streaming', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const customEndpoint = {
-        baseUrl: 'http://localhost:8000',
-        buildHeaders: (key: string) => ({
-          Authorization: `Bearer ${key}`,
-          'Content-Type': 'application/json',
-        }),
-        buildPath: () => '/v1/chat/completions',
-        format: 'openai' as const,
-      };
+      const customEndpoint = buildCustomEndpoint('http://localhost:8000');
 
       await client.forward({
         provider: 'custom:uuid',
