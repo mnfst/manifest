@@ -2472,6 +2472,127 @@ describe('ProviderClient', () => {
       expect(sentBody.messages[3].tool_call_id).toBe(validToolCallId);
     });
 
+    it('preserves complete OpenAI tool-call blocks', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithToolCalls = {
+        messages: [
+          { role: 'user', content: 'Check both tools.' },
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [
+              {
+                id: 'call_search',
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+              {
+                id: 'call_lookup',
+                type: 'function',
+                function: { name: 'lookup', arguments: '{}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_search', content: '{"ok":true}' },
+          { role: 'tool', tool_call_id: 'call_lookup', content: '{"ok":true}' },
+          { role: 'user', content: 'Continue.' },
+        ],
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: bodyWithToolCalls as unknown as Record<string, unknown>,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual(bodyWithToolCalls.messages);
+    });
+
+    it('strips incomplete OpenAI tool-call blocks before fallback forwarding', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithIncompleteToolCalls = {
+        messages: [
+          { role: 'user', content: 'Check both tools.' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_search',
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+              {
+                id: 'call_lookup',
+                type: 'function',
+                function: { name: 'lookup', arguments: '{}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_search', content: '{"ok":true}' },
+          { role: 'tool', tool_call_id: 'call_extra', content: '{"ok":true}' },
+          { role: 'user', content: 'Continue.' },
+        ],
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: bodyWithIncompleteToolCalls as unknown as Record<string, unknown>,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual([
+        { role: 'user', content: 'Check both tools.' },
+        { role: 'assistant', content: '' },
+        { role: 'user', content: 'Continue.' },
+      ]);
+    });
+
+    it('strips later orphan OpenAI tool messages before fallback forwarding', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const bodyWithLaterToolResult = {
+        messages: [
+          { role: 'user', content: 'Check both tools.' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_search',
+                type: 'function',
+                function: { name: 'search', arguments: '{}' },
+              },
+            ],
+          },
+          { role: 'user', content: 'Continue.' },
+          { role: 'tool', tool_call_id: 'call_search', content: '{"ok":true}' },
+          { role: 'user', content: 'Next.' },
+        ],
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: bodyWithLaterToolResult as unknown as Record<string, unknown>,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual([
+        { role: 'user', content: 'Check both tools.' },
+        { role: 'assistant', content: '' },
+        { role: 'user', content: 'Continue.' },
+        { role: 'user', content: 'Next.' },
+      ]);
+    });
+
     it('preserves all fields for OpenAI', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
