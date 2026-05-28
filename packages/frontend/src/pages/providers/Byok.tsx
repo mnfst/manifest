@@ -89,7 +89,7 @@ const Byok: Component = () => {
   };
   const providerDeepLink = () => {
     const p = deepLinkProvider();
-    return p ? { provider: p } : null;
+    return p ? { providerId: p, authType: 'api_key' as const, closeOnBack: true } : null;
   };
 
   return (

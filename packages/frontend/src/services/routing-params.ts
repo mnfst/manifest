@@ -17,6 +17,10 @@
  */
 export interface ProviderDeepLink {
   providerId: string;
+  /** When set, forces the detail view to open with this auth type (e.g. 'subscription'). */
+  authType?: 'subscription' | 'api_key' | 'local';
+  /** When true, the back button in the detail view closes the modal instead of returning to the list. */
+  closeOnBack?: boolean;
 }
 
 export interface CustomProviderPrefill {

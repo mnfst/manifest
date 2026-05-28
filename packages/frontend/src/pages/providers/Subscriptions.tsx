@@ -119,7 +119,7 @@ const Subscriptions: Component = () => {
 
   const providerDeepLink = () => {
     const p = deepLinkProvider();
-    return p ? { provider: p } : null;
+    return p ? { providerId: p, authType: 'subscription' as const, closeOnBack: true } : null;
   };
 
   return (
@@ -138,9 +138,9 @@ const Subscriptions: Component = () => {
           <table class="data-table" style="table-layout: fixed;">
             <colgroup>
               <col />
-              <col style="width: 140px;" />
-              <col style="width: 100px;" />
-              <col style="width: 200px;" />
+              <col style="width: 120px;" />
+              <col style="width: 80px;" />
+              <col style="width: 180px;" />
               <col style="width: 100px;" />
             </colgroup>
             <thead>
@@ -210,17 +210,13 @@ const Subscriptions: Component = () => {
         <table class="data-table" style="table-layout: fixed;">
           <colgroup>
             <col />
-            <col style="width: 140px;" />
-            <col style="width: 100px;" />
-            <col style="width: 200px;" />
-            <col style="width: 100px;" />
+            <col style="width: 80px;" />
+            <col style="width: 260px;" />
           </colgroup>
           <thead>
             <tr>
               <th>Provider</th>
-              <th />
               <th>Models</th>
-              <th />
               <th />
             </tr>
           </thead>
@@ -239,38 +235,37 @@ const Subscriptions: Component = () => {
                         <span style="font-weight: 500;">{prov.name}</span>
                       </span>
                     </td>
-                    <td>
-                      <Show when={has()}>
-                        <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
-                          {cp()!.connection_count}{' '}
-                          {cp()!.connection_count === 1 ? 'connection' : 'connections'}
-                        </span>
-                      </Show>
-                    </td>
                     <td style="color: hsl(var(--muted-foreground));">
                       {getModelCount(prov.id) ?? '—'}
                     </td>
-                    <td />
-                    <td style="text-align: right;">
-                      <Show
-                        when={has()}
-                        fallback={
+                    <td>
+                      <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                        <Show when={has()}>
+                          <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap;">
+                            {cp()!.connection_count}{' '}
+                            {cp()!.connection_count === 1 ? 'connection' : 'connections'}
+                          </span>
+                        </Show>
+                        <Show
+                          when={has()}
+                          fallback={
+                            <button
+                              class="btn btn--primary btn--sm"
+                              onClick={() => openConnect(prov.id)}
+                            >
+                              Connect
+                            </button>
+                          }
+                        >
                           <button
-                            class="btn btn--primary btn--sm"
+                            class="btn btn--sm"
+                            style="font-size: var(--font-size-xs); white-space: nowrap;"
                             onClick={() => openConnect(prov.id)}
                           >
-                            Connect
+                            Add connection
                           </button>
-                        }
-                      >
-                        <button
-                          class="btn btn--sm"
-                          style="font-size: var(--font-size-xs);"
-                          onClick={() => openConnect(prov.id)}
-                        >
-                          Add connection
-                        </button>
-                      </Show>
+                        </Show>
+                      </span>
                     </td>
                   </tr>
                 );

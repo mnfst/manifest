@@ -52,7 +52,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv ? deepLinkProv.id : null,
   );
   const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
-    deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
+    deepLink?.authType ?? (deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key'),
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
@@ -123,6 +123,10 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setDirection('back');
     resetToList();
   };
+
+  // When the modal was opened with closeOnBack (from provider pages),
+  // the back button closes the modal instead of returning to the list.
+  const detailBack = deepLink?.closeOnBack ? () => closeHandler()() : goBack;
 
   // Kept as an alias of goBack so callers that finish a flow (create /
   // delete / connect) don't have to know how back-nav works.
@@ -235,7 +239,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
-            onBack={goBack}
+            onBack={detailBack}
             onOpenCustomForm={() => {
               setLocalServerProvider(null);
               openCustomForm();
@@ -259,7 +263,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
-            onBack={goBack}
+            onBack={detailBack}
             onDeleted={() => {
               completeToList();
               props.onUpdate();
@@ -451,13 +455,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <CopilotDeviceLogin
             agentName={props.agentName}
             connected={isSubscriptionWithToken(selectedProvider()!)}
-            onBack={goBack}
+            onBack={detailBack}
             onConnected={async () => {
               await props.onUpdate();
-              goBack();
+              detailBack();
             }}
             onDisconnected={() => {
-              goBack();
+              detailBack();
               props.onUpdate();
             }}
           />
@@ -487,7 +491,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             setEditing={setEditing}
             validationError={validationError}
             setValidationError={setValidationError}
-            onBack={goBack}
+            onBack={detailBack}
             onUpdate={props.onUpdate}
             onClose={closeHandler()}
             initialAddKey={addKeyIntent()}
