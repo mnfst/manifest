@@ -70,6 +70,11 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     return !!p && p.is_active && !!provDef.noKeyRequired;
   };
 
+  const isLocalConnected = (): boolean => {
+    const p = getProviderByAuth('local');
+    return !!p && p.is_active;
+  };
+
   const getKeyPrefixDisplay = (authType: AuthType): string => {
     const p = getProviderByAuth(authType);
     if (p?.key_prefix) return `${p.key_prefix}${'•'.repeat(8)}`;
@@ -87,14 +92,17 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     !!provDef.subscriptionCommand &&
     !provDef.subscriptionKeyPlaceholder &&
     !subscriptionAuthMode();
+  const isLocalMode = () => props.selectedAuthType() === 'local';
   const connected = () =>
-    isSubMode()
-      ? isCommandOnly()
-        ? isSubscriptionConnected()
-        : subscriptionAuthMode() === 'token'
-          ? isSubscriptionWithToken()
-          : isSubscriptionConnected()
-      : isConnectedApiKey() || isNoKeyConnected();
+    isLocalMode()
+      ? isLocalConnected()
+      : isSubMode()
+        ? isCommandOnly()
+          ? isSubscriptionConnected()
+          : subscriptionAuthMode() === 'token'
+            ? isSubscriptionWithToken()
+            : isSubscriptionConnected()
+        : isConnectedApiKey() || isNoKeyConnected();
   const isOllama = provDef.noKeyRequired;
 
   const [addKeyOpen, setAddKeyOpen] = createSignal(false);

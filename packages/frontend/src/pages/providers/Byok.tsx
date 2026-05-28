@@ -5,7 +5,7 @@ import { getAgents } from '../../services/api.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
-import { formatNumber } from '../../services/formatters.js';
+import { formatNumber, formatCost } from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 
 interface Connection {
@@ -22,6 +22,7 @@ interface ConnectedProvider {
   total_models: number;
   consumption_tokens: number;
   consumption_messages: number;
+  consumption_cost: number;
 }
 interface ProvidersResponse {
   providers: ConnectedProvider[];
@@ -60,12 +61,28 @@ const Byok: Component = () => {
   const isConnected = (id: string) => connectedMap().has(id);
   const getConnected = (id: string) => connectedMap().get(id);
   const connectedProviders = () => BYOK_PROVIDERS.filter((p) => isConnected(p.id));
-  const keyLabels = (cp: ConnectedProvider) => cp.connections.map((c) => c.label).join(', ');
   const getModelCount = (provId: string) => {
     const cp = getConnected(provId);
     if (cp && cp.total_models > 0) return cp.total_models;
     return modelCounts()[provId.toLowerCase()] ?? modelCounts()[provId] ?? null;
   };
+
+  // Flatten: one row per connection (not per provider)
+  const connectedRows = () => {
+    const rows: Array<{
+      prov: (typeof BYOK_PROVIDERS)[0];
+      conn: Connection;
+      cp: ConnectedProvider;
+    }> = [];
+    for (const prov of connectedProviders()) {
+      const cp = getConnected(prov.id)!;
+      for (const conn of cp.connections) {
+        rows.push({ prov, conn, cp });
+      }
+    }
+    return rows;
+  };
+
   const [modalProviders, { refetch: refetchModalProviders }] = createResource(
     () => firstAgentName(),
     async (name) => {
@@ -102,62 +119,74 @@ const Byok: Component = () => {
         </p>
       </div>
 
-      {/* TABLE 1: Connected */}
-      <Show when={connectedProviders().length > 0}>
+      {/* TABLE 1: Connected — one row per connection */}
+      <Show when={connectedRows().length > 0}>
+        <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
+          Connected providers
+        </h3>
         <div class="panel" style="padding: 0; margin-bottom: 24px;">
           <table class="data-table" style="table-layout: fixed;">
             <colgroup>
-              <col />
-              <col style="width: 100px;" />
               <col style="width: 200px;" />
-              <col style="width: 140px;" />
+              <col style="width: 80px;" />
+              <col style="width: 120px;" />
+              <col style="width: 160px;" />
+              <col style="width: 100px;" />
+              <col />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
                 <th>Models</th>
+                <th>Key name</th>
                 <th>Usage / month</th>
+                <th>Cost / month</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              <For each={connectedProviders()}>
-                {(prov) => {
-                  const cp = () => getConnected(prov.id)!;
+              <For each={connectedRows()}>
+                {(row) => {
+                  const perKeyTokens = () =>
+                    Math.round(row.cp.consumption_tokens / row.cp.connection_count);
+                  const perKeyCost = () => row.cp.consumption_cost / row.cp.connection_count;
                   return (
                     <tr>
                       <td>
                         <span style="display: flex; align-items: center; gap: 10px;">
                           <span style="display: flex; align-items: center; width: 20px; height: 20px;">
-                            {providerIcon(prov.id, 20)}
+                            {providerIcon(row.prov.id, 20)}
                           </span>
-                          <span style="font-weight: 500;">{prov.name}</span>
-                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                            ({keyLabels(cp())})
-                          </span>
+                          <span style="font-weight: 500;">{row.prov.name}</span>
                         </span>
                       </td>
-                      <td>{getModelCount(prov.id) ?? '—'}</td>
+                      <td>{row.conn.cached_model_count || getModelCount(row.prov.id) || '—'}</td>
+                      <td style="color: hsl(var(--muted-foreground));">{row.conn.label}</td>
                       <td>
-                        <Show when={cp().consumption_tokens > 0} fallback="—">
+                        <Show when={perKeyTokens() > 0} fallback="—">
                           <div style="display: flex; align-items: center; gap: 8px;">
-                            <span>{formatNumber(cp().consumption_tokens)} tokens</span>
+                            <span>{formatNumber(perKeyTokens())} tokens</span>
                             <div class="usage-bar">
                               <div
                                 class="usage-bar__fill"
                                 style={{
-                                  width: `${Math.min(100, Math.round((cp().consumption_tokens / 1_000_000) * 100))}%`,
+                                  width: `${Math.min(100, Math.round((perKeyTokens() / 1_000_000) * 100))}%`,
                                 }}
                               />
                             </div>
                           </div>
                         </Show>
                       </td>
+                      <td>
+                        <Show when={perKeyCost() > 0} fallback="—">
+                          {formatCost(perKeyCost()) ?? '—'}
+                        </Show>
+                      </td>
                       <td style="text-align: right;">
                         <button
                           class="btn btn--sm"
                           style="font-size: var(--font-size-xs);"
-                          onClick={() => openConnect(prov.id)}
+                          onClick={() => openConnect(row.prov.id)}
                         >
                           Manage
                         </button>
@@ -178,16 +207,14 @@ const Byok: Component = () => {
       <div class="panel" style="padding: 0;">
         <table class="data-table" style="table-layout: fixed;">
           <colgroup>
-            <col />
-            <col style="width: 100px;" />
             <col style="width: 200px;" />
-            <col style="width: 140px;" />
+            <col style="width: 80px;" />
+            <col />
           </colgroup>
           <thead>
             <tr>
               <th>Provider</th>
               <th>Models</th>
-              <th />
               <th />
             </tr>
           </thead>
@@ -204,37 +231,38 @@ const Byok: Component = () => {
                           {providerIcon(prov.id, 20)}
                         </span>
                         <span style="font-weight: 500;">{prov.name}</span>
-                        <Show when={has()}>
-                          <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
-                            {cp()!.connection_count} {cp()!.connection_count === 1 ? 'key' : 'keys'}
-                          </span>
-                        </Show>
                       </span>
                     </td>
                     <td style="color: hsl(var(--muted-foreground));">
                       {getModelCount(prov.id) ?? '—'}
                     </td>
-                    <td />
-                    <td style="text-align: right;">
-                      <Show
-                        when={has()}
-                        fallback={
+                    <td>
+                      <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                        <Show when={has()}>
+                          <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap;">
+                            {cp()!.connection_count} {cp()!.connection_count === 1 ? 'key' : 'keys'}
+                          </span>
+                        </Show>
+                        <Show
+                          when={has()}
+                          fallback={
+                            <button
+                              class="btn btn--primary btn--sm"
+                              onClick={() => openConnect(prov.id)}
+                            >
+                              Connect
+                            </button>
+                          }
+                        >
                           <button
-                            class="btn btn--primary btn--sm"
+                            class="btn btn--sm"
+                            style="font-size: var(--font-size-xs); white-space: nowrap;"
                             onClick={() => openConnect(prov.id)}
                           >
-                            Connect
+                            Add key
                           </button>
-                        }
-                      >
-                        <button
-                          class="btn btn--sm"
-                          style="font-size: var(--font-size-xs);"
-                          onClick={() => openConnect(prov.id)}
-                        >
-                          Add key
-                        </button>
-                      </Show>
+                        </Show>
+                      </span>
                     </td>
                   </tr>
                 );

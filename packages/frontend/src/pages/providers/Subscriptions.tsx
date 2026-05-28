@@ -134,20 +134,23 @@ const Subscriptions: Component = () => {
 
       {/* TABLE 1: Connected subscriptions */}
       <Show when={connectedRows().length > 0}>
+        <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
+          Connected providers
+        </h3>
         <div class="panel" style="padding: 0; margin-bottom: 24px;">
           <table class="data-table" style="table-layout: fixed;">
             <colgroup>
-              <col />
-              <col style="width: 120px;" />
+              <col style="width: 200px;" />
               <col style="width: 80px;" />
+              <col style="width: 120px;" />
               <col style="width: 180px;" />
-              <col style="width: 100px;" />
+              <col />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
-                <th>Subscription</th>
                 <th>Models</th>
+                <th>Subscription</th>
                 <th>Usage / month</th>
                 <th />
               </tr>
@@ -167,8 +170,8 @@ const Subscriptions: Component = () => {
                           <span style="font-weight: 500;">{row.prov.name}</span>
                         </span>
                       </td>
-                      <td style="color: hsl(var(--muted-foreground));">{row.conn.label}</td>
                       <td>{row.conn.cached_model_count || getModelCount(row.prov.id) || '—'}</td>
+                      <td style="color: hsl(var(--muted-foreground));">{row.conn.label}</td>
                       <td>
                         <Show when={perKeyTokens() > 0} fallback="—">
                           <div style="display: flex; align-items: center; gap: 8px;">
@@ -209,9 +212,9 @@ const Subscriptions: Component = () => {
       <div class="panel" style="padding: 0;">
         <table class="data-table" style="table-layout: fixed;">
           <colgroup>
-            <col />
+            <col style="width: 200px;" />
             <col style="width: 80px;" />
-            <col style="width: 260px;" />
+            <col />
           </colgroup>
           <thead>
             <tr>

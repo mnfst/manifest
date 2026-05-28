@@ -101,6 +101,9 @@ const LocalProviders: Component = () => {
 
       {/* TABLE 1: Connected */}
       <Show when={connectedProviders().length > 0}>
+        <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
+          Connected providers
+        </h3>
         <div class="panel" style="padding: 0; margin-bottom: 24px;">
           <table class="data-table" style="table-layout: fixed;">
             <colgroup>
@@ -172,16 +175,14 @@ const LocalProviders: Component = () => {
       <div class="panel" style="padding: 0;">
         <table class="data-table" style="table-layout: fixed;">
           <colgroup>
-            <col />
-            <col style="width: 100px;" />
             <col style="width: 200px;" />
-            <col style="width: 140px;" />
+            <col style="width: 80px;" />
+            <col />
           </colgroup>
           <thead>
             <tr>
               <th>Provider</th>
               <th>Models</th>
-              <th />
               <th />
             </tr>
           </thead>
@@ -189,7 +190,6 @@ const LocalProviders: Component = () => {
             <For each={LOCAL_PROVIDERS}>
               {(prov) => {
                 const has = () => isConnected(prov.id);
-                const cp = () => getConnected(prov.id);
                 return (
                   <tr>
                     <td>
@@ -198,37 +198,29 @@ const LocalProviders: Component = () => {
                           {providerIcon(prov.id, 20)}
                         </span>
                         <span style="font-weight: 500;">{prov.name}</span>
-                        <Show when={has()}>
-                          <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
-                            Connected
-                          </span>
-                        </Show>
                       </span>
                     </td>
                     <td style="color: hsl(var(--muted-foreground));">
                       {getModelCount(prov.id) ?? '—'}
                     </td>
-                    <td />
-                    <td style="text-align: right;">
-                      <Show
-                        when={has()}
-                        fallback={
+                    <td>
+                      <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                        <Show
+                          when={!has()}
+                          fallback={
+                            <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap;">
+                              Connected
+                            </span>
+                          }
+                        >
                           <button
                             class="btn btn--primary btn--sm"
                             onClick={() => openConnect(prov.id)}
                           >
                             Connect
                           </button>
-                        }
-                      >
-                        <button
-                          class="btn btn--sm"
-                          style="font-size: var(--font-size-xs);"
-                          onClick={() => openConnect(prov.id)}
-                        >
-                          Add endpoint
-                        </button>
-                      </Show>
+                        </Show>
+                      </span>
                     </td>
                   </tr>
                 );

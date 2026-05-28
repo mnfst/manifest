@@ -94,7 +94,7 @@ export class UserProvidersController {
     }
 
     // Get consumption per provider (last 30 days)
-    let consumption = new Map<string, { tokens: number; messages: number }>();
+    let consumption = new Map<string, { tokens: number; messages: number; cost: number }>();
     if (tenant) {
       const rows = await this.messageRepo
         .createQueryBuilder('m')
@@ -102,6 +102,7 @@ export class UserProvidersController {
         .addSelect('m.auth_type', 'auth_type')
         .addSelect('SUM(COALESCE(m.input_tokens, 0) + COALESCE(m.output_tokens, 0))', 'tokens')
         .addSelect('COUNT(*)', 'messages')
+        .addSelect('SUM(COALESCE(m.cost_usd, 0))', 'cost')
         .where('m.tenant_id = :tenantId', { tenantId: tenant.id })
         .andWhere("m.timestamp >= NOW() - INTERVAL '30 days'")
         .groupBy('m.provider')
@@ -113,6 +114,7 @@ export class UserProvidersController {
           consumption.set(`${row.provider}::${row.auth_type ?? 'api_key'}`, {
             tokens: parseInt(row.tokens, 10) || 0,
             messages: parseInt(row.messages, 10) || 0,
+            cost: parseFloat(row.cost) || 0,
           });
         }
       }
@@ -122,6 +124,7 @@ export class UserProvidersController {
       const cons = consumption.get(`${g.provider}::${g.auth_type}`) ?? {
         tokens: 0,
         messages: 0,
+        cost: 0,
       };
       return {
         provider: g.provider,
@@ -131,6 +134,7 @@ export class UserProvidersController {
         total_models: g.total_models,
         consumption_tokens: cons.tokens,
         consumption_messages: cons.messages,
+        consumption_cost: cons.cost,
       };
     });
 

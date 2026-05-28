@@ -5,7 +5,9 @@ import { fetchJson } from '../services/api/core.js';
 import { getAgents } from '../services/api.js';
 import { formatNumber } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
 import { agentPing, messagePing } from '../services/sse.js';
+import '../styles/overview.css';
 
 interface ProviderSummary {
   provider: string;
@@ -84,99 +86,104 @@ const GlobalOverview: Component = () => {
         <p class="page-header__subtitle">Your AI stack at a glance.</p>
       </div>
 
-      {/* Stats cards */}
-      <div class="overview-stats">
-        <div class="overview-stat-card">
-          <span class="overview-stat-card__label">Providers</span>
-          <span class="overview-stat-card__value">{stats().total_providers}</span>
-        </div>
-        <div class="overview-stat-card">
-          <span class="overview-stat-card__label">Agents</span>
-          <span class="overview-stat-card__value">{agentList().length}</span>
-        </div>
-        <div class="overview-stat-card">
-          <span class="overview-stat-card__label">Messages (30d)</span>
-          <span class="overview-stat-card__value">{formatNumber(stats().total_messages)}</span>
-        </div>
-        <div class="overview-stat-card">
-          <span class="overview-stat-card__label">Tokens (30d)</span>
-          <span class="overview-stat-card__value">{formatNumber(stats().total_tokens)}</span>
-        </div>
-      </div>
-
-      {/* Provider categories */}
-      <div class="overview-sections">
-        <A href="/providers/subscriptions" class="overview-section-card">
-          <div class="overview-section-card__header">
-            <h3 class="overview-section-card__title">Subscriptions</h3>
-            <span class="overview-section-card__count">
-              {stats().subscriptions.count} connected
-            </span>
+      <Show
+        when={providers() !== undefined && agents() !== undefined}
+        fallback={<GlobalOverviewSkeleton />}
+      >
+        {/* Stats cards */}
+        <div class="overview-stats">
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Providers</span>
+            <span class="overview-stat-card__value">{stats().total_providers}</span>
           </div>
-          <Show when={stats().subscriptions.tokens > 0}>
-            <p class="overview-section-card__stat">
-              {formatNumber(stats().subscriptions.tokens)} tokens consumed
-            </p>
-          </Show>
-          <Show when={stats().subscriptions.count === 0}>
-            <p class="overview-section-card__hint">
-              Connect ChatGPT Plus, Claude Max, Copilot and more.
-            </p>
-          </Show>
-        </A>
-
-        <A href="/providers/byok" class="overview-section-card">
-          <div class="overview-section-card__header">
-            <h3 class="overview-section-card__title">API Keys</h3>
-            <span class="overview-section-card__count">{stats().byok.count} connected</span>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Agents</span>
+            <span class="overview-stat-card__value">{agentList().length}</span>
           </div>
-          <Show when={stats().byok.tokens > 0}>
-            <p class="overview-section-card__stat">
-              {formatNumber(stats().byok.tokens)} tokens consumed
-            </p>
-          </Show>
-          <Show when={stats().byok.count === 0}>
-            <p class="overview-section-card__hint">
-              Bring your own API keys for pay-as-you-go providers.
-            </p>
-          </Show>
-        </A>
-
-        <A href="/providers/local" class="overview-section-card">
-          <div class="overview-section-card__header">
-            <h3 class="overview-section-card__title">Local</h3>
-            <span class="overview-section-card__count">{stats().local.count} connected</span>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Messages (30d)</span>
+            <span class="overview-stat-card__value">{formatNumber(stats().total_messages)}</span>
           </div>
-          <Show when={stats().local.tokens > 0}>
-            <p class="overview-section-card__stat">
-              {formatNumber(stats().local.tokens)} tokens consumed
-            </p>
-          </Show>
-          <Show when={stats().local.count === 0}>
-            <p class="overview-section-card__hint">Connect Ollama, LM Studio, or llama.cpp.</p>
-          </Show>
-        </A>
-      </div>
-
-      {/* Agents summary */}
-      <Show when={agentList().length > 0}>
-        <div class="overview-agents">
-          <h3 class="overview-agents__title">Agents</h3>
-          <div class="overview-agents__list">
-            <For each={agentList()}>
-              {(agent: any) => (
-                <A href={`/agents/${agent.agent_name}`} class="overview-agent-row">
-                  <span class="overview-agent-row__name">
-                    {agent.display_name || agent.agent_name}
-                  </span>
-                  <span class="overview-agent-row__stat">
-                    {formatNumber(agent.message_count ?? 0)} messages
-                  </span>
-                </A>
-              )}
-            </For>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Tokens (30d)</span>
+            <span class="overview-stat-card__value">{formatNumber(stats().total_tokens)}</span>
           </div>
         </div>
+
+        {/* Provider categories */}
+        <div class="overview-sections">
+          <A href="/providers/subscriptions" class="overview-section-card">
+            <div class="overview-section-card__header">
+              <h3 class="overview-section-card__title">Subscriptions</h3>
+              <span class="overview-section-card__count">
+                {stats().subscriptions.count} connected
+              </span>
+            </div>
+            <Show when={stats().subscriptions.tokens > 0}>
+              <p class="overview-section-card__stat">
+                {formatNumber(stats().subscriptions.tokens)} tokens consumed
+              </p>
+            </Show>
+            <Show when={stats().subscriptions.count === 0}>
+              <p class="overview-section-card__hint">
+                Connect ChatGPT Plus, Claude Max, Copilot and more.
+              </p>
+            </Show>
+          </A>
+
+          <A href="/providers/byok" class="overview-section-card">
+            <div class="overview-section-card__header">
+              <h3 class="overview-section-card__title">API Keys</h3>
+              <span class="overview-section-card__count">{stats().byok.count} connected</span>
+            </div>
+            <Show when={stats().byok.tokens > 0}>
+              <p class="overview-section-card__stat">
+                {formatNumber(stats().byok.tokens)} tokens consumed
+              </p>
+            </Show>
+            <Show when={stats().byok.count === 0}>
+              <p class="overview-section-card__hint">
+                Bring your own API keys for pay-as-you-go providers.
+              </p>
+            </Show>
+          </A>
+
+          <A href="/providers/local" class="overview-section-card">
+            <div class="overview-section-card__header">
+              <h3 class="overview-section-card__title">Local</h3>
+              <span class="overview-section-card__count">{stats().local.count} connected</span>
+            </div>
+            <Show when={stats().local.tokens > 0}>
+              <p class="overview-section-card__stat">
+                {formatNumber(stats().local.tokens)} tokens consumed
+              </p>
+            </Show>
+            <Show when={stats().local.count === 0}>
+              <p class="overview-section-card__hint">Connect Ollama, LM Studio, or llama.cpp.</p>
+            </Show>
+          </A>
+        </div>
+
+        {/* Agents summary */}
+        <Show when={agentList().length > 0}>
+          <div class="overview-agents">
+            <h3 class="overview-agents__title">Agents</h3>
+            <div class="overview-agents__list">
+              <For each={agentList()}>
+                {(agent: any) => (
+                  <A href={`/agents/${agent.agent_name}`} class="overview-agent-row">
+                    <span class="overview-agent-row__name">
+                      {agent.display_name || agent.agent_name}
+                    </span>
+                    <span class="overview-agent-row__stat">
+                      {formatNumber(agent.message_count ?? 0)} messages
+                    </span>
+                  </A>
+                )}
+              </For>
+            </div>
+          </div>
+        </Show>
       </Show>
     </div>
   );
