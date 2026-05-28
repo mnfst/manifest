@@ -120,7 +120,7 @@ export class XaiOauthService {
       r: data.refresh_token,
       e: Date.now() + data.expires_in * 1000,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'xai');
+    const label = await this.providerService.nextOAuthLabel(pending.userId, 'xai');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -132,7 +132,7 @@ export class XaiOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      await this.providerService.recalculateTiers(pending.agentId, pending.userId);
     } catch (err) {
       this.logger.warn(`Model discovery after xAI OAuth failed: ${err}`);
     }

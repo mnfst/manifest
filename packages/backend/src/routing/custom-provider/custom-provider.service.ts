@@ -304,6 +304,7 @@ export class CustomProviderService {
       // index is keyed on (agent_id, provider, auth_type).
       await this.providerService.retagAuthType(
         agentId,
+        userId,
         CustomProviderService.providerKey(id),
         nextAuthType,
       );
@@ -311,7 +312,7 @@ export class CustomProviderService {
 
     // Recalculate tiers when models changed (even without API key change)
     if (dto.models !== undefined && !('apiKey' in dto) && !nameCategoryChanged) {
-      await this.autoAssign.recalculate(agentId);
+      await this.autoAssign.recalculate(agentId, userId);
     }
 
     await this.repo.save(cp);
@@ -326,7 +327,7 @@ export class CustomProviderService {
     return cp;
   }
 
-  async remove(agentId: string, id: string): Promise<void> {
+  async remove(agentId: string, userId: string, id: string): Promise<void> {
     const cp = await this.repo.findOne({ where: { id, agent_id: agentId } });
     if (!cp) {
       throw new NotFoundException('Custom provider not found');
@@ -336,7 +337,7 @@ export class CustomProviderService {
 
     // Remove UserProvider + tier overrides
     try {
-      await this.providerService.removeProvider(agentId, provKey);
+      await this.providerService.removeProvider(agentId, userId, provKey);
     } catch {
       // Provider may not exist if creation partially failed
     }

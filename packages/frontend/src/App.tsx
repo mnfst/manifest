@@ -26,8 +26,7 @@ const SseConnector: ParentComponent = (props) => {
 const AppInner: ParentComponent = (props) => {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
-  const isAgentMode = () => location.pathname.startsWith('/agents/');
-  const showSidebar = () => isAgentMode();
+  const showSidebar = () => true;
   const { content: rightSidebar } = useRightSidebar();
 
   createEffect<string | undefined>((previousPath) => {

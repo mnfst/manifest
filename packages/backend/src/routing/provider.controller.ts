@@ -44,7 +44,7 @@ export class ProviderController {
   @Get(':agentName/status')
   async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+    const providers = await this.providerService.getProviders(user.id);
     const hasActiveProvider = providers.some((p) => p.is_active);
 
     if (!hasActiveProvider) {
@@ -70,7 +70,7 @@ export class ProviderController {
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+    const providers = await this.providerService.getProviders(user.id);
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
@@ -137,7 +137,7 @@ export class ProviderController {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
     }
     try {
-      await this.providerService.recalculateTiers(agent.id);
+      await this.providerService.recalculateTiers(agent.id, user.id);
     } catch {
       // Tier recalculation failure is non-fatal
     }
@@ -162,6 +162,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const updated = await this.providerService.renameKey(
       agent.id,
+      user.id,
       params.provider,
       body.authType ?? 'api_key',
       params.label,
@@ -185,6 +186,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const updated = await this.providerService.reorderKeys(
       agent.id,
+      user.id,
       params.provider,
       body.authType ?? 'api_key',
       body.labels,
@@ -201,7 +203,7 @@ export class ProviderController {
   @Post(':agentName/providers/deactivate-all')
   async deactivateAllProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.providerService.deactivateAllProviders(agent.id);
+    await this.providerService.deactivateAllProviders(agent.id, user.id);
     return { ok: true };
   }
 
@@ -214,6 +216,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       params.provider,
       query.authType,
       query.label,

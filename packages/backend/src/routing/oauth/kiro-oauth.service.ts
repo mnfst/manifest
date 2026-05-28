@@ -195,7 +195,7 @@ export class KiroOauthService {
       cs: pending.clientSecret,
       region: this.region,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'kiro');
+    const label = await this.providerService.nextOAuthLabel(pending.userId, 'kiro');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -207,7 +207,7 @@ export class KiroOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      await this.providerService.recalculateTiers(pending.agentId, pending.userId);
     } catch (err) {
       this.logger.warn(`Model discovery after Kiro OAuth failed: ${err}`);
     }

@@ -35,7 +35,7 @@ export class ProviderKeyService {
    * providers (Ollama) yield a single empty-key entry.
    */
   async getProviderKeys(
-    agentId: string,
+    userId: string,
     provider: string,
     authType?: AuthType,
   ): Promise<CachedProviderKey[]> {
@@ -43,31 +43,31 @@ export class ProviderKeyService {
       return [{ id: 'ollama', label: 'Default', priority: 0, apiKey: '', region: null }];
     }
 
-    const cached = this.routingCache.getProviderKeys(agentId, provider, authType);
+    const cached = this.routingCache.getProviderKeys(userId, provider, authType);
     if (cached !== undefined) return cached;
 
-    const result = await this.resolveProviderKeys(agentId, provider, authType);
-    this.routingCache.setProviderKeys(agentId, provider, result, authType);
+    const result = await this.resolveProviderKeys(userId, provider, authType);
+    this.routingCache.setProviderKeys(userId, provider, result, authType);
     return result;
   }
 
   /** Returns the label of the first (default) key for the given provider+authType. */
   async getDefaultKeyLabel(
-    agentId: string,
+    userId: string,
     provider: string,
     authType?: AuthType,
   ): Promise<string | undefined> {
-    const keys = await this.getProviderKeys(agentId, provider, authType);
+    const keys = await this.getProviderKeys(userId, provider, authType);
     return keys[0]?.label;
   }
 
   async getProviderApiKey(
-    agentId: string,
+    userId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
   ): Promise<string | null> {
-    const keys = await this.getProviderKeys(agentId, provider, authType);
+    const keys = await this.getProviderKeys(userId, provider, authType);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -77,12 +77,12 @@ export class ProviderKeyService {
   }
 
   async getAuthType(
-    agentId: string,
+    userId: string,
     provider: string,
     excludeAuthTypes?: Set<string>,
   ): Promise<AuthType> {
     const names = expandProviderNames([provider]);
-    const records = await this.providerService.getProviders(agentId);
+    const records = await this.providerService.getProviders(userId);
     let matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
     // When the caller knows certain auth types already failed (e.g. during
     // fallback retries), filter them out so the alternate type is preferred.
@@ -104,19 +104,19 @@ export class ProviderKeyService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
-  async hasActiveProvider(agentId: string, provider: string): Promise<boolean> {
+  async hasActiveProvider(userId: string, provider: string): Promise<boolean> {
     const names = expandProviderNames([provider]);
-    const records = await this.providerService.getProviders(agentId);
+    const records = await this.providerService.getProviders(userId);
     return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
   }
 
   async getProviderRegion(
-    agentId: string,
+    userId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
   ): Promise<string | null> {
-    const keys = await this.getProviderKeys(agentId, provider, authType);
+    const keys = await this.getProviderKeys(userId, provider, authType);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -125,8 +125,8 @@ export class ProviderKeyService {
     return keys[0].region;
   }
 
-  async findProviderForModel(agentId: string, model: string): Promise<string | undefined> {
-    const providers = await this.providerService.getProviders(agentId);
+  async findProviderForModel(userId: string, model: string): Promise<string | undefined> {
+    const providers = await this.providerService.getProviders(userId);
     for (const p of providers) {
       if (!p.cached_models) continue;
       if (p.cached_models.some((m) => m.id === model)) return p.provider;
@@ -134,36 +134,36 @@ export class ProviderKeyService {
     return undefined;
   }
 
-  async getEffectiveModel(agentId: string, assignment: TierAssignment): Promise<string | null> {
+  async getEffectiveModel(userId: string, assignment: TierAssignment): Promise<string | null> {
     const overrideModel = assignment.override_route?.model ?? null;
     const autoModel = assignment.auto_assigned_route?.model ?? null;
 
     if (overrideModel !== null) {
-      if (await this.isModelAvailable(agentId, overrideModel)) {
+      if (await this.isModelAvailable(userId, overrideModel)) {
         return overrideModel;
       }
       this.logger.warn(
         `Override ${overrideModel} falling through to auto ` +
-          `for agent=${agentId} tier=${assignment.tier} (auto=${autoModel})`,
+          `for user=${userId} tier=${assignment.tier} (auto=${autoModel})`,
       );
     }
 
     if (autoModel === null) {
-      this.logger.warn(`auto_assigned_route is null for agent=${agentId} tier=${assignment.tier}`);
+      this.logger.warn(`auto_assigned_route is null for user=${userId} tier=${assignment.tier}`);
     }
 
     return autoModel;
   }
 
   private async resolveProviderKeys(
-    agentId: string,
+    userId: string,
     provider: string,
     preferredAuthType?: AuthType,
   ): Promise<CachedProviderKey[]> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
       const records = await this.providerRepo.find({
-        where: { agent_id: agentId, provider, is_active: true },
+        where: { user_id: userId, provider, is_active: true },
         order: { priority: 'ASC' },
       });
       return records.flatMap((record) => this.decryptOne(record));
@@ -171,7 +171,7 @@ export class ProviderKeyService {
 
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+      where: { user_id: userId, is_active: true },
       order: { priority: 'ASC' },
     });
 
@@ -242,9 +242,9 @@ export class ProviderKeyService {
     }
   }
 
-  async isModelAvailable(agentId: string, model: string): Promise<boolean> {
+  async isModelAvailable(userId: string, model: string): Promise<boolean> {
     // Check discovered models first
-    const discovered = await this.discoveryService.getModelForAgent(agentId, model);
+    const discovered = await this.discoveryService.getModelForAgent(userId, model);
     if (discovered) return true;
 
     const pricing = this.pricingCache.getByModel(model);
@@ -260,7 +260,7 @@ export class ProviderKeyService {
 
     const records = (
       await this.providerRepo.find({
-        where: { agent_id: agentId, is_active: true },
+        where: { user_id: userId, is_active: true },
       })
     ).filter(isManifestUsableProvider);
     if (pricing) {

@@ -54,6 +54,7 @@ export class KiroOauthController {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       'kiro',
       'subscription',
       keyLabel,

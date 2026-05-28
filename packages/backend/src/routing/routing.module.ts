@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../model-discovery/model-discovery.module';
 import { OtlpModule } from '../otlp/otlp.module';
@@ -14,11 +15,16 @@ import { ModelController } from './model.controller';
 import { CopilotController } from './copilot.controller';
 import { SpecificityController } from './specificity.controller';
 import { ModelParamsController } from './model-params.controller';
+import { UserProvidersController } from './user-providers.controller';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { UserProvider } from '../entities/user-provider.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
+import { Tenant } from '../entities/tenant.entity';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([UserProvider, AgentMessage, Tenant]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,
@@ -37,6 +43,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     CopilotController,
     SpecificityController,
     ModelParamsController,
+    UserProvidersController,
   ],
   providers: [OllamaSyncService],
   exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],

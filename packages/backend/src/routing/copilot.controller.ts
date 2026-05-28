@@ -40,7 +40,7 @@ export class CopilotController {
       );
       try {
         await this.discoveryService.discoverModels(record);
-        await this.providerService.recalculateTiers(agent.id);
+        await this.providerService.recalculateTiers(agent.id, user.id);
       } catch {
         // Discovery failure is non-fatal
       }

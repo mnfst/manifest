@@ -176,7 +176,7 @@ export class HeaderTierController {
     const model = body.route?.model ?? body.model;
     const provider = body.route?.provider ?? body.provider;
     const authType = body.route?.authType ?? body.authType;
-    return this.headerTierService.setOverride(agent.id, id, model, provider, authType);
+    return this.headerTierService.setOverride(agent.id, user.id, id, model, provider, authType);
   }
 
   @Delete(':agentName/header-tiers/:id/override')
@@ -198,7 +198,7 @@ export class HeaderTierController {
     @Body() body: FallbacksBody,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.headerTierService.setFallbacks(agent.id, id, body.models, body.routes);
+    return this.headerTierService.setFallbacks(agent.id, user.id, id, body.models, body.routes);
   }
 
   @Delete(':agentName/header-tiers/:id/fallbacks')

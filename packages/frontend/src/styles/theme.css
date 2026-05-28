@@ -23,6 +23,7 @@
 @import './agent-type-select.css';
 @import './feedback.css';
 @import './recording.css';
+@import './provider-list.css';
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {
@@ -828,6 +829,125 @@ h6 {
   background: hsl(var(--sidebar-accent));
   color: hsl(var(--sidebar-primary));
   font-weight: 500;
+}
+
+.sidebar__divider {
+  height: 1px;
+  background: hsl(var(--sidebar-border));
+  margin: var(--gap-sm) var(--gap-lg);
+}
+
+/* Workspace title */
+.sidebar__workspace-title {
+  padding: var(--gap-md) var(--gap-lg) var(--gap-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: hsl(var(--sidebar-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Interactive section label (AGENTS) — same base as .sidebar__section-label */
+.sidebar__section-label--interactive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar__section-label-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar__section-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sidebar__section-label--interactive:hover .sidebar__section-add {
+  opacity: 1;
+}
+
+.sidebar__section-add:hover {
+  color: hsl(var(--sidebar-foreground));
+}
+
+.sidebar__section-caret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.sidebar__section-caret:hover {
+  color: hsl(var(--sidebar-foreground));
+}
+
+/* Agent list items */
+.sidebar__agents-list {
+  padding: 0;
+}
+
+.sidebar__agent-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px var(--gap-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--sidebar-foreground));
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-left: 2px solid transparent;
+}
+
+.sidebar__agent-item:hover {
+  background: hsl(var(--sidebar-accent));
+}
+
+.sidebar__agent-item--active {
+  background: hsl(var(--sidebar-accent));
+  border-left-color: hsl(var(--success));
+  font-weight: 600;
+}
+
+.sidebar__agent-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dark .sidebar__agent-icon {
+  filter: invert(1);
+}
+
+.sidebar__agent-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__link--nested {
+  padding-left: calc(var(--gap-lg) + 16px);
+  font-size: var(--font-size-xs);
 }
 
 .sidebar__spacer {

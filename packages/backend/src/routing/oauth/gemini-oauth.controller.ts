@@ -79,11 +79,7 @@ export class GeminiOauthController {
     }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(
-      agent.id,
-      'gemini',
-      'subscription',
-    );
+    const keys = await this.providerKeyService.getProviderKeys(user.id, 'gemini', 'subscription');
     const keysToRevoke = keyLabel
       ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
       : keys;
@@ -101,6 +97,7 @@ export class GeminiOauthController {
 
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       'gemini',
       'subscription',
       keyLabel,

@@ -86,7 +86,7 @@ export class SpecificityService {
       explicit ??
       unambiguousRoute(
         model,
-        await this.discoveryService.getModelsForAgent(agentId),
+        await this.discoveryService.getModelsForAgent(userId),
         providerKeyLabel,
       );
     if (!route) {
@@ -202,13 +202,14 @@ export class SpecificityService {
 
   async setFallbacks(
     agentId: string,
+    userId: string,
     category: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return [];
-    const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, userId, models, routes);
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
@@ -256,11 +257,12 @@ export class SpecificityService {
    */
   private async buildFallbackRoutes(
     agentId: string,
+    userId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(userId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

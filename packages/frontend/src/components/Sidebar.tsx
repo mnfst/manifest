@@ -1,6 +1,11 @@
 import { A, useLocation } from '@solidjs/router';
-import { Show, type Component } from 'solid-js';
+import { Show, For, createSignal, createResource, type Component } from 'solid-js';
 import { useAgentName, agentPath } from '../services/routing.js';
+import { getAgents } from '../services/api.js';
+import { agentPing } from '../services/sse.js';
+import { authClient } from '../services/auth-client.js';
+import { platformIcon } from 'manifest-shared';
+import AddAgentModal from './AddAgentModal.jsx';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -10,13 +15,45 @@ interface SidebarProps {
 const Sidebar: Component<SidebarProps> = (props) => {
   const location = useLocation();
   const getAgentName = useAgentName();
+  const session = authClient.useSession();
+  const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
+  const [addModalOpen, setAddModalOpen] = createSignal(false);
 
-  const path = (sub: string) => agentPath(getAgentName(), sub);
+  const [agents] = createResource(
+    () => agentPing(),
+    async () => {
+      try {
+        const data = await getAgents();
+        return (data as any)?.agents ?? data ?? [];
+      } catch {
+        return [];
+      }
+    },
+  );
 
-  const isActive = (sub: string) => {
-    const p = path(sub);
+  const currentAgent = () => getAgentName();
+
+  const isAgentActive = (agentName: string, sub: string) => {
+    const p = agentPath(agentName, sub);
     if (sub === '') return location.pathname === p;
     return location.pathname.startsWith(p);
+  };
+
+  const isGlobalActive = (route: string) => {
+    return location.pathname === route || location.pathname.startsWith(route + '/');
+  };
+
+  const userName = () => session()?.data?.user?.name;
+  const workspaceTitle = () => {
+    const name = userName();
+    if (!name) return 'My workspace';
+    const first = name.split(' ')[0];
+    return `${first}'s workspace`;
+  };
+
+  const handleNav = () => {
+    props.onNavigate?.();
+    window.dispatchEvent(new CustomEvent('sidebar-navigate'));
   };
 
   return (
@@ -24,114 +61,136 @@ const Sidebar: Component<SidebarProps> = (props) => {
       id="agent-navigation"
       class="sidebar"
       classList={{ 'sidebar--mobile-open': props.mobileOpen === true }}
-      aria-label="Agent navigation"
+      aria-label="Navigation"
       onClick={(event) => {
-        if ((event.target as HTMLElement).closest('a.sidebar__link')) {
-          props.onNavigate?.();
-          window.dispatchEvent(new CustomEvent('sidebar-navigate'));
-        }
+        if ((event.target as HTMLElement).closest('a.sidebar__link')) handleNav();
       }}
     >
-      <Show when={!getAgentName()}>
-        <A
-          href="/"
-          class="sidebar__link"
-          classList={{ active: location.pathname === '/' }}
-          aria-current={location.pathname === '/' ? 'page' : undefined}
-        >
-          Agents
-        </A>
-      </Show>
+      {/* Workspace title */}
+      <div class="sidebar__workspace-title">{workspaceTitle()}</div>
 
-      <Show when={getAgentName()}>
-        <div class="sidebar__section-label">MONITORING</div>
-        <A
-          href={path('')}
-          class="sidebar__link"
-          classList={{ active: isActive('') }}
-          aria-current={isActive('') ? 'page' : undefined}
-        >
-          Overview
-        </A>
-        <A
-          href={path('/messages')}
-          class="sidebar__link"
-          classList={{ active: isActive('/messages') }}
-          aria-current={isActive('/messages') ? 'page' : undefined}
-        >
-          Messages
-        </A>
+      {/* Observability */}
+      <A
+        href="/overview"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/overview') }}
+        aria-current={isGlobalActive('/overview') ? 'page' : undefined}
+      >
+        Overview
+      </A>
+      <A
+        href="/messages"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/messages') }}
+        aria-current={isGlobalActive('/messages') ? 'page' : undefined}
+      >
+        Messages
+      </A>
 
-        <div class="sidebar__section-label">MANAGE</div>
-        <A
-          href={path('/routing')}
-          class="sidebar__link"
-          classList={{ active: isActive('/routing') }}
-          aria-current={isActive('/routing') ? 'page' : undefined}
-        >
-          Routing
-        </A>
-        <A
-          href={path('/playground')}
-          class="sidebar__link"
-          classList={{ active: isActive('/playground') }}
-          aria-current={isActive('/playground') ? 'page' : undefined}
-        >
-          Playground
-        </A>
-        <A
-          href={path('/limits')}
-          class="sidebar__link"
-          classList={{ active: isActive('/limits') }}
-          aria-current={isActive('/limits') ? 'page' : undefined}
-        >
-          Limits
-        </A>
-        <A
-          href={path('/settings')}
-          class="sidebar__link"
-          classList={{ active: isActive('/settings') }}
-          aria-current={isActive('/settings') ? 'page' : undefined}
-        >
-          Settings
-        </A>
-      </Show>
+      {/* Providers */}
+      <div class="sidebar__section-label">PROVIDERS</div>
+      <A
+        href="/providers/subscriptions"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/subscriptions') }}
+        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
+      >
+        Subscriptions
+      </A>
+      <A
+        href="/providers/byok"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/byok') }}
+        aria-current={isGlobalActive('/providers/byok') ? 'page' : undefined}
+      >
+        BYOK
+      </A>
+      <A
+        href="/providers/local"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/local') }}
+        aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
+      >
+        Local
+      </A>
 
-      <Show when={getAgentName()}>
-        <div class="sidebar__section-label">RESOURCES</div>
-        <A
-          href={path('/model-prices')}
-          class="sidebar__link"
-          classList={{ active: isActive('/model-prices') }}
-          aria-current={isActive('/model-prices') ? 'page' : undefined}
+      {/* Agents section — same label style as PROVIDERS */}
+      <div class="sidebar__section-label sidebar__section-label--interactive">
+        <div class="sidebar__section-label-left">
+          <span>AGENTS</span>
+          <button
+            type="button"
+            class="sidebar__section-add"
+            title="Create new agent"
+            onClick={() => setAddModalOpen(true)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" />
+            </svg>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="sidebar__section-caret"
+          onClick={() => setAgentsCollapsed(!agentsCollapsed())}
+          aria-expanded={!agentsCollapsed()}
+          aria-label={agentsCollapsed() ? 'Expand agents' : 'Collapse agents'}
         >
-          Model Prices
-        </A>
-        <A
-          href={path('/free-models')}
-          class="sidebar__link"
-          classList={{ active: isActive('/free-models') }}
-          aria-current={isActive('/free-models') ? 'page' : undefined}
-        >
-          <img
-            src="/icons/free.svg"
-            alt="Free Models"
-            style="height: 12px; vertical-align: middle;"
-          />{' '}
-          Models
-        </A>
-        <A
-          href={path('/help')}
-          class="sidebar__link"
-          classList={{ active: isActive('/help') }}
-          aria-current={isActive('/help') ? 'page' : undefined}
-        >
-          Help
-        </A>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style={{
+              transition: 'transform 150ms',
+              transform: agentsCollapsed() ? 'rotate(-90deg)' : 'rotate(0deg)',
+            }}
+          >
+            <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
+          </svg>
+        </button>
+      </div>
+
+      <Show when={!agentsCollapsed()}>
+        <div class="sidebar__agents-list">
+          <For each={agents() ?? []}>
+            {(agent: any) => {
+              const name = () => agent.agent_name;
+              const display = () => agent.display_name || agent.agent_name;
+              const icon = () => platformIcon(agent.agent_platform, agent.agent_category);
+              const isSelected = () => currentAgent() === name();
+              return (
+                <>
+                  <A
+                    href={`/agents/${name()}`}
+                    class="sidebar__agent-item"
+                    classList={{ 'sidebar__agent-item--active': isSelected() }}
+                    aria-current={isSelected() ? 'page' : undefined}
+                    onClick={handleNav}
+                  >
+                    <Show when={icon()}>
+                      <img src={icon()} alt="" class="sidebar__agent-icon" />
+                    </Show>
+                    <span class="sidebar__agent-item-name">{display()}</span>
+                  </A>
+                </>
+              );
+            }}
+          </For>
+        </div>
       </Show>
 
       <div class="sidebar__spacer" />
 
+      <div class="sidebar__divider" />
       <a
         href="https://github.com/mnfst/manifest/discussions/new?category=feature-request"
         target="_blank"
@@ -142,8 +201,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
           <i class="bxd bx-message-bubble-detail" />
           Feedback
         </span>
-        <p class="sidebar__feedback-hint">Share ideas or report bugs.</p>
       </a>
+
+      {/* Add Agent Modal */}
+      <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
     </nav>
   );
 };

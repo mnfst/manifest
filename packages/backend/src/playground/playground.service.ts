@@ -51,7 +51,7 @@ export class PlaygroundService {
     let apiKey: string;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
-      const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
+      const hasProvider = await this.providerKeyService.hasActiveProvider(userId, dto.provider);
       if (!hasProvider) {
         return this.sendPreStreamError(
           res,
@@ -59,9 +59,8 @@ export class PlaygroundService {
           `Provider "${dto.provider}" is not connected for this agent`,
         );
       }
-      authType =
-        dto.authType ?? (await this.providerKeyService.getAuthType(agent.id, dto.provider));
-      const key = await this.providerKeyService.getProviderApiKey(agent.id, dto.provider, authType);
+      authType = dto.authType ?? (await this.providerKeyService.getAuthType(userId, dto.provider));
+      const key = await this.providerKeyService.getProviderApiKey(userId, dto.provider, authType);
       if (key === null) {
         return this.sendPreStreamError(
           res,

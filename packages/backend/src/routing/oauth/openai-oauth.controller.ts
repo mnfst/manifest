@@ -77,7 +77,7 @@ export class OpenaiOauthController {
     }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(agent.id, 'openai', 'subscription');
+    const keys = await this.providerKeyService.getProviderKeys(user.id, 'openai', 'subscription');
     const keysToRevoke = keyLabel
       ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
       : keys;
@@ -95,6 +95,7 @@ export class OpenaiOauthController {
 
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       'openai',
       'subscription',
       keyLabel,

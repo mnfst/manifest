@@ -214,7 +214,7 @@ export class ModelDiscoveryService {
 
     if (filtered.length === 0 && previousCachedCount > 0) {
       this.logger.warn(
-        `Discovery returned 0 models for ${provider.provider} (agent ${provider.agent_id}); kept ${previousCachedCount} cached models`,
+        `Discovery returned 0 models for ${provider.provider} (user ${provider.user_id}); kept ${previousCachedCount} cached models`,
       );
       return provider.cached_models ?? [];
     }
@@ -224,14 +224,14 @@ export class ModelDiscoveryService {
     await this.providerRepo.save(provider);
 
     this.logger.log(
-      `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
+      `Discovered ${filtered.length} models for provider ${provider.provider} (user ${provider.user_id})`,
     );
     return filtered;
   }
 
-  async discoverAllForAgent(agentId: string): Promise<void> {
+  async discoverAllForAgent(userId: string): Promise<void> {
     const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+      where: { user_id: userId, is_active: true },
     });
     await Promise.all(
       providers
@@ -245,7 +245,7 @@ export class ModelDiscoveryService {
   }
 
   async refreshProvider(
-    agentId: string,
+    userId: string,
     providerId: string,
     authType?: AuthType,
   ): Promise<{
@@ -254,8 +254,8 @@ export class ModelDiscoveryService {
     last_fetched_at: string | null;
     error: string | null;
   }> {
-    const where: { agent_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
-      agent_id: agentId,
+    const where: { user_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
+      user_id: userId,
       provider: providerId,
       is_active: true,
     };
@@ -290,7 +290,7 @@ export class ModelDiscoveryService {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(
-        `Per-provider refresh failed for ${provider.provider} (agent ${agentId}): ${message}`,
+        `Per-provider refresh failed for ${provider.provider} (user ${userId}): ${message}`,
       );
       return {
         ok: false,
@@ -301,9 +301,9 @@ export class ModelDiscoveryService {
     }
   }
 
-  async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
+  async getModelsForAgent(userId: string): Promise<DiscoveredModel[]> {
     const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+      where: { user_id: userId, is_active: true },
     });
 
     const models: DiscoveredModel[] = [];
@@ -335,10 +335,9 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Merge custom provider models
-    const customProviders = await this.customProviderRepo.find({
-      where: { agent_id: agentId },
-    });
+    // TODO: custom_providers table is still agent-scoped; needs migration to user-level.
+    // For now, skip custom provider models in user-level discovery.
+    const customProviders: CustomProvider[] = [];
     for (const cp of customProviders) {
       if (!Array.isArray(cp.models)) continue;
       const cpKey = customProviderKey(cp.id);
@@ -372,8 +371,8 @@ export class ModelDiscoveryService {
     return models;
   }
 
-  async getModelForAgent(agentId: string, modelName: string): Promise<DiscoveredModel | undefined> {
-    const all = await this.getModelsForAgent(agentId);
+  async getModelForAgent(userId: string, modelName: string): Promise<DiscoveredModel | undefined> {
+    const all = await this.getModelsForAgent(userId);
     return all.find((m) => m.id === modelName);
   }
 

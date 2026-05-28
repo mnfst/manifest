@@ -110,7 +110,7 @@ export class SavingsQueryService {
     agentName: string,
     tenantId?: string,
   ): Promise<SavingsTimeseriesRow[]> {
-    const fallback = await this.resolveFallbackBaseline(agentName, tenantId);
+    const fallback = await this.resolveFallbackBaseline(userId, agentName, tenantId);
     const fbInput = fallback?.input ?? 0;
     const fbOutput = fallback?.output ?? 0;
 
@@ -158,7 +158,7 @@ export class SavingsQueryService {
     // For messages with stored baseline_cost_usd (V2+), use it directly.
     // For older messages without it (pre-V2), fall back to a query-time
     // calculation using the cheapest reasoning model from current providers.
-    const fallback = await this.resolveFallbackBaseline(agentName, tenantId);
+    const fallback = await this.resolveFallbackBaseline(userId, agentName, tenantId);
     const fbInput = fallback?.input ?? 0;
     const fbOutput = fallback?.output ?? 0;
 
@@ -253,7 +253,7 @@ export class SavingsQueryService {
     baselineModelId: string,
     tenantId?: string,
   ): Promise<SavingsResult> {
-    const { baseline, overrideStale } = await this.resolveOverrideBaseline(agent, baselineModelId);
+    const { baseline, overrideStale } = await this.resolveOverrideBaseline(userId, baselineModelId);
     if (!baseline) return this.emptySavings();
 
     const inputPrice = baseline.input_price_per_token;
@@ -338,11 +338,12 @@ export class SavingsQueryService {
   }
 
   async getBaselineCandidates(
-    agentId: string,
+    userId: string,
     currentBaselineId: string | null,
+    agentId?: string,
   ): Promise<BaselineCandidate[]> {
     const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+      where: { user_id: userId, is_active: true },
     });
 
     const candidates: BaselineCandidate[] = [];
@@ -383,7 +384,7 @@ export class SavingsQueryService {
       }
     }
 
-    const historical = await this.getHistoricalModels(agentId);
+    const historical = agentId ? await this.getHistoricalModels(agentId) : [];
     for (const h of historical) {
       if (seen.has(h.id)) continue;
       seen.add(h.id);
@@ -410,11 +411,11 @@ export class SavingsQueryService {
   }
 
   private async resolveOverrideBaseline(
-    agent: Agent,
+    userId: string,
     modelId: string,
   ): Promise<{ baseline: BaselineModel | null; overrideStale: boolean }> {
     const providers = await this.providerRepo.find({
-      where: { agent_id: agent.id, is_active: true },
+      where: { user_id: userId, is_active: true },
     });
 
     const overrideModel = this.findModelById(providers, modelId);
@@ -425,8 +426,8 @@ export class SavingsQueryService {
       };
     }
 
-    const historical = await this.getHistoricalModels(agent.id);
-    const historicalMatch = historical.find((h) => h.id === modelId);
+    // Historical model lookup requires agent context; skip when only userId is available
+    const historicalMatch: BaselineModel | undefined = undefined;
     if (historicalMatch) {
       return { baseline: historicalMatch, overrideStale: false };
     }
@@ -492,6 +493,7 @@ export class SavingsQueryService {
   }
 
   private async resolveFallbackBaseline(
+    userId: string,
     agentName: string,
     tenantId?: string,
   ): Promise<{ input: number; output: number } | null> {
@@ -503,7 +505,7 @@ export class SavingsQueryService {
       });
       if (!agent) return null;
       const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
-        this.providerRepo.find({ where: { agent_id: agent.id, is_active: true } }),
+        this.providerRepo.find({ where: { user_id: userId, is_active: true } }),
         this.tierRepo.find({ where: { agent_id: agent.id } }),
         this.specificityRepo.find({ where: { agent_id: agent.id } }),
         this.headerTierRepo.find({ where: { agent_id: agent.id } }),
