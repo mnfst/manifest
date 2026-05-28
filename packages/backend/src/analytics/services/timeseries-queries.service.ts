@@ -40,6 +40,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     agentName?: string,
     authType?: string,
+    provider?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -56,6 +57,7 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {

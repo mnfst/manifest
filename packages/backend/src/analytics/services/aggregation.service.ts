@@ -55,6 +55,7 @@ export class AggregationService {
     tenantId?: string,
     agentName?: string,
     authType?: string,
+    provider?: string,
   ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
@@ -68,6 +69,7 @@ export class AggregationService {
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName, tenantId);
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) currentQb.andWhere('at.provider = :provider', { provider });
 
     const prevQb = this.buildPreviousWindowQuery(
       userId,
@@ -76,6 +78,7 @@ export class AggregationService {
       cutoff,
       prevCutoff,
       authType,
+      provider,
     )
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -121,6 +124,7 @@ export class AggregationService {
     cutoff: string,
     prevCutoff: string,
     authType?: string,
+    provider?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -128,6 +132,7 @@ export class AggregationService {
       .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
     return qb;
   }
 }

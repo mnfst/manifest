@@ -218,21 +218,23 @@ const LocalProviders: Component = () => {
                           </Show>
                         </div>
                       </td>
-                      <td style="text-align: right;">
-                        <ActionMenu
-                          items={[
-                            ...(cp().connections[0]?.id
-                              ? [
-                                  {
-                                    label: 'View details',
-                                    onClick: () =>
-                                      navigate(`/providers/connections/${cp().connections[0].id}`),
-                                  },
-                                ]
-                              : []),
-                            { label: 'Manage', onClick: () => openConnect(prov.id) },
-                          ]}
-                        />
+                      <td>
+                        <span style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                          <Show when={cp().connections[0]?.id}>
+                            <button
+                              class="btn btn--sm"
+                              style="font-size: var(--font-size-xs);"
+                              onClick={() =>
+                                navigate(`/providers/connections/${cp().connections[0].id}`)
+                              }
+                            >
+                              View details
+                            </button>
+                          </Show>
+                          <ActionMenu
+                            items={[{ label: 'Manage', onClick: () => openConnect(prov.id) }]}
+                          />
+                        </span>
                       </td>
                     </tr>
                   );

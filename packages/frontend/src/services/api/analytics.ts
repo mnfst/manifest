@@ -1,10 +1,16 @@
 import { fetchJson, fetchMutate } from './core.js';
 
-export function getProviderAnalytics(authType: string, range = '24h', agentName?: string) {
+export function getProviderAnalytics(
+  authType: string,
+  range = '24h',
+  agentName?: string,
+  provider?: string,
+) {
   return fetchJson('/provider-analytics', {
     auth_type: authType,
     range,
     ...(agentName ? { agent_name: agentName } : {}),
+    ...(provider ? { provider } : {}),
   });
 }
 
@@ -12,6 +18,10 @@ export function getProviderAnalyticsAgents(authType: string): Promise<{ agents: 
   return fetchJson('/provider-analytics/agents', { auth_type: authType }) as Promise<{
     agents: string[];
   }>;
+}
+
+export function getConnectionDetail(connectionId: string) {
+  return fetchJson('/provider-analytics/connection-detail', { connection_id: connectionId });
 }
 
 export function getOverview(range = '24h', agentName?: string) {
