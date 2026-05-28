@@ -16,15 +16,18 @@ import { CopilotController } from './copilot.controller';
 import { SpecificityController } from './specificity.controller';
 import { ModelParamsController } from './model-params.controller';
 import { UserProvidersController } from './user-providers.controller';
+import { AgentProviderAccessController } from './agent-provider-access.controller';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { UserProvider } from '../entities/user-provider.entity';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Tenant } from '../entities/tenant.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserProvider, AgentMessage, Tenant]),
+    TypeOrmModule.forFeature([UserProvider, AgentProviderAccess, Agent, AgentMessage, Tenant]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,
@@ -44,6 +47,7 @@ import { Tenant } from '../entities/tenant.entity';
     SpecificityController,
     ModelParamsController,
     UserProvidersController,
+    AgentProviderAccessController,
   ],
   providers: [OllamaSyncService],
   exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],

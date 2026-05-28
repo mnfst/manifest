@@ -442,9 +442,13 @@ const Routing: Component = () => {
                 {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
               </button>
             </Show>
-            <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
-              Connect providers
-            </button>
+            <a
+              class="btn btn--primary btn--sm"
+              href="/providers/subscriptions"
+              style="text-decoration: none;"
+            >
+              Manage providers
+            </a>
           </div>
         </Show>
       </div>
@@ -509,9 +513,13 @@ const Routing: Component = () => {
               <span class="routing-no-providers__desc">
                 Connect a model provider to start configuring your routing rules.
               </span>
-              <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
+              <a
+                class="btn btn--primary btn--sm"
+                href="/providers/subscriptions"
+                style="text-decoration: none;"
+              >
                 Connect provider
-              </button>
+              </a>
             </div>
           }
         >

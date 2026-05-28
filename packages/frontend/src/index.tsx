@@ -20,6 +20,7 @@ const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
 const Routing = lazyReload(() => import('./pages/Routing.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
 const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
+const Limits = lazyReload(() => import('./pages/Limits.jsx'));
 
 // Global pages
 const Overview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
@@ -72,12 +73,15 @@ render(
           <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
           <Route path="/providers" component={() => <Navigate href="/providers/subscriptions" />} />
 
-          {/* Agent detail: horizontal tabs (routing, settings, providers) */}
+          {/* Agent detail: horizontal tabs (routing, providers, guardrails, settings) */}
           <Route path="/agents/:agentName" component={AgentGuard}>
-            <Route path="/" component={Routing} />
-            <Route path="/routing" component={Routing} />
-            <Route path="/settings/*" component={Settings} />
-            <Route path="/providers" component={AgentProviders} />
+            <Route path="" component={AgentDetail}>
+              <Route path="/" component={Routing} />
+              <Route path="/routing" component={Routing} />
+              <Route path="/settings/*" component={Settings} />
+              <Route path="/providers" component={AgentProviders} />
+              <Route path="/guardrails" component={Limits} />
+            </Route>
 
             {/* Redirects for removed pages */}
             <Route path="/messages" component={() => <Navigate href="/messages" />} />
@@ -94,7 +98,7 @@ render(
               path="/limits"
               component={() => {
                 const agentName = window.location.pathname.split('/')[2];
-                return <Navigate href={`/agents/${agentName}/settings?tab=alerts`} />;
+                return <Navigate href={`/agents/${agentName}/guardrails`} />;
               }}
             />
             <Route path="/help" component={() => <Navigate href="/overview" />} />

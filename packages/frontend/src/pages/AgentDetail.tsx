@@ -43,15 +43,6 @@ const AgentDetail: ParentComponent = (props) => {
           Routing
         </A>
         <A
-          href={path('/settings')}
-          role="tab"
-          aria-selected={isActive('/settings')}
-          class="panel__tab"
-          classList={{ 'panel__tab--active': isActive('/settings') }}
-        >
-          Settings
-        </A>
-        <A
           href={path('/providers')}
           role="tab"
           aria-selected={isActive('/providers')}
@@ -59,6 +50,24 @@ const AgentDetail: ParentComponent = (props) => {
           classList={{ 'panel__tab--active': isActive('/providers') }}
         >
           Providers
+        </A>
+        <A
+          href={path('/guardrails')}
+          role="tab"
+          aria-selected={isActive('/guardrails')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/guardrails') }}
+        >
+          Guardrails
+        </A>
+        <A
+          href={path('/settings')}
+          role="tab"
+          aria-selected={isActive('/settings')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/settings') }}
+        >
+          Settings
         </A>
       </div>
 

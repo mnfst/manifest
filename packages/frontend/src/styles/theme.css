@@ -865,15 +865,19 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  width: 22px;
+  height: 22px;
+  background: hsl(var(--muted));
   border: none;
+  border-radius: var(--radius-sm);
   padding: 0;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   opacity: 0;
   transition:
     opacity var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .sidebar__section-label--interactive:hover .sidebar__section-add {
@@ -882,6 +886,7 @@ h6 {
 
 .sidebar__section-add:hover {
   color: hsl(var(--sidebar-foreground));
+  background: hsl(var(--border));
 }
 
 .sidebar__section-caret {
