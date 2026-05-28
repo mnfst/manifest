@@ -164,6 +164,17 @@ describe('createSsePayloadParser', () => {
 
     expect(parser.feed(input)).toEqual([]);
   });
+
+  it('preserves named event metadata while stripping data prefixes', () => {
+    const parser = createSsePayloadParser();
+    const input =
+      'event: response.completed\n' +
+      'data: {"response":{"usage":{"input_tokens":12,"output_tokens":2}}}\n\n';
+
+    expect(parser.feed(input)).toEqual([
+      'event: response.completed\n{"response":{"usage":{"input_tokens":12,"output_tokens":2}}}',
+    ]);
+  });
 });
 
 describe('pipeStream', () => {
@@ -583,6 +594,38 @@ describe('pipeStream', () => {
     });
   });
 
+  it('captures usage from native Responses API named SSE events', async () => {
+    const { res, written } = mockResponse();
+    const completed =
+      'event: response.completed\n' +
+      `data: ${JSON.stringify({
+        type: 'response.completed',
+        response: {
+          usage: {
+            input_tokens: 12,
+            input_tokens_details: { cached_tokens: 3 },
+            output_tokens: 2,
+            total_tokens: 14,
+          },
+        },
+      })}\n\n`;
+    const stream = createReadableStream([
+      'event: response.created\n' +
+        `data: ${JSON.stringify({ type: 'response.created', response: { usage: null } })}\n\n`,
+      completed,
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(written.join('')).toContain(completed);
+    expect(usage).toEqual({
+      prompt_tokens: 12,
+      completion_tokens: 2,
+      cache_read_tokens: 3,
+      cache_creation_tokens: 0,
+    });
+  });
+
   it('should return null usage when stream has no usage data', async () => {
     const { res } = mockResponse();
     const stream = createReadableStream([
@@ -619,7 +662,7 @@ describe('pipeStream', () => {
       choices: [],
       usage: { prompt_tokens: 31, completion_tokens: 10, cache_read_tokens: 5 },
     });
-    // Final chunk with usage does NOT end with \n\n — stays in passthroughBuffer
+    // Final chunk with usage does NOT end with \n\n — stays buffered until stream close.
     const stream = createReadableStream([
       `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
       `data: ${usagePayload}`,
@@ -657,6 +700,33 @@ describe('pipeStream', () => {
       prompt_tokens: 7,
       completion_tokens: 9,
       cache_read_tokens: 2,
+      cache_creation_tokens: 0,
+    });
+  });
+
+  it('captures response.usage from a leftover native Responses API named event', async () => {
+    const { res } = mockResponse();
+    const usagePayload = JSON.stringify({
+      type: 'response.completed',
+      response: {
+        usage: {
+          input_tokens: 8,
+          output_tokens: 5,
+          input_tokens_details: { cached_tokens: 1 },
+        },
+      },
+    });
+    const stream = createReadableStream([
+      `data: ${JSON.stringify({ choices: [{ delta: { content: 'hi' } }] })}\n\n`,
+      `event: response.completed\ndata: ${usagePayload}`,
+    ]);
+
+    const usage = await pipeStream(stream, res as never);
+
+    expect(usage).toEqual({
+      prompt_tokens: 8,
+      completion_tokens: 5,
+      cache_read_tokens: 1,
       cache_creation_tokens: 0,
     });
   });

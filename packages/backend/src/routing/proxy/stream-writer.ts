@@ -84,24 +84,61 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
   return null;
 }
 
-/** Extract usage data from an SSE-formatted text chunk (e.g. `data: {...}\n\n`). */
+function extractUsageFromObject(obj: unknown): StreamUsage | null {
+  if (!obj || typeof obj !== 'object') return null;
+  const record = obj as Record<string, unknown>;
+  const fromUsage = parseUsageObject(record.usage);
+  if (fromUsage) return fromUsage;
+  const response = record.response;
+  if (response && typeof response === 'object') {
+    return parseUsageObject((response as Record<string, unknown>).usage);
+  }
+  return null;
+}
+
+function extractUsageFromJsonPayload(payload: string): StreamUsage | null {
+  const trimmed = payload.trim();
+  if (!trimmed || trimmed === '[DONE]') return null;
+  try {
+    return extractUsageFromObject(JSON.parse(trimmed));
+  } catch {
+    return null;
+  }
+}
+
+function extractJsonPayloadFromParsedEvent(eventText: string): string {
+  return eventText
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(
+      (line) =>
+        line &&
+        !line.startsWith('event:') &&
+        !line.startsWith('id:') &&
+        !line.startsWith('retry:') &&
+        !line.startsWith(':'),
+    )
+    .map((line) => (line.startsWith('data:') ? line.slice(5).trim() : line))
+    .join('\n')
+    .trim();
+}
+
+/** Extract usage data from SSE text, parsed SSE event text, or raw JSON. */
 export function extractUsageFromSse(sseText: string): StreamUsage | null {
   for (const line of sseText.split('\n')) {
     const trimmed = line.trim();
     if (!trimmed.startsWith('data:')) continue;
     const json = trimmed.slice(5).trim();
-    if (json === '[DONE]') continue;
-    try {
-      const obj = JSON.parse(json);
-      const fromUsage = parseUsageObject(obj.usage);
-      if (fromUsage) return fromUsage;
-      const fromResponse = parseUsageObject(obj.response?.usage);
-      if (fromResponse) return fromResponse;
-    } catch {
-      /* ignore parse errors */
-    }
+    const usage = extractUsageFromJsonPayload(json);
+    if (usage) return usage;
   }
-  return null;
+
+  const usage = extractUsageFromJsonPayload(sseText);
+  if (usage) return usage;
+
+  const payload = extractJsonPayloadFromParsedEvent(sseText);
+  if (!payload || payload === sseText.trim()) return null;
+  return extractUsageFromJsonPayload(payload);
 }
 
 export function initSseHeaders(
@@ -235,18 +272,8 @@ export async function pipeStream(
 
   const capturePassthroughUsage = (events: string[]): void => {
     for (const ev of events) {
-      try {
-        const obj = JSON.parse(ev);
-        const fromUsage = parseUsageObject(obj.usage);
-        if (fromUsage) {
-          capturedUsage = fromUsage;
-        } else {
-          const fromResponse = parseUsageObject(obj.response?.usage);
-          if (fromResponse) capturedUsage = fromResponse;
-        }
-      } catch {
-        /* ignore non-JSON events */
-      }
+      const usage = extractUsageFromSse(ev);
+      if (usage) capturedUsage = usage;
     }
   };
 

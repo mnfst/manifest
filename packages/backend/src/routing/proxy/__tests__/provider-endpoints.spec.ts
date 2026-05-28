@@ -37,6 +37,12 @@ describe('buildCustomEndpoint', () => {
     expect(path).toBe('/v1/chat/completions');
   });
 
+  it('requests exact streamed usage for OpenAI-compatible custom providers', () => {
+    const endpoint = buildCustomEndpoint('http://localhost:8000');
+
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
   it('returns an Anthropic-shaped endpoint when apiKind="anthropic"', () => {
     const endpoint = buildCustomEndpoint('https://api.anthropic.com', 'anthropic');
 
@@ -406,6 +412,51 @@ describe('PROVIDER_ENDPOINTS', () => {
       'anthropic-version': '2023-06-01',
     });
     expect(headers['Authorization']).toBeUndefined();
+  });
+
+  it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
+    const endpointKeys = [
+      'openai',
+      'deepseek',
+      'groq',
+      'kilo',
+      'mistral',
+      'xai',
+      'minimax',
+      'moonshot',
+      'nvidia',
+      'qwen',
+      'zai',
+      'zai-subscription',
+      'copilot',
+      'openrouter',
+      'ollama',
+      'ollama-cloud',
+      'opencode-go',
+    ];
+
+    for (const key of endpointKeys) {
+      expect(PROVIDER_ENDPOINTS[key].streamUsageReporting).toBe('openai_stream_options');
+    }
+  });
+
+  it('does not send OpenAI stream usage options to native or Responses endpoints', () => {
+    const endpointKeys = [
+      'anthropic',
+      'google',
+      'gemini-subscription',
+      'kiro',
+      'openai-subscription',
+      'openai-responses',
+      'xai-responses',
+      'copilot-responses',
+      'minimax-subscription',
+      'opencode-go-anthropic',
+    ];
+
+    for (const key of endpointKeys) {
+      expect(PROVIDER_ENDPOINTS[key].streamUsageReporting).toBeUndefined();
+    }
   });
 });
 
