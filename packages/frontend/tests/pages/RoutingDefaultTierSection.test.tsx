@@ -122,18 +122,17 @@ describe('RoutingDefaultTierSection', () => {
     expect(screen.getByText(/Analyzes the complexity/)).toBeDefined();
   });
 
-  it('renders the Response mode control without an output selector', () => {
+  it('does not render a Response mode control (moved to parent)', () => {
     render(() => <RoutingDefaultTierSection {...makeProps()} />);
-    expect(screen.getByRole('group', { name: 'Response mode' })).toBeDefined();
-    expect(screen.queryByLabelText('Output')).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Response mode' })).toBeNull();
   });
 
-  it('forwards response mode changes from the Response mode control', async () => {
+  it('accepts responseMode and onResponseModeChange props without rendering them', () => {
     const onResponseModeChange = vi.fn().mockResolvedValue(undefined);
     render(() => <RoutingDefaultTierSection {...makeProps({ onResponseModeChange })} />);
-    fireEvent.click(screen.getByText('Stream'));
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(onResponseModeChange).toHaveBeenCalledWith('stream');
+    // OutputControls is no longer rendered inside this component,
+    // so clicking 'Stream' is not possible here.
+    expect(screen.queryByText('Stream')).toBeNull();
   });
 
   it('invokes onToggleComplexity when the toggle is clicked', () => {

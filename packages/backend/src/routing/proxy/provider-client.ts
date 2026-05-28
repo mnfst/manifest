@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
@@ -25,6 +25,7 @@ import {
 import { ForwardOptions } from './proxy-types';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
+import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 
 export interface ForwardResult {
   response: Response;
@@ -51,30 +52,6 @@ const PROVIDER_TIMEOUT_MS =
     : 180_000;
 
 /**
- * Endpoint keys (OpenAI-compatible format) whose streaming responses support
- * `stream_options.include_usage`. Token usage is needed for DB logging and for
- * downstream clients (e.g. OpenClaw context management).
- */
-const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
-  'openai',
-  'openrouter',
-  'ollama',
-  'ollama-cloud',
-  'mistral',
-  'deepseek',
-  'moonshot',
-  'minimax',
-  'qwen',
-  'xai',
-  'zai',
-  'zai-subscription',
-  'copilot',
-  'opencode-go',
-  'custom',
-  'groq',
-]);
-
-/**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
@@ -99,6 +76,11 @@ function stripModelPrefix(model: string, endpointKey: string): string {
 export class ProviderClient {
   private readonly logger = new Logger(ProviderClient.name);
 
+  constructor(
+    @Optional()
+    private readonly opencodeGoCatalog?: OpencodeGoCatalogService,
+  ) {}
+
   async forward(opts: ForwardOptions): Promise<ForwardResult> {
     const {
       provider,
@@ -112,7 +94,7 @@ export class ProviderClient {
       authType,
     } = opts;
 
-    const { endpoint, endpointKey } = this.resolveEndpoint(
+    const { endpoint, endpointKey } = await this.resolveEndpoint(
       customEndpoint,
       provider,
       authType,
@@ -188,13 +170,13 @@ export class ProviderClient {
     });
   }
 
-  private resolveEndpoint(
+  private async resolveEndpoint(
     customEndpoint: ProviderEndpoint | undefined,
     provider: string,
     authType: string | undefined,
     model: string,
     apiMode: ForwardOptions['apiMode'],
-  ): { endpoint: ProviderEndpoint; endpointKey: string } {
+  ): Promise<{ endpoint: ProviderEndpoint; endpointKey: string }> {
     if (customEndpoint) {
       return { endpoint: customEndpoint, endpointKey: 'custom' };
     }
@@ -227,13 +209,29 @@ export class ProviderClient {
       resolved = 'copilot-responses';
     }
     if (resolved === 'opencode-go') {
-      // OpenCode Go uses two different API formats depending on the model:
-      // MiniMax models use Anthropic /v1/messages, all others use OpenAI /v1/chat/completions.
-      if (stripVendorPrefix(model).toLowerCase().startsWith('minimax-')) {
+      const bareOpenCodeModel = stripVendorPrefix(model).toLowerCase();
+      const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
+      const catalogFormat = await this.resolveOpencodeGoFormat(bareOpenCodeModel);
+      if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
         resolved = 'opencode-go-anthropic';
       }
     }
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
+  }
+
+  private async resolveOpencodeGoFormat(bareModel: string): Promise<'openai' | 'anthropic' | null> {
+    if (!this.opencodeGoCatalog) return null;
+    try {
+      return await this.opencodeGoCatalog.resolveFormat(bareModel);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`OpenCode Go catalog format lookup failed: ${message}`);
+      return null;
+    }
+  }
+
+  private isKnownOpencodeGoAnthropicFamily(bareModel: string): boolean {
+    return bareModel.startsWith('minimax-') || bareModel.startsWith('qwen3.7');
   }
 
   private buildRequest(ctx: {
@@ -360,7 +358,7 @@ export class ProviderClient {
       ctx.model,
       ctx.reasoningContentLookup,
     );
-    if (stream && SUPPORTS_USAGE_STREAM_OPTIONS.has(endpointKey)) {
+    if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
           ? (sanitized.stream_options as Record<string, unknown>)

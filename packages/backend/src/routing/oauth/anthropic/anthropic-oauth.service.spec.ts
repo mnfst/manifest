@@ -235,6 +235,27 @@ describe('AnthropicOauthService', () => {
       expect(providerService.upsertProvider).toHaveBeenCalled();
     });
 
+    it('uses the next OAuth label when adding another Anthropic account', async () => {
+      providerService.nextOAuthLabel.mockResolvedValue('Key 2');
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a2', refresh_token: 'r2', expires_in: 60 }),
+      );
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+
+      await svc.exchangeCode(`second-code#${state}`, undefined, 'agent-1', 'user-1');
+
+      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(providerService.upsertProvider).toHaveBeenCalledWith(
+        'agent-1',
+        'user-1',
+        'anthropic',
+        expect.stringContaining('"t":"a2"'),
+        'subscription',
+        undefined,
+        'Key 2',
+      );
+    });
+
     it('falls back to the latest pending state when the client posts a bare code', async () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 60 }),

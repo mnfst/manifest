@@ -584,10 +584,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                                 {formatPerRequestCost(modelInfo(modelName())?.cost_per_request) ??
                                   'Included in subscription'}
                               </span>
-                              <ModelCapabilityBadges
-                                capabilities={modelCapabilities(modelName())}
-                                compact
-                              />
                               <Show when={primarySkipped()}>
                                 <span class="routing-card__skipped-badge">Skipped in Stream</span>
                               </Show>
@@ -596,10 +592,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                         >
                           <span class="routing-card__chip-meta">
                             <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
-                            <ModelCapabilityBadges
-                              capabilities={modelCapabilities(modelName())}
-                              compact
-                            />
                             <Show when={primarySkipped()}>
                               <span class="routing-card__skipped-badge">Skipped in Stream</span>
                             </Show>

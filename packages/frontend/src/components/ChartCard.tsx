@@ -1,11 +1,16 @@
-import { Show, type Component, type JSX } from 'solid-js';
-import CostChart from './CostChart.jsx';
+import { lazy, Show, Suspense, type Component, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
-import SavingsChart from './SavingsChart.jsx';
-import SingleTokenChart from './SingleTokenChart.jsx';
-import TokenChart from './TokenChart.jsx';
 import { formatCost, formatNumber } from '../services/formatters.js';
 import type { SavingsTimeseriesRow } from '../services/api/analytics.js';
+
+// uPlot-backed charts make up the `charts` vendor chunk. Importing them eagerly
+// pulls that chunk into the initial Overview render even though only one view
+// is visible at a time. Loading each chart lazily defers the chunk until its
+// tab is actually selected.
+const CostChart = lazy(() => import('./CostChart.jsx'));
+const SavingsChart = lazy(() => import('./SavingsChart.jsx'));
+const SingleTokenChart = lazy(() => import('./SingleTokenChart.jsx'));
+const TokenChart = lazy(() => import('./TokenChart.jsx'));
 
 type ActiveView = 'cost' | 'tokens' | 'messages' | 'savings';
 
@@ -121,7 +126,9 @@ const ChartCard: Component<ChartCardProps> = (props) => (
             </div>
           }
         >
-          <CostChart data={props.costUsage} range={props.range} />
+          <Suspense fallback={<div style="height: 260px;" />}>
+            <CostChart data={props.costUsage} range={props.range} />
+          </Suspense>
         </Show>
       </Show>
       <Show when={props.activeView === 'tokens'}>
@@ -133,7 +140,9 @@ const ChartCard: Component<ChartCardProps> = (props) => (
             </div>
           }
         >
-          <TokenChart data={props.tokenUsage} range={props.range} />
+          <Suspense fallback={<div style="height: 260px;" />}>
+            <TokenChart data={props.tokenUsage} range={props.range} />
+          </Suspense>
         </Show>
       </Show>
       <Show when={props.activeView === 'messages'}>
@@ -145,12 +154,14 @@ const ChartCard: Component<ChartCardProps> = (props) => (
             </div>
           }
         >
-          <SingleTokenChart
-            data={props.messageChartData}
-            label="Messages"
-            colorVar="--chart-1"
-            range={props.range}
-          />
+          <Suspense fallback={<div style="height: 260px;" />}>
+            <SingleTokenChart
+              data={props.messageChartData}
+              label="Messages"
+              colorVar="--chart-1"
+              range={props.range}
+            />
+          </Suspense>
         </Show>
       </Show>
       <Show when={props.activeView === 'savings'}>
@@ -162,7 +173,9 @@ const ChartCard: Component<ChartCardProps> = (props) => (
             </div>
           }
         >
-          <SavingsChart data={props.savingsTimeseries!} range={props.range} />
+          <Suspense fallback={<div style="height: 260px;" />}>
+            <SavingsChart data={props.savingsTimeseries!} range={props.range} />
+          </Suspense>
         </Show>
       </Show>
     </div>

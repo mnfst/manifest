@@ -1,9 +1,17 @@
-import { createSignal, createResource, createMemo, Show, type Component } from 'solid-js';
+import {
+  createSignal,
+  createResource,
+  createMemo,
+  createEffect,
+  Show,
+  type Component,
+} from 'solid-js';
 import { useLocation, useParams, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import RoutingModals from '../components/RoutingModals.js';
 import { buildPipelineHelp } from '../components/RoutingPipelineCard.js';
 import RoutingTabs from '../components/RoutingTabs.js';
+import ResponseModeModal from '../components/ResponseModeModal.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
@@ -24,7 +32,6 @@ import {
   resetSpecificity,
   refreshModels,
   getPricingHealth,
-  refreshPricing,
   getComplexityStatus,
   toggleComplexity,
   listModelParams,
@@ -246,15 +253,28 @@ const Routing: Component = () => {
       !!customProviderPrefill() ||
       !!providerDeepLink(),
   );
+  const [helpOpen, setHelpOpen] = createSignal(false);
+  const [responseModeModalOpen, setResponseModeModalOpen] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
   const [instructionProvider, setInstructionProvider] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [refreshingModels, setRefreshingModels] = createSignal(false);
-  const [pricingHealth, { refetch: refetchPricingHealth }] = createResource(getPricingHealth);
-  const [refreshingPricing, setRefreshingPricing] = createSignal(false);
-  const pricingCacheEmpty = () => (pricingHealth()?.model_count ?? 0) === 0;
+  const [pricingHealth] = createResource(getPricingHealth);
+  const [pricingWarningShown, setPricingWarningShown] = createSignal(false);
   const [wasEnabledBeforeModal, setWasEnabledBeforeModal] = createSignal(false);
   const [hadProvidersBeforeModal, setHadProvidersBeforeModal] = createSignal(false);
+
+  createEffect(() => {
+    const health = pricingHealth();
+    if (!health) return;
+    if (health.model_count > 0) {
+      setPricingWarningShown(false);
+      return;
+    }
+    if (pricingWarningShown()) return;
+    setPricingWarningShown(true);
+    toast.warning('Model pricing data is unavailable. Automatic tier defaults may be delayed.');
+  });
 
   const refetchAll = async () => {
     await Promise.all([
@@ -453,46 +473,6 @@ const Routing: Component = () => {
         </Show>
       </div>
 
-      <Show when={pricingHealth() && pricingCacheEmpty()}>
-        <div
-          class="panel"
-          role="alert"
-          style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; border-left: 3px solid var(--color-warning, #d97706);"
-        >
-          <div>
-            <strong>Pricing catalog is empty.</strong>{' '}
-            <span>
-              Manifest couldn't reach openrouter.ai at startup, so no models will be auto-assigned
-              to tiers. Retry below, or check outbound network access to openrouter.ai.
-            </span>
-          </div>
-          <button
-            class="btn btn--outline btn--sm"
-            disabled={refreshingPricing()}
-            onClick={async () => {
-              setRefreshingPricing(true);
-              try {
-                const res = await refreshPricing();
-                await refetchPricingHealth();
-                if (res.ok) {
-                  toast.success(`Pricing catalog loaded (${res.model_count} models)`);
-                  await refetchModels();
-                  await refetchTiers();
-                } else {
-                  toast.error('Pricing refresh failed — check backend logs');
-                }
-              } catch {
-                toast.error('Pricing refresh failed');
-              } finally {
-                setRefreshingPricing(false);
-              }
-            }}
-          >
-            {refreshingPricing() ? 'Retrying...' : 'Retry pricing sync'}
-          </button>
-        </div>
-      </Show>
-
       <Show when={!connectedProviders.loading} fallback={<RoutingLoadingSkeleton />}>
         <Show
           when={hasProviders()}
@@ -539,6 +519,27 @@ const Routing: Component = () => {
                 hasCustomTiersEnabled(),
                 complexityEnabled(),
               )
+            }
+            headerRight={
+              <button class="response-mode-btn" onClick={() => setResponseModeModalOpen(true)}>
+                <span class="response-mode-btn__icon">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </span>
+                Response mode: {defaultResponseMode() === 'stream' ? 'Stream' : 'Buffered'}
+              </button>
             }
           >
             {{
@@ -646,8 +647,66 @@ const Routing: Component = () => {
             resettingTier={actions.resettingTier}
             onResetAll={actions.handleResetAll}
             onShowInstructions={() => setInstructionModal('enable')}
+            onShowHowRoutingWorks={() => setHelpOpen(true)}
           />
+
+          <Show when={helpOpen()}>
+            {(() => {
+              const content = buildPipelineHelp(
+                hasAnySpecificityActive(),
+                hasCustomTiersEnabled(),
+                complexityEnabled(),
+              );
+              if (!content) return null;
+              return (
+                <div
+                  class="modal-overlay"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setHelpOpen(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setHelpOpen(false);
+                  }}
+                >
+                  <div
+                    class="modal-card"
+                    style="max-width: 480px;"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <h2 style="margin: 0 0 16px; font-size: var(--font-size-lg); font-weight: 600;">
+                      How routing works
+                    </h2>
+                    {content}
+                    <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                      <button class="btn btn--primary btn--sm" onClick={() => setHelpOpen(false)}>
+                        Got it
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </Show>
         </Show>
+      </Show>
+
+      <Show when={responseModeModalOpen()}>
+        <ResponseModeModal
+          responseMode={defaultResponseMode}
+          onResponseModeChange={async (mode) => {
+            await handleDefaultResponseModeChange(mode);
+          }}
+          disabled={changingDefaultResponseMode}
+          tiers={tiers() ?? []}
+          models={models() ?? []}
+          onClose={() => setResponseModeModalOpen(false)}
+          onReplace={(tierId) => {
+            setResponseModeModalOpen(false);
+            setDropdownTier(tierId);
+          }}
+        />
       </Show>
 
       <RoutingModals

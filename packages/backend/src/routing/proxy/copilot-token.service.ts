@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 
 const TOKEN_ENDPOINT = 'https://api.github.com/copilot_internal/v2/token';
 
@@ -63,7 +64,7 @@ export class CopilotTokenService {
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      this.logger.warn(`Copilot token exchange failed: ${res.status} ${body}`);
+      this.logger.warn(`Copilot token exchange failed: ${res.status} ${scrubSecrets(body)}`);
       throw new Error(`Copilot token exchange failed: ${res.status}`);
     }
 

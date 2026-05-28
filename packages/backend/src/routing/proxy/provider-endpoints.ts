@@ -24,6 +24,12 @@ export interface ProviderEndpoint {
   buildStreamPath?: (model: string) => string;
   format: 'openai' | 'google' | 'anthropic' | 'chatgpt' | 'kiro';
   /**
+   * How this endpoint can report exact token usage for streaming responses.
+   * `openai_stream_options` means the proxy should request a final usage event
+   * by sending `stream_options.include_usage`.
+   */
+  streamUsageReporting?: 'openai_stream_options';
+  /**
    * Set to `true` for endpoints whose `baseUrl` is user-supplied (custom
    * providers, subscription resource URLs). The proxy re-runs SSRF
    * validation against this URL immediately before each forward to defend
@@ -40,6 +46,8 @@ export interface ProviderEndpoint {
    */
   codeAssistEnvelope?: boolean;
 }
+
+const openaiStreamUsage = { streamUsageReporting: 'openai_stream_options' as const };
 
 const openaiHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
@@ -102,6 +110,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   'openai-subscription': {
     baseUrl: CHATGPT_SUBSCRIPTION_BASE,
@@ -128,30 +137,35 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   groq: {
     baseUrl: 'https://api.groq.com/openai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   kilo: {
     baseUrl: KILO_GATEWAY_BASE,
     buildHeaders: openaiHeaders,
     buildPath: () => '/chat/completions',
     format: 'openai',
+    ...openaiStreamUsage,
   },
   mistral: {
     baseUrl: 'https://api.mistral.ai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   xai: {
     baseUrl: 'https://api.x.ai',
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   'xai-responses': {
     baseUrl: 'https://api.x.ai',
@@ -164,6 +178,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   'minimax-subscription': {
     baseUrl: MINIMAX_SUBSCRIPTION_BASE,
@@ -176,30 +191,35 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   nvidia: {
     baseUrl: NVIDIA_NIM_BASE,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   qwen: {
     baseUrl: getQwenCompatibleBaseUrl('beijing'),
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   zai: {
     baseUrl: 'https://api.z.ai',
     buildHeaders: openaiHeaders,
     buildPath: () => '/api/paas/v4/chat/completions',
     format: 'openai',
+    ...openaiStreamUsage,
   },
   'zai-subscription': {
     baseUrl: ZAI_SUBSCRIPTION_BASE,
     buildHeaders: openaiHeaders,
     buildPath: () => '/chat/completions',
     format: 'openai',
+    ...openaiStreamUsage,
   },
   google: {
     baseUrl: 'https://generativelanguage.googleapis.com',
@@ -241,6 +261,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: () => '/chat/completions',
     format: 'openai',
+    ...openaiStreamUsage,
   },
   // Codex variants (e.g. gpt-5-codex, gpt-5.2-codex, gpt-5.3-codex) only accept
   // /responses on Copilot — /chat/completions returns "Unsupported API for model".
@@ -266,18 +287,21 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: () => '/api/v1/chat/completions',
     format: 'openai',
+    ...openaiStreamUsage,
   },
   ollama: {
     baseUrl: OLLAMA_HOST,
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   'ollama-cloud': {
     baseUrl: OLLAMA_CLOUD_HOST,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   kiro: {
     baseUrl: KIRO_BASE_URL,
@@ -290,6 +314,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
   },
   'opencode-go-anthropic': {
     baseUrl: OPENCODE_GO_BASE,
@@ -320,6 +345,7 @@ export function buildCustomEndpoint(
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
+    ...openaiStreamUsage,
     requiresSsrfRevalidation: true,
   };
 }

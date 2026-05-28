@@ -14,8 +14,8 @@ vi.mock('../../src/components/TokenChart.jsx', () => ({
   ),
 }));
 vi.mock('../../src/components/SingleTokenChart.jsx', () => ({
-  default: (props: { data: unknown[] }) => (
-    <div data-testid="single-token-chart" data-points={props.data.length} />
+  default: (props: { data: unknown[]; range: string }) => (
+    <div data-testid="single-token-chart" data-points={props.data.length} data-range={props.range} />
   ),
 }));
 vi.mock('../../src/components/SavingsChart.jsx', () => ({
@@ -58,17 +58,28 @@ describe('ChartCard', () => {
     expect(container.textContent).toMatch(/1(,|\.)?\d*k?/i);
   });
 
-  it('marks the active view and only renders that view\'s chart', () => {
-    const { container } = render(() => (
+  it('marks the active view and only renders that view\'s chart', async () => {
+    const { container, findByTestId } = render(() => (
       <ChartCard {...baseProps({ activeView: 'tokens' })} />
     ));
     // Only the tokens stat should have the active modifier.
     const active = container.querySelectorAll('.chart-card__stat--active');
     expect(active).toHaveLength(1);
     expect(active[0].textContent).toContain('Token usage');
-    expect(container.querySelector('[data-testid="token-chart"]')).not.toBeNull();
+    // Charts load lazily, so wait for the active one to resolve.
+    expect(await findByTestId('token-chart')).not.toBeNull();
     expect(container.querySelector('[data-testid="cost-chart"]')).toBeNull();
     expect(container.querySelector('[data-testid="single-token-chart"]')).toBeNull();
+  });
+
+  it('lazily renders the messages chart when the messages view is active', async () => {
+    const { findByTestId } = render(() => (
+      <ChartCard {...baseProps({ activeView: 'messages' })} />
+    ));
+    const chart = await findByTestId('single-token-chart');
+    expect(chart).not.toBeNull();
+    expect(chart.getAttribute('data-points')).toBe('1');
+    expect(chart.getAttribute('data-range')).toBe('24h');
   });
 
   it('invokes onViewChange when a stat tile is clicked', () => {
@@ -178,8 +189,8 @@ describe('ChartCard', () => {
     expect(onViewChange).toHaveBeenCalledWith('savings');
   });
 
-  it('renders savings chart when activeView is savings', () => {
-    const { container } = render(() => (
+  it('renders savings chart when activeView is savings', async () => {
+    const { container, findByTestId } = render(() => (
       <ChartCard
         {...baseProps({
           activeView: 'savings',
@@ -189,7 +200,7 @@ describe('ChartCard', () => {
         })}
       />
     ));
-    expect(container.querySelector('[data-testid="savings-chart"]')).not.toBeNull();
+    expect(await findByTestId('savings-chart')).not.toBeNull();
     expect(container.querySelector('[data-testid="cost-chart"]')).toBeNull();
   });
 

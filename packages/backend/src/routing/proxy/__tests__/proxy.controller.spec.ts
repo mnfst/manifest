@@ -2105,8 +2105,8 @@ describe('ProxyController', () => {
 
     it('should transform Anthropic streaming through createAnthropicStreamTransformer', async () => {
       const mockProviderResp = createMockStreamResponse([
-        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":10}}}\n\n',
-        'event: content_block_delta\n{"type":"content_block_delta","delta":{"type":"text_delta","text":"hi"}}\n\n',
+        'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":10}}}\n\n',
+        'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"type":"text_delta","text":"hi"}}\n\n',
       ]);
 
       proxyService.proxyRequest.mockResolvedValue({

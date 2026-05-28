@@ -107,7 +107,7 @@ describe('RoutingTabs', () => {
 
   /* ---- Pipeline help modal ---- */
 
-  it('shows help button when pipelineHelp returns content', () => {
+  it('accepts pipelineHelp prop without rendering help button or modal', () => {
     render(() => (
       <RoutingTabs
         specificityEnabled={() => false}
@@ -121,7 +121,9 @@ describe('RoutingTabs', () => {
         }}
       </RoutingTabs>
     ));
-    expect(screen.getByLabelText('How routing works')).toBeDefined();
+    // Help button and modal are now managed by the parent (Routing.tsx)
+    expect(screen.queryByLabelText('How routing works')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('does not show help button when pipelineHelp returns null', () => {
@@ -141,12 +143,12 @@ describe('RoutingTabs', () => {
     expect(screen.queryByLabelText('How routing works')).toBeNull();
   });
 
-  it('opens help modal on button click and shows content', async () => {
+  it('renders headerRight slot when provided', () => {
     render(() => (
       <RoutingTabs
         specificityEnabled={() => false}
         customEnabled={() => false}
-        pipelineHelp={() => <div data-testid="help-content">Pipeline info</div>}
+        headerRight={<div data-testid="header-right-content">Right content</div>}
       >
         {{
           default: <div>Default</div>,
@@ -155,15 +157,45 @@ describe('RoutingTabs', () => {
         }}
       </RoutingTabs>
     ));
-    fireEvent.click(screen.getByLabelText('How routing works'));
-    await waitFor(() => {
-      expect(screen.getByRole('dialog')).toBeDefined();
-      expect(screen.getByText('How routing works', { selector: 'h2' })).toBeDefined();
-      expect(screen.getByTestId('help-content')).toBeDefined();
-    });
+    expect(screen.getByTestId('header-right-content')).toBeDefined();
   });
 
-  it('closes help modal on "Got it" click', async () => {
+  it('does not render headerRight wrapper when no slot is provided', () => {
+    const { container } = render(() => (
+      <RoutingTabs
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+      >
+        {{
+          default: <div>Default</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    expect(container.querySelector('.routing-tabs__header-right')).toBeNull();
+  });
+
+  it('accepts onShowHelp prop for parent-managed help modal', () => {
+    const onShowHelp = vi.fn();
+    render(() => (
+      <RoutingTabs
+        specificityEnabled={() => false}
+        customEnabled={() => false}
+        onShowHelp={onShowHelp}
+      >
+        {{
+          default: <div>Default</div>,
+          specificity: <div>Specificity</div>,
+          custom: <div>Custom</div>,
+        }}
+      </RoutingTabs>
+    ));
+    // The component accepts the prop but does not render a help button itself
+    expect(screen.queryByLabelText('How routing works')).toBeNull();
+  });
+
+  it('does not render a help modal internally even with pipelineHelp', () => {
     render(() => (
       <RoutingTabs
         specificityEnabled={() => false}
@@ -177,71 +209,6 @@ describe('RoutingTabs', () => {
         }}
       </RoutingTabs>
     ));
-    fireEvent.click(screen.getByLabelText('How routing works'));
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
-    fireEvent.click(screen.getByText('Got it'));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-  });
-
-  it('closes help modal on overlay click', async () => {
-    render(() => (
-      <RoutingTabs
-        specificityEnabled={() => false}
-        customEnabled={() => false}
-        pipelineHelp={() => <div>Help</div>}
-      >
-        {{
-          default: <div>Default</div>,
-          specificity: <div>Specificity</div>,
-          custom: <div>Custom</div>,
-        }}
-      </RoutingTabs>
-    ));
-    fireEvent.click(screen.getByLabelText('How routing works'));
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
-    const overlay = screen.getByRole('dialog').parentElement!;
-    fireEvent.click(overlay);
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-  });
-
-  it('closes help modal on Escape key', async () => {
-    render(() => (
-      <RoutingTabs
-        specificityEnabled={() => false}
-        customEnabled={() => false}
-        pipelineHelp={() => <div>Help</div>}
-      >
-        {{
-          default: <div>Default</div>,
-          specificity: <div>Specificity</div>,
-          custom: <div>Custom</div>,
-        }}
-      </RoutingTabs>
-    ));
-    fireEvent.click(screen.getByLabelText('How routing works'));
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
-    const overlay = screen.getByRole('dialog').parentElement!;
-    fireEvent.keyDown(overlay, { key: 'Escape' });
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-  });
-
-  it('does not close help modal when clicking inside the dialog card', async () => {
-    render(() => (
-      <RoutingTabs
-        specificityEnabled={() => false}
-        customEnabled={() => false}
-        pipelineHelp={() => <div>Help</div>}
-      >
-        {{
-          default: <div>Default</div>,
-          specificity: <div>Specificity</div>,
-          custom: <div>Custom</div>,
-        }}
-      </RoutingTabs>
-    ));
-    fireEvent.click(screen.getByLabelText('How routing works'));
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeDefined());
-    fireEvent.click(screen.getByRole('dialog'));
-    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.queryByRole('dialog')).toBeNull();
   });
 });

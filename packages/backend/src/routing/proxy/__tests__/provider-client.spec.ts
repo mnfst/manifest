@@ -1,4 +1,5 @@
 import { ProviderClient } from '../provider-client';
+import { buildCustomEndpoint } from '../provider-endpoints';
 
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
@@ -1338,6 +1339,95 @@ describe('ProviderClient', () => {
       expect(url).toBe('https://opencode.ai/zen/go/v1/messages');
     });
 
+    it('routes qwen3.7 models to Anthropic /v1/messages', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/qwen3.7-max',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/go/v1/messages',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-api-key': 'og-token',
+            'anthropic-version': '2023-06-01',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.7-max');
+      expect(sentBody.stream).toBe(true);
+      expect(result.isAnthropic).toBe(true);
+    });
+
+    it('routes catalog-declared Anthropic models to /v1/messages', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const catalogClient = new ProviderClient({
+        getFormat: jest.fn().mockReturnValue(null),
+        resolveFormat: jest.fn().mockResolvedValue('anthropic'),
+      } as any);
+
+      await catalogClient.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/future-model',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://opencode.ai/zen/go/v1/messages');
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('future-model');
+    });
+
+    it('uses catalog format over family fallback when available', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const catalogClient = new ProviderClient({
+        resolveFormat: jest.fn().mockResolvedValue('openai'),
+      } as any);
+
+      await catalogClient.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/minimax-experimental',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://opencode.ai/zen/go/v1/chat/completions');
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('minimax-experimental');
+    });
+
+    it('keeps mimo models on the OpenAI-compatible endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/mimo-v2.5-pro',
+        body,
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://opencode.ai/zen/go/v1/chat/completions');
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mimo-v2.5-pro');
+      expect(sentBody.stream).toBe(true);
+    });
+
     it('routes kimi-k2.5 through the OpenAI endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -2504,7 +2594,9 @@ describe('ProviderClient', () => {
       ['mistral', 'mistral-small'],
       ['deepseek', 'deepseek-chat'],
       ['moonshot', 'kimi-k2-0905-preview'],
+      ['kilo', 'kilo-auto/free'],
       ['minimax', 'MiniMax-M2'],
+      ['nvidia', 'nvidia/nemotron-3-super-120b-a12b'],
       ['qwen', 'qwen-max'],
       ['xai', 'grok-3'],
       ['zai', 'glm-4.6'],
@@ -2599,15 +2691,7 @@ describe('ProviderClient', () => {
     it('uses custom endpoint with streaming', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const customEndpoint = {
-        baseUrl: 'http://localhost:8000',
-        buildHeaders: (key: string) => ({
-          Authorization: `Bearer ${key}`,
-          'Content-Type': 'application/json',
-        }),
-        buildPath: () => '/v1/chat/completions',
-        format: 'openai' as const,
-      };
+      const customEndpoint = buildCustomEndpoint('http://localhost:8000');
 
       await client.forward({
         provider: 'custom:uuid',

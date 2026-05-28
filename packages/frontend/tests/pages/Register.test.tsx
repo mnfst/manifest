@@ -270,4 +270,20 @@ describe("Register", () => {
       expect(link).not.toBeNull();
     });
   });
+
+  it("clears the cooldown interval on unmount", async () => {
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+    mockSignUpEmail.mockResolvedValue({ error: null });
+    const { container, unmount } = render(() => <Register />);
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: "Test" } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "test@test.com" } });
+    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass12345" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend in");
+    });
+    unmount();
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    clearIntervalSpy.mockRestore();
+  });
 });

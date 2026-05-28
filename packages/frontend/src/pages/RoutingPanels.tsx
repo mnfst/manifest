@@ -191,6 +191,7 @@ export interface RoutingFooterProps {
   resettingTier: () => string | null;
   onResetAll: () => void;
   onShowInstructions: () => void;
+  onShowHowRoutingWorks?: () => void;
 }
 
 /** Footer bar with reset-all and setup instructions buttons. */
@@ -206,6 +207,12 @@ export const RoutingFooter: Component<RoutingFooterProps> = (props) => (
       </button>
     </Show>
     <div style="flex: 1;" />
+    <Show when={props.onShowHowRoutingWorks}>
+      <button class="routing-footer__instructions" onClick={() => props.onShowHowRoutingWorks?.()}>
+        How routing works
+      </button>
+      <span class="routing-footer__sep">|</span>
+    </Show>
     <button class="routing-footer__instructions" onClick={() => props.onShowInstructions()}>
       Setup instructions
     </button>

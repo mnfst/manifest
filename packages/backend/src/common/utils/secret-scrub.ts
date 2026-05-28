@@ -24,6 +24,16 @@ const PATTERNS: Pattern[] = [
     re: /(["']?)(x-api-key|authorization|api-key)\1(\s*[:=]\s*)(["']?)[^"',}\r\n]+\4/gi,
     replacement: '$1$2$1$3$4[REDACTED]$4',
   },
+  // OAuth credential fields. Unlike vendor API keys, refresh/access tokens and
+  // client secrets are opaque (no recognizable prefix), so the vendor regexes
+  // below never catch them. Providers' token endpoints (MiniMax, Kiro, Copilot)
+  // can echo the submitted token back inside an error body — redact the value
+  // of these keys in both JSON ("refresh_token":"…") and form (client_secret=…)
+  // shapes. The value class excludes & so form-encoded params don't bleed.
+  {
+    re: /(["']?)(refresh_token|client_secret|access_token|device_code)\1(\s*[:=]\s*)(["']?)[^"',}&\s]+\4/gi,
+    replacement: '$1$2$1$3$4[REDACTED]$4',
+  },
   { re: /Bearer\s+[A-Za-z0-9_\-.=+/]{8,}/gi, replacement: 'Bearer [REDACTED]' },
   { re: /([?&])key=[^&\s"']+/g, replacement: '$1key=[REDACTED]' },
   { re: /\bsk-ant-[A-Za-z0-9_\-]{10,}/g, replacement: '[REDACTED]' },

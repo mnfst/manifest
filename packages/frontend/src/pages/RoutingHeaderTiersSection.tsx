@@ -327,6 +327,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
             agentName={props.agentName()}
             existingTiers={tiers()}
             editing={state === 'new' ? undefined : state}
+            models={props.models()}
             onClose={() => setModalTier(null)}
             onSaved={(saved) => {
               const wasCreate = state === 'new';

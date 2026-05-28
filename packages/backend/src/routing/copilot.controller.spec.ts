@@ -20,6 +20,7 @@ describe('CopilotController', () => {
     jest.clearAllMocks();
     mockProviderService = {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: false }),
+      nextOAuthLabel: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
     };
     mockResolveAgent = {
@@ -79,6 +80,31 @@ describe('CopilotController', () => {
         'copilot',
         'ghu_github_token',
         'subscription',
+        undefined,
+        undefined,
+      );
+    });
+
+    it('stores a second token under the next OAuth label', async () => {
+      mockProviderService.nextOAuthLabel.mockResolvedValue('Key 2');
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_second_token',
+      });
+
+      await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(mockProviderService.nextOAuthLabel).toHaveBeenCalledWith(TEST_AGENT_ID, 'copilot');
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'copilot',
+        'ghu_second_token',
+        'subscription',
+        undefined,
+        'Key 2',
       );
     });
 

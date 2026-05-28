@@ -78,6 +78,7 @@ describe('consumeProviderStream', () => {
   it('skips empty data lines and unparseable JSON without throwing', async () => {
     const result = await consumeProviderStream(
       sseStream([
+        ': OPENROUTER PROCESSING\n\n',
         'data: \n\n',
         'data: not-json\n\n',
         'event: ping\n\n',
@@ -238,7 +239,7 @@ describe('consumeProviderStream', () => {
         () => undefined,
         Date.now(),
       ),
-    ).rejects.toThrow(/Stream buffer overflow/);
+    ).rejects.toThrow(/SSE buffer overflow/);
   });
 
   it('releases the reader lock even when the stream throws', async () => {
