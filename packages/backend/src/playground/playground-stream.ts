@@ -1,5 +1,6 @@
 import type { ForwardResult, ProviderClient } from '../routing/proxy/provider-client';
-import { parseSseEvents, parseUsageObject, type StreamUsage } from '../routing/proxy/stream-writer';
+import { createSsePayloadParser } from '../routing/proxy/sse-parser';
+import { parseUsageObject, type StreamUsage } from '../routing/proxy/stream-writer';
 
 export interface ConsumeStreamResult {
   content: string;
@@ -11,7 +12,7 @@ export interface ConsumeStreamResult {
 }
 
 /**
- * One upstream SSE event (data: prefix already stripped by parseSseEvents) →
+ * One upstream SSE event (data prefix stripped by the SSE parser) →
  * an OpenAI-format `data: {...}\n\n` chunk string, or null to skip. Mirrors the
  * exact converter selection the production proxy uses in handleStreamResponse
  * so playground streaming inherits the same provider coverage instead of
@@ -87,11 +88,11 @@ export async function consumeProviderStream(
   const decoder = new TextDecoder();
   const transform = buildChunkTransform(forward, model, providerClient);
 
-  let buffer = '';
   let content = '';
   let usage: StreamUsage | null = null;
   let ttftMs: number | null = null;
   let lastDeltaAt = startedAt;
+  const parser = createSsePayloadParser({ maxBufferSize: MAX_STREAM_BUFFER });
 
   const apply = (event: string): void => {
     const sse = transform(event);
@@ -112,26 +113,16 @@ export async function consumeProviderStream(
       const result = await reader.read();
       done = result.done;
       if (result.value) {
-        buffer += decoder.decode(result.value, { stream: !done });
-        if (buffer.length > MAX_STREAM_BUFFER) {
-          throw new Error('Stream buffer overflow: provider sent data without event boundaries');
-        }
-        const { events, remaining } = parseSseEvents(buffer);
-        buffer = remaining;
-        for (const event of events) apply(event);
+        const text = decoder.decode(result.value, { stream: !done });
+        for (const event of parser.feed(text)) apply(event);
       }
     }
     // Flush any bytes the decoder held back from a multi-byte char split
     // across the last chunk boundary (the final read often has no value).
-    buffer += decoder.decode();
+    for (const event of parser.feed(decoder.decode())) apply(event);
     // The final usage chunk often arrives without a trailing blank line, so it
-    // sits unparsed in the buffer when the stream closes — flush it.
-    const tail = buffer
-      .split('\n')
-      .map((l) => (l.startsWith('data: ') ? l.slice(6) : l))
-      .join('\n')
-      .trim();
-    if (tail && tail !== '[DONE]') apply(tail);
+    // sits unparsed when the stream closes — flush it.
+    for (const event of parser.flush()) apply(event);
   } finally {
     reader.releaseLock();
   }
