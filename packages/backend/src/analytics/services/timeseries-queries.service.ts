@@ -39,6 +39,7 @@ export class TimeseriesQueriesService {
     hourly: boolean,
     tenantId?: string,
     agentName?: string,
+    authType?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -54,6 +55,7 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {
@@ -267,6 +269,21 @@ export class TimeseriesQueriesService {
         sparkline: sparkMap.get(a.id) ?? [],
       };
     });
+  }
+
+  async getAgentNamesByAuthType(
+    authType: string,
+    userId: string,
+    tenantId?: string,
+  ): Promise<string[]> {
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('DISTINCT at.agent_name', 'agent_name')
+      .where('at.auth_type = :authType', { authType })
+      .andWhere('at.agent_name IS NOT NULL');
+    addTenantFilter(qb, userId, undefined, tenantId);
+    const rows = await qb.orderBy('at.agent_name', 'ASC').getRawMany();
+    return rows.map((r: Record<string, unknown>) => String(r['agent_name']));
   }
 
   private parseBucketRow(

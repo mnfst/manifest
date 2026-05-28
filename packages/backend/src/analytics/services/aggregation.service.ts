@@ -49,7 +49,13 @@ export class AggregationService {
     return Number(row?.total ?? 0);
   }
 
-  async getSummaryMetrics(range: string, userId: string, tenantId?: string, agentName?: string) {
+  async getSummaryMetrics(
+    range: string,
+    userId: string,
+    tenantId?: string,
+    agentName?: string,
+    authType?: string,
+  ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
 
@@ -61,8 +67,16 @@ export class AggregationService {
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(currentQb, userId, agentName, tenantId);
+    if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
 
-    const prevQb = this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const prevQb = this.buildPreviousWindowQuery(
+      userId,
+      agentName,
+      tenantId,
+      cutoff,
+      prevCutoff,
+      authType,
+    )
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost');
@@ -106,12 +120,14 @@ export class AggregationService {
     tenantId: string | undefined,
     cutoff: string,
     prevCutoff: string,
+    authType?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     return qb;
   }
 }

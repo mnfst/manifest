@@ -35,6 +35,7 @@ import { AgentAnalyticsController } from './controllers/agent-analytics.controll
 import { SavingsController } from './controllers/savings.controller';
 import { SavingsQueryService } from './services/savings-query.service';
 import { RateLimitsController } from './controllers/rate-limits.controller';
+import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 import { ProxyModule } from '../routing/proxy/proxy.module';
 
 @Module({
@@ -68,6 +69,7 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
     AgentAnalyticsController,
     SavingsController,
     RateLimitsController,
+    ProviderAnalyticsController,
   ],
   providers: [
     AggregationService,

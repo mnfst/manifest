@@ -1,13 +1,17 @@
 import { Title } from '@solidjs/meta';
-import { createResource, createSignal, For, Show, type Component } from 'solid-js';
+import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
+import { getProviderAnalytics, getProviderAnalyticsAgents } from '../../services/api/analytics.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { formatNumber } from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
+import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import Select from '../../components/Select.jsx';
 import type { RoutingProvider } from '../../services/api/routing.js';
+import '../../styles/charts.css';
 
 interface Connection {
   id: string;
@@ -117,6 +121,49 @@ const Subscriptions: Component = () => {
     refetch();
   };
 
+  // Chart state
+  const [chartRange, setChartRange] = createSignal('24h');
+  const [chartView, setChartView] = createSignal<'messages' | 'tokens'>('tokens');
+  const [chartAgent, setChartAgent] = createSignal('');
+
+  const [chartAgents] = createResource(() =>
+    getProviderAnalyticsAgents('subscription').catch(() => ({ agents: [] as string[] })),
+  );
+
+  interface AnalyticsResponse {
+    summary: {
+      messages: { value: number; trend_pct: number };
+      tokens: { value: number; trend_pct: number };
+    };
+    token_usage: Array<{
+      hour?: string;
+      date?: string;
+      input_tokens: number;
+      output_tokens: number;
+    }>;
+    message_usage: Array<{ hour?: string; date?: string; count: number }>;
+  }
+
+  const [analytics] = createResource(
+    () => ({ range: chartRange(), agent: chartAgent() }),
+    (p) =>
+      getProviderAnalytics(
+        'subscription',
+        p.range,
+        p.agent || undefined,
+      ) as Promise<AnalyticsResponse>,
+  );
+
+  const messageChartData = createMemo(() => {
+    const src = analytics()?.message_usage;
+    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
+  });
+
+  const agentOptions = () => {
+    const list = chartAgents()?.agents ?? [];
+    return [{ label: 'All agents', value: '' }, ...list.map((a) => ({ label: a, value: a }))];
+  };
+
   const providerDeepLink = () => {
     const p = deepLinkProvider();
     return p ? { providerId: p, authType: 'subscription' as const, closeOnBack: true } : null;
@@ -131,6 +178,33 @@ const Subscriptions: Component = () => {
           Connect flat-rate subscriptions to route queries through your existing plans.
         </p>
       </div>
+
+      {/* Chart */}
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+        <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
+        <Select
+          value={chartRange()}
+          onChange={setChartRange}
+          options={[
+            { label: 'Last 24 hours', value: '24h' },
+            { label: 'Last 7 days', value: '7d' },
+            { label: 'Last 30 days', value: '30d' },
+          ]}
+        />
+      </div>
+      <Show when={analytics()}>
+        <ProviderChartCard
+          activeView={chartView()}
+          onViewChange={setChartView}
+          messagesValue={analytics()!.summary.messages.value}
+          messagesTrendPct={analytics()!.summary.messages.trend_pct}
+          tokensValue={analytics()!.summary.tokens.value}
+          tokensTrendPct={analytics()!.summary.tokens.trend_pct}
+          tokenUsage={analytics()!.token_usage}
+          messageChartData={messageChartData()}
+          range={chartRange()}
+        />
+      </Show>
 
       {/* TABLE 1: Connected subscriptions */}
       <Show when={connectedRows().length > 0}>
