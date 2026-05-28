@@ -1,11 +1,11 @@
 import {
   initSseHeaders,
-  parseSseEvents,
   pipePassthrough,
   pipeStream,
   extractUsageFromSse,
   parseUsageObject,
 } from '../stream-writer';
+import { createSsePayloadParser } from '../sse-parser';
 
 function mockResponse(): {
   res: Record<string, jest.Mock | boolean | number>;
@@ -81,63 +81,88 @@ describe('initSseHeaders', () => {
   });
 });
 
-describe('parseSseEvents', () => {
+describe('createSsePayloadParser', () => {
   it('should parse a single SSE event', () => {
-    const result = parseSseEvents('data: {"text":"hello"}\n\n');
+    const parser = createSsePayloadParser();
 
-    expect(result.events).toEqual(['{"text":"hello"}']);
-    expect(result.remaining).toBe('');
+    expect(parser.feed('data: {"text":"hello"}\n\n')).toEqual(['{"text":"hello"}']);
+  });
+
+  it('should parse CRLF-delimited SSE events', () => {
+    const parser = createSsePayloadParser();
+
+    expect(parser.feed('data: {"text":"hello"}\r\n\r\n')).toEqual(['{"text":"hello"}']);
   });
 
   it('should parse multiple SSE events', () => {
+    const parser = createSsePayloadParser();
     const input = 'data: {"a":1}\n\ndata: {"b":2}\n\n';
-    const result = parseSseEvents(input);
 
-    expect(result.events).toEqual(['{"a":1}', '{"b":2}']);
-    expect(result.remaining).toBe('');
+    expect(parser.feed(input)).toEqual(['{"a":1}', '{"b":2}']);
   });
 
-  it('should preserve partial buffer in remaining', () => {
-    const input = 'data: {"done":true}\n\ndata: {"partial":';
-    const result = parseSseEvents(input);
+  it('should allow large batches of complete events under a small buffer cap', () => {
+    const parser = createSsePayloadParser({ maxBufferSize: 10 });
+    const input = 'data: x\n\ndata: y\n\ndata: z\n\n';
 
-    expect(result.events).toEqual(['{"done":true}']);
-    expect(result.remaining).toBe('data: {"partial":');
+    expect(parser.feed(input)).toEqual(['x', 'y', 'z']);
+  });
+
+  it('should buffer partial chunks until they complete', () => {
+    const parser = createSsePayloadParser();
+    const input = 'data: {"done":true}\n\ndata: {"partial":';
+
+    expect(parser.feed(input)).toEqual(['{"done":true}']);
+    expect(parser.feed('false}\n\n')).toEqual(['{"partial":false}']);
   });
 
   it('should skip [DONE] events', () => {
+    const parser = createSsePayloadParser();
     const input = 'data: {"text":"hi"}\n\ndata: [DONE]\n\n';
-    const result = parseSseEvents(input);
 
-    expect(result.events).toEqual(['{"text":"hi"}']);
+    expect(parser.feed(input)).toEqual(['{"text":"hi"}']);
   });
 
   it('should skip empty events', () => {
+    const parser = createSsePayloadParser();
     const input = '\n\ndata: {"a":1}\n\n\n\n';
-    const result = parseSseEvents(input);
 
-    expect(result.events).toEqual(['{"a":1}']);
+    expect(parser.feed(input)).toEqual(['{"a":1}']);
   });
 
   it('should handle multi-line data events', () => {
+    const parser = createSsePayloadParser();
     const input = 'data: line1\ndata: line2\n\n';
-    const result = parseSseEvents(input);
 
-    expect(result.events).toEqual(['line1\nline2']);
+    expect(parser.feed(input)).toEqual(['line1\nline2']);
   });
 
-  it('should return empty events for buffer with no complete events', () => {
-    const result = parseSseEvents('data: partial');
+  it('should ignore SSE comments instead of treating them as payload', () => {
+    const parser = createSsePayloadParser();
+    const input = ': OPENROUTER PROCESSING\n\ndata: {"a":1}\n\n';
 
-    expect(result.events).toEqual([]);
-    expect(result.remaining).toBe('data: partial');
+    expect(parser.feed(input)).toEqual(['{"a":1}']);
   });
 
-  it('should handle lines without data: prefix', () => {
+  it('should preserve event and id fields for protocol-specific transformers', () => {
+    const parser = createSsePayloadParser();
+    const input = 'event: response.completed\nid: evt_1\ndata: {"a":1}\n\n';
+
+    expect(parser.feed(input)).toEqual(['event: response.completed\nid: evt_1\n{"a":1}']);
+  });
+
+  it('should flush a trailing partial event when the stream closes', () => {
+    const parser = createSsePayloadParser();
+
+    expect(parser.feed('data: partial')).toEqual([]);
+    expect(parser.flush()).toEqual(['partial']);
+  });
+
+  it('should ignore unknown SSE fields', () => {
+    const parser = createSsePayloadParser();
     const input = 'raw content\n\n';
-    const result = parseSseEvents(input);
 
-    expect(result.events).toEqual(['raw content']);
+    expect(parser.feed(input)).toEqual([]);
   });
 });
 
@@ -191,6 +216,21 @@ describe('pipeStream', () => {
 
     expect(written).toContain('result:keep\n\n');
     expect(written.some((w) => w.includes('skip'))).toBe(false);
+  });
+
+  it('should preserve SSE keep-alive comments on transformed streams', async () => {
+    const { res, written } = mockResponse();
+    const stream = createReadableStream([
+      ': OPENROUTER PROCESSING\n\ndata: {"choices":[{"delta":{"content":"ok"}}]}\n\n',
+    ]);
+
+    const transform = (chunk: string) => `data: ${chunk}\n\n`;
+
+    await pipeStream(stream, res as never, transform);
+
+    expect(written).toContain(': OPENROUTER PROCESSING\n\n');
+    expect(written).toContain('data: {"choices":[{"delta":{"content":"ok"}}]}\n\n');
+    expect(written).not.toContain('data: : OPENROUTER PROCESSING\n\n');
   });
 
   it('should flush remaining buffer through transform', async () => {
@@ -451,9 +491,8 @@ describe('pipeStream', () => {
     expect(written).toContain('data: [DONE]\n\n');
   });
 
-  it('should flush remaining buffer line without data: prefix through transform', async () => {
+  it('should ignore trailing unknown raw lines when transforming SSE', async () => {
     const { res, written } = mockResponse();
-    // Remaining buffer has a line without "data: " prefix (e.g., raw JSON)
     const stream = createReadableStream(['data: first\n\n', '{"raw":"remaining"}']);
 
     const transform = (chunk: string) => `out:${chunk}\n\n`;
@@ -461,9 +500,7 @@ describe('pipeStream', () => {
     await pipeStream(stream, res as never, transform);
 
     expect(written).toContain('out:first\n\n');
-    // The remaining buffer '{"raw":"remaining"}' should be flushed through
-    // transform as-is (no "data: " prefix stripping)
-    expect(written).toContain('out:{"raw":"remaining"}\n\n');
+    expect(written).not.toContain('out:{"raw":"remaining"}\n\n');
     expect(written).toContain('data: [DONE]\n\n');
   });
 
@@ -708,6 +745,27 @@ describe('pipePassthrough', () => {
     expect(written.join('')).toBe(raw);
   });
 
+  it('passes upstream SSE comments through unchanged without tapping them as events', async () => {
+    const { res, written } = mockResponse();
+    const raw =
+      ': OPENROUTER PROCESSING\n\n' +
+      'data: {"usage":{"prompt_tokens":2,"completion_tokens":1}}\n\n';
+    const stream = createReadableStream([raw]);
+    const tap = jest.fn(() => 'data: {"usage":{"prompt_tokens":2,"completion_tokens":1}}\n\n');
+
+    const usage = await pipePassthrough(stream, res as never, tap);
+
+    expect(written.join('')).toBe(raw);
+    expect(tap).toHaveBeenCalledTimes(1);
+    expect(tap).toHaveBeenCalledWith('{"usage":{"prompt_tokens":2,"completion_tokens":1}}');
+    expect(usage).toEqual({
+      prompt_tokens: 2,
+      completion_tokens: 1,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: undefined,
+    });
+  });
+
   it('passes raw upstream text to the capture callback', async () => {
     const { res } = mockResponse();
     const chunks = [
@@ -736,7 +794,7 @@ describe('pipePassthrough', () => {
 
     await pipePassthrough(stream, res as never, tap);
 
-    // parseSseEvents strips `data: ` per line — that's the same shape the
+    // The payload parser strips `data: ` per line — that's the same shape the
     // Anthropic stream transformer expects.
     expect(seen).toEqual([
       'event: message_start\n{"type":"a"}',

@@ -91,7 +91,7 @@ describe('ChatGPT Adapter – transformResponsesStreamChunk', () => {
     expect(json.choices[0].delta.content).toBe('');
   });
 
-  it('handles pre-processed chunks (data: prefix stripped by parseSseEvents)', () => {
+  it('handles pre-processed chunks (data: prefix stripped by the payload parser)', () => {
     const chunk = 'event: response.output_text.delta\n{"delta":"Hi"}';
     const result = transformResponsesStreamChunk(chunk, 'gpt-5');
 
