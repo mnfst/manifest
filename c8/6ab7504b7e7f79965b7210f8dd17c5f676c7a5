@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_ae5e1685f8ef90::t_d6b7e0ce4b709c 528,637,639
+  s_ae5e1685f8ef90::t_eab05658fb0b2d 530-539,638
+  s_ae5e1685f8ef90::t_2395e08197a2a1 526-527,529
+.changeset/anthropic-stream-delta-usage.md
+  s_ae5e1685f8ef90::t_d7a46973f14f1d 1-5
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_ae5e1685f8ef90::t_2cbd7d0a696e34 1231-1251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c86ab7504b7e7f79965b7210f8dd17c5f676c7a5",
+  "prompts": {},
+  "sessions": {
+    "s_ae5e1685f8ef90": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6ea6-7e01-7e22-99fa-e3a4a83d75f3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
