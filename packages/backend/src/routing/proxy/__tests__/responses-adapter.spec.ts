@@ -773,5 +773,24 @@ describe('Responses adapter', () => {
       expect(t.transform('')).toBeNull();
       expect(t.transform('data: not-json\n\n')).toBeNull();
     });
+
+    it('keeps created_at stable across created and completed as the clock advances', () => {
+      // Advance the wall clock on every Date.now() so a re-derived timestamp
+      // would drift between the opening and closing snapshots of the same id.
+      let now = 1_700_000_000_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => (now += 1000));
+      try {
+        const t = createResponsesStreamTransformer('gpt-4o');
+        const opened = t.transform('{"choices":[{"delta":{"content":"Hi"}}]}') ?? '';
+        const end = t.finalize() ?? '';
+
+        const created = firstEventData(opened, 'response.created')!;
+        const completed = firstEventData(end, 'response.completed')!;
+        expect(completed.response.id).toBe(created.response.id);
+        expect(completed.response.created_at).toBe(created.response.created_at);
+      } finally {
+        nowSpy.mockRestore();
+      }
+    });
   });
 });

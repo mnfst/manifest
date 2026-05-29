@@ -508,6 +508,7 @@ interface ResponsesStreamState {
   responseId: string;
   itemId: string;
   model: string;
+  createdAt: number;
   usage: unknown;
   text: string;
   createdEmitted: boolean;
@@ -536,6 +537,10 @@ export function createResponsesStreamTransformer(model: string): ResponsesStream
     responseId: `resp_${randomUUID().replace(/-/g, '')}`,
     itemId: `msg_${randomUUID().replace(/-/g, '')}`,
     model,
+    // Stamp the creation time once so every response snapshot for this id
+    // (`response.created`, `.in_progress`, `.completed`) reports the same
+    // `created_at`, even on streams that span more than one second.
+    createdAt: Math.floor(Date.now() / 1000),
     usage: undefined,
     text: '',
     createdEmitted: false,
@@ -551,7 +556,7 @@ export function createResponsesStreamTransformer(model: string): ResponsesStream
 
 function inProgressResponse(state: ResponsesStreamState): JsonRecord {
   const response = fromChatCompletionResponse(
-    { model: state.model, choices: [{ message: { content: '' } }] },
+    { model: state.model, created: state.createdAt, choices: [{ message: { content: '' } }] },
     state.model,
   );
   response.id = state.responseId;
@@ -670,6 +675,7 @@ function finalizeResponsesStream(state: ResponsesStreamState): string | null {
   const response = fromChatCompletionResponse(
     {
       model: state.model,
+      created: state.createdAt,
       usage: isRecord(state.usage) ? state.usage : undefined,
       choices: [{ message: { content: state.text } }],
     },
