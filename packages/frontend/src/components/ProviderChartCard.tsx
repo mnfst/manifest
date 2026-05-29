@@ -1,6 +1,7 @@
 import { Show, type Component } from 'solid-js';
 import SingleTokenChart from './SingleTokenChart.jsx';
 import TokenChart from './TokenChart.jsx';
+import MultiAgentTokenChart from './MultiAgentTokenChart.jsx';
 import { formatNumber } from '../services/formatters.js';
 
 type ProviderView = 'messages' | 'tokens';
@@ -28,6 +29,7 @@ interface ProviderChartCardProps {
   tokenUsage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
+  agentTimeseries?: { agents: string[]; timeseries: Array<Record<string, number | string>> };
 }
 
 const ProviderChartCard: Component<ProviderChartCardProps> = (props) => (
@@ -76,14 +78,25 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => (
       </Show>
       <Show when={props.activeView === 'tokens'}>
         <Show
-          when={props.tokenUsage?.length}
+          when={props.agentTimeseries?.agents.length}
           fallback={
-            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-              No token data for this time range
-            </div>
+            <Show
+              when={props.tokenUsage?.length}
+              fallback={
+                <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
+                  No token data for this time range
+                </div>
+              }
+            >
+              <TokenChart data={props.tokenUsage} range={props.range} />
+            </Show>
           }
         >
-          <TokenChart data={props.tokenUsage} range={props.range} />
+          <MultiAgentTokenChart
+            agents={props.agentTimeseries!.agents}
+            timeseries={props.agentTimeseries!.timeseries}
+            range={props.range}
+          />
         </Show>
       </Show>
     </div>

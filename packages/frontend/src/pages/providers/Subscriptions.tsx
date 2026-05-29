@@ -94,7 +94,7 @@ const Subscriptions: Component = () => {
   const getConnected = (id: string) => connectedMap().get(id);
   const connectedProviders = () => SUBSCRIPTION_PROVIDERS.filter((p) => isConnected(p.id));
 
-  // Flatten: one row per connection (not per provider)
+  // Flatten: one row per connection — show if active OR has historical consumption
   const connectedRows = () => {
     const rows: Array<{
       prov: (typeof SUBSCRIPTION_PROVIDERS)[0];
@@ -103,8 +103,11 @@ const Subscriptions: Component = () => {
     }> = [];
     for (const prov of connectedProviders()) {
       const cp = getConnected(prov.id)!;
+      const hasConsumption = cp.consumption_tokens > 0 || cp.consumption_messages > 0;
       for (const conn of cp.connections) {
-        rows.push({ prov, conn, cp });
+        if (conn.is_active || hasConsumption) {
+          rows.push({ prov, conn, cp });
+        }
       }
     }
     return rows;
@@ -222,7 +225,7 @@ const Subscriptions: Component = () => {
         <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
           <table class="data-table" style="min-width: 700px;">
             <colgroup>
-              <col style="width: 160px;" />
+              <col style="width: 214px;" />
               <col style="width: 60px;" />
               <col style="width: 100px;" />
               <col />
@@ -362,7 +365,7 @@ const Subscriptions: Component = () => {
         <div class="panel" style="padding: 0; overflow-x: auto;">
           <table class="data-table" style="min-width: 500px;">
             <colgroup>
-              <col style="width: 200px;" />
+              <col style="width: 214px;" />
               <col style="width: 80px;" />
               <col />
             </colgroup>
@@ -430,7 +433,7 @@ const Subscriptions: Component = () => {
 
       {/* Grid view */}
       <Show when={viewMode() === 'grid'}>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
           <For each={SUBSCRIPTION_PROVIDERS}>
             {(prov) => {
               const cp = () => getConnected(prov.id);

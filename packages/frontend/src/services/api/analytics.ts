@@ -20,6 +20,18 @@ export function getProviderAnalyticsAgents(authType: string): Promise<{ agents: 
   }>;
 }
 
+export function getPerAgentTimeseries(
+  authType: string,
+  provider: string,
+  range = '24h',
+): Promise<{ agents: string[]; timeseries: Array<Record<string, number | string>> }> {
+  return fetchJson('/provider-analytics/per-agent-timeseries', {
+    auth_type: authType,
+    provider,
+    range,
+  }) as Promise<{ agents: string[]; timeseries: Array<Record<string, number | string>> }>;
+}
+
 export function getConnectionDetail(connectionId: string) {
   return fetchJson('/provider-analytics/connection-detail', { connection_id: connectionId });
 }

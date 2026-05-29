@@ -5,6 +5,7 @@ import {
   getConnectionDetail,
   getProviderAnalytics,
   getProviderAnalyticsAgents,
+  getPerAgentTimeseries,
 } from '../../services/api/analytics.js';
 import { disconnectProvider } from '../../services/api.js';
 import { fetchMutate, routingPath } from '../../services/api/core.js';
@@ -48,6 +49,7 @@ interface ConnectionInfo {
   cached_model_count: number;
   key_prefix: string | null;
   connected_at: string;
+  is_active: boolean;
 }
 
 interface DetailResponse {
@@ -115,6 +117,18 @@ const ConnectionDetail: Component = () => {
     const src = analytics()?.message_usage;
     return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
   });
+
+  const [agentTimeseries] = createResource(
+    () => {
+      const c = conn();
+      if (!c) return null;
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider };
+    },
+    (p) => {
+      if (!p) return null;
+      return getPerAgentTimeseries(p.authType, p.provider, p.range);
+    },
+  );
 
   // Manage modal
   const navigate = useNavigate();
@@ -192,10 +206,27 @@ const ConnectionDetail: Component = () => {
                   Manage
                 </button>
               </div>
-              <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 24px;">
-                {c.label} · {c.cached_model_count} models · Connected{' '}
-                {new Date(c.connected_at).toLocaleDateString()}
-              </p>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 24px;">
+                <span>
+                  {c.label} · {c.cached_model_count} models
+                </span>
+                <span>·</span>
+                <Show
+                  when={c.is_active}
+                  fallback={
+                    <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                      Inactive
+                    </span>
+                  }
+                >
+                  <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                    Active
+                  </span>
+                </Show>
+                <Show when={c.is_active && c.connected_at}>
+                  <span>· Connected {new Date(c.connected_at).toLocaleDateString()}</span>
+                </Show>
+              </div>
 
               {/* Chart filters */}
               <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
@@ -223,6 +254,7 @@ const ConnectionDetail: Component = () => {
                   tokenUsage={analytics()!.token_usage}
                   messageChartData={messageChartData()}
                   range={chartRange()}
+                  agentTimeseries={agentTimeseries() ?? undefined}
                 />
               </Show>
 
@@ -355,7 +387,7 @@ const ConnectionDetail: Component = () => {
                     <h2 class="modal-card__title">Manage connection</h2>
 
                     <div style="margin-top: 16px;">
-                      <label style="font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--muted-foreground)); display: block; margin-bottom: 6px;">
+                      <label class="modal-card__field-label" style="margin-top: 0;">
                         Connection name
                       </label>
                       <input
@@ -363,15 +395,29 @@ const ConnectionDetail: Component = () => {
                         class="input"
                         value={labelInput() || c.label}
                         onInput={(e) => setLabelInput(e.currentTarget.value)}
-                        style="width: 100%;"
+                        style="width: 100%; height: 36px; padding: 0 12px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); font-size: var(--font-size-sm); background: hsl(var(--background)); color: hsl(var(--foreground));"
                       />
                     </div>
 
-                    <Show when={c.connected_at}>
-                      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
-                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.12); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
-                          Active
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--muted-foreground));">
+                          Status:
                         </span>
+                        <Show
+                          when={c.is_active}
+                          fallback={
+                            <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                              Inactive
+                            </span>
+                          }
+                        >
+                          <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                            Active
+                          </span>
+                        </Show>
+                      </div>
+                      <Show when={c.is_active}>
                         <button
                           class="btn btn--danger btn--sm"
                           onClick={() => {
@@ -381,8 +427,8 @@ const ConnectionDetail: Component = () => {
                         >
                           Disconnect
                         </button>
-                      </div>
-                    </Show>
+                      </Show>
+                    </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
                       <button

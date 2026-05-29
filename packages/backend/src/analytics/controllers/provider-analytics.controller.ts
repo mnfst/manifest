@@ -63,6 +63,27 @@ export class ProviderAnalyticsController {
     };
   }
 
+  @Get('per-agent-timeseries')
+  async getPerAgentTimeseries(
+    @CurrentUser() user: AuthUser,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('range') range?: string,
+  ) {
+    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const hourly = validRange === '24h';
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+
+    return this.timeseries.getPerAgentTimeseries(
+      validRange,
+      user.id,
+      hourly,
+      tenantId,
+      authType,
+      provider,
+    );
+  }
+
   @Get('agents')
   async getAgents(@CurrentUser() user: AuthUser, @Query('auth_type') authType?: string) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
@@ -143,6 +164,7 @@ export class ProviderAnalyticsController {
         cached_model_count: Array.isArray(conn.cached_models) ? conn.cached_models.length : 0,
         key_prefix: conn.key_prefix,
         connected_at: conn.connected_at,
+        is_active: conn.is_active,
       },
       agents: agentRows.map((r: Record<string, unknown>) => ({
         agent_name: String(r['agent_name']),
