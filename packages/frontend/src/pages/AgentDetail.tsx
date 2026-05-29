@@ -17,8 +17,11 @@ const AgentDetail: ParentComponent = (props) => {
 
   const isActive = (sub: string) => {
     const p = path(sub);
-    if (sub === '' || sub === '/routing') {
-      return location.pathname === path('') || location.pathname === path('/routing');
+    if (sub === '' || sub === '/overview') {
+      return location.pathname === path('') || location.pathname === path('/overview');
+    }
+    if (sub === '/routing') {
+      return location.pathname === path('/routing');
     }
     return location.pathname.startsWith(p);
   };
@@ -33,6 +36,15 @@ const AgentDetail: ParentComponent = (props) => {
 
       {/* Horizontal tabs */}
       <div class="panel__tabs" role="tablist" style="margin-top: 12px; margin-bottom: 0;">
+        <A
+          href={path('')}
+          role="tab"
+          aria-selected={isActive('/overview')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/overview') }}
+        >
+          Overview
+        </A>
         <A
           href={path('/routing')}
           role="tab"

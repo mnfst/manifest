@@ -1,43 +1,139 @@
 import { Title } from '@solidjs/meta';
-import { A } from '@solidjs/router';
-import { createResource, For, Show, type Component } from 'solid-js';
+import { A, useNavigate } from '@solidjs/router';
+import {
+  createResource,
+  createSignal,
+  createMemo,
+  For,
+  Show,
+  onCleanup,
+  type Component,
+} from 'solid-js';
 import { fetchJson } from '../services/api/core.js';
 import { getAgents } from '../services/api.js';
-import { formatNumber } from '../services/formatters.js';
+import {
+  getOverview,
+  getGlobalPerAgentTimeseries,
+  getGlobalPerAgentMessageTimeseries,
+} from '../services/api/analytics.js';
+import { formatNumber, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
+import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import Sparkline from '../components/Sparkline.jsx';
+import Select from '../components/Select.jsx';
+import { authBadgeFor } from '../components/AuthBadge.jsx';
+import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
 import { agentPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+import '../styles/charts.css';
 
-interface ProviderSummary {
+interface ProviderGroup {
   provider: string;
   auth_type: string;
   connection_count: number;
+  connections: Array<{ id: string; label: string; is_active: boolean }>;
   total_models: number;
   consumption_tokens: number;
   consumption_messages: number;
+  consumption_cost: number;
+  last_used_at: string | null;
+  sparkline_7d: number[];
 }
 
-interface OverviewStats {
-  total_messages: number;
-  total_tokens: number;
-  subscriptions: { count: number; tokens: number };
-  byok: { count: number; tokens: number };
-  local: { count: number; tokens: number };
-  top_models: Array<{ model: string; provider: string; tokens: number; messages: number }>;
+interface CostByModelRow {
+  model: string;
+  display_name: string;
+  tokens: number;
+  share_pct: number;
+  estimated_cost: number;
+  auth_type: string | null;
+  provider: string | null;
 }
+
+interface RecentActivityRow {
+  timestamp: string;
+  agent_name: string;
+  model: string;
+  total_tokens: number;
+}
+
+interface OverviewResponse {
+  summary: {
+    tokens_today: { value: number; trend_pct: number };
+    cost_today: { value: number; trend_pct: number };
+    messages: { value: number; trend_pct: number };
+  };
+  token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
+  message_usage: Array<{ hour?: string; date?: string; count: number }>;
+  cost_by_model: CostByModelRow[];
+  recent_activity: RecentActivityRow[];
+  has_data: boolean;
+  has_providers: boolean;
+}
+
+interface AgentRow {
+  agent_name: string;
+  display_name: string;
+  agent_category: string | null;
+  agent_platform: string | null;
+  message_count: number;
+  total_tokens: number;
+  sparkline: number[];
+}
+
+const RANGE_OPTIONS = [
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+];
+
+const RANGE_STORAGE_KEY = 'manifest_global_range';
+
+function loadRange(): string {
+  try {
+    const v = localStorage.getItem(RANGE_STORAGE_KEY);
+    if (v === '24h' || v === '7d' || v === '30d') return v;
+  } catch {
+    /* ignore */
+  }
+  return '24h';
+}
+
+const trendBadge = (pct: number) => {
+  const clamped = Math.max(-999, Math.min(999, Math.round(pct)));
+  if (clamped === 0) return null;
+  const sign = clamped > 0 ? '+' : '';
+  return (
+    <span class="trend trend--neutral">
+      {sign}
+      {clamped}%
+    </span>
+  );
+};
 
 const GlobalOverview: Component = () => {
-  const [providers] = createResource(
-    () => messagePing(),
-    async () => {
-      try {
-        const res = (await fetchJson('/providers')) as { providers: ProviderSummary[] };
-        return res?.providers ?? [];
-      } catch {
-        return [];
-      }
-    },
+  const navigate = useNavigate();
+
+  // ── Range state (persisted in localStorage) ──────────────────────────
+  const [chartRange, setChartRangeRaw] = createSignal(loadRange());
+  const setChartRange = (v: string) => {
+    setChartRangeRaw(v);
+    try {
+      localStorage.setItem(RANGE_STORAGE_KEY, v);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // ── Chart view state ─────────────────────────────────────────────────
+  const [chartView, setChartView] = createSignal<'messages' | 'tokens' | 'cost'>('tokens');
+
+  // ── Data resources (5 parallel) ──────────────────────────────────────
+  const [overview] = createResource(
+    () => chartRange(),
+    (range) => getOverview(range) as Promise<OverviewResponse>,
   );
 
   const [agents] = createResource(
@@ -45,145 +141,644 @@ const GlobalOverview: Component = () => {
     async () => {
       try {
         const data = await getAgents();
-        return (data as any)?.agents ?? data ?? [];
+        return ((data as any)?.agents ?? data ?? []) as AgentRow[];
       } catch {
-        return [];
+        return [] as AgentRow[];
       }
     },
   );
 
-  const stats = () => {
-    const list = providers() ?? [];
-    const subs = list.filter((p) => p.auth_type === 'subscription');
-    const byok = list.filter((p) => p.auth_type === 'api_key');
-    const local = list.filter((p) => p.auth_type === 'local');
-    return {
-      total_providers: list.length,
-      total_tokens: list.reduce((s, p) => s + p.consumption_tokens, 0),
-      total_messages: list.reduce((s, p) => s + p.consumption_messages, 0),
-      subscriptions: {
-        count: subs.length,
-        tokens: subs.reduce((s, p) => s + p.consumption_tokens, 0),
-      },
-      byok: {
-        count: byok.length,
-        tokens: byok.reduce((s, p) => s + p.consumption_tokens, 0),
-      },
-      local: {
-        count: local.length,
-        tokens: local.reduce((s, p) => s + p.consumption_tokens, 0),
-      },
+  const [providers] = createResource(
+    () => messagePing(),
+    async () => {
+      try {
+        const res = (await fetchJson('/providers')) as { providers: ProviderGroup[] };
+        return res?.providers ?? [];
+      } catch {
+        return [] as ProviderGroup[];
+      }
+    },
+  );
+
+  const [agentTimeseries] = createResource(
+    () => chartRange(),
+    (range) =>
+      getGlobalPerAgentTimeseries(range) as Promise<{
+        agents: string[];
+        timeseries: Array<Record<string, number | string>>;
+      }>,
+  );
+
+  const [agentMessageTimeseries] = createResource(
+    () => chartRange(),
+    (range) =>
+      getGlobalPerAgentMessageTimeseries(range) as Promise<{
+        agents: string[];
+        timeseries: Array<Record<string, number | string>>;
+      }>,
+  );
+
+  // ── Agent filter state (sessionStorage) ──────────────────────────────
+  const storageKey = 'global-agent-filter';
+  const loadSavedAgents = (): Set<string> => {
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) return new Set(JSON.parse(saved) as string[]);
+    } catch {
+      /* ignore */
+    }
+    return new Set();
+  };
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(loadSavedAgents());
+  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
+  let agentFilterRef: HTMLDivElement | undefined;
+
+  if (typeof document !== 'undefined') {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
+        setAgentFilterOpen(false);
+      }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAgentFilterOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    onCleanup(() => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    });
+  }
+
+  const allAgents = createMemo(() => {
+    const tokenAgents = agentTimeseries()?.agents ?? [];
+    const msgAgents = agentMessageTimeseries()?.agents ?? [];
+    const set = new Set([...tokenAgents, ...msgAgents]);
+    return [...set].sort();
+  });
+
+  const agentColorMap = createMemo(() => {
+    const map: Record<string, string> = {};
+    const list = allAgents();
+    for (let i = 0; i < list.length; i++) {
+      map[list[i]!] = AGENT_COLORS[i % AGENT_COLORS.length]!;
+    }
+    return map;
+  });
+
+  const effectiveSelected = () => {
+    const sel = selectedAgents();
+    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
+    return sel;
   };
 
-  const agentList = () => agents() ?? [];
+  const selectedAgentCount = () => effectiveSelected().size;
+
+  const toggleAgent = (agent: string) => {
+    const current = effectiveSelected();
+    const next = new Set(current);
+    if (next.has(agent)) {
+      next.delete(agent);
+    } else {
+      next.add(agent);
+    }
+    setSelectedAgents(next);
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify([...next]));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const filteredAgentTimeseries = createMemo(() => {
+    const raw = agentTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
+  const filteredAgentMessageTimeseries = createMemo(() => {
+    const raw = agentMessageTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
+  // ── Derived data ─────────────────────────────────────────────────────
+  const agentList = () => (agents() ?? []) as AgentRow[];
+  const providerList = () => (providers() ?? []) as ProviderGroup[];
+
+  const messageChartData = createMemo(() => {
+    const src = overview()?.message_usage;
+    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
+  });
+
+  const uniqueProviders = createMemo(() => {
+    const list = providerList();
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const p of list) {
+      if (!seen.has(p.provider)) {
+        seen.add(p.provider);
+        result.push(p.provider);
+      }
+    }
+    return result.slice(0, 5);
+  });
+
+  const uniquePlatforms = createMemo(() => {
+    const list = agentList();
+    const seen = new Set<string>();
+    const result: Array<{ platform: string; category: string | null }> = [];
+    for (const a of list) {
+      const p = a.agent_platform;
+      if (p && !seen.has(p)) {
+        seen.add(p);
+        result.push({ platform: p, category: a.agent_category });
+      }
+    }
+    return result.slice(0, 5);
+  });
+
+  const sortedAgents = createMemo(() => {
+    return [...agentList()].sort((a, b) => (b.total_tokens ?? 0) - (a.total_tokens ?? 0));
+  });
 
   return (
     <div class="container--lg">
       <Title>Overview | Manifest</Title>
-      <div class="page-header">
-        <h1 class="page-header__title">Overview</h1>
-        <p class="page-header__subtitle">Your AI stack at a glance.</p>
+
+      {/* ── 1. Page Header ──────────────────────────────────────────── */}
+      <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
+        <div>
+          <h1 class="page-header__title">Overview</h1>
+          <p class="page-header__subtitle">Your AI infrastructure at a glance</p>
+        </div>
+        <div>
+          <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
+        </div>
       </div>
 
       <Show
-        when={providers() !== undefined && agents() !== undefined}
+        when={overview() !== undefined && agents() !== undefined && providers() !== undefined}
         fallback={<GlobalOverviewSkeleton />}
       >
-        {/* Stats cards */}
-        <div class="overview-stats">
+        {/* ── 2. Summary Stat Cards ───────────────────────────────────── */}
+        <div class="overview-stats" style="gap: 24px;">
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Providers</span>
-            <span class="overview-stat-card__value">{stats().total_providers}</span>
+            <span class="overview-stat-card__label">Connections</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="overview-stat-card__value">{providerList().length}</span>
+              <div style="display: flex; gap: 4px; align-items: center;">
+                <For each={uniqueProviders()}>
+                  {(pid) => <span style="opacity: 0.7;">{providerIcon(pid, 16)}</span>}
+                </For>
+              </div>
+            </div>
           </div>
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">Agents</span>
-            <span class="overview-stat-card__value">{agentList().length}</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="overview-stat-card__value">{agentList().length}</span>
+              <div style="display: flex; gap: 4px; align-items: center;">
+                <For each={uniquePlatforms()}>
+                  {(p) => {
+                    const icon = platformIcon(p.platform, p.category);
+                    return (
+                      <Show when={icon}>
+                        <img src={icon!} alt="" width="16" height="16" style="opacity: 0.7;" />
+                      </Show>
+                    );
+                  }}
+                </For>
+              </div>
+            </div>
           </div>
           <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Messages (30d)</span>
-            <span class="overview-stat-card__value">{formatNumber(stats().total_messages)}</span>
-          </div>
-          <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Tokens (30d)</span>
-            <span class="overview-stat-card__value">{formatNumber(stats().total_tokens)}</span>
-          </div>
-        </div>
-
-        {/* Provider categories */}
-        <div class="overview-sections">
-          <A href="/providers/subscriptions" class="overview-section-card">
-            <div class="overview-section-card__header">
-              <h3 class="overview-section-card__title">Subscriptions</h3>
-              <span class="overview-section-card__count">
-                {stats().subscriptions.count} connected
+            <span class="overview-stat-card__label">Messages</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="overview-stat-card__value">
+                {formatNumber(overview()?.summary.messages.value ?? 0)}
               </span>
-            </div>
-            <Show when={stats().subscriptions.tokens > 0}>
-              <p class="overview-section-card__stat">
-                {formatNumber(stats().subscriptions.tokens)} tokens consumed
-              </p>
-            </Show>
-            <Show when={stats().subscriptions.count === 0}>
-              <p class="overview-section-card__hint">
-                Connect ChatGPT Plus, Claude Max, Copilot and more.
-              </p>
-            </Show>
-          </A>
-
-          <A href="/providers/byok" class="overview-section-card">
-            <div class="overview-section-card__header">
-              <h3 class="overview-section-card__title">API Keys</h3>
-              <span class="overview-section-card__count">{stats().byok.count} connected</span>
-            </div>
-            <Show when={stats().byok.tokens > 0}>
-              <p class="overview-section-card__stat">
-                {formatNumber(stats().byok.tokens)} tokens consumed
-              </p>
-            </Show>
-            <Show when={stats().byok.count === 0}>
-              <p class="overview-section-card__hint">
-                Bring your own API keys for pay-as-you-go providers.
-              </p>
-            </Show>
-          </A>
-
-          <A href="/providers/local" class="overview-section-card">
-            <div class="overview-section-card__header">
-              <h3 class="overview-section-card__title">Local</h3>
-              <span class="overview-section-card__count">{stats().local.count} connected</span>
-            </div>
-            <Show when={stats().local.tokens > 0}>
-              <p class="overview-section-card__stat">
-                {formatNumber(stats().local.tokens)} tokens consumed
-              </p>
-            </Show>
-            <Show when={stats().local.count === 0}>
-              <p class="overview-section-card__hint">Connect Ollama, LM Studio, or llama.cpp.</p>
-            </Show>
-          </A>
-        </div>
-
-        {/* Agents summary */}
-        <Show when={agentList().length > 0}>
-          <div class="overview-agents">
-            <h3 class="overview-agents__title">Agents</h3>
-            <div class="overview-agents__list">
-              <For each={agentList()}>
-                {(agent: any) => (
-                  <A href={`/agents/${agent.agent_name}`} class="overview-agent-row">
-                    <span class="overview-agent-row__name">
-                      {agent.display_name || agent.agent_name}
-                    </span>
-                    <span class="overview-agent-row__stat">
-                      {formatNumber(agent.message_count ?? 0)} messages
-                    </span>
-                  </A>
-                )}
-              </For>
+              {trendBadge(overview()?.summary.messages.trend_pct ?? 0)}
             </div>
           </div>
-        </Show>
+          <div class="overview-stat-card">
+            <span class="overview-stat-card__label">Tokens</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="overview-stat-card__value">
+                {formatNumber(overview()?.summary.tokens_today.value ?? 0)}
+              </span>
+              {trendBadge(overview()?.summary.tokens_today.trend_pct ?? 0)}
+            </div>
+          </div>
+        </div>
+
+        {/* ── 3. Chart Card ───────────────────────────────────────────── */}
+        <div style="margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; justify-content: flex-end;">
+            <Show when={allAgents().length > 1}>
+              <div class="agent-filter-select" ref={agentFilterRef}>
+                <button
+                  class="agent-filter-select__trigger"
+                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                  type="button"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                  </svg>
+                  {selectedAgentCount() === allAgents().length
+                    ? `All agents (${allAgents().length})`
+                    : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                <Show when={agentFilterOpen()}>
+                  <div class="agent-filter-select__dropdown">
+                    <For each={allAgents()}>
+                      {(agent) => {
+                        const isOn = () => effectiveSelected().has(agent);
+                        return (
+                          <button
+                            class="agent-filter-select__item"
+                            onClick={() => toggleAgent(agent)}
+                            type="button"
+                          >
+                            <span
+                              class="agent-filter-select__swatch"
+                              style={{ background: agentColorMap()[agent] }}
+                            />
+                            <span class="agent-filter-select__name">{agent}</span>
+                            <span
+                              class="agent-filter-select__toggle"
+                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                            >
+                              <span class="agent-filter-select__toggle-thumb" />
+                            </span>
+                          </button>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
+              </div>
+            </Show>
+          </div>
+
+          <ProviderChartCard
+            activeView={chartView()}
+            onViewChange={setChartView}
+            messagesValue={overview()?.summary.messages.value ?? 0}
+            messagesTrendPct={overview()?.summary.messages.trend_pct ?? 0}
+            tokensValue={overview()?.summary.tokens_today.value ?? 0}
+            tokensTrendPct={overview()?.summary.tokens_today.trend_pct ?? 0}
+            tokenUsage={overview()?.token_usage ?? []}
+            messageChartData={messageChartData()}
+            range={chartRange()}
+            agentTimeseries={filteredAgentTimeseries() ?? undefined}
+            agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+            colorMap={agentColorMap()}
+          />
+        </div>
+
+        {/* ── 4. Row 1: Top Models + Recent Messages ──────────────────── */}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+          {/* Top Models */}
+          <div class="panel scroll-panel" style="margin-bottom: 0;">
+            <div class="panel__header">
+              <h3 class="panel__title">Top Models</h3>
+            </div>
+            <div
+              class="scroll-panel__body"
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+              }}
+            >
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th style="text-align: right;">Tokens</th>
+                    <th style="text-align: right;">Share</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={(overview()?.cost_by_model ?? []).slice(0, 10)}>
+                    {(row) => (
+                      <tr>
+                        <td>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {row.display_name || row.model}
+                          </span>
+                        </td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                          {formatNumber(row.tokens)}
+                        </td>
+                        <td style="text-align: right;">
+                          <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                            <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
+                              <div
+                                style={{
+                                  width: `${row.share_pct}%`,
+                                  height: '100%',
+                                  background: 'hsl(var(--success))',
+                                  'border-radius': '3px',
+                                }}
+                              />
+                            </div>
+                            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                              {row.share_pct}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                  <Show when={(overview()?.cost_by_model ?? []).length === 0}>
+                    <tr>
+                      <td
+                        colspan="3"
+                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                      >
+                        No model data yet
+                      </td>
+                    </tr>
+                  </Show>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Recent Messages */}
+          <div class="panel scroll-panel" style="margin-bottom: 0;">
+            <div class="panel__header">
+              <h3 class="panel__title">Recent Messages</h3>
+              <A href="/messages" class="panel__action">
+                View more
+              </A>
+            </div>
+            <div
+              class="scroll-panel__body"
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+              }}
+            >
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Agent</th>
+                    <th>Model</th>
+                    <th style="text-align: right;">Tokens</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={overview()?.recent_activity ?? []}>
+                    {(row) => (
+                      <tr>
+                        <td style="white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                          {formatTimeAgo(row.timestamp) ?? '—'}
+                        </td>
+                        <td>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {row.agent_name}
+                          </span>
+                        </td>
+                        <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                          {row.model || '—'}
+                        </td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                          {formatNumber(Number(row.total_tokens ?? 0))}
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                  <Show when={(overview()?.recent_activity ?? []).length === 0}>
+                    <tr>
+                      <td
+                        colspan="4"
+                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                      >
+                        No messages yet
+                      </td>
+                    </tr>
+                  </Show>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 5. Row 2: Connections + Top Agents ──────────────────────── */}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+          {/* Connections */}
+          <div class="panel scroll-panel" style="margin-bottom: 0;">
+            <div class="panel__header">
+              <h3 class="panel__title">Connections</h3>
+            </div>
+            <div
+              class="scroll-panel__body"
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+              }}
+            >
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Provider</th>
+                    <th>Access</th>
+                    <th style="text-align: right;">Tokens (30d)</th>
+                    <th style="width: 120px;">Trend</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={providerList()}>
+                    {(group) => {
+                      const firstId = () => group.connections[0]?.id;
+                      const isActive = () => group.connections.some((c) => c.is_active);
+                      return (
+                        <tr
+                          style="cursor: pointer;"
+                          onClick={() => {
+                            const id = firstId();
+                            if (id) navigate(`/providers/connections/${id}`);
+                          }}
+                        >
+                          <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <span style="flex-shrink: 0;">
+                                {providerIcon(group.provider, 20)}
+                              </span>
+                              <span style="font-weight: 500; color: hsl(var(--foreground));">
+                                {group.provider}
+                              </span>
+                            </div>
+                          </td>
+                          <td>{authBadgeFor(group.auth_type, 18)}</td>
+                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            {formatNumber(group.consumption_tokens)}
+                          </td>
+                          <td>
+                            <Show when={group.sparkline_7d.length > 0}>
+                              <Sparkline data={group.sparkline_7d} width={100} height={28} />
+                            </Show>
+                          </td>
+                          <td>
+                            <Show
+                              when={isActive()}
+                              fallback={
+                                <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                                  Inactive
+                                </span>
+                              }
+                            >
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                                Active
+                              </span>
+                            </Show>
+                          </td>
+                        </tr>
+                      );
+                    }}
+                  </For>
+                  <Show when={providerList().length === 0}>
+                    <tr>
+                      <td
+                        colspan="5"
+                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                      >
+                        No connections yet
+                      </td>
+                    </tr>
+                  </Show>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Top Agents */}
+          <div class="panel scroll-panel" style="margin-bottom: 0;">
+            <div class="panel__header">
+              <h3 class="panel__title">Top Agents</h3>
+            </div>
+            <div
+              class="scroll-panel__body"
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+              }}
+            >
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Agent</th>
+                    <th style="text-align: right;">Tokens (30d)</th>
+                    <th style="text-align: right;">Messages</th>
+                    <th style="width: 120px;">Trend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={sortedAgents()}>
+                    {(agent) => {
+                      const icon = platformIcon(agent.agent_platform, agent.agent_category);
+                      return (
+                        <tr
+                          style="cursor: pointer;"
+                          onClick={() => navigate(`/agents/${agent.agent_name}`)}
+                        >
+                          <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <Show when={icon}>
+                                <img
+                                  src={icon!}
+                                  alt=""
+                                  width="20"
+                                  height="20"
+                                  style="flex-shrink: 0;"
+                                />
+                              </Show>
+                              <span style="font-weight: 500; color: hsl(var(--foreground));">
+                                {agent.display_name || agent.agent_name}
+                              </span>
+                            </div>
+                          </td>
+                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            {formatNumber(agent.total_tokens ?? 0)}
+                          </td>
+                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                            {formatNumber(agent.message_count ?? 0)}
+                          </td>
+                          <td>
+                            <Show when={(agent.sparkline ?? []).length > 0}>
+                              <Sparkline data={agent.sparkline} width={100} height={28} />
+                            </Show>
+                          </td>
+                        </tr>
+                      );
+                    }}
+                  </For>
+                  <Show when={agentList().length === 0}>
+                    <tr>
+                      <td
+                        colspan="4"
+                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                      >
+                        No agents yet
+                      </td>
+                    </tr>
+                  </Show>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </Show>
     </div>
   );

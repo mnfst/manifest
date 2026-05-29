@@ -404,136 +404,140 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <span style="display: flex; align-items: center; width: 32px; height: 32px;">
-                    {providerIcon(c.provider, 32)}
-                  </span>
-                  <h1 class="page-header__title" style="margin: 0;">
-                    {prov?.name ?? c.provider}
-                  </h1>
-                  <Show
-                    when={c.is_active}
-                    fallback={
-                      <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); font-weight: 500;">
-                        Inactive
-                      </span>
-                    }
-                  >
-                    <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-sm); font-weight: 600;">
-                      Active
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <span style="display: flex; align-items: center; width: 32px; height: 32px;">
+                      {providerIcon(c.provider, 32)}
                     </span>
-                  </Show>
-                </div>
-                <button class="btn btn--outline btn--sm" onClick={() => setShowManageModal(true)}>
-                  Manage
-                </button>
-              </div>
-              <div style="display: flex; gap: 24px; margin-bottom: 24px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border)); font-size: var(--font-size-sm);">
-                <span>
-                  <span style="font-weight: 600; color: hsl(var(--foreground));">
-                    Connection name:
-                  </span>{' '}
-                  <span style="color: hsl(var(--muted-foreground));">{c.label}</span>
-                </span>
-                <span>
-                  <span style="font-weight: 600; color: hsl(var(--foreground));">Models:</span>{' '}
-                  <span style="color: hsl(var(--muted-foreground));">{c.cached_model_count}</span>
-                </span>
-                <span>
-                  <span style="font-weight: 600; color: hsl(var(--foreground));">
-                    First connection:
-                  </span>{' '}
-                  <span style="color: hsl(var(--muted-foreground));">
-                    {c.connected_at ? formatTimeAgo(c.connected_at) : '—'}
-                  </span>
-                </span>
-                <span>
-                  <span style="font-weight: 600; color: hsl(var(--foreground));">Last used:</span>{' '}
-                  <span style="color: hsl(var(--muted-foreground));">
-                    {c.last_used_at ? formatTimeAgo(c.last_used_at) : '—'}
-                  </span>
-                </span>
-              </div>
-
-              {/* Chart filters */}
-              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 24px;">
-                <Show when={allAgents().length > 1}>
-                  <div class="agent-filter-select" ref={agentFilterRef}>
-                    <button
-                      class="agent-filter-select__trigger"
-                      onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                      type="button"
+                    <h1 class="page-header__title" style="margin: 0;">
+                      {prov?.name ?? c.provider}
+                    </h1>
+                    <Show
+                      when={c.is_active}
+                      fallback={
+                        <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); font-weight: 500;">
+                          Inactive
+                        </span>
+                      }
                     >
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                      </svg>
-                      {selectedAgentCount() === allAgents().length
-                        ? `All agents (${allAgents().length})`
-                        : `${selectedAgentCount()} of ${allAgents().length} agents`}
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </button>
-                    <Show when={agentFilterOpen()}>
-                      <div class="agent-filter-select__dropdown">
-                        <For each={allAgents()}>
-                          {(agent) => {
-                            const isOn = () => effectiveSelected().has(agent);
-                            return (
-                              <button
-                                class="agent-filter-select__item"
-                                onClick={() => toggleAgent(agent)}
-                                type="button"
-                              >
-                                <span
-                                  class="agent-filter-select__swatch"
-                                  style={{ background: agentColorMap()[agent] }}
-                                />
-                                <span class="agent-filter-select__name">{agent}</span>
-                                <span
-                                  class="agent-filter-select__toggle"
-                                  classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                                >
-                                  <span class="agent-filter-select__toggle-thumb" />
-                                </span>
-                              </button>
-                            );
-                          }}
-                        </For>
-                      </div>
+                      <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-sm); font-weight: 600;">
+                        Active
+                      </span>
                     </Show>
                   </div>
-                </Show>
-                <Select
-                  value={chartRange()}
-                  onChange={setChartRange}
-                  options={[
-                    { label: 'Last 24 hours', value: '24h' },
-                    { label: 'Last 7 days', value: '7d' },
-                    { label: 'Last 30 days', value: '30d' },
-                  ]}
-                />
+                  <div style="display: flex; gap: 24px; font-size: var(--font-size-sm);">
+                    <span>
+                      <span style="font-weight: 600; color: hsl(var(--foreground));">
+                        Connection name:
+                      </span>{' '}
+                      <span style="color: hsl(var(--muted-foreground));">{c.label}</span>
+                    </span>
+                    <span>
+                      <span style="font-weight: 600; color: hsl(var(--foreground));">Models:</span>{' '}
+                      <span style="color: hsl(var(--muted-foreground));">
+                        {c.cached_model_count}
+                      </span>
+                    </span>
+                    <span>
+                      <span style="font-weight: 600; color: hsl(var(--foreground));">
+                        First connection:
+                      </span>{' '}
+                      <span style="color: hsl(var(--muted-foreground));">
+                        {c.connected_at ? formatTimeAgo(c.connected_at) : '—'}
+                      </span>
+                    </span>
+                    <span>
+                      <span style="font-weight: 600; color: hsl(var(--foreground));">
+                        Last used:
+                      </span>{' '}
+                      <span style="color: hsl(var(--muted-foreground));">
+                        {c.last_used_at ? formatTimeAgo(c.last_used_at) : '—'}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                  <Show when={allAgents().length > 1}>
+                    <div class="agent-filter-select" ref={agentFilterRef}>
+                      <button
+                        class="agent-filter-select__trigger"
+                        onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                        type="button"
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                        </svg>
+                        {selectedAgentCount() === allAgents().length
+                          ? `All agents (${allAgents().length})`
+                          : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          aria-hidden="true"
+                        >
+                          <path d="m6 9 6 6 6-6" />
+                        </svg>
+                      </button>
+                      <Show when={agentFilterOpen()}>
+                        <div class="agent-filter-select__dropdown">
+                          <For each={allAgents()}>
+                            {(agent) => {
+                              const isOn = () => effectiveSelected().has(agent);
+                              return (
+                                <button
+                                  class="agent-filter-select__item"
+                                  onClick={() => toggleAgent(agent)}
+                                  type="button"
+                                >
+                                  <span
+                                    class="agent-filter-select__swatch"
+                                    style={{ background: agentColorMap()[agent] }}
+                                  />
+                                  <span class="agent-filter-select__name">{agent}</span>
+                                  <span
+                                    class="agent-filter-select__toggle"
+                                    classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                                  >
+                                    <span class="agent-filter-select__toggle-thumb" />
+                                  </span>
+                                </button>
+                              );
+                            }}
+                          </For>
+                        </div>
+                      </Show>
+                    </div>
+                  </Show>
+                  <Select
+                    value={chartRange()}
+                    onChange={setChartRange}
+                    options={[
+                      { label: 'Last 24 hours', value: '24h' },
+                      { label: 'Last 7 days', value: '7d' },
+                      { label: 'Last 30 days', value: '30d' },
+                    ]}
+                  />
+                  <button class="btn btn--outline btn--sm" onClick={() => setShowManageModal(true)}>
+                    Manage
+                  </button>
+                </div>
               </div>
 
               {/* Chart */}

@@ -165,27 +165,25 @@ const Byok: Component = () => {
   return (
     <div class="container--lg">
       <Title>API Keys | Manifest</Title>
-      <div class="page-header">
+      <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
           <h1 class="page-header__title">Bring Your Own Key</h1>
           <p class="page-header__subtitle">
             Connect providers using your own API keys for pay-as-you-go usage.
           </p>
         </div>
-      </div>
-
-      {/* Chart */}
-      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 24px;">
-        <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
-        <Select
-          value={chartRange()}
-          onChange={setChartRange}
-          options={[
-            { label: 'Last 24 hours', value: '24h' },
-            { label: 'Last 7 days', value: '7d' },
-            { label: 'Last 30 days', value: '30d' },
-          ]}
-        />
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
+          <Select
+            value={chartRange()}
+            onChange={setChartRange}
+            options={[
+              { label: 'Last 24 hours', value: '24h' },
+              { label: 'Last 7 days', value: '7d' },
+              { label: 'Last 30 days', value: '30d' },
+            ]}
+          />
+        </div>
       </div>
       <Show when={analytics()}>
         <ProviderChartCard

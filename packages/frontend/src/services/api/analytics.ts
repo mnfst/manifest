@@ -64,6 +64,36 @@ export function getOverview(range = '24h', agentName?: string) {
   return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }
 
+type PivotedTimeseries = Promise<{
+  agents: string[];
+  timeseries: Array<Record<string, number | string>>;
+}>;
+
+export function getGlobalPerAgentTimeseries(range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-agent-timeseries', { range }) as PivotedTimeseries;
+}
+
+export function getGlobalPerAgentMessageTimeseries(range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-agent-message-timeseries', { range }) as PivotedTimeseries;
+}
+
+export function getPerProviderTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-provider-timeseries', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
+export function getPerProviderMessageTimeseries(
+  agentName: string,
+  range = '24h',
+): PivotedTimeseries {
+  return fetchJson('/overview/per-provider-message-timeseries', {
+    agent_name: agentName,
+    range,
+  }) as PivotedTimeseries;
+}
+
 export function getHealth() {
   return fetchJson('/health');
 }

@@ -10,40 +10,83 @@ const GlobalOverviewSkeleton = () => (
             <div class="skeleton skeleton--text" style="width: 70px; height: 12px;" />
             <div
               class="skeleton skeleton--text"
-              style="width: 40px; height: 28px; margin-top: 4px;"
+              style="width: 50px; height: 28px; margin-top: 4px;"
             />
           </div>
         )}
       </For>
     </div>
 
-    {/* Section cards */}
-    <div class="overview-sections">
-      <For each={[1, 2, 3]}>
-        {() => (
-          <div class="overview-section-card" style="pointer-events: none;">
-            <div class="overview-section-card__header">
-              <div class="skeleton skeleton--text" style="width: 100px; height: 16px;" />
-              <div class="skeleton skeleton--text" style="width: 80px; height: 12px;" />
+    {/* Chart card placeholder */}
+    <div
+      class="skeleton"
+      style="width: 100%; height: 340px; border-radius: var(--radius); margin-bottom: 24px;"
+    />
+
+    {/* Row 1: Models + Messages */}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+      <div class="panel" style="margin-bottom: 0;">
+        <div
+          class="skeleton skeleton--text"
+          style="width: 80px; height: 16px; margin-bottom: 16px;"
+        />
+        <For each={[1, 2, 3, 4]}>
+          {() => (
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+              <div class="skeleton skeleton--text" style="width: 140px;" />
+              <div class="skeleton skeleton--text" style="width: 50px;" />
+              <div class="skeleton" style="width: 60px; height: 6px; border-radius: 3px;" />
             </div>
-            <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
-          </div>
-        )}
-      </For>
+          )}
+        </For>
+      </div>
+      <div class="panel" style="margin-bottom: 0;">
+        <div
+          class="skeleton skeleton--text"
+          style="width: 120px; height: 16px; margin-bottom: 16px;"
+        />
+        <For each={[1, 2, 3, 4]}>
+          {() => (
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+              <div class="skeleton skeleton--text" style="width: 60px;" />
+              <div class="skeleton skeleton--text" style="width: 100px;" />
+              <div class="skeleton skeleton--text" style="width: 50px;" />
+            </div>
+          )}
+        </For>
+      </div>
     </div>
 
-    {/* Agents list */}
-    <div class="overview-agents">
-      <div
-        class="skeleton skeleton--text"
-        style="width: 60px; height: 16px; margin-bottom: 12px;"
-      />
-      <div style="border: 1px solid hsl(var(--border)); border-radius: var(--radius); overflow: hidden;">
-        <For each={[1, 2]}>
+    {/* Row 2: Connections + Agents */}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="panel" style="margin-bottom: 0;">
+        <div
+          class="skeleton skeleton--text"
+          style="width: 100px; height: 16px; margin-bottom: 16px;"
+        />
+        <For each={[1, 2, 3]}>
           {() => (
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid hsl(var(--border));">
-              <div class="skeleton skeleton--text" style="width: 120px;" />
-              <div class="skeleton skeleton--text" style="width: 80px;" />
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+              <div class="skeleton" style="width: 20px; height: 20px; border-radius: 50%;" />
+              <div class="skeleton skeleton--text" style="width: 100px;" />
+              <div class="skeleton skeleton--text" style="width: 50px;" />
+              <div class="skeleton" style="width: 60px; height: 20px; border-radius: 3px;" />
+            </div>
+          )}
+        </For>
+      </div>
+      <div class="panel" style="margin-bottom: 0;">
+        <div
+          class="skeleton skeleton--text"
+          style="width: 90px; height: 16px; margin-bottom: 16px;"
+        />
+        <For each={[1, 2, 3]}>
+          {() => (
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+              <div class="skeleton" style="width: 20px; height: 20px; border-radius: 50%;" />
+              <div class="skeleton skeleton--text" style="width: 100px;" />
+              <div class="skeleton skeleton--text" style="width: 50px;" />
+              <div class="skeleton" style="width: 60px; height: 20px; border-radius: 3px;" />
             </div>
           )}
         </For>

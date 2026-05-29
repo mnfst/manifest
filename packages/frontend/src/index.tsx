@@ -21,6 +21,7 @@ const Routing = lazyReload(() => import('./pages/Routing.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
 const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
 const Limits = lazyReload(() => import('./pages/Limits.jsx'));
+const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
 
 // Global pages
 const Overview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
@@ -76,7 +77,8 @@ render(
           {/* Agent detail: horizontal tabs (routing, providers, guardrails, settings) */}
           <Route path="/agents/:agentName" component={AgentGuard}>
             <Route path="" component={AgentDetail}>
-              <Route path="/" component={Routing} />
+              <Route path="/" component={AgentOverview} />
+              <Route path="/overview" component={AgentOverview} />
               <Route path="/routing" component={Routing} />
               <Route path="/settings/*" component={Settings} />
               <Route path="/providers" component={AgentProviders} />
