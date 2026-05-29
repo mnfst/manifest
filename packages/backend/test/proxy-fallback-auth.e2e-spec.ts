@@ -10,7 +10,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_TENANT_ID } from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
@@ -50,7 +50,7 @@ beforeAll(async () => {
      VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
     [
       'up-anthropic',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'anthropic',
       'api_key',
@@ -77,7 +77,7 @@ beforeAll(async () => {
      VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
     [
       'up-openai-sub',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'openai',
       'subscription',
@@ -111,7 +111,7 @@ beforeAll(async () => {
        fallback_routes = EXCLUDED.fallback_routes`,
     [
       'tier-default',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'default',
       JSON.stringify({ provider: 'anthropic', authType: 'api_key', model: PRIMARY_MODEL }),

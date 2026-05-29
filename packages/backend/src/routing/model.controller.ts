@@ -95,7 +95,7 @@ export class ModelController {
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    let models = await this.discoveryService.getModelsForAgent(user.id);
+    let models = await this.discoveryService.getModelsForAgent(user.id, agent.id);
 
     // Filter out models from providers disabled for this agent
     const accessRows = await this.accessRepo.find({ where: { agent_id: agent.id } });

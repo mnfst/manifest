@@ -48,8 +48,8 @@ beforeAll(async () => {
     },
   ]);
   await ds.query(
-    `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
-    [models, TEST_AGENT_ID, 'openai'],
+    `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
+    [models, TEST_USER_ID, 'openai'],
   );
 
   // Recalculate tier assignments with the seeded models

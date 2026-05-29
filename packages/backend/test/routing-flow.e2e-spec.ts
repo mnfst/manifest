@@ -132,12 +132,12 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       },
     ]);
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
-      [openaiModels, TEST_AGENT_ID, 'openai'],
+      `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
+      [openaiModels, TEST_USER_ID, 'openai'],
     );
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
-      [anthropicModels, TEST_AGENT_ID, 'anthropic'],
+      `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
+      [anthropicModels, TEST_USER_ID, 'anthropic'],
     );
 
     // Recalculate tier assignments with the seeded models
@@ -405,8 +405,8 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       },
     ]);
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
-      [openaiModels, TEST_AGENT_ID, 'openai'],
+      `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
+      [openaiModels, TEST_USER_ID, 'openai'],
     );
     await app.get(TierAutoAssignService).recalculate(TEST_AGENT_ID, TEST_USER_ID);
 

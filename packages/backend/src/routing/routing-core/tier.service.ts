@@ -111,7 +111,7 @@ export class TierService {
     authType?: AuthType,
     providerKeyLabel?: string,
   ): Promise<TierAssignment> {
-    const available = await this.discoveryService.getModelsForAgent(userId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     const matches = available.filter((m) => m.id === model);
     if (matches.length === 0) {
       const providerHint = provider ? ` (provider: ${provider})` : '';
@@ -333,7 +333,7 @@ export class TierService {
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(userId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       // Cross-check each caller-provided route against the discovered model

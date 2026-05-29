@@ -61,7 +61,7 @@ export class TierAutoAssignService {
   ) {}
 
   async recalculate(agentId: string, userId: string): Promise<void> {
-    const allModels = await this.discoveryService.getModelsForAgent(userId);
+    const allModels = await this.discoveryService.getModelsForAgent(userId, agentId);
 
     // Separate subscription vs API key models using the authType field on each model.
     // filterSubModels further narrows subscription models: if a provider has zero-cost

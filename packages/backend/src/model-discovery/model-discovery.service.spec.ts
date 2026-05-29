@@ -666,6 +666,41 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('user-1');
       expect(result).toHaveLength(0);
     });
+
+    it('should include custom provider models when agentId is provided', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const cp = makeCustomProvider({
+        id: 'cp-test',
+        agent_id: 'agent-abc',
+        models: [
+          {
+            model_name: 'my-custom-model',
+            input_price_per_million_tokens: 1.0,
+            output_price_per_million_tokens: 2.0,
+            context_window: 32000,
+          },
+        ],
+      });
+      customProviderRepo.find.mockResolvedValue([cp]);
+
+      const result = await service.getModelsForAgent('user-1', 'agent-abc');
+
+      expect(customProviderRepo.find).toHaveBeenCalledWith({
+        where: { agent_id: 'agent-abc' },
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('custom:cp-test/my-custom-model');
+      expect(result[0].provider).toBe('custom:cp-test');
+    });
+
+    it('should not query custom providers when agentId is omitted', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      await service.getModelsForAgent('user-1');
+
+      expect(customProviderRepo.find).not.toHaveBeenCalled();
+    });
   });
 
   /* ── getModelForAgent ── */

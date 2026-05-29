@@ -207,7 +207,8 @@ export class HeaderTierService {
     // already unambiguous — skip the discovery fetch.
     const explicit = explicitRoute(model, provider, authType);
     const route =
-      explicit ?? unambiguousRoute(model, await this.discoveryService.getModelsForAgent(userId));
+      explicit ??
+      unambiguousRoute(model, await this.discoveryService.getModelsForAgent(userId, agentId));
     assertStreamableResponseMode(
       row.response_mode,
       `custom tier "${row.name}"`,
@@ -278,7 +279,7 @@ export class HeaderTierService {
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(userId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

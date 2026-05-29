@@ -239,7 +239,7 @@ describe('ModelController', () => {
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
-      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith('user-1');
+      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith('user-1', TEST_AGENT_ID);
       expect(result).toHaveLength(1);
       expect(result[0].model_name).toBe('gpt-4o');
       expect(result[0].provider).toBe('openai');
