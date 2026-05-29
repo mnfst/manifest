@@ -87,10 +87,25 @@ const AgentProviders: Component = () => {
 
   const [busy, setBusy] = createSignal<string | null>(null);
   const [confirmTarget, setConfirmTarget] = createSignal<{
-    id: string;
+    userProviderId: string;
     provider: string;
     label: string;
   } | null>(null);
+  const [impactTiers, setImpactTiers] = createSignal<
+    Array<{ tier: string; model: string; position: string }>
+  >([]);
+
+  const fetchImpact = async (userProviderId: string) => {
+    try {
+      const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}/impact`;
+      const res = (await fetchJson(url)) as {
+        affected_tiers: Array<{ tier: string; model: string; position: string }>;
+      };
+      return res.affected_tiers ?? [];
+    } catch {
+      return [];
+    }
+  };
 
   const doDisable = async (userProviderId: string) => {
     setBusy(userProviderId);
@@ -103,6 +118,7 @@ const AgentProviders: Component = () => {
     } finally {
       setBusy(null);
       setConfirmTarget(null);
+      setImpactTiers([]);
     }
   };
 
@@ -119,8 +135,14 @@ const AgentProviders: Component = () => {
     }
   };
 
-  const handleToggle = (conn: { userProviderId: string; provider: string; label: string }) => {
+  const handleToggle = async (conn: {
+    userProviderId: string;
+    provider: string;
+    label: string;
+  }) => {
     if (isEnabled(conn.userProviderId)) {
+      const impact = await fetchImpact(conn.userProviderId);
+      setImpactTiers(impact);
       setConfirmTarget(conn);
     } else {
       doEnable(conn.userProviderId);
@@ -237,6 +259,23 @@ const AgentProviders: Component = () => {
               </strong>
               . You can re-enable it at any time.
             </p>
+            <Show when={impactTiers().length > 0}>
+              <div style="margin-top: 12px; padding: 12px; background: hsl(var(--muted) / 0.45); border-radius: var(--radius); font-size: var(--font-size-sm);">
+                <p style="margin: 0 0 8px; font-weight: 600; color: hsl(var(--foreground));">
+                  The following routing assignments will be removed:
+                </p>
+                <For each={impactTiers()}>
+                  {(item) => (
+                    <div style="display: flex; justify-content: space-between; padding: 4px 0; color: hsl(var(--muted-foreground));">
+                      <span>
+                        {item.tier} — {item.position}
+                      </span>
+                      <span style="font-family: monospace;">{item.model}</span>
+                    </div>
+                  )}
+                </For>
+              </div>
+            </Show>
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
               <button class="btn btn--ghost btn--sm" onClick={() => setConfirmTarget(null)}>
                 Keep enabled

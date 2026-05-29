@@ -44,6 +44,43 @@ export class AgentProviderAccessController {
     };
   }
 
+  @Get(':userProviderId/impact')
+  async getDisableImpact(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('userProviderId') userProviderId: string,
+  ) {
+    const agent = await this.resolveAgent(agentName, user.id);
+    if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
+
+    const provider = await this.userProviderRepo.findOne({
+      where: { id: userProviderId, user_id: user.id },
+    });
+    if (!provider) return { affected_tiers: [] };
+
+    const providerModels = new Set(
+      (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
+    );
+    if (providerModels.size === 0) return { affected_tiers: [] };
+
+    const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
+    const affected: Array<{ tier: string; model: string; position: string }> = [];
+
+    for (const tier of tiers) {
+      // Only report manually assigned routes (override_route), not auto-assigned ones
+      if (tier.override_route && providerModels.has(tier.override_route.model)) {
+        affected.push({ tier: tier.tier, model: tier.override_route.model, position: 'primary' });
+      }
+      for (const [i, fb] of (tier.fallback_routes ?? []).entries()) {
+        if (providerModels.has(fb.model)) {
+          affected.push({ tier: tier.tier, model: fb.model, position: `fallback ${i + 1}` });
+        }
+      }
+    }
+
+    return { affected_tiers: affected };
+  }
+
   @Put(':userProviderId')
   async enable(
     @CurrentUser() user: AuthUser,
@@ -73,7 +110,7 @@ export class AgentProviderAccessController {
     const agent = await this.resolveAgent(agentName, user.id);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
-    // Check if the provider has models actively used in routing
+    // Find and clean up tier assignments that use models from this provider
     const provider = await this.userProviderRepo.findOne({
       where: { id: userProviderId, user_id: user.id },
     });
@@ -84,23 +121,25 @@ export class AgentProviderAccessController {
 
       if (providerModels.size > 0) {
         const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
-        const provName = provider.provider;
         for (const tier of tiers) {
-          const route = tier.override_route ?? tier.auto_assigned_route;
-          if (route && providerModels.has(route.model)) {
-            throw new HttpException(
-              `Cannot disable ${provName}: model "${route.model}" is assigned in routing. Remove it first.`,
-              HttpStatus.CONFLICT,
-            );
+          let changed = false;
+          // Clear manual override if it uses a model from this provider
+          if (tier.override_route && providerModels.has(tier.override_route.model)) {
+            tier.override_route = null;
+            changed = true;
           }
-          for (const fb of tier.fallback_routes ?? []) {
-            if (providerModels.has(fb.model)) {
-              throw new HttpException(
-                `Cannot disable ${provName}: model "${fb.model}" is assigned in routing. Remove it first.`,
-                HttpStatus.CONFLICT,
-              );
-            }
+          // Clear auto-assigned if it uses a model from this provider (will be recalculated)
+          if (tier.auto_assigned_route && providerModels.has(tier.auto_assigned_route.model)) {
+            tier.auto_assigned_route = null;
+            changed = true;
           }
+          const fallbacks = tier.fallback_routes ?? [];
+          const filtered = fallbacks.filter((fb) => !providerModels.has(fb.model));
+          if (filtered.length !== fallbacks.length) {
+            tier.fallback_routes = filtered.length > 0 ? filtered : null;
+            changed = true;
+          }
+          if (changed) await this.tierRepo.save(tier);
         }
       }
     }
