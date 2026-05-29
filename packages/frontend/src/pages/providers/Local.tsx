@@ -20,6 +20,7 @@ interface Connection {
   label: string;
   key_prefix: string | null;
   cached_model_count: number;
+  is_active: boolean;
 }
 interface ConnectedProvider {
   provider: string;
@@ -177,21 +178,23 @@ const LocalProviders: Component = () => {
       {/* TABLE 1: Connected */}
       <Show when={connectedProviders().length > 0}>
         <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
-          Connected providers
+          My Local Providers
         </h3>
-        <div class="panel" style="padding: 0; margin-bottom: 24px;">
-          <table class="data-table" style="table-layout: fixed;">
+        <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
+          <table class="data-table" style="min-width: 500px;">
             <colgroup>
-              <col />
-              <col style="width: 100px;" />
               <col style="width: 200px;" />
-              <col style="width: 140px;" />
+              <col style="width: 80px;" />
+              <col style="width: 160px;" />
+              <col style="width: 80px;" />
+              <col />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
                 <th>Models</th>
                 <th>Usage (30d)</th>
+                <th>Status</th>
                 <th />
               </tr>
             </thead>
@@ -200,7 +203,13 @@ const LocalProviders: Component = () => {
                 {(prov) => {
                   const cp = () => getConnected(prov.id)!;
                   return (
-                    <tr>
+                    <tr
+                      style="cursor: pointer;"
+                      onClick={() => {
+                        const connId = cp().connections[0]?.id;
+                        if (connId) navigate(`/providers/connections/${connId}`);
+                      }}
+                    >
                       <td>
                         <span style="display: flex; align-items: center; gap: 10px;">
                           <span style="display: flex; align-items: center; width: 20px; height: 20px;">
@@ -219,22 +228,31 @@ const LocalProviders: Component = () => {
                         </div>
                       </td>
                       <td>
-                        <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                          <Show when={cp().connections[0]?.id}>
-                            <button
-                              class="btn btn--outline btn--sm"
-                              style="font-size: var(--font-size-xs);"
-                              onClick={() =>
-                                navigate(`/providers/connections/${cp().connections[0]!.id}`)
-                              }
-                            >
-                              View details
-                            </button>
-                          </Show>
-                          <ActionMenu
-                            items={[{ label: 'Manage', onClick: () => openConnect(prov.id) }]}
-                          />
-                        </span>
+                        <Show
+                          when={cp().connections[0]?.is_active !== false}
+                          fallback={
+                            <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                              Inactive
+                            </span>
+                          }
+                        >
+                          <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.12); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
+                            Active
+                          </span>
+                        </Show>
+                      </td>
+                      <td style="text-align: right;">
+                        <Show when={cp().connections[0]?.id}>
+                          <button
+                            class="btn btn--outline btn--sm"
+                            style="font-size: var(--font-size-xs);"
+                            onClick={() =>
+                              navigate(`/providers/connections/${cp().connections[0]!.id}`)
+                            }
+                          >
+                            View details
+                          </button>
+                        </Show>
                       </td>
                     </tr>
                   );
@@ -249,8 +267,8 @@ const LocalProviders: Component = () => {
       <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
         Supported providers
       </h3>
-      <div class="panel" style="padding: 0;">
-        <table class="data-table" style="table-layout: fixed;">
+      <div class="panel" style="padding: 0; overflow-x: auto;">
+        <table class="data-table" style="min-width: 500px;">
           <colgroup>
             <col style="width: 200px;" />
             <col style="width: 80px;" />

@@ -1,11 +1,13 @@
 import { Title } from '@solidjs/meta';
-import { A, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams } from '@solidjs/router';
 import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import {
   getConnectionDetail,
   getProviderAnalytics,
   getProviderAnalyticsAgents,
 } from '../../services/api/analytics.js';
+import { disconnectProvider } from '../../services/api.js';
+import { fetchMutate, routingPath } from '../../services/api/core.js';
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
@@ -13,8 +15,9 @@ import { formatNumber, formatTimeAgo } from '../../services/formatters.js';
 import { getAgents } from '../../services/api.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
-import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
+import ActionMenu from '../../components/ActionMenu.jsx';
 import Select from '../../components/Select.jsx';
+import { toast } from '../../services/toast-store.js';
 import '../../styles/charts.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
@@ -114,7 +117,12 @@ const ConnectionDetail: Component = () => {
   });
 
   // Manage modal
+  const navigate = useNavigate();
+  const [showDisconnectModal, setShowDisconnectModal] = createSignal(false);
+  const [disconnecting, setDisconnecting] = createSignal(false);
   const [showManageModal, setShowManageModal] = createSignal(false);
+  const [labelInput, setLabelInput] = createSignal('');
+  const [savingLabel, setSavingLabel] = createSignal(false);
   const [agents] = createResource(async () => {
     try {
       const res = await getAgents();
@@ -180,13 +188,7 @@ const ConnectionDetail: Component = () => {
                     {prov?.name ?? c.provider}
                   </h1>
                 </div>
-                <button
-                  class="btn btn--outline btn--sm"
-                  onClick={() => {
-                    refetchModalProviders();
-                    setShowManageModal(true);
-                  }}
-                >
+                <button class="btn btn--outline btn--sm" onClick={() => setShowManageModal(true)}>
                   Manage
                 </button>
               </div>
@@ -333,20 +335,157 @@ const ConnectionDetail: Component = () => {
                 </div>
               </div>
               {/* Manage modal */}
-              <Show when={showManageModal() && firstAgentName()}>
-                <ProviderSelectModal
-                  agentName={firstAgentName()}
-                  providers={modalProviders() ?? []}
-                  providerDeepLink={{
-                    providerId: c.provider,
-                    authType: c.auth_type as any,
-                    closeOnBack: true,
+              <Show when={showManageModal()}>
+                <div
+                  class="modal-overlay"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setShowManageModal(false);
                   }}
-                  onUpdate={() => {
-                    refetchModalProviders();
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setShowManageModal(false);
                   }}
-                  onClose={() => setShowManageModal(false)}
-                />
+                >
+                  <div
+                    class="modal-card"
+                    style="max-width: 440px;"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <h2 class="modal-card__title">Manage connection</h2>
+
+                    <div style="margin-top: 16px;">
+                      <label style="font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--muted-foreground)); display: block; margin-bottom: 6px;">
+                        Connection name
+                      </label>
+                      <input
+                        type="text"
+                        class="input"
+                        value={labelInput() || c.label}
+                        onInput={(e) => setLabelInput(e.currentTarget.value)}
+                        style="width: 100%;"
+                      />
+                    </div>
+
+                    <Show when={c.connected_at}>
+                      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
+                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.12); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
+                          Active
+                        </span>
+                        <button
+                          class="btn btn--danger btn--sm"
+                          onClick={() => {
+                            setShowManageModal(false);
+                            setShowDisconnectModal(true);
+                          }}
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                    </Show>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                      <button
+                        class="btn btn--ghost btn--sm"
+                        onClick={() => setShowManageModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        class="btn btn--primary btn--sm"
+                        disabled={savingLabel() || !labelInput() || labelInput() === c.label}
+                        onClick={async () => {
+                          if (!labelInput() || labelInput() === c.label) return;
+                          setSavingLabel(true);
+                          try {
+                            const url = routingPath(
+                              firstAgentName(),
+                              `/providers/${encodeURIComponent(c.provider)}/keys/${encodeURIComponent(c.label)}`,
+                            );
+                            await fetchMutate(url, {
+                              method: 'PATCH',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                newLabel: labelInput(),
+                                authType: c.auth_type,
+                              }),
+                            });
+                            toast.success('Connection renamed');
+                            setShowManageModal(false);
+                            // Refresh detail data
+                            window.location.reload();
+                          } catch {
+                            // toast from fetchMutate
+                          } finally {
+                            setSavingLabel(false);
+                          }
+                        }}
+                      >
+                        {savingLabel() ? <span class="spinner" /> : 'Save'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Show>
+
+              {/* Disconnect modal */}
+              <Show when={showDisconnectModal()}>
+                <div
+                  class="modal-overlay"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setShowDisconnectModal(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setShowDisconnectModal(false);
+                  }}
+                >
+                  <div
+                    class="modal-card"
+                    style="max-width: 420px;"
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <h2 class="modal-card__title">Disconnect {prov?.name ?? c.provider}</h2>
+                    <p class="modal-card__desc">
+                      Disconnecting this provider will remove it from your active connections. Your
+                      routing configuration may be affected if models from this provider are
+                      currently assigned.
+                    </p>
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                      <button
+                        class="btn btn--ghost btn--sm"
+                        onClick={() => setShowDisconnectModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        class="btn btn--primary btn--sm"
+                        disabled={disconnecting()}
+                        onClick={async () => {
+                          setDisconnecting(true);
+                          try {
+                            await disconnectProvider(
+                              firstAgentName(),
+                              c.provider,
+                              c.auth_type as any,
+                              c.label,
+                            );
+                            toast.success(`${prov?.name ?? c.provider} disconnected`);
+                            navigate(backLink());
+                          } catch {
+                            // toast from fetchMutate
+                          } finally {
+                            setDisconnecting(false);
+                            setShowDisconnectModal(false);
+                          }
+                        }}
+                      >
+                        {disconnecting() ? <span class="spinner" /> : 'Disconnect'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </Show>
             </>
           );

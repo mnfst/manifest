@@ -32,7 +32,7 @@ export class UserProvidersController {
   @Get()
   async listProviders(@CurrentUser() user: AuthUser) {
     const providers = await this.providerRepo.find({
-      where: { user_id: user.id, is_active: true },
+      where: { user_id: user.id },
     });
 
     // Get tenant for message queries
@@ -52,6 +52,7 @@ export class UserProvidersController {
           connected_at: string;
           models_fetched_at: string | null;
           cached_model_count: number;
+          is_active: boolean;
         }>;
         total_models: number;
       }
@@ -71,6 +72,7 @@ export class UserProvidersController {
           connected_at: p.connected_at,
           models_fetched_at: p.models_fetched_at,
           cached_model_count: modelCount,
+          is_active: p.is_active,
         });
         existing.total_models = Math.max(existing.total_models, modelCount);
       } else {
@@ -86,6 +88,7 @@ export class UserProvidersController {
               connected_at: p.connected_at,
               models_fetched_at: p.models_fetched_at,
               cached_model_count: modelCount,
+              is_active: p.is_active,
             },
           ],
           total_models: modelCount,
@@ -93,8 +96,11 @@ export class UserProvidersController {
       }
     }
 
-    // Get consumption per provider (last 30 days)
-    let consumption = new Map<string, { tokens: number; messages: number; cost: number }>();
+    // Get consumption per provider (last 30 days) + last used timestamp (all time)
+    let consumption = new Map<
+      string,
+      { tokens: number; messages: number; cost: number; last_used_at: string | null }
+    >();
     if (tenant) {
       const rows = await this.messageRepo
         .createQueryBuilder('m')
@@ -103,6 +109,7 @@ export class UserProvidersController {
         .addSelect('SUM(COALESCE(m.input_tokens, 0) + COALESCE(m.output_tokens, 0))', 'tokens')
         .addSelect('COUNT(*)', 'messages')
         .addSelect('SUM(COALESCE(m.cost_usd, 0))', 'cost')
+        .addSelect('MAX(m.timestamp)', 'last_used_at')
         .where('m.tenant_id = :tenantId', { tenantId: tenant.id })
         .andWhere("m.timestamp >= NOW() - INTERVAL '30 days'")
         .groupBy('m.provider')
@@ -111,10 +118,17 @@ export class UserProvidersController {
 
       for (const row of rows) {
         if (row.provider) {
+          const lastUsed =
+            row.last_used_at instanceof Date
+              ? row.last_used_at.toISOString()
+              : row.last_used_at
+                ? String(row.last_used_at)
+                : null;
           consumption.set(`${row.provider}::${row.auth_type ?? 'api_key'}`, {
             tokens: parseInt(row.tokens, 10) || 0,
             messages: parseInt(row.messages, 10) || 0,
             cost: parseFloat(row.cost) || 0,
+            last_used_at: lastUsed,
           });
         }
       }
@@ -166,6 +180,7 @@ export class UserProvidersController {
         tokens: 0,
         messages: 0,
         cost: 0,
+        last_used_at: null,
       };
       return {
         provider: g.provider,
@@ -176,6 +191,7 @@ export class UserProvidersController {
         consumption_tokens: cons.tokens,
         consumption_messages: cons.messages,
         consumption_cost: cons.cost,
+        last_used_at: cons.last_used_at,
         sparkline_7d: sparklines.get(`${g.provider}::${g.auth_type}`) ?? [],
       };
     });

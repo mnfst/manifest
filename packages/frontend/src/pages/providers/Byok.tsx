@@ -20,6 +20,7 @@ interface Connection {
   label: string;
   key_prefix: string | null;
   cached_model_count: number;
+  is_active: boolean;
 }
 interface ConnectedProvider {
   provider: string;
@@ -197,16 +198,17 @@ const Byok: Component = () => {
       {/* TABLE 1: Connected — one row per connection */}
       <Show when={connectedRows().length > 0}>
         <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
-          Connected providers
+          My API Keys
         </h3>
-        <div class="panel" style="padding: 0; margin-bottom: 24px;">
-          <table class="data-table" style="table-layout: fixed;">
+        <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
+          <table class="data-table" style="min-width: 600px;">
             <colgroup>
-              <col style="width: 200px;" />
-              <col style="width: 80px;" />
-              <col style="width: 120px;" />
-              <col style="width: 160px;" />
+              <col style="width: 170px;" />
+              <col style="width: 70px;" />
               <col style="width: 100px;" />
+              <col style="width: 140px;" />
+              <col style="width: 90px;" />
+              <col style="width: 80px;" />
               <col />
             </colgroup>
             <thead>
@@ -216,6 +218,7 @@ const Byok: Component = () => {
                 <th>Key name</th>
                 <th>Usage (30d)</th>
                 <th>Cost (30d)</th>
+                <th>Status</th>
                 <th />
               </tr>
             </thead>
@@ -226,7 +229,10 @@ const Byok: Component = () => {
                     Math.round(row.cp.consumption_tokens / row.cp.connection_count);
                   const perKeyCost = () => row.cp.consumption_cost / row.cp.connection_count;
                   return (
-                    <tr>
+                    <tr
+                      style="cursor: pointer;"
+                      onClick={() => navigate(`/providers/connections/${row.conn.id}`)}
+                    >
                       <td>
                         <span style="display: flex; align-items: center; gap: 10px;">
                           <span style="display: flex; align-items: center; width: 20px; height: 20px;">
@@ -247,18 +253,27 @@ const Byok: Component = () => {
                       </td>
                       <td>{formatCost(perKeyCost()) ?? '$0.00'}</td>
                       <td>
-                        <span style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                          <button
-                            class="btn btn--outline btn--sm"
-                            style="font-size: var(--font-size-xs);"
-                            onClick={() => navigate(`/providers/connections/${row.conn.id}`)}
-                          >
-                            View details
-                          </button>
-                          <ActionMenu
-                            items={[{ label: 'Manage', onClick: () => openConnect(row.prov.id) }]}
-                          />
-                        </span>
+                        <Show
+                          when={row.conn.is_active}
+                          fallback={
+                            <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                              Inactive
+                            </span>
+                          }
+                        >
+                          <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.12); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
+                            Active
+                          </span>
+                        </Show>
+                      </td>
+                      <td style="text-align: right;">
+                        <button
+                          class="btn btn--outline btn--sm"
+                          style="font-size: var(--font-size-xs);"
+                          onClick={() => navigate(`/providers/connections/${row.conn.id}`)}
+                        >
+                          View details
+                        </button>
                       </td>
                     </tr>
                   );
@@ -273,8 +288,8 @@ const Byok: Component = () => {
       <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
         Supported providers
       </h3>
-      <div class="panel" style="padding: 0;">
-        <table class="data-table" style="table-layout: fixed;">
+      <div class="panel" style="padding: 0; overflow-x: auto;">
+        <table class="data-table" style="min-width: 500px;">
           <colgroup>
             <col style="width: 200px;" />
             <col style="width: 80px;" />
@@ -322,25 +337,13 @@ const Byok: Component = () => {
                             {cp()!.connection_count} {cp()!.connection_count === 1 ? 'key' : 'keys'}
                           </span>
                         </Show>
-                        <Show
-                          when={has()}
-                          fallback={
-                            <button
-                              class="btn btn--primary btn--sm"
-                              onClick={() => openConnect(prov.id)}
-                            >
-                              Connect
-                            </button>
-                          }
+                        <button
+                          class="btn btn--primary btn--sm"
+                          style="white-space: nowrap;"
+                          onClick={() => openConnect(prov.id)}
                         >
-                          <button
-                            class="btn btn--sm"
-                            style="font-size: var(--font-size-xs); white-space: nowrap;"
-                            onClick={() => openConnect(prov.id)}
-                          >
-                            Add key
-                          </button>
-                        </Show>
+                          Add API key
+                        </button>
                       </span>
                     </td>
                   </tr>
