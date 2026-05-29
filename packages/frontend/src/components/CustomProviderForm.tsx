@@ -12,6 +12,7 @@ import { toast } from '../services/toast-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import type { CustomProviderPrefill } from '../services/routing-params.js';
 import InfoTooltip from './InfoTooltip.jsx';
+import ProviderSubviewHeader, { type ProviderSubviewLayout } from './ProviderSubviewHeader.js';
 
 const BASE_URL_PLACEHOLDERS: Record<CustomProviderApiKind, string> = {
   openai: 'https://api.example.com/v1',
@@ -25,6 +26,7 @@ interface Props {
   initialData?: CustomProviderData;
   prefill?: CustomProviderPrefill;
   onDeleted?: () => void;
+  layout?: ProviderSubviewLayout;
 }
 
 interface ModelRow {
@@ -214,29 +216,24 @@ const CustomProviderForm: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
-        </svg>
-      </button>
-
-      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 20px;">
-        <div>
-          <div class="routing-modal__title">
-            {isEdit() ? 'Edit custom provider' : 'Add custom provider'}
-          </div>
-          <div class="routing-modal__subtitle">
-            Connect any OpenAI- or Anthropic-compatible endpoint
+      <ProviderSubviewHeader
+        layout={props.layout}
+        onBack={props.onBack}
+        title={isEdit() ? 'Edit custom provider' : 'Add custom provider'}
+        subtitle="Connect any OpenAI- or Anthropic-compatible endpoint"
+      />
+      <Show when={props.layout === 'page'}>
+        <div class="providers-page__section-heading">
+          <div>
+            <h2 class="providers-page__section-title">
+              {isEdit() ? 'Edit custom provider' : 'Add custom provider'}
+            </h2>
+            <p class="providers-page__section-desc">
+              Connect any OpenAI- or Anthropic-compatible endpoint
+            </p>
           </div>
         </div>
-      </div>
+      </Show>
 
       <form
         onSubmit={(e) => {

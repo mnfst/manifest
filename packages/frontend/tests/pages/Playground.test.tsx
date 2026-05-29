@@ -37,6 +37,11 @@ let currentAgent = 'demo-0';
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: currentAgent }),
   useSearchParams: () => [searchParamsState, setSearchParamsFn],
+  A: (props: { href: string; class?: string; children: unknown }) => (
+    <a href={props.href} class={props.class}>
+      {props.children as string}
+    </a>
+  ),
 }));
 
 vi.mock('@solidjs/meta', () => ({
@@ -169,10 +174,10 @@ vi.mock('../../src/components/playground/PlaygroundModelPicker.jsx', () => ({
 }));
 
 vi.mock('../../src/components/playground/PlaygroundEmptyState.jsx', () => ({
-  default: (props: Record<string, unknown>) => (
-    <button data-testid="empty-connect" onClick={() => (props.onConnect as () => void)()}>
+  default: (props: { providersPath: string }) => (
+    <a data-testid="empty-connect" href={props.providersPath}>
       empty
-    </button>
+    </a>
   ),
 }));
 
@@ -260,26 +265,6 @@ vi.mock('../../src/components/playground/icons.jsx', () => ({
   TrashIcon: () => null,
 }));
 
-let providerModalProps: Record<string, unknown> | null = null;
-vi.mock('../../src/components/ProviderSelectModal.jsx', () => ({
-  default: (props: Record<string, unknown>) => {
-    providerModalProps = props;
-    return (
-      <div data-testid="provider-modal">
-        <span data-testid="pm-agent">{String(props.agentName)}</span>
-        <span data-testid="pm-providers">{(props.providers as unknown[]).length}</span>
-        <span data-testid="pm-custom">{(props.customProviders as unknown[]).length}</span>
-        <button data-testid="provider-modal-close" onClick={() => (props.onClose as () => void)()}>
-          close
-        </button>
-        <button data-testid="provider-modal-update" onClick={() => (props.onUpdate as () => void)()}>
-          update
-        </button>
-      </div>
-    );
-  },
-}));
-
 import Playground from '../../src/pages/Playground';
 
 const MODEL_A = {
@@ -359,7 +344,6 @@ describe('Playground page', () => {
     currentAgent = `agent-${++agentSeq}`;
     lastColProps = [];
     lastSummaryProps = null;
-    providerModalProps = null;
     sidebarContent = null;
     searchParamsState.run = undefined;
     for (const k of Object.keys(lsStore)) delete lsStore[k];
@@ -422,9 +406,10 @@ describe('Playground page', () => {
 
   it('shows the empty state when providers exist but none are active', async () => {
     mockGetProviders.mockResolvedValue([{ ...ACTIVE_PROVIDER, is_active: false }]);
-    render(() => <Playground />);
-    fireEvent.click(await find('empty-connect'));
-    await waitFor(() => expect(providerModalProps).not.toBeNull());
+    const { container } = render(() => <Playground />);
+    const link = await find('empty-connect');
+    expect(link.getAttribute('href')).toBe(`/agents/${currentAgent}/providers`);
+    expect(container.querySelector('[data-testid="empty-connect"]')).not.toBeNull();
   });
 
   describe('submit → streaming run → history', () => {
@@ -889,15 +874,12 @@ describe('Playground page', () => {
     });
   });
 
-  it('opens and closes the connect-providers modal and refetches on close/update', async () => {
-    const { getByText } = render(() => <Playground />);
-    fireEvent.click(getByText('Connect providers'));
-    await find('provider-modal');
-    fireEvent.click(await find('provider-modal-update'));
-    fireEvent.click(await find('provider-modal-close'));
-    await waitFor(() => expect(document.querySelector('[data-testid="provider-modal"]')).toBeNull());
-    // Closing triggers refetchAllProviders → providers fetched again.
-    await waitFor(() => expect(mockGetProviders.mock.calls.length).toBeGreaterThan(1));
+  it('links Connect providers to the providers page', async () => {
+    const { container } = render(() => <Playground />);
+    await waitFor(() => {
+      const link = container.querySelector(`a[href="/agents/${currentAgent}/providers"]`);
+      expect(link?.textContent?.trim()).toBe('Connect providers');
+    });
   });
 
   it('wires the prompt recall handler to the store (ArrowUp history recall)', async () => {

@@ -47,30 +47,9 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
   },
 }));
 
-const psmProps: Array<Record<string, unknown>> = [];
-vi.mock('../../src/components/ProviderSelectModal.js', () => ({
-  default: (props: Record<string, unknown>) => {
-    psmProps.push({
-      agentName: props.agentName,
-      providersCount: (props.providers as { length: number })?.length ?? 0,
-      customProvidersCount: (props.customProviders as { length: number })?.length ?? 0,
-      customProviderPrefill: props.customProviderPrefill,
-      providerDeepLink: props.providerDeepLink,
-    });
-    return (
-      <div data-testid="provider-select-modal">
-        <button data-testid="psm-close" onClick={() => (props.onClose as () => void)()}>
-          close
-        </button>
-        <button
-          data-testid="psm-update"
-          onClick={() => (props.onUpdate as () => Promise<void>)?.()}
-        >
-          update
-        </button>
-      </div>
-    );
-  },
+const mockNavigate = vi.fn();
+vi.mock('@solidjs/router', () => ({
+  useNavigate: () => mockNavigate,
 }));
 
 const kpmProps: Array<Record<string, unknown>> = [];
@@ -210,10 +189,9 @@ const baseProps = {
   onSpecificityDropdownClose: vi.fn(),
   onSpecificityOverride: vi.fn(),
   onFallbackPickerClose: vi.fn(),
-  onProviderModalClose: vi.fn(),
   onInstructionClose: vi.fn(),
   onProviderUpdate: vi.fn().mockResolvedValue(undefined),
-  onOpenProviderModal: vi.fn(),
+  providersPath: () => '/agents/demo/providers',
   models: () => sampleModels,
   tiers: () => tiers,
   specificityAssignments: () => specificityAssignments,
@@ -230,7 +208,6 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingModals>[0]> = {})
     dropdownTier: () => null,
     specificityDropdown: () => null,
     fallbackPickerTier: () => null,
-    showProviderModal: () => false,
     instructionModal: () => null,
     instructionProvider: () => null,
     ...overrides,
@@ -240,7 +217,6 @@ function makeProps(overrides: Partial<Parameters<typeof RoutingModals>[0]> = {})
 describe('RoutingModals', () => {
   beforeEach(() => {
     pickerCalls.length = 0;
-    psmProps.length = 0;
     riProps.length = 0;
     kpmProps.length = 0;
     vi.clearAllMocks();
@@ -387,20 +363,6 @@ describe('RoutingModals', () => {
     expect(onFallbackPickerClose).toHaveBeenCalled();
   });
 
-  it('does not render ProviderSelectModal when showProviderModal is false', () => {
-    const { queryByTestId } = render(() => (
-      <RoutingModals {...makeProps({ showProviderModal: () => false })} />
-    ));
-    expect(queryByTestId('provider-select-modal')).toBeNull();
-  });
-
-  it('renders ProviderSelectModal when showProviderModal is true', () => {
-    const { queryByTestId } = render(() => (
-      <RoutingModals {...makeProps({ showProviderModal: () => true })} />
-    ));
-    expect(queryByTestId('provider-select-modal')).not.toBeNull();
-  });
-
   it("renders the instruction modal in the open state when instructionModal returns 'enable'", () => {
     const { getByTestId } = render(() => (
       <RoutingModals {...makeProps({ instructionModal: () => 'enable' })} />
@@ -415,55 +377,49 @@ describe('RoutingModals', () => {
     expect(queryByTestId('instruction-modal-closed-enable')).not.toBeNull();
   });
 
-  it('forwards onConnectProviders from the dropdown picker through to onOpenProviderModal', () => {
-    const onOpenProviderModal = vi.fn();
+  it('navigates to providers from the dropdown picker connect action', () => {
     const onDropdownClose = vi.fn();
     const { getByTestId } = render(() => (
       <RoutingModals
         {...makeProps({
           dropdownTier: () => 'simple',
-          onOpenProviderModal,
           onDropdownClose,
         })}
       />
     ));
     fireEvent.click(getByTestId('picker-connect-simple'));
     expect(onDropdownClose).toHaveBeenCalled();
-    expect(onOpenProviderModal).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers');
   });
 
-  it('forwards onConnectProviders from the fallback picker through to onOpenProviderModal', () => {
-    const onOpenProviderModal = vi.fn();
+  it('navigates to providers from the fallback picker connect action', () => {
     const onFallbackPickerClose = vi.fn();
     const { getByTestId } = render(() => (
       <RoutingModals
         {...makeProps({
           fallbackPickerTier: () => 'simple',
-          onOpenProviderModal,
           onFallbackPickerClose,
         })}
       />
     ));
     fireEvent.click(getByTestId('picker-connect-simple'));
     expect(onFallbackPickerClose).toHaveBeenCalled();
-    expect(onOpenProviderModal).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers');
   });
 
-  it('forwards onConnectProviders from the specificity picker through to onOpenProviderModal', () => {
-    const onOpenProviderModal = vi.fn();
+  it('navigates to providers from the specificity picker connect action', () => {
     const onSpecificityDropdownClose = vi.fn();
     const { getByTestId } = render(() => (
       <RoutingModals
         {...makeProps({
           specificityDropdown: () => 'coding',
-          onOpenProviderModal,
           onSpecificityDropdownClose,
         })}
       />
     ));
     fireEvent.click(getByTestId('picker-connect-coding'));
     expect(onSpecificityDropdownClose).toHaveBeenCalled();
-    expect(onOpenProviderModal).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers');
   });
 
   it('calls onAddFallback when fallback picker selects a model', () => {
@@ -473,34 +429,6 @@ describe('RoutingModals', () => {
     ));
     fireEvent.click(getByTestId('picker-simple'));
     expect(onAddFallback).toHaveBeenCalledWith('simple', 'gpt-4o', 'openai', 'api_key');
-  });
-
-  it('forwards agentName, providers, and customProviders into ProviderSelectModal', () => {
-    render(() => <RoutingModals {...makeProps({ showProviderModal: () => true })} />);
-    expect(psmProps.length).toBeGreaterThan(0);
-    const last = psmProps[psmProps.length - 1];
-    expect(last.agentName).toBe('demo');
-    // baseProps has empty arrays for both
-    expect(last.providersCount).toBe(0);
-    expect(last.customProvidersCount).toBe(0);
-  });
-
-  it('forwards onClose and onUpdate from ProviderSelectModal to handlers', () => {
-    const onProviderModalClose = vi.fn();
-    const onProviderUpdate = vi.fn().mockResolvedValue(undefined);
-    const { getByTestId } = render(() => (
-      <RoutingModals
-        {...makeProps({
-          showProviderModal: () => true,
-          onProviderModalClose,
-          onProviderUpdate,
-        })}
-      />
-    ));
-    fireEvent.click(getByTestId('psm-close'));
-    expect(onProviderModalClose).toHaveBeenCalled();
-    fireEvent.click(getByTestId('psm-update'));
-    expect(onProviderUpdate).toHaveBeenCalled();
   });
 
   it('renders RoutingInstructionModal with the provider name from the accessor', () => {
@@ -702,21 +630,4 @@ describe('RoutingModals', () => {
     });
   });
 
-  it('forwards customProviderPrefill and providerDeepLink to ProviderSelectModal', () => {
-    const customProviderPrefill = () => ({ name: 'MyProv', baseUrl: 'https://x' });
-    const providerDeepLink = () => ({ providerId: 'openai' });
-    render(() => (
-      <RoutingModals
-        {...makeProps({
-          showProviderModal: () => true,
-          customProviderPrefill,
-          providerDeepLink,
-        })}
-      />
-    ));
-    const last = psmProps[psmProps.length - 1];
-    // The component re-passes the accessor itself, not its current value.
-    expect(typeof last.customProviderPrefill).toBe('function');
-    expect(typeof last.providerDeepLink).toBe('function');
-  });
 });

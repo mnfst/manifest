@@ -9,6 +9,7 @@ import {
   type CustomProviderData,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import ProviderSubviewHeader, { type ProviderSubviewLayout } from './ProviderSubviewHeader.js';
 import { checkLocalLlmHost } from '../services/setup-status.js';
 import { providerIcon } from './ProviderIcon.js';
 
@@ -26,6 +27,7 @@ interface Props {
    * `/v1/models`, so the probe can 404 even when the server is up).
    */
   onOpenCustomForm?: () => void;
+  layout?: ProviderSubviewLayout;
 }
 
 interface ProbeState {
@@ -152,45 +154,33 @@ const LocalServerDetailView: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
-        </svg>
-      </button>
-
-      {/* Title */}
-      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
-        <div>
-          <div class="routing-modal__title">{isEdit() ? 'Edit provider' : 'Connect providers'}</div>
-        </div>
-      </div>
+      <ProviderSubviewHeader
+        layout={props.layout}
+        onBack={props.onBack}
+        title={isEdit() ? 'Edit provider' : 'Connect providers'}
+      />
 
       {/* Provider row */}
       <div class="provider-detail__header">
-        <span class="provider-detail__icon">
-          {providerIcon(props.provider.id, 28) ?? (
-            <span
-              class="provider-card__logo-letter"
-              style={{
-                background: props.provider.color,
-                width: '32px',
-                height: '32px',
-                'font-size': '13px',
-              }}
-            >
-              {props.provider.initial}
-            </span>
-          )}
-        </span>
-        <div class="provider-detail__title-group">
-          <div class="provider-detail__name">{props.provider.name}</div>
+        <div class="provider-detail__identity">
+          <span class="provider-detail__icon">
+            {providerIcon(props.provider.id, 28) ?? (
+              <span
+                class="provider-card__logo-letter"
+                style={{
+                  background: props.provider.color,
+                  width: '32px',
+                  height: '32px',
+                  'font-size': '13px',
+                }}
+              >
+                {props.provider.initial}
+              </span>
+            )}
+          </span>
+          <div class="provider-detail__title-group">
+            <div class="provider-detail__name">{props.provider.name}</div>
+          </div>
         </div>
       </div>
 

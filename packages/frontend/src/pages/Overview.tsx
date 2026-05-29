@@ -325,9 +325,7 @@ const Overview: Component = () => {
                     class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
                     onClick={() =>
-                      navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
-                        state: { openProviders: true },
-                      })
+                      navigate(`/agents/${encodeURIComponent(params.agentName)}/providers`)
                     }
                   >
                     Connect provider
@@ -441,9 +439,7 @@ const Overview: Component = () => {
             setSetupCompleted(true);
           }}
           onGoToRouting={() => {
-            navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
-              state: { openProviders: true },
-            });
+            navigate(`/agents/${encodeURIComponent(params.agentName)}/providers`);
           }}
         />
 

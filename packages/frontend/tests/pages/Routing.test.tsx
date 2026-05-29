@@ -84,10 +84,17 @@ const useParams = vi.fn();
 const useLocation = vi.fn();
 const setSearchParamsFn = vi.fn();
 const useSearchParams = vi.fn();
+const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
   useParams: () => useParams(),
   useLocation: () => useLocation(),
   useSearchParams: () => useSearchParams(),
+  useNavigate: () => mockNavigate,
+  A: (props: { href: string; class?: string; children: unknown }) => (
+    <a href={props.href} class={props.class}>
+      {props.children as string}
+    </a>
+  ),
 }));
 
 // Component / section mocks — keep them minimal so we exercise Routing.tsx logic.
@@ -131,9 +138,7 @@ vi.mock('../../src/components/RoutingModals.js', () => ({
       props.dropdownTier,
       props.specificityDropdown,
       props.fallbackPickerTier,
-      props.showProviderModal,
-      props.customProviderPrefill,
-      props.providerDeepLink,
+      props.providersPath,
       props.instructionModal,
       props.instructionProvider,
       props.models,
@@ -141,7 +146,6 @@ vi.mock('../../src/components/RoutingModals.js', () => ({
       props.specificityAssignments,
       props.customProviders,
       props.connectedProviders,
-      props.onOpenProviderModal,
     ];
     void _read;
     return (
@@ -229,12 +233,6 @@ vi.mock('../../src/components/RoutingModals.js', () => ({
           onClick={() => (props.onProviderUpdate as () => Promise<void>)?.()}
         >
           provider-update
-        </button>
-        <button
-          data-testid="modal-trigger-provider-close"
-          onClick={() => (props.onProviderModalClose as () => void)()}
-        >
-          provider-close
         </button>
         <button
           data-testid="modal-trigger-instruction-close"
@@ -853,15 +851,11 @@ describe('Routing page', () => {
     });
   });
 
-  it('opens the provider modal via Connect providers', async () => {
-    render(() => <Routing />);
+  it('links Connect providers to the providers page', async () => {
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
-    });
-    fireEvent.click(screen.getByText('Connect providers'));
-    // The modal mock receives showProviderModal=true → it captures props.
-    await waitFor(() => {
-      expect(lastModalsProps).not.toBeNull();
+      const link = container.querySelector('a[href="/agents/demo/providers"]');
+      expect(link?.textContent?.trim()).toBe('Connect providers');
     });
   });
 
@@ -1169,17 +1163,6 @@ describe('Routing page', () => {
     });
   });
 
-  it('closes the provider modal via the modals onProviderModalClose handler', async () => {
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
-    });
-    fireEvent.click(screen.getByText('Connect providers'));
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    // No throw / hang is sufficient — internal state flips and reads cleanly.
-    expect(true).toBe(true);
-  });
-
   it('closes the instruction modal via onInstructionClose', async () => {
     render(() => <Routing />);
     await waitFor(() => {
@@ -1244,12 +1227,11 @@ describe('Routing page', () => {
     expect(true).toBe(true);
   });
 
-  it('auto-opens the provider modal when location.state.openProviders is set', async () => {
+  it('redirects to providers when location.state.openProviders is set', async () => {
     useLocation.mockReturnValue({ state: { openProviders: true } });
     render(() => <Routing />);
     await waitFor(() => {
-      // The provider modal's prop reaches lastModalsProps when showProviderModal()=true
-      expect(lastModalsProps).not.toBeNull();
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers', { replace: true });
     });
   });
 
@@ -1322,55 +1304,6 @@ describe('Routing page', () => {
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith('Failed to add fallback');
     });
-  });
-
-  it('clears prefill search params when closing the provider modal with prefill present', async () => {
-    // Re-mock the params parser for THIS test: returns truthy prefill so the
-    // close handler hits the setSearchParams branch (lines 169-176).
-    vi.resetModules();
-    vi.doMock('../../src/services/routing-params.js', () => ({
-      parseCustomProviderParams: () => ({ name: 'X', baseUrl: 'https://x' }),
-      parseProviderDeepLink: () => null,
-    }));
-    const { default: RoutingFresh } = await import('../../src/pages/Routing');
-    render(() => <RoutingFresh />);
-    await waitFor(() => {
-      expect(lastModalsProps).not.toBeNull();
-    });
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    expect(setSearchParamsFn).toHaveBeenCalledWith({
-      provider: undefined,
-      name: undefined,
-      baseUrl: undefined,
-      apiKey: undefined,
-      models: undefined,
-    });
-  });
-
-  it('opens the instruction modal when closing the provider modal after a fresh enable', async () => {
-    // Step 1: render with a connected-but-inactive provider.
-    mockGetProviders.mockResolvedValueOnce([
-      {
-        ...baseProvider,
-        is_active: false,
-      },
-    ]);
-    render(() => <Routing />);
-    await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
-    });
-    // Step 2: open the provider modal (snapshots wasEnabled=false, hadProviders=true).
-    fireEvent.click(screen.getByText('Connect providers'));
-    // Step 3: simulate the modal closing AFTER provider became active.
-    mockGetProviders.mockResolvedValue([baseProvider]); // active provider
-    // Trigger a refetch path so connectedProviders updates to is_active=true.
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-update'));
-    await waitFor(() => {
-      expect(mockGetProviders).toHaveBeenCalledTimes(2);
-    });
-    fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    // The instruction modal flows through internal state — assertion is implicit.
-    expect(true).toBe(true);
   });
 
   it('getTier returns the generalist assignment when one exists', async () => {

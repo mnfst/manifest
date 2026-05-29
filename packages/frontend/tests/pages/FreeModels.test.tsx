@@ -168,7 +168,7 @@ describe('FreeModels', () => {
       const connectBtn = screen.getByText('Connect Cohere');
       expect(connectBtn.tagName).toBe('A');
       const href = connectBtn.getAttribute('href')!;
-      expect(href).toContain('/agents/test-agent/routing?');
+      expect(href).toContain('/agents/test-agent/providers?');
       expect(href).toContain('provider=custom');
       expect(href).toContain('name=Cohere');
       expect(href).toContain('command-a-03-2025');

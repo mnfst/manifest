@@ -1,3 +1,5 @@
+import { PROVIDERS } from './providers.js';
+
 /**
  * Parse URL search params for deep-linking into provider forms.
  *
@@ -87,4 +89,71 @@ export function parseProviderDeepLink(
   const provider = str(params.provider);
   if (!provider || provider === 'custom') return null;
   return { providerId: provider };
+}
+
+export type ProvidersTabId = 'subscription' | 'api_key' | 'local';
+
+const PROVIDERS_URL_KEYS = [
+  'provider',
+  'auth',
+  'tab',
+  'customId',
+  'addKey',
+  'name',
+  'baseUrl',
+  'apiKey',
+  'models',
+] as const;
+
+/** Clears all provider-page URL params (for list view or back navigation). */
+export function clearProvidersUrlParams(): Record<string, undefined> {
+  return Object.fromEntries(PROVIDERS_URL_KEYS.map((k) => [k, undefined])) as Record<
+    string,
+    undefined
+  >;
+}
+
+export function parseProvidersTab(
+  params: Record<string, string | string[] | undefined>,
+): ProvidersTabId | null {
+  const tab = str(params.tab);
+  if (tab === 'subscription' || tab === 'api_key' || tab === 'local') return tab;
+  return null;
+}
+
+export function parseProvidersAuthType(
+  params: Record<string, string | string[] | undefined>,
+): 'api_key' | 'subscription' | 'local' | null {
+  const auth = str(params.auth);
+  if (auth === 'api_key' || auth === 'subscription' || auth === 'local') return auth;
+  return null;
+}
+
+export function parseProvidersCustomId(
+  params: Record<string, string | string[] | undefined>,
+): string | null {
+  return str(params.customId) ?? null;
+}
+
+export function providersUrlIndicatesSubView(
+  params: Record<string, string | string[] | undefined>,
+): boolean {
+  return !!str(params.provider);
+}
+
+/** Display name for the current provider sub-view (detail, custom form, local server, etc.). */
+export function resolveProvidersSubViewLabel(
+  params: Record<string, string | string[] | undefined>,
+  customProviders: { id: string; name: string }[] = [],
+): string | null {
+  const provider = str(params.provider);
+  if (!provider) return null;
+  if (provider === 'custom') {
+    const customId = parseProvidersCustomId(params);
+    if (customId) {
+      return customProviders.find((c) => c.id === customId)?.name ?? 'Custom provider';
+    }
+    return parseCustomProviderParams(params)?.name ?? 'Custom provider';
+  }
+  return PROVIDERS.find((p) => p.id === provider)?.name ?? provider;
 }

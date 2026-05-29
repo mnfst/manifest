@@ -93,6 +93,11 @@ describe("Sidebar with agent", () => {
     expect(screen.getByText("Feedback")).toBeDefined();
   });
 
+  it("renders Providers link", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Providers")).toBeDefined();
+  });
+
   it("renders Routing link", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Routing")).toBeDefined();
@@ -102,6 +107,7 @@ describe("Sidebar with agent", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/messages"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/agents/test-agent/providers"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/settings"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/limits"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
@@ -180,6 +186,13 @@ describe("Sidebar without agent", () => {
 describe("Sidebar active states for sub-paths", () => {
   beforeAll(() => {
     mockAgentName = "test-agent";
+  });
+
+  it("marks providers link as active on providers path", () => {
+    mockPathname = "/agents/test-agent/providers";
+    const { container } = render(() => <Sidebar />);
+    const providersLink = container.querySelector('a[href="/agents/test-agent/providers"]');
+    expect(providersLink?.getAttribute("aria-current")).toBe("page");
   });
 
   it("marks routing link as active on routing path", () => {

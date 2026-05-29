@@ -450,9 +450,7 @@ const MessageLog: Component = () => {
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() =>
-                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
-                      state: { openProviders: true },
-                    })
+                    navigate(`/agents/${encodeURIComponent(params.agentName)}/providers`)
                   }
                 >
                   Connect provider

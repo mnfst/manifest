@@ -19,6 +19,7 @@ const Overview = lazyReload(() => import('./pages/Overview.jsx'));
 const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
 const Routing = lazyReload(() => import('./pages/Routing.jsx'));
+const Providers = lazyReload(() => import('./pages/Providers.jsx'));
 const Playground = lazyReload(() => import('./pages/Playground.jsx'));
 const Limits = lazyReload(() => import('./pages/Limits.jsx'));
 const Account = lazyReload(() => import('./pages/Account.jsx'));
@@ -62,6 +63,7 @@ render(
             <Route path="/" component={Overview} />
             <Route path="/messages" component={MessageLog} />
             <Route path="/settings/*" component={Settings} />
+            <Route path="/providers" component={Providers} />
             <Route path="/routing" component={Routing} />
             <Route path="/playground" component={Playground} />
             <Route path="/limits" component={Limits} />

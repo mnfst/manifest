@@ -550,7 +550,7 @@ describe("Overview", () => {
     });
   });
 
-  it("navigates to routing with openProviders state when Connect provider clicked", async () => {
+  it("navigates to providers when Connect provider clicked", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
@@ -560,8 +560,7 @@ describe("Overview", () => {
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/test-agent/routing",
-      { state: { openProviders: true } },
+      "/agents/test-agent/providers",
     );
   });
 
@@ -598,7 +597,7 @@ describe("Overview", () => {
       expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
     });
 
-    it("navigates to routing page on onGoToRouting", async () => {
+    it("navigates to providers page on onGoToRouting", async () => {
       mockGetOverview.mockResolvedValue(emptyOverviewData);
       render(() => <Overview />);
       await vi.waitFor(() => {
@@ -606,8 +605,7 @@ describe("Overview", () => {
       });
       fireEvent.click(screen.getByTestId("setup-go-routing"));
       expect(mockNavigate).toHaveBeenCalledWith(
-        "/agents/test-agent/routing",
-        { state: { openProviders: true } },
+        "/agents/test-agent/providers",
       );
     });
   });

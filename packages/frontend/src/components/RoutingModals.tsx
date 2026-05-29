@@ -1,6 +1,6 @@
 import { Show, createSignal, type Accessor, type Component } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import ModelPickerModal from './ModelPickerModal.js';
-import ProviderSelectModal from './ProviderSelectModal.js';
 import RoutingInstructionModal from './RoutingInstructionModal.js';
 import KeyPickerModal from './KeyPickerModal.js';
 import { PROVIDERS } from '../services/providers.js';
@@ -14,7 +14,6 @@ import type {
   ModelCapability,
   ResponseMode,
 } from '../services/api.js';
-import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
 import { usedKeyLabelsForModelInTier } from '../services/routing-utils.js';
 
 interface RoutingModalsProps {
@@ -31,10 +30,7 @@ interface RoutingModalsProps {
   ) => void;
   fallbackPickerTier: Accessor<string | null>;
   onFallbackPickerClose: () => void;
-  showProviderModal: Accessor<boolean>;
-  onProviderModalClose: () => void;
-  customProviderPrefill?: CustomProviderPrefill | null;
-  providerDeepLink?: ProviderDeepLink | null;
+  providersPath: () => string;
   instructionModal: Accessor<'enable' | 'disable' | null>;
   instructionProvider: Accessor<string | null>;
   onInstructionClose: () => void;
@@ -59,7 +55,6 @@ interface RoutingModalsProps {
     providerKeyLabel?: string,
   ) => void;
   onProviderUpdate: () => Promise<void>;
-  onOpenProviderModal: () => void;
 }
 
 interface PendingOverride {
@@ -105,6 +100,8 @@ function providerDisplayName(providerId: string, customProviders: CustomProvider
 }
 
 const RoutingModals: Component<RoutingModalsProps> = (props) => {
+  const navigate = useNavigate();
+  const goToProviders = () => navigate(props.providersPath());
   const [pendingOverride, setPendingOverride] = createSignal<PendingOverride | null>(null);
   const requiredCapabilityForResponseMode = (
     responseMode: ResponseMode | undefined,
@@ -163,7 +160,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             onClose={props.onDropdownClose}
             onConnectProviders={() => {
               props.onDropdownClose();
-              props.onOpenProviderModal();
+              goToProviders();
             }}
             onProviderRefreshed={props.onProviderUpdate}
           />
@@ -191,7 +188,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               onClose={() => props.onSpecificityDropdownClose?.()}
               onConnectProviders={() => {
                 props.onSpecificityDropdownClose?.();
-                props.onOpenProviderModal();
+                goToProviders();
               }}
               onProviderRefreshed={props.onProviderUpdate}
             />
@@ -305,7 +302,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               onClose={props.onFallbackPickerClose}
               onConnectProviders={() => {
                 props.onFallbackPickerClose();
-                props.onOpenProviderModal();
+                goToProviders();
               }}
               onProviderRefreshed={props.onProviderUpdate}
             />
@@ -323,18 +320,6 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             onClose={() => setPendingOverride(null)}
           />
         )}
-      </Show>
-
-      <Show when={props.showProviderModal()}>
-        <ProviderSelectModal
-          agentName={props.agentName()}
-          providers={props.connectedProviders()}
-          customProviders={props.customProviders()}
-          customProviderPrefill={props.customProviderPrefill}
-          providerDeepLink={props.providerDeepLink}
-          onClose={props.onProviderModalClose}
-          onUpdate={props.onProviderUpdate}
-        />
       </Show>
 
       <RoutingInstructionModal

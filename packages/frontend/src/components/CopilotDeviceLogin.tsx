@@ -8,6 +8,7 @@ import {
   type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
+import ProviderSubviewHeader, { type ProviderSubviewLayout } from './ProviderSubviewHeader.js';
 
 function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   navigator.clipboard
@@ -31,6 +32,7 @@ interface Props {
   onConnected: () => void;
   onUpdated?: () => void;
   onDisconnected: () => void;
+  layout?: ProviderSubviewLayout;
 }
 
 const SLOW_DOWN_INCREASE = 5;
@@ -151,29 +153,18 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
 
   return (
     <div class="provider-detail">
-      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
-        </svg>
-      </button>
-
-      <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
-        <div>
-          <div class="routing-modal__title">Connect providers</div>
-        </div>
-      </div>
+      <ProviderSubviewHeader
+        layout={props.layout}
+        onBack={props.onBack}
+        title="Connect providers"
+      />
 
       <div class="provider-detail__header">
-        <span class="provider-detail__icon">{providerIcon('copilot', 28)}</span>
-        <div class="provider-detail__title-group">
-          <div class="provider-detail__name">GitHub Copilot</div>
+        <div class="provider-detail__identity">
+          <span class="provider-detail__icon">{providerIcon('copilot', 28)}</span>
+          <div class="provider-detail__title-group">
+            <div class="provider-detail__name">GitHub Copilot</div>
+          </div>
         </div>
       </div>
 

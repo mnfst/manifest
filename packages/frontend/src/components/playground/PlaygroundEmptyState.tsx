@@ -1,7 +1,8 @@
+import { A } from '@solidjs/router';
 import type { Component } from 'solid-js';
 
 interface Props {
-  onConnect: () => void;
+  providersPath: string;
 }
 
 const PlaygroundEmptyState: Component<Props> = (props) => (
@@ -21,9 +22,9 @@ const PlaygroundEmptyState: Component<Props> = (props) => (
     <span class="routing-no-providers__desc">
       Connect a model provider to run your models side by side.
     </span>
-    <button type="button" class="btn btn--primary btn--sm" onClick={props.onConnect}>
+    <A href={props.providersPath} class="btn btn--primary btn--sm">
       Connect provider
-    </button>
+    </A>
   </div>
 );
 

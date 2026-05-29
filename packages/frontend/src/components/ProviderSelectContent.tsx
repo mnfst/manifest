@@ -1,4 +1,4 @@
-import { createSignal, onMount, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, onMount, Show, type Component } from 'solid-js';
 import { normalizeProviderName } from 'manifest-shared';
 import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
@@ -9,7 +9,15 @@ import {
   type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
+import {
+  clearProvidersUrlParams,
+  parseProvidersAuthType,
+  parseProvidersCustomId,
+  parseProvidersTab,
+  type CustomProviderPrefill,
+  type ProviderDeepLink,
+  type ProvidersTabId,
+} from '../services/routing-params.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
@@ -29,6 +37,13 @@ export interface ProviderSelectContentProps {
   onClose?: () => void;
   showHeader?: boolean;
   showFooter?: boolean;
+  /** Page layout uses full-width panel styling; modal layout keeps scroll constraints. */
+  layout?: 'modal' | 'page';
+  /** When set with layout=page, keeps list/detail navigation in the URL. */
+  urlSync?: {
+    read: () => Record<string, string | string[] | undefined>;
+    write: (params: Record<string, string | undefined>) => void;
+  };
 }
 
 const noop = () => {};
@@ -36,14 +51,15 @@ const noop = () => {};
 const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => {
   const showHeader = () => props.showHeader !== false;
   const showFooter = () => props.showFooter !== false;
+  const isPageLayout = () => props.layout === 'page';
+  const subviewLayout = () => props.layout ?? 'modal';
   const closeHandler = () => props.onClose ?? noop;
 
   const deepLink = props.providerDeepLink;
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
+  const initialTab = () => parseProvidersTab(props.urlSync?.read() ?? {}) ?? 'subscription';
 
-  const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
-    'subscription',
-  );
+  const [activeTab, setActiveTab] = createSignal<ProvidersTabId>(initialTab());
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(async () => {
     setIsSelfHosted(await checkIsSelfHosted());
@@ -51,9 +67,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(
     deepLinkProv ? deepLinkProv.id : null,
   );
-  const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
-    deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
-  );
+  const initialAuthType = (): AuthType => {
+    const fromUrl = parseProvidersAuthType(props.urlSync?.read() ?? {});
+    if (fromUrl) return fromUrl;
+    if (deepLinkProv?.subscriptionOnly) return 'subscription';
+    return 'api_key';
+  };
+  const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(initialAuthType());
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
   const [editingCustomProvider, setEditingCustomProvider] = createSignal<CustomProviderData | null>(
@@ -69,6 +89,23 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
   const [addKeyIntent, setAddKeyIntent] = createSignal(false);
+  let applyingUrl = false;
+
+  const isListView = () =>
+    selectedProvider() === null &&
+    !showCustomForm() &&
+    !editingCustomProvider() &&
+    !localServerProvider();
+
+  const writeUrl = (params: Record<string, string | undefined>) => {
+    if (!isPageLayout() || !props.urlSync || applyingUrl) return;
+    props.urlSync.write(params);
+  };
+
+  const writeListUrl = (tab: ProvidersTabId) => {
+    writeUrl({ ...clearProvidersUrlParams(), tab });
+  };
+
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
   const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
@@ -130,6 +167,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const goBack = () => {
     setDirection('back');
     resetToList();
+    writeListUrl(activeTab());
   };
 
   // Kept as an alias of goBack so callers that finish a flow (create /
@@ -148,12 +186,25 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setEditing(false);
     setValidationError(null);
     if (addKey) queueMicrotask(() => setAddKeyIntent(true));
+    writeUrl({
+      ...clearProvidersUrlParams(),
+      provider: provId,
+      auth: authType,
+      ...(addKey ? { addKey: '1' } : {}),
+    });
   };
 
   const openCustomForm = (prefill?: CustomProviderPrefill) => {
     setDirection('forward');
     setTilePrefill(prefill ?? null);
     setShowCustomForm(true);
+    writeUrl({
+      ...clearProvidersUrlParams(),
+      provider: 'custom',
+      tab: activeTab(),
+      ...(prefill?.name ? { name: prefill.name } : {}),
+      ...(prefill?.baseUrl ? { baseUrl: prefill.baseUrl } : {}),
+    });
   };
 
   const openEditCustom = (cp: CustomProviderData) => {
@@ -165,16 +216,128 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       setDirection('forward');
       setLocalServerProvider(localProv);
       setLocalServerEditData(cp);
+      writeUrl({
+        ...clearProvidersUrlParams(),
+        provider: localProv.id,
+        auth: 'local',
+        customId: cp.id,
+      });
       return;
     }
     setDirection('forward');
     setEditingCustomProvider(cp);
+    writeUrl({
+      ...clearProvidersUrlParams(),
+      provider: 'custom',
+      customId: cp.id,
+      tab: activeTab(),
+    });
   };
 
   const openLocalServer = (prov: ProviderDef) => {
     setDirection('forward');
     setLocalServerProvider(prov);
+    writeUrl({
+      ...clearProvidersUrlParams(),
+      provider: prov.id,
+      auth: 'local',
+    });
   };
+
+  const selectTab = (tab: ProvidersTabId) => {
+    setActiveTab(tab);
+    if (isListView()) writeListUrl(tab);
+  };
+
+  createEffect(() => {
+    if (!isPageLayout() || !props.urlSync) return;
+    const params = props.urlSync.read();
+    applyingUrl = true;
+
+    const tab = parseProvidersTab(params);
+    if (tab) setActiveTab(tab);
+
+    const customPrefill = props.customProviderPrefill;
+    const customId = parseProvidersCustomId(params);
+    const provider =
+      typeof params.provider === 'string'
+        ? params.provider
+        : Array.isArray(params.provider)
+          ? params.provider[0]
+          : undefined;
+
+    if (!provider) {
+      if (!isListView()) {
+        resetToList();
+      }
+      applyingUrl = false;
+      return;
+    }
+
+    if (provider === 'custom') {
+      if (customId) {
+        const cp = (props.customProviders ?? []).find((c) => c.id === customId);
+        if (cp) {
+          setShowCustomForm(false);
+          setEditingCustomProvider(cp);
+          setLocalServerProvider(null);
+          setSelectedProvider(null);
+        }
+      } else if (customPrefill) {
+        setShowCustomForm(true);
+        setEditingCustomProvider(null);
+        setLocalServerProvider(null);
+        setSelectedProvider(null);
+      } else {
+        setShowCustomForm(true);
+        setEditingCustomProvider(null);
+      }
+      applyingUrl = false;
+      return;
+    }
+
+    const provDef = PROVIDERS.find((p) => p.id === provider);
+    if (!provDef) {
+      applyingUrl = false;
+      return;
+    }
+
+    if (provDef.localOnly) {
+      const cp = customId
+        ? (props.customProviders ?? []).find((c) => c.id === customId)
+        : undefined;
+      setLocalServerProvider(provDef);
+      setLocalServerEditData(cp);
+      setShowCustomForm(false);
+      setEditingCustomProvider(null);
+      setSelectedProvider(null);
+      applyingUrl = false;
+      return;
+    }
+
+    if (provDef.deviceLogin) {
+      setSelectedProvider(provider);
+      setSelectedAuthType('subscription');
+      setShowCustomForm(false);
+      setEditingCustomProvider(null);
+      setLocalServerProvider(null);
+      applyingUrl = false;
+      return;
+    }
+
+    const auth =
+      parseProvidersAuthType(params) ?? (provDef.subscriptionOnly ? 'subscription' : 'api_key');
+    setSelectedProvider(provider);
+    setSelectedAuthType(auth);
+    setShowCustomForm(false);
+    setEditingCustomProvider(null);
+    setLocalServerProvider(null);
+    const addKey = params.addKey === '1' || params.addKey === 'true';
+    setAddKeyIntent(addKey);
+    if (addKey) queueMicrotask(() => setAddKeyIntent(true));
+
+    applyingUrl = false;
+  });
 
   const handleLocalToggle = async (providerKey: string) => {
     // The Local tab's toggle-off action deactivates the user_providers row
@@ -231,7 +394,10 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   };
 
   return (
-    <>
+    <div
+      class="provider-select-content"
+      classList={{ 'provider-select-content--page': isPageLayout() }}
+    >
       {/* -- Local Server Detail View (LM Studio) -- */}
       <Show when={localServerProvider() && !showCustomForm() && !editingCustomProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
@@ -248,6 +414,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               setLocalServerProvider(null);
               openCustomForm();
             }}
+            layout={subviewLayout()}
           />
         </div>
       </Show>
@@ -272,6 +439,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
+            layout={subviewLayout()}
           />
         </div>
       </Show>
@@ -319,79 +487,86 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           </Show>
 
           {/* -- Tabs -- */}
-          <div class="provider-modal__tabs-wrapper">
-            <div class="panel__tabs" role="tablist">
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'subscription'}
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
-                onClick={() => setActiveTab('subscription')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #1cc4bf"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Subscription
-              </button>
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'api_key'}
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
-                onClick={() => setActiveTab('api_key')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #e59d55"
-                >
-                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>
-                API Keys
-              </button>
-              <Show when={isSelfHosted()}>
+          <div
+            classList={{
+              'provider-modal__tabs-wrapper': !isPageLayout(),
+              'providers-page__tabs routing-tabs': isPageLayout(),
+            }}
+          >
+            <div classList={{ 'routing-tabs__header': isPageLayout() }}>
+              <div class="panel__tabs" role="tablist" aria-label="Provider connection methods">
                 <button
                   role="tab"
-                  aria-selected={activeTab() === 'local'}
+                  aria-selected={activeTab() === 'subscription'}
                   class="panel__tab"
-                  classList={{ 'panel__tab--active': activeTab() === 'local' }}
-                  onClick={() => setActiveTab('local')}
+                  classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
+                  onClick={() => selectTab('subscription')}
                 >
                   <svg
                     class="provider-modal__tab-icon"
                     width="14"
                     height="14"
                     viewBox="0 0 24 24"
-                    fill="currentColor"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
                     aria-hidden="true"
-                    style="color: #F72585"
+                    style="color: #1cc4bf"
                   >
-                    <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
                   </svg>
-                  Local
+                  Subscription
                 </button>
-              </Show>
+                <button
+                  role="tab"
+                  aria-selected={activeTab() === 'api_key'}
+                  class="panel__tab"
+                  classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
+                  onClick={() => selectTab('api_key')}
+                >
+                  <svg
+                    class="provider-modal__tab-icon"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #e59d55"
+                  >
+                    <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
+                  API Keys
+                </button>
+                <Show when={isSelfHosted()}>
+                  <button
+                    role="tab"
+                    aria-selected={activeTab() === 'local'}
+                    class="panel__tab"
+                    classList={{ 'panel__tab--active': activeTab() === 'local' }}
+                    onClick={() => selectTab('local')}
+                  >
+                    <svg
+                      class="provider-modal__tab-icon"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                      style="color: #F72585"
+                    >
+                      <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
+                    </svg>
+                    Local
+                  </button>
+                </Show>
+              </div>
             </div>
           </div>
 
@@ -470,6 +645,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               goBack();
               props.onUpdate();
             }}
+            layout={subviewLayout()}
           />
         </div>
       </Show>
@@ -501,10 +677,11 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             onUpdate={props.onUpdate}
             onClose={closeHandler()}
             initialAddKey={addKeyIntent()}
+            layout={subviewLayout()}
           />
         </div>
       </Show>
-    </>
+    </div>
   );
 };
 

@@ -104,9 +104,9 @@ const ConnectButton: Component<{ provider: FreeProviderDto }> = (props) => {
   const href = () => {
     const b = builtin();
     if (b) {
-      return `/agents/${encodeURIComponent(agentName())}/routing?provider=${b.id}`;
+      return `/agents/${encodeURIComponent(agentName())}/providers?provider=${b.id}`;
     }
-    const base = `/agents/${encodeURIComponent(agentName())}/routing?provider=custom&name=${encodeURIComponent(props.provider.name)}&baseUrl=${encodeURIComponent(props.provider.base_url!)}`;
+    const base = `/agents/${encodeURIComponent(agentName())}/providers?provider=custom&name=${encodeURIComponent(props.provider.name)}&baseUrl=${encodeURIComponent(props.provider.base_url!)}`;
     const m = models();
     return m ? `${base}&models=${encodeURIComponent(m)}` : base;
   };

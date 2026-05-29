@@ -6,7 +6,7 @@ import {
   Show,
   type Component,
 } from 'solid-js';
-import { useLocation, useParams, useSearchParams } from '@solidjs/router';
+import { A, useLocation, useNavigate, useParams, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import RoutingModals from '../components/RoutingModals.js';
 import { buildPipelineHelp } from '../components/RoutingPipelineCard.js';
@@ -44,16 +44,33 @@ import {
   type ResponseMode,
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
+import { agentPath } from '../services/routing.js';
 import { STAGES } from '../services/providers.js';
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ openProviders?: boolean }>();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const agentName = () => decodeURIComponent(params.agentName);
 
-  const customProviderPrefill = createMemo(() => parseCustomProviderParams(searchParams));
-  const providerDeepLink = createMemo(() => parseProviderDeepLink(searchParams));
+  const providersPath = () => agentPath(agentName(), '/providers');
+
+  // Legacy deep links pointed at /routing?provider=… — forward to the Providers page.
+  createEffect(() => {
+    const prefill = parseCustomProviderParams(searchParams);
+    const deepLink = parseProviderDeepLink(searchParams);
+    if (prefill || deepLink) {
+      const qs = new URLSearchParams(window.location.search).toString();
+      navigate(`${providersPath()}${qs ? `?${qs}` : ''}`, { replace: true });
+    }
+  });
+
+  createEffect(() => {
+    if ((location.state as { openProviders?: boolean } | undefined)?.openProviders) {
+      navigate(providersPath(), { replace: true });
+    }
+  });
 
   const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
     () => agentName(),
@@ -248,11 +265,6 @@ const Routing: Component = () => {
   const [specificityDropdown, setSpecificityDropdown] = createSignal<string | null>(null);
   const [changingSpecificity, setChangingSpecificity] = createSignal<string | null>(null);
   const [resettingSpecificity, setResettingSpecificity] = createSignal<string | null>(null);
-  const [showProviderModal, setShowProviderModal] = createSignal(
-    !!(location.state as { openProviders?: boolean } | undefined)?.openProviders ||
-      !!customProviderPrefill() ||
-      !!providerDeepLink(),
-  );
   const [helpOpen, setHelpOpen] = createSignal(false);
   const [responseModeModalOpen, setResponseModeModalOpen] = createSignal(false);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
@@ -261,9 +273,6 @@ const Routing: Component = () => {
   const [refreshingModels, setRefreshingModels] = createSignal(false);
   const [pricingHealth] = createResource(getPricingHealth);
   const [pricingWarningShown, setPricingWarningShown] = createSignal(false);
-  const [wasEnabledBeforeModal, setWasEnabledBeforeModal] = createSignal(false);
-  const [hadProvidersBeforeModal, setHadProvidersBeforeModal] = createSignal(false);
-
   createEffect(() => {
     const health = pricingHealth();
     if (!health) return;
@@ -344,32 +353,6 @@ const Routing: Component = () => {
   const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
   const hasProviders = () => activeProviders().length > 0 || (customProviders()?.length ?? 0) > 0;
   const hasOverrides = () => tiers()?.some((t) => t.override_route !== null) ?? false;
-
-  const openProviderModal = () => {
-    setWasEnabledBeforeModal(isEnabled());
-    setHadProvidersBeforeModal((connectedProviders()?.length ?? 0) > 0);
-    setShowProviderModal(true);
-  };
-
-  const closeProviderModal = () => {
-    setShowProviderModal(false);
-    if (customProviderPrefill() || providerDeepLink()) {
-      setSearchParams({
-        provider: undefined,
-        name: undefined,
-        baseUrl: undefined,
-        apiKey: undefined,
-        models: undefined,
-      });
-    }
-    if (!wasEnabledBeforeModal() && isEnabled() && hadProvidersBeforeModal()) {
-      setInstructionModal('enable');
-    }
-  };
-
-  const handleProviderUpdate = async () => {
-    await refetchAll();
-  };
 
   const handleSpecificityOverride = async (
     category: string,
@@ -462,9 +445,9 @@ const Routing: Component = () => {
                 {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
               </button>
             </Show>
-            <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
+            <A href={providersPath()} class="btn btn--primary btn--sm">
               Connect providers
-            </button>
+            </A>
           </div>
         </Show>
       </div>
@@ -489,9 +472,9 @@ const Routing: Component = () => {
               <span class="routing-no-providers__desc">
                 Connect a model provider to start configuring your routing rules.
               </span>
-              <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
+              <A href={providersPath()} class="btn btn--primary btn--sm">
                 Connect provider
-              </button>
+              </A>
             </div>
           }
         >
@@ -713,10 +696,7 @@ const Routing: Component = () => {
         }}
         fallbackPickerTier={fallbackPickerTier}
         onFallbackPickerClose={() => setFallbackPickerTier(null)}
-        showProviderModal={showProviderModal}
-        onProviderModalClose={closeProviderModal}
-        customProviderPrefill={customProviderPrefill()}
-        providerDeepLink={providerDeepLink()}
+        providersPath={providersPath}
         instructionModal={instructionModal}
         instructionProvider={instructionProvider}
         onInstructionClose={() => {
@@ -736,8 +716,7 @@ const Routing: Component = () => {
         }}
         onOverride={handleOverride}
         onAddFallback={handleAddFallback}
-        onProviderUpdate={handleProviderUpdate}
-        onOpenProviderModal={openProviderModal}
+        onProviderUpdate={refetchAll}
       />
     </div>
   );

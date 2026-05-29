@@ -34,7 +34,7 @@ describe('ConnectProvider', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/agents/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/providers?'),
         { replace: true },
       );
     });
@@ -59,7 +59,7 @@ describe('ConnectProvider', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/agents/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/providers?'),
         { replace: true },
       );
     });
@@ -100,7 +100,7 @@ describe('ConnectProvider', () => {
     fireEvent.click(screen.getByText('Agent Two'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      expect.stringContaining('/agents/agent-2/routing?'),
+      expect.stringContaining('/agents/agent-2/providers?'),
       { replace: true },
     );
   });
@@ -157,7 +157,7 @@ describe('ConnectProvider', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/agents/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/providers?'),
         { replace: true },
       );
     });
@@ -191,7 +191,7 @@ describe('ConnectProvider with provider deep-link', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/agents/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/providers?'),
         { replace: true },
       );
     });

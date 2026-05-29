@@ -7,7 +7,7 @@ export const SIDEBAR_BLOCKS = {
   manage: {
     label: 'MANAGE',
     title: 'Manage',
-    items: ['routing', 'playground', 'limits', 'settings'] as const,
+    items: ['providers', 'routing', 'playground', 'limits', 'settings'] as const,
   },
   resources: {
     label: 'RESOURCES',
@@ -27,6 +27,7 @@ export type SidebarItemId = (typeof SIDEBAR_BLOCKS)[SidebarBlockId]['items'][num
 export const SIDEBAR_ITEM_LABELS: Record<SidebarItemId, string> = {
   overview: 'Overview',
   messages: 'Messages',
+  providers: 'Providers',
   routing: 'Routing',
   playground: 'Playground',
   limits: 'Limits',
@@ -40,6 +41,7 @@ export const SIDEBAR_ITEM_LABELS: Record<SidebarItemId, string> = {
 export const SIDEBAR_ITEM_PATHS: Record<Exclude<SidebarItemId, 'feedback'>, string> = {
   overview: '',
   messages: '/messages',
+  providers: '/providers',
   routing: '/routing',
   playground: '/playground',
   limits: '/limits',

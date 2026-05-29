@@ -562,7 +562,7 @@ describe("MessageLog", () => {
     });
   });
 
-  it("navigates to routing with openProviders state when Connect provider clicked", async () => {
+  it("navigates to providers when Connect provider clicked", async () => {
     localStorage.setItem("setup_completed_test-agent", "1");
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
@@ -572,8 +572,7 @@ describe("MessageLog", () => {
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/test-agent/routing",
-      { state: { openProviders: true } },
+      "/agents/test-agent/providers",
     );
   });
 
