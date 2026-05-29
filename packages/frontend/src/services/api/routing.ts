@@ -1,13 +1,14 @@
 import type {
   AuthType,
   ModelCapability,
+  ModelModality,
   ModelRoute,
   ResponseMode,
   OutputModality,
 } from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type { AuthType, ModelCapability, ModelRoute, ResponseMode, OutputModality };
+export type { AuthType, ModelCapability, ModelModality, ModelRoute, ResponseMode, OutputModality };
 
 export interface RoutingProvider {
   id: string;
@@ -297,6 +298,8 @@ export interface AvailableModel {
   capability_reasoning: boolean;
   capability_code: boolean;
   capabilities?: ModelCapability[];
+  input_modalities?: ModelModality[];
+  output_modalities?: ModelModality[];
   quality_score: number;
   display_name?: string;
   provider_display_name?: string;

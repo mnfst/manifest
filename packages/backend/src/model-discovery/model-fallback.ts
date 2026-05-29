@@ -10,7 +10,6 @@ import {
 } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
 import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
-import type { ModelsDevSyncService } from '../database/models-dev-sync.service';
 
 interface PricingLookup {
   lookupPricing(key: string): {
@@ -149,6 +148,8 @@ export function buildModelsDevFallback(
       outputPricePerToken: number | null;
       reasoning?: boolean;
       toolCall?: boolean;
+      inputModalities?: DiscoveredModel['inputModalities'];
+      outputModalities?: DiscoveredModel['outputModalities'];
     }[];
   } | null,
   providerId: string,
@@ -164,6 +165,8 @@ export function buildModelsDevFallback(
     outputPricePerToken: e.outputPricePerToken,
     capabilityReasoning: e.reasoning ?? false,
     capabilityCode: e.toolCall ?? false,
+    ...(e.inputModalities ? { inputModalities: e.inputModalities } : {}),
+    ...(e.outputModalities ? { outputModalities: e.outputModalities } : {}),
     qualityScore: 3,
   }));
 }

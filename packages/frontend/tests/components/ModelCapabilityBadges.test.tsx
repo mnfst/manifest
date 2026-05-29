@@ -1,7 +1,9 @@
 import { render, screen } from '@solidjs/testing-library';
 import { describe, expect, it } from 'vitest';
 
-import ModelCapabilityBadges from '../../src/components/ModelCapabilityBadges';
+import ModelCapabilityBadges, {
+  ModelModalityBadges,
+} from '../../src/components/ModelCapabilityBadges';
 
 describe('ModelCapabilityBadges', () => {
   it('labels supported capabilities as read-only model metadata', () => {
@@ -27,5 +29,24 @@ describe('ModelCapabilityBadges', () => {
 
     expect(screen.getByLabelText('Capabilities unknown')).toBeTruthy();
     expect(container.querySelector('.model-capability-badge--unknown')).toBeTruthy();
+  });
+
+  it('labels input modalities separately from capabilities', () => {
+    const { container } = render(() => (
+      <ModelModalityBadges modalities={['text', 'image']} direction="input" iconOnly />
+    ));
+
+    expect(screen.getByLabelText('Input: Text, Image')).toBeTruthy();
+    const tooltips = Array.from(container.querySelectorAll('.model-modality-badge')).map((badge) =>
+      badge.getAttribute('data-tooltip'),
+    );
+    expect(tooltips).toEqual(['Text', 'Image']);
+    expect(screen.queryByText('Stream')).toBeNull();
+  });
+
+  it('labels output modalities separately from capabilities', () => {
+    render(() => <ModelModalityBadges modalities={['text']} direction="output" iconOnly />);
+
+    expect(screen.getByLabelText('Output: Text')).toBeTruthy();
   });
 });

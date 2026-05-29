@@ -12,6 +12,7 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { resolveUnderlyingModelIdentity } from 'manifest-shared';
 import {
+  inputModalitiesFromCapabilities,
   mergeModelCapabilities,
   modelSupportsStreaming,
 } from '../model-discovery/model-capabilities';
@@ -112,16 +113,18 @@ export class ModelController {
         // already unwraps gateways internally, so it keeps the raw identity.
         const capId = resolveUnderlyingModelIdentity(m.provider, m.id);
         const capProvider = capId.provider ?? m.provider;
-        const modelsDevCapabilities = this.modelsDevSync.lookupModel(
-          capProvider,
-          capId.model,
-        )?.capabilities;
+        const modelsDevEntry = this.modelsDevSync.lookupModel(capProvider, capId.model);
+        const modelsDevCapabilities = modelsDevEntry?.capabilities;
         const modelCapabilities = mergeModelCapabilities(
           m.capabilities,
           modelsDevCapabilities,
           capabilities,
           modelSupportsStreaming(capProvider, capId.model) ? ['stream'] : undefined,
         );
+        const inputModalities =
+          modelsDevEntry?.inputModalities ??
+          m.inputModalities ??
+          inputModalitiesFromCapabilities(modelCapabilities);
         // OpenCode Go bills a per-request slice of its dollar quota rather than
         // per token, so surface that cost; other subscriptions stay flat-fee.
         const costPerRequest =
@@ -139,6 +142,8 @@ export class ModelController {
           capability_reasoning: m.capabilityReasoning,
           capability_code: m.capabilityCode,
           ...(modelCapabilities ? { capabilities: modelCapabilities } : {}),
+          input_modalities: inputModalities,
+          output_modalities: ['text'],
           quality_score: m.qualityScore,
           display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
           ...(isCustom && {

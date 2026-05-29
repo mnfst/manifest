@@ -1,4 +1,14 @@
 /* ── Model picker modal ───────────────────────────── */
+.routing-modal__card {
+  --routing-modal-model-grid: minmax(0, 1fr) 88px 72px 72px 172px;
+
+  max-width: 760px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
 .routing-modal__header {
   display: flex;
   align-items: flex-start;
@@ -159,6 +169,31 @@
   border-top: 1px solid hsl(var(--border));
 }
 
+.routing-modal__table-head {
+  display: grid;
+  grid-template-columns: var(--routing-modal-model-grid);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px 8px 48px;
+  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.routing-modal__table-head > span:not(:first-child) {
+  justify-self: center;
+  text-align: center;
+}
+
+.routing-modal__table-head > span:last-child {
+  justify-self: end;
+  text-align: right;
+}
+
 .routing-modal__group {
   border-bottom: 1px solid hsl(var(--border));
 }
@@ -234,10 +269,10 @@
 }
 
 .routing-modal__model {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--routing-modal-model-grid);
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
   padding: 9px 24px 9px 48px;
   background: none;
@@ -249,7 +284,7 @@
   transition: background var(--transition-fast);
 }
 
-.routing-modal__model:first-child {
+.routing-modal__group-header + .routing-modal__model {
   border-top: none;
 }
 
@@ -275,14 +310,13 @@
 }
 
 .routing-modal__model-left {
-  display: flex;
+  display: block;
   align-items: center;
-  gap: 8px;
   min-width: 0;
-  flex: 1 1 0;
 }
 
 .routing-modal__model-label {
+  display: block;
   min-width: 0;
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -290,6 +324,31 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.routing-modal__model-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.routing-modal__model-cell--price {
+  justify-content: flex-end;
+}
+
+.routing-modal__model-cell .model-modality-badges {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.routing-modal__model-cell-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .routing-modal__model-price {
@@ -416,7 +475,48 @@
 }
 
 @media (max-width: 640px) {
+  .routing-modal__card {
+    max-width: calc(100vw - 24px);
+  }
+
+  .routing-modal__table-head {
+    display: none;
+  }
+
   .routing-modal__model {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
     padding: 10px 16px 10px 48px;
+  }
+
+  .routing-modal__model-cell {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .routing-modal__model-cell--price {
+    justify-content: flex-start;
+  }
+
+  .routing-modal__model-cell-label {
+    position: static;
+    width: 72px;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    flex-shrink: 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .routing-modal__model-price {
+    white-space: normal;
+    text-align: left;
   }
 }

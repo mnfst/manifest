@@ -272,7 +272,9 @@ describe('ModelController', () => {
         provider: 'openai',
         auth_type: 'api_key',
         input_price_per_token: 0.0000025,
+        input_modalities: ['text'],
         output_price_per_token: 0.00001,
+        output_modalities: ['text'],
         context_window: 128000,
         capability_reasoning: false,
         capability_code: true,
@@ -340,8 +342,10 @@ describe('ModelController', () => {
         'capability_reasoning',
         'context_window',
         'display_name',
+        'input_modalities',
         'input_price_per_token',
         'model_name',
+        'output_modalities',
         'output_price_per_token',
         'provider',
         'quality_score',
@@ -354,11 +358,15 @@ describe('ModelController', () => {
       ]);
       mockModelsDevSync.lookupModel.mockReturnValue({
         capabilities: ['text', 'image', 'tools', 'stream'],
+        inputModalities: ['text', 'image'],
+        outputModalities: ['text', 'image'],
       });
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
       expect(result[0].capabilities).toEqual(['text', 'image', 'tools', 'stream']);
+      expect(result[0].input_modalities).toEqual(['text', 'image']);
+      expect(result[0].output_modalities).toEqual(['text']);
     });
 
     it('resolves gateway models to the underlying provider for capability metadata', async () => {

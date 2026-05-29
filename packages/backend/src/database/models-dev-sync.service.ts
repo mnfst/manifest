@@ -1,8 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { normalizeProviderName, type ModelCapability } from 'manifest-shared';
+import { normalizeProviderName, type ModelCapability, type ModelModality } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
-import { capabilitiesFromModelsDev } from '../model-discovery/model-capabilities';
+import {
+  capabilitiesFromModelsDev,
+  modelModalitiesFromModelsDev,
+} from '../model-discovery/model-capabilities';
 
 /**
  * Mapping from our internal provider IDs to models.dev provider directory names.
@@ -48,6 +51,8 @@ export interface ModelsDevModelEntry {
   cacheReadPricePerToken?: number | null;
   cacheWritePricePerToken?: number | null;
   capabilities: readonly ModelCapability[];
+  inputModalities: readonly ModelModality[];
+  outputModalities: readonly ModelModality[];
 }
 
 interface RawModelsDevModel {
@@ -388,6 +393,7 @@ export class ModelsDevSyncService implements OnModuleInit {
     const outputPerMillion = raw.cost?.output ?? null;
     const cacheReadPerMillion = raw.cost?.cache_read ?? null;
     const cacheWritePerMillion = raw.cost?.cache_write ?? null;
+    const modalities = modelModalitiesFromModelsDev(raw.modalities);
 
     return {
       id: modelId,
@@ -399,6 +405,8 @@ export class ModelsDevSyncService implements OnModuleInit {
       contextWindow: raw.limit?.context,
       maxOutputTokens: raw.limit?.output,
       capabilities: capabilitiesFromModelsDev(providerId, modelId, raw.modalities, raw.tool_call),
+      inputModalities: modalities.input,
+      outputModalities: modalities.output,
       inputPricePerToken: inputPerMillion !== null ? inputPerMillion / 1_000_000 : null,
       outputPricePerToken: outputPerMillion !== null ? outputPerMillion / 1_000_000 : null,
       cacheReadPricePerToken: cacheReadPerMillion !== null ? cacheReadPerMillion / 1_000_000 : null,
