@@ -3,7 +3,11 @@ import { resolveUnderlyingModelIdentity, underlyingGatewayModel } from './provid
 import { normalizeProviderName, SHARED_PROVIDER_BY_ID_OR_ALIAS } from './providers';
 import type { JsonPrimitive, JsonValue } from './request-params';
 
-export const MODEL_CAPABILITIES = ['text', 'image', 'audio', 'video', 'stream', 'tools'] as const;
+export const MODEL_MODALITIES = ['text', 'image', 'audio', 'video'] as const;
+
+export type ModelModality = (typeof MODEL_MODALITIES)[number];
+
+export const MODEL_CAPABILITIES = [...MODEL_MODALITIES, 'stream', 'tools'] as const;
 
 export type ModelCapability = (typeof MODEL_CAPABILITIES)[number];
 

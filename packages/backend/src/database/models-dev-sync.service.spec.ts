@@ -294,6 +294,8 @@ describe('ModelsDevSyncService', () => {
       expect(model!.maxOutputTokens).toBe(128000);
       expect(model!.reasoning).toBe(true);
       expect(model!.toolCall).toBe(true);
+      expect(model!.inputModalities).toEqual(['text', 'image']);
+      expect(model!.outputModalities).toEqual(['text']);
     });
 
     it('should find Google/Gemini models via our "gemini" provider ID', () => {
@@ -600,7 +602,10 @@ describe('ModelsDevSyncService', () => {
 
       await service.refreshCache();
 
-      expect(service.lookupModel('openai', 'empty-mod')).not.toBeNull();
+      const model = service.lookupModel('openai', 'empty-mod');
+      expect(model).not.toBeNull();
+      expect(model!.inputModalities).toEqual(['text']);
+      expect(model!.outputModalities).toEqual(['text']);
     });
 
     it('should include models with empty input and output arrays', async () => {
@@ -666,7 +671,9 @@ describe('ModelsDevSyncService', () => {
 
       await service.refreshCache();
 
-      expect(service.lookupModel('openai', 'mixed-output')).not.toBeNull();
+      const model = service.lookupModel('openai', 'mixed-output');
+      expect(model).not.toBeNull();
+      expect(model!.outputModalities).toEqual(['text', 'image']);
     });
 
     it('should exclude models with audio-only input', async () => {

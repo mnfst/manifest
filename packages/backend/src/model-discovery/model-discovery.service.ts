@@ -427,6 +427,8 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+          ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
           capabilities: mergeModelCapabilities(
             model.capabilities,
             mdEntry.capabilities,
@@ -475,6 +477,8 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+      ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
       capabilities: mergeModelCapabilities(
         model.capabilities,
         mdEntry.capabilities,
