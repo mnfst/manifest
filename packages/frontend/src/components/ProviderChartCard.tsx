@@ -19,6 +19,11 @@ const trendBadge = (pct: number, value: number) => {
   );
 };
 
+interface AgentTimeseries {
+  agents: string[];
+  timeseries: Array<Record<string, number | string>>;
+}
+
 interface ProviderChartCardProps {
   activeView: ProviderView;
   onViewChange: (view: ProviderView) => void;
@@ -29,7 +34,8 @@ interface ProviderChartCardProps {
   tokenUsage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
-  agentTimeseries?: { agents: string[]; timeseries: Array<Record<string, number | string>> };
+  agentTimeseries?: AgentTimeseries;
+  agentMessageTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
 }
 
@@ -63,18 +69,31 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
       <div class="chart-card__body">
         <Show when={props.activeView === 'messages'}>
           <Show
-            when={props.messageChartData.length}
+            when={props.agentMessageTimeseries?.agents.length}
             fallback={
-              <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                No message data for this time range
-              </div>
+              <Show
+                when={props.messageChartData.length}
+                fallback={
+                  <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
+                    No message data for this time range
+                  </div>
+                }
+              >
+                <SingleTokenChart
+                  data={props.messageChartData}
+                  label="Messages"
+                  colorVar="--chart-1"
+                  range={props.range}
+                />
+              </Show>
             }
           >
-            <SingleTokenChart
-              data={props.messageChartData}
-              label="Messages"
-              colorVar="--chart-1"
+            <MultiAgentTokenChart
+              agents={props.agentMessageTimeseries!.agents}
+              timeseries={props.agentMessageTimeseries!.timeseries}
               range={props.range}
+              colorMap={props.colorMap}
+              label="Messages"
             />
           </Show>
         </Show>

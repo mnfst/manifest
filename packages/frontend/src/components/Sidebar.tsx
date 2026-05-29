@@ -66,9 +66,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) handleNav();
       }}
     >
-      {/* Workspace title */}
-      <div class="sidebar__workspace-title">{workspaceTitle()}</div>
-
       {/* Observability */}
       <A
         href="/overview"

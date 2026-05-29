@@ -84,6 +84,27 @@ export class ProviderAnalyticsController {
     );
   }
 
+  @Get('per-agent-message-timeseries')
+  async getPerAgentMessageTimeseries(
+    @CurrentUser() user: AuthUser,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('range') range?: string,
+  ) {
+    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const hourly = validRange === '24h';
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+
+    return this.timeseries.getPerAgentMessageTimeseries(
+      validRange,
+      user.id,
+      hourly,
+      tenantId,
+      authType,
+      provider,
+    );
+  }
+
   @Get('agents')
   async getAgents(@CurrentUser() user: AuthUser, @Query('auth_type') authType?: string) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;

@@ -53,6 +53,8 @@ interface MultiAgentTokenChartProps {
   range: string;
   colorMap?: Record<string, string>;
   onHoverValues?: (values: Record<string, number> | null) => void;
+  /** When set (e.g. "Messages"), y-axis formats as plain numbers instead of token suffixes. */
+  label?: string;
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

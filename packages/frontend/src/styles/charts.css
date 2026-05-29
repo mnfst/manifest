@@ -172,8 +172,6 @@
 /* ── Agent filter multi-select ───────────────────── */
 .agent-filter-select {
   position: relative;
-  align-self: center;
-  margin-right: 16px;
 }
 
 .agent-filter-select__trigger {

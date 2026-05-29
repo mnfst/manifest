@@ -331,6 +331,62 @@ export class TimeseriesQueriesService {
     return { agents, timeseries };
   }
 
+  async getPerAgentMessageTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    authType?: string,
+    provider?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.agent_name', 'agent_name')
+      .addSelect('COUNT(*)', 'messages')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.agent_name IS NOT NULL');
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.agent_name')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    const agentSet = new Set<string>();
+    for (const r of rows) {
+      agentSet.add(String(r['agent_name']));
+    }
+    const agents = [...agentSet].sort();
+
+    const byBucket = new Map<string, Record<string, number>>();
+    for (const r of rows) {
+      const bucket = String(r[bucketAlias]);
+      if (!byBucket.has(bucket)) {
+        byBucket.set(bucket, {});
+      }
+      byBucket.get(bucket)![String(r['agent_name'])] = Number(r['messages'] ?? 0);
+    }
+
+    const timeseries = [...byBucket.entries()].map(([bucket, agentMap]) => {
+      const row: Record<string, number | string> = { [bucketAlias]: bucket };
+      for (const agent of agents) {
+        row[agent] = agentMap[agent] ?? 0;
+      }
+      return row;
+    });
+
+    return { agents, timeseries };
+  }
+
   async getAgentNamesByAuthType(
     authType: string,
     userId: string,

@@ -14,6 +14,7 @@ import {
   getProviderAnalytics,
   getProviderAnalyticsAgents,
   getPerAgentTimeseries,
+  getPerAgentMessageTimeseries,
 } from '../../services/api/analytics.js';
 import { disconnectProvider } from '../../services/api.js';
 import { fetchMutate, routingPath } from '../../services/api/core.js';
@@ -91,9 +92,45 @@ const ConnectionDetail: Component = () => {
     BACK_LINKS[conn()?.auth_type ?? 'subscription'] ?? '/providers/subscriptions';
   const backLabel = () => AUTH_TYPE_LABELS[conn()?.auth_type ?? 'subscription'] ?? 'Providers';
 
-  // Chart state
-  const [chartRange, setChartRange] = createSignal('24h');
-  const [chartView, setChartView] = createSignal<'messages' | 'tokens'>('tokens');
+  // Chart state (persisted in sessionStorage)
+  const rangeKey = () => `chart-range:${params.connectionId}`;
+  const viewKey = () => `chart-view:${params.connectionId}`;
+  const savedRange = () => {
+    try {
+      const v = sessionStorage.getItem(rangeKey());
+      if (v === '7d' || v === '30d') return v;
+    } catch {
+      /* ignore */
+    }
+    return '24h';
+  };
+  const savedView = () => {
+    try {
+      const v = sessionStorage.getItem(viewKey());
+      if (v === 'messages') return v;
+    } catch {
+      /* ignore */
+    }
+    return 'tokens' as const;
+  };
+  const [chartRange, setChartRangeRaw] = createSignal(savedRange());
+  const setChartRange = (v: string) => {
+    setChartRangeRaw(v);
+    try {
+      sessionStorage.setItem(rangeKey(), v);
+    } catch {
+      /* ignore */
+    }
+  };
+  const [chartView, setChartViewRaw] = createSignal<'messages' | 'tokens'>(savedView());
+  const setChartView = (v: 'messages' | 'tokens') => {
+    setChartViewRaw(v);
+    try {
+      sessionStorage.setItem(viewKey(), v);
+    } catch {
+      /* ignore */
+    }
+  };
   const [chartAgent, setChartAgent] = createSignal('');
 
   const [chartAgents] = createResource(
@@ -140,8 +177,30 @@ const ConnectionDetail: Component = () => {
     },
   );
 
-  // Agent tag selection for chart filtering
-  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(new Set());
+  const [agentMessageTimeseries] = createResource(
+    () => {
+      const c = conn();
+      if (!c) return null;
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider };
+    },
+    (p) => {
+      if (!p) return null;
+      return getPerAgentMessageTimeseries(p.authType, p.provider, p.range);
+    },
+  );
+
+  // Agent tag selection for chart filtering (persisted in sessionStorage)
+  const storageKey = () => `agent-filter:${params.connectionId}`;
+  const loadSavedAgents = (): Set<string> => {
+    try {
+      const saved = sessionStorage.getItem(storageKey());
+      if (saved) return new Set(JSON.parse(saved) as string[]);
+    } catch {
+      /* ignore */
+    }
+    return new Set();
+  };
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(loadSavedAgents());
   const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
   let agentFilterRef: HTMLDivElement | undefined;
 
@@ -163,8 +222,13 @@ const ConnectionDetail: Component = () => {
     });
   }
 
-  // Initialize selectedAgents when agentTimeseries loads
-  const allAgents = () => agentTimeseries()?.agents ?? [];
+  // Merge agent lists from both token and message timeseries
+  const allAgents = createMemo(() => {
+    const tokenAgents = agentTimeseries()?.agents ?? [];
+    const msgAgents = agentMessageTimeseries()?.agents ?? [];
+    const set = new Set([...tokenAgents, ...msgAgents]);
+    return [...set].sort();
+  });
 
   const agentColorMap = createMemo(() => {
     const map: Record<string, string> = {};
@@ -195,10 +259,31 @@ const ConnectionDetail: Component = () => {
       next.add(agent);
     }
     setSelectedAgents(next);
+    try {
+      sessionStorage.setItem(storageKey(), JSON.stringify([...next]));
+    } catch {
+      /* ignore */
+    }
   };
 
   const filteredAgentTimeseries = createMemo(() => {
     const raw = agentTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents, timeseries };
+  });
+
+  const filteredAgentMessageTimeseries = createMemo(() => {
+    const raw = agentMessageTimeseries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -284,63 +369,48 @@ const ConnectionDetail: Component = () => {
                   <h1 class="page-header__title" style="margin: 0;">
                     {prov?.name ?? c.provider}
                   </h1>
+                  <Show
+                    when={c.is_active}
+                    fallback={
+                      <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); font-weight: 500;">
+                        Inactive
+                      </span>
+                    }
+                  >
+                    <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-sm); font-weight: 600;">
+                      Active
+                    </span>
+                  </Show>
                 </div>
                 <button class="btn btn--outline btn--sm" onClick={() => setShowManageModal(true)}>
                   Manage
                 </button>
               </div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 24px; margin-bottom: 24px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
-                <div>
-                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
-                    Status
-                  </span>
-                  <div style="margin-top: 4px;">
-                    <Show
-                      when={c.is_active}
-                      fallback={
-                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                          Inactive
-                        </span>
-                      }
-                    >
-                      <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
-                        Active
-                      </span>
-                    </Show>
-                  </div>
-                </div>
-                <div>
-                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
-                    Connection name
-                  </span>
-                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
-                    {c.label}
-                  </div>
-                </div>
-                <div>
-                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
-                    Models
-                  </span>
-                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
-                    {c.cached_model_count}
-                  </div>
-                </div>
-                <div>
-                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
-                    First connection
-                  </span>
-                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
+              <div style="display: flex; gap: 24px; margin-bottom: 24px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border)); font-size: var(--font-size-sm);">
+                <span>
+                  <span style="font-weight: 600; color: hsl(var(--foreground));">
+                    Connection name:
+                  </span>{' '}
+                  <span style="color: hsl(var(--muted-foreground));">{c.label}</span>
+                </span>
+                <span>
+                  <span style="font-weight: 600; color: hsl(var(--foreground));">Models:</span>{' '}
+                  <span style="color: hsl(var(--muted-foreground));">{c.cached_model_count}</span>
+                </span>
+                <span>
+                  <span style="font-weight: 600; color: hsl(var(--foreground));">
+                    First connection:
+                  </span>{' '}
+                  <span style="color: hsl(var(--muted-foreground));">
                     {c.connected_at ? formatTimeAgo(c.connected_at) : '—'}
-                  </div>
-                </div>
-                <div>
-                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
-                    Last used
                   </span>
-                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
+                </span>
+                <span>
+                  <span style="font-weight: 600; color: hsl(var(--foreground));">Last used:</span>{' '}
+                  <span style="color: hsl(var(--muted-foreground));">
                     {c.last_used_at ? formatTimeAgo(c.last_used_at) : '—'}
-                  </div>
-                </div>
+                  </span>
+                </span>
               </div>
 
               {/* Chart filters */}
@@ -436,6 +506,7 @@ const ConnectionDetail: Component = () => {
                   messageChartData={messageChartData()}
                   range={chartRange()}
                   agentTimeseries={filteredAgentTimeseries() ?? undefined}
+                  agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
                   colorMap={agentColorMap()}
                 />
               </Show>
@@ -443,7 +514,7 @@ const ConnectionDetail: Component = () => {
               {/* Two-column grid: Agents + Recent Messages */}
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
                 {/* Left: Agents table */}
-                <div class="panel" style="padding: 0;">
+                <div class="panel scroll-panel">
                   <div class="panel__title" style="padding: 16px 16px 0;">
                     Agents
                   </div>
@@ -455,49 +526,58 @@ const ConnectionDetail: Component = () => {
                       </div>
                     }
                   >
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Agent</th>
-                          <th>Tokens (30d)</th>
-                          <th>Last used</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <For each={detail()!.agents}>
-                          {(agent) => (
-                            <tr>
-                              <td>
-                                <A
-                                  href={`/agents/${agent.agent_name}`}
-                                  style="text-decoration: none; color: hsl(var(--foreground)); font-weight: 500; display: flex; align-items: center; gap: 8px;"
-                                >
-                                  <Show when={platformIcon(agent.agent_platform, null)}>
-                                    <img
-                                      src={platformIcon(agent.agent_platform, null)!}
-                                      alt=""
-                                      width="16"
-                                      height="16"
-                                      style="border-radius: 3px;"
-                                    />
-                                  </Show>
-                                  {agent.agent_name}
-                                </A>
-                              </td>
-                              <td>{formatNumber(agent.tokens_30d)}</td>
-                              <td style="color: hsl(var(--muted-foreground));">
-                                {agent.last_used ? formatTimeAgo(agent.last_used) : '—'}
-                              </td>
-                            </tr>
-                          )}
-                        </For>
-                      </tbody>
-                    </table>
+                    <div
+                      class="scroll-panel__body"
+                      onScroll={(e) => {
+                        const el = e.currentTarget;
+                        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                        el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+                      }}
+                    >
+                      <table class="data-table">
+                        <thead>
+                          <tr>
+                            <th>Agent</th>
+                            <th>Tokens (30d)</th>
+                            <th>Last used</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <For each={detail()!.agents}>
+                            {(agent) => (
+                              <tr>
+                                <td>
+                                  <A
+                                    href={`/agents/${agent.agent_name}`}
+                                    style="text-decoration: none; color: hsl(var(--foreground)); font-weight: 500; display: flex; align-items: center; gap: 8px;"
+                                  >
+                                    <Show when={platformIcon(agent.agent_platform, null)}>
+                                      <img
+                                        src={platformIcon(agent.agent_platform, null)!}
+                                        alt=""
+                                        width="16"
+                                        height="16"
+                                        style="border-radius: 3px;"
+                                      />
+                                    </Show>
+                                    {agent.agent_name}
+                                  </A>
+                                </td>
+                                <td>{formatNumber(agent.tokens_30d)}</td>
+                                <td style="color: hsl(var(--muted-foreground));">
+                                  {agent.last_used ? formatTimeAgo(agent.last_used) : '—'}
+                                </td>
+                              </tr>
+                            )}
+                          </For>
+                        </tbody>
+                      </table>
+                    </div>
                   </Show>
                 </div>
 
                 {/* Right: Recent Messages */}
-                <div class="panel" style="padding: 0;">
+                <div class="panel scroll-panel">
                   <div
                     class="panel__title"
                     style="padding: 16px 16px 0; display: flex; justify-content: space-between; align-items: center;"
@@ -515,36 +595,45 @@ const ConnectionDetail: Component = () => {
                       </div>
                     }
                   >
-                    <table class="data-table">
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>Message</th>
-                          <th>Model</th>
-                          <th>Tokens</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <For each={detail()!.recent_messages}>
-                          {(msg: any) => (
-                            <tr>
-                              <td style="white-space: nowrap;">
-                                {msg.timestamp ? formatTimeAgo(msg.timestamp) : '—'}
-                              </td>
-                              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {msg.description || msg.first_message || '—'}
-                              </td>
-                              <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {msg.model || '—'}
-                              </td>
-                              <td>
-                                {formatNumber((msg.input_tokens ?? 0) + (msg.output_tokens ?? 0))}
-                              </td>
-                            </tr>
-                          )}
-                        </For>
-                      </tbody>
-                    </table>
+                    <div
+                      class="scroll-panel__body"
+                      onScroll={(e) => {
+                        const el = e.currentTarget;
+                        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                        el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+                      }}
+                    >
+                      <table class="data-table">
+                        <thead>
+                          <tr>
+                            <th>Date</th>
+                            <th>Message</th>
+                            <th>Model</th>
+                            <th>Tokens</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <For each={detail()!.recent_messages}>
+                            {(msg: any) => (
+                              <tr>
+                                <td style="white-space: nowrap;">
+                                  {msg.timestamp ? formatTimeAgo(msg.timestamp) : '—'}
+                                </td>
+                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                  {msg.description || msg.first_message || '—'}
+                                </td>
+                                <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                  {msg.model || '—'}
+                                </td>
+                                <td>
+                                  {formatNumber((msg.input_tokens ?? 0) + (msg.output_tokens ?? 0))}
+                                </td>
+                              </tr>
+                            )}
+                          </For>
+                        </tbody>
+                      </table>
+                    </div>
                   </Show>
                 </div>
               </div>
