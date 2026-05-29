@@ -76,6 +76,14 @@ const xaiProvDef: ProviderDef = {
   subscriptionLabel: 'Grok subscription',
 };
 
+const geminiProvDef: ProviderDef = {
+  ...provDef,
+  id: 'gemini',
+  name: 'Gemini',
+  initial: 'G',
+  subscriptionLabel: 'Sign in with Google',
+};
+
 function makeKey(overrides: Partial<RoutingProvider> = {}): RoutingProvider {
   return {
     id: 'key-1',
@@ -400,6 +408,33 @@ describe('OAuthDetailView', () => {
         'Popup was blocked by your browser. Allow popups for this site, then try again.',
       );
     });
+  });
+
+  it('shows the callback-URL video tutorial for OpenAI after starting OAuth', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.openai.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { container } = renderView();
+    fireEvent.click(screen.getByText('Log in with OpenAI'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Copy the full URL/)).toBeDefined();
+    });
+    expect(container.querySelector('video[src="/images/oauth-callback-example.mp4"]')).not.toBeNull();
+  });
+
+  it('does not show the callback-URL video tutorial for non-OpenAI providers (e.g. Gemini)', async () => {
+    mockGetOpenaiOAuthUrl.mockResolvedValue({ url: 'https://oauth.google.com/authorize' });
+    vi.spyOn(window, 'open').mockReturnValue({ closed: false } as unknown as Window);
+
+    const { container } = renderView({ provId: 'gemini', provDef: geminiProvDef });
+    fireEvent.click(screen.getByText('Log in with Gemini'));
+
+    await waitFor(() => {
+      expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled();
+    });
+    expect(screen.queryByText(/Copy the full URL/)).toBeNull();
+    expect(container.querySelector('video[src="/images/oauth-callback-example.mp4"]')).toBeNull();
   });
 
   it('Disconnect all revokes all OpenAI OAuth tokens', async () => {
