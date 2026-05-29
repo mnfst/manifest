@@ -128,6 +128,21 @@ export class ProviderAnalyticsController {
     const cutoff30d = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
+    // Global last_used_at for this connection (all time, not just 30d)
+    const lastUsedRow = await this.messageRepo
+      .createQueryBuilder('at')
+      .select('MAX(at.timestamp)', 'last_used_at')
+      .where('at.tenant_id = :tid', { tid: tenant.id })
+      .andWhere('at.provider = :provider', { provider: conn.provider })
+      .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
+      .getRawOne();
+    const lastUsedAt =
+      lastUsedRow?.last_used_at instanceof Date
+        ? lastUsedRow.last_used_at.toISOString()
+        : lastUsedRow?.last_used_at
+          ? String(lastUsedRow.last_used_at)
+          : null;
+
     // Agents using this provider (with platform from agents table)
     const agentRows = await this.messageRepo
       .createQueryBuilder('at')
@@ -165,6 +180,7 @@ export class ProviderAnalyticsController {
         key_prefix: conn.key_prefix,
         connected_at: conn.connected_at,
         is_active: conn.is_active,
+        last_used_at: lastUsedAt,
       },
       agents: agentRows.map((r: Record<string, unknown>) => ({
         agent_name: String(r['agent_name']),

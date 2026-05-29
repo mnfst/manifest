@@ -50,6 +50,7 @@ interface ConnectionInfo {
   key_prefix: string | null;
   connected_at: string;
   is_active: boolean;
+  last_used_at: string | null;
 }
 
 interface DetailResponse {
@@ -130,6 +131,45 @@ const ConnectionDetail: Component = () => {
     },
   );
 
+  // Agent tag selection for chart filtering
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(new Set());
+
+  // Initialize selectedAgents when agentTimeseries loads
+  const allAgents = () => agentTimeseries()?.agents ?? [];
+  const effectiveSelected = () => {
+    const sel = selectedAgents();
+    // If nothing selected yet (initial load), select all
+    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
+    return sel;
+  };
+
+  const toggleAgent = (agent: string) => {
+    const current = effectiveSelected();
+    const next = new Set(current);
+    if (next.has(agent)) {
+      next.delete(agent);
+    } else {
+      next.add(agent);
+    }
+    setSelectedAgents(next);
+  };
+
+  const filteredAgentTimeseries = createMemo(() => {
+    const raw = agentTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents, timeseries };
+  });
+
   // Manage modal
   const navigate = useNavigate();
   const [showDisconnectModal, setShowDisconnectModal] = createSignal(false);
@@ -206,31 +246,62 @@ const ConnectionDetail: Component = () => {
                   Manage
                 </button>
               </div>
-              <div style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 24px;">
-                <span>
-                  {c.label} · {c.cached_model_count} models
-                </span>
-                <span>·</span>
-                <Show
-                  when={c.is_active}
-                  fallback={
-                    <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                      Inactive
-                    </span>
-                  }
-                >
-                  <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
-                    Active
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 24px; margin-bottom: 24px; padding: 12px 0; border-bottom: 1px solid hsl(var(--border));">
+                <div>
+                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
+                    Status
                   </span>
-                </Show>
-                <Show when={c.is_active && c.connected_at}>
-                  <span>· Connected {new Date(c.connected_at).toLocaleDateString()}</span>
-                </Show>
+                  <div style="margin-top: 4px;">
+                    <Show
+                      when={c.is_active}
+                      fallback={
+                        <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                          Inactive
+                        </span>
+                      }
+                    >
+                      <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                        Active
+                      </span>
+                    </Show>
+                  </div>
+                </div>
+                <div>
+                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
+                    Connection name
+                  </span>
+                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
+                    {c.label}
+                  </div>
+                </div>
+                <div>
+                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
+                    Models
+                  </span>
+                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
+                    {c.cached_model_count}
+                  </div>
+                </div>
+                <div>
+                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
+                    First connection
+                  </span>
+                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
+                    {c.connected_at ? formatTimeAgo(c.connected_at) : '—'}
+                  </div>
+                </div>
+                <div>
+                  <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); font-weight: 600;">
+                    Last used
+                  </span>
+                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-top: 4px;">
+                    {c.last_used_at ? formatTimeAgo(c.last_used_at) : '—'}
+                  </div>
+                </div>
               </div>
 
               {/* Chart filters */}
               <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
-                <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
                 <Select
                   value={chartRange()}
                   onChange={setChartRange}
@@ -254,7 +325,11 @@ const ConnectionDetail: Component = () => {
                   tokenUsage={analytics()!.token_usage}
                   messageChartData={messageChartData()}
                   range={chartRange()}
-                  agentTimeseries={agentTimeseries() ?? undefined}
+                  agentTimeseries={filteredAgentTimeseries() ?? undefined}
+                  fullAgentTimeseries={agentTimeseries() ?? undefined}
+                  allAgents={allAgents()}
+                  selectedAgents={effectiveSelected()}
+                  onToggleAgent={toggleAgent}
                 />
               </Show>
 

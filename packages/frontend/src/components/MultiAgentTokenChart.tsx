@@ -15,7 +15,7 @@ import {
   fillDailyGaps,
 } from '../services/chart-utils.js';
 
-const AGENT_COLORS = [
+export const AGENT_COLORS = [
   '#1cc4bf', // teal
   '#2430F0', // blue
   '#FE076E', // pink
@@ -42,6 +42,10 @@ interface MultiAgentTokenChartProps {
   agents: string[];
   timeseries: Array<Record<string, number | string>>;
   range: string;
+  /** Fixed color per agent name — overrides index-based palette */
+  colorMap?: Record<string, string>;
+  /** Called when cursor hovers a point — null means cursor left */
+  onHoverValues?: (values: Record<string, number> | null) => void;
 }
 
 const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
@@ -86,10 +90,10 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
 
       const series: uPlot.Series[] = [
         { value: createFormatLegendTimestamp(props.range) },
-        ...props.agents.map((agent, i) => ({
+        ...props.agents.map((agent) => ({
           label: agent,
           scale: 'y' as const,
-          stroke: AGENT_COLORS[i % AGENT_COLORS.length],
+          stroke: props.colorMap?.[agent] ?? AGENT_COLORS[0],
           width: 2,
           value: formatLegendTokens,
         })),
@@ -100,7 +104,25 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
           width: w,
           height: 260,
           padding: [16, 0, 0, 0],
+          legend: { show: false },
           cursor: createCursorSnap(bgColor, AGENT_COLORS[0]),
+          hooks: {
+            setCursor: [
+              (u) => {
+                if (!props.onHoverValues) return;
+                const idx = u.cursor.idx;
+                if (idx == null || idx < 0) {
+                  props.onHoverValues(null);
+                  return;
+                }
+                const vals: Record<string, number> = {};
+                for (let i = 0; i < props.agents.length; i++) {
+                  vals[props.agents[i]] = Number(u.data[i + 1]?.[idx] ?? 0);
+                }
+                props.onHoverValues(vals);
+              },
+            ],
+          },
           scales: {
             x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
             y: { auto: true, range: yRange },
