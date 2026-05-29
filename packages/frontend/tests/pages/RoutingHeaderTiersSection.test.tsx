@@ -279,6 +279,35 @@ describe('RoutingHeaderTiersSection', () => {
     });
   });
 
+  it('merges the override API response into local state without refetching', async () => {
+    const updated = {
+      ...tier1,
+      override_route: { provider: 'openai', authType: 'api_key' as const, model: 'gpt-4o' },
+    };
+    mockOverrideHeaderTier.mockResolvedValueOnce(updated);
+    const externalMutate = vi.fn();
+    const externalRefetch = vi.fn();
+    const { getByTestId } = render(() => (
+      <RoutingHeaderTiersSection
+        {...makeProps({
+          externalTiers: () => [tier1],
+          externalMutate,
+          externalRefetch,
+        })}
+      />
+    ));
+    fireEvent.click(getByTestId('override-ht-1'));
+    await waitFor(() => {
+      expect(externalMutate).toHaveBeenCalledTimes(1);
+      expect(externalRefetch).not.toHaveBeenCalled();
+    });
+    const mutator = externalMutate.mock.calls[0]![0] as (
+      prev: typeof tier1[] | undefined,
+    ) => typeof tier1[] | undefined;
+    const next = mutator([tier1]);
+    expect(next?.[0]?.override_route?.model).toBe('gpt-4o');
+  });
+
   it('toasts an error when override fails', async () => {
     mockOverrideHeaderTier.mockRejectedValue(new Error('boom'));
     const { getByTestId } = render(() => (

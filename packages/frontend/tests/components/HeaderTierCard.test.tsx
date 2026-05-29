@@ -76,6 +76,11 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.modelHasParams,
       props.modelParamsScope,
       props.responseMode,
+      props.primaryDragging,
+      props.onPrimaryDropAtSlot,
+      props.onFallbackDragStart,
+      props.onFallbackDragEnd,
+      props.swappingIndex,
     ];
     void _read;
     return (
@@ -796,6 +801,22 @@ describe('HeaderTierCard', () => {
     ));
     fireEvent.click(container.querySelector('.routing-card__chip-action') as HTMLButtonElement);
     expect(queryByTestId('model-picker')).not.toBeNull();
+  });
+
+  it('enables primary chip drag-and-drop like complexity tiers', () => {
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={baseTier}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    const chip = container.querySelector('.routing-card__model-chip');
+    expect(chip?.getAttribute('draggable')).toBe('true');
   });
 
   it('opens picker when the chip body itself is clicked', () => {

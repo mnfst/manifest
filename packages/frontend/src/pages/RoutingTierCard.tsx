@@ -2,21 +2,18 @@ import { createSignal, createEffect, onCleanup, For, Show, type Component } from
 import { PROVIDERS } from '../services/providers.js';
 import type { StageDef } from '../services/providers.js';
 import { getModelLabel } from '../services/provider-utils.js';
-import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
-import { authBadgeFor } from '../components/AuthBadge.js';
 import {
-  pricePerM,
   resolveProviderId,
   inferProviderFromModel,
   usedKeyLabelsForModelInTier,
 } from '../services/routing-utils.js';
-import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
-import FallbackList from '../components/FallbackList.js';
+import { providerIdForModel } from '../services/routing-model-utils.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
-import ModelCapabilityBadges from '../components/ModelCapabilityBadges.js';
+import RoutingTierModelSlots from '../components/RoutingTierModelSlots.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
-import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForTier } from 'manifest-shared';
+
+export { providerIdForModel } from '../services/routing-model-utils.js';
 import type {
   TierAssignment,
   AvailableModel,
@@ -26,43 +23,6 @@ import type {
   RoutingProvider,
   CustomProviderData,
 } from '../services/api.js';
-
-/** @internal Exported for testing only. */
-export function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
-  const m =
-    apiModels.find((x) => x.model_name === model) ??
-    apiModels.find((x) => x.model_name.startsWith(model + '-'));
-  if (m) {
-    const dbId = resolveProviderId(m.provider);
-    // OpenRouter is the one provider where the vendor prefix is genuinely the
-    // best attribution: an OR row for `anthropic/claude-…` should show the
-    // Anthropic logo, not the OpenRouter logo. For every other registered
-    // first-party provider the stored `m.provider` is the truth — Groq's
-    // `qwen/qwen3-32b` is being served BY Groq, so it must show the Groq
-    // logo (and use Groq's pricing) regardless of the model-id prefix.
-    if (dbId && dbId !== 'openrouter' && PROVIDERS.find((p) => p.id === dbId)) {
-      return dbId;
-    }
-    const prefixId = inferProviderFromModel(m.model_name);
-    if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
-    return dbId ?? prefixId;
-  }
-  const prefix = inferProviderFromModel(model);
-  if (prefix && PROVIDERS.find((p) => p.id === prefix)) return prefix;
-  for (const prov of PROVIDERS) {
-    if (
-      prov.models.some(
-        (pm) =>
-          pm.value === model ||
-          model.startsWith(pm.value + '-') ||
-          pm.value.startsWith(model + '-'),
-      )
-    ) {
-      return prov.id;
-    }
-  }
-  return undefined;
-}
 
 export interface RoutingTierCardProps {
   stage: StageDef;
@@ -150,164 +110,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const hasFallbacks = () => (props.tier()?.fallback_routes ?? []).length > 0;
   const hasCustomizations = () => isManual() || hasFallbacks();
   const [confirmReset, setConfirmReset] = createSignal(false);
-  const [primaryDragging, setPrimaryDragging] = createSignal(false);
-  const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
-  const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
-  const [swappingFbIndex, setSwappingFbIndex] = createSignal<number | null>(null);
-
-  const handlePrimaryDragStart = (e: DragEvent) => {
-    setPrimaryDragging(true);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', 'primary');
-      e.dataTransfer.setData('application/x-primary', 'true');
-    }
-  };
-
-  const handlePrimaryDragEnd = () => {
-    setPrimaryDragging(false);
-    setPrimaryDropTarget(false);
-  };
-
-  const handlePrimaryDragOver = (e: DragEvent) => {
-    if (fallbackDragging() === null) return;
-    e.preventDefault();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    setPrimaryDropTarget(true);
-  };
-
-  const handlePrimaryDragLeave = () => {
-    setPrimaryDropTarget(false);
-  };
-
-  const handlePrimaryDrop = (e: DragEvent) => {
-    e.preventDefault();
-    setPrimaryDropTarget(false);
-    const fbIndex = fallbackDragging();
-    if (fbIndex === null) return;
-    setFallbackDragging(null);
-    swapPrimaryWithFallback(fbIndex);
-  };
-
-  const handlePrimaryDropAtSlot = async (slot: number) => {
-    const tier = props.tier();
-    if (!tier) return;
-    const currentModel = eff();
-    if (!currentModel) return;
-    setSwappingFbIndex(slot > 0 ? slot - 1 : 0);
-    // Carry the full primary route through the swap. Without this, the same
-    // model name on a different auth (subscription vs api_key) collapses back
-    // to "first match in discovery" when the backend rebuilds fallback_routes
-    // — and the UI ends up rendering a ghost row whose auth no longer matches.
-    const currentRoute = effectiveRoute(tier);
-    const fallbacks = props.getFallbacksFor(props.stage.id);
-    const fallbackRoutes = tier.fallback_routes ?? null;
-    // Build the unified list: insert current primary at drop slot
-    const newFallbacks = [...fallbacks];
-    newFallbacks.splice(slot, 0, currentModel);
-    const newPrimary = newFallbacks.shift()!;
-    if (newPrimary === currentModel && slot === 0) {
-      setSwappingFbIndex(null);
-      return;
-    } // no-op
-    // Build the parallel route list when we have full coverage. The route
-    // shape carries `keyLabel`, so multi-key pins ride along with the swap
-    // automatically — primary→fallback or fallback→primary keeps the same
-    // (provider, authType, model, keyLabel) tuple. If any fallback predates
-    // the dual-write migration we drop to the bare model-name persist.
-    const buildRoutes = (): typeof fallbackRoutes => {
-      if (!currentRoute || !fallbackRoutes || fallbackRoutes.length !== fallbacks.length) {
-        return null;
-      }
-      const next = [...fallbackRoutes];
-      next.splice(slot, 0, currentRoute);
-      next.shift();
-      return next;
-    };
-    const newRoutes = buildRoutes();
-    // Resolve the new primary's route for the override call.
-    const newPrimaryRoute =
-      newRoutes && newRoutes.length === newFallbacks.length
-        ? // newPrimary came from position 0 of the post-splice list, which
-          // corresponds to the original fallback at the same slot
-          fallbackRoutes![0]
-        : null;
-    // Optimistic update: set BOTH model names and routes so the FallbackList
-    // doesn't render new names against stale fallback_routes (causes a gray
-    // ghost row when the routes describe a different auth than the new model).
-    props.onFallbackUpdate(props.stage.id, newFallbacks, newRoutes);
-    try {
-      const persistFn = props.persistFallbacks ?? setFallbacksApi;
-      await persistFn(props.agentName(), props.stage.id, newFallbacks, newRoutes ?? undefined);
-    } catch {
-      props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
-      toast.error('Failed to update fallbacks');
-      setSwappingFbIndex(null);
-      return;
-    }
-    const provId = newPrimaryRoute?.provider ?? providerIdForModel(newPrimary, props.models());
-    try {
-      await props.onOverride(
-        props.stage.id,
-        newPrimary,
-        provId ?? '',
-        newPrimaryRoute?.authType,
-        newPrimaryRoute?.keyLabel ?? undefined,
-      );
-    } finally {
-      setSwappingFbIndex(null);
-    }
-  };
-
-  const swapPrimaryWithFallback = async (fbIndex: number) => {
-    const tier = props.tier();
-    if (!tier) return;
-    const currentModel = eff();
-    if (!currentModel) return;
-    setSwappingFbIndex(fbIndex);
-    const currentRoute = effectiveRoute(tier);
-    const fallbacks = props.getFallbacksFor(props.stage.id);
-    const fbModel = fallbacks[fbIndex];
-    if (!fbModel) {
-      setSwappingFbIndex(null);
-      return;
-    }
-    const fallbackRoutes = tier.fallback_routes ?? null;
-    const fbRoute = fallbackRoutes?.[fbIndex] ?? null;
-    // Swap: fallback model goes to primary, current primary takes its place.
-    // Carry routes alongside model names so same-name-different-auth swaps
-    // don't collapse to a single auth on persist. The route shape carries
-    // `keyLabel`, so the multi-key pin rides along with this swap too —
-    // SebConejo flagged that drag-drop should preserve the API key, and the
-    // ModelRoute structure makes this happen naturally.
-    const newFallbacks = [...fallbacks];
-    newFallbacks[fbIndex] = currentModel;
-    const newRoutes =
-      fallbackRoutes && currentRoute && fallbackRoutes.length === fallbacks.length
-        ? fallbackRoutes.map((r, i) => (i === fbIndex ? currentRoute : r))
-        : null;
-    props.onFallbackUpdate(props.stage.id, newFallbacks, newRoutes);
-    try {
-      const persistFn = props.persistFallbacks ?? setFallbacksApi;
-      await persistFn(props.agentName(), props.stage.id, newFallbacks, newRoutes ?? undefined);
-    } catch {
-      props.onFallbackUpdate(props.stage.id, fallbacks, fallbackRoutes);
-      toast.error('Failed to update fallbacks');
-      setSwappingFbIndex(null);
-      return;
-    }
-    const provId = fbRoute?.provider ?? providerIdForModel(fbModel, props.models());
-    try {
-      await props.onOverride(
-        props.stage.id,
-        fbModel,
-        provId ?? '',
-        fbRoute?.authType,
-        fbRoute?.keyLabel ?? undefined,
-      );
-    } finally {
-      setSwappingFbIndex(null);
-    }
+  const primaryRoute = () => {
+    const t = props.tier();
+    return t ? effectiveRoute(t) : null;
   };
 
   const modelInfo = (modelName: string): AvailableModel | undefined => {
@@ -333,12 +138,6 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
       if (provId) return getModelLabel(provId, modelName);
     }
     return modelName;
-  };
-
-  const priceLabel = (modelName: string): string => {
-    const info = modelInfo(modelName);
-    if (!info) return '';
-    return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
   const modelCapabilities = (modelName: string) => modelInfo(modelName)?.capabilities;
@@ -401,243 +200,127 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
           </div>
         }
       >
-        <div class="routing-card__body">
-          <Show when={eff()} fallback={null}>
-            {(modelName) => {
-              const provId = () =>
-                manualProviderId() ?? providerIdForModel(modelName(), props.models());
-              const primarySkipped = () =>
-                isStreamMode() && !(modelCapabilities(modelName())?.includes('stream') ?? false);
-              const effectiveAuth = (): AuthType | null => {
-                const t = props.tier();
-                const route = t ? effectiveRoute(t) : null;
-                if (route?.authType) return route.authType;
-                const id = provId();
-                if (!id) return null;
-                const provs = props
-                  .activeProviders()
-                  .filter((p) => p.provider.toLowerCase() === id.toLowerCase());
-                if (provs.some((p) => p.auth_type === 'subscription')) return 'subscription';
-                if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
-                return null;
-              };
-              const isSwapping = () =>
-                swappingFbIndex() !== null || props.changingTier() === props.stage.id;
-              return (
-                <>
-                  <Show
-                    when={!isSwapping()}
-                    fallback={
-                      <div class="routing-card__model-chip">
-                        <div class="routing-card__chip-main">
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <div
-                              class="skeleton"
-                              style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
-                            />
-                            <div class="skeleton skeleton--text" style="width: 120px;" />
-                          </div>
-                        </div>
-                        <div class="routing-card__chip-footer">
-                          <div
-                            class="skeleton skeleton--text"
-                            style="width: 150px; height: 12px;"
-                          />
-                        </div>
-                      </div>
-                    }
+        <RoutingTierModelSlots
+          agentName={props.agentName()}
+          tierId={props.stage.id}
+          models={props.models()}
+          customProviders={props.customProviders()}
+          connectedProviders={props.activeProviders()}
+          primaryModel={eff}
+          primaryRoute={primaryRoute}
+          fallbacks={() => props.getFallbacksFor(props.stage.id)}
+          fallbackRoutes={() => props.tier()?.fallback_routes ?? null}
+          responseMode={() => props.tier()?.response_mode ?? 'buffered'}
+          providerIdForPrimary={() => {
+            const m = eff();
+            if (!m) return undefined;
+            return manualProviderId() ?? providerIdForModel(m, props.models());
+          }}
+          effectiveAuthForPrimary={() => {
+            const route = primaryRoute();
+            if (route?.authType) return route.authType;
+            const id =
+              manualProviderId() ??
+              (eff() ? providerIdForModel(eff()!, props.models()) : undefined);
+            if (!id) return null;
+            const provs = props
+              .activeProviders()
+              .filter((p) => p.provider.toLowerCase() === id.toLowerCase());
+            if (provs.some((p) => p.auth_type === 'subscription')) return 'subscription';
+            if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
+            return null;
+          }}
+          primaryLabel={labelFor}
+          primarySkipped={() => {
+            const m = eff();
+            return !!m && isStreamMode() && !(modelCapabilities(m)?.includes('stream') ?? false);
+          }}
+          onFallbackUpdate={(updatedFallbacks, updatedRoutes) =>
+            props.onFallbackUpdate(props.stage.id, updatedFallbacks, updatedRoutes)
+          }
+          onPrimaryOverride={(model, provider, authType, keyLabel) =>
+            props.onOverride(props.stage.id, model, provider, authType, keyLabel)
+          }
+          persistFallbacks={props.persistFallbacks ?? setFallbacksApi}
+          persistClearFallbacks={props.persistClearFallbacks}
+          onAddFallback={() => props.onAddFallback(props.stage.id)}
+          addingFallback={props.addingFallback() === props.stage.id}
+          modelParamsScope={modelParamsScopeForTier(props.stage.id)}
+          getModelParams={props.getModelParams}
+          setModelParams={props.setModelParams}
+          tierData={props.tier}
+          showSwappingSkeleton={() => props.changingTier() === props.stage.id}
+          renderPrimaryExtension={() => (
+            <Show when={!isManual()}>
+              <span class="routing-card__auto-tag">auto</span>
+            </Show>
+          )}
+          renderPrimaryActions={(modelName) => {
+            const provId = () =>
+              manualProviderId() ?? providerIdForModel(modelName, props.models());
+            const effectiveAuth = (): AuthType | null => {
+              const route = primaryRoute();
+              if (route?.authType) return route.authType;
+              const id = provId();
+              if (!id) return null;
+              const provs = props
+                .activeProviders()
+                .filter((p) => p.provider.toLowerCase() === id.toLowerCase());
+              if (provs.some((p) => p.auth_type === 'subscription')) return 'subscription';
+              if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
+              return null;
+            };
+            return (
+              <>
+                <PrimaryKeyChip
+                  tier={props.tier}
+                  provId={provId}
+                  effectiveAuth={effectiveAuth}
+                  connectedProviders={props.connectedProviders}
+                  modelLabel={labelFor(modelName)}
+                  modelName={() => modelName}
+                  onPinKey={(label) => {
+                    const id = provId();
+                    if (!id) return;
+                    props.onPinKey?.(props.stage.id, id, label, effectiveAuth() ?? undefined);
+                  }}
+                  disabled={() => props.changingTier() === props.stage.id}
+                />
+                <Show when={props.setModelParams && props.getModelParams && effectiveAuth()}>
+                  <ModelParamsAffordance
+                    provider={provId()}
+                    authType={effectiveAuth() ?? undefined}
+                    model={modelName}
+                    slotLabel={labelFor(modelName)}
+                    scope={modelParamsScopeForTier(props.stage.id)}
+                    agentName={props.agentName()}
+                    getParams={props.getModelParams!}
+                    setParams={props.setModelParams!}
+                    disabled={props.changingTier() === props.stage.id}
+                  />
+                </Show>
+                <button
+                  class="routing-card__chip-action"
+                  onClick={() => props.onDropdownOpen(props.stage.id)}
+                  disabled={props.changingTier() === props.stage.id}
+                  aria-label={`Change model for ${props.stage.label}`}
+                >
+                  <span class="routing-tooltip">Change</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
-                    <div
-                      class="routing-card__model-chip"
-                      classList={{
-                        'routing-card__model-chip--dragging': primaryDragging(),
-                        'routing-card__model-chip--drop-target': primaryDropTarget(),
-                        'routing-card__model-chip--skipped': primarySkipped(),
-                      }}
-                      title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
-                      draggable={true}
-                      onDragStart={handlePrimaryDragStart}
-                      onDragEnd={handlePrimaryDragEnd}
-                      onDragOver={handlePrimaryDragOver}
-                      onDragLeave={handlePrimaryDragLeave}
-                      onDrop={handlePrimaryDrop}
-                    >
-                      <div class="routing-card__chip-main">
-                        <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-                          <div class="routing-card__override">
-                            <Show
-                              when={provId()?.startsWith('custom:')}
-                              fallback={
-                                <Show when={provId()}>
-                                  {(p) => (
-                                    <span class="routing-card__override-icon">
-                                      {providerIcon(p(), 14)}
-                                      {authBadgeFor(effectiveAuth(), 8)}
-                                    </span>
-                                  )}
-                                </Show>
-                              }
-                            >
-                              {(() => {
-                                const cp = () =>
-                                  props
-                                    .customProviders()
-                                    ?.find((c) => `custom:${c.id}` === provId());
-                                const logo = () => {
-                                  const c = cp();
-                                  return c
-                                    ? customProviderLogo(c.name, 14, c.base_url, modelName())
-                                    : null;
-                                };
-                                return (
-                                  <span class="routing-card__override-icon">
-                                    <Show
-                                      when={logo()}
-                                      fallback={
-                                        <span
-                                          class="provider-card__logo-letter"
-                                          style={{
-                                            background: customProviderColor(cp()?.name ?? 'C'),
-                                            width: '14px',
-                                            height: '14px',
-                                            'font-size': '8px',
-                                            'border-radius': '50%',
-                                          }}
-                                        >
-                                          {(cp()?.name ?? 'C').charAt(0).toUpperCase()}
-                                        </span>
-                                      }
-                                    >
-                                      {logo()}
-                                    </Show>
-                                  </span>
-                                );
-                              })()}
-                            </Show>
-                            <span class="routing-card__main">{labelFor(modelName())}</span>
-                            <Show when={!isManual()}>
-                              <span class="routing-card__auto-tag">auto</span>
-                            </Show>
-                          </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
-                          <PrimaryKeyChip
-                            tier={props.tier}
-                            provId={provId}
-                            effectiveAuth={effectiveAuth}
-                            connectedProviders={props.connectedProviders}
-                            modelLabel={labelFor(modelName())}
-                            modelName={modelName}
-                            onPinKey={(label) => {
-                              const id = provId();
-                              if (!id) return;
-                              props.onPinKey?.(
-                                props.stage.id,
-                                id,
-                                label,
-                                effectiveAuth() ?? undefined,
-                              );
-                            }}
-                            disabled={() => props.changingTier() === props.stage.id}
-                          />
-                          <Show
-                            when={props.setModelParams && props.getModelParams && effectiveAuth()}
-                          >
-                            <ModelParamsAffordance
-                              provider={provId()}
-                              authType={effectiveAuth() ?? undefined}
-                              model={modelName()}
-                              slotLabel={labelFor(modelName())}
-                              scope={modelParamsScopeForTier(props.stage.id)}
-                              agentName={props.agentName()}
-                              getParams={props.getModelParams!}
-                              setParams={props.setModelParams!}
-                              disabled={props.changingTier() === props.stage.id}
-                            />
-                          </Show>
-                          <button
-                            class="routing-card__chip-action"
-                            onClick={() => props.onDropdownOpen(props.stage.id)}
-                            disabled={props.changingTier() === props.stage.id}
-                            aria-label={`Change model for ${props.stage.label}`}
-                          >
-                            <span class="routing-tooltip">Change</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="12"
-                              height="12"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                              aria-hidden="true"
-                            >
-                              <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                      <div class="routing-card__chip-footer">
-                        <Show
-                          when={effectiveAuth() !== 'subscription'}
-                          fallback={
-                            <span class="routing-card__chip-meta">
-                              <span class="routing-card__chip-price">
-                                {formatPerRequestCost(modelInfo(modelName())?.cost_per_request) ??
-                                  'Included in subscription'}
-                              </span>
-                              <Show when={primarySkipped()}>
-                                <span class="routing-card__skipped-badge">Skipped in Stream</span>
-                              </Show>
-                            </span>
-                          }
-                        >
-                          <span class="routing-card__chip-meta">
-                            <span class="routing-card__chip-price">{priceLabel(modelName())}</span>
-                            <Show when={primarySkipped()}>
-                              <span class="routing-card__skipped-badge">Skipped in Stream</span>
-                            </Show>
-                          </span>
-                        </Show>
-                      </div>
-                    </div>
-                  </Show>
-                </>
-              );
-            }}
-          </Show>
-        </div>
-        <Show when={eff()}>
-          <div class="routing-card__right">
-            <FallbackList
-              agentName={props.agentName()}
-              tier={props.stage.id}
-              tierData={props.tier}
-              fallbacks={props.getFallbacksFor(props.stage.id)}
-              fallbackRoutes={props.tier()?.fallback_routes ?? null}
-              models={props.models()}
-              customProviders={props.customProviders()}
-              connectedProviders={props.activeProviders()}
-              onUpdate={(updatedFallbacks, updatedRoutes) =>
-                // Thread routes through optimistic state so the UI doesn't
-                // render the new model list against stale fallback_routes
-                // (the gray "ghost row" bug for same-name-different-auth).
-                props.onFallbackUpdate(props.stage.id, updatedFallbacks, updatedRoutes)
-              }
-              onAddFallback={() => props.onAddFallback(props.stage.id)}
-              adding={props.addingFallback() === props.stage.id}
-              primaryDragging={primaryDragging()}
-              onPrimaryDropAtSlot={handlePrimaryDropAtSlot}
-              onFallbackDragStart={(index) => setFallbackDragging(index)}
-              onFallbackDragEnd={() => setFallbackDragging(null)}
-              persistFallbacks={props.persistFallbacks}
-              persistClearFallbacks={props.persistClearFallbacks}
-              getModelParams={props.getModelParams}
-              setModelParams={props.setModelParams}
-              swappingIndex={swappingFbIndex()}
-              modelParamsScope={modelParamsScopeForTier(props.stage.id)}
-              responseMode={props.tier()?.response_mode ?? 'buffered'}
-            />
-          </div>
-        </Show>
+                    <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
+                  </svg>
+                </button>
+              </>
+            );
+          }}
+        />
       </Show>
 
       <Show when={confirmReset()}>

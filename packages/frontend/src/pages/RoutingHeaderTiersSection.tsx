@@ -65,6 +65,13 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     else void internalRefetch();
   };
 
+  const mutateTiers = (
+    update: (prev: HeaderTier[] | undefined) => HeaderTier[] | undefined,
+  ): void => {
+    if (props.externalMutate) props.externalMutate(update);
+    else internalMutate(update);
+  };
+
   // Apply an optimistic update to the resource so the UI reflects fallback
   // changes immediately, mirroring the tier path. Without this the refetch
   // races the persist call and shows stale data on first click.
@@ -78,10 +85,9 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
       refetch();
       return;
     }
-    const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
-      prev?.map((t) => (t.id === tierId ? { ...t, fallback_routes: updatedRoutes } : t));
-    if (props.externalMutate) props.externalMutate(update);
-    else internalMutate(update);
+    mutateTiers((prev) =>
+      prev?.map((t) => (t.id === tierId ? { ...t, fallback_routes: updatedRoutes } : t)),
+    );
   };
 
   // Manage modal: lists all tiers. `null` = closed.
@@ -107,18 +113,20 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     authType?: AuthType,
   ): Promise<void> => {
     try {
-      await overrideHeaderTier(props.agentName(), id, model, provider, authType);
-      await refetch();
+      const updated = await overrideHeaderTier(props.agentName(), id, model, provider, authType);
+      // Merge the full tier row from the API so the primary chip updates immediately
+      // (same pattern as complexity tiers in RoutingActions.handleOverride).
+      mutateTiers((prev) => prev?.map((t) => (t.id === id ? updated : t)));
+      if (props.externalTiers && !props.externalMutate) {
+        refetch();
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update tier');
     }
   };
 
   const removeTierFromState = (id: string): void => {
-    const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
-      prev?.filter((t) => t.id !== id);
-    if (props.externalMutate) props.externalMutate(update);
-    else internalMutate(update);
+    mutateTiers((prev) => prev?.filter((t) => t.id !== id));
   };
 
   const openDeleteConfirm = (tier: HeaderTier): void => {
@@ -164,10 +172,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     setChangingResponseMode(id);
     try {
       const updated = await setHeaderTierResponseMode(props.agentName(), id, responseMode);
-      const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
-        prev?.map((t) => (t.id === id ? updated : t));
-      if (props.externalMutate) props.externalMutate(update);
-      else internalMutate(update);
+      mutateTiers((prev) => prev?.map((t) => (t.id === id ? updated : t)));
       toast.success(
         responseMode === 'stream'
           ? 'Streaming response mode enabled'
