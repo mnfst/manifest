@@ -394,7 +394,7 @@ const ConnectionDetail: Component = () => {
               </Title>
 
               {/* Back link */}
-              <div style="margin-bottom: 16px;">
+              <div style="margin-bottom: 24px;">
                 <A
                   href={backLink()}
                   style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
@@ -404,7 +404,7 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <span style="display: flex; align-items: center; width: 32px; height: 32px;">
                     {providerIcon(c.provider, 32)}
@@ -457,7 +457,7 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Chart filters */}
-              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 24px;">
                 <Show when={allAgents().length > 1}>
                   <div class="agent-filter-select" ref={agentFilterRef}>
                     <button
@@ -572,9 +572,9 @@ const ConnectionDetail: Component = () => {
               </Show>
 
               {/* Two-column grid: Models + Recent Messages */}
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                 {/* Left: Model usage */}
-                <div class="panel scroll-panel">
+                <div class="panel scroll-panel" style="margin-bottom: 0;">
                   <div class="panel__title" style="padding: 16px 16px 0;">
                     Models
                   </div>
@@ -645,7 +645,7 @@ const ConnectionDetail: Component = () => {
                 </div>
 
                 {/* Right: Recent Messages */}
-                <div class="panel scroll-panel">
+                <div class="panel scroll-panel" style="margin-bottom: 0;">
                   <div
                     class="panel__title"
                     style="padding: 16px 16px 0; display: flex; justify-content: space-between; align-items: center;"
@@ -707,7 +707,7 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Full-width: Agents table */}
-              <div class="panel scroll-panel" style="margin-top: 16px;">
+              <div class="panel scroll-panel" style="margin-bottom: 0;">
                 <div class="panel__title" style="padding: 16px 16px 0;">
                   Agents
                 </div>

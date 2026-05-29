@@ -184,14 +184,16 @@ const Subscriptions: Component = () => {
     <div class="container--lg">
       <Title>Subscriptions | Manifest</Title>
       <div class="page-header">
-        <h1 class="page-header__title">Subscriptions</h1>
-        <p class="page-header__subtitle">
-          Connect flat-rate subscriptions to route queries through your existing plans.
-        </p>
+        <div>
+          <h1 class="page-header__title">Subscriptions</h1>
+          <p class="page-header__subtitle">
+            Connect flat-rate subscriptions to route queries through your existing plans.
+          </p>
+        </div>
       </div>
 
       {/* Chart */}
-      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 24px;">
         <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
         <Select
           value={chartRange()}
@@ -433,7 +435,7 @@ const Subscriptions: Component = () => {
 
       {/* Grid view */}
       <Show when={viewMode() === 'grid'}>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
           <For each={SUBSCRIPTION_PROVIDERS}>
             {(prov) => {
               const cp = () => getConnected(prov.id);
@@ -441,7 +443,7 @@ const Subscriptions: Component = () => {
               return (
                 <div
                   class="panel"
-                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px;"
+                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
                 >
                   <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 10px;">

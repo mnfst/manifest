@@ -166,14 +166,16 @@ const Byok: Component = () => {
     <div class="container--lg">
       <Title>API Keys | Manifest</Title>
       <div class="page-header">
-        <h1 class="page-header__title">Bring Your Own Key</h1>
-        <p class="page-header__subtitle">
-          Connect providers using your own API keys for pay-as-you-go usage.
-        </p>
+        <div>
+          <h1 class="page-header__title">Bring Your Own Key</h1>
+          <p class="page-header__subtitle">
+            Connect providers using your own API keys for pay-as-you-go usage.
+          </p>
+        </div>
       </div>
 
       {/* Chart */}
-      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 24px;">
         <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
         <Select
           value={chartRange()}
@@ -415,7 +417,7 @@ const Byok: Component = () => {
       </Show>
 
       <Show when={viewMode() === 'grid'}>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
           <For each={BYOK_PROVIDERS}>
             {(prov) => {
               const cp = () => getConnected(prov.id);
@@ -423,7 +425,7 @@ const Byok: Component = () => {
               return (
                 <div
                   class="panel"
-                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px;"
+                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
                 >
                   <div style="display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 10px;">
