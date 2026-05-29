@@ -356,7 +356,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('OpenAI'));
       expect(screen.getByLabelText('OpenAI API key')).toBeDefined();
 
-      fireEvent.click(screen.getByLabelText('Back to providers'));
+      fireEvent.click(screen.getByLabelText('Close'));
       expect(screen.queryByLabelText('OpenAI API key')).toBeNull();
       // List view is back
       expect(screen.getByText('Done')).toBeDefined();

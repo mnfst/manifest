@@ -328,11 +328,11 @@ describe("ProviderSelectContent", () => {
         expect(container.textContent).toContain("Connect 1 model");
       });
 
-      // Back button dismisses the detail view and returns to the list
-      const backBtn = container.querySelector(".modal-back-btn") as HTMLButtonElement;
+      // Close button dismisses the detail view and returns to the list
+      const backBtn = container.querySelector(".modal__close") as HTMLButtonElement;
       fireEvent.click(backBtn);
       await waitFor(() => {
-        expect(container.querySelector(".modal-back-btn")).toBeNull();
+        expect(container.querySelector(".provider-modal__view--from-right")).toBeNull();
       });
     });
 
@@ -370,7 +370,7 @@ describe("ProviderSelectContent", () => {
       // After successful create, onConnected → goBack + onUpdate
       await waitFor(() => {
         expect(onUpdateLocal).toHaveBeenCalled();
-        expect(container.querySelector(".modal-back-btn")).toBeNull();
+        expect(container.querySelector(".provider-modal__view--from-right")).toBeNull();
       });
     });
 

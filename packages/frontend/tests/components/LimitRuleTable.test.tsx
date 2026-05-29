@@ -50,7 +50,7 @@ describe('LimitRuleTable', () => {
         onToggleMenu={vi.fn()}
       />
     ));
-    expect(screen.getByLabelText('Rule options')).toBeDefined();
+    expect(screen.getByLabelText('Guardrail options')).toBeDefined();
   });
 
   it('shows loading skeleton when loading', () => {
@@ -74,7 +74,7 @@ describe('LimitRuleTable', () => {
         onToggleMenu={vi.fn()}
       />
     ));
-    expect(screen.getByText('No rules yet')).toBeDefined();
+    expect(screen.getByText('No guardrails yet')).toBeDefined();
   });
 
   it('renders threshold and period', () => {

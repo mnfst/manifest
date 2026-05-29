@@ -260,7 +260,7 @@ describe("LimitRuleModal", () => {
         editData={{ metric_type: "cost", threshold: 25, period: "week", action: "block" }}
       />
     ));
-    expect(screen.getByText("Edit rule")).toBeDefined();
+    expect(screen.getByText("Edit guardrail")).toBeDefined();
     expect(screen.getByText("Save changes")).toBeDefined();
   });
 
@@ -321,7 +321,7 @@ describe("LimitRuleModal", () => {
       />
     ));
     const title = q("#limit-modal-title") as HTMLElement;
-    expect(title.textContent).toBe("Create rule");
+    expect(title.textContent).toBe("Create guardrail");
   });
 
   it("shows Saving... and disables button during async onSave", async () => {
@@ -344,7 +344,7 @@ describe("LimitRuleModal", () => {
 
     resolveSave!();
     await vi.waitFor(() => {
-      expect(btn.textContent).toBe("Create rule");
+      expect(btn.textContent).toBe("Create guardrail");
       expect(btn.disabled).toBe(true); // threshold reset to empty, so disabled
     });
   });

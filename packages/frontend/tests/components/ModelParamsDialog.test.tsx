@@ -138,15 +138,15 @@ describe('ModelParamsDialog', () => {
     expect(screen.getByText('No parameter controls are published for gpt-4o yet.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy();
-    const link = screen.getByRole('link', { name: 'Request model parameters for gpt-4o' });
-    expect(link.textContent).toBe('Request parameters for this model');
+    const link = screen.getByRole('link', { name: 'Request parameters for gpt-4o' });
+    expect(link.textContent).toBe('Request parameters for gpt-4o');
     expect(link).toHaveProperty(
       'href',
       'https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=openai&model=gpt-4o',
     );
   });
 
-  it('shows the compact request link alongside published parameter controls', () => {
+  it('shows the save button when parameter specs are published (request link not shown)', () => {
     render(() => (
       <ModelParamsDialog
         {...baseProps}
@@ -155,12 +155,7 @@ describe('ModelParamsDialog', () => {
     ));
 
     expect(screen.getByRole('button', { name: 'Save' })).toBeTruthy();
-    const link = screen.getByRole('link', { name: 'Request parameters for deepseek-v4' });
-    expect(link.textContent).toBe('Request');
-    expect(link).toHaveProperty(
-      'href',
-      'https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=deepseek&model=deepseek-v4',
-    );
+    expect(screen.queryByRole('link')).toBeNull();
   });
 
   it('starts on the spec default when no override is configured', () => {
@@ -184,7 +179,7 @@ describe('ModelParamsDialog', () => {
     render(() => (
       <ModelParamsDialog {...baseProps} specs={[]} requestParamsUrl={undefined} slotLabel="gpt-4o" />
     ));
-    expect(screen.getByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(screen.getByText('No parameter controls are published for gpt-4o yet.')).toBeTruthy();
     expect(screen.queryByRole('link')).toBeNull();
   });
 
@@ -584,12 +579,12 @@ describe('ModelParamsDialog', () => {
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(null));
   });
 
-  it('cancel button closes without persisting', () => {
+  it('close button closes without persisting', () => {
     const onSave = vi.fn();
     const onClose = vi.fn();
     render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
 
-    fireEvent.click(screen.getByText('Cancel'));
+    fireEvent.click(screen.getByText('Close'));
     expect(onSave).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });

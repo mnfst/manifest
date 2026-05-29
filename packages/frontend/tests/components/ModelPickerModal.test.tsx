@@ -121,6 +121,10 @@ const apiKeyOnly: RoutingProvider[] = [
   },
 ];
 
+// Models filtered to api_key only (no subscription models) — use when
+// testing single-category scenarios so tab visibility is model-driven.
+const apiKeyModels: AvailableModel[] = baseModels.filter((m) => m.auth_type === 'api_key');
+
 const subAndApi: RoutingProvider[] = [
   ...apiKeyOnly,
   {
@@ -283,7 +287,7 @@ describe('ModelPickerModal', () => {
         <ModelPickerModal
           tierId="default"
           agentName="demo-agent"
-          models={baseModels}
+          models={apiKeyModels}
           tiers={[]}
           connectedProviders={apiKeyOnly}
           onSelect={vi.fn()}
@@ -300,7 +304,7 @@ describe('ModelPickerModal', () => {
         <ModelPickerModal
           tierId="default"
           agentName="demo-agent"
-          models={baseModels}
+          models={apiKeyModels}
           tiers={[]}
           connectedProviders={apiKeyOnly}
           onSelect={vi.fn()}
@@ -330,7 +334,7 @@ describe('ModelPickerModal', () => {
         <ModelPickerModal
           tierId="default"
           agentName="demo-agent"
-          models={baseModels}
+          models={apiKeyModels}
           tiers={[]}
           connectedProviders={apiKeyOnly}
           onSelect={vi.fn()}
@@ -351,7 +355,7 @@ describe('ModelPickerModal', () => {
         <ModelPickerModal
           tierId="default"
           agentName="demo-agent"
-          models={baseModels}
+          models={apiKeyModels}
           tiers={[]}
           connectedProviders={apiKeyOnly}
           onSelect={vi.fn()}
@@ -368,11 +372,11 @@ describe('ModelPickerModal', () => {
     });
   });
 
-  it('hides tabs when only one auth category is connected', () => {
+  it('hides tabs when only one auth category has models', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={apiKeyModels}
         tiers={tiers}
         connectedProviders={apiKeyOnly}
         onSelect={vi.fn()}
@@ -435,7 +439,7 @@ describe('ModelPickerModal', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={apiKeyModels}
         tiers={tiers}
         connectedProviders={apiKeyOnly}
         onSelect={vi.fn()}
@@ -456,7 +460,7 @@ describe('ModelPickerModal', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={apiKeyModels}
         tiers={tiers}
         connectedProviders={apiKeyOnly}
         onSelect={vi.fn()}
@@ -477,7 +481,7 @@ describe('ModelPickerModal', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={apiKeyModels}
         tiers={tiersWithOverride}
         connectedProviders={apiKeyOnly}
         onSelect={vi.fn()}
@@ -494,7 +498,7 @@ describe('ModelPickerModal', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={apiKeyModels}
         tiers={tiers}
         connectedProviders={apiKeyOnly}
         onSelect={vi.fn()}
@@ -539,7 +543,7 @@ describe('ModelPickerModal', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={apiKeyModels}
         tiers={tiers}
         connectedProviders={apiKeyOnly}
         onSelect={onSelect}
@@ -603,7 +607,7 @@ describe('ModelPickerModal', () => {
 
   it('filters by search term against model labels', () => {
     const many: AvailableModel[] = [
-      ...baseModels,
+      ...apiKeyModels,
       { ...baseModels[0], model_name: 'gpt-extra-1', display_name: 'extra-1' },
       { ...baseModels[0], model_name: 'gpt-extra-2', display_name: 'extra-2' },
       { ...baseModels[0], model_name: 'gpt-extra-3', display_name: 'extra-3' },
@@ -629,8 +633,7 @@ describe('ModelPickerModal', () => {
     expect(labels.some((l) => l?.includes('extra-2'))).toBe(false);
   });
 
-  it('renders the empty state with a Connect providers button when handler is provided and nothing is connected', () => {
-    const onConnect = vi.fn();
+  it('renders the empty state when no models are available', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
@@ -639,14 +642,10 @@ describe('ModelPickerModal', () => {
         connectedProviders={[]}
         onSelect={vi.fn()}
         onClose={vi.fn()}
-        onConnectProviders={onConnect}
       />
     ));
     const empty = container.querySelector('.routing-modal__empty');
-    expect(empty?.textContent).toMatch(/No API key providers connected/);
-    const btn = empty?.querySelector('button') as HTMLButtonElement;
-    fireEvent.click(btn);
-    expect(onConnect).toHaveBeenCalled();
+    expect(empty?.textContent).toMatch(/No models available for this category/);
   });
 
   it('calls onClose on overlay click and Escape key', () => {
@@ -753,7 +752,7 @@ describe('ModelPickerModal', () => {
 
   it('filters the list by group name when search matches the group label', () => {
     const many: AvailableModel[] = [
-      ...baseModels,
+      ...apiKeyModels,
       { ...baseModels[0], model_name: 'extra-1', display_name: 'Extra 1' },
       { ...baseModels[0], model_name: 'extra-2', display_name: 'Extra 2' },
       { ...baseModels[0], model_name: 'extra-3', display_name: 'Extra 3' },
@@ -925,7 +924,7 @@ describe('ModelPickerModal', () => {
       <ModelPickerModal
         tierId="simple"
         models={[
-          ...baseModels,
+          ...apiKeyModels,
           { ...baseModels[0], model_name: 'extra-1', display_name: 'Extra 1' },
           { ...baseModels[0], model_name: 'extra-2', display_name: 'Extra 2' },
           { ...baseModels[0], model_name: 'extra-3', display_name: 'Extra 3' },
@@ -962,7 +961,10 @@ describe('ModelPickerModal', () => {
     );
   });
 
-  it('renders the no-subscription empty state on the subscription tab when nothing is connected', () => {
+  it('renders subscription models on the subscription tab when subscription models are available', () => {
+    // Tabs are model-driven. Pass subscription models so the tab appears
+    // and the models are shown on the subscription tab.
+    const subModels: AvailableModel[] = [baseModels[2]!]; // claude-opus subscription
     const subOnly: RoutingProvider[] = [
       {
         id: 'p11',
@@ -972,51 +974,35 @@ describe('ModelPickerModal', () => {
         has_api_key: false,
         connected_at: '2025-01-01',
       },
-      {
-        id: 'p12',
-        provider: 'openai',
-        auth_type: 'api_key',
-        is_active: true,
-        has_api_key: true,
-        connected_at: '2025-01-01',
-      },
     ];
-    // Both tabs are present, but subscription tab has zero models in the list.
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={[]}
+        models={subModels}
         tiers={tiers}
         connectedProviders={subOnly}
         onSelect={vi.fn()}
         onClose={vi.fn()}
       />
     ));
-    expect(container.textContent).toContain('No subscription providers connected');
+    // Subscription tab is selected by default when subscription models exist.
+    expect(container.textContent).toContain('Included in subscription');
   });
 
   it('renders the no-local empty state on the Local tab when no local models exist', () => {
-    const localOnly: RoutingProvider[] = [
-      {
-        id: 'p13',
-        provider: 'ollama',
-        auth_type: 'local',
-        is_active: true,
-        has_api_key: false,
-        connected_at: '2025-01-01',
-      },
-    ];
+    // Tabs are model-driven. Without local models, the Local tab never appears.
+    // Verify the generic empty state shows when models is empty.
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
         models={[]}
         tiers={tiers}
-        connectedProviders={localOnly}
+        connectedProviders={[]}
         onSelect={vi.fn()}
         onClose={vi.fn()}
       />
     ));
-    expect(container.textContent).toContain('No local providers connected');
+    expect(container.textContent).toContain('No models available for this category');
   });
 
   it('clicks the Subscription tab and resets the free-only filter', () => {
@@ -1135,7 +1121,7 @@ describe('ModelPickerModal', () => {
     });
   });
 
-  it('clicks the Local tab when local + api_key are both connected', () => {
+  it('clicks the Local tab when local + api_key models are both present', () => {
     const localAndApi: RoutingProvider[] = [
       ...apiKeyOnly,
       {
@@ -1147,10 +1133,18 @@ describe('ModelPickerModal', () => {
         connected_at: '2025-01-01',
       },
     ];
+    // Local tab only appears when local models are present in the model list.
+    const localModel: AvailableModel = {
+      ...baseModels[0],
+      model_name: 'llama3',
+      provider: 'ollama',
+      auth_type: 'local',
+      display_name: 'Llama 3',
+    };
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
-        models={baseModels}
+        models={[...apiKeyModels, localModel]}
         tiers={tiers}
         connectedProviders={localAndApi}
         onSelect={vi.fn()}

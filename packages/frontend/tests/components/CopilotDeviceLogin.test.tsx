@@ -52,7 +52,7 @@ describe('CopilotDeviceLogin', () => {
 
   it('calls onBack when back button is clicked', async () => {
     const { props } = renderComponent();
-    await fireEvent.click(screen.getByLabelText('Back to providers'));
+    await fireEvent.click(screen.getByLabelText('Close'));
     expect(props.onBack).toHaveBeenCalled();
   });
 
