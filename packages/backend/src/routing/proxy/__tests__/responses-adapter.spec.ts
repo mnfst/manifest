@@ -788,6 +788,9 @@ describe('Responses adapter', () => {
         const completed = firstEventData(end, 'response.completed')!;
         expect(completed.response.id).toBe(created.response.id);
         expect(completed.response.created_at).toBe(created.response.created_at);
+        // completed_at must reflect the actual finalize time, not the
+        // stream-start timestamp reused for created_at.
+        expect(completed.response.completed_at).toBeGreaterThan(completed.response.created_at);
       } finally {
         nowSpy.mockRestore();
       }

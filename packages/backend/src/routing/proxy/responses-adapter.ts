@@ -682,6 +682,10 @@ function finalizeResponsesStream(state: ResponsesStreamState): string | null {
     state.model,
   );
   response.id = state.responseId;
+  // `created_at` is the stream-start stamp (shared across every snapshot for
+  // this id), but `completed_at` must reflect when the stream actually
+  // finished — fromChatCompletionResponse defaults it to `created`.
+  response.completed_at = Math.floor(Date.now() / 1000);
   if (state.itemOpened && Array.isArray(response.output)) {
     const message = response.output.find((item) => isRecord(item) && item.type === 'message');
     if (isRecord(message)) message.id = state.itemId;
