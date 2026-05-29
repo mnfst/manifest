@@ -337,7 +337,7 @@ const ConnectionDetail: Component = () => {
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px;">
                 {/* Left: Agents table */}
                 <div class="panel" style="padding: 0;">
-                  <div class="panel__title" style="padding: 16px 16px 12px;">
+                  <div class="panel__title" style="padding: 16px 16px 0;">
                     Agents
                   </div>
                   <Show
@@ -393,7 +393,7 @@ const ConnectionDetail: Component = () => {
                 <div class="panel" style="padding: 0;">
                   <div
                     class="panel__title"
-                    style="padding: 16px 16px 12px; display: flex; justify-content: space-between; align-items: center;"
+                    style="padding: 16px 16px 0; display: flex; justify-content: space-between; align-items: center;"
                   >
                     Recent Messages
                     <A href={`/messages`} class="view-more-link">

@@ -137,37 +137,62 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
 
       {/* Agent tags — legend + filter (inside the card) */}
       <Show when={allAg().length > 0}>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 16px;">
-          <For each={allAg()}>
-            {(agent) => {
-              const c = () => colorMap()[agent];
-              const sel = () => !props.selectedAgents || props.selectedAgents.has(agent);
-              const val = () => hoverValues()?.[agent] ?? totals()[agent] ?? 0;
-              return (
-                <button
-                  style={{
-                    display: 'inline-flex',
-                    'align-items': 'center',
-                    gap: '6px',
-                    padding: '3px 10px',
-                    'border-radius': 'var(--radius-sm)',
-                    border: `1px solid ${sel() ? c() : 'hsl(var(--border))'}`,
-                    background: sel() ? lightBg(c()) : 'transparent',
-                    color: sel() ? c() : 'hsl(var(--muted-foreground))',
-                    'font-size': 'var(--font-size-xs)',
-                    'font-weight': '500',
-                    cursor: 'pointer',
-                    opacity: sel() ? '1' : '0.5',
-                    transition: 'all 150ms',
-                  }}
-                  onClick={() => props.onToggleAgent?.(agent)}
-                >
-                  {agent}
-                  <span style="font-weight: 600;">{formatNumber(val())}</span>
-                </button>
-              );
-            }}
-          </For>
+        <div style="padding: 12px 16px 16px;">
+          <div style="font-size: var(--font-size-xs); font-weight: 600; color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+            Filter by agents
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <For each={allAg()}>
+              {(agent) => {
+                const c = () => colorMap()[agent];
+                const sel = () => !props.selectedAgents || props.selectedAgents.has(agent);
+                const val = () => hoverValues()?.[agent] ?? totals()[agent] ?? 0;
+                return (
+                  <button
+                    style={{
+                      display: 'inline-flex',
+                      'align-items': 'center',
+                      gap: '6px',
+                      padding: '3px 10px',
+                      'border-radius': 'var(--radius-sm)',
+                      border: `1px solid ${sel() ? c() : 'hsl(var(--border))'}`,
+                      background: sel() ? lightBg(c()) : 'transparent',
+                      color: sel() ? c() : 'hsl(var(--muted-foreground))',
+                      'font-size': 'var(--font-size-xs)',
+                      'font-weight': '500',
+                      cursor: 'pointer',
+                      opacity: sel() ? '1' : '0.5',
+                      transition: 'all 150ms',
+                    }}
+                    onClick={() => props.onToggleAgent?.(agent)}
+                  >
+                    {agent}
+                    <span style="font-weight: 600;">{formatNumber(val())}</span>
+                  </button>
+                );
+              }}
+            </For>
+          </div>
+          {/* Footer with total */}
+          <div style="display: flex; justify-content: flex-end; margin-top: 10px; padding-top: 8px; border-top: 1px solid hsl(var(--border));">
+            <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+              Total{' '}
+              <span style="font-weight: 700; color: hsl(var(--foreground)); font-size: var(--font-size-sm);">
+                {formatNumber(
+                  (() => {
+                    const hv = hoverValues();
+                    const selected = props.selectedAgents;
+                    let sum = 0;
+                    for (const a of allAg()) {
+                      if (selected && !selected.has(a)) continue;
+                      sum += hv ? (hv[a] ?? 0) : (totals()[a] ?? 0);
+                    }
+                    return sum;
+                  })(),
+                )}
+              </span>
+            </span>
+          </div>
         </div>
       </Show>
     </div>

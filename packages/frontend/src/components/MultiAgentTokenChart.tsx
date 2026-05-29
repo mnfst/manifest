@@ -4,52 +4,50 @@ import 'uplot/dist/uPlot.min.css';
 import { getHslA, getHsl } from '../services/theme.js';
 import {
   useChartLifecycle,
-  createCursorSnap,
   createBaseAxes,
   parseTimestamps,
   createTimeScaleRange,
   createFormatLegendTimestamp,
   formatLegendTokens,
   isMultiDayRange,
-  sanitizeNumbers,
   fillDailyGaps,
 } from '../services/chart-utils.js';
 
 export const AGENT_COLORS = [
-  '#1cc4bf', // teal
-  '#2430F0', // blue
-  '#FE076E', // pink
-  '#9531F9', // purple
-  '#FDCF3B', // yellow
-  '#0F1683', // dark blue
-  '#26d9d3', // light teal
-  '#F97316', // orange
-  '#10B981', // emerald
-  '#EC4899', // rose
-  '#8B5CF6', // violet
-  '#06B6D4', // cyan
-  '#F59E0B', // amber
-  '#6366F1', // indigo
-  '#14B8A6', // teal variant
-  '#E11D48', // red
-  '#7C3AED', // purple variant
-  '#0EA5E9', // sky
-  '#84CC16', // lime
-  '#D946EF', // fuchsia
+  '#1cc4bf',
+  '#2430F0',
+  '#FE076E',
+  '#9531F9',
+  '#FDCF3B',
+  '#0F1683',
+  '#26d9d3',
+  '#F97316',
+  '#10B981',
+  '#EC4899',
+  '#8B5CF6',
+  '#06B6D4',
+  '#F59E0B',
+  '#6366F1',
+  '#14B8A6',
+  '#E11D48',
+  '#7C3AED',
+  '#0EA5E9',
+  '#84CC16',
+  '#D946EF',
 ];
 
 interface MultiAgentTokenChartProps {
   agents: string[];
   timeseries: Array<Record<string, number | string>>;
   range: string;
-  /** Fixed color per agent name — overrides index-based palette */
   colorMap?: Record<string, string>;
-  /** Called when cursor hovers a point — null means cursor left */
   onHoverValues?: (values: Record<string, number> | null) => void;
 }
 
 const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
   let el!: HTMLDivElement;
+  // Store raw (non-cumulative) data for hover un-stacking
+  let rawData: number[][] = [];
 
   const bucketKey = () => (props.range === '24h' ? 'hour' : 'date');
 
@@ -62,11 +60,23 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
     });
 
     const timestamps = parseTimestamps(filled as any[]);
-    const series: number[][] = props.agents.map((agent) =>
-      sanitizeNumbers(filled.map((d: any) => Number(d[agent] ?? 0))),
+
+    // Raw values per agent
+    rawData = props.agents.map((agent) =>
+      filled.map((d: any) => Math.max(0, Number(d[agent] ?? 0))),
     );
 
-    return [timestamps, ...series];
+    // Build cumulative (stacked) arrays — agent 0 at bottom, agent N at top
+    const cumulative: number[][] = [];
+    for (let i = 0; i < props.agents.length; i++) {
+      const prev = i > 0 ? cumulative[i - 1] : timestamps.map(() => 0);
+      cumulative.push(rawData[i].map((v, j) => v + (prev[j] ?? 0)));
+    }
+
+    // Return in reverse order: last cumulative (tallest) = series 1 (drawn first = behind)
+    // First cumulative (shortest) = last series (drawn last = in front)
+    const reversed = [...cumulative].reverse();
+    return [timestamps, ...reversed];
   };
 
   useChartLifecycle({
@@ -83,18 +93,22 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
       const gridColor = getHslA('--foreground', 0.05);
       const bgColor = getHsl('--card');
 
-      const yRange = (_u: uPlot, _min: number, max: number): [number, number] => [
-        0,
-        max > 0 ? max * 1.1 : 100,
-      ];
+      const bars = uPlot.paths.bars!({ size: [1, 20], gap: 2 });
+
+      // Agents reversed: series[1] = tallest cumulative (all agents), drawn behind
+      // series[N] = shortest cumulative (agent 0 only), drawn in front
+      const reversedAgents = [...props.agents].reverse();
 
       const series: uPlot.Series[] = [
         { value: createFormatLegendTimestamp(props.range) },
-        ...props.agents.map((agent) => ({
+        ...reversedAgents.map((agent) => ({
           label: agent,
           scale: 'y' as const,
           stroke: props.colorMap?.[agent] ?? AGENT_COLORS[0],
-          width: 2,
+          fill: props.colorMap?.[agent] ?? AGENT_COLORS[0],
+          width: 0,
+          paths: bars,
+          points: { show: false },
           value: formatLegendTokens,
         })),
       ];
@@ -105,7 +119,10 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
           height: 260,
           padding: [16, 0, 0, 0],
           legend: { show: false },
-          cursor: createCursorSnap(bgColor, AGENT_COLORS[0]),
+          cursor: {
+            points: { show: false },
+            drag: { x: false, y: false },
+          },
           hooks: {
             setCursor: [
               (u) => {
@@ -115,17 +132,24 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
                   props.onHoverValues(null);
                   return;
                 }
+                // Report raw (un-stacked) values
                 const vals: Record<string, number> = {};
                 for (let i = 0; i < props.agents.length; i++) {
-                  vals[props.agents[i]] = Number(u.data[i + 1]?.[idx] ?? 0);
+                  vals[props.agents[i]] = rawData[i]?.[idx] ?? 0;
                 }
                 props.onHoverValues(vals);
               },
             ],
           },
           scales: {
-            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
-            y: { auto: true, range: yRange },
+            x: {
+              time: !isMultiDayRange(props.range),
+              range: createTimeScaleRange(props.range, true),
+            },
+            y: {
+              auto: true,
+              range: (_u, _min, max) => [0, max > 0 ? max * 1.1 : 100] as [number, number],
+            },
           },
           axes: (() => {
             const a = createBaseAxes(axisColor, gridColor, props.range);
