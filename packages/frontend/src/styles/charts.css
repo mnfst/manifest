@@ -85,6 +85,202 @@
   white-space: nowrap;
 }
 
+/* ── Agent chart hover tooltip ────────────────────── */
+.agent-chart-tooltip {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow:
+    0 4px 12px -2px rgb(0 0 0 / 0.12),
+    0 2px 4px -2px rgb(0 0 0 / 0.08);
+  min-width: 180px;
+  max-width: 260px;
+  font-family: var(--font-family);
+  font-size: 14px;
+}
+
+.agent-chart-tooltip__date {
+  font-size: 14px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.agent-chart-tooltip__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.agent-chart-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-chart-tooltip__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.agent-chart-tooltip__name {
+  flex: 1;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.agent-chart-tooltip__value {
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.agent-chart-tooltip__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+.agent-chart-tooltip__total-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+@media (max-width: 768px) {
+  .agent-chart-tooltip {
+    display: none;
+  }
+}
+
+/* ── Agent filter multi-select ───────────────────── */
+.agent-filter-select {
+  position: relative;
+  align-self: center;
+  margin-right: 16px;
+}
+
+.agent-filter-select__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 2rem;
+  padding: 0 8px 0 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  font-family: var(--font-family);
+  color: hsl(var(--foreground));
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.agent-filter-select__trigger:hover {
+  border-color: hsl(var(--foreground) / 0.3);
+}
+
+.agent-filter-select__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 200;
+  background: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow:
+    0 4px 12px -2px rgb(0 0 0 / 0.12),
+    0 2px 4px -2px rgb(0 0 0 / 0.08);
+  min-width: 220px;
+  max-height: 540px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.agent-filter-select__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  border-radius: calc(var(--radius) - 2px);
+  transition: background var(--transition-fast);
+}
+
+.agent-filter-select__item:hover {
+  background: hsl(var(--muted));
+}
+
+.agent-filter-select__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.agent-filter-select__name {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.agent-filter-select__toggle {
+  position: relative;
+  width: 26px;
+  height: 14px;
+  background: hsl(var(--border));
+  border-radius: 999px;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.agent-filter-select__toggle--on {
+  background: #5bbcb4;
+}
+
+.agent-filter-select__toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: left var(--transition-fast);
+}
+
+.agent-filter-select__toggle--on .agent-filter-select__toggle-thumb {
+  left: 14px;
+}
+
 /* ── Expandable Card ──────────────────────────────── */
 .expandable-card {
   position: relative;

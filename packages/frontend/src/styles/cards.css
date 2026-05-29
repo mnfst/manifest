@@ -174,11 +174,12 @@
 
 .chart-card__body {
   padding: var(--gap-md) var(--gap-lg) var(--gap-lg);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .chart-card__body .u-wrap {
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 /* ── Panel Header with Tabs ────────────────────────── */

@@ -1,6 +1,14 @@
 import { Title } from '@solidjs/meta';
 import { A, useNavigate, useParams } from '@solidjs/router';
-import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
+import {
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  Show,
+  onCleanup,
+  type Component,
+} from 'solid-js';
 import {
   getConnectionDetail,
   getProviderAnalytics,
@@ -16,6 +24,7 @@ import { formatNumber, formatTimeAgo } from '../../services/formatters.js';
 import { getAgents } from '../../services/api.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import ActionMenu from '../../components/ActionMenu.jsx';
 import Select from '../../components/Select.jsx';
 import { toast } from '../../services/toast-store.js';
@@ -133,9 +142,43 @@ const ConnectionDetail: Component = () => {
 
   // Agent tag selection for chart filtering
   const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(new Set());
+  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
+  let agentFilterRef: HTMLDivElement | undefined;
+
+  // Close agent filter dropdown on outside click / Escape
+  if (typeof document !== 'undefined') {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
+        setAgentFilterOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAgentFilterOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    onCleanup(() => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    });
+  }
 
   // Initialize selectedAgents when agentTimeseries loads
   const allAgents = () => agentTimeseries()?.agents ?? [];
+
+  const agentColorMap = createMemo(() => {
+    const map: Record<string, string> = {};
+    const agents = allAgents();
+    for (let i = 0; i < agents.length; i++) {
+      map[agents[i]!] = AGENT_COLORS[i % AGENT_COLORS.length]!;
+    }
+    return map;
+  });
+
+  const selectedAgentCount = () => {
+    const sel = effectiveSelected();
+    return sel.size;
+  };
   const effectiveSelected = () => {
     const sel = selectedAgents();
     // If nothing selected yet (initial load), select all
@@ -302,6 +345,73 @@ const ConnectionDetail: Component = () => {
 
               {/* Chart filters */}
               <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 16px;">
+                <Show when={allAgents().length > 1}>
+                  <div class="agent-filter-select" ref={agentFilterRef}>
+                    <button
+                      class="agent-filter-select__trigger"
+                      onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                      type="button"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                      </svg>
+                      {selectedAgentCount() === allAgents().length
+                        ? `All agents (${allAgents().length})`
+                        : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                    <Show when={agentFilterOpen()}>
+                      <div class="agent-filter-select__dropdown">
+                        <For each={allAgents()}>
+                          {(agent) => {
+                            const isOn = () => effectiveSelected().has(agent);
+                            return (
+                              <button
+                                class="agent-filter-select__item"
+                                onClick={() => toggleAgent(agent)}
+                                type="button"
+                              >
+                                <span
+                                  class="agent-filter-select__swatch"
+                                  style={{ background: agentColorMap()[agent] }}
+                                />
+                                <span class="agent-filter-select__name">{agent}</span>
+                                <span
+                                  class="agent-filter-select__toggle"
+                                  classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                                >
+                                  <span class="agent-filter-select__toggle-thumb" />
+                                </span>
+                              </button>
+                            );
+                          }}
+                        </For>
+                      </div>
+                    </Show>
+                  </div>
+                </Show>
                 <Select
                   value={chartRange()}
                   onChange={setChartRange}
@@ -326,10 +436,7 @@ const ConnectionDetail: Component = () => {
                   messageChartData={messageChartData()}
                   range={chartRange()}
                   agentTimeseries={filteredAgentTimeseries() ?? undefined}
-                  fullAgentTimeseries={agentTimeseries() ?? undefined}
-                  allAgents={allAgents()}
-                  selectedAgents={effectiveSelected()}
-                  onToggleAgent={toggleAgent}
+                  colorMap={agentColorMap()}
                 />
               </Show>
 

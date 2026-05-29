@@ -1,13 +1,8 @@
-import { createMemo, createSignal, For, Show, type Component } from 'solid-js';
+import { Show, type Component } from 'solid-js';
 import SingleTokenChart from './SingleTokenChart.jsx';
 import TokenChart from './TokenChart.jsx';
-import MultiAgentTokenChart, { AGENT_COLORS } from './MultiAgentTokenChart.jsx';
+import MultiAgentTokenChart from './MultiAgentTokenChart.jsx';
 import { formatNumber } from '../services/formatters.js';
-
-function lightBg(color: string): string {
-  if (color.startsWith('#')) return `${color}18`;
-  return color.replace(')', ' / 0.1)').replace('hsl(', 'hsla(');
-}
 
 type ProviderView = 'messages' | 'tokens';
 
@@ -35,35 +30,10 @@ interface ProviderChartCardProps {
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
   agentTimeseries?: { agents: string[]; timeseries: Array<Record<string, number | string>> };
-  fullAgentTimeseries?: { agents: string[]; timeseries: Array<Record<string, number | string>> };
-  allAgents?: string[];
-  selectedAgents?: Set<string>;
-  onToggleAgent?: (agent: string) => void;
+  colorMap?: Record<string, string>;
 }
 
 const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
-  const [hoverValues, setHoverValues] = createSignal<Record<string, number> | null>(null);
-
-  const allAg = () => props.allAgents ?? props.agentTimeseries?.agents ?? [];
-
-  const colorMap = createMemo(() => {
-    const map: Record<string, string> = {};
-    for (const [i, a] of allAg().entries()) {
-      map[a] = AGENT_COLORS[i % AGENT_COLORS.length];
-    }
-    return map;
-  });
-
-  const totals = createMemo(() => {
-    const t: Record<string, number> = {};
-    for (const a of allAg()) t[a] = 0;
-    const ts = props.fullAgentTimeseries?.timeseries ?? props.agentTimeseries?.timeseries ?? [];
-    for (const row of ts) {
-      for (const a of allAg()) t[a] += Number(row[a] ?? 0);
-    }
-    return t;
-  });
-
   return (
     <div class="chart-card">
       <div class="chart-card__header">
@@ -128,73 +98,11 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
               agents={props.agentTimeseries!.agents}
               timeseries={props.agentTimeseries!.timeseries}
               range={props.range}
-              colorMap={colorMap()}
-              onHoverValues={setHoverValues}
+              colorMap={props.colorMap}
             />
           </Show>
         </Show>
       </div>
-
-      {/* Agent tags — legend + filter (inside the card) */}
-      <Show when={allAg().length > 0}>
-        <div style="padding: 12px 16px 16px;">
-          <div style="font-size: var(--font-size-xs); font-weight: 600; color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-            Filter by agents
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-            <For each={allAg()}>
-              {(agent) => {
-                const c = () => colorMap()[agent];
-                const sel = () => !props.selectedAgents || props.selectedAgents.has(agent);
-                const val = () => hoverValues()?.[agent] ?? totals()[agent] ?? 0;
-                return (
-                  <button
-                    style={{
-                      display: 'inline-flex',
-                      'align-items': 'center',
-                      gap: '6px',
-                      padding: '3px 10px',
-                      'border-radius': 'var(--radius-sm)',
-                      border: `1px solid ${sel() ? c() : 'hsl(var(--border))'}`,
-                      background: sel() ? lightBg(c()) : 'transparent',
-                      color: sel() ? c() : 'hsl(var(--muted-foreground))',
-                      'font-size': 'var(--font-size-xs)',
-                      'font-weight': '500',
-                      cursor: 'pointer',
-                      opacity: sel() ? '1' : '0.5',
-                      transition: 'all 150ms',
-                    }}
-                    onClick={() => props.onToggleAgent?.(agent)}
-                  >
-                    {agent}
-                    <span style="font-weight: 600;">{formatNumber(val())}</span>
-                  </button>
-                );
-              }}
-            </For>
-          </div>
-          {/* Footer with total */}
-          <div style="display: flex; justify-content: flex-end; margin-top: 10px; padding-top: 8px; border-top: 1px solid hsl(var(--border));">
-            <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-              Total{' '}
-              <span style="font-weight: 700; color: hsl(var(--foreground)); font-size: var(--font-size-sm);">
-                {formatNumber(
-                  (() => {
-                    const hv = hoverValues();
-                    const selected = props.selectedAgents;
-                    let sum = 0;
-                    for (const a of allAg()) {
-                      if (selected && !selected.has(a)) continue;
-                      sum += hv ? (hv[a] ?? 0) : (totals()[a] ?? 0);
-                    }
-                    return sum;
-                  })(),
-                )}
-              </span>
-            </span>
-          </div>
-        </div>
-      </Show>
     </div>
   );
 };

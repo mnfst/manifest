@@ -1,7 +1,8 @@
-import type { Component } from 'solid-js';
+import { createSignal, For, Show, type Component } from 'solid-js';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { getHslA, getHsl } from '../services/theme.js';
+import { formatNumber } from '../services/formatters.js';
 import {
   useChartLifecycle,
   createBaseAxes,
@@ -36,6 +37,16 @@ export const AGENT_COLORS = [
   '#D946EF',
 ];
 
+interface TooltipState {
+  visible: boolean;
+  left: number;
+  top: number;
+  alignRight: boolean;
+  date: string;
+  entries: Array<{ agent: string; value: number; color: string }>;
+  total: number;
+}
+
 interface MultiAgentTokenChartProps {
   agents: string[];
   timeseries: Array<Record<string, number | string>>;
@@ -44,10 +55,32 @@ interface MultiAgentTokenChartProps {
   onHoverValues?: (values: Record<string, number> | null) => void;
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatTooltipDate(epochSec: number, multiDay: boolean): string {
+  const d = new Date(epochSec * 1000);
+  const day = d.getDate();
+  const mon = MONTHS[d.getMonth()]!;
+  const year = d.getFullYear();
+  if (multiDay) return `${day} ${mon} ${year}`;
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${day} ${mon} ${year}, ${hh}:${mm}`;
+}
+
 const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
   let el!: HTMLDivElement;
-  // Store raw (non-cumulative) data for hover un-stacking
   let rawData: number[][] = [];
+
+  const [tooltip, setTooltip] = createSignal<TooltipState>({
+    visible: false,
+    left: 0,
+    top: 0,
+    alignRight: false,
+    date: '',
+    entries: [],
+    total: 0,
+  });
 
   const bucketKey = () => (props.range === '24h' ? 'hour' : 'date');
 
@@ -61,20 +94,16 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
 
     const timestamps = parseTimestamps(filled as any[]);
 
-    // Raw values per agent
     rawData = props.agents.map((agent) =>
       filled.map((d: any) => Math.max(0, Number(d[agent] ?? 0))),
     );
 
-    // Build cumulative (stacked) arrays — agent 0 at bottom, agent N at top
     const cumulative: number[][] = [];
     for (let i = 0; i < props.agents.length; i++) {
-      const prev = i > 0 ? cumulative[i - 1] : timestamps.map(() => 0);
-      cumulative.push(rawData[i].map((v, j) => v + (prev[j] ?? 0)));
+      const prev = i > 0 ? cumulative[i - 1]! : timestamps.map(() => 0);
+      cumulative.push(rawData[i]!.map((v, j) => v + (prev[j] ?? 0)));
     }
 
-    // Return in reverse order: last cumulative (tallest) = series 1 (drawn first = behind)
-    // First cumulative (shortest) = last series (drawn last = in front)
     const reversed = [...cumulative].reverse();
     return [timestamps, ...reversed];
   };
@@ -91,13 +120,10 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
 
       const axisColor = getHslA('--foreground', 0.55);
       const gridColor = getHslA('--foreground', 0.05);
-      const bgColor = getHsl('--card');
 
       const bars = uPlot.paths.bars!({ size: [1, 20], gap: 2 });
-
-      // Agents reversed: series[1] = tallest cumulative (all agents), drawn behind
-      // series[N] = shortest cumulative (agent 0 only), drawn in front
       const reversedAgents = [...props.agents].reverse();
+      const multiDay = isMultiDayRange(props.range);
 
       const series: uPlot.Series[] = [
         { value: createFormatLegendTimestamp(props.range) },
@@ -117,33 +143,78 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
         {
           width: w,
           height: 260,
-          padding: [16, 0, 0, 0],
+          padding: [16, 16, 0, 16],
           legend: { show: false },
           cursor: {
+            x: true,
+            y: false,
             points: { show: false },
             drag: { x: false, y: false },
+            move: (u: uPlot, left: number, top: number) => {
+              const idx = u.posToIdx(left);
+              const snappedLeft =
+                idx != null && u.data[0]?.[idx] != null
+                  ? Math.round(u.valToPos(u.data[0][idx]!, 'x'))
+                  : left;
+              return [snappedLeft, top];
+            },
           },
           hooks: {
             setCursor: [
               (u) => {
-                if (!props.onHoverValues) return;
                 const idx = u.cursor.idx;
                 if (idx == null || idx < 0) {
-                  props.onHoverValues(null);
+                  props.onHoverValues?.(null);
+                  setTooltip((prev) => ({ ...prev, visible: false }));
                   return;
                 }
-                // Report raw (un-stacked) values
+
+                // Raw (un-stacked) values
                 const vals: Record<string, number> = {};
+                const entries: TooltipState['entries'] = [];
+                let total = 0;
                 for (let i = 0; i < props.agents.length; i++) {
-                  vals[props.agents[i]] = rawData[i]?.[idx] ?? 0;
+                  const agentName = props.agents[i]!;
+                  const v = rawData[i]?.[idx] ?? 0;
+                  vals[agentName] = v;
+                  entries.push({
+                    agent: agentName,
+                    value: v,
+                    color:
+                      props.colorMap?.[agentName] ??
+                      AGENT_COLORS[i % AGENT_COLORS.length] ??
+                      '#888',
+                  });
+                  total += v;
                 }
-                props.onHoverValues(vals);
+                props.onHoverValues?.(vals);
+
+                // Sort entries by value descending
+                entries.sort((a, b) => b.value - a.value);
+
+                // Bar x position (pixel space)
+                const timestamp = u.data[0]?.[idx];
+                const barLeft = timestamp != null ? Math.round(u.valToPos(timestamp, 'x')) : 0;
+                const chartWidth = u.bbox.width / devicePixelRatio;
+                const pastHalf = barLeft > chartWidth / 2;
+
+                const date = timestamp != null ? formatTooltipDate(timestamp, multiDay) : '';
+
+                setTooltip({
+                  visible: true,
+                  left: barLeft,
+                  top: 16,
+                  alignRight: pastHalf,
+                  date,
+                  entries,
+                  total,
+                });
               },
             ],
           },
           scales: {
             x: {
-              time: !isMultiDayRange(props.range),
+              time: !multiDay,
               range: createTimeScaleRange(props.range, true),
             },
             y: {
@@ -167,7 +238,42 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
     },
   });
 
-  return <div ref={el} style="width: 100%; min-height: 260px;" />;
+  const tt = () => tooltip();
+
+  return (
+    <div style="position: relative; overflow: visible;">
+      <div ref={el} style="width: 100%; min-height: 260px;" />
+      <Show when={tt().visible && tt().entries.length > 0}>
+        <div
+          class="agent-chart-tooltip"
+          style={{
+            left: tt().alignRight ? 'auto' : `${tt().left + 2}px`,
+            right: tt().alignRight ? `${(el?.clientWidth ?? 0) - tt().left + 2}px` : 'auto',
+            top: `${tt().top}px`,
+          }}
+        >
+          <div class="agent-chart-tooltip__date">{tt().date}</div>
+          <div class="agent-chart-tooltip__list">
+            <For each={tt().entries}>
+              {(entry) => (
+                <Show when={entry.value > 0}>
+                  <div class="agent-chart-tooltip__row">
+                    <span class="agent-chart-tooltip__swatch" style={{ background: entry.color }} />
+                    <span class="agent-chart-tooltip__name">{entry.agent}</span>
+                    <span class="agent-chart-tooltip__value">{formatNumber(entry.value)}</span>
+                  </div>
+                </Show>
+              )}
+            </For>
+          </div>
+          <div class="agent-chart-tooltip__total">
+            <span>Total</span>
+            <span class="agent-chart-tooltip__total-value">{formatNumber(tt().total)}</span>
+          </div>
+        </div>
+      </Show>
+    </div>
+  );
 };
 
 export default MultiAgentTokenChart;
