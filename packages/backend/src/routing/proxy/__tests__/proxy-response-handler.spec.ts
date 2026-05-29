@@ -851,15 +851,22 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('should convert chat completion streams when serving Responses clients', async () => {
+    it('should convert chat completion streams into the full Responses lifecycle (issue #2064)', async () => {
       const { res } = mockResponse();
       const forward = mockForward();
       const client = mockProviderClient();
       const meta = makeMeta();
       let capturedTransform: ((chunk: string) => string | null) | undefined;
+      let capturedFinalize: (() => string | null) | undefined;
       pipeStreamSpy.mockImplementation(
-        async (_body: unknown, _res: unknown, transform?: (chunk: string) => string | null) => {
+        async (
+          _body: unknown,
+          _res: unknown,
+          transform?: (chunk: string) => string | null,
+          finalize?: () => string | null,
+        ) => {
           capturedTransform = transform;
+          capturedFinalize = finalize;
           return null;
         },
       );
@@ -876,11 +883,24 @@ describe('proxy-response-handler', () => {
         'responses',
       );
 
+      // The converter must be stateful: the message item + content part are
+      // opened ahead of the first delta so strict clients keep the text.
       expect(capturedTransform).toBeDefined();
-      const converted = capturedTransform!(
+      const opened = capturedTransform!(
         'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":null}]}\n\n',
-      );
-      expect(converted).toContain('event: response.output_text.delta');
+      )!;
+      expect(opened).toContain('event: response.output_item.added');
+      expect(opened).toContain('event: response.content_part.added');
+      expect(opened).toContain('event: response.output_text.delta');
+
+      // finalize must close the item and terminate the stream itself, since
+      // pipeStream skips its own [DONE] when a finalize is supplied.
+      expect(capturedFinalize).toBeDefined();
+      const tail = capturedFinalize!()!;
+      expect(tail).toContain('event: response.output_item.done');
+      expect(tail).toContain('event: response.completed');
+      expect(tail).toContain('"text":"Hi"');
+      expect(tail.trimEnd().endsWith('data: [DONE]')).toBe(true);
     });
 
     it('should cache thought_signatures from Google stream chunks', async () => {

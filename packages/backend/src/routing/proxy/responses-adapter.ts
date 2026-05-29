@@ -499,65 +499,204 @@ function safeParse(data: string): JsonRecord | null {
   }
 }
 
-export function chatCompletionStreamChunkToResponses(chunk: string): string | null {
-  const payloads = extractDataPayloads(chunk);
+export interface ResponsesStreamTransformer {
+  transform: (chunk: string) => string | null;
+  finalize: () => string | null;
+}
+
+interface ResponsesStreamState {
+  responseId: string;
+  itemId: string;
+  model: string;
+  createdAt: number;
+  usage: unknown;
+  text: string;
+  createdEmitted: boolean;
+  itemOpened: boolean;
+  completed: boolean;
+}
+
+/**
+ * Converts an upstream Chat Completions SSE stream into a spec-compliant
+ * OpenAI Responses API event stream.
+ *
+ * Unlike a per-chunk mapper, this is stateful: the Responses API requires a
+ * message item and content part to be *opened* (`response.output_item.added`
+ * + `response.content_part.added`) before any `response.output_text.delta`,
+ * and *closed* (`...output_text.done` / `...content_part.done` /
+ * `...output_item.done`) before `response.completed`. Strict clients (Pi,
+ * OpenClaw-style) silently drop text deltas that arrive without an open item,
+ * which surfaced as empty assistant messages (issue #2064).
+ *
+ * `transform` runs per upstream event; `finalize` closes the stream and emits
+ * the terminal `data: [DONE]`. When a `finalize` is supplied, `pipeStream`
+ * delegates termination to it (it does not add its own `[DONE]`).
+ */
+export function createResponsesStreamTransformer(model: string): ResponsesStreamTransformer {
+  const state: ResponsesStreamState = {
+    responseId: `resp_${randomUUID().replace(/-/g, '')}`,
+    itemId: `msg_${randomUUID().replace(/-/g, '')}`,
+    model,
+    // Stamp the creation time once so every response snapshot for this id
+    // (`response.created`, `.in_progress`, `.completed`) reports the same
+    // `created_at`, even on streams that span more than one second.
+    createdAt: Math.floor(Date.now() / 1000),
+    usage: undefined,
+    text: '',
+    createdEmitted: false,
+    itemOpened: false,
+    completed: false,
+  };
+
+  return {
+    transform: (chunk: string) => transformResponsesStreamChunk(chunk, state),
+    finalize: () => finalizeResponsesStream(state),
+  };
+}
+
+function inProgressResponse(state: ResponsesStreamState): JsonRecord {
+  const response = fromChatCompletionResponse(
+    { model: state.model, created: state.createdAt, choices: [{ message: { content: '' } }] },
+    state.model,
+  );
+  response.id = state.responseId;
+  response.status = 'in_progress';
+  response.completed_at = null;
+  response.usage = null;
+  return response;
+}
+
+function emitCreated(state: ResponsesStreamState): string[] {
+  if (state.createdEmitted) return [];
+  state.createdEmitted = true;
+  const response = inProgressResponse(state);
+  return [
+    formatResponsesEvent('response.created', { type: 'response.created', response }),
+    formatResponsesEvent('response.in_progress', { type: 'response.in_progress', response }),
+  ];
+}
+
+function emitItemOpen(state: ResponsesStreamState): string[] {
+  if (state.itemOpened) return [];
+  state.itemOpened = true;
+  return [
+    formatResponsesEvent('response.output_item.added', {
+      type: 'response.output_item.added',
+      output_index: 0,
+      item: {
+        id: state.itemId,
+        type: 'message',
+        status: 'in_progress',
+        role: 'assistant',
+        content: [],
+      },
+    }),
+    formatResponsesEvent('response.content_part.added', {
+      type: 'response.content_part.added',
+      item_id: state.itemId,
+      output_index: 0,
+      content_index: 0,
+      part: { type: 'output_text', text: '', annotations: [] },
+    }),
+  ];
+}
+
+function transformResponsesStreamChunk(chunk: string, state: ResponsesStreamState): string | null {
   const events: string[] = [];
 
-  for (const payload of payloads) {
+  for (const payload of extractDataPayloads(chunk)) {
     if (payload === '[DONE]') continue;
     const data = safeParse(payload);
     if (!data) continue;
-    const choices = Array.isArray(data.choices) ? data.choices : [];
-    if (choices.length === 0 && isRecord(data.usage)) {
-      events.push(
-        formatResponsesEvent('response.completed', {
-          type: 'response.completed',
-          response: fromChatCompletionResponse(
-            {
-              model: typeof data.model === 'string' ? data.model : undefined,
-              usage: data.usage,
-              choices: [{ message: { content: '' } }],
-            },
-            typeof data.model === 'string' ? data.model : 'unknown',
-          ),
-        }),
-      );
-      continue;
-    }
 
+    if (typeof data.model === 'string') state.model = data.model;
+    if (isRecord(data.usage)) state.usage = data.usage;
+
+    events.push(...emitCreated(state));
+
+    const choices = Array.isArray(data.choices) ? data.choices : [];
     const choice = isRecord(choices[0]) ? choices[0] : null;
     const delta = isRecord(choice?.delta) ? choice.delta : {};
 
     if (typeof delta.content === 'string' && delta.content.length > 0) {
+      events.push(...emitItemOpen(state));
+      state.text += delta.content;
       events.push(
         formatResponsesEvent('response.output_text.delta', {
           type: 'response.output_text.delta',
-          item_id: 'msg_0',
+          item_id: state.itemId,
           output_index: 0,
           content_index: 0,
           delta: delta.content,
         }),
       );
     }
-
-    if (choice?.finish_reason) {
-      events.push(
-        formatResponsesEvent('response.completed', {
-          type: 'response.completed',
-          response: fromChatCompletionResponse(
-            {
-              model: typeof data.model === 'string' ? data.model : undefined,
-              usage: data.usage,
-              choices: [{ message: { content: '' } }],
-            },
-            typeof data.model === 'string' ? data.model : 'unknown',
-          ),
-        }),
-      );
-    }
   }
 
   return events.length > 0 ? events.join('') : null;
+}
+
+function finalizeResponsesStream(state: ResponsesStreamState): string | null {
+  if (state.completed) return null;
+  state.completed = true;
+
+  const events: string[] = [...emitCreated(state)];
+
+  if (state.itemOpened) {
+    events.push(
+      formatResponsesEvent('response.output_text.done', {
+        type: 'response.output_text.done',
+        item_id: state.itemId,
+        output_index: 0,
+        content_index: 0,
+        text: state.text,
+      }),
+      formatResponsesEvent('response.content_part.done', {
+        type: 'response.content_part.done',
+        item_id: state.itemId,
+        output_index: 0,
+        content_index: 0,
+        part: { type: 'output_text', text: state.text, annotations: [] },
+      }),
+      formatResponsesEvent('response.output_item.done', {
+        type: 'response.output_item.done',
+        output_index: 0,
+        item: {
+          id: state.itemId,
+          type: 'message',
+          status: 'completed',
+          role: 'assistant',
+          content: [{ type: 'output_text', text: state.text, annotations: [] }],
+        },
+      }),
+    );
+  }
+
+  const response = fromChatCompletionResponse(
+    {
+      model: state.model,
+      created: state.createdAt,
+      usage: isRecord(state.usage) ? state.usage : undefined,
+      choices: [{ message: { content: state.text } }],
+    },
+    state.model,
+  );
+  response.id = state.responseId;
+  // `created_at` is the stream-start stamp (shared across every snapshot for
+  // this id), but `completed_at` must reflect when the stream actually
+  // finished — fromChatCompletionResponse defaults it to `created`.
+  response.completed_at = Math.floor(Date.now() / 1000);
+  if (state.itemOpened && Array.isArray(response.output)) {
+    const message = response.output.find((item) => isRecord(item) && item.type === 'message');
+    if (isRecord(message)) message.id = state.itemId;
+  }
+
+  events.push(
+    formatResponsesEvent('response.completed', { type: 'response.completed', response }),
+    'data: [DONE]\n\n',
+  );
+
+  return events.join('');
 }
 
 function extractDataPayloads(chunk: string): string[] {

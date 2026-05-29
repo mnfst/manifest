@@ -15,8 +15,8 @@ import {
 } from './stream-writer';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
 import {
-  chatCompletionStreamChunkToResponses,
   collectResponsesSseResponse,
+  createResponsesStreamTransformer,
   fromChatCompletionResponse,
 } from './responses-adapter';
 import {
@@ -296,13 +296,18 @@ export async function handleStreamResponse(
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
-  const finalize = messagesTransformer ? () => messagesTransformer.finalize() : undefined;
-  const toClientChunk =
-    apiMode === 'responses'
-      ? chatCompletionStreamChunkToResponses
-      : messagesTransformer
-        ? messagesTransformer.transform
-        : (chunk: string) => chunk;
+  // Responses inbound over a Chat Completions upstream needs a stateful
+  // converter so the message-item lifecycle events frame the text deltas
+  // (issue #2064). It shares the messages transformer's {transform, finalize}
+  // shape, and likewise owns stream termination via `finalize` (which emits
+  // the trailing `[DONE]` that pipeStream then skips).
+  const responsesTransformer =
+    apiMode === 'responses' ? createResponsesStreamTransformer(meta.model) : null;
+  const streamTransformer = messagesTransformer ?? responsesTransformer;
+  const finalize = streamTransformer ? () => streamTransformer.finalize() : undefined;
+  const toClientChunk = streamTransformer
+    ? (chunk: string) => streamTransformer.transform(chunk)
+    : (chunk: string) => chunk;
 
   if (apiMode === 'responses' && forward.isResponses) {
     return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
