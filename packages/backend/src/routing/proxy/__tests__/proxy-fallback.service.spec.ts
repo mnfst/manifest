@@ -794,7 +794,7 @@ describe('ProxyFallbackService', () => {
       expect(result.success).not.toBeNull();
       // getAuthType should have been called with the exclusion set
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'Anthropic',
         new Set(['subscription']),
       );
@@ -802,7 +802,7 @@ describe('ProxyFallbackService', () => {
       // the optional providerKeyLabel — undefined when the fallback entry
       // has no `||<label>` suffix.
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'Anthropic',
         'api_key',
         undefined,
@@ -840,7 +840,7 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'Google',
         'api_key',
         'Work',
@@ -875,7 +875,7 @@ describe('ProxyFallbackService', () => {
       );
 
       // OpenAI is a different provider, so no exclusion set should be passed
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('user-1', 'OpenAI', undefined);
     });
 
     it('accumulates failed auth types across same-provider fallbacks', async () => {
@@ -914,14 +914,14 @@ describe('ProxyFallbackService', () => {
       // First call: exclusion contains 'subscription' (from primary)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
         1,
-        'agent-1',
+        'user-1',
         'Anthropic',
         new Set(['subscription']),
       );
       // Second call: exclusion now also contains 'api_key' (from first fallback failure)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
         2,
-        'agent-1',
+        'user-1',
         'Anthropic',
         new Set(['subscription', 'api_key']),
       );
@@ -988,7 +988,7 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(result.success!.provider).toBe('openrouter');
-      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('user-1', 'anthropic');
     });
   });
 

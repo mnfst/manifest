@@ -122,7 +122,7 @@ describe('XaiOauthService', () => {
     expect(body.has('code_challenge')).toBe(false);
     expect(body.has('code_challenge_method')).toBe(false);
 
-    expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'xai');
+    expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'xai');
     expect(providerService.upsertProvider).toHaveBeenCalledWith(
       'agent-1',
       'user-1',
@@ -133,7 +133,7 @@ describe('XaiOauthService', () => {
       'X Account',
     );
     expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
-    expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
+    expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
     expect(svc.getPendingCount()).toBe(0);
   });
 

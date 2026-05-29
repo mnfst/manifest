@@ -386,7 +386,7 @@ describe('PlaygroundService.runStream', () => {
 
     await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
 
-    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(AGENT.id, 'openai');
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(USER_ID, 'openai');
     // subscription auth → cost is 0, not null
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);

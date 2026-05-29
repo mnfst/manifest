@@ -1061,7 +1061,7 @@ describe('ProxyService — orchestration', () => {
           body: { messages: [{ role: 'user', content: 'HEARTBEAT_OK' }] },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
     });
 
@@ -1093,7 +1093,7 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
     });
 
     it('does not detect heartbeat when no user message exists', async () => {

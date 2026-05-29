@@ -150,7 +150,7 @@ describe('OverviewController', () => {
 
     expect(result.has_providers).toBe(true);
     expect(mockResolveAgent).toHaveBeenCalledWith('u1', 'bot-1');
-    expect(mockGetProviders).toHaveBeenCalledWith('agent-uuid-1');
+    expect(mockGetProviders).toHaveBeenCalledWith('u1');
   });
 
   it('returns has_providers false when no providers exist', async () => {

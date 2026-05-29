@@ -191,8 +191,8 @@ describe('TierService', () => {
       const finalRows = TIER_SLOTS.map((slot) => ({ tier: slot }) as TierAssignment);
       tierRepo.find.mockResolvedValueOnce(finalRows);
 
-      const result = await svc.getTiers('agent-1');
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      const result = await svc.getTiers('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', finalRows);
       expect(result).toBe(finalRows);
     });

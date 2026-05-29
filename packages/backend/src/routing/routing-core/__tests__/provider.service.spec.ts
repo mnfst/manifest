@@ -38,6 +38,7 @@ describe('ProviderService — route-only cleanup paths', () => {
     getProviders: jest.Mock;
     setProviders: jest.Mock;
     invalidateAgent: jest.Mock;
+    invalidateUser: jest.Mock;
   };
   let svc: ProviderService;
 
@@ -51,6 +52,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
       invalidateAgent: jest.fn(),
+      invalidateUser: jest.fn(),
     };
 
     svc = new ProviderService(
@@ -321,7 +323,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(savedSpec[0].fallback_routes).toEqual([
         route('anthropic', 'claude-haiku-4-6', 'api_key'),
       ]);
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(result.notifications[0]).toMatch(/claude-sonnet-4-6 is no longer available/);
     });
 
@@ -353,7 +355,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       await svc.deactivateAllProviders('agent-1', 'user-1');
 
       expect(providerRepo.update).toHaveBeenCalledWith(
-        { agent_id: 'agent-1' },
+        { user_id: 'user-1' },
         expect.objectContaining({ is_active: false }),
       );
       expect(tierRepo.update).toHaveBeenCalledWith(
@@ -364,7 +366,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           fallback_routes: null,
         }),
       );
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
   });
@@ -374,13 +376,13 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.find.mockResolvedValue([
         {
           id: 'p1',
-          agent_id: 'agent-1',
+          user_id: 'user-1',
           provider: 'openai',
           auth_type: 'api_key',
           is_active: true,
         },
       ]);
-      const result = await svc.getProviders('agent-1');
+      const result = await svc.getProviders('user-1');
       expect(result).toHaveLength(1);
       expect(providerRepo.save).not.toHaveBeenCalled();
       expect(autoAssign.recalculate).not.toHaveBeenCalled();
@@ -410,14 +412,13 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.getProviders('agent-1');
+      const result = await svc.getProviders('user-1');
       // The unsupported row was deactivated.
       expect(providerRepo.save).toHaveBeenCalled();
       // After filter only usable providers are returned (none in this case).
       expect(result).toEqual([]);
-      // Tier override referencing the removed provider gets cleared.
-      expect(tierRepo.save).toHaveBeenCalled();
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      // Tier cleanup for unsupported subscription providers is now deferred lazily;
+      // no direct tier save or recalculate is triggered by getProviders anymore.
     });
 
     it('reads from cache when present', async () => {
@@ -425,7 +426,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
       ];
       routingCache.getProviders.mockReturnValue(cached);
-      const result = await svc.getProviders('agent-1');
+      const result = await svc.getProviders('user-1');
       expect(result).toBe(cached);
       expect(providerRepo.find).not.toHaveBeenCalled();
     });

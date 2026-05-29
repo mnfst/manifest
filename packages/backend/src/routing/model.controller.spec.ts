@@ -91,8 +91,8 @@ describe('ModelController', () => {
       mockProviderParamSpecs as unknown as ProviderParamSpecService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
-      {} as never,
-      {} as never,
+      { find: jest.fn().mockResolvedValue([]) } as never,
+      { findByIds: jest.fn().mockResolvedValue([]) } as never,
     );
   });
 
@@ -170,7 +170,7 @@ describe('ModelController', () => {
       const result = await controller.refreshModels(mockUser, mockAgentName);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
-      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith('user-1');
       expect(result).toEqual({ ok: true });
     });
   });
@@ -191,11 +191,11 @@ describe('ModelController', () => {
       const result = await controller.refreshProviderModels(mockUser, mockParams, {});
 
       expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
-        TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         undefined,
       );
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
       expect(result).toEqual({
         ok: true,
         model_count: 7,
@@ -207,7 +207,7 @@ describe('ModelController', () => {
     it('forwards the optional authType query param', async () => {
       await controller.refreshProviderModels(mockUser, mockParams, { authType: 'subscription' });
       expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
-        TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         'subscription',
       );
@@ -239,7 +239,7 @@ describe('ModelController', () => {
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
-      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith('user-1');
       expect(result).toHaveLength(1);
       expect(result[0].model_name).toBe('gpt-4o');
       expect(result[0].provider).toBe('openai');

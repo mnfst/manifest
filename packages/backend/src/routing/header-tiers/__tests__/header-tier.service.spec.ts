@@ -357,7 +357,14 @@ describe('HeaderTierService', () => {
       const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
       repo.findOne.mockResolvedValue(row);
 
-      const result = await svc.setOverride('agent-1', 'h1', 'gpt-4o', 'openai', 'api_key');
+      const result = await svc.setOverride(
+        'agent-1',
+        'user-1',
+        'h1',
+        'gpt-4o',
+        'openai',
+        'api_key',
+      );
       expect(discoveryService.getModelsForAgent).not.toHaveBeenCalled();
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(repo.save).toHaveBeenCalledWith(row);

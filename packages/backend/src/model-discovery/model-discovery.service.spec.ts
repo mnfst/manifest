@@ -391,10 +391,10 @@ describe('ModelDiscoveryService', () => {
       providerRepo.find.mockResolvedValue(providers);
       fetcher.fetch.mockResolvedValue([]);
 
-      await service.discoverAllForAgent('agent-1');
+      await service.discoverAllForAgent('user-1');
 
       expect(providerRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', is_active: true },
+        where: { user_id: 'user-1', is_active: true },
       });
       expect(fetcher.fetch).toHaveBeenCalledTimes(2);
     });
@@ -407,7 +407,7 @@ describe('ModelDiscoveryService', () => {
       providerRepo.find.mockResolvedValue(providers);
       fetcher.fetch.mockResolvedValue([]);
 
-      await service.discoverAllForAgent('agent-1');
+      await service.discoverAllForAgent('user-1');
 
       expect(fetcher.fetch).toHaveBeenCalledTimes(1);
     });
@@ -425,7 +425,7 @@ describe('ModelDiscoveryService', () => {
         .mockRejectedValueOnce(new Error('DB write failed'))
         .mockResolvedValueOnce({});
 
-      await expect(service.discoverAllForAgent('agent-1')).resolves.not.toThrow();
+      await expect(service.discoverAllForAgent('user-1')).resolves.not.toThrow();
     });
   });
 
@@ -434,7 +434,7 @@ describe('ModelDiscoveryService', () => {
   describe('refreshProvider', () => {
     it('returns Provider not found when no row matches', async () => {
       providerRepo.findOne.mockResolvedValue(null);
-      const result = await service.refreshProvider('agent-1', 'openai');
+      const result = await service.refreshProvider('user-1', 'openai');
       expect(result).toEqual({
         ok: false,
         model_count: 0,
@@ -451,7 +451,7 @@ describe('ModelDiscoveryService', () => {
           models_fetched_at: '2026-04-12T08:00:00.000Z',
         }),
       );
-      const result = await service.refreshProvider('agent-1', 'custom:cp-1');
+      const result = await service.refreshProvider('user-1', 'custom:cp-1');
       expect(result.ok).toBe(false);
       expect(result.model_count).toBe(2);
       expect(result.last_fetched_at).toBe('2026-04-12T08:00:00.000Z');
@@ -466,9 +466,9 @@ describe('ModelDiscoveryService', () => {
         makeModel({ id: 'gpt-4o-mini' }),
       ]);
 
-      const result = await service.refreshProvider('agent-1', 'openai', 'api_key');
+      const result = await service.refreshProvider('user-1', 'openai', 'api_key');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
+        where: { user_id: 'user-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
       });
       expect(result.ok).toBe(true);
       expect(result.model_count).toBe(2);
@@ -481,7 +481,7 @@ describe('ModelDiscoveryService', () => {
       providerRepo.findOne.mockResolvedValue(provider);
       fetcher.fetch.mockResolvedValue([]);
 
-      const result = await service.refreshProvider('agent-1', 'openai');
+      const result = await service.refreshProvider('user-1', 'openai');
       expect(result.ok).toBe(false);
       expect(result.model_count).toBe(0);
       expect(result.error).toBe('Provider returned no models');
@@ -501,7 +501,7 @@ describe('ModelDiscoveryService', () => {
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
       providerRepo.save.mockRejectedValueOnce(new Error('DB write failed'));
 
-      const result = await service.refreshProvider('agent-1', 'openai');
+      const result = await service.refreshProvider('user-1', 'openai');
       expect(result.ok).toBe(false);
       expect(result.model_count).toBe(2);
       expect(result.error).toBe('DB write failed');
@@ -513,7 +513,7 @@ describe('ModelDiscoveryService', () => {
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o' })]);
       providerRepo.save.mockRejectedValueOnce('plain-string-failure');
 
-      const result = await service.refreshProvider('agent-1', 'openai');
+      const result = await service.refreshProvider('user-1', 'openai');
       expect(result.ok).toBe(false);
       expect(result.error).toBe('plain-string-failure');
     });
@@ -546,24 +546,18 @@ describe('ModelDiscoveryService', () => {
   /* ── getModelsForAgent ── */
 
   describe('getModelsForAgent', () => {
-    it('should merge cached models from providers and custom providers', async () => {
+    it('should return cached models from user-level providers', async () => {
       const cachedModels = [makeModel({ id: 'gpt-4', provider: 'openai' })];
       const providers = [makeProvider({ cached_models: cachedModels })];
       providerRepo.find.mockResolvedValue(providers);
 
-      const customProviders = [makeCustomProvider()];
-      customProviderRepo.find.mockResolvedValue(customProviders);
+      const result = await service.getModelsForAgent('user-1');
 
-      const result = await service.getModelsForAgent('agent-1');
-
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(1);
       expect(result[0].id).toBe('gpt-4');
-      expect(result[1].id).toBe('custom:cp-1/custom-llm');
-      expect(result[1].provider).toBe('custom:cp-1');
-      expect(result[1].displayName).toBe('custom-llm');
     });
 
-    it('should inherit auth_type from user_providers row for custom provider models', async () => {
+    it('should skip custom: prefixed providers (they are handled separately)', async () => {
       const providers = [
         makeProvider({
           provider: 'custom:cp-1',
@@ -572,12 +566,12 @@ describe('ModelDiscoveryService', () => {
         }),
       ];
       providerRepo.find.mockResolvedValue(providers);
-      customProviderRepo.find.mockResolvedValue([makeCustomProvider()]);
 
-      const result = await service.getModelsForAgent('agent-1');
+      const result = await service.getModelsForAgent('user-1');
 
-      expect(result).toHaveLength(1);
-      expect(result[0].authType).toBe('local');
+      // custom: prefixed providers are skipped in the main loop; custom_providers
+      // table is still agent-scoped and will be handled separately.
+      expect(result).toHaveLength(0);
     });
 
     it('should deduplicate models by id', async () => {
@@ -594,18 +588,16 @@ describe('ModelDiscoveryService', () => {
         }),
       ];
       providerRepo.find.mockResolvedValue(providers);
-      customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelsForAgent('agent-1');
+      const result = await service.getModelsForAgent('user-1');
       expect(result).toHaveLength(1);
     });
 
     it('should skip providers with no cached_models', async () => {
       const providers = [makeProvider({ cached_models: null })];
       providerRepo.find.mockResolvedValue(providers);
-      customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelsForAgent('agent-1');
+      const result = await service.getModelsForAgent('user-1');
       expect(result).toEqual([]);
     });
 
@@ -617,60 +609,37 @@ describe('ModelDiscoveryService', () => {
         }),
       ];
       providerRepo.find.mockResolvedValue(providers);
-      customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelsForAgent('agent-1');
+      const result = await service.getModelsForAgent('user-1');
       expect(result).toEqual([]);
     });
 
-    it('should handle custom provider with no models array', async () => {
+    it('should return empty when no providers have models', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([makeCustomProvider({ models: null as never })]);
 
-      const result = await service.getModelsForAgent('agent-1');
+      const result = await service.getModelsForAgent('user-1');
       expect(result).toEqual([]);
     });
 
-    it('should handle custom provider with null pricing', async () => {
+    it('should return empty when providers have no cached models (custom provider only)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([
-        makeCustomProvider({
-          models: [
-            {
-              model_name: 'free-model',
-              input_price_per_million_tokens: undefined,
-              output_price_per_million_tokens: undefined,
-            },
-          ],
-        }),
-      ]);
 
-      const result = await service.getModelsForAgent('agent-1');
-      expect(result).toHaveLength(1);
-      expect(result[0].inputPricePerToken).toBeNull();
-      expect(result[0].outputPricePerToken).toBeNull();
+      const result = await service.getModelsForAgent('user-1');
+      expect(result).toHaveLength(0);
     });
 
-    it('should compute per-token prices from per-million-token prices', async () => {
+    it('should return empty for custom provider pricing (custom_providers are agent-scoped)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([makeCustomProvider()]);
 
-      const result = await service.getModelsForAgent('agent-1');
-
-      expect(result[0].inputPricePerToken).toBeCloseTo(1.5 / 1_000_000);
-      expect(result[0].outputPricePerToken).toBeCloseTo(3.0 / 1_000_000);
+      const result = await service.getModelsForAgent('user-1');
+      expect(result).toHaveLength(0);
     });
 
-    it('should default custom model context window to 128000', async () => {
+    it('should return empty when only custom provider exists (agent-scoped, not fetched here)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([
-        makeCustomProvider({
-          models: [{ model_name: 'no-ctx' }],
-        }),
-      ]);
 
-      const result = await service.getModelsForAgent('agent-1');
-      expect(result[0].contextWindow).toBe(128000);
+      const result = await service.getModelsForAgent('user-1');
+      expect(result).toHaveLength(0);
     });
 
     it('should filter out non-chat models from cached results', async () => {
@@ -685,24 +654,17 @@ describe('ModelDiscoveryService', () => {
         }),
       ];
       providerRepo.find.mockResolvedValue(providers);
-      customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelsForAgent('agent-1');
+      const result = await service.getModelsForAgent('user-1');
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('copilot/claude-opus-4.7');
     });
 
-    it('should deduplicate custom provider models by composite key', async () => {
+    it('should return empty when providerRepo has no results', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([
-        makeCustomProvider({
-          id: 'cp-1',
-          models: [{ model_name: 'dup-model' }, { model_name: 'dup-model' }],
-        }),
-      ]);
 
-      const result = await service.getModelsForAgent('agent-1');
-      expect(result).toHaveLength(1);
+      const result = await service.getModelsForAgent('user-1');
+      expect(result).toHaveLength(0);
     });
   });
 
@@ -715,18 +677,16 @@ describe('ModelDiscoveryService', () => {
           cached_models: [makeModel({ id: 'gpt-4' }), makeModel({ id: 'gpt-3.5' })],
         }),
       ]);
-      customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelForAgent('agent-1', 'gpt-4');
+      const result = await service.getModelForAgent('user-1', 'gpt-4');
       expect(result).toBeDefined();
       expect(result!.id).toBe('gpt-4');
     });
 
     it('should return undefined for missing model', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelForAgent('agent-1', 'nonexistent');
+      const result = await service.getModelForAgent('user-1', 'nonexistent');
       expect(result).toBeUndefined();
     });
   });

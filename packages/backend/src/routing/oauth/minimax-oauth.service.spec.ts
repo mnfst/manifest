@@ -248,7 +248,7 @@ describe('MinimaxOauthService', () => {
         undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(svc.getPendingCount()).toBe(0);
     });
 
