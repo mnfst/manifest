@@ -225,7 +225,7 @@ const LocalProviders: Component = () => {
                               class="btn btn--outline btn--sm"
                               style="font-size: var(--font-size-xs);"
                               onClick={() =>
-                                navigate(`/providers/connections/${cp().connections[0].id}`)
+                                navigate(`/providers/connections/${cp().connections[0]!.id}`)
                               }
                             >
                               View details

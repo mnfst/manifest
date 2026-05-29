@@ -282,7 +282,7 @@ const AgentProviders: Component = () => {
               </button>
               <button
                 class="btn btn--primary btn--sm"
-                disabled={busy() === confirmTarget()!.id}
+                disabled={busy() === confirmTarget()!.userProviderId}
                 onClick={() => doDisable(confirmTarget()!.userProviderId)}
               >
                 Disable

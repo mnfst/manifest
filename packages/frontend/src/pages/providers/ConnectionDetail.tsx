@@ -342,7 +342,9 @@ const ConnectionDetail: Component = () => {
                     authType: c.auth_type as any,
                     closeOnBack: true,
                   }}
-                  onUpdate={() => refetchModalProviders()}
+                  onUpdate={() => {
+                    refetchModalProviders();
+                  }}
                   onClose={() => setShowManageModal(false)}
                 />
               </Show>
