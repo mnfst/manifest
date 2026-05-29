@@ -109,6 +109,7 @@ import { EnableRecordMessagesForAll1789300000000 } from './migrations/1789300000
 import { AddRoutingOutputControls1789300000000 } from './migrations/1789300000000-AddRoutingOutputControls';
 import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/1790000000000-AddAgentApiKeyPrefixActiveIndex';
 import { AddReasoningContentCache1790100000000 } from './migrations/1790100000000-AddReasoningContentCache';
+import { OptionalHeaderTierMatchRules1786400000000 } from './migrations/1786400000000-OptionalHeaderTierMatchRules';
 
 const entities = [
   AgentMessage,
@@ -219,6 +220,7 @@ const migrations = [
   AddRoutingOutputControls1789300000000,
   AddAgentApiKeyPrefixActiveIndex1790000000000,
   AddReasoningContentCache1790100000000,
+  OptionalHeaderTierMatchRules1786400000000,
 ];
 
 @Module({

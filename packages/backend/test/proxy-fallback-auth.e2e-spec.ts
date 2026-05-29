@@ -211,7 +211,7 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
     await request(app.getHttpServer())
       .post('/v1/chat/completions')
       .set('Authorization', `Bearer ${TEST_OTLP_KEY}`)
-      .send({ messages: [{ role: 'user', content: 'hello' }] })
+      .send({ model: 'auto', messages: [{ role: 'user', content: 'hello' }] })
       .expect(200);
 
     // recordFallbackSuccess fires off the response — wait for it to flush.
@@ -254,7 +254,7 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
     const res = await request(app.getHttpServer())
       .post('/v1/chat/completions')
       .set('Authorization', `Bearer ${TEST_OTLP_KEY}`)
-      .send({ messages: [{ role: 'user', content: 'hello' }] })
+      .send({ model: 'auto', messages: [{ role: 'user', content: 'hello' }] })
       .expect(200);
 
     expect(res.headers['x-manifest-fallback-from']).toBe(PRIMARY_MODEL);

@@ -32,8 +32,8 @@ interface Props {
   onSaved: (tier: HeaderTier) => void;
   /** When set, shows a back arrow instead of close button. */
   onBack?: () => void;
-  /** When set and editing, shows a Delete tier button. */
-  onDelete?: (id: string) => void;
+  /** When set and editing, shows a Delete tier button (opens parent confirm flow). */
+  onRequestDelete?: (id: string) => void;
   /** Available models for stream compatibility check. */
   models?: AvailableModel[];
 }
@@ -120,7 +120,7 @@ const HeaderTierModal: Component<Props> = (props) => {
 
   const validateKey = (raw: string): string | undefined => {
     const key = raw.trim().toLowerCase();
-    if (!key) return 'Header key is required';
+    if (!key) return undefined;
     if (!HEADER_KEY_RE.test(key)) {
       return 'Header keys can only contain lowercase letters, digits, and hyphens';
     }
@@ -132,7 +132,11 @@ const HeaderTierModal: Component<Props> = (props) => {
 
   const validateValue = (rawValue: string, rawKey: string): string | undefined => {
     const v = rawValue.trim();
-    if (!v) return 'Header value is required';
+    const key = rawKey.trim().toLowerCase();
+    if (!v) {
+      if (key) return 'Header value is required when a header key is set';
+      return undefined;
+    }
     if (v.length > MAX_HEADER_VALUE_LEN) {
       return `Header value must be ${MAX_HEADER_VALUE_LEN} characters or fewer`;
     }
@@ -142,7 +146,6 @@ const HeaderTierModal: Component<Props> = (props) => {
     if (v.includes('"') || v.includes("'") || v.includes('\\')) {
       return 'Header value cannot contain quotes or backslashes';
     }
-    const key = rawKey.trim().toLowerCase();
     if (otherTiers().some((t) => t.header_key === key && t.header_value === v)) {
       return 'Another tier already matches this header key and value';
     }
@@ -164,10 +167,11 @@ const HeaderTierModal: Component<Props> = (props) => {
     if (!isValid() || submitting()) return;
     setSubmitting(true);
     try {
+      const key = headerKey().trim().toLowerCase();
       const payload = {
         name: name().trim(),
-        header_key: headerKey().trim().toLowerCase(),
-        header_value: headerValue().trim(),
+        header_key: key || null,
+        header_value: headerValue().trim() || null,
         badge_color: badgeColor(),
       };
       let saved = editingTier
@@ -190,8 +194,8 @@ const HeaderTierModal: Component<Props> = (props) => {
 
   const titleText = editingTier ? 'Edit custom tier' : 'Create custom tier';
   const descText = editingTier
-    ? 'Update the header rule, name, or color for this tier. Model and fallbacks are managed on the card.'
-    : 'Custom routing lets you identify requests based on their headers and assign specific models to them.';
+    ? 'Update the name, optional header rule, or color. Model and fallbacks are managed on the card. Clients can also target this tier with model set to the slug of the tier name.'
+    : 'Custom tiers can be selected with model set to the slug of the tier name (e.g. super). Optionally add a header rule to auto-match those requests when using model auto.';
   const submitLabel = (): string => {
     if (editingTier) return submitting() ? 'Saving…' : 'Save changes';
     return submitting() ? 'Creating…' : 'Create tier';
@@ -273,7 +277,7 @@ const HeaderTierModal: Component<Props> = (props) => {
         </Show>
 
         <label class="modal-card__field-label" for="header-tier-key">
-          Header key
+          Header key (optional)
         </label>
         <HeaderComboBox
           id="header-tier-key"
@@ -287,7 +291,7 @@ const HeaderTierModal: Component<Props> = (props) => {
         />
 
         <label class="modal-card__field-label" for="header-tier-value">
-          Header value
+          Header value (optional)
         </label>
         <HeaderComboBox
           id="header-tier-value"
@@ -297,8 +301,7 @@ const HeaderTierModal: Component<Props> = (props) => {
           placeholder="custom-value"
           invalid={valueError() !== undefined}
           errorMessage={valueError()}
-          disabled={!headerKey().trim()}
-          freeFormHint={`Use "${headerValue().trim()}" as a custom value`}
+          freeFormHint={`Use "${headerValue().trim() || 'value'}" as a custom value`}
         />
 
         <div class="modal-card__field-label">Badge color</div>
@@ -373,15 +376,12 @@ const HeaderTierModal: Component<Props> = (props) => {
         </Show>
 
         <div class="header-tier-modal__footer">
-          <Show when={editingTier && props.onDelete}>
+          <Show when={editingTier && props.onRequestDelete}>
             <button
               type="button"
               class="btn btn--outline header-tier-modal__delete-btn"
-              onClick={() => {
-                if (confirm(`Delete tier "${editingTier!.name}"?`)) {
-                  props.onDelete!(editingTier!.id);
-                }
-              }}
+              data-testid="header-tier-modal-delete"
+              onClick={() => props.onRequestDelete!(editingTier!.id)}
             >
               Delete tier
             </button>

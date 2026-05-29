@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { IsArray, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Request } from 'express';
@@ -9,6 +10,14 @@ import { ResolveService } from './resolve.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { ResolveRequestDto } from '../dto/resolve-request.dto';
 import { ResolveResponse } from '../dto/resolve-response';
+import {
+  assertAliasRouteConfigured,
+  modelAliasLabel,
+  parseModelAliasFromBody,
+} from '../model-alias-validation';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
+import { RoutingAliasService } from '../routing-alias.service';
+import { getDashboardUrl } from '../proxy/proxy-friendly-response';
 
 export class SubscriptionProviderItem {
   @IsString()
@@ -34,6 +43,9 @@ export class ResolveController {
   constructor(
     private readonly resolveService: ResolveService,
     private readonly providerService: ProviderService,
+    private readonly config: ConfigService,
+    private readonly headerTierService: HeaderTierService,
+    private readonly routingAliasService: RoutingAliasService,
   ) {}
 
   @Post('resolve')
@@ -42,7 +54,24 @@ export class ResolveController {
     @Body() body: ResolveRequestDto,
     @Req() req: Request & { ingestionContext: IngestionContext },
   ): Promise<ResolveResponse> {
-    const { agentId } = req.ingestionContext;
+    const { agentId, agentName } = req.ingestionContext;
+    const modelAlias = await parseModelAliasFromBody(
+      body as unknown as Record<string, unknown>,
+      agentId,
+      {
+        headerTierService: this.headerTierService,
+        routingAliasService: this.routingAliasService,
+      },
+    );
+    if (modelAlias.kind !== 'auto') {
+      const resolved = await this.resolveService.resolveForAlias(agentId, modelAlias);
+      assertAliasRouteConfigured(
+        modelAliasLabel(modelAlias, resolved.header_tier_name),
+        resolved,
+        getDashboardUrl(this.config, agentName, 'routing'),
+      );
+      return resolved;
+    }
     return this.resolveService.resolve(
       agentId,
       body.messages as { role: string; content?: unknown; [k: string]: unknown }[],

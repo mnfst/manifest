@@ -36,6 +36,9 @@ import {
 import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.filter';
 import { sendFriendlyResponse } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
+import { parseModelAliasFromBody } from '../model-alias-validation';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
+import { RoutingAliasService } from '../routing-alias.service';
 import type { ProxyApiMode } from './proxy-types';
 
 const MAX_SEEN_USERS = 10_000;
@@ -59,23 +62,29 @@ export class ProxyController {
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly reasoningCache: ReasoningContentCache,
     private readonly recordingCache: AgentRecordingCacheService,
+    private readonly headerTierService: HeaderTierService,
+    private readonly routingAliasService: RoutingAliasService,
   ) {}
 
   @Get('models')
-  models(): Record<string, unknown> {
+  async models(
+    @Req() req: Request & { ingestionContext: IngestionContext },
+  ): Promise<Record<string, unknown>> {
+    const ids = await this.routingAliasService.listConfiguredAliases(req.ingestionContext.agentId);
+    const data = ids.map((id) => ({
+      id,
+      object: 'model',
+      type: 'model',
+      display_name: id === 'auto' ? 'Manifest Auto' : id,
+    }));
+    const firstId = data[0]?.id ?? 'auto';
+    const lastId = data[data.length - 1]?.id ?? 'auto';
     return {
       object: 'list',
-      data: [
-        {
-          id: 'auto',
-          object: 'model',
-          type: 'model',
-          display_name: 'Manifest Auto',
-        },
-      ],
+      data,
       has_more: false,
-      first_id: 'auto',
-      last_id: 'auto',
+      first_id: firstId,
+      last_id: lastId,
     };
   }
 
@@ -130,6 +139,10 @@ export class ProxyController {
       this.rateLimiter.checkIpLimit(req.ip ?? '');
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
+      const modelAlias = await parseModelAliasFromBody(body, req.ingestionContext.agentId, {
+        headerTierService: this.headerTierService,
+        routingAliasService: this.routingAliasService,
+      });
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
@@ -142,6 +155,7 @@ export class ProxyController {
         specificityOverride,
         headers: req.headers,
         apiMode,
+        modelAlias,
       });
 
       this.trackFirstProxyRequest(userId);

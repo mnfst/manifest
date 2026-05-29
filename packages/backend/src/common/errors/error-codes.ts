@@ -58,6 +58,14 @@ export const MANIFEST_ERRORS = {
     title: 'Messages array too long',
     template: '`messages` array exceeds maximum length of {max}.',
   },
+  M410: {
+    title: 'Unrecognized model alias',
+    template: 'Unrecognized model "{model}". Use one of: {aliases}.',
+  },
+  M411: {
+    title: 'No route for model alias',
+    template: 'No model is configured for "{alias}". Set one up in the dashboard: {dashboardUrl}',
+  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',

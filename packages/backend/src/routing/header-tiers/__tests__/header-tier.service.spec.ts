@@ -73,6 +73,21 @@ describe('HeaderTierService', () => {
     );
   });
 
+  describe('findByModelAlias', () => {
+    it('matches enabled tiers by slugified name', async () => {
+      const tier = {
+        id: 'ht-1',
+        name: 'Super',
+        enabled: true,
+        header_key: null,
+        header_value: null,
+      } as HeaderTier;
+      routingCache.getHeaderTiers.mockReturnValue([tier]);
+      expect(await svc.findByModelAlias('agent-1', 'super')).toBe(tier);
+      expect(await svc.findByModelAlias('agent-1', 'other')).toBeNull();
+    });
+  });
+
   describe('list', () => {
     it('returns the cached value when present', async () => {
       const cached = [{ id: 'h1' }] as HeaderTier[];
@@ -129,16 +144,28 @@ describe('HeaderTierService', () => {
       ).rejects.toThrow(/32 characters/);
     });
 
+    it('rejects names containing a slash', async () => {
+      await expect(
+        svc.create('agent-1', 'user-1', null, validInput({ name: 'gpt-5.5/mini' })),
+      ).rejects.toThrow(/cannot contain "\/"/);
+    });
+
     it('rejects header keys with disallowed characters', async () => {
       await expect(
         svc.create('agent-1', 'user-1', null, validInput({ header_key: 'X-Bad_Key' })),
       ).rejects.toThrow(/lowercase letters/);
     });
 
-    it('rejects empty header keys', async () => {
-      await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_key: '' })),
-      ).rejects.toThrow(/Header key is required/);
+    it('creates a header tier without header match rules', async () => {
+      repo.find.mockResolvedValue([]);
+      const result = await svc.create(
+        'agent-1',
+        'user-1',
+        null,
+        validInput({ header_key: '', header_value: '' }),
+      );
+      expect(result.header_key).toBeNull();
+      expect(result.header_value).toBeNull();
     });
 
     it('rejects reserved header keys', async () => {
@@ -148,10 +175,10 @@ describe('HeaderTierService', () => {
       ).rejects.toThrow(/stripped for security/);
     });
 
-    it('rejects empty header values', async () => {
+    it('rejects empty header values when a key is set', async () => {
       await expect(
         svc.create('agent-1', 'user-1', null, validInput({ header_value: '' })),
-      ).rejects.toThrow(/Header value is required/);
+      ).rejects.toThrow(/Header value is required when a header key is set/);
     });
 
     it('rejects oversized header values', async () => {

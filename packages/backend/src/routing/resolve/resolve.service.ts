@@ -18,6 +18,7 @@ import { Agent } from '../../entities/agent.entity';
 import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
 import type {
   AuthType,
+  ModelAliasClassification,
   ModelRoute,
   ResponseMode,
   OutputModality,
@@ -140,10 +141,23 @@ export class ResolveService {
     };
   }
 
+  async resolveForAlias(
+    agentId: string,
+    alias: Exclude<ModelAliasClassification, { kind: 'auto' }>,
+  ): Promise<ResolveResponse> {
+    if (alias.kind === 'tier') {
+      return this.resolveForTier(agentId, alias.tier, 'model_alias');
+    }
+    if (alias.kind === 'header_tier') {
+      return this.resolveForHeaderTierAlias(agentId, alias.id);
+    }
+    return this.resolveForSpecificityAlias(agentId, alias.category);
+  }
+
   async resolveForTier(
     agentId: string,
     tier: TierSlot,
-    reason: 'heartbeat' | 'default' = 'heartbeat',
+    reason: 'heartbeat' | 'default' | 'model_alias' = 'heartbeat',
   ): Promise<ResolveResponse> {
     const tiers = await this.tierService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === tier);
@@ -189,16 +203,61 @@ export class ResolveService {
     const match = tiers.find((t) => matchesHeaderRule(headers, t));
     if (!match) return null;
 
+    return this.buildHeaderTierResponse(agentId, match, 'header-match');
+  }
+
+  private async resolveForHeaderTierAlias(
+    agentId: string,
+    headerTierId: string,
+  ): Promise<ResolveResponse> {
+    const allTiers = await this.headerTierService.list(agentId);
+    const match = allTiers.find((t) => t.id === headerTierId && t.enabled);
+    if (!match) {
+      return {
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason: 'model_alias',
+      };
+    }
+
+    const built = await this.buildHeaderTierResponse(agentId, match, 'model_alias');
+    if (built) return built;
+
+    return {
+      tier: 'standard',
+      route: null,
+      fallback_routes: readFallbackRoutes(match),
+      output_modality: outputModalityFor(match),
+      response_mode: responseModeFor(match),
+      confidence: 1,
+      score: 0,
+      reason: 'model_alias',
+      header_tier_id: match.id,
+      header_tier_name: match.name,
+      header_tier_color: match.badge_color,
+    };
+  }
+
+  private async buildHeaderTierResponse(
+    agentId: string,
+    match: HeaderTier,
+    reason: 'header-match' | 'model_alias',
+  ): Promise<ResolveResponse | null> {
     const overrideRoute = readOverrideRoute(match);
     if (!overrideRoute) {
-      this.logger.debug(
-        `Header tier "${match.name}" matched but has no model configured — falling through`,
-      );
+      if (reason === 'header-match') {
+        this.logger.debug(
+          `Header tier "${match.name}" matched but has no model configured — falling through`,
+        );
+      }
       return null;
     }
 
-    // Guard against orphaned overrides (a model removed after the tier was
-    // configured). Mirrors the same check in resolveSpecificity().
     if (!(await this.providerKeyService.isModelAvailable(agentId, overrideRoute.model))) {
       this.logger.warn(
         `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
@@ -231,10 +290,67 @@ export class ResolveService {
       response_mode: responseMode,
       confidence: 1,
       score: 0,
-      reason: 'header-match',
+      reason,
       header_tier_id: match.id,
       header_tier_name: match.name,
       header_tier_color: match.badge_color,
+    };
+  }
+
+  private async resolveForSpecificityAlias(
+    agentId: string,
+    category: SpecificityCategory,
+  ): Promise<ResolveResponse> {
+    const active = await this.specificityService.getActiveAssignments(agentId);
+    const assignment = active.find((a) => a.category === category);
+    if (!assignment) {
+      return {
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        output_modality: DEFAULT_OUTPUT_MODALITY,
+        response_mode: DEFAULT_RESPONSE_MODE,
+        confidence: 1,
+        score: 0,
+        reason: 'model_alias',
+        specificity_category: category,
+      };
+    }
+
+    const overrideRoute = readOverrideRoute(assignment);
+    let route: ModelRoute | null;
+    if (overrideRoute) {
+      if (!(await this.providerKeyService.isModelAvailable(agentId, overrideRoute.model))) {
+        route = null;
+      } else {
+        route = overrideRoute;
+      }
+    } else if (assignment.auto_assigned_route) {
+      route = assignment.auto_assigned_route;
+    } else {
+      route = null;
+    }
+
+    const outputModality = outputModalityFor(assignment);
+    const responseMode = responseModeFor(assignment);
+    const fallbackRoutes = readFallbackRoutes(assignment);
+    const enrichedRoute = route ? await this.enrichRouteKeyLabel(agentId, route) : null;
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      enrichedRoute,
+      fallbackRoutes,
+    );
+
+    return {
+      tier: 'standard',
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
+      confidence: 1,
+      score: 0,
+      reason: 'model_alias',
+      specificity_category: category,
     };
   }
 
@@ -385,11 +501,14 @@ export class ResolveService {
 }
 
 function matchesHeaderRule(headers: IncomingHttpHeaders, tier: HeaderTier): boolean {
-  const raw = headers[tier.header_key];
+  const key = tier.header_key?.trim();
+  const value = tier.header_value?.trim();
+  if (!key || !value) return false;
+  const raw = headers[key];
   if (raw == null) return false;
   // Node gives repeated headers as string[]; match if any entry equals the rule.
-  if (Array.isArray(raw)) return raw.some((v) => v === tier.header_value);
-  return raw === tier.header_value;
+  if (Array.isArray(raw)) return raw.some((v) => v === value);
+  return raw === value;
 }
 
 function outputModalityFor(row: { output_modality?: OutputModality | null }): OutputModality {

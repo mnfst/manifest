@@ -66,7 +66,7 @@ function mockRequest(
       agentId: 'agent-1',
       agentName: 'test-agent',
     },
-    body,
+    body: { model: 'auto', ...body },
     headers,
     ip: '127.0.0.1',
   };
@@ -102,6 +102,8 @@ describe('ProxyController', () => {
   };
   let mockPricingCache: { getByModel: jest.Mock };
   let recorder: ProxyMessageRecorder;
+  let headerTierService: { findByModelAlias: jest.Mock };
+  let routingAliasService: { listConfiguredAliases: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -161,6 +163,12 @@ describe('ProxyController', () => {
       } as never,
       { save: jest.fn() } as never,
     );
+    headerTierService = {
+      findByModelAlias: jest.fn().mockResolvedValue(null),
+    };
+    routingAliasService = {
+      listConfiguredAliases: jest.fn().mockResolvedValue(['auto', 'simple']),
+    };
     controller = new ProxyController(
       proxyService as never,
       rateLimiter as never,
@@ -170,6 +178,8 @@ describe('ProxyController', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       { isRecording: jest.fn().mockResolvedValue(false), invalidate: jest.fn() } as never,
+      headerTierService as never,
+      routingAliasService as never,
     );
   });
 
@@ -177,21 +187,21 @@ describe('ProxyController', () => {
     recorder.onModuleDestroy();
   });
 
-  it('should expose /v1/models with the Manifest auto route', () => {
-    expect(controller.models()).toEqual({
-      object: 'list',
-      data: [
-        {
-          id: 'auto',
-          object: 'model',
-          type: 'model',
-          display_name: 'Manifest Auto',
-        },
-      ],
-      has_more: false,
-      first_id: 'auto',
-      last_id: 'auto',
-    });
+  it('should expose /v1/models with configured routing aliases only', async () => {
+    const listing = await controller.models({
+      ingestionContext: { agentId: 'agent-1', agentName: 'test-agent' },
+    } as never);
+    expect(listing.object).toBe('list');
+    expect(listing.has_more).toBe(false);
+    const ids = (listing.data as Array<{ id: string }>).map((m) => m.id);
+    expect(ids).toEqual(['auto', 'simple']);
+    expect(routingAliasService.listConfiguredAliases).toHaveBeenCalledWith('agent-1');
+    expect(listing.first_id).toBe('auto');
+    expect(listing.last_id).toBe('simple');
+    const auto = (listing.data as Array<{ id: string; display_name: string }>).find(
+      (m) => m.id === 'auto',
+    );
+    expect(auto?.display_name).toBe('Manifest Auto');
   });
 
   it('should return JSON response for non-streaming OpenAI provider', async () => {
@@ -265,7 +275,7 @@ describe('ProxyController', () => {
     await controller.responses(req as never, res as never);
 
     expect(proxyService.proxyRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ apiMode: 'responses', body: { input: 'hi' } }),
+      expect.objectContaining({ apiMode: 'responses', body: { model: 'auto', input: 'hi' } }),
     );
     const json = (res.json as jest.Mock).mock.calls[0][0];
     expect(json.object).toBe('response');
@@ -306,7 +316,6 @@ describe('ProxyController', () => {
     });
 
     const req = mockRequest({
-      model: 'claude-sonnet-4',
       max_tokens: 64,
       messages: [{ role: 'user', content: 'hi' }],
     });

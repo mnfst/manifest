@@ -13,6 +13,7 @@ import { OAuthModule } from '../oauth/oauth.module';
 import { ResolveModule } from '../resolve/resolve.module';
 import { CustomProviderModule } from '../custom-provider/custom-provider.module';
 import { HeaderTiersModule } from '../header-tiers/header-tiers.module';
+import { RoutingAliasModule } from '../routing-alias.module';
 import { MessageRecordingService } from '../../analytics/services/message-recording.service';
 import { ProxyController } from './proxy.controller';
 import { ProxyService } from './proxy.service';
@@ -45,6 +46,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ResolveModule,
     CustomProviderModule,
     HeaderTiersModule,
+    RoutingAliasModule,
   ],
   controllers: [ProxyController],
   providers: [

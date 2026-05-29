@@ -22,6 +22,14 @@ export { TIER_COLORS, DEFAULT_TIER_COLOR } from './tier-colors';
 export type { TierColor } from './tier-colors';
 export { SPECIFICITY_CATEGORIES } from './specificity';
 export type { SpecificityCategory } from './specificity';
+export {
+  aliasToSpecificityCategory,
+  classifyModelAlias,
+  getValidAliases,
+  specificityCategoryToAlias,
+} from './model-alias';
+export { headerTierNameToModelAlias, isSafeHeaderTierModelAlias } from './header-tier-alias';
+export type { ModelAliasClassification } from './model-alias';
 export { AUTH_TYPES } from './auth-types';
 export type { AuthType } from './auth-types';
 export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';

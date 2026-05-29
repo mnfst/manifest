@@ -209,7 +209,7 @@ describe('ST-04: Routing enabled', () => {
 describe('ST-05: Tier routing', () => {
   it('routes "hi" to the simple tier', async () => {
     const res = await smokeBearer(api().post('/api/v1/routing/resolve'))
-      .send({ messages: [{ role: 'user', content: 'hi' }] })
+      .send({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] })
       .expect(200);
 
     expect(res.body.tier).toBe('simple');
@@ -219,6 +219,7 @@ describe('ST-05: Tier routing', () => {
   it('routes a complex prompt to a higher tier', async () => {
     const res = await smokeBearer(api().post('/api/v1/routing/resolve'))
       .send({
+        model: 'auto',
         messages: [
           {
             role: 'user',
@@ -247,7 +248,7 @@ describe('ST-06: Proxy message recorded', () => {
     mockCallLog.length = 0;
 
     const res = await smokeBearer(api().post('/v1/chat/completions'))
-      .send({ messages: [{ role: 'user', content: 'hello' }], stream: false })
+      .send({ model: 'auto', messages: [{ role: 'user', content: 'hello' }], stream: false })
       .expect(200);
 
     expect(res.body.choices).toBeDefined();
@@ -301,7 +302,7 @@ describe('ST-08: Hard limit blocks', () => {
     mockCallLog.length = 0;
 
     const res = await smokeBearer(api().post('/v1/chat/completions'))
-      .send({ messages: [{ role: 'user', content: 'blocked?' }], stream: false })
+      .send({ model: 'auto', messages: [{ role: 'user', content: 'blocked?' }], stream: false })
       .expect(200);
 
     // Limit exceeded returns a friendly chat completion message
@@ -351,7 +352,7 @@ describe('ST-09: Fallback chain', () => {
 
   it('tries primary, then fallbacks in order, succeeds on model-c', async () => {
     const res = await smokeBearer(api().post('/v1/chat/completions'))
-      .send({ messages: [{ role: 'user', content: 'hi' }], stream: false });
+      .send({ model: 'auto', messages: [{ role: 'user', content: 'hi' }], stream: false });
 
     // Should succeed via fallback model-c
     expect(res.status).toBe(200);

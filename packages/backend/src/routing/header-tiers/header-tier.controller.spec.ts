@@ -54,6 +54,13 @@ describe('HeaderTierController', () => {
     expect(out).toEqual({ id: 'ht-1' });
   });
 
+  it('create accepts tiers with no header match rule', async () => {
+    const { controller, service } = makeController();
+    const body = { name: 'super', badge_color: 'indigo' as const };
+    await controller.create(user, 'my-agent', body);
+    expect(service.create).toHaveBeenCalledWith('agent-1', 'user-1', 'tenant-1', body);
+  });
+
   it('create defaults tenantId to null when the cache has no resolution', async () => {
     const { controller, service } = makeController({ tenantId: null });
     await controller.create(user, 'my-agent', {

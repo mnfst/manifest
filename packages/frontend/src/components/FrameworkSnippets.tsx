@@ -28,6 +28,8 @@ interface Props {
    * Used by the header-tier "How to send this" modal.
    */
   customHeaders?: Record<string, string>;
+  /** Routing alias for the `model` field in generated snippets. Defaults to `auto`. */
+  model?: string;
 }
 
 const EyeOpen: Component = () => (
@@ -96,6 +98,8 @@ const FrameworkSnippets: Component<Props> = (props) => {
     storeOpenAILang(id);
   };
 
+  const modelAlias = () => props.model ?? 'auto';
+
   const snippet = () =>
     getSnippetForToolkit(
       activeTab(),
@@ -104,6 +108,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
       openaiLang(),
       props.customHeaders,
       openaiApi(),
+      modelAlias(),
     );
   const snippetForCopy = () =>
     getSnippetForToolkit(
@@ -113,6 +118,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
       openaiLang(),
       props.customHeaders,
       openaiApi(),
+      modelAlias(),
     );
   const language = () => getLangForToolkit(activeTab(), openaiLang());
 
@@ -243,8 +249,8 @@ const FrameworkSnippets: Component<Props> = (props) => {
         <div class="setup-onboard-fields__row" role="listitem">
           <span class="setup-onboard-fields__label">Model</span>
           <span class="setup-onboard-fields__value">
-            <code>auto</code>
-            <CopyButton text="auto" />
+            <code>{modelAlias()}</code>
+            <CopyButton text={modelAlias()} />
           </span>
         </div>
         <For each={headerEntries()}>

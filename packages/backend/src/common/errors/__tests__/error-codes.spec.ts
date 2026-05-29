@@ -67,4 +67,19 @@ describe('formatManifestError', () => {
       expect(out.endsWith(`See ${MANIFEST_ERRORS_DOCS_BASE}/${code}`)).toBe(true);
     }
   });
+
+  it('formats M410 with the attempted model and alias list', () => {
+    const out = formatManifestError('M410', { model: 'banana', aliases: 'auto, simple' });
+    expect(out).toContain('banana');
+    expect(out).toContain('auto, simple');
+  });
+
+  it('formats M411 with the alias and dashboard URL', () => {
+    const out = formatManifestError('M411', {
+      alias: 'coding',
+      dashboardUrl: 'https://app.example/routing',
+    });
+    expect(out).toContain('coding');
+    expect(out).toContain('https://app.example/routing');
+  });
 });

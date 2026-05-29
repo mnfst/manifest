@@ -1,7 +1,9 @@
 import { createResource, createSignal, For, Show, type Accessor, type Component } from 'solid-js';
+import { headerTierNameToModelAlias } from 'manifest-shared';
 import HeaderTierCard from '../components/HeaderTierCard.js';
 import HeaderTierModal from '../components/HeaderTierModal.js';
 import HeaderTierSnippetModal from '../components/HeaderTierSnippetModal.js';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.js';
 import {
   listHeaderTiers,
   deleteHeaderTier,
@@ -91,6 +93,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
   // Which tier is currently being toggled (loading state).
   const [toggling, setToggling] = createSignal<string | null>(null);
   const [changingResponseMode, setChangingResponseMode] = createSignal<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = createSignal<HeaderTier | null>(null);
+  const [deleting, setDeleting] = createSignal(false);
 
   const tiers = (): HeaderTier[] =>
     (props.externalTiers ? props.externalTiers() : internalTiersRes()) ?? [];
@@ -110,12 +114,37 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
+  const removeTierFromState = (id: string): void => {
+    const update = (prev: HeaderTier[] | undefined): HeaderTier[] | undefined =>
+      prev?.filter((t) => t.id !== id);
+    if (props.externalMutate) props.externalMutate(update);
+    else internalMutate(update);
+  };
+
+  const openDeleteConfirm = (tier: HeaderTier): void => {
+    setDeleteTarget(tier);
+  };
+
+  const closeDeleteConfirm = (): void => {
+    if (deleting()) return;
+    setDeleteTarget(null);
+  };
+
   const handleDelete = async (id: string): Promise<void> => {
+    const remainingAfterDelete = tiers().filter((t) => t.id !== id).length;
+    setDeleting(true);
     try {
       await deleteHeaderTier(props.agentName(), id);
+      removeTierFromState(id);
       await refetch();
+      toast.success('Custom tier deleted');
+      setDeleteTarget(null);
+      setModalTier(null);
+      if (remainingAfterDelete === 0) setManageOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete tier');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -159,9 +188,9 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
-  const handleDeleteFromEdit = async (id: string) => {
-    await handleDelete(id);
-    setModalTier(null);
+  const handleDeleteFromEdit = (id: string) => {
+    const tier = tiers().find((t) => t.id === id);
+    if (tier) openDeleteConfirm(tier);
   };
 
   const manageButton = () => (
@@ -207,6 +236,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 }
                 onEdit={() => setModalTier(tier)}
                 onDisable={() => handleToggle(tier.id, false)}
+                onRequestDelete={() => openDeleteConfirm(tier)}
                 changingResponseMode={changingResponseMode() === tier.id}
                 onResponseModeChange={(mode) => handleResponseModeChange(tier.id, mode)}
                 getModelParams={props.getModelParams}
@@ -266,7 +296,9 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                       <div class="specificity-modal__info">
                         <span class="specificity-modal__name">{tier.name}</span>
                         <span class="specificity-modal__stage-desc">
-                          {tier.header_key}: {tier.header_value}
+                          {tier.header_key && tier.header_value
+                            ? `${tier.header_key}: ${tier.header_value}`
+                            : `model: "${headerTierNameToModelAlias(tier.name)}"`}
                         </span>
                       </div>
                       <span
@@ -335,7 +367,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
               refetch();
               if (wasCreate) setSnippetTier(saved);
             }}
-            onDelete={state !== 'new' ? handleDeleteFromEdit : undefined}
+            onRequestDelete={state !== 'new' ? handleDeleteFromEdit : undefined}
           />
         )}
       </Show>
@@ -346,6 +378,21 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
             agentName={props.agentName()}
             tier={t}
             onClose={() => setSnippetTier(null)}
+          />
+        )}
+      </Show>
+
+      <Show when={deleteTarget()} keyed>
+        {(tier) => (
+          <DeleteConfirmModal
+            targetName={tier.name}
+            title={`Delete ${tier.name}`}
+            description={`This will permanently delete the custom tier "${tier.name}" and its routing configuration. This action cannot be undone.`}
+            confirmLabel="Delete tier"
+            inputId="header-tier-delete-confirm"
+            deleting={deleting()}
+            onClose={closeDeleteConfirm}
+            onConfirm={() => handleDelete(tier.id)}
           />
         )}
       </Show>

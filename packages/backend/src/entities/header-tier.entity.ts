@@ -23,11 +23,11 @@ export class HeaderTier {
   @Column('varchar')
   name!: string;
 
-  @Column('varchar')
-  header_key!: string;
+  @Column('varchar', { nullable: true })
+  header_key!: string | null;
 
-  @Column('varchar')
-  header_value!: string;
+  @Column('varchar', { nullable: true })
+  header_value!: string | null;
 
   @Column('varchar')
   badge_color!: TierColor;

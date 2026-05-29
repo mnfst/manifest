@@ -29,15 +29,15 @@ import { AUTH_TYPES, type TierColor } from 'manifest-shared';
 
 interface CreateHeaderTierBody {
   name: string;
-  header_key: string;
-  header_value: string;
+  header_key?: string | null;
+  header_value?: string | null;
   badge_color: TierColor;
 }
 
 interface UpdateHeaderTierBody {
   name?: string;
-  header_key?: string;
-  header_value?: string;
+  header_key?: string | null;
+  header_value?: string | null;
   badge_color?: TierColor;
 }
 

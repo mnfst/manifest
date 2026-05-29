@@ -12,12 +12,14 @@ vi.mock("../../src/components/FrameworkSnippets.jsx", () => ({
     baseUrl: string;
     apiKey?: string | null;
     keyPrefix?: string | null;
+    model?: string;
   }) => (
     <div data-testid="framework-snippets">
       <div data-testid="snippets-base-url">{props.baseUrl}</div>
       <div data-testid="snippets-custom-headers">
         {JSON.stringify(props.customHeaders ?? null)}
       </div>
+      <div data-testid="snippets-model">{props.model ?? "auto"}</div>
       <div data-testid="snippets-api-key">{props.apiKey ?? "null"}</div>
       <div data-testid="snippets-key-prefix">{props.keyPrefix ?? "null"}</div>
     </div>
@@ -60,21 +62,38 @@ describe("HeaderTierSnippetModal", () => {
     expect(title?.textContent).toContain("Premium");
   });
 
-  it("renders the override_route.model in the description", () => {
+  it("passes the tier model alias to FrameworkSnippets", () => {
+    const { getByTestId } = render(() => (
+      <HeaderTierSnippetModal agentName="demo" tier={baseTier} onClose={vi.fn()} />
+    ));
+    expect(getByTestId("snippets-model").textContent).toBe("premium");
+  });
+
+  it("renders model alias and primary model in the description", () => {
     const { container } = render(() => (
       <HeaderTierSnippetModal agentName="demo" tier={baseTier} onClose={vi.fn()} />
     ));
-    const code = container.querySelector(".modal-card__desc code");
-    expect(code?.textContent).toBe("gpt-4o");
+    const desc = container.querySelector(".modal-card__desc");
+    expect(desc?.textContent).toContain('model: "premium"');
+    expect(desc?.textContent).toContain("gpt-4o");
   });
 
-  it("falls back to placeholder text when override_route is null", () => {
+  it("notes when no primary model is assigned", () => {
     const tier = { ...baseTier, override_route: null };
     const { container } = render(() => (
       <HeaderTierSnippetModal agentName="demo" tier={tier} onClose={vi.fn()} />
     ));
-    const code = container.querySelector(".modal-card__desc code");
-    expect(code?.textContent).toContain("no model assigned");
+    expect(container.querySelector(".modal-card__desc")?.textContent).toContain(
+      "assign a primary model",
+    );
+  });
+
+  it("omits customHeaders when header rule is not set", () => {
+    const tier = { ...baseTier, header_key: null, header_value: null };
+    const { getByTestId } = render(() => (
+      <HeaderTierSnippetModal agentName="demo" tier={tier} onClose={vi.fn()} />
+    ));
+    expect(getByTestId("snippets-custom-headers").textContent).toBe("{}");
   });
 
   it("passes the tier's header_key/header_value as customHeaders to FrameworkSnippets", () => {

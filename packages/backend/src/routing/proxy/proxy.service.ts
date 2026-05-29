@@ -25,6 +25,7 @@ import type {
 import {
   DEFAULT_RESPONSE_MODE,
   SPECIFICITY_CATEGORIES,
+  headerTierNameToModelAlias,
   modelParamsScopeForRouting,
   routeEquals,
   snapshotRequestParams,
@@ -155,6 +156,7 @@ export class ProxyService {
       signal,
       specificityOverride,
       headers,
+      modelAlias,
     } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const chatBody =
@@ -177,9 +179,22 @@ export class ProxyService {
       sessionKey,
       specificityOverride,
       headers,
+      modelAlias,
     );
     const responseMode = resolved.response_mode ?? DEFAULT_RESPONSE_MODE;
     const stream = body.stream === true || responseMode === 'stream';
+    if (modelAlias && modelAlias.kind !== 'auto' && !resolved.route) {
+      const alias =
+        modelAlias.kind === 'tier'
+          ? modelAlias.tier
+          : modelAlias.kind === 'specificity'
+            ? modelAlias.category.replace(/_/g, '-')
+            : resolved.header_tier_name
+              ? headerTierNameToModelAlias(resolved.header_tier_name)
+              : modelAlias.id;
+      const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
+      throw new BadRequestException(formatManifestError('M411', { alias, dashboardUrl }));
+    }
     if (!resolved.route) {
       this.logger.warn(
         `No route available for agent=${agentId}: ` +
@@ -395,7 +410,12 @@ export class ProxyService {
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
     headers: ProxyRequestOptions['headers'],
+    modelAlias: ProxyRequestOptions['modelAlias'],
   ) {
+    if (modelAlias && modelAlias.kind !== 'auto') {
+      return this.resolveService.resolveForAlias(agentId, modelAlias);
+    }
+
     const messages = body.messages as ScorerMessage[];
     const scoringMessages = this.filterScoringMessages(messages);
     const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;

@@ -843,4 +843,84 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('default');
     });
   });
+
+  describe('resolveForAlias', () => {
+    it('resolves a tier alias to the tier assignment route', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as TierAssignment,
+      ]);
+
+      const result = await svc.resolveForAlias('agent-1', { kind: 'tier', tier: 'simple' });
+
+      expect(result.reason).toBe('model_alias');
+      expect(result.tier).toBe('simple');
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
+      expect(mockedScore).not.toHaveBeenCalled();
+      expect(mockedScan).not.toHaveBeenCalled();
+    });
+
+    it('resolves a specificity alias to the category assignment route', async () => {
+      specificityService.getActiveAssignments.mockResolvedValue([
+        {
+          category: 'coding',
+          is_active: true,
+          override_route: route('anthropic', 'api_key', 'claude-sonnet-4'),
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as SpecificityAssignment,
+      ]);
+
+      const result = await svc.resolveForAlias('agent-1', {
+        kind: 'specificity',
+        category: 'coding',
+      });
+
+      expect(result.reason).toBe('model_alias');
+      expect(result.specificity_category).toBe('coding');
+      expect(result.route).toEqual(route('anthropic', 'api_key', 'claude-sonnet-4'));
+      expect(mockedScan).not.toHaveBeenCalled();
+    });
+
+    it('returns null route when the specificity category is not active', async () => {
+      specificityService.getActiveAssignments.mockResolvedValue([]);
+
+      const result = await svc.resolveForAlias('agent-1', {
+        kind: 'specificity',
+        category: 'coding',
+      });
+
+      expect(result.reason).toBe('model_alias');
+      expect(result.route).toBeNull();
+      expect(result.specificity_category).toBe('coding');
+    });
+
+    it('resolves a custom tier alias to its configured route', async () => {
+      headerTierService.list.mockResolvedValue([
+        {
+          id: 'ht-super',
+          name: 'super',
+          enabled: true,
+          header_key: null,
+          header_value: null,
+          override_route: route('openai', 'api_key', 'gpt-4o'),
+          fallback_routes: null,
+        } as HeaderTier,
+      ]);
+
+      const result = await svc.resolveForAlias('agent-1', {
+        kind: 'header_tier',
+        id: 'ht-super',
+      });
+
+      expect(result.reason).toBe('model_alias');
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.header_tier_name).toBe('super');
+      expect(mockedScore).not.toHaveBeenCalled();
+    });
+  });
 });

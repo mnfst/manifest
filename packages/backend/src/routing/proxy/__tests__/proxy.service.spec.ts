@@ -65,7 +65,9 @@ const specCatalog: ProviderParamSpecCatalog = [
 ];
 
 describe('ProxyService — orchestration', () => {
-  let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
+  let resolveService: jest.Mocked<
+    Pick<ResolveService, 'resolve' | 'resolveForTier' | 'resolveForAlias'>
+  >;
   let providerKeyService: jest.Mocked<
     Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion'>
   >;
@@ -100,6 +102,7 @@ describe('ProxyService — orchestration', () => {
     resolveService = {
       resolve: jest.fn(),
       resolveForTier: jest.fn(),
+      resolveForAlias: jest.fn(),
     };
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
@@ -211,6 +214,58 @@ describe('ProxyService — orchestration', () => {
       // Routing was called — sanitized message reached the resolver.
       expect(resolveService.resolve).toHaveBeenCalled();
       expect(result.forward.response.status).toBeGreaterThanOrEqual(200);
+    });
+  });
+
+  describe('model alias routing', () => {
+    it('calls resolveForAlias and skips scoring when a tier alias is set', async () => {
+      resolveService.resolveForAlias.mockResolvedValue({
+        tier: 'coding' as never,
+        route: { provider: 'anthropic', authType: 'api_key', model: 'claude-sonnet-4' },
+        fallback_routes: null,
+        confidence: 1,
+        score: 0,
+        reason: 'model_alias',
+        specificity_category: 'coding',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(
+        baseOpts({
+          modelAlias: { kind: 'specificity', category: 'coding' },
+        }),
+      );
+
+      expect(resolveService.resolveForAlias).toHaveBeenCalledWith('agent-1', {
+        kind: 'specificity',
+        category: 'coding',
+      });
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+    });
+
+    it('throws M411 when an alias resolves to no route', async () => {
+      resolveService.resolveForAlias.mockResolvedValue({
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        confidence: 1,
+        score: 0,
+        reason: 'model_alias',
+        specificity_category: 'coding',
+      });
+
+      await expect(
+        svc.proxyRequest(
+          baseOpts({
+            modelAlias: { kind: 'specificity', category: 'coding' },
+          }),
+        ),
+      ).rejects.toThrow(/M411/);
     });
   });
 
