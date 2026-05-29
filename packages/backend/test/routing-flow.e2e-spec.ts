@@ -142,7 +142,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 
     // Recalculate tier assignments with the seeded models
     const autoAssign = app.get(TierAutoAssignService);
-    await autoAssign.recalculate(TEST_AGENT_ID);
+    await autoAssign.recalculate(TEST_AGENT_ID, TEST_USER_ID);
   });
 
   it('routes "hi" → simple tier with cheapest model', async () => {
