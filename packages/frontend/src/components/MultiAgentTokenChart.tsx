@@ -2,7 +2,7 @@ import { createSignal, For, Show, type Component } from 'solid-js';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { getHslA, getHsl } from '../services/theme.js';
-import { formatNumber } from '../services/formatters.js';
+import { formatNumber, formatCost } from '../services/formatters.js';
 import {
   useChartLifecycle,
   createBaseAxes,
@@ -73,6 +73,8 @@ function formatTooltipDate(epochSec: number, multiDay: boolean): string {
 const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
   let el!: HTMLDivElement;
   let rawData: number[][] = [];
+  const isCost = () => props.label === 'Cost';
+  const fmtVal = (v: number) => (isCost() ? (formatCost(v) ?? '$0.00') : formatNumber(v));
 
   const [tooltip, setTooltip] = createSignal<TooltipState>({
     visible: false,
@@ -228,7 +230,8 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
             const a = createBaseAxes(axisColor, gridColor, props.range);
             a[1] = {
               ...a[1]!,
-              values: (u: uPlot, vals: number[]) => vals.map((v) => formatLegendTokens(u, v)),
+              values: (u: uPlot, vals: number[]) =>
+                vals.map((v) => (isCost() ? `$${v.toFixed(2)}` : formatLegendTokens(u, v))),
             };
             return a;
           })(),
@@ -262,7 +265,7 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
                   <div class="agent-chart-tooltip__row">
                     <span class="agent-chart-tooltip__swatch" style={{ background: entry.color }} />
                     <span class="agent-chart-tooltip__name">{entry.agent}</span>
-                    <span class="agent-chart-tooltip__value">{formatNumber(entry.value)}</span>
+                    <span class="agent-chart-tooltip__value">{fmtVal(entry.value)}</span>
                   </div>
                 </Show>
               )}
@@ -270,7 +273,7 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
           </div>
           <div class="agent-chart-tooltip__total">
             <span>Total</span>
-            <span class="agent-chart-tooltip__total-value">{formatNumber(tt().total)}</span>
+            <span class="agent-chart-tooltip__total-value">{fmtVal(tt().total)}</span>
           </div>
         </div>
       </Show>

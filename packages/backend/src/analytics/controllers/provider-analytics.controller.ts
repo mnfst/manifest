@@ -105,6 +105,27 @@ export class ProviderAnalyticsController {
     );
   }
 
+  @Get('per-agent-cost-timeseries')
+  async getPerAgentCostTimeseries(
+    @CurrentUser() user: AuthUser,
+    @Query('auth_type') authType?: string,
+    @Query('provider') provider?: string,
+    @Query('range') range?: string,
+  ) {
+    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const hourly = validRange === '24h';
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+
+    return this.timeseries.getPerAgentCostTimeseries(
+      validRange,
+      user.id,
+      hourly,
+      tenantId,
+      authType,
+      provider,
+    );
+  }
+
   @Get('agents')
   async getAgents(@CurrentUser() user: AuthUser, @Query('auth_type') authType?: string) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
@@ -142,6 +163,7 @@ export class ProviderAnalyticsController {
           connected_at: conn.connected_at,
         },
         agents: [],
+        model_usage: [],
         recent_messages: [],
       };
     }
@@ -169,6 +191,7 @@ export class ProviderAnalyticsController {
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .addSelect('COUNT(*)', 'messages')
       .addSelect('MAX(at.timestamp)', 'last_used')
       .addSelect('MAX(a.agent_platform)', 'agent_platform')
@@ -181,6 +204,27 @@ export class ProviderAnalyticsController {
       .groupBy('at.agent_name')
       .orderBy('tokens', 'DESC')
       .getRawMany();
+
+    // Model usage (30d)
+    const modelRows = await this.messageRepo
+      .createQueryBuilder('at')
+      .select('at.model', 'model')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .addSelect('COUNT(*)', 'messages')
+      .where('at.tenant_id = :tid', { tid: tenant.id })
+      .andWhere('at.provider = :provider', { provider: conn.provider })
+      .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
+      .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
+      .andWhere('at.model IS NOT NULL')
+      .groupBy('at.model')
+      .orderBy('tokens', 'DESC')
+      .getRawMany();
+
+    const totalModelTokens = modelRows.reduce(
+      (sum: number, r: Record<string, unknown>) => sum + Number(r['tokens'] ?? 0),
+      0,
+    );
 
     // Recent messages (top 5)
     const msgQb = selectMessageRowColumns(this.messageRepo.createQueryBuilder('at'), costExpr)
@@ -203,17 +247,38 @@ export class ProviderAnalyticsController {
         is_active: conn.is_active,
         last_used_at: lastUsedAt,
       },
-      agents: agentRows.map((r: Record<string, unknown>) => ({
-        agent_name: String(r['agent_name']),
-        agent_platform: r['agent_platform'] ? String(r['agent_platform']) : null,
-        tokens_30d: Number(r['tokens'] ?? 0),
-        messages_30d: Number(r['messages'] ?? 0),
-        last_used: r['last_used']
-          ? r['last_used'] instanceof Date
-            ? (r['last_used'] as Date).toISOString()
-            : String(r['last_used'])
-          : null,
-      })),
+      agents: (() => {
+        const totalAgentTokens = agentRows.reduce(
+          (sum: number, r: Record<string, unknown>) => sum + Number(r['tokens'] ?? 0),
+          0,
+        );
+        return agentRows.map((r: Record<string, unknown>) => {
+          const tokens = Number(r['tokens'] ?? 0);
+          return {
+            agent_name: String(r['agent_name']),
+            agent_platform: r['agent_platform'] ? String(r['agent_platform']) : null,
+            tokens_30d: tokens,
+            cost_30d: Number(r['cost'] ?? 0),
+            messages_30d: Number(r['messages'] ?? 0),
+            pct_of_total: totalAgentTokens > 0 ? Math.round((tokens / totalAgentTokens) * 100) : 0,
+            last_used: r['last_used']
+              ? r['last_used'] instanceof Date
+                ? (r['last_used'] as Date).toISOString()
+                : String(r['last_used'])
+              : null,
+          };
+        });
+      })(),
+      model_usage: modelRows.map((r: Record<string, unknown>) => {
+        const tokens = Number(r['tokens'] ?? 0);
+        return {
+          model: String(r['model']),
+          tokens,
+          cost: Number(r['cost'] ?? 0),
+          messages: Number(r['messages'] ?? 0),
+          pct_of_total: totalModelTokens > 0 ? Math.round((tokens / totalModelTokens) * 100) : 0,
+        };
+      }),
       recent_messages: recentMessages,
     };
   }

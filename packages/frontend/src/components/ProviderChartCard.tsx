@@ -2,9 +2,9 @@ import { Show, type Component } from 'solid-js';
 import SingleTokenChart from './SingleTokenChart.jsx';
 import TokenChart from './TokenChart.jsx';
 import MultiAgentTokenChart from './MultiAgentTokenChart.jsx';
-import { formatNumber } from '../services/formatters.js';
+import { formatNumber, formatCost } from '../services/formatters.js';
 
-type ProviderView = 'messages' | 'tokens';
+type ProviderView = 'messages' | 'tokens' | 'cost';
 
 const trendBadge = (pct: number, value: number) => {
   if (pct === 0 || Math.abs(value) < 0.005) return null;
@@ -31,15 +31,20 @@ interface ProviderChartCardProps {
   messagesTrendPct: number;
   tokensValue: number;
   tokensTrendPct: number;
+  costValue?: number;
+  costTrendPct?: number;
   tokenUsage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
   agentTimeseries?: AgentTimeseries;
   agentMessageTimeseries?: AgentTimeseries;
+  agentCostTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
 }
 
 const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
+  const showCost = () => props.costValue != null;
+
   return (
     <div class="chart-card">
       <div class="chart-card__header">
@@ -65,6 +70,19 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
             {trendBadge(props.messagesTrendPct, props.messagesValue)}
           </div>
         </div>
+        <Show when={showCost()}>
+          <div
+            class="chart-card__stat chart-card__stat--clickable"
+            classList={{ 'chart-card__stat--active': props.activeView === 'cost' }}
+            onClick={() => props.onViewChange('cost')}
+          >
+            <span class="chart-card__label">Cost</span>
+            <div class="chart-card__value-row">
+              <span class="chart-card__value">{formatCost(props.costValue!) ?? '$0.00'}</span>
+              {trendBadge(props.costTrendPct ?? 0, props.costValue!)}
+            </div>
+          </div>
+        </Show>
       </div>
       <div class="chart-card__body">
         <Show when={props.activeView === 'messages'}>
@@ -118,6 +136,24 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
               timeseries={props.agentTimeseries!.timeseries}
               range={props.range}
               colorMap={props.colorMap}
+            />
+          </Show>
+        </Show>
+        <Show when={props.activeView === 'cost'}>
+          <Show
+            when={props.agentCostTimeseries?.agents.length}
+            fallback={
+              <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
+                No cost data for this time range
+              </div>
+            }
+          >
+            <MultiAgentTokenChart
+              agents={props.agentCostTimeseries!.agents}
+              timeseries={props.agentCostTimeseries!.timeseries}
+              range={props.range}
+              colorMap={props.colorMap}
+              label="Cost"
             />
           </Show>
         </Show>

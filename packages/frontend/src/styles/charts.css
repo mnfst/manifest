@@ -88,7 +88,7 @@
 /* ── Agent chart hover tooltip ────────────────────── */
 .agent-chart-tooltip {
   position: absolute;
-  z-index: 100;
+  z-index: 1000;
   pointer-events: none;
   background: hsl(var(--popover));
   border: 1px solid hsl(var(--border));
