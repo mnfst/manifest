@@ -125,6 +125,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -148,6 +149,7 @@ describe('ResolveService', () => {
       headerTierService.list.mockResolvedValue([]);
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -176,6 +178,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -204,6 +207,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -231,6 +235,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -258,6 +263,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -298,6 +304,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -338,6 +345,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -362,6 +370,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -388,6 +397,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -413,6 +423,7 @@ describe('ResolveService', () => {
       } as never);
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -438,7 +449,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('default');
       expect(result.reason).toBe('default');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
@@ -458,7 +469,7 @@ describe('ResolveService', () => {
       ]);
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.9 } as never);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.specificity_category).toBe('coding');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
@@ -486,7 +497,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -502,7 +513,7 @@ describe('ResolveService', () => {
       ]);
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.9 } as never);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
     });
@@ -527,7 +538,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       // Specificity returned null — falls through to scored.
       expect(result.reason).toBe('scored');
     });
@@ -542,7 +553,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
       expect(mockedScan).not.toHaveBeenCalled();
     });
@@ -560,7 +571,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -584,7 +595,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -602,6 +613,7 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -620,7 +632,7 @@ describe('ResolveService', () => {
       penaltyService.getPenaltiesForAgent.mockResolvedValue(penalties as never);
       mockedScan.mockReturnValue(null);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
       expect(mockedScan).toHaveBeenCalled();
       const call = mockedScan.mock.calls[0];
       expect(call[4]).toBe(penalties);
@@ -639,7 +651,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
   });
@@ -661,7 +673,7 @@ describe('ResolveService', () => {
         } as unknown as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('complex');
       expect(result.route).toEqual(route('anthropic', 'api_key', 'claude-opus'));
       expect(result.fallback_routes).toEqual([route('openai', 'api_key', 'gpt-4o')]);
@@ -683,7 +695,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('default');
       expect(result.reason).toBe('default');
     });
@@ -705,7 +717,7 @@ describe('ResolveService', () => {
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.tier).toBe('standard');
       expect(result.route).toBeNull();
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'fallback-1')]);
@@ -728,7 +740,7 @@ describe('ResolveService', () => {
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.route).toEqual(route('openai', 'api_key', 'auto'));
     });
 
@@ -747,7 +759,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      await svc.resolve('agent-1', messages, undefined, undefined, undefined, ['simple']);
+      await svc.resolve('agent-1', 'user-1', messages, undefined, undefined, undefined, ['simple']);
       const [, , momentum] = mockedScore.mock.calls[0];
       expect(momentum).toEqual({ recentTiers: ['simple'] });
     });
@@ -761,7 +773,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      await svc.resolve('agent-1', messages, undefined, undefined, undefined, []);
+      await svc.resolve('agent-1', 'user-1', messages, undefined, undefined, undefined, []);
       const [, , momentum] = mockedScore.mock.calls[0];
       expect(momentum).toBeUndefined();
     });
@@ -770,7 +782,7 @@ describe('ResolveService', () => {
   describe('resolveForTier', () => {
     it('returns null route when tier assignment is missing', async () => {
       tierService.getTiers.mockResolvedValue([]);
-      const result = await svc.resolveForTier('agent-1', 'simple', 'heartbeat');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple', 'heartbeat');
       expect(result.tier).toBe('simple');
       expect(result.route).toBeNull();
       expect(result.fallback_routes).toBeNull();
@@ -787,7 +799,7 @@ describe('ResolveService', () => {
           fallback_routes: [route('anthropic', 'api_key', 'haiku')],
         } as unknown as TierAssignment,
       ]);
-      const result = await svc.resolveForTier('agent-1', 'simple');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple');
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'haiku')]);
       expect(result.reason).toBe('heartbeat');
@@ -807,7 +819,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolveForTier('agent-1', 'simple');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple');
 
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'claude-3-5-sonnet')]);
@@ -824,7 +836,7 @@ describe('ResolveService', () => {
         } as TierAssignment,
       ]);
 
-      const result = await svc.resolveForTier('agent-1', 'simple');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple');
 
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(result.fallback_routes).toBeNull();
@@ -839,7 +851,7 @@ describe('ResolveService', () => {
           fallback_routes: null,
         } as TierAssignment,
       ]);
-      const result = await svc.resolveForTier('agent-1', 'default', 'default');
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'default', 'default');
       expect(result.reason).toBe('default');
     });
   });

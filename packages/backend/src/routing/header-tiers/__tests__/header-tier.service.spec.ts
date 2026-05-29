@@ -370,7 +370,7 @@ describe('HeaderTierService', () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
-      const result = await svc.setOverride('agent-1', 'h1', 'gpt-4o');
+      const result = await svc.setOverride('agent-1', 'user-1', 'h1', 'gpt-4o');
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
     });
 
@@ -378,13 +378,15 @@ describe('HeaderTierService', () => {
       const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
       repo.findOne.mockResolvedValue(row);
       discoveryService.getModelsForAgent.mockResolvedValue([]);
-      const result = await svc.setOverride('agent-1', 'h1', 'gpt-4o');
+      const result = await svc.setOverride('agent-1', 'user-1', 'h1', 'gpt-4o');
       expect(result.override_route).toBeNull();
     });
 
     it('throws NotFound when row missing', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(svc.setOverride('agent-1', 'h1', 'gpt-4o')).rejects.toThrow(NotFoundException);
+      await expect(svc.setOverride('agent-1', 'user-1', 'h1', 'gpt-4o')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -418,14 +420,14 @@ describe('HeaderTierService', () => {
       ]);
 
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'h1', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks('agent-1', 'user-1', 'h1', ['gpt-4o'], provided);
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
     it('returns [] when models is empty', async () => {
       repo.findOne.mockResolvedValue({ id: 'h1', agent_id: 'agent-1' } as HeaderTier);
-      const result = await svc.setFallbacks('agent-1', 'h1', []);
+      const result = await svc.setFallbacks('agent-1', 'user-1', 'h1', []);
       expect(result).toEqual([]);
     });
 
@@ -435,7 +437,7 @@ describe('HeaderTierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
       ]);
-      await expect(svc.setFallbacks('agent-1', 'h1', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'user-1', 'h1', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -460,6 +462,7 @@ describe('HeaderTierService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
+          'user-1',
           'h1',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],
@@ -479,6 +482,7 @@ describe('HeaderTierService', () => {
       ]);
       const result = await svc.setFallbacks(
         'agent-1',
+        'user-1',
         'h1',
         ['gpt-4o'],
         [route('different', 'api_key', 'gpt-4o')],
@@ -488,7 +492,7 @@ describe('HeaderTierService', () => {
 
     it('throws NotFound when row missing', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(svc.setFallbacks('agent-1', 'h1', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'user-1', 'h1', ['gpt-4o'])).rejects.toThrow(
         NotFoundException,
       );
     });

@@ -92,7 +92,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'openai');
+      const result = await svc.removeProvider('agent-1', 'user-1', 'openai');
       expect(tierRepo.save).toHaveBeenCalledTimes(1);
       const savedTiers = tierRepo.save.mock.calls[0][0];
       expect(savedTiers[0].override_route).toBeNull();
@@ -126,7 +126,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'custom-x');
+      const result = await svc.removeProvider('agent-1', 'user-1', 'custom-x');
       const saved = tierRepo.save.mock.calls[0][0];
       expect(saved[0].override_route).toBeNull();
       // Notification for the removed model.
@@ -156,7 +156,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       specRepo.find.mockResolvedValue([]);
 
-      await svc.removeProvider('agent-1', 'openai');
+      await svc.removeProvider('agent-1', 'user-1', 'openai');
       expect(tierRepo.save).toHaveBeenCalled();
     });
 
@@ -179,7 +179,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([{ tier: 'standard' } as TierAssignment]);
       specRepo.find.mockResolvedValue([]);
 
-      await svc.removeProvider('agent-1', 'openai');
+      await svc.removeProvider('agent-1', 'user-1', 'openai');
       const saved = tierRepo.save.mock.calls[0][0];
       expect(saved[0].fallback_routes).toBeNull();
     });
@@ -203,7 +203,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([{ tier: 'standard' } as TierAssignment]);
       specRepo.find.mockResolvedValue([]);
 
-      await svc.removeProvider('agent-1', 'openai');
+      await svc.removeProvider('agent-1', 'user-1', 'openai');
       const saved = tierRepo.save.mock.calls[0][0];
       expect(saved[0].fallback_routes).toEqual([route('anthropic', 'claude')]);
     });
@@ -227,7 +227,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         } as unknown as SpecificityAssignment,
       ]);
 
-      await svc.removeProvider('agent-1', 'openai');
+      await svc.removeProvider('agent-1', 'user-1', 'openai');
       expect(specRepo.save).toHaveBeenCalled();
       const savedSpec = specRepo.save.mock.calls[0][0];
       expect(savedSpec[0].override_route).toBeNull();
@@ -253,7 +253,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         },
       ]);
 
-      const result = await svc.removeProvider('agent-1', 'openai');
+      const result = await svc.removeProvider('agent-1', 'user-1', 'openai');
       expect(tierRepo.find).not.toHaveBeenCalled();
       expect(result.notifications).toEqual([]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
@@ -308,7 +308,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         } as unknown as SpecificityAssignment,
       ]);
 
-      const result = await svc.removeProvider('agent-1', 'anthropic', 'subscription');
+      const result = await svc.removeProvider('agent-1', 'user-1', 'anthropic', 'subscription');
 
       expect(subscriptionRow.is_active).toBe(false);
       const savedTiers = tierRepo.save.mock.calls[0][0];
@@ -327,7 +327,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
     it('throws NotFoundException when no provider record exists', async () => {
       providerRepo.findOne.mockResolvedValue(null);
-      await expect(svc.removeProvider('agent-1', 'missing')).rejects.toThrow();
+      await expect(svc.removeProvider('agent-1', 'user-1', 'missing')).rejects.toThrow();
     });
 
     it('returns no notifications when no tiers/specs reference the provider', async () => {
@@ -343,14 +343,14 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([]);
       specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'openai');
+      const result = await svc.removeProvider('agent-1', 'user-1', 'openai');
       expect(result.notifications).toEqual([]);
     });
   });
 
   describe('deactivateAllProviders', () => {
     it('updates providers and tiers, then recalculates and invalidates cache', async () => {
-      await svc.deactivateAllProviders('agent-1');
+      await svc.deactivateAllProviders('agent-1', 'user-1');
 
       expect(providerRepo.update).toHaveBeenCalledWith(
         { agent_id: 'agent-1' },

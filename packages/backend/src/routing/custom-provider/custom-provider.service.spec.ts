@@ -677,14 +677,16 @@ describe('CustomProviderService', () => {
   describe('remove', () => {
     it('throws NotFound when the provider is missing', async () => {
       const { svc } = makeDeps({ findOneResults: [null] });
-      await expect(svc.remove('agent-1', 'cp1')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(svc.remove('agent-1', 'user-1', 'cp1')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
 
     it('deletes the row and attempts provider removal', async () => {
       const cp = { id: 'cp1', agent_id: 'agent-1' } as CustomProvider;
       const { svc, removeProvider, remove, reloadPricing } = makeDeps({ findOneResults: [cp] });
-      await svc.remove('agent-1', 'cp1');
-      expect(removeProvider).toHaveBeenCalledWith('agent-1', 'custom:cp1');
+      await svc.remove('agent-1', 'user-1', 'cp1');
+      expect(removeProvider).toHaveBeenCalledWith('agent-1', 'user-1', 'custom:cp1');
       expect(remove).toHaveBeenCalledWith(cp);
       // Stale pricing entries for this provider must be dropped from the
       // cache so getAll() stops returning them.
@@ -695,7 +697,7 @@ describe('CustomProviderService', () => {
       const cp = { id: 'cp1', agent_id: 'agent-1' } as CustomProvider;
       const { svc, removeProvider, remove } = makeDeps({ findOneResults: [cp] });
       removeProvider.mockRejectedValue(new Error('not linked'));
-      await expect(svc.remove('agent-1', 'cp1')).resolves.toBeUndefined();
+      await expect(svc.remove('agent-1', 'user-1', 'cp1')).resolves.toBeUndefined();
       expect(remove).toHaveBeenCalledWith(cp);
     });
   });

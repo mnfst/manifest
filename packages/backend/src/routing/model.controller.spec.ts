@@ -91,6 +91,8 @@ describe('ModelController', () => {
       mockProviderParamSpecs as unknown as ProviderParamSpecService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
+      {} as never,
+      {} as never,
     );
   });
 
