@@ -124,10 +124,12 @@ vi.mock("../../src/services/agent-platform-store.js", () => ({
 }));
 
 import Settings from "../../src/pages/Settings";
+import { resetSidebarVisibility } from "../../src/services/sidebar-preferences.js";
 
 describe("Settings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetSidebarVisibility();
     mockAgentName = "test-agent";
     mockSetupThrows = false;
     mockGetAgentKey.mockResolvedValue({ keyPrefix: "mnfst_abc" });
@@ -140,7 +142,7 @@ describe("Settings", () => {
 
   it("renders Settings heading", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Settings", level: 1 })).toBeDefined();
   });
 
   it("renders agent name input with value", () => {
@@ -152,6 +154,13 @@ describe("Settings", () => {
   it("renders Agent type label", () => {
     render(() => <Settings />);
     expect(screen.getByText("Agent type")).toBeDefined();
+  });
+
+  it("renders sidebar navigation preferences", () => {
+    render(() => <Settings />);
+    expect(screen.getByText("Sidebar navigation")).toBeDefined();
+    expect(screen.getByText("Manage")).toBeDefined();
+    expect(screen.getByText("Reset to defaults")).toBeDefined();
   });
 
   it("renders Change button for agent type", async () => {

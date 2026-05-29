@@ -1,6 +1,14 @@
 import { A, useLocation } from '@solidjs/router';
-import { Show, type Component } from 'solid-js';
-import { useAgentName, agentPath } from '../services/routing.js';
+import { For, Show, type Component } from 'solid-js';
+import {
+  SIDEBAR_BLOCKS,
+  SIDEBAR_BLOCK_IDS,
+  SIDEBAR_ITEM_LABELS,
+  SIDEBAR_ITEM_PATHS,
+  type SidebarItemId,
+} from '../services/sidebar-nav.js';
+import { isSidebarBlockShown, isSidebarItemVisible } from '../services/sidebar-preferences.js';
+import { agentPath, useAgentName } from '../services/routing.js';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -44,106 +52,60 @@ const Sidebar: Component<SidebarProps> = (props) => {
       </Show>
 
       <Show when={getAgentName()}>
-        <div class="sidebar__section-label">MONITORING</div>
-        <A
-          href={path('')}
-          class="sidebar__link"
-          classList={{ active: isActive('') }}
-          aria-current={isActive('') ? 'page' : undefined}
-        >
-          Overview
-        </A>
-        <A
-          href={path('/messages')}
-          class="sidebar__link"
-          classList={{ active: isActive('/messages') }}
-          aria-current={isActive('/messages') ? 'page' : undefined}
-        >
-          Messages
-        </A>
-
-        <div class="sidebar__section-label">MANAGE</div>
-        <A
-          href={path('/routing')}
-          class="sidebar__link"
-          classList={{ active: isActive('/routing') }}
-          aria-current={isActive('/routing') ? 'page' : undefined}
-        >
-          Routing
-        </A>
-        <A
-          href={path('/playground')}
-          class="sidebar__link"
-          classList={{ active: isActive('/playground') }}
-          aria-current={isActive('/playground') ? 'page' : undefined}
-        >
-          Playground
-        </A>
-        <A
-          href={path('/limits')}
-          class="sidebar__link"
-          classList={{ active: isActive('/limits') }}
-          aria-current={isActive('/limits') ? 'page' : undefined}
-        >
-          Limits
-        </A>
-        <A
-          href={path('/settings')}
-          class="sidebar__link"
-          classList={{ active: isActive('/settings') }}
-          aria-current={isActive('/settings') ? 'page' : undefined}
-        >
-          Settings
-        </A>
-      </Show>
-
-      <Show when={getAgentName()}>
-        <div class="sidebar__section-label">RESOURCES</div>
-        <A
-          href={path('/model-prices')}
-          class="sidebar__link"
-          classList={{ active: isActive('/model-prices') }}
-          aria-current={isActive('/model-prices') ? 'page' : undefined}
-        >
-          Model Prices
-        </A>
-        <A
-          href={path('/free-models')}
-          class="sidebar__link"
-          classList={{ active: isActive('/free-models') }}
-          aria-current={isActive('/free-models') ? 'page' : undefined}
-        >
-          <img
-            src="/icons/free.svg"
-            alt="Free Models"
-            style="height: 12px; vertical-align: middle;"
-          />{' '}
-          Models
-        </A>
-        <A
-          href={path('/help')}
-          class="sidebar__link"
-          classList={{ active: isActive('/help') }}
-          aria-current={isActive('/help') ? 'page' : undefined}
-        >
-          Help
-        </A>
+        <For each={SIDEBAR_BLOCK_IDS.filter((id) => id !== 'feedback')}>
+          {(blockId) => (
+            <Show when={isSidebarBlockShown(blockId)}>
+              <div class="sidebar__section-label">{SIDEBAR_BLOCKS[blockId].label}</div>
+              <For each={[...SIDEBAR_BLOCKS[blockId].items]}>
+                {(itemId) => (
+                  <Show when={isSidebarItemVisible(itemId)}>
+                    <A
+                      href={path(SIDEBAR_ITEM_PATHS[itemId as Exclude<SidebarItemId, 'feedback'>])}
+                      class="sidebar__link"
+                      classList={{
+                        active: isActive(
+                          SIDEBAR_ITEM_PATHS[itemId as Exclude<SidebarItemId, 'feedback'>],
+                        ),
+                      }}
+                      aria-current={
+                        isActive(SIDEBAR_ITEM_PATHS[itemId as Exclude<SidebarItemId, 'feedback'>])
+                          ? 'page'
+                          : undefined
+                      }
+                    >
+                      <Show when={itemId === 'free-models'} fallback={SIDEBAR_ITEM_LABELS[itemId]}>
+                        <img
+                          src="/icons/free.svg"
+                          alt="Free Models"
+                          style="height: 12px; vertical-align: middle;"
+                        />{' '}
+                        Models
+                      </Show>
+                    </A>
+                  </Show>
+                )}
+              </For>
+            </Show>
+          )}
+        </For>
       </Show>
 
       <div class="sidebar__spacer" />
 
-      <a
-        href="https://github.com/mnfst/manifest/discussions/new?category=feature-request"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="sidebar__feedback"
-      >
-        <span class="sidebar__feedback-title">
-          <i class="bxd bx-message-bubble-detail" />
-          Feedback
-        </span>
-        <p class="sidebar__feedback-hint">Share ideas or report bugs.</p>
-      </a>
+      <Show when={getAgentName() && isSidebarItemVisible('feedback')}>
+        <a
+          href="https://github.com/mnfst/manifest/discussions/new?category=feature-request"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="sidebar__feedback"
+        >
+          <span class="sidebar__feedback-title">
+            <i class="bxd bx-message-bubble-detail" />
+            Feedback
+          </span>
+          <p class="sidebar__feedback-hint">Share ideas or report bugs.</p>
+        </a>
+      </Show>
     </nav>
   );
 };

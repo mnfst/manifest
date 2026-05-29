@@ -24,11 +24,16 @@ vi.mock("../../src/services/routing.js", () => ({
 }));
 
 import Sidebar from "../../src/components/Sidebar";
+import { resetSidebarVisibility, setSidebarItemVisible } from "../../src/services/sidebar-preferences.js";
 
 describe("Sidebar with agent", () => {
   beforeAll(() => {
     mockAgentName = "test-agent";
     mockPathname = "/agents/test-agent";
+  });
+
+  beforeEach(() => {
+    resetSidebarVisibility();
   });
 
   it("renders MONITORING section", () => {
@@ -39,6 +44,13 @@ describe("Sidebar with agent", () => {
   it("renders Overview link", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Overview")).toBeDefined();
+  });
+
+  it("hides items disabled in sidebar preferences", () => {
+    setSidebarItemVisible("overview", false);
+    render(() => <Sidebar />);
+    expect(screen.queryByText("Overview")).toBeNull();
+    expect(screen.getByText("Messages")).toBeDefined();
   });
 
   it("renders Messages link", () => {
