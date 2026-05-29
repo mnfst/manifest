@@ -79,22 +79,10 @@ const AgentProviders: Component = () => {
     return list;
   };
 
-  // Track if the user has ever toggled — once explicit, stays explicit even if table empties
-  const [everExplicit, setEverExplicit] = createSignal(false);
-
-  const isExplicit = () => {
-    const a = access();
-    if (a?.explicit) {
-      setEverExplicit(true);
-      return true;
-    }
-    return everExplicit();
-  };
-
   const isEnabled = (id: string) => {
-    if (!isExplicit()) return true;
     const a = access();
-    return a?.set.has(id) ?? false;
+    if (!a || !a.explicit) return true;
+    return a.set.has(id);
   };
 
   const [busy, setBusy] = createSignal<string | null>(null);
@@ -106,7 +94,6 @@ const AgentProviders: Component = () => {
 
   const doDisable = async (userProviderId: string) => {
     setBusy(userProviderId);
-    setEverExplicit(true);
     try {
       const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}`;
       await fetchMutate(url, { method: 'DELETE' });

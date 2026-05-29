@@ -1,6 +1,10 @@
 import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { UserProvider } from '../entities/user-provider.entity';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
@@ -33,6 +37,10 @@ export class ModelController {
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly modelsDevSync: ModelsDevSyncService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess>,
+    @InjectRepository(UserProvider)
+    private readonly userProviderRepo: Repository<UserProvider>,
   ) {}
 
   @Get('pricing-health')
@@ -87,7 +95,17 @@ export class ModelController {
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const models = await this.discoveryService.getModelsForAgent(user.id);
+    let models = await this.discoveryService.getModelsForAgent(user.id);
+
+    // Filter out models from providers disabled for this agent
+    const accessRows = await this.accessRepo.find({ where: { agent_id: agent.id } });
+    if (accessRows.length > 0) {
+      // Explicit access list exists — only allow models from enabled providers
+      const enabledProviderIds = new Set(accessRows.map((r) => r.user_provider_id));
+      const enabledProviders = await this.userProviderRepo.findByIds([...enabledProviderIds]);
+      const allowedProviderNames = new Set(enabledProviders.map((p) => p.provider));
+      models = models.filter((m) => allowedProviderNames.has(m.provider));
+    }
 
     // Build display name map for custom providers
     const customProviders = await this.customProviderService.list(agent.id);

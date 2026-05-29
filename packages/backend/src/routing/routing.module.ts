@@ -24,10 +24,18 @@ import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Tenant } from '../entities/tenant.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserProvider, AgentProviderAccess, Agent, AgentMessage, Tenant]),
+    TypeOrmModule.forFeature([
+      UserProvider,
+      AgentProviderAccess,
+      Agent,
+      AgentMessage,
+      Tenant,
+      TierAssignment,
+    ]),
     RoutingCoreModule,
     ModelPricesModule,
     ModelDiscoveryModule,

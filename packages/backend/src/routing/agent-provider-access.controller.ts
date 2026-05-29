@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, Put } from '@nestjs/common';
+import { Controller, Delete, Get, HttpException, HttpStatus, Param, Put } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -7,6 +7,7 @@ import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { UserProvider } from '../entities/user-provider.entity';
+import { TierAssignment } from '../entities/tier-assignment.entity';
 
 @Controller('api/v1/agents/:agentName/provider-access')
 export class AgentProviderAccessController {
@@ -19,6 +20,8 @@ export class AgentProviderAccessController {
     private readonly tenantRepo: Repository<Tenant>,
     @InjectRepository(UserProvider)
     private readonly userProviderRepo: Repository<UserProvider>,
+    @InjectRepository(TierAssignment)
+    private readonly tierRepo: Repository<TierAssignment>,
   ) {}
 
   private async resolveAgent(agentName: string, userId: string) {
@@ -48,7 +51,7 @@ export class AgentProviderAccessController {
     @Param('userProviderId') userProviderId: string,
   ) {
     const agent = await this.resolveAgent(agentName, user.id);
-    if (!agent) return { ok: false };
+    if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
     await this.accessRepo
       .createQueryBuilder()
@@ -68,7 +71,39 @@ export class AgentProviderAccessController {
     @Param('userProviderId') userProviderId: string,
   ) {
     const agent = await this.resolveAgent(agentName, user.id);
-    if (!agent) return { ok: false };
+    if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
+
+    // Check if the provider has models actively used in routing
+    const provider = await this.userProviderRepo.findOne({
+      where: { id: userProviderId, user_id: user.id },
+    });
+    if (provider) {
+      const providerModels = new Set(
+        (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
+      );
+
+      if (providerModels.size > 0) {
+        const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
+        const provName = provider.provider;
+        for (const tier of tiers) {
+          const route = tier.override_route ?? tier.auto_assigned_route;
+          if (route && providerModels.has(route.model)) {
+            throw new HttpException(
+              `Cannot disable ${provName}: model "${route.model}" is assigned in routing. Remove it first.`,
+              HttpStatus.CONFLICT,
+            );
+          }
+          for (const fb of tier.fallback_routes ?? []) {
+            if (providerModels.has(fb.model)) {
+              throw new HttpException(
+                `Cannot disable ${provName}: model "${fb.model}" is assigned in routing. Remove it first.`,
+                HttpStatus.CONFLICT,
+              );
+            }
+          }
+        }
+      }
+    }
 
     // If no explicit entries exist yet, populate with all user providers first
     const existing = await this.accessRepo.count({ where: { agent_id: agent.id } });
