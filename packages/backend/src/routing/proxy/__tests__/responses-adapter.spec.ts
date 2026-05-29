@@ -1,10 +1,46 @@
 import {
-  chatCompletionStreamChunkToResponses,
   collectResponsesSseResponse,
+  createResponsesStreamTransformer,
   fromChatCompletionResponse,
   toChatCompletionsRequest,
   toNativeResponsesRequest,
 } from '../responses-adapter';
+
+/** Ordered list of every event payload's `type` in a concatenated SSE string. */
+function eventTypes(sse: string): string[] {
+  const types: string[] = [];
+  for (const line of sse.split('\n')) {
+    if (!line.startsWith('data: ')) continue;
+    const json = line.slice(6).trim();
+    if (json === '[DONE]') {
+      types.push('[DONE]');
+      continue;
+    }
+    try {
+      const parsed = JSON.parse(json);
+      if (typeof parsed?.type === 'string') types.push(parsed.type);
+    } catch {
+      /* ignore */
+    }
+  }
+  return types;
+}
+
+/** Parses the data payload of the first event with the given `type`. */
+function firstEventData(sse: string, type: string): Record<string, any> | null {
+  for (const line of sse.split('\n')) {
+    if (!line.startsWith('data: ')) continue;
+    const json = line.slice(6).trim();
+    if (json === '[DONE]') continue;
+    try {
+      const parsed = JSON.parse(json);
+      if (parsed?.type === type) return parsed;
+    } catch {
+      /* ignore */
+    }
+  }
+  return null;
+}
 
 describe('Responses adapter', () => {
   describe('toChatCompletionsRequest', () => {
@@ -606,48 +642,136 @@ describe('Responses adapter', () => {
     });
   });
 
-  describe('chatCompletionStreamChunkToResponses', () => {
-    it('converts chat completion content deltas to Responses SSE events', () => {
-      const result = chatCompletionStreamChunkToResponses(
-        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":null}]}\n\n',
-      );
+  describe('createResponsesStreamTransformer', () => {
+    it('opens the message item and content part before the first text delta', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      const out =
+        t.transform('{"choices":[{"delta":{"content":"Hello"},"finish_reason":null}]}') ?? '';
 
-      expect(result).toContain('event: response.output_text.delta');
-      expect(result).toContain('"delta":"Hi"');
+      // Lifecycle envelope must precede the delta so strict Responses clients
+      // (Pi/OpenClaw) accept the text instead of rendering an empty message.
+      expect(eventTypes(out)).toEqual([
+        'response.created',
+        'response.in_progress',
+        'response.output_item.added',
+        'response.content_part.added',
+        'response.output_text.delta',
+      ]);
+
+      const added = firstEventData(out, 'response.output_item.added')!;
+      expect(added.item).toMatchObject({
+        type: 'message',
+        role: 'assistant',
+        status: 'in_progress',
+      });
+      expect(added.item.content).toEqual([]);
+
+      // The delta must reference the same item_id the item was opened with.
+      const delta = firstEventData(out, 'response.output_text.delta')!;
+      expect(delta.item_id).toBe(added.item.id);
+      expect(delta.delta).toBe('Hello');
     });
 
-    it('converts finish chunks to response.completed events', () => {
-      const result = chatCompletionStreamChunkToResponses(
-        JSON.stringify({
-          model: 'gpt-4o',
-          choices: [{ delta: {}, finish_reason: 'stop' }],
-          usage: { prompt_tokens: 1, completion_tokens: 2, total_tokens: 3 },
+    it('opens the item exactly once across multiple deltas', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      t.transform('{"choices":[{"delta":{"content":"Hel"}}]}');
+      const second = t.transform('{"choices":[{"delta":{"content":"lo"}}]}') ?? '';
+
+      expect(eventTypes(second)).toEqual(['response.output_text.delta']);
+      expect(firstEventData(second, 'response.output_text.delta')!.delta).toBe('lo');
+    });
+
+    it('closes the part and item and emits a populated completed event with [DONE]', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      const opened = t.transform('{"choices":[{"delta":{"content":"Hello"}}]}') ?? '';
+      t.transform('{"choices":[{"delta":{"content":"!"}}]}');
+      const tail =
+        t.transform(
+          '{"model":"gpt-4o","choices":[{"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":1576,"completion_tokens":32,"total_tokens":1608}}',
+        ) ?? '';
+      const end = t.finalize() ?? '';
+
+      expect(eventTypes(end)).toEqual([
+        'response.output_text.done',
+        'response.content_part.done',
+        'response.output_item.done',
+        'response.completed',
+        '[DONE]',
+      ]);
+
+      const itemId = firstEventData(opened, 'response.output_item.added')!.item.id;
+      const textDone = firstEventData(end, 'response.output_text.done')!;
+      expect(textDone.text).toBe('Hello!');
+      expect(textDone.item_id).toBe(itemId);
+
+      const itemDone = firstEventData(end, 'response.output_item.done')!;
+      expect(itemDone.item.id).toBe(itemId);
+      expect(itemDone.item.status).toBe('completed');
+      expect(itemDone.item.content).toEqual([
+        { type: 'output_text', text: 'Hello!', annotations: [] },
+      ]);
+
+      // The completed event must carry the assembled message in `output`
+      // (the bug: it shipped `output: []`), plus usage and a matching id.
+      const completed = firstEventData(end, 'response.completed')!;
+      expect(completed.response.status).toBe('completed');
+      expect(completed.response.output).toEqual([
+        expect.objectContaining({
+          id: itemId,
+          type: 'message',
+          role: 'assistant',
+          content: [{ type: 'output_text', text: 'Hello!', annotations: [] }],
         }),
-      );
-
-      expect(result).toContain('event: response.completed');
-      expect(result).toContain('"input_tokens":1');
+      ]);
+      expect(completed.response.usage).toMatchObject({
+        input_tokens: 1576,
+        output_tokens: 32,
+        total_tokens: 1608,
+      });
+      // `finish_reason` chunk carried no text delta, so the tail before finalize
+      // is empty.
+      expect(tail).toBe('');
     });
 
-    it('converts usage-only stream chunks to response.completed events', () => {
-      const result = chatCompletionStreamChunkToResponses(
-        JSON.stringify({
-          model: 'gpt-4o',
-          choices: [],
-          usage: { prompt_tokens: 5, completion_tokens: 7, total_tokens: 12 },
-        }),
-      );
+    it('emits no item events and an empty output for usage-only streams', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      const out =
+        t.transform(
+          '{"model":"gpt-4o","choices":[],"usage":{"prompt_tokens":5,"completion_tokens":0,"total_tokens":5}}',
+        ) ?? '';
+      const end = t.finalize() ?? '';
 
-      expect(result).toContain('event: response.completed');
-      expect(result).toContain('"input_tokens":5');
-      expect(result).toContain('"output_tokens":7');
+      expect(eventTypes(out)).toEqual(['response.created', 'response.in_progress']);
+      expect(eventTypes(end)).toEqual(['response.completed', '[DONE]']);
+      expect(firstEventData(end, 'response.completed')!.response.output).toEqual([]);
+      expect(firstEventData(end, 'response.completed')!.response.usage).toMatchObject({
+        input_tokens: 5,
+      });
     });
 
-    it('ignores done, empty, malformed, and irrelevant chunks', () => {
-      expect(chatCompletionStreamChunkToResponses('data: [DONE]\n\n')).toBeNull();
-      expect(chatCompletionStreamChunkToResponses('')).toBeNull();
-      expect(chatCompletionStreamChunkToResponses('data: not-json\n\n')).toBeNull();
-      expect(chatCompletionStreamChunkToResponses('{"choices":[]}')).toBeNull();
+    it('still emits created, completed, and [DONE] when the stream is empty', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      const end = t.finalize() ?? '';
+
+      expect(eventTypes(end)).toEqual([
+        'response.created',
+        'response.in_progress',
+        'response.completed',
+        '[DONE]',
+      ]);
+    });
+
+    it('finalize is idempotent and returns null after the stream is closed', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      expect(t.finalize()).not.toBeNull();
+      expect(t.finalize()).toBeNull();
+    });
+
+    it('ignores done, empty, malformed, and irrelevant payloads', () => {
+      const t = createResponsesStreamTransformer('gpt-4o');
+      expect(t.transform('data: [DONE]\n\n')).toBeNull();
+      expect(t.transform('')).toBeNull();
+      expect(t.transform('data: not-json\n\n')).toBeNull();
     });
   });
 });
