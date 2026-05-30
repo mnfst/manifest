@@ -1,0 +1,55 @@
+name: Sync Fork with Upstream
+
+on:
+  schedule:
+    # Run every day at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync upstream → main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork (full history)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/mnfst/manifest.git
+
+      - name: Fetch upstream
+        run: git fetch upstream
+
+      - name: Check for new commits
+        id: check
+        run: |
+          LOCAL=$(git rev-parse HEAD)
+          REMOTE=$(git rev-parse upstream/main)
+          if [ "$LOCAL" = "$REMOTE" ]; then
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+            echo "Already up to date."
+          else
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+            echo "Updates available: $LOCAL → $REMOTE"
+          fi
+
+      - name: Merge upstream/main into main
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          git merge upstream/main --no-edit
+
+      - name: Push to origin
+        if: steps.check.outputs.has_updates == 'true'
+        run: git push origin main
