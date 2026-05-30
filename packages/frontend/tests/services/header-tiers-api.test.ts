@@ -100,6 +100,14 @@ describe('header-tiers API client', () => {
       authType: 'api_key',
       route: { provider: 'OpenAI', authType: 'api_key', model: 'gpt-4o' },
     });
+    await api.overrideHeaderTier('my-agent', 'ht-1', 'gpt-4o', 'OpenAI', 'api_key', 'Personal');
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      authType: 'api_key',
+      providerKeyLabel: 'Personal',
+      route: { provider: 'OpenAI', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Personal' },
+    });
   });
 
   it('resetHeaderTier DELETEs the override', async () => {

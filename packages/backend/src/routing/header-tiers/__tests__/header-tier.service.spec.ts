@@ -364,6 +364,28 @@ describe('HeaderTierService', () => {
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
+    it('persists keyLabel on explicit header-tier overrides', async () => {
+      const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
+      repo.findOne.mockResolvedValue(row);
+
+      const result = await svc.setOverride(
+        'agent-1',
+        'h1',
+        'gpt-4o',
+        'openai',
+        'subscription',
+        'Personal',
+      );
+
+      expect(discoveryService.getModelsForAgent).not.toHaveBeenCalled();
+      expect(result.override_route).toEqual({
+        provider: 'openai',
+        authType: 'subscription',
+        model: 'gpt-4o',
+        keyLabel: 'Personal',
+      });
+    });
+
     it('resolves via discovery when only the model is given', async () => {
       const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
       repo.findOne.mockResolvedValue(row);
