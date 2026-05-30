@@ -269,6 +269,7 @@ describe('RoutingHeaderTiersSection', () => {
         'gpt-4o',
         'openai',
         'api_key',
+        undefined,
       );
     });
   });

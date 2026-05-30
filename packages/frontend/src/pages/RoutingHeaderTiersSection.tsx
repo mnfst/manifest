@@ -101,9 +101,10 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     model: string,
     provider: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ): Promise<void> => {
     try {
-      await overrideHeaderTier(props.agentName(), id, model, provider, authType);
+      await overrideHeaderTier(props.agentName(), id, model, provider, authType, providerKeyLabel);
       await refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update tier');
@@ -201,7 +202,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 models={props.models()}
                 customProviders={props.customProviders()}
                 connectedProviders={props.connectedProviders()}
-                onOverride={(m, p, a) => handleOverride(tier.id, m, p, a)}
+                onOverride={(m, p, a, label) => handleOverride(tier.id, m, p, a, label)}
                 onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
                   applyFallbackUpdate(tier.id, updatedRoutes)
                 }

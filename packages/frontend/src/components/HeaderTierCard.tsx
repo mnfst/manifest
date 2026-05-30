@@ -16,17 +16,24 @@ import {
 } from '../services/api/header-tiers.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { authBadgeFor } from './AuthBadge.js';
-import { resolveProviderId, inferProviderFromModel, pricePerM } from '../services/routing-utils.js';
+import {
+  resolveProviderId,
+  inferProviderFromModel,
+  pricePerM,
+  usedKeyLabelsForModelInTier,
+  activeRouteKeys,
+  routeKeySelectionForModel,
+} from '../services/routing-utils.js';
 import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
+import RouteKeyChip from './RouteKeyChip.js';
+import KeyPickerModal from './KeyPickerModal.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForHeaderTier } from 'manifest-shared';
-import OutputControls from './OutputControls.js';
-import ModelCapabilityBadges from './ModelCapabilityBadges.js';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -44,13 +51,27 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
   return undefined;
 }
 
+function providerDisplayName(providerId: string, customProviders: CustomProviderData[]): string {
+  if (providerId.startsWith('custom:')) {
+    const id = providerId.slice('custom:'.length);
+    const cp = customProviders.find((p) => p.id === id);
+    if (cp) return cp.name;
+  }
+  return PROVIDERS.find((p) => p.id === providerId)?.name ?? providerId;
+}
+
 interface Props {
   agentName: string;
   tier: HeaderTier;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
-  onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
+  onOverride: (
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+  ) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
@@ -80,7 +101,15 @@ interface Props {
 
 const HeaderTierCard: Component<Props> = (props) => {
   type PickerMode = 'primary' | 'fallback' | null;
+  interface PendingKeyPick {
+    mode: Exclude<PickerMode, null>;
+    model: string;
+    provider: string;
+    authType?: AuthType;
+    keys: RoutingProvider[];
+  }
   const [pickerMode, setPickerMode] = createSignal<PickerMode>(null);
+  const [pendingKeyPick, setPendingKeyPick] = createSignal<PendingKeyPick | null>(null);
   const [snippetOpen, setSnippetOpen] = createSignal(false);
   const [menuOpen, setMenuOpen] = createSignal(false);
   const [resetting, setResetting] = createSignal(false);
@@ -139,6 +168,58 @@ const HeaderTierCard: Component<Props> = (props) => {
     return props.customProviders.find((p) => `custom:${p.id}` === id);
   };
 
+  const primaryKeys = (): RoutingProvider[] => {
+    const id = providerId();
+    const auth = effectiveAuth();
+    if (!id || !auth || auth === 'local') return [];
+    return activeRouteKeys(props.connectedProviders, id, auth);
+  };
+
+  const handlePrimaryKeyPick = async (label: string | null): Promise<void> => {
+    const route = props.tier.override_route;
+    const provider = providerId() ?? route?.provider;
+    const auth = effectiveAuth() ?? route?.authType;
+    if (!route || !provider || !auth) return;
+    await props.onOverride(route.model, provider, auth, label ?? undefined);
+  };
+
+  const addFallbackRoute = async (
+    model: string,
+    provider: string,
+    authType: AuthType | undefined,
+    keyLabel?: string,
+  ): Promise<void> => {
+    const next = [...fallbacks(), model];
+    const currentRoutes = props.tier.fallback_routes ?? [];
+    const effectiveAuth = authType ?? 'api_key';
+    const nextRoute: ModelRoute = keyLabel
+      ? { provider, authType: effectiveAuth, model, keyLabel }
+      : { provider, authType: effectiveAuth, model };
+    const nextRoutes = [...currentRoutes, nextRoute];
+    try {
+      await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
+      props.onFallbacksUpdate(next, nextRoutes);
+      toast.success('Fallback added');
+    } catch {
+      toast.error('Failed to add fallback');
+    }
+  };
+
+  const completePickerSelection = async (
+    mode: Exclude<PickerMode, null>,
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    keyLabel?: string,
+  ): Promise<void> => {
+    if (mode === 'primary') {
+      if (keyLabel === undefined) await props.onOverride(model, provider, authType);
+      else await props.onOverride(model, provider, authType, keyLabel);
+      return;
+    }
+    await addFallbackRoute(model, provider, authType, keyLabel);
+  };
+
   const handlePickerSelect = async (
     _tierId: string,
     model: string,
@@ -147,21 +228,39 @@ const HeaderTierCard: Component<Props> = (props) => {
   ): Promise<void> => {
     const mode = pickerMode();
     setPickerMode(null);
-    if (mode === 'primary') {
-      await props.onOverride(model, provider, authType);
-    } else if (mode === 'fallback') {
-      const next = [...fallbacks(), model];
-      const currentRoutes = props.tier.fallback_routes ?? [];
-      const nextRoutes =
-        authType !== undefined ? [...currentRoutes, { provider, authType, model }] : undefined;
-      try {
-        await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
-        props.onFallbacksUpdate(next, nextRoutes ?? null);
-        toast.success('Fallback added');
-      } catch {
-        toast.error('Failed to add fallback');
-      }
+    if (!mode) return;
+    const effectiveAuth = authType ?? 'api_key';
+    const selection = routeKeySelectionForModel({
+      providers: props.connectedProviders,
+      tier: props.tier,
+      modelName: model,
+      providerId: provider,
+      authType: effectiveAuth,
+      slot: mode,
+    });
+    if (selection.exhausted) return;
+    if (selection.autoLabel) {
+      await completePickerSelection(mode, model, provider, authType, selection.autoLabel);
+      return;
     }
+    if (!selection.needsChoice) {
+      await completePickerSelection(mode, model, provider, authType);
+      return;
+    }
+    setPendingKeyPick({ mode, model, provider, authType, keys: selection.keys });
+  };
+
+  const handlePendingKeyPick = (label: string | null): void => {
+    const pending = pendingKeyPick();
+    if (!pending) return;
+    setPendingKeyPick(null);
+    void completePickerSelection(
+      pending.mode,
+      pending.model,
+      pending.provider,
+      pending.authType,
+      label ?? undefined,
+    );
   };
 
   const handleReset = async () => {
@@ -334,6 +433,25 @@ const HeaderTierCard: Component<Props> = (props) => {
                   <span class="routing-card__main">{modelLabel() || modelName()}</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                  <Show when={primaryKeys().length > 1}>
+                    <RouteKeyChip
+                      keys={primaryKeys()}
+                      currentLabel={props.tier.override_route?.keyLabel ?? undefined}
+                      modelLabel={modelLabel() || modelName()}
+                      usedLabels={() =>
+                        usedKeyLabelsForModelInTier(
+                          props.tier,
+                          modelName(),
+                          'primary',
+                          primaryKeys()[0]?.label,
+                        )
+                      }
+                      buttonClass="routing-card__key-chip"
+                      leadingMargin
+                      stopPropagation
+                      onPick={handlePrimaryKeyPick}
+                    />
+                  </Show>
                   <Show
                     when={
                       props.getModelParams &&
@@ -411,6 +529,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             tier={props.tier.id}
             fallbacks={fallbacks()}
             fallbackRoutes={props.tier.fallback_routes ?? null}
+            tierData={() => props.tier}
             models={props.models}
             customProviders={props.customProviders}
             connectedProviders={props.connectedProviders}
@@ -441,6 +560,18 @@ const HeaderTierCard: Component<Props> = (props) => {
           onClose={() => setPickerMode(null)}
           onSelect={handlePickerSelect}
         />
+      </Show>
+
+      <Show when={pendingKeyPick()}>
+        {(pending) => (
+          <KeyPickerModal
+            providerName={providerDisplayName(pending().provider, props.customProviders)}
+            modelName={pending().model}
+            keys={pending().keys}
+            onPick={handlePendingKeyPick}
+            onClose={() => setPendingKeyPick(null)}
+          />
+        )}
       </Show>
 
       <Show when={snippetOpen()}>
