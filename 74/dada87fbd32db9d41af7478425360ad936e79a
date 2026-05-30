@@ -1,0 +1,70 @@
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_97f869bfcd66bd::t_333e246132fa00 896-941
+  s_97f869bfcd66bd::t_1f29379e26b32f 43-121,243-256
+  s_97f869bfcd66bd::t_eeb3e78b15465f 153,351-352
+  s_97f869bfcd66bd::t_b3524019a693c7 461-544
+packages/backend/src/routing/header-tiers/header-tier.controller.spec.ts
+  s_97f869bfcd66bd::t_ed28a044babc15 117-140
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_97f869bfcd66bd::t_5b8acc6a41b143 737
+  s_97f869bfcd66bd::t_a1d0feb8271f8e 1,16,741-753
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_97f869bfcd66bd::t_381e95c58ffed8 68-71,73-74,192-200
+  s_97f869bfcd66bd::t_068dcbedbe5429 27-32
+  s_97f869bfcd66bd::t_172f98b9556509 19
+  s_97f869bfcd66bd::t_dc0296e46970fa 22,72
+packages/frontend/tests/services/routing-utils.test.ts
+  s_97f869bfcd66bd::t_945dd2f4010d76 312-323
+  s_97f869bfcd66bd::t_15c0f7de701a69 9-10,12,349-426
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_97f869bfcd66bd::t_43f14d9b8246e0 203,208,211-215
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_97f869bfcd66bd::t_a665366080ab30 367-388
+packages/frontend/src/services/routing-utils.ts
+  s_97f869bfcd66bd::t_030ea3b6a2a984 45-47
+  s_97f869bfcd66bd::t_02c522d29a1974 4-9,22
+  s_97f869bfcd66bd::t_2b6585d0add1d6 25
+  s_97f869bfcd66bd::t_c76f4497da82d6 3,53-91
+packages/frontend/src/components/FallbackList.tsx
+  s_97f869bfcd66bd::t_972cba3ebee6d3 1,26,472,476-485
+  s_97f869bfcd66bd::t_074583cf22fab8 19,32
+packages/frontend/tests/services/header-tiers-api.test.ts
+  s_97f869bfcd66bd::t_5a928102612bdd 103-110
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_97f869bfcd66bd::t_8a6994b2200964 104,107,205
+packages/frontend/src/components/RoutingModals.tsx
+  s_97f869bfcd66bd::t_f955c7c4d9933c 18,103,185,236-242
+  s_97f869bfcd66bd::t_6ee650a40d7c70 209-217,228
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_97f869bfcd66bd::t_cd0147bcbc3c4a 272
+packages/frontend/src/services/api/header-tiers.ts
+  s_97f869bfcd66bd::t_d92de462ec28b6 111,116-118,120
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_97f869bfcd66bd::t_fd40a6613a5b03 194-197
+  s_97f869bfcd66bd::t_5bd996a519dc72 236-237,569-578
+  s_97f869bfcd66bd::t_1dba505e12e169 33,441,445-455
+  s_97f869bfcd66bd::t_42ed2d48de898a 216-217
+  s_97f869bfcd66bd::t_31e24d739b6101 233-235,240,242-254
+  s_97f869bfcd66bd::t_6bb08eff86d923 54-62
+  s_97f869bfcd66bd::t_dd47d8b1186da5 440
+  s_97f869bfcd66bd::t_46e287c236d67d 24-25,34,104-110,112,175,184-193,198-215,218-220,231-232,239,255-267
+  s_97f869bfcd66bd::t_cc87c043eeaa8c 19-23,26,69-74,171-174,176-183,221-222,442-444,456-458,536
+packages/frontend/src/components/RouteKeyChip.tsx
+  s_97f869bfcd66bd::t_6ca4cc5115125d 1-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "74dada87fbd32db9d41af7478425360ad936e79a",
+  "prompts": {},
+  "sessions": {
+    "s_97f869bfcd66bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e77e1-8300-7800-a705-ec893e7a9ff2",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
