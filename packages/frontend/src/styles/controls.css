@@ -129,6 +129,7 @@
   font-family: var(--font-family);
   cursor: pointer;
   border: none;
+  text-decoration: none;
   transition: all var(--transition-fast);
 }
 
