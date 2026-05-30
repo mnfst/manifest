@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   release:
+    if: github.repository == 'mnfst/manifest'
     runs-on: ubuntu-latest
     outputs:
       should_publish: ${{ steps.detect.outputs.should_publish }}
@@ -74,7 +75,7 @@ jobs:
 
   github-release:
     needs: release
-    if: needs.release.outputs.should_publish == 'true'
+    if: github.repository == 'mnfst/manifest' && needs.release.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -108,7 +109,7 @@ jobs:
 
   publish-docker:
     needs: release
-    if: needs.release.outputs.should_publish == 'true'
+    if: github.repository == 'mnfst/manifest' && needs.release.outputs.should_publish == 'true'
     uses: ./.github/workflows/docker.yml
     secrets: inherit
     permissions:
