@@ -457,6 +457,32 @@ describe('ModelPricingCacheService', () => {
       expect(entry!.source).toBe('models.dev');
     });
 
+    it('should preserve models.dev cache pricing on pricing entries', async () => {
+      mockGetAll.mockReturnValue(new Map());
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId === 'deepseek') {
+          return [
+            {
+              id: 'deepseek-v4-pro',
+              name: 'DeepSeek V4 Pro',
+              inputPricePerToken: 0.435 / 1_000_000,
+              outputPricePerToken: 0.87 / 1_000_000,
+              cacheReadPricePerToken: 0.003625 / 1_000_000,
+              cacheWritePricePerToken: 0.435 / 1_000_000,
+            },
+          ];
+        }
+        return [];
+      });
+
+      await service.reload();
+
+      const entry = service.getByModel('deepseek-v4-pro');
+      expect(entry).toBeDefined();
+      expect(entry!.cache_read_price_per_token).toBe(0.003625 / 1_000_000);
+      expect(entry!.cache_write_price_per_token).toBe(0.435 / 1_000_000);
+    });
+
     it('should set display_name to null when models.dev entry has no name', async () => {
       mockGetAll.mockReturnValue(new Map());
       mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
