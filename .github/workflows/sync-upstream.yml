@@ -29,8 +29,8 @@ jobs:
       - name: Add upstream remote
         run: git remote add upstream https://github.com/mnfst/manifest.git
 
-      - name: Fetch upstream
-        run: git fetch upstream
+      - name: Fetch upstream and origin branches
+        run: git fetch upstream main && git fetch origin main staging
 
       - name: Check for new commits
         id: check
@@ -50,6 +50,16 @@ jobs:
         run: |
           git merge upstream/main --no-edit
 
-      - name: Push to origin
+      - name: Push main to origin
         if: steps.check.outputs.has_updates == 'true'
         run: git push origin main
+
+      - name: Rebase staging onto updated main
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          git checkout staging
+          git rebase origin/main
+
+      - name: Push staging to origin
+        if: steps.check.outputs.has_updates == 'true'
+        run: git push --force-with-lease origin staging
