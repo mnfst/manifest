@@ -2,8 +2,13 @@ name: Publish to GHCR
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag (defaults to branch name)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -33,7 +38,7 @@ jobs:
           images: ${{ env.IMAGE }}
           tags: |
             type=sha
-            type=raw,value=latest
+            type=raw,value=${{ inputs.tag || github.ref_name }}
 
       - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
