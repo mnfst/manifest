@@ -510,7 +510,7 @@ const GlobalOverview: Component = () => {
               </div>
               <div class="overview-stat-card">
                 <span class="overview-stat-card__label">Agents</span>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
                   <span class="overview-stat-card__value">{agentList().length}</span>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
                     <For each={platformGroups()}>
