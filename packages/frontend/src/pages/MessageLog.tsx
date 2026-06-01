@@ -22,6 +22,7 @@ import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
+import { getAgents } from '../services/api.js';
 import {
   getCustomProviders,
   getSpecificityAssignments,
@@ -64,6 +65,23 @@ const MessageLog: Component = () => {
   });
   const columns = () =>
     isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
+  const [agentFilter, setAgentFilter] = createSignal('');
+  const [agentList] = createResource(
+    () => true,
+    async () => {
+      try {
+        const data = await getAgents();
+        const list = ((data as any)?.agents ?? data ?? []) as Array<{ agent_name: string }>;
+        return list.map((a) => a.agent_name).sort();
+      } catch {
+        return [] as string[];
+      }
+    },
+  );
+  const agentFilterOptions = createMemo(() => [
+    { label: 'All agents', value: '' },
+    ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
+  ]);
   const [providerFilter, setProviderFilter] = createSignal('');
   const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
@@ -172,7 +190,7 @@ const MessageLog: Component = () => {
   };
 
   createEffect(
-    on([providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
+    on([agentFilter, providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
       defer: true,
     }),
   );
@@ -183,7 +201,7 @@ const MessageLog: Component = () => {
       tier: tierFilter(),
       costMin: costMin(),
       costMax: costMax(),
-      agentName: params.agentName,
+      agentName: agentFilter() || params.agentName,
       _ping: messagePing(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
@@ -228,7 +246,11 @@ const MessageLog: Component = () => {
   );
 
   const hasActiveFilters = () =>
-    providerFilter() !== '' || tierFilter() !== '' || costMin() !== '' || costMax() !== '';
+    agentFilter() !== '' ||
+    providerFilter() !== '' ||
+    tierFilter() !== '' ||
+    costMin() !== '' ||
+    costMax() !== '';
 
   const hasNoData = () => {
     const d = data();
@@ -240,6 +262,7 @@ const MessageLog: Component = () => {
   const showMessages = () => !hasNoData() || (hasProviders() && !hasActiveFilters());
 
   const clearFilters = () => {
+    setAgentFilter('');
     setProviderFilter('');
     setTierFilter('');
     setCostMin('');
@@ -312,6 +335,11 @@ const MessageLog: Component = () => {
         </div>
         <div class="header-controls">
           <Show when={!showEmptyState()}>
+            <Select
+              value={agentFilter()}
+              onChange={setAgentFilter}
+              options={agentFilterOptions()}
+            />
             <Select
               value={providerFilter()}
               onChange={setProviderFilter}

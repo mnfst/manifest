@@ -860,8 +860,21 @@ const GlobalOverview: Component = () => {
                             </span>
                           </div>
                         </td>
-                        <td style="color: hsl(var(--muted-foreground));">
-                          {authLabel(group.auth_type)}
+                        <td>
+                          <span
+                            style={{
+                              'font-size': 'var(--font-size-xs)',
+                              'font-weight': '500',
+                              color:
+                                group.auth_type === 'subscription'
+                                  ? '#1cc4bf'
+                                  : group.auth_type === 'local'
+                                    ? '#f72585'
+                                    : '#c8920a',
+                            }}
+                          >
+                            {authLabel(group.auth_type)}
+                          </span>
                         </td>
                         <td>
                           <div style="display: flex; align-items: center; gap: 8px;">
