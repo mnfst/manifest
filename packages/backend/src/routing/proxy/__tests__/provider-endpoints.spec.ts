@@ -124,6 +124,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
+    expect(known).toContain('opencode-zen');
+    expect(known).toContain('opencode-zen-google');
   });
 
   it('resolves ollama-cloud to ollama-cloud', () => {
@@ -135,6 +137,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
     expect(resolveEndpointKey('OpenCode-Go')).toBe('opencode-go');
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
+  });
+
+  it('resolves opencode-zen and its opencodezen alias', () => {
+    expect(resolveEndpointKey('opencode-zen')).toBe('opencode-zen');
+    expect(resolveEndpointKey('OpenCode-Zen')).toBe('opencode-zen');
+    expect(resolveEndpointKey('opencodezen')).toBe('opencode-zen');
   });
 
   it('resolves kilo and its aliases', () => {
@@ -451,6 +459,32 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBeUndefined();
   });
 
+  it('opencode-zen uses OpenCode Zen base URL with OpenAI format', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-zen'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('qwen3.6-plus')).toBe('/v1/chat/completions');
+  });
+
+  it('opencode-zen uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['opencode-zen'].buildHeaders('oz-token');
+    expect(headers).toEqual({
+      Authorization: 'Bearer oz-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('opencode-zen-google uses Google generateContent path with x-goog-api-key auth', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-zen-google'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen');
+    expect(ep.format).toBe('google');
+    expect(ep.buildPath('gemini-3-flash')).toBe('/v1/models/gemini-3-flash:generateContent');
+    expect(ep.buildHeaders('oz-token')).toEqual({
+      'x-goog-api-key': 'oz-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
     const endpointKeys = [
       'openai',
@@ -470,6 +504,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'ollama',
       'ollama-cloud',
       'opencode-go',
+      'opencode-zen',
     ];
 
     for (const key of endpointKeys) {
@@ -489,6 +524,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'copilot-responses',
       'minimax-subscription',
       'opencode-go-anthropic',
+      'opencode-zen-google',
     ];
 
     for (const key of endpointKeys) {

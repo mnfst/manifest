@@ -101,6 +101,7 @@ const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
+const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
@@ -341,6 +342,38 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: anthropicApiKeyHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
+  },
+  // OpenCode Zen's /v1/chat/completions is a unified OpenAI-compatible
+  // endpoint that handles Claude, GPT, and the long tail of OpenAI-compatible
+  // models (Qwen, GLM, Kimi, MiniMax, …) on a single Bearer-auth route.
+  //
+  // Gemini models on Zen are currently broken upstream — Zen forwards our
+  // `Authorization: Bearer` header to Vertex AI verbatim, which rejects the
+  // request with OVERLOADED_CREDENTIALS because Zen also attaches its own
+  // GCP credentials. This is a Zen-side gateway bug; switching to `x-api-key`
+  // only makes Zen reject with "Missing API key" before the request even
+  // reaches GCP. There is no client-side workaround until Zen stops
+  // tunneling our auth header through.
+  'opencode-zen': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  // TODO(opencode-zen): collapse this back into the single `opencode-zen`
+  // entry once Zen's gateway stops tunneling the client Authorization header
+  // through to Vertex AI on /v1/chat/completions. The unified path already
+  // works for Claude, GPT, and the OpenAI-compatible long tail; Gemini is
+  // the only family that still needs the Google-native combo today.
+  'opencode-zen-google': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: (apiKey: string) => ({
+      'x-goog-api-key': apiKey,
+      'Content-Type': 'application/json',
+    }),
+    buildPath: (model: string) => `/v1/models/${model}:generateContent`,
+    format: 'google',
   },
 };
 

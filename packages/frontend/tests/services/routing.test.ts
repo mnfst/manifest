@@ -20,7 +20,6 @@ describe("agentPath", () => {
     expect(agentPath(null, "/overview")).toBe("/");
   });
 });
-
 describe("getComplexityStatus", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -165,4 +164,3 @@ describe("multi-key provider API helpers", () => {
     });
   });
 });
-

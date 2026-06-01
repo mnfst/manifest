@@ -86,6 +86,16 @@ describe('PROVIDER_REGISTRY', () => {
     expect(og!.localOnly).toBe(false);
   });
 
+  it('opencode-zen is registered as an API-key provider with opencodezen alias', () => {
+    const oz = PROVIDER_REGISTRY.find((p) => p.id === 'opencode-zen');
+    expect(oz).toBeDefined();
+    expect(oz!.displayName).toBe('OpenCode Zen');
+    expect(oz!.aliases).toEqual(['opencodezen']);
+    expect(oz!.openRouterPrefixes).toEqual([]);
+    expect(oz!.requiresApiKey).toBe(true);
+    expect(oz!.localOnly).toBe(false);
+  });
+
   it('kilo is registered as a non-local gateway provider', () => {
     const kilo = PROVIDER_REGISTRY.find((p) => p.id === 'kilo');
     expect(kilo).toBeDefined();
@@ -165,6 +175,12 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry).toBeDefined();
     expect(entry.id).toBe('zai');
     expect(entry.displayName).toBe('Z.ai');
+  });
+
+  it('resolves opencodezen alias to opencode-zen entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('opencodezen') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('opencode-zen');
   });
 
   it('resolves kilocode alias to kilo entry', () => {

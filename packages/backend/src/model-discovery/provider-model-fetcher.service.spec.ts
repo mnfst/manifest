@@ -38,6 +38,7 @@ describe('ProviderModelFetcherService', () => {
       'ollama',
       'ollama-cloud',
       'copilot',
+      'opencode-zen',
     ];
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
@@ -1904,6 +1905,41 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('opencode-go', 'og-token', 'subscription');
       expect(result).toEqual([]);
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('opencode-zen provider', () => {
+    it('fetches the OpenAI-compatible /v1/models catalog with Bearer auth and namespaces every model id', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'qwen3.6-plus', object: 'model', owned_by: 'opencode' },
+            { id: 'claude-opus-4-7', object: 'model', owned_by: 'opencode' },
+            { id: 'gemini-3-flash', object: 'model', owned_by: 'opencode' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('opencode-zen', 'oz-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer oz-token' }),
+        }),
+      );
+      expect(result).toHaveLength(3);
+      // IDs must be prefixed so they cannot collide with the same bare model
+      // names served by a directly-connected Google/Qwen/Anthropic provider.
+      expect(result.map((m) => m.id)).toEqual([
+        'opencode-zen/qwen3.6-plus',
+        'opencode-zen/claude-opus-4-7',
+        'opencode-zen/gemini-3-flash',
+      ]);
+      expect(result[0]).toEqual(
+        expect.objectContaining({ provider: 'opencode-zen', displayName: 'qwen3.6-plus' }),
+      );
     });
   });
 

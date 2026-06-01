@@ -1495,6 +1495,64 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('OpenCode Zen provider', () => {
+    it.each([
+      ['claude-opus-4-7', 'claude-opus-4-7'],
+      ['gpt-5.5', 'gpt-5.5'],
+      ['qwen3.6-plus', 'qwen3.6-plus'],
+    ])(
+      'routes %s through the unified /v1/chat/completions endpoint with Bearer auth',
+      async (modelName, expectedSentModel) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'opencode-zen',
+          apiKey: 'oz-token',
+          model: `opencode-zen/${modelName}`,
+          body,
+          stream: false,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://opencode.ai/zen/v1/chat/completions',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer oz-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.model).toBe(expectedSentModel);
+        expect(result.isAnthropic).toBe(false);
+        expect(result.isChatGpt).toBe(false);
+        expect(result.isGoogle).toBe(false);
+      },
+    );
+
+    it('routes gemini-* models to the dedicated generateContent endpoint with x-goog-api-key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-zen',
+        apiKey: 'oz-token',
+        model: 'opencode-zen/gemini-3-flash',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-goog-api-key': 'oz-token',
+          }),
+        }),
+      );
+      expect(result.isGoogle).toBe(true);
+    });
+  });
+
   describe('convertChatGptResponse', () => {
     it('delegates to fromResponsesResponse', () => {
       const data = {
@@ -2665,6 +2723,7 @@ describe('ProviderClient', () => {
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
       ['opencode-go', 'claude-sonnet-4'],
+      ['opencode-zen', 'qwen3.6-plus'],
     ])(
       'injects stream_options.include_usage for %s streaming requests',
       async (provider, model) => {

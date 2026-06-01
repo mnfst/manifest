@@ -13,6 +13,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   ollama: 'https://ollama.com/download',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   openai: 'https://platform.openai.com/api-keys',
+  'opencode-zen': 'https://opencode.ai/auth',
   openrouter: 'https://openrouter.ai/keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
   xai: 'https://docs.x.ai/docs/api-reference',

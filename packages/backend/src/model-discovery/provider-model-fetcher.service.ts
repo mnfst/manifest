@@ -425,6 +425,20 @@ const parseCopilot = createModelParser<OpenAIModelEntry>({
   outputPricePerToken: 0,
 });
 
+/* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */
+
+// Prefix every Zen catalog entry with `opencode-zen/` so the discovered model
+// remains an explicit route through the Zen gateway. Forwarding strips the
+// prefix before calling Zen, while provider inference and legacy provider-less
+// lookups can still distinguish Zen models from the same native IDs exposed by
+// directly-connected providers.
+const parseOpencodeZen = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => `opencode-zen/${entry.id}`,
+  getDisplayName: (entry) => entry.id,
+});
+
 /* ── Provider configs ── */
 
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
@@ -558,6 +572,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
       'Copilot-Integration-Id': 'vscode-chat',
     }),
     parse: parseCopilot,
+  },
+  'opencode-zen': {
+    endpoint: 'https://opencode.ai/zen/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpencodeZen,
   },
 };
 
