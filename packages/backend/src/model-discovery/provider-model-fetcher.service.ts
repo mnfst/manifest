@@ -427,11 +427,11 @@ const parseCopilot = createModelParser<OpenAIModelEntry>({
 
 /* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */
 
-// Prefix every Zen catalog entry with `opencode-zen/` so models like
-// `gemini-3-flash` or `qwen3.6-plus` cannot collide with the same IDs from a
-// directly-connected Google or Qwen provider — `getModelsForAgent`
-// deduplicates by `id + authType`, and a bare collision would silently hide
-// one provider's model.
+// Prefix every Zen catalog entry with `opencode-zen/` so the discovered model
+// remains an explicit route through the Zen gateway. Forwarding strips the
+// prefix before calling Zen, while provider inference and legacy provider-less
+// lookups can still distinguish Zen models from the same native IDs exposed by
+// directly-connected providers.
 const parseOpencodeZen = createModelParser<OpenAIModelEntry>({
   arrayKey: 'data',
   filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
