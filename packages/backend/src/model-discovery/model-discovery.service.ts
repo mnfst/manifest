@@ -315,14 +315,16 @@ export class ModelDiscoveryService {
       if (!Array.isArray(rawCached)) continue;
       const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
       const providerAuthType: AuthType = p.auth_type;
+      const providerId = p.provider.toLowerCase();
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
-        // Deduplicate by model ID + auth type so subscription and API key
-        // versions of the same model are kept as independent entries.
-        const dedupeKey = `${m.id}::${effectiveAuthType}`;
+        // Deduplicate by the routable tuple, not just model ID. Multiple
+        // providers can expose the same native model name, and the picker must
+        // keep each provider-specific route selectable.
+        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
         if (!seen.has(dedupeKey)) {
           seen.set(dedupeKey, models.length);
-          models.push({ ...m, authType: effectiveAuthType });
+          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
         }
       }
     }
@@ -374,7 +376,10 @@ export class ModelDiscoveryService {
 
   async getModelForAgent(agentId: string, modelName: string): Promise<DiscoveredModel | undefined> {
     const all = await this.getModelsForAgent(agentId);
-    return all.find((m) => m.id === modelName);
+    const matches = all.filter((m) => m.id === modelName);
+    // Provider-less lookups are legacy fallbacks. Once multiple providers can
+    // expose the same model ID, only a single matching route is safe to infer.
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
