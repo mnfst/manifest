@@ -388,16 +388,43 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
   capabilityCode: true,
 });
 
-/* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
+/* ── GitHub Copilot (subscription-only, rich /models response) ── */
 
-const parseCopilot = createModelParser<OpenAIModelEntry>({
-  arrayKey: 'data',
-  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
-  getId: (entry) => `copilot/${entry.id}`,
-  getDisplayName: (entry) => entry.id,
-  inputPricePerToken: 0,
-  outputPricePerToken: 0,
-});
+/**
+ * Copilot's /models response includes per-model capabilities, limits, picker
+ * visibility, and policy state. We use all of these signals instead of the
+ * generic OpenAI parser so the routing UI only shows models the user can
+ * actually select in the Copilot picker (not dated snapshots, embeddings,
+ * or internal models).
+ */
+function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as Record<string, unknown>)?.data;
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .filter((m: unknown) => {
+      const entry = m as Record<string, unknown>;
+      return (
+        typeof entry.id === 'string' && entry.id.length > 0 && entry.model_picker_enabled === true
+      );
+    })
+    .map((m: unknown) => {
+      const entry = m as Record<string, unknown>;
+      const caps = entry.capabilities as Record<string, unknown> | undefined;
+      const limits = caps?.limits as Record<string, unknown> | undefined;
+      return {
+        id: `copilot/${entry.id}`,
+        displayName: (entry.name as string) || (entry.id as string),
+        provider,
+        contextWindow: (limits?.max_context_window_tokens as number) ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        capabilityCode: true,
+        capabilityReasoning: false,
+        qualityScore: 3,
+      };
+    });
+}
 
 /* ── Provider configs ── */
 

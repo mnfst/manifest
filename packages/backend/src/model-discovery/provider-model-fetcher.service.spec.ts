@@ -1615,31 +1615,33 @@ describe('ProviderModelFetcherService', () => {
   /* ── Copilot parser ── */
 
   describe('parseCopilot (via copilot provider)', () => {
-    it('should parse Copilot models and add copilot/ prefix', async () => {
+    it('should only include models with model_picker_enabled=true', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
           data: [
-            { id: 'claude-opus-4.6', object: 'model' },
-            { id: 'gpt-4o', object: 'model' },
+            { id: 'claude-opus-4.7', model_picker_enabled: true, name: 'Claude Opus 4.7' },
+            {
+              id: 'gpt-5-mini',
+              model_picker_enabled: true,
+              name: 'GPT-5 mini',
+              capabilities: { limits: { max_context_window_tokens: 264000 } },
+            },
+            { id: 'gpt-4o', model_picker_enabled: false },
+            { id: 'gpt-4o-2024-11-20', model_picker_enabled: false },
+            { id: 'text-embedding-3-small', capabilities: { type: 'embeddings' } },
+            { id: '', model_picker_enabled: true },
           ],
         }),
       });
 
-      const result = await service.fetch('copilot', 'tid=copilot-token');
+      const result = await service.fetch('copilot', 'tid=token');
       expect(result).toHaveLength(2);
-      expect(result[0]).toEqual(
-        expect.objectContaining({
-          id: 'copilot/claude-opus-4.6',
-          displayName: 'claude-opus-4.6',
-          provider: 'copilot',
-          contextWindow: 128000,
-          inputPricePerToken: 0,
-          outputPricePerToken: 0,
-          qualityScore: 3,
-        }),
-      );
-      expect(result[1].id).toBe('copilot/gpt-4o');
+      expect(result[0].id).toBe('copilot/claude-opus-4.7');
+      expect(result[0].displayName).toBe('Claude Opus 4.7');
+      expect(result[0].contextWindow).toBe(128000);
+      expect(result[1].id).toBe('copilot/gpt-5-mini');
+      expect(result[1].contextWindow).toBe(264000);
     });
 
     it('should send correct Copilot headers', async () => {
@@ -1662,57 +1664,20 @@ describe('ProviderModelFetcherService', () => {
       );
     });
 
-    it('should return [] for empty data array', async () => {
+    it('should return [] for empty or invalid responses', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({ data: [] }),
       });
-
-      const result = await service.fetch('copilot', 'tid=token');
+      let result = await service.fetch('copilot', 'tid=token');
       expect(result).toEqual([]);
-    });
 
-    it('should filter out entries with missing or empty id', async () => {
-      fetchSpy.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [{ id: 'valid-model' }, { name: 'no-id-field' }, { id: '' }],
-        }),
-      });
-
-      const result = await service.fetch('copilot', 'tid=token');
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('copilot/valid-model');
-    });
-
-    it('should return [] when data is not an array', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({ data: 'not-array' }),
       });
-
-      const result = await service.fetch('copilot', 'tid=token');
+      result = await service.fetch('copilot', 'tid=token');
       expect(result).toEqual([]);
-    });
-
-    it('should filter out internal Azure routing models', async () => {
-      fetchSpy.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          data: [
-            { id: 'claude-opus-4.7' },
-            { id: 'gpt-4o' },
-            { id: 'accounts/msft/routers/f185i3v4' },
-            { id: 'accounts/msft/routers/fmfeto88' },
-            { id: 'accounts/msft/routers/gdjv4v2v' },
-          ],
-        }),
-      });
-
-      const result = await service.fetch('copilot', 'tid=token');
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('copilot/claude-opus-4.7');
-      expect(result[1].id).toBe('copilot/gpt-4o');
     });
   });
 
