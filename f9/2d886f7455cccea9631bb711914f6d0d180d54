@@ -1,0 +1,19 @@
+packages/shared/__tests__/provider-inference.spec.ts
+  s_418d68f0ea64c2::t_a59b7723c343af 1-6,81-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f92d886f7455cccea9631bb711914f6d0d180d54",
+  "prompts": {},
+  "sessions": {
+    "s_418d68f0ea64c2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e847c-1046-7f90-a372-8ff943ee7015",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
