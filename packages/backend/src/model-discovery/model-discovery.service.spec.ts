@@ -580,7 +580,7 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].authType).toBe('local');
     });
 
-    it('should deduplicate models by id', async () => {
+    it('should deduplicate duplicate models for the same provider and auth type', async () => {
       const providers = [
         makeProvider({
           id: 'p1',
@@ -589,7 +589,7 @@ describe('ModelDiscoveryService', () => {
         }),
         makeProvider({
           id: 'p2',
-          provider: 'deepseek',
+          provider: 'openai',
           cached_models: [makeModel({ id: 'gpt-4' })],
         }),
       ];
@@ -598,6 +598,31 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.getModelsForAgent('agent-1');
       expect(result).toHaveLength(1);
+    });
+
+    it('should keep the same model id from different providers as separate routes', async () => {
+      const providers = [
+        makeProvider({
+          id: 'p1',
+          provider: 'openrouter',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'openrouter' })],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'deepseek',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'deepseek' })],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => `${m.provider}:${m.authType}:${m.id}`)).toEqual([
+        'openrouter:api_key:deepseek-chat',
+        'deepseek:api_key:deepseek-chat',
+      ]);
     });
 
     it('should skip providers with no cached_models', async () => {
@@ -720,6 +745,23 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelForAgent('agent-1', 'gpt-4');
       expect(result).toBeDefined();
       expect(result!.id).toBe('gpt-4');
+    });
+
+    it('should not infer a provider when the model id is shared by multiple routes', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          provider: 'openrouter',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'openrouter' })],
+        }),
+        makeProvider({
+          provider: 'deepseek',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'deepseek' })],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelForAgent('agent-1', 'deepseek-chat');
+      expect(result).toBeUndefined();
     });
 
     it('should return undefined for missing model', async () => {
