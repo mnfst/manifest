@@ -76,6 +76,14 @@ export class OverviewController {
     return this.timeseries.getPerAgentMessageTimeseries(range, user.id, hourly, tenantId);
   }
 
+  @Get('overview/per-agent-cost-timeseries')
+  async getPerAgentCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerAgentCostTimeseries(range, user.id, hourly, tenantId);
+  }
+
   @Get('overview/per-provider-timeseries')
   async getPerProviderTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
     const range = query.range ?? '24h';

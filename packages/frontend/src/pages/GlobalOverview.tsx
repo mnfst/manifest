@@ -15,8 +15,9 @@ import {
   getOverview,
   getGlobalPerAgentTimeseries,
   getGlobalPerAgentMessageTimeseries,
+  getGlobalPerAgentCostTimeseries,
 } from '../services/api/analytics.js';
-import { formatNumber, formatTimeAgo } from '../services/formatters.js';
+import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
@@ -179,6 +180,15 @@ const GlobalOverview: Component = () => {
       }>,
   );
 
+  const [agentCostTimeseries] = createResource(
+    () => chartRange(),
+    (range) =>
+      getGlobalPerAgentCostTimeseries(range) as Promise<{
+        agents: string[];
+        timeseries: Array<Record<string, number | string>>;
+      }>,
+  );
+
   // ── Agent filter state (sessionStorage) ──────────────────────────────
   const storageKey = 'global-agent-filter';
   const loadSavedAgents = (): Set<string> => {
@@ -283,6 +293,22 @@ const GlobalOverview: Component = () => {
     return { agents: filtered_agents, timeseries };
   });
 
+  const filteredAgentCostTimeseries = createMemo(() => {
+    const raw = agentCostTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
   // ── Derived data ─────────────────────────────────────────────────────
   const agentList = () => (agents() ?? []) as AgentRow[];
   const providerList = () => (providers() ?? []) as ProviderGroup[];
@@ -346,7 +372,7 @@ const GlobalOverview: Component = () => {
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
           <h1 class="page-header__title">Overview</h1>
-          <p class="page-header__subtitle">Your AI infrastructure at a glance</p>
+          <p class="page-header__subtitle">All your agents and providers</p>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <Show when={allAgents().length > 1}>
@@ -550,11 +576,14 @@ const GlobalOverview: Component = () => {
             messagesTrendPct={overview()?.summary.messages.trend_pct ?? 0}
             tokensValue={overview()?.summary.tokens_today.value ?? 0}
             tokensTrendPct={overview()?.summary.tokens_today.trend_pct ?? 0}
+            costValue={overview()?.summary.cost_today.value ?? 0}
+            costTrendPct={overview()?.summary.cost_today.trend_pct ?? 0}
             tokenUsage={overview()?.token_usage ?? []}
             messageChartData={messageChartData()}
             range={chartRange()}
             agentTimeseries={filteredAgentTimeseries() ?? undefined}
             agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+            agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
             colorMap={agentColorMap()}
           />
         </div>
@@ -578,6 +607,7 @@ const GlobalOverview: Component = () => {
                     <th>Model</th>
                     <th style="text-align: right;">Tokens</th>
                     <th style="text-align: right;">Share</th>
+                    <th style="text-align: right;">Cost</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -585,9 +615,17 @@ const GlobalOverview: Component = () => {
                     {(row) => (
                       <tr>
                         <td>
-                          <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {row.display_name || row.model}
-                          </span>
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <Show when={row.provider}>
+                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                                {providerIcon(row.provider!, 16)}
+                                {authBadgeFor(row.auth_type, 8)}
+                              </span>
+                            </Show>
+                            <span style="font-weight: 500; color: hsl(var(--foreground));">
+                              {row.display_name || row.model}
+                            </span>
+                          </div>
                         </td>
                         <td style="text-align: right; font-variant-numeric: tabular-nums;">
                           {formatNumber(row.tokens)}
@@ -608,6 +646,9 @@ const GlobalOverview: Component = () => {
                               {row.share_pct}%
                             </span>
                           </div>
+                        </td>
+                        <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                          {formatCost(row.estimated_cost) ?? '$0.00'}
                         </td>
                       </tr>
                     )}
@@ -711,6 +752,7 @@ const GlobalOverview: Component = () => {
                     <th>Provider</th>
                     <th>Type</th>
                     <th>Usage (30d)</th>
+                    <th style="text-align: right;">Cost (30d)</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -751,6 +793,9 @@ const GlobalOverview: Component = () => {
                                 {formatNumber(group.consumption_tokens)} tokens
                               </span>
                             </div>
+                          </td>
+                          <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                            {formatCost(group.consumption_cost) ?? '$0.00'}
                           </td>
                           <td>
                             <Show

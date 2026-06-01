@@ -14,7 +14,8 @@ import {
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
 } from '../services/api/analytics.js';
-import { formatNumber, formatTimeAgo } from '../services/formatters.js';
+import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
+import { authBadgeFor } from '../components/AuthBadge.jsx';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
@@ -383,6 +384,8 @@ const AgentOverview: Component = () => {
           messagesTrendPct={overview()?.summary?.messages?.trend_pct ?? 0}
           tokensValue={overview()?.summary?.tokens_today?.value ?? 0}
           tokensTrendPct={overview()?.summary?.tokens_today?.trend_pct ?? 0}
+          costValue={overview()?.summary?.cost_today?.value ?? 0}
+          costTrendPct={overview()?.summary?.cost_today?.trend_pct ?? 0}
           tokenUsage={overview()?.token_usage ?? []}
           messageChartData={messageChartData()}
           range={chartRange()}
@@ -419,7 +422,15 @@ const AgentOverview: Component = () => {
                       {(row) => (
                         <tr>
                           <td style="padding: 10px 16px; font-size: 14px;">
-                            {row.display_name ?? row.model}
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                              <Show when={row.provider}>
+                                <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                                  {providerIcon(row.provider!, 16)}
+                                  {authBadgeFor(row.auth_type, 8)}
+                                </span>
+                              </Show>
+                              {row.display_name ?? row.model}
+                            </div>
                           </td>
                           <td style="padding: 10px 8px; font-size: 14px; text-align: right; white-space: nowrap;">
                             {formatNumber(row.tokens)}
@@ -448,6 +459,9 @@ const AgentOverview: Component = () => {
                                 {Math.round(row.share_pct)}%
                               </span>
                             </div>
+                          </td>
+                          <td style="padding: 10px 16px; font-size: 14px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                            {formatCost(row.estimated_cost) ?? '$0.00'}
                           </td>
                         </tr>
                       )}
