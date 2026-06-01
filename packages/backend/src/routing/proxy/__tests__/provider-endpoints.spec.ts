@@ -352,6 +352,24 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('moonshot-subscription uses Kimi Coding Plan Anthropic-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['moonshot-subscription'];
+    expect(ep.baseUrl).toBe('https://api.kimi.com/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('kimi-for-coding')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+  });
+
+  it('moonshot-subscription uses Kimi Code API key headers', () => {
+    const headers = PROVIDER_ENDPOINTS['moonshot-subscription'].buildHeaders('kimi-code-key');
+    expect(headers).toEqual({
+      'x-api-key': 'kimi-code-key',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
+    expect(headers.Authorization).toBeUndefined();
+  });
+
   it('ollama-cloud points at ollama.com with OpenAI format', () => {
     const ep = PROVIDER_ENDPOINTS['ollama-cloud'];
     expect(ep.baseUrl).toBe('https://ollama.com');
@@ -506,6 +524,10 @@ describe('resolveSubscriptionEndpointKey', () => {
 
   it('returns minimax-subscription for minimax', () => {
     expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns moonshot-subscription for moonshot', () => {
+    expect(resolveSubscriptionEndpointKey('moonshot')).toBe('moonshot-subscription');
   });
 
   it('returns undefined for providers with no subscription override', () => {

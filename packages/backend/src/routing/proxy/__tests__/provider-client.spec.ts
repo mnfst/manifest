@@ -1178,6 +1178,54 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Kimi Coding Plan subscription provider', () => {
+    it('routes Moonshot subscription auth to Kimi Code Anthropic endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'moonshot',
+        apiKey: 'kimi-code-key',
+        model: 'kimi-for-coding',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.kimi.com/coding/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'kimi-code-key',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('kimi-for-coding');
+      expect(sentBody.stream).toBeUndefined();
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
+    });
+
+    it('keeps standard Moonshot API-key auth on the Moonshot OpenAI endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-moon',
+        model: 'kimi-k2',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.moonshot.ai/v1/chat/completions');
+    });
+  });
+
   describe('Kilo API-key provider', () => {
     it('routes to the Kilo Gateway and preserves provider-prefixed model IDs', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));

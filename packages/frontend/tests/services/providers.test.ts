@@ -369,6 +369,16 @@ describe("PROVIDERS", () => {
     expect(minimax.subscriptionAuthMode).toBe("device_code");
   });
 
+  it("Moonshot supports Kimi Coding Plan subscription with token flow", () => {
+    const moonshot = PROVIDERS.find((p) => p.id === "moonshot")!;
+    expect(moonshot.supportsSubscription).toBe(true);
+    expect(moonshot.subscriptionLabel).toBe("Kimi Coding Plan");
+    expect(moonshot.subscriptionAuthMode).toBe("token");
+    expect(moonshot.subscriptionKeyPlaceholder).toBe("Paste your Kimi Code API key");
+    expect(moonshot.subscriptionCredentialKind).toBe("api-key");
+    expect(moonshot.subscriptionCredentialName).toBe("Kimi Code");
+  });
+
   it("Ollama Cloud is subscription-only with token paste flow", () => {
     const cloud = PROVIDERS.find((p) => p.id === "ollama-cloud")!;
     expect(cloud).toBeDefined();
@@ -401,6 +411,12 @@ describe("PROVIDERS", () => {
     );
     expect(getSubscriptionProviderKeyUrl("ollama-cloud")).toBe(
       "https://ollama.com/settings/keys",
+    );
+  });
+
+  it("provides a subscription-key URL for Moonshot/Kimi pointing at the Kimi Code console", () => {
+    expect(getSubscriptionProviderKeyUrl("moonshot")).toBe(
+      "https://www.kimi.com/code/console",
     );
   });
 

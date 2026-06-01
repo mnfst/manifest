@@ -286,6 +286,7 @@ export class ProviderClient {
 
     if (endpoint.format === 'anthropic') {
       const isSubscription = authType === 'subscription';
+      const injectSubscriptionIdentity = isSubscription && !endpoint.skipSubscriptionIdentity;
       // When the inbound request is already Anthropic Messages
       // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
       // skip the OpenAI translation round-trip and apply only the additive
@@ -299,12 +300,12 @@ export class ProviderClient {
         ctx.apiMode === 'messages'
           ? applyAnthropicMessagesMutations(body, {
               injectCacheControl: !isSubscription,
-              injectSubscriptionIdentity: isSubscription,
+              injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectCacheControl: !isSubscription,
-              injectSubscriptionIdentity: isSubscription,
+              injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
             });
       requestBody.model = bareModel;

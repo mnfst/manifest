@@ -632,6 +632,15 @@ describe('ProviderModelFetcherService', () => {
     );
   });
 
+  /* ── Kimi Coding Plan subscription routing ── */
+
+  it('should skip live model fetching for moonshot subscription auth', async () => {
+    const result = await service.fetch('moonshot', 'kimi-code-key', 'subscription');
+
+    expect(result).toEqual([]);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   /* ── Kiro subscription provider ── */
 
   it('should fetch Kiro models dynamically through the Kiro model-list operation', async () => {

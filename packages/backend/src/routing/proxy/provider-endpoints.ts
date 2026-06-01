@@ -45,6 +45,12 @@ export interface ProviderEndpoint {
    * the OAuth blob's `u` field. Only valid alongside `format: 'google'`.
    */
   codeAssistEnvelope?: boolean;
+  /**
+   * Subscription routes using the Anthropic wire format usually need the
+   * Claude-agent identity prompt. Disable it for API-key based third-party
+   * endpoints that only reuse the Anthropic protocol shape.
+   */
+  skipSubscriptionIdentity?: boolean;
 }
 
 const openaiStreamUsage = { streamUsageReporting: 'openai_stream_options' as const };
@@ -76,10 +82,9 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
   'anthropic-version': '2023-06-01',
 });
 
-// OpenCode Go's /v1/messages endpoint follows the native Anthropic protocol
-// and authenticates via the `x-api-key` header, not `Authorization: Bearer`.
-// Sending a Bearer token yields a "Missing API key" 401 from the upstream.
-const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => ({
+// Some Anthropic-compatible /v1/messages endpoints authenticate via the
+// `x-api-key` header, not `Authorization: Bearer`.
+const anthropicApiKeyHeaders = (apiKey: string): Record<string, string> => ({
   'x-api-key': apiKey,
   'Content-Type': 'application/json',
   'anthropic-version': '2023-06-01',
@@ -92,6 +97,7 @@ const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => (
  * endpoint to accept requests, but may break if OpenAI changes validation.
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
@@ -199,6 +205,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
+  },
+  'moonshot-subscription': {
+    baseUrl: KIMI_CODING_SUBSCRIPTION_BASE,
+    buildHeaders: anthropicApiKeyHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
   },
   nvidia: {
     baseUrl: NVIDIA_NIM_BASE,
@@ -325,7 +338,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   'opencode-go-anthropic': {
     baseUrl: OPENCODE_GO_BASE,
-    buildHeaders: opencodeGoAnthropicHeaders,
+    buildHeaders: anthropicApiKeyHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
   },
