@@ -1,0 +1,25 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_a6661cddda2885::t_4057dc1d5c5c76 318,321-324,327
+  s_a6661cddda2885::t_d4f44383e68808 379-382
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_a6661cddda2885::t_7cc83b8b267790 583,592,603-625
+  s_a6661cddda2885::t_f464ece002e8ca 750-766
+.changeset/deepseek-model-picker-dedupe.md
+  s_a6661cddda2885::t_411117ac739569 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0eff607c5be3d6449b311d735c986fbf08c0ad11",
+  "prompts": {},
+  "sessions": {
+    "s_a6661cddda2885": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e82c3-8162-7bc0-bc18-9b47e2d6967f",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
