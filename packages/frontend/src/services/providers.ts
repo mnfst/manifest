@@ -26,6 +26,8 @@ export interface ProviderDef {
    * for providers that historically used the Anthropic-style setup-token flow.
    */
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  /** Optional product name used when the subscription credential differs from the provider brand. */
+  subscriptionCredentialName?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
   /** Provider uses GitHub device login instead of token paste. */
@@ -73,6 +75,7 @@ interface ProviderUIOverlay {
   subscriptionLabel?: string;
   subscriptionKeyPlaceholder?: string;
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  subscriptionCredentialName?: string;
   subscriptionCommand?: string;
   deviceLogin?: boolean;
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
@@ -199,6 +202,12 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   moonshot: {
     initial: 'Mo',
     subtitle: 'Kimi k2, Moonshot v1',
+    supportsSubscription: true,
+    subscriptionLabel: 'Kimi Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'Kimi Code',
+    subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
     models: [],
   },
   nvidia: {

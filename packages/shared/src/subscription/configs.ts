@@ -57,6 +57,19 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  moonshot: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Kimi Coding Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+    knownModels: Object.freeze(['kimi-for-coding']),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 262144,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   'ollama-cloud': Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'Ollama Cloud subscription',

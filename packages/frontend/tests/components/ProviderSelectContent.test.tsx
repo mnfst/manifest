@@ -223,6 +223,18 @@ describe("ProviderSelectContent", () => {
     expect(screen.getAllByText("GLM Coding Plan").length).toBeGreaterThan(0);
   });
 
+  it("shows Moonshot Kimi Coding Plan in the subscription tab", () => {
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    expect(screen.getByText("Moonshot")).toBeDefined();
+    expect(screen.getAllByText("Kimi Coding Plan").length).toBeGreaterThan(0);
+  });
+
   it("opens token paste detail view when Z.ai is clicked in subscription tab", async () => {
     const { container } = render(() => (
       <ProviderSelectContent
@@ -255,6 +267,24 @@ describe("ProviderSelectContent", () => {
       );
       expect(link).not.toBeNull();
       expect(link!.textContent).toContain("Z.ai");
+    });
+  });
+
+  it("shows 'Get Kimi Code API key' link to the Kimi Code console in subscription detail view", async () => {
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    fireEvent.click(screen.getByText("Moonshot"));
+    await waitFor(() => {
+      const link = container.querySelector<HTMLAnchorElement>(
+        'a[href="https://www.kimi.com/code/console"]',
+      );
+      expect(link).not.toBeNull();
+      expect(link!.textContent).toContain("Kimi Code");
     });
   });
 

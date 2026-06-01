@@ -884,6 +884,7 @@ describe('ProviderKeyForm', () => {
           placeholder="sk-..."
           whereToGetUrl={() => undefined}
           credentialNoun={() => 'API key'}
+          credentialOwnerName={() => 'OpenAI'}
           existingLabels={() => ['Default']}
           isSubscription={overrides.isSubscription}
         />

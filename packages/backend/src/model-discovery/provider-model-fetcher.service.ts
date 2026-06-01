@@ -585,6 +585,10 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'moonshot' && authType === 'subscription') {
+      // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
+      // rather than a subscription-scoped /models endpoint.
+      return [];
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
