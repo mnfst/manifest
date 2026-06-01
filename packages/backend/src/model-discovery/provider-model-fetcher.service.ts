@@ -26,6 +26,7 @@ const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/mod
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
+const FIREWORKS_MODELS_MAX_PAGES = 20;
 
 /* ── Generic parser factory ── */
 
@@ -659,14 +660,27 @@ export class ProviderModelFetcherService {
     const headers = config.buildHeaders(apiKey);
     const all: DiscoveredModel[] = [];
     let pageToken: string | undefined;
+    let pageCount = 0;
+    const seenPageTokens = new Set<string>();
 
     try {
       do {
+        if (pageToken) {
+          if (seenPageTokens.has(pageToken)) {
+            this.logger.warn(
+              `Stopping Fireworks model pagination after repeated token ${pageToken}`,
+            );
+            break;
+          }
+          seenPageTokens.add(pageToken);
+        }
+
         const url = this.buildFireworksModelsUrl(pageToken);
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
         const res = await fetch(url, { headers, signal: controller.signal });
         clearTimeout(timeout);
+        pageCount += 1;
 
         if (!res.ok) {
           this.logger.warn(`Provider ${providerId} returned ${res.status} from ${url}`);
@@ -678,6 +692,12 @@ export class ProviderModelFetcherService {
         const nextPageToken = (body as { nextPageToken?: unknown })?.nextPageToken;
         pageToken =
           typeof nextPageToken === 'string' && nextPageToken.length > 0 ? nextPageToken : undefined;
+        if (pageToken && pageCount >= FIREWORKS_MODELS_MAX_PAGES) {
+          this.logger.warn(
+            `Stopping Fireworks model pagination after ${FIREWORKS_MODELS_MAX_PAGES} pages`,
+          );
+          pageToken = undefined;
+        }
       } while (pageToken);
 
       return filterNonChatModels(all, 'fireworks');

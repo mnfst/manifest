@@ -393,6 +393,72 @@ describe('ProviderModelFetcherService', () => {
         }),
       );
     });
+
+    it('stops pagination when Fireworks repeats a page token', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [{ name: 'accounts/fireworks/models/chat-a', supportsServerless: true }],
+            nextPageToken: 'page-2',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [{ name: 'accounts/fireworks/models/chat-b', supportsServerless: true }],
+            nextPageToken: 'page-2',
+          }),
+        });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(result.map((m) => m.id)).toEqual([
+        'accounts/fireworks/models/chat-a',
+        'accounts/fireworks/models/chat-b',
+      ]);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Stopping Fireworks model pagination after repeated token page-2',
+      );
+
+      warnSpy.mockRestore();
+    });
+
+    it('caps Fireworks pagination when unique page tokens never stop', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+
+      Array.from({ length: 25 }, (_, index) => {
+        fetchSpy.mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: `accounts/fireworks/models/chat-${index}`,
+                supportsServerless: true,
+              },
+            ],
+            nextPageToken: `page-${index + 1}`,
+          }),
+        });
+      });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(20);
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200&pageToken=page-19',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(result).toHaveLength(20);
+      expect(warnSpy).toHaveBeenCalledWith('Stopping Fireworks model pagination after 20 pages');
+
+      warnSpy.mockRestore();
+    });
   });
 
   /* ── Mistral-specific filter ── */
