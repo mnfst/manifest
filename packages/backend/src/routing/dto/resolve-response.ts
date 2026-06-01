@@ -1,7 +1,8 @@
 import { ScoringReason } from '../../scoring';
 import type {
   ModelRoute,
-  RequestParamDefaults,
+  ResponseMode,
+  OutputModality,
   SpecificityCategory,
   TierSlot,
 } from 'manifest-shared';
@@ -25,13 +26,12 @@ export interface ResolveResponse {
    * Replaces the legacy `fallback_models: string[]` field.
    */
   fallback_routes: ModelRoute[] | null;
+  /** Effective output modality configured on the resolved routing chain. */
+  output_modality?: OutputModality;
+  /** Effective transport policy configured on the resolved routing chain. */
+  response_mode?: ResponseMode;
   specificity_category?: SpecificityCategory;
   header_tier_id?: string;
   header_tier_name?: string;
   header_tier_color?: string;
-  /**
-   * Per-assignment outbound request body defaults, merged into the provider
-   * request before forwarding. Client-supplied fields win by presence.
-   */
-  param_defaults?: RequestParamDefaults | null;
 }

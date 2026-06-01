@@ -1,16 +1,119 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import type { ProviderParamSpec, RequestParamDefaults } from 'manifest-shared';
+
+vi.mock('solid-js/web', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('solid-js/web')>();
+  return { ...mod, Portal: (props: any) => props.children };
+});
 
 import ModelParamsDialog from '../../src/components/ModelParamsDialog';
 
 const q = (sel: string) => document.querySelector(sel);
 
+const deepseekSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'deepseek',
+    authType: 'api_key',
+    model: 'deepseek-v4',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    description: 'Controls whether DeepSeek thinking mode is enabled.',
+    default: 'enabled',
+    values: ['enabled', 'disabled'],
+    group: 'reasoning',
+  },
+];
+
+const anthropicSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.type',
+    type: 'enum',
+    label: 'Thinking mode',
+    description: 'Controls Anthropic thinking mode.',
+    default: 'disabled',
+    values: ['disabled', 'adaptive', 'enabled'],
+    group: 'reasoning',
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'thinking.budget_tokens',
+    type: 'integer',
+    label: 'Thinking budget',
+    description: 'Maximum Anthropic extended thinking token budget.',
+    default: 4096,
+    range: { min: 1024, max: 32768, step: 1024 },
+    group: 'reasoning',
+    applicability: { only: { 'thinking.type': 'enabled' } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'temperature',
+    type: 'number',
+    label: 'Temperature',
+    description: 'Controls sampling randomness.',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.1 },
+    group: 'sampling',
+    applicability: { except: { 'thinking.type': ['enabled', 'adaptive'] } },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'top_p',
+    type: 'number',
+    label: 'Top P',
+    description: 'Controls nucleus sampling.',
+    default: 1,
+    range: { min: 0, max: 1, step: 0.01 },
+    group: 'sampling',
+    applicability: {
+      except: [{ 'thinking.type': ['enabled', 'adaptive'] }, { temperature: { not: 1 } }],
+    },
+  },
+  {
+    provider: 'anthropic',
+    authType: 'api_key',
+    model: 'claude-sonnet-4-6',
+    path: 'max_tokens',
+    type: 'integer',
+    label: 'Max tokens',
+    description: 'Maximum number of output tokens.',
+    default: 4096,
+    range: { min: 1 },
+    group: 'generation_length',
+  },
+];
+
+const booleanSpecs: readonly ProviderParamSpec[] = [
+  {
+    provider: 'test',
+    authType: 'api_key',
+    model: 'test-model',
+    path: 'logprobs',
+    type: 'boolean',
+    label: 'Token log probabilities',
+    description: 'Controls whether token log probabilities are requested.',
+    default: true,
+    group: 'observability',
+  },
+];
+
 describe('ModelParamsDialog', () => {
   const baseProps = {
     open: true,
-    slotLabel: 'standard tier',
-    current: null as null | { thinking?: { type: 'enabled' | 'disabled' } },
-    providerDefault: 'enabled' as 'enabled' | 'disabled',
+    slotLabel: 'deepseek-v4',
+    current: null as RequestParamDefaults | null,
+    specs: deepseekSpecs,
     onClose: vi.fn(),
     onSave: vi.fn().mockResolvedValue(undefined),
   };
@@ -22,75 +125,469 @@ describe('ModelParamsDialog', () => {
     expect(q('.modal-overlay')).toBeNull();
   });
 
-  it('starts on the provider default when no override is configured', () => {
-    render(() => <ModelParamsDialog {...baseProps} providerDefault="enabled" />);
+  it('shows a compact request action when no parameter specs are published', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={[]}
+        requestParamsUrl="https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=openai&model=gpt-4o"
+        slotLabel="gpt-4o"
+      />
+    ));
+
+    expect(screen.getByText('No parameter controls are published for gpt-4o yet.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeTruthy();
+    const link = screen.getByRole('link', { name: 'Request model parameters for gpt-4o' });
+    expect(link.textContent).toBe('Request parameters for this model');
+    expect(link).toHaveProperty(
+      'href',
+      'https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=openai&model=gpt-4o',
+    );
+  });
+
+  it('shows the compact request link alongside published parameter controls', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        requestParamsUrl="https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=deepseek&model=deepseek-v4"
+      />
+    ));
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeTruthy();
+    const link = screen.getByRole('link', { name: 'Request parameters for deepseek-v4' });
+    expect(link.textContent).toBe('Request');
+    expect(link).toHaveProperty(
+      'href',
+      'https://github.com/mnfst/modelparams.dev/issues/new?template=parameter-request.yml&provider=deepseek&model=deepseek-v4',
+    );
+  });
+
+  it('starts on the spec default when no override is configured', () => {
+    render(() => <ModelParamsDialog {...baseProps} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
     expect(q('.provider-toggle__switch--on')).not.toBeNull();
   });
 
-  it('reflects the configured override when present', () => {
+  it('describes params with client-override note when specs exist', () => {
+    render(() => <ModelParamsDialog {...baseProps} slotLabel="GPT-5 Nano" />);
+    expect(screen.getByText('Defaults for GPT-5 Nano. Client requests override.')).toBeTruthy();
+  });
+
+  it('shows loading description while specs are being fetched', () => {
+    render(() => <ModelParamsDialog {...baseProps} specs={[]} loading={true} slotLabel="gpt-4o" />);
+    expect(screen.getByText('Loading parameters for gpt-4o…')).toBeTruthy();
+  });
+
+  it('shows fallback text when no specs and no requestParamsUrl', () => {
     render(() => (
-      <ModelParamsDialog
-        {...baseProps}
-        providerDefault="enabled"
-        current={{ thinking: { type: 'disabled' } }}
-      />
+      <ModelParamsDialog {...baseProps} specs={[]} requestParamsUrl={undefined} slotLabel="gpt-4o" />
     ));
+    expect(screen.getByText('This model has no configurable parameters.')).toBeTruthy();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  it('reflects the configured override when present', () => {
+    render(() => <ModelParamsDialog {...baseProps} current={{ thinking: { type: 'disabled' } }} />);
     const toggle = q('.model-params__toggle') as HTMLButtonElement;
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
     expect(q('.provider-toggle__switch--on')).toBeNull();
   });
 
-  it('shows the provider default in the hint text', () => {
-    render(() => <ModelParamsDialog {...baseProps} providerDefault="enabled" />);
-    expect(q('.model-params__label-hint')!.textContent).toContain('enabled');
+  it('shows the human label and raw provider param path', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+    expect(screen.getAllByText('Max tokens').length).toBeGreaterThan(0);
+    expect(screen.getByText('max_tokens')).toBeTruthy();
   });
 
-  it('saves null when the user lands on the provider default', async () => {
+  it('renders descriptions from the published parameter specs', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    expect(screen.getByText('Controls sampling randomness.')).toBeTruthy();
+    expect(
+      screen.queryByText(
+        'Low values give focused, deterministic answers. High values give more creative, varied responses.',
+      ),
+    ).toBeNull();
+  });
+
+  it('renders derived select, slider, and number controls from specs', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+    expect(screen.getByLabelText('Thinking mode')).toBeTruthy();
+    expect(screen.getByRole('slider', { name: 'Temperature' })).toBeTruthy();
+    expect(screen.getByLabelText('Max tokens')).toBeTruthy();
+  });
+
+  it('updates slider controls from keyboard input', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLInputElement;
+
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
+    expect(slider.value).toBe('0.9');
+
+    fireEvent.keyDown(slider, { key: 'ArrowUp' });
+    expect(slider.value).toBe('1');
+
+    fireEvent.keyDown(slider, { key: 'Home' });
+    expect(slider.value).toBe('0');
+
+    fireEvent.keyDown(slider, { key: 'End' });
+    expect(slider.value).toBe('1');
+  });
+
+  it('updates slider value from native input event', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' }) as HTMLInputElement;
+    fireEvent.input(slider, { target: { value: '0.5' } });
+    expect(slider.value).toBe('0.5');
+  });
+
+  it('updates slider value when typing in the companion number input', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const numberInput = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '0,3' } });
+    fireEvent.input(numberInput, { target: { value: '' } });
+    fireEvent.input(numberInput, { target: { value: '.' } });
+    fireEvent.input(numberInput, { target: { value: 'abc' } });
+    fireEvent.input(numberInput, { target: { value: '0.6' } });
+    fireEvent.blur(numberInput);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.6 }));
+  });
+
+  it('snaps companion number input values to the slider step before saving', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const numberInput = screen.getByLabelText('Temperature value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '0.36' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.4 }));
+  });
+
+  it('keeps integer slider values truncated when the number input is edited', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const integerSliderSpec: readonly ProviderParamSpec[] = [
+      {
+        provider: 'anthropic',
+        authType: 'api_key',
+        model: 'claude-sonnet-4-6',
+        path: 'thinking.budget_tokens',
+        type: 'integer',
+        label: 'Thinking budget',
+        description: 'Budget.',
+        default: 4096,
+        range: { min: 1024, max: 32768, step: 1024 },
+        group: 'reasoning',
+      },
+    ];
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={integerSliderSpec}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    const numberInput = screen.getByLabelText('Thinking budget value') as HTMLInputElement;
+    fireEvent.input(numberInput, { target: { value: '8192.9' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: { budget_tokens: 8192 } }));
+  });
+
+  it('renders a tooltip explaining how to enable a blocked param (only-rule case)', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ thinking: { type: 'disabled' } }}
+      />
+    ));
+
+    const helps = document.querySelectorAll('.model-params__help');
+    const messages = Array.from(helps).map((el) => el.getAttribute('aria-label'));
+    expect(messages.some((m) => m && m.includes('To configure this parameter'))).toBe(true);
+    expect(messages.some((m) => m && m.includes('Thinking mode'))).toBe(true);
+  });
+
+  it('formats lists of three or more required values in the help tooltip', () => {
+    const specs: readonly ProviderParamSpec[] = [
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'mode',
+        type: 'enum',
+        label: 'Mode',
+        description: 'Mode.',
+        default: 'off',
+        values: ['off', 'low', 'medium', 'high'],
+        group: 'reasoning',
+      },
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'effort',
+        type: 'integer',
+        label: 'Effort',
+        description: 'Effort.',
+        default: 1,
+        range: { min: 0, max: 10, step: 1 },
+        group: 'reasoning',
+        applicability: { only: { mode: ['low', 'medium', 'high'] } },
+      },
+    ];
+    render(() => <ModelParamsDialog {...baseProps} specs={specs} slotLabel="test" />);
+
+    const messages = Array.from(document.querySelectorAll('.model-params__help')).map((el) =>
+      el.getAttribute('aria-label'),
+    );
+    expect(messages.some((m) => m && m.includes('"low", "medium", or "high"'))).toBe(true);
+  });
+
+  it('describes blockers for primitive except rules and custom not rules', () => {
+    const blockedSpecs: readonly ProviderParamSpec[] = [
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'mode',
+        type: 'enum',
+        label: 'Mode',
+        description: 'Mode.',
+        default: 'fast',
+        values: ['fast', 'slow'],
+        group: 'reasoning',
+      },
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'noise',
+        type: 'number',
+        label: 'Noise',
+        description: 'Noise.',
+        default: 0.5,
+        range: { min: 0, max: 1, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { mode: 'slow' } },
+      },
+      {
+        provider: 'test',
+        authType: 'api_key',
+        model: 'test',
+        path: 'jitter',
+        type: 'number',
+        label: 'Jitter',
+        description: 'Jitter.',
+        default: 0.5,
+        range: { min: 0, max: 1, step: 0.1 },
+        group: 'sampling',
+        applicability: { except: { mode: { not: 'fast' } } },
+      },
+    ];
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={blockedSpecs}
+        slotLabel="test"
+        current={{ mode: 'slow' }}
+      />
+    ));
+
+    const messages = Array.from(document.querySelectorAll('.model-params__help')).map((el) =>
+      el.getAttribute('aria-label'),
+    );
+    expect(messages.some((m) => m && m.includes('Mode is "slow"'))).toBe(true);
+    expect(messages.some((m) => m && m.includes('Mode is set to a custom value'))).toBe(true);
+  });
+
+  it('shows the slider min and max bounds', () => {
+    render(() => (
+      <ModelParamsDialog {...baseProps} specs={anthropicSpecs} slotLabel="claude-sonnet-4-6" />
+    ));
+
+    const slider = screen.getByRole('slider', { name: 'Temperature' });
+    const field = slider.closest('.model-params__slider-field') as HTMLElement;
+    const bounds = field.querySelectorAll('.model-params__slider-bound');
+    expect(bounds[0]?.textContent).toBe('0');
+    expect(bounds[1]?.textContent).toBe('1');
+  });
+
+  it('stores integer number controls as parsed numeric values', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.input(screen.getByLabelText('Max tokens'), { target: { value: '2048.9' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ max_tokens: 2048 }));
+  });
+
+  it('saves null when every chosen value matches the spec default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
       <ModelParamsDialog
         {...baseProps}
         onSave={onSave}
-        providerDefault="enabled"
         current={{ thinking: { type: 'disabled' } }}
       />
     ));
 
-    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement); // disabled → enabled
+    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith(null));
   });
 
-  it('saves an explicit override when the user lands on the non-default state', async () => {
+  it('saves an explicit override when at least one value differs from the spec default', async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
     const onClose = vi.fn();
+    render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
+
+    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ thinking: { type: 'disabled' } }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('keeps boolean toggle values as booleans', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
     render(() => (
       <ModelParamsDialog
         {...baseProps}
+        specs={booleanSpecs}
+        slotLabel="test-model"
         onSave={onSave}
-        onClose={onClose}
-        providerDefault="enabled"
       />
     ));
 
-    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement); // enabled → disabled
+    fireEvent.click(q('.model-params__toggle') as HTMLButtonElement);
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ logprobs: false }));
+  });
+
+  it('includes applicable nested sibling defaults when saving a nested override', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(screen.getByLabelText('Thinking mode'));
+    fireEvent.click(screen.getByRole('option', { name: 'enabled' }));
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() =>
-      expect(onSave).toHaveBeenCalledWith({ thinking: { type: 'disabled' } }),
+      expect(onSave).toHaveBeenCalledWith({
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+      }),
     );
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it('disables controls when model-param availability rules make them unavailable', () => {
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ thinking: { type: 'adaptive' } }}
+      />
+    ));
+    expect(screen.getByRole('slider', { name: 'Temperature' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    );
+  });
+
+  it('disables and skips conflicted params when another param is configured', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ temperature: 0.2, top_p: 0.7 }}
+        onSave={onSave}
+      />
+    ));
+
+    expect(screen.getByRole('slider', { name: 'Top P' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    );
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith({ temperature: 0.2 }));
+  });
+
+  it('does not persist nested defaults when only stale inapplicable nested values differ', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(() => (
+      <ModelParamsDialog
+        {...baseProps}
+        specs={anthropicSpecs}
+        slotLabel="claude-sonnet-4-6"
+        current={{ thinking: { type: 'disabled', budget_tokens: 8192 } }}
+        onSave={onSave}
+      />
+    ));
+
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(null));
   });
 
   it('cancel button closes without persisting', () => {
     const onSave = vi.fn();
     const onClose = vi.fn();
-    render(() => (
-      <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />
-    ));
+    render(() => <ModelParamsDialog {...baseProps} onSave={onSave} onClose={onClose} />);
 
     fireEvent.click(screen.getByText('Cancel'));
     expect(onSave).not.toHaveBeenCalled();

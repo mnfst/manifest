@@ -1,0 +1,107 @@
+import {
+  IsIn,
+  IsNotEmpty,
+  IsObject,
+  IsString,
+  Validate,
+  ValidatorConstraint,
+  type ValidatorConstraintInterface,
+} from 'class-validator';
+
+import { AUTH_TYPES, type AuthType, type RequestParamDefaults } from 'manifest-shared';
+
+export type ModelParamsBodyDto = RequestParamDefaults;
+
+const MAX_REQUEST_PARAM_DEPTH = 100;
+
+@ValidatorConstraint({ name: 'requestParamDefaults', async: false })
+class RequestParamDefaultsConstraint implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    return isJsonObject(value);
+  }
+
+  defaultMessage(): string {
+    return 'params must be a JSON object';
+  }
+}
+
+export class SetModelParamsBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  scope!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsIn(AUTH_TYPES)
+  authType!: AuthType;
+
+  @IsString()
+  @IsNotEmpty()
+  model!: string;
+
+  // Always required on PUT — to clear params, call DELETE instead. Routing
+  // through one path per intent keeps the storage model simple (no "save
+  // empty == delete" magic at the controller layer).
+  //
+  // Arbitrary keys are intentional because provider params are MPS-backed.
+  // This DTO validates JSON shape; ModelParamsController.assertCompatibleParams
+  // validates each known value against the route's specs before saving.
+  @IsObject()
+  @Validate(RequestParamDefaultsConstraint)
+  params!: RequestParamDefaults;
+}
+
+export class DeleteModelParamsBodyDto {
+  @IsString()
+  @IsNotEmpty()
+  scope!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsIn(AUTH_TYPES)
+  authType!: AuthType;
+
+  @IsString()
+  @IsNotEmpty()
+  model!: string;
+}
+
+// Query params for the per-model spec lookup. Provider/auth/model identify one
+// route's configurable parameters; the UI fetches this on dialog open instead
+// of downloading the whole catalog on page boot.
+export class ModelParamSpecsQueryDto {
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsIn(AUTH_TYPES)
+  authType!: AuthType;
+
+  @IsString()
+  @IsNotEmpty()
+  model!: string;
+}
+
+function isJsonObject(value: unknown, depth = 0): value is Record<string, unknown> {
+  if (depth > MAX_REQUEST_PARAM_DEPTH) return false;
+  return isRecord(value) && Object.values(value).every((item) => isJsonValue(item, depth + 1));
+}
+
+function isJsonValue(value: unknown, depth = 0): boolean {
+  if (depth > MAX_REQUEST_PARAM_DEPTH) return false;
+  if (value === null) return true;
+  if (typeof value === 'string' || typeof value === 'boolean') return true;
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every((item) => isJsonValue(item, depth + 1));
+  return isJsonObject(value, depth);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}

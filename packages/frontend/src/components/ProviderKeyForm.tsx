@@ -23,6 +23,7 @@ import {
   getRoutingProviderApiKeyUrl,
   getSubscriptionProviderKeyUrl,
 } from '../services/provider-api-key-urls.js';
+import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { toast } from '../services/toast-store.js';
 
 export const MAX_KEYS_PER_PROVIDER = 5;
@@ -64,8 +65,12 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   const isApiKeyCredential = () =>
     !props.isSubMode() || props.provDef.subscriptionCredentialKind === 'api-key';
   const credentialNoun = () => (isApiKeyCredential() ? 'API key' : 'setup token');
-  const inputAriaLabel = () => `${props.provDef.name} ${credentialNoun()}`;
-  const editAriaLabel = () => `New ${props.provDef.name} ${credentialNoun()}`;
+  const credentialOwnerName = () =>
+    props.isSubMode() && props.provDef.subscriptionCredentialName
+      ? props.provDef.subscriptionCredentialName
+      : props.provDef.name;
+  const inputAriaLabel = () => `${credentialOwnerName()} ${credentialNoun()}`;
+  const editAriaLabel = () => `New ${credentialOwnerName()} ${credentialNoun()}`;
   const placeholder = () =>
     props.isSubMode()
       ? (props.provDef.subscriptionKeyPlaceholder ?? 'Paste token')
@@ -228,7 +233,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Get {props.provDef.name} {credentialNoun()}
+                Get {credentialOwnerName()} {credentialNoun()}
               </a>
             </p>
           </Show>
@@ -304,9 +309,11 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 placeholder={placeholder() ?? 'Paste API key'}
                 whereToGetUrl={whereToGetUrl}
                 credentialNoun={credentialNoun}
+                credentialOwnerName={credentialOwnerName}
                 existingLabels={() => activeKeys().map((k) => k.label)}
                 open={props.addKeyOpen}
                 setOpen={props.setAddKeyOpen}
+                isSubscription={props.isSubMode()}
               />
             </Show>
           </Show>
@@ -338,7 +345,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Get {props.provDef.name} {credentialNoun()}
+                  Get {credentialOwnerName()} {credentialNoun()}
                 </a>
               </p>
             </Show>
@@ -366,6 +373,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           setBusy={props.setBusy}
           placeholder={placeholder() ?? 'Paste API key'}
           credentialNoun={credentialNoun}
+          credentialOwnerName={credentialOwnerName}
           whereToGetUrl={whereToGetUrl}
           addKeyOpen={props.addKeyOpen}
           setAddKeyOpen={props.setAddKeyOpen}
@@ -411,7 +419,8 @@ async function handleAddKey(
   }
 }
 
-interface AddAnotherKeyActionProps {
+/** @internal Exported for testing only. */
+export interface AddAnotherKeyActionProps {
   onAdd: (label: string, apiKey: string) => Promise<boolean>;
   busy: Accessor<boolean>;
   setBusy: Setter<boolean>;
@@ -419,12 +428,15 @@ interface AddAnotherKeyActionProps {
   placeholder: string;
   whereToGetUrl: () => string | undefined;
   credentialNoun: () => string;
+  credentialOwnerName: () => string;
   existingLabels: () => string[];
   open?: Accessor<boolean>;
   setOpen?: Setter<boolean>;
+  isSubscription?: boolean;
 }
 
-const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
+/** @internal Exported for testing only. */
+export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   const [localOpen, setLocalOpen] = createSignal(false);
   const isOpen = () => (props.open ?? localOpen)();
   const setIsOpen = (v: boolean) => {
@@ -432,13 +444,17 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
   };
   const [label, setLabel] = createSignal('');
   const [apiKey, setApiKey] = createSignal('');
+  let apiKeyInputRef: HTMLInputElement | undefined;
 
-  const defaultLabel = () => suggestNextLabel(props.existingLabels());
+  const defaultLabel = () => suggestNextProviderKeyLabel(props.existingLabels());
 
-  // Sync label suggestion when opened externally
+  // Sync label suggestion when opened externally and auto-focus the API key field
   createEffect(() => {
     if (isOpen() && !label().trim()) {
       setLabel(defaultLabel());
+    }
+    if (isOpen()) {
+      requestAnimationFrame(() => apiKeyInputRef?.focus());
     }
   });
 
@@ -466,7 +482,18 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
               setIsOpen(true);
             }}
           >
-            + Add another key
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              style="vertical-align: -2px; margin-right: 2px;"
+            >
+              <path d="M4 11h11v2H4zm0-5h16v2H4zm0 10h8v2H4zm15-3h-2v3h-3v2h3v3h2v-3h3v-2h-3z" />
+            </svg>
+            {props.isSubscription ? ' Add connection' : ' Add another key'}
           </button>
         ) : undefined
       }
@@ -489,14 +516,15 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
           onInput={(e) => setLabel(e.currentTarget.value)}
         />
         <label class="provider-detail__label" for="add-key-value" style="margin-top: 8px;">
-          {props.provDef.name} {props.credentialNoun()}
+          {props.credentialOwnerName()} {props.credentialNoun()}
         </label>
         <input
+          ref={apiKeyInputRef}
           id="add-key-value"
           class="provider-detail__input provider-detail__input--masked"
           type="text"
           autocomplete="off"
-          aria-label={`New ${props.provDef.name} ${props.credentialNoun()}`}
+          aria-label={`New ${props.credentialOwnerName()} ${props.credentialNoun()}`}
           placeholder={props.placeholder}
           value={apiKey()}
           onInput={(e) => setApiKey(e.currentTarget.value)}
@@ -512,7 +540,7 @@ const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Get {props.provDef.name} {props.credentialNoun()}
+              Get {props.credentialOwnerName()} {props.credentialNoun()}
             </a>
           </p>
         </Show>
@@ -549,6 +577,7 @@ interface KeyChainViewProps {
   setBusy: Setter<boolean>;
   placeholder: string;
   credentialNoun: () => string;
+  credentialOwnerName: () => string;
   whereToGetUrl: () => string | undefined;
   addKeyOpen?: Accessor<boolean>;
   setAddKeyOpen?: Setter<boolean>;
@@ -709,25 +738,15 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
           placeholder={props.placeholder}
           whereToGetUrl={props.whereToGetUrl}
           credentialNoun={props.credentialNoun}
+          credentialOwnerName={props.credentialOwnerName}
           existingLabels={() => props.activeKeys().map((k) => k.label)}
           open={props.addKeyOpen}
           setOpen={props.setAddKeyOpen}
+          isSubscription={props.authType() === 'subscription'}
         />
       </Show>
     </div>
   );
 };
-
-function suggestNextLabel(existing: string[]): string {
-  const lower = new Set(existing.map((l) => l.toLowerCase()));
-  // Skip "Default" — it's the legacy single-key label and doesn't suggest
-  // a numbered sibling. The next user-named key reads more naturally as
-  // "Key 2", "Key 3", … starting from the count of named keys.
-  for (let n = existing.length + 1; n < 100; n++) {
-    const candidate = `Key ${n}`;
-    if (!lower.has(candidate.toLowerCase())) return candidate;
-  }
-  return `Key ${existing.length + 1}`;
-}
 
 export default ProviderKeyForm;

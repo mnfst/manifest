@@ -4,6 +4,7 @@ import {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
 } from '../src/subscription';
 
@@ -14,10 +15,13 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'anthropic',
         'openai',
         'minimax',
+        'moonshot',
         'copilot',
         'ollama-cloud',
         'zai',
         'opencode-go',
+        'gemini',
+        'xai',
       ]),
     );
   });
@@ -64,6 +68,17 @@ describe('getSubscriptionProviderConfig', () => {
     const config = getSubscriptionProviderConfig('minimax');
     expect(config).toMatchObject({
       subscriptionAuthMode: 'device_code',
+    });
+  });
+
+  it('returns config for moonshot Kimi Coding Plan', () => {
+    const config = getSubscriptionProviderConfig('moonshot');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Kimi Coding Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+      knownModelsMatch: 'exact',
     });
   });
 
@@ -117,6 +132,46 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config?.knownModels).toBeUndefined();
   });
 
+  it('returns config for xai', () => {
+    const config = getSubscriptionProviderConfig('xai');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Grok subscription',
+      subscriptionAuthMode: 'popup_oauth',
+    });
+  });
+
+  it('does not publish a hardcoded known-models list for xai', () => {
+    const config = getSubscriptionProviderConfig('xai');
+    expect(config?.knownModels).toBeUndefined();
+  });
+
+  it('returns config for gemini', () => {
+    const config = getSubscriptionProviderConfig('gemini');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Sign in with Google',
+      subscriptionAuthMode: 'popup_oauth',
+      knownModelsMatch: 'exact',
+    });
+    expect(config?.knownModels).toEqual(
+      expect.arrayContaining([
+        'gemini-3.1-pro-preview',
+        'gemini-3-flash-preview',
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite-preview',
+        'gemini-2.5-pro',
+        'gemini-2.5-flash',
+        'gemini-2.5-flash-lite',
+      ]),
+    );
+    expect(config?.subscriptionCapabilities).toMatchObject({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
   it('is case-insensitive', () => {
     expect(getSubscriptionProviderConfig('ANTHROPIC')).not.toBeNull();
     expect(getSubscriptionProviderConfig('OpenAI')).not.toBeNull();
@@ -136,14 +191,18 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('anthropic')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
+    expect(supportsSubscriptionProvider('moonshot')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
     expect(supportsSubscriptionProvider('zai')).toBe(true);
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
+    expect(supportsSubscriptionProvider('gemini')).toBe(true);
+    expect(supportsSubscriptionProvider('xai')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {
     expect(supportsSubscriptionProvider('deepseek')).toBe(false);
+    expect(supportsSubscriptionProvider('kilo')).toBe(false);
     expect(supportsSubscriptionProvider('mistral')).toBe(false);
   });
 });
@@ -168,6 +227,10 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('MiniMax-M2.5');
   });
 
+  it('returns the fixed model id for moonshot Kimi Coding Plan', () => {
+    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding']);
+  });
+
   it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
     const models = getSubscriptionKnownModels('ollama-cloud');
     expect(models).toBeNull();
@@ -184,8 +247,53 @@ describe('getSubscriptionKnownModels', () => {
     expect(getSubscriptionKnownModels('opencode-go')).toBeNull();
   });
 
+  it('returns known models for gemini', () => {
+    const models = getSubscriptionKnownModels('gemini');
+    expect(models).toContain('gemini-3.1-pro-preview');
+    expect(models).toContain('gemini-3-flash-preview');
+    expect(models).toContain('gemini-3.1-flash-lite');
+    expect(models).toContain('gemini-3.1-flash-lite-preview');
+    expect(models).toContain('gemini-2.5-pro');
+    expect(models).toContain('gemini-2.5-flash');
+    expect(models).toContain('gemini-2.5-flash-lite');
+  });
+
+  it('returns null for xai (dynamic provider discovery, no hardcoded list)', () => {
+    expect(getSubscriptionKnownModels('xai')).toBeNull();
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionKnownModels('unknown')).toBeNull();
+  });
+});
+
+describe('getSubscriptionKnownModelsMatch', () => {
+  it('returns prefix for providers with no knownModelsMatch override (default)', () => {
+    // anthropic has no knownModelsMatch field → defaults to 'prefix'
+    expect(getSubscriptionKnownModelsMatch('anthropic')).toBe('prefix');
+  });
+
+  it('returns prefix for openai (no override)', () => {
+    expect(getSubscriptionKnownModelsMatch('openai')).toBe('prefix');
+  });
+
+  it('returns exact for gemini', () => {
+    // gemini has knownModelsMatch: 'exact' — only explicitly allowed CodeAssist
+    // model IDs are shown.
+    expect(getSubscriptionKnownModelsMatch('gemini')).toBe('exact');
+  });
+
+  it('returns exact for moonshot Kimi Coding Plan', () => {
+    expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
+  });
+
+  it('returns prefix for unsupported providers (graceful fallback)', () => {
+    expect(getSubscriptionKnownModelsMatch('unknown')).toBe('prefix');
+  });
+
+  it('is case-insensitive', () => {
+    expect(getSubscriptionKnownModelsMatch('GEMINI')).toBe('exact');
+    expect(getSubscriptionKnownModelsMatch('Anthropic')).toBe('prefix');
   });
 });
 
@@ -222,6 +330,24 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('zai');
     expect(caps).toMatchObject({
       maxContextWindow: 204800,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for moonshot Kimi Coding Plan', () => {
+    const caps = getSubscriptionCapabilities('moonshot');
+    expect(caps).toMatchObject({
+      maxContextWindow: 262144,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for xai', () => {
+    const caps = getSubscriptionCapabilities('xai');
+    expect(caps).toMatchObject({
+      maxContextWindow: 128000,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

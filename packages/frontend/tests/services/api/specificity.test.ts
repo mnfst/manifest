@@ -56,31 +56,26 @@ describe('specificity API client', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
-  it('setSpecificityParamDefaults PATCHes /params with the payload', async () => {
-    const fetchMock = setupFetch({});
-    await specificity.setSpecificityParamDefaults('demo', 'coding', {
-      thinking: { type: 'disabled' },
-    });
+  it('setSpecificityResponseMode PATCHes the response-mode endpoint', async () => {
+    const fetchMock = setupFetch({ category: 'coding', response_mode: 'stream' });
+    const out = await specificity.setSpecificityResponseMode('demo', 'coding', 'stream');
+    expect(out).toEqual({ category: 'coding', response_mode: 'stream' });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/routing/demo/specificity/coding/params');
+    expect(url).toContain('/specificity/coding/response-mode');
     expect((init as RequestInit).method).toBe('PATCH');
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({
-      paramDefaults: { thinking: { type: 'disabled' } },
+      response_mode: 'stream',
     });
-  });
-
-  it('setSpecificityParamDefaults clears with null', async () => {
-    const fetchMock = setupFetch({});
-    await specificity.setSpecificityParamDefaults('demo', 'coding', null);
-    const [, init] = fetchMock.mock.calls[0];
-    expect(JSON.parse((init as RequestInit).body as string)).toEqual({ paramDefaults: null });
   });
 
   it('setSpecificityFallbacks attaches routes when length matches', async () => {
     const fetchMock = setupFetch([]);
-    await specificity.setSpecificityFallbacks('demo', 'coding', ['m'], [
-      { provider: 'openai', authType: 'api_key', model: 'm' },
-    ]);
+    await specificity.setSpecificityFallbacks(
+      'demo',
+      'coding',
+      ['m'],
+      [{ provider: 'openai', authType: 'api_key', model: 'm' }],
+    );
     const [, init] = fetchMock.mock.calls[0];
     const body = JSON.parse((init as RequestInit).body as string);
     expect(body.models).toEqual(['m']);

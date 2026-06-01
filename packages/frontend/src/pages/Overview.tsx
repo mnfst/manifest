@@ -5,6 +5,7 @@ import {
   createMemo,
   createResource,
   createSignal,
+  on,
   onMount,
   Show,
   type Component,
@@ -212,19 +213,28 @@ const Overview: Component = () => {
 
   const SMART_RANGES: string[] = ['30d', '7d', '24h'];
 
-  createEffect(() => {
-    if (userSelectedRange()) return;
-    const d = data();
-    if (!d || (d.has_data === false && !d.has_providers)) return;
-    const hasData =
-      (d.token_usage?.length ?? 0) > 0 ||
-      (d.cost_usage?.length ?? 0) > 0 ||
-      (d.message_usage?.length ?? 0) > 0;
-    if (hasData) return;
-    const currentIdx = SMART_RANGES.indexOf(range());
-    if (currentIdx < 0 || currentIdx >= SMART_RANGES.length - 1) return;
-    setRange(SMART_RANGES[currentIdx + 1]!);
-  });
+  // Step the chart range down to the next bucket while it has no data, but only
+  // after a fetch resolves — `defer: true` skips the no-op run at mount where
+  // `data()` is still undefined. Both `data` and `range` are tracked so the
+  // cascade keeps re-firing as it steps 30d → 7d → 24h.
+  createEffect(
+    on(
+      [data, range],
+      ([d, currentRange]) => {
+        if (userSelectedRange()) return;
+        if (!d || (d.has_data === false && !d.has_providers)) return;
+        const hasData =
+          (d.token_usage?.length ?? 0) > 0 ||
+          (d.cost_usage?.length ?? 0) > 0 ||
+          (d.message_usage?.length ?? 0) > 0;
+        if (hasData) return;
+        const currentIdx = SMART_RANGES.indexOf(currentRange);
+        if (currentIdx < 0 || currentIdx >= SMART_RANGES.length - 1) return;
+        setRange(SMART_RANGES[currentIdx + 1]!);
+      },
+      { defer: true },
+    ),
+  );
 
   const messageChartData = createMemo(() => {
     const src = data()?.message_usage;
@@ -232,7 +242,7 @@ const Overview: Component = () => {
   });
 
   return (
-    <div class="container--md">
+    <div class="container--lg">
       <Show when={explainerOpen()}>
         <SavingsExplainer baselineModelName={null} onClose={() => setExplainerOpen(false)} />
       </Show>

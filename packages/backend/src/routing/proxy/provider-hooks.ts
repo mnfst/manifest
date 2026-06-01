@@ -15,7 +15,12 @@
 const SUBSCRIPTION_ENDPOINT_OVERRIDES: Record<string, string> = {
   openai: 'openai-subscription',
   minimax: 'minimax-subscription',
+  moonshot: 'moonshot-subscription',
   zai: 'zai-subscription',
+  // Gemini's per-API-key endpoint is registered under the legacy key
+  // `'google'`, so the override is keyed there too. The OAuth flow shifts
+  // to CodeAssist (gemini-subscription).
+  google: 'gemini-subscription',
 };
 
 export function resolveSubscriptionEndpointKey(endpointKey: string): string | undefined {

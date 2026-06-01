@@ -1,62 +1,88 @@
 import { For, Show, createMemo, type Component } from 'solid-js';
-import { STAGES, PROVIDERS } from '../services/providers.js';
+import { PROVIDERS } from '../services/providers.js';
 import { providerIcon, customProviderLogo } from '../components/ProviderIcon.js';
 import { customProviderColor } from '../services/formatters.js';
 import { authBadgeFor, authLabel } from '../components/AuthBadge.js';
 import type { RoutingProvider, CustomProviderData } from '../services/api.js';
 
-/** Skeleton placeholder rendered while providers are loading with cached data visible. */
+/** Skeleton placeholder rendered while routing data is loading. */
 export const RoutingLoadingSkeleton: Component = () => (
   <>
-    <div class="routing-providers-info">
-      <span class="routing-providers-info__icons">
-        <span class="routing-providers-info__icon">
-          <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
-        </span>
-        <span class="routing-providers-info__icon">
-          <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
-        </span>
-      </span>
-      <span class="routing-providers-info__label">
-        <div class="skeleton skeleton--text" style="width: 80px;" />
-      </span>
+    {/* Connections row */}
+    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 20px;">
+      <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+      <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+      <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
+      <div class="skeleton skeleton--text" style="width: 90px; margin-left: 4px;" />
     </div>
+
+    {/* Tabs */}
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+      <div class="skeleton" style="width: 76px; height: 30px; border-radius: var(--radius);" />
+      <div class="skeleton" style="width: 96px; height: 30px; border-radius: var(--radius);" />
+      <div class="skeleton" style="width: 68px; height: 30px; border-radius: var(--radius);" />
+    </div>
+
+    {/* Description + toggle */}
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+      <div class="skeleton skeleton--text" style="width: 260px;" />
+      <div class="skeleton" style="width: 44px; height: 22px; border-radius: 11px;" />
+    </div>
+
+    {/* 4-column card grid */}
     <div class="routing-cards">
-      <For each={STAGES}>
-        {(stage) => (
+      <For each={[0, 1, 2, 3]}>
+        {() => (
           <div class="routing-card">
-            <div class="routing-card__header">
-              <span class="routing-card__tier">{stage.label}</span>
-              <span class="routing-card__desc">{stage.desc}</span>
+            {/* Tier name */}
+            <div style="padding: 12px 16px 10px;">
+              <div class="skeleton skeleton--text" style="width: 65px; height: 15px;" />
             </div>
-            <div class="routing-card__body">
-              <div class="routing-card__override">
-                <span class="routing-card__override-icon">
-                  <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
-                </span>
-                <div class="skeleton skeleton--text" style="width: 140px; height: 14px;" />
+
+            {/* Primary model chip — full-width skeleton block */}
+            <div style="margin: 0 12px 8px; padding: 10px 12px; border-radius: var(--radius); background: hsl(var(--muted-foreground) / 0.08);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <div
+                  class="skeleton"
+                  style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                />
+                <div class="skeleton skeleton--text" style="width: 120px;" />
               </div>
+              <div class="skeleton skeleton--text" style="width: 160px; height: 12px;" />
+            </div>
+
+            {/* Fallback rows — each is a skeleton row block */}
+            <div style="padding: 0 12px; display: flex; flex-direction: column; gap: 6px;">
+              <For each={[0, 1, 2, 3]}>
+                {() => (
+                  <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius); background: hsl(var(--muted-foreground) / 0.08);">
+                    <div
+                      class="skeleton"
+                      style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
+                    />
+                    <div class="skeleton skeleton--text" style="width: 90px;" />
+                  </div>
+                )}
+              </For>
+            </div>
+
+            {/* Add fallback button */}
+            <div style="padding: 10px 12px 14px;">
               <div
-                class="skeleton skeleton--text"
-                style="width: 200px; height: 12px; margin-top: 6px;"
+                class="skeleton"
+                style="width: 110px; height: 28px; border-radius: var(--radius);"
               />
-            </div>
-            <div class="routing-card__right">
-              <div class="routing-card__actions">
-                <div class="skeleton skeleton--text" style="width: 50px; height: 14px;" />
-              </div>
             </div>
           </div>
         )}
       </For>
     </div>
+
+    {/* Footer */}
     <div class="routing-footer">
-      <div
-        class="skeleton skeleton--text"
-        style="width: 120px; height: 32px; border-radius: var(--radius);"
-      />
+      <div class="skeleton" style="width: 105px; height: 32px; border-radius: var(--radius);" />
       <div style="flex: 1;" />
-      <div class="skeleton skeleton--text" style="width: 130px; height: 14px;" />
+      <div class="skeleton skeleton--text" style="width: 115px;" />
     </div>
   </>
 );
@@ -165,6 +191,7 @@ export interface RoutingFooterProps {
   resettingTier: () => string | null;
   onResetAll: () => void;
   onShowInstructions: () => void;
+  onShowHowRoutingWorks?: () => void;
 }
 
 /** Footer bar with reset-all and setup instructions buttons. */
@@ -180,6 +207,12 @@ export const RoutingFooter: Component<RoutingFooterProps> = (props) => (
       </button>
     </Show>
     <div style="flex: 1;" />
+    <Show when={props.onShowHowRoutingWorks}>
+      <button class="routing-footer__instructions" onClick={() => props.onShowHowRoutingWorks?.()}>
+        How routing works
+      </button>
+      <span class="routing-footer__sep">|</span>
+    </Show>
     <button class="routing-footer__instructions" onClick={() => props.onShowInstructions()}>
       Setup instructions
     </button>

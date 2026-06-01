@@ -21,11 +21,26 @@ interface UseChartLifecycleOptions<T> {
   el: () => HTMLDivElement;
   data: Accessor<T[] | undefined>;
   buildChart: () => uPlot | null;
+  /**
+   * Optional builder for the chart's aligned data. When provided, a data change
+   * that does not alter the chart structure (see `structureKey`) updates the
+   * existing uPlot instance in place via `setData` instead of destroying and
+   * recreating it — far cheaper on every refetch/range-unchanged update.
+   */
+  buildData?: () => uPlot.AlignedData;
+  /**
+   * Identifies the chart's structural configuration (e.g. the selected range,
+   * which drives axes/scales). When it changes between data updates the chart
+   * is rebuilt; when it stays the same `setData` is used. Defaults to a constant
+   * so charts without structural variation always reuse the instance.
+   */
+  structureKey?: () => unknown;
 }
 
 export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
   let chart: uPlot | null = null;
   let ro: ResizeObserver | null = null;
+  let lastStructureKey: unknown = opts.structureKey?.();
 
   const CHART_HEIGHT = 260;
 
@@ -57,6 +72,14 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
     on(
       opts.data,
       () => {
+        const key = opts.structureKey?.();
+        const sameStructure = key === lastStructureKey;
+        lastStructureKey = key;
+
+        if (chart && opts.buildData && sameStructure) {
+          chart.setData(opts.buildData());
+          return;
+        }
         if (chart) {
           chart.destroy();
           chart = null;
@@ -155,6 +178,11 @@ const RANGE_HOURS: Record<string, number> = { '24h': 24 };
 
 export function rangeToSeconds(range: string): number {
   return RANGE_MAP[range] ?? 86400;
+}
+
+/** Slot width in seconds. Daily for 7d/30d, hourly otherwise. */
+export function binWidthSeconds(range: string | undefined): number {
+  return MULTI_DAY_RANGES.has(range ?? '') ? 86400 : 3600;
 }
 
 /**
@@ -326,26 +354,27 @@ export function timeScaleRange(_u: uPlot, min: number, max: number): [number, nu
 
 export function createTimeScaleRange(
   range?: string,
+  bars: boolean = false,
 ): (_u: uPlot, min: number, max: number) => [number, number] {
   const multiDay = MULTI_DAY_RANGES.has(range ?? '');
   const intraday = INTRADAY_RANGES.has(range ?? '');
   const rangeSec = range ? rangeToSeconds(range) : 0;
+  // Bars are slot-centered; pad half a slot so the last bar fits.
+  const halfBin = bars ? binWidthSeconds(range) / 2 : 0;
   return (_u: uPlot, min: number, max: number): [number, number] => {
     const now = Date.now() / 1000;
     if (multiDay) {
-      // Use exact data extent — no padding — so first/last points
-      // sit at chart edges and every day is equally spaced.
-      return [min, max];
+      return [min - halfBin, max + halfBin];
     }
     if (intraday) {
-      return [now - rangeSec, now];
+      return [now - rangeSec - halfBin, now + halfBin];
     }
     const clampedMax = Math.min(max, now);
     const span = clampedMax - min;
     if (span < MIN_SPAN) {
-      return [clampedMax - MIN_SPAN, clampedMax];
+      return [clampedMax - MIN_SPAN - halfBin, clampedMax + halfBin];
     }
-    return [min, clampedMax];
+    return [min - halfBin, clampedMax + halfBin];
   };
 }
 

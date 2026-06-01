@@ -4,6 +4,8 @@ import type {
   AvailableModel,
   CustomProviderData,
   ModelRoute,
+  RequestParamDefaults,
+  ResponseMode,
   RoutingProvider,
 } from '../services/api.js';
 import {
@@ -14,13 +16,24 @@ import {
 } from '../services/api/header-tiers.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import { authBadgeFor } from './AuthBadge.js';
-import { resolveProviderId, inferProviderFromModel, pricePerM } from '../services/routing-utils.js';
-import { customProviderColor } from '../services/formatters.js';
+import {
+  resolveProviderId,
+  inferProviderFromModel,
+  pricePerM,
+  usedKeyLabelsForModelInTier,
+  activeRouteKeys,
+  routeKeySelectionForModel,
+} from '../services/routing-utils.js';
+import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
+import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
+import RouteKeyChip from './RouteKeyChip.js';
+import KeyPickerModal from './KeyPickerModal.js';
 import { toast } from '../services/toast-store.js';
+import { modelParamsScopeForHeaderTier } from 'manifest-shared';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -28,7 +41,7 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
     apiModels.find((x) => x.model_name.startsWith(model + '-'));
   if (m) {
     const dbId = resolveProviderId(m.provider);
-    if (dbId === 'ollama' || dbId === 'ollama-cloud') return dbId;
+    if (dbId && dbId !== 'openrouter' && PROVIDERS.find((p) => p.id === dbId)) return dbId;
     const prefixId = inferProviderFromModel(m.model_name);
     if (prefixId && PROVIDERS.find((p) => p.id === prefixId)) return prefixId;
     return dbId ?? prefixId;
@@ -38,21 +51,65 @@ function providerIdForModel(model: string, apiModels: AvailableModel[]): string 
   return undefined;
 }
 
+function providerDisplayName(providerId: string, customProviders: CustomProviderData[]): string {
+  if (providerId.startsWith('custom:')) {
+    const id = providerId.slice('custom:'.length);
+    const cp = customProviders.find((p) => p.id === id);
+    if (cp) return cp.name;
+  }
+  return PROVIDERS.find((p) => p.id === providerId)?.name ?? providerId;
+}
+
 interface Props {
   agentName: string;
   tier: HeaderTier;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
-  onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
+  onOverride: (
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+  ) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
+  changingResponseMode?: boolean;
+  onResponseModeChange?: (mode: ResponseMode) => void | Promise<void>;
+  /**
+   * Per-route params getter, threaded from the routing page boundary. When
+   * present, the primary chip and every fallback row render a
+   * `<ModelParamsAffordance>` for their own `(provider, authType, model)`
+   * tuple. Closes the gap where the custom (header-tier) routing surface
+   * had no params support at all.
+   */
+  getModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+  ) => RequestParamDefaults | null;
+  setModelParams?: (
+    scope: string,
+    provider: string,
+    authType: AuthType,
+    model: string,
+    params: RequestParamDefaults | null,
+  ) => Promise<unknown>;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
   type PickerMode = 'primary' | 'fallback' | null;
+  interface PendingKeyPick {
+    mode: Exclude<PickerMode, null>;
+    model: string;
+    provider: string;
+    authType?: AuthType;
+    keys: RoutingProvider[];
+  }
   const [pickerMode, setPickerMode] = createSignal<PickerMode>(null);
+  const [pendingKeyPick, setPendingKeyPick] = createSignal<PendingKeyPick | null>(null);
   const [snippetOpen, setSnippetOpen] = createSignal(false);
   const [menuOpen, setMenuOpen] = createSignal(false);
   const [resetting, setResetting] = createSignal(false);
@@ -79,6 +136,9 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const modelLabel = (): string => modelInfo()?.display_name ?? currentModel() ?? '';
+  const isStreamMode = (): boolean => props.tier.response_mode === 'stream';
+  const primarySkipped = (): boolean =>
+    isStreamMode() && !(modelInfo()?.capabilities?.includes('stream') ?? false);
 
   const priceLabel = (): string => {
     const info = modelInfo();
@@ -108,6 +168,58 @@ const HeaderTierCard: Component<Props> = (props) => {
     return props.customProviders.find((p) => `custom:${p.id}` === id);
   };
 
+  const primaryKeys = (): RoutingProvider[] => {
+    const id = providerId();
+    const auth = effectiveAuth();
+    if (!id || !auth || auth === 'local') return [];
+    return activeRouteKeys(props.connectedProviders, id, auth);
+  };
+
+  const handlePrimaryKeyPick = async (label: string | null): Promise<void> => {
+    const route = props.tier.override_route;
+    const provider = providerId() ?? route?.provider;
+    const auth = effectiveAuth() ?? route?.authType;
+    if (!route || !provider || !auth) return;
+    await props.onOverride(route.model, provider, auth, label ?? undefined);
+  };
+
+  const addFallbackRoute = async (
+    model: string,
+    provider: string,
+    authType: AuthType | undefined,
+    keyLabel?: string,
+  ): Promise<void> => {
+    const next = [...fallbacks(), model];
+    const currentRoutes = props.tier.fallback_routes ?? [];
+    const effectiveAuth = authType ?? 'api_key';
+    const nextRoute: ModelRoute = keyLabel
+      ? { provider, authType: effectiveAuth, model, keyLabel }
+      : { provider, authType: effectiveAuth, model };
+    const nextRoutes = [...currentRoutes, nextRoute];
+    try {
+      await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
+      props.onFallbacksUpdate(next, nextRoutes);
+      toast.success('Fallback added');
+    } catch {
+      toast.error('Failed to add fallback');
+    }
+  };
+
+  const completePickerSelection = async (
+    mode: Exclude<PickerMode, null>,
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    keyLabel?: string,
+  ): Promise<void> => {
+    if (mode === 'primary') {
+      if (keyLabel === undefined) await props.onOverride(model, provider, authType);
+      else await props.onOverride(model, provider, authType, keyLabel);
+      return;
+    }
+    await addFallbackRoute(model, provider, authType, keyLabel);
+  };
+
   const handlePickerSelect = async (
     _tierId: string,
     model: string,
@@ -116,21 +228,39 @@ const HeaderTierCard: Component<Props> = (props) => {
   ): Promise<void> => {
     const mode = pickerMode();
     setPickerMode(null);
-    if (mode === 'primary') {
-      await props.onOverride(model, provider, authType);
-    } else if (mode === 'fallback') {
-      const next = [...fallbacks(), model];
-      const currentRoutes = props.tier.fallback_routes ?? [];
-      const nextRoutes =
-        authType !== undefined ? [...currentRoutes, { provider, authType, model }] : undefined;
-      try {
-        await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
-        props.onFallbacksUpdate(next, nextRoutes ?? null);
-        toast.success('Fallback added');
-      } catch {
-        toast.error('Failed to add fallback');
-      }
+    if (!mode) return;
+    const effectiveAuth = authType ?? 'api_key';
+    const selection = routeKeySelectionForModel({
+      providers: props.connectedProviders,
+      tier: props.tier,
+      modelName: model,
+      providerId: provider,
+      authType: effectiveAuth,
+      slot: mode,
+    });
+    if (selection.exhausted) return;
+    if (selection.autoLabel) {
+      await completePickerSelection(mode, model, provider, authType, selection.autoLabel);
+      return;
     }
+    if (!selection.needsChoice) {
+      await completePickerSelection(mode, model, provider, authType);
+      return;
+    }
+    setPendingKeyPick({ mode, model, provider, authType, keys: selection.keys });
+  };
+
+  const handlePendingKeyPick = (label: string | null): void => {
+    const pending = pendingKeyPick();
+    if (!pending) return;
+    setPendingKeyPick(null);
+    void completePickerSelection(
+      pending.mode,
+      pending.model,
+      pending.provider,
+      pending.authType,
+      label ?? undefined,
+    );
   };
 
   const handleReset = async () => {
@@ -252,7 +382,12 @@ const HeaderTierCard: Component<Props> = (props) => {
       <div class="routing-card__body">
         <Show when={currentModel()}>
           {(modelName) => (
-            <div class="routing-card__model-chip" onClick={() => setPickerMode('primary')}>
+            <div
+              class="routing-card__model-chip"
+              classList={{ 'routing-card__model-chip--skipped': primarySkipped() }}
+              title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
+              onClick={() => setPickerMode('primary')}
+            >
               <div class="routing-card__chip-main">
                 <div class="routing-card__override">
                   <Show
@@ -297,33 +432,89 @@ const HeaderTierCard: Component<Props> = (props) => {
                   </Show>
                   <span class="routing-card__main">{modelLabel() || modelName()}</span>
                 </div>
-                <button
-                  class="routing-card__chip-action"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPickerMode('primary');
-                  }}
-                  aria-label={`Change model for ${props.tier.name}`}
-                >
-                  <span class="routing-tooltip">Change</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
+                <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                  <Show when={primaryKeys().length > 1}>
+                    <RouteKeyChip
+                      keys={primaryKeys()}
+                      currentLabel={props.tier.override_route?.keyLabel ?? undefined}
+                      modelLabel={modelLabel() || modelName()}
+                      usedLabels={() =>
+                        usedKeyLabelsForModelInTier(
+                          props.tier,
+                          modelName(),
+                          'primary',
+                          primaryKeys()[0]?.label,
+                        )
+                      }
+                      buttonClass="routing-card__key-chip"
+                      leadingMargin
+                      stopPropagation
+                      onPick={handlePrimaryKeyPick}
+                    />
+                  </Show>
+                  <Show
+                    when={
+                      props.getModelParams &&
+                      props.setModelParams &&
+                      providerId() &&
+                      effectiveAuth() &&
+                      effectiveAuth() !== 'local'
+                    }
                   >
-                    <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
-                  </svg>
-                </button>
+                    <ModelParamsAffordance
+                      provider={providerId()}
+                      authType={(effectiveAuth() as AuthType) ?? undefined}
+                      model={modelName()}
+                      slotLabel={modelLabel() || modelName()}
+                      scope={modelParamsScopeForHeaderTier(props.tier.id)}
+                      agentName={props.agentName}
+                      getParams={props.getModelParams!}
+                      setParams={props.setModelParams!}
+                    />
+                  </Show>
+                  <button
+                    class="routing-card__chip-action"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPickerMode('primary');
+                    }}
+                    aria-label={`Change model for ${props.tier.name}`}
+                  >
+                    <span class="routing-tooltip">Change</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div class="routing-card__chip-footer">
                 <Show
                   when={effectiveAuth() !== 'subscription'}
-                  fallback={<span class="routing-card__chip-price">Included in subscription</span>}
+                  fallback={
+                    <span class="routing-card__chip-meta">
+                      <span class="routing-card__chip-price">
+                        {formatPerRequestCost(modelInfo()?.cost_per_request) ??
+                          'Included in subscription'}
+                      </span>
+                      <Show when={primarySkipped()}>
+                        <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                      </Show>
+                    </span>
+                  }
                 >
-                  <span class="routing-card__chip-price">{priceLabel()}</span>
+                  <span class="routing-card__chip-meta">
+                    <span class="routing-card__chip-price">{priceLabel()}</span>
+                    <Show when={primarySkipped()}>
+                      <span class="routing-card__skipped-badge">Skipped in Stream</span>
+                    </Show>
+                  </span>
                 </Show>
               </div>
             </div>
@@ -338,6 +529,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             tier={props.tier.id}
             fallbacks={fallbacks()}
             fallbackRoutes={props.tier.fallback_routes ?? null}
+            tierData={() => props.tier}
             models={props.models}
             customProviders={props.customProviders}
             connectedProviders={props.connectedProviders}
@@ -346,6 +538,10 @@ const HeaderTierCard: Component<Props> = (props) => {
             persistFallbacks={(_agent, tierId, models, routes) =>
               setHeaderTierFallbacks(props.agentName, tierId, models, routes)
             }
+            getModelParams={props.getModelParams}
+            setModelParams={props.setModelParams}
+            modelParamsScope={modelParamsScopeForHeaderTier(props.tier.id)}
+            responseMode={props.tier.response_mode ?? 'buffered'}
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }
@@ -360,9 +556,22 @@ const HeaderTierCard: Component<Props> = (props) => {
           tiers={[]}
           customProviders={props.customProviders}
           connectedProviders={props.connectedProviders}
+          requiredCapability={props.tier.response_mode === 'stream' ? 'stream' : undefined}
           onClose={() => setPickerMode(null)}
           onSelect={handlePickerSelect}
         />
+      </Show>
+
+      <Show when={pendingKeyPick()}>
+        {(pending) => (
+          <KeyPickerModal
+            providerName={providerDisplayName(pending().provider, props.customProviders)}
+            modelName={pending().model}
+            keys={pending().keys}
+            onPick={handlePendingKeyPick}
+            onClose={() => setPendingKeyPick(null)}
+          />
+        )}
       </Show>
 
       <Show when={snippetOpen()}>

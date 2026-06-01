@@ -28,8 +28,3 @@ packages/backend/test/
 packages/frontend/tests/
 packages/shared/src/**/*.spec.ts
 packages/backend/src/**/*.spec.ts
-
-# Wingman is a dev-only gateway tester; never ship it in the Docker image.
-# (The Dockerfile already excludes it via explicit COPY paths and the turbo
-# --filter list, but ignoring it here keeps the build context smaller too.)
-packages/wingman/

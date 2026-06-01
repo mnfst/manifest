@@ -28,6 +28,8 @@ describe('Agent Duplication (e2e)', () => {
       api_key_encrypted: 'enc-value',
       key_prefix: 'sk-ant',
       auth_type: 'api_key',
+      label: 'Research key',
+      priority: 2,
       region: null,
       is_active: true,
       connected_at: now,
@@ -92,6 +94,7 @@ describe('Agent Duplication (e2e)', () => {
       customProviders: 1,
       tierAssignments: 1,
       specificityAssignments: 1,
+      modelParams: 0,
     });
     expect(res.body.suggested_name).toBe('test-agent-copy');
   });
@@ -117,6 +120,7 @@ describe('Agent Duplication (e2e)', () => {
       customProviders: 1,
       tierAssignments: 1,
       specificityAssignments: 1,
+      modelParams: 0,
     });
 
     const newAgent = await ds.getRepository(Agent).findOne({
@@ -137,6 +141,8 @@ describe('Agent Duplication (e2e)', () => {
       .find({ where: { agent_id: res.body.agent.id } });
     expect(newProviders).toHaveLength(1);
     expect(newProviders[0].api_key_encrypted).toBe('enc-value');
+    expect(newProviders[0].label).toBe('Research key');
+    expect(newProviders[0].priority).toBe(2);
     expect(newProviders[0].id).not.toBe('up-e2e-1');
 
     const newCustom = await ds

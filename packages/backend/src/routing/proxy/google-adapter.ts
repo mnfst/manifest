@@ -50,6 +50,10 @@ const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   '$schema',
   '$id',
   '$ref',
+  // Some tool emitters strip the `$` prefix to satisfy parsers that reject
+  // dollar-prefixed field names (Protobuf is one of them). Treat the
+  // dollar-less variant as equivalent so it doesn't leak through to Google.
+  'ref',
   '$defs',
   'definitions',
   'allOf',
@@ -97,6 +101,14 @@ function safeParseArgs(args: string | undefined): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function cloneRecord(value: Record<string, unknown>): Record<string, unknown> {
+  return JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
 }
 
 /* ── Request conversion ── */
@@ -245,8 +257,9 @@ export function toGoogleRequest(
   const tools = convertTools(body.tools as Record<string, unknown>[] | undefined);
   if (tools) result.tools = tools;
 
-  // Map generation config
-  const genConfig: Record<string, unknown> = {};
+  const genConfig: Record<string, unknown> = isRecord(body.generationConfig)
+    ? cloneRecord(body.generationConfig)
+    : {};
   if (body.max_tokens !== undefined) genConfig.maxOutputTokens = body.max_tokens;
   if (body.temperature !== undefined) genConfig.temperature = body.temperature;
   if (body.top_p !== undefined) genConfig.topP = body.top_p;

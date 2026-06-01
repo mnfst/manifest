@@ -1,5 +1,5 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
-import type { AuthType, ModelRoute, RequestParamDefaults } from './routing.js';
+import type { AuthType, ModelRoute, ResponseMode, OutputModality } from './routing.js';
 
 export interface SpecificityAssignment {
   id: string;
@@ -9,7 +9,8 @@ export interface SpecificityAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
-  param_defaults: RequestParamDefaults | null;
+  output_modality?: OutputModality;
+  response_mode?: ResponseMode;
   updated_at: string;
 }
 
@@ -61,6 +62,21 @@ export function resetSpecificity(agentName: string, category: string) {
   });
 }
 
+export function setSpecificityResponseMode(
+  agentName: string,
+  category: string,
+  responseMode: ResponseMode,
+) {
+  return fetchMutate<SpecificityAssignment>(
+    routingPath(agentName, `specificity/${encodeURIComponent(category)}/response-mode`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ response_mode: responseMode }),
+    },
+  );
+}
+
 export function setSpecificityFallbacks(
   agentName: string,
   category: string,
@@ -83,21 +99,6 @@ export function clearSpecificityFallbacks(agentName: string, category: string) {
   return fetchMutate(
     routingPath(agentName, `specificity/${encodeURIComponent(category)}/fallbacks`),
     { method: 'DELETE' },
-  );
-}
-
-export function setSpecificityParamDefaults(
-  agentName: string,
-  category: string,
-  paramDefaults: RequestParamDefaults | null,
-) {
-  return fetchMutate<SpecificityAssignment>(
-    routingPath(agentName, `specificity/${encodeURIComponent(category)}/params`),
-    {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paramDefaults }),
-    },
   );
 }
 

@@ -114,6 +114,30 @@ describe('HeaderTierController', () => {
       'gpt-4o',
       'OpenAI',
       'api_key',
+      undefined,
+    );
+  });
+
+  it('setOverride forwards route keyLabel when present', async () => {
+    const { controller, service } = makeController();
+    await controller.setOverride(user, 'my-agent', 'ht-1', {
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      authType: 'api_key',
+      route: {
+        model: 'gpt-4o',
+        provider: 'openai',
+        authType: 'api_key',
+        keyLabel: 'Personal',
+      },
+    });
+    expect(service.setOverride).toHaveBeenCalledWith(
+      'agent-1',
+      'ht-1',
+      'gpt-4o',
+      'openai',
+      'api_key',
+      'Personal',
     );
   });
 

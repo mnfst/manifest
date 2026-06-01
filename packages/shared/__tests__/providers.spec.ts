@@ -60,6 +60,18 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     );
   });
 
+  it('resolves NVIDIA NIM aliases to the canonical provider entry', () => {
+    for (const name of ['nvidia', 'nvidia-nim', 'nvidia nim', 'nim']) {
+      expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name))?.id).toBe('nvidia');
+    }
+  });
+
+  it('resolves Fireworks AI aliases to the canonical provider entry', () => {
+    for (const name of ['fireworks', 'fireworks-ai', 'fireworks ai']) {
+      expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name))?.id).toBe('fireworks');
+    }
+  });
+
   it('returns undefined for unknown names', () => {
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('unknownprovider')).toBeUndefined();
   });
@@ -72,6 +84,27 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(SHARED_PROVIDER_BY_ID.get('qwen')?.id).toBe('qwen');
     expect(SHARED_PROVIDER_BY_ID.get('alibaba')).toBeUndefined();
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('alibaba')?.id).toBe('qwen');
+  });
+
+  it('groq has no openRouter prefixes (native /models is authoritative)', () => {
+    // Mapping OpenRouter's `groq/*` prefix here would surface OR-cached
+    // models that the user can't actually call (e.g. compound-*) and would
+    // render them with the OpenRouter logo instead of the Groq one.
+    const groq = SHARED_PROVIDER_BY_ID.get('groq');
+    expect(groq).toBeDefined();
+    expect(groq!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('nvidia has no openRouter prefixes (native NIM /models is authoritative)', () => {
+    const nvidia = SHARED_PROVIDER_BY_ID.get('nvidia');
+    expect(nvidia).toBeDefined();
+    expect(nvidia!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('fireworks has no openRouter prefixes (native serverless /models is authoritative)', () => {
+    const fireworks = SHARED_PROVIDER_BY_ID.get('fireworks');
+    expect(fireworks).toBeDefined();
+    expect(fireworks!.openRouterPrefixes).toEqual([]);
   });
 });
 

@@ -182,6 +182,20 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
+    it('keeps canonical flash-lite-preview aliases without a date suffix', () => {
+      // Issue #1814: gemini-3.1-flash-lite-preview is the live, non-deprecated
+      // preview alias. Only the dated snapshot variants are deprecated.
+      const models = [
+        makeModel('gemini-3.1-flash-lite-preview'),
+        makeModel('gemini-3-flash-lite-preview'),
+      ];
+      const result = filterNonChatModels(models, 'gemini');
+      expect(result.map((m) => m.id)).toEqual([
+        'gemini-3.1-flash-lite-preview',
+        'gemini-3-flash-lite-preview',
+      ]);
+    });
+
     it('keeps gemini-image models but filters robotics models', () => {
       const models = [
         makeModel('gemini-2.5-flash-image'),
@@ -291,16 +305,29 @@ describe('filterNonChatModels', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('filters multi-agent models', () => {
+    it('keeps xAI multi-agent models because the proxy routes them to Responses API', () => {
       const models = [makeModel('grok-4.20-multi-agent-0309'), makeModel('grok-3')];
       const result = filterNonChatModels(models, 'xai');
-      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+      expect(result.map((m) => m.id)).toEqual(['grok-4.20-multi-agent-0309', 'grok-3']);
     });
 
-    it('filters any future multi-agent model', () => {
+    it('keeps future xAI multi-agent models for Responses API routing', () => {
       const models = [makeModel('grok-5-multi-agent-0612'), makeModel('grok-3')];
       const result = filterNonChatModels(models, 'xai');
-      expect(result.map((m) => m.id)).toEqual(['grok-3']);
+      expect(result.map((m) => m.id)).toEqual(['grok-5-multi-agent-0612', 'grok-3']);
+    });
+  });
+
+  describe('Fireworks-specific patterns', () => {
+    it('filters non-chat serverless models while preserving chat account IDs', () => {
+      const models = [
+        makeModel('accounts/fireworks/models/deepseek-v3p1'),
+        makeModel('accounts/fireworks/models/flux-1-schnell'),
+        makeModel('accounts/fireworks/models/nomic-embed-text-v1'),
+        makeModel('accounts/fireworks/models/fireworks-rerank-v1'),
+      ];
+      const result = filterNonChatModels(models, 'fireworks');
+      expect(result.map((m) => m.id)).toEqual(['accounts/fireworks/models/deepseek-v3p1']);
     });
   });
 
@@ -319,9 +346,10 @@ describe('filterNonChatModels', () => {
   });
 
   describe('PROVIDER_NON_CHAT registry', () => {
-    it('has entries for openai, openai-subscription, gemini, mistral, and xai', () => {
+    it('has entries for openai, openai-subscription, fireworks, gemini, mistral, and xai', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai');
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai-subscription');
+      expect(PROVIDER_NON_CHAT).toHaveProperty('fireworks');
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
       expect(PROVIDER_NON_CHAT).toHaveProperty('xai');

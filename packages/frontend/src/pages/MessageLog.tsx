@@ -16,6 +16,7 @@ import ErrorState from '../components/ErrorState.jsx';
 import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
+import RecordedMessageModal from '../components/RecordedMessageModal.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -23,18 +24,24 @@ import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
   getCustomProviders,
+  getSpecificityAssignments,
   getMessages,
   getRoutingStatus,
+  listHeaderTiers,
   setMessageFeedback,
   clearMessageFeedback,
   type CustomProviderData,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
-import { PROVIDERS } from '../services/providers.js';
+import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
+import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+// The recorded-message drawer/modal styles. Only the Messages log mounts
+// RecordedMessageModal, so this CSS stays out of the global theme bundle.
+import '../styles/recording.css';
 
 interface MessagesData {
   items: MessageRow[];
@@ -43,9 +50,13 @@ interface MessagesData {
   providers: string[];
 }
 
+const SPECIFICITY_FILTER_PREFIX = 'specificity:';
+const HEADER_TIER_FILTER_PREFIX = 'header:';
+
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
   const navigate = useNavigate();
+
   preloadModelDisplayNames();
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(() => {
@@ -54,8 +65,13 @@ const MessageLog: Component = () => {
   const columns = () =>
     isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
   const [providerFilter, setProviderFilter] = createSignal('');
+  const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
+  const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
+  const closeDr = () => setRecordingModalId(null);
+  onMount(() => window.addEventListener('sidebar-navigate', closeDr));
+  onCleanup(() => window.removeEventListener('sidebar-navigate', closeDr));
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -64,13 +80,6 @@ const MessageLog: Component = () => {
   const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
   const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
   const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
-
-  const applyFeedbackOverrides = (items: MessageRow[]): MessageRow[] => {
-    const overrides = feedbackOverrides();
-    return items.map((item) =>
-      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
-    );
-  };
 
   const handleFeedbackLike = (id: string) => {
     setFeedbackOverrides((prev) => ({ ...prev, [id]: 'like' }));
@@ -125,6 +134,16 @@ const MessageLog: Component = () => {
     (name) => getRoutingStatus(decodeURIComponent(name)),
   );
 
+  const [specificityAssignments] = createResource(
+    () => params.agentName,
+    (name) => getSpecificityAssignments(decodeURIComponent(name)),
+  );
+
+  const [headerTiers] = createResource(
+    () => params.agentName,
+    (name) => listHeaderTiers(decodeURIComponent(name)),
+  );
+
   const hasProviders = () => routingStatus()?.enabled === true;
 
   /** Map custom:<uuid> → provider display name */
@@ -152,11 +171,16 @@ const MessageLog: Component = () => {
     costMaxTimer = setTimeout(() => setCostMax(val), 400);
   };
 
-  createEffect(on([providerFilter, costMin, costMax], () => pager.resetPage(), { defer: true }));
+  createEffect(
+    on([providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
+      defer: true,
+    }),
+  );
 
   const [data, { refetch }] = createResource(
     () => ({
       provider: providerFilter(),
+      tier: tierFilter(),
       costMin: costMin(),
       costMax: costMax(),
       agentName: params.agentName,
@@ -167,6 +191,15 @@ const MessageLog: Component = () => {
     (p) => {
       const q: Record<string, string> = {};
       if (p.provider) q.provider = p.provider;
+      if (p.tier) {
+        if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
+          q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
+        } else if (p.tier.startsWith(HEADER_TIER_FILTER_PREFIX)) {
+          q.header_tier_id = p.tier.slice(HEADER_TIER_FILTER_PREFIX.length);
+        } else {
+          q.routing_tier = p.tier;
+        }
+      }
       if (p.costMin) q.cost_min = p.costMin;
       if (p.costMax) q.cost_max = p.costMax;
       if (p.agentName) q.agent_name = p.agentName;
@@ -175,6 +208,15 @@ const MessageLog: Component = () => {
       return getMessages(q) as Promise<MessagesData>;
     },
   );
+
+  const displayedItems = createMemo<MessageRow[]>(() => {
+    const items = data()?.items ?? [];
+    if (isSelfHosted()) return items;
+    const overrides = feedbackOverrides();
+    return items.map((item) =>
+      item.id in overrides ? { ...item, feedback_rating: overrides[item.id] ?? undefined } : item,
+    );
+  });
 
   createEffect(
     on(
@@ -185,7 +227,8 @@ const MessageLog: Component = () => {
     ),
   );
 
-  const hasActiveFilters = () => providerFilter() !== '' || costMin() !== '' || costMax() !== '';
+  const hasActiveFilters = () =>
+    providerFilter() !== '' || tierFilter() !== '' || costMin() !== '' || costMax() !== '';
 
   const hasNoData = () => {
     const d = data();
@@ -198,9 +241,34 @@ const MessageLog: Component = () => {
 
   const clearFilters = () => {
     setProviderFilter('');
+    setTierFilter('');
     setCostMin('');
     setCostMax('');
   };
+
+  const activeSpecificityCategories = createMemo(
+    () =>
+      new Set(
+        (specificityAssignments() ?? [])
+          .filter((assignment) => assignment.is_active)
+          .map((assignment) => assignment.category),
+      ),
+  );
+
+  const tierOptions = createMemo(() => [
+    { label: 'All tiers', value: '' },
+    ...ALL_TIERS.map((t) => ({ label: TIER_LABELS_ALL[t], value: t })),
+    ...SPECIFICITY_STAGES.filter((stage) => activeSpecificityCategories().has(stage.id)).map(
+      (stage) => ({
+        label: stage.label,
+        value: `${SPECIFICITY_FILTER_PREFIX}${stage.id}`,
+      }),
+    ),
+    ...(headerTiers() ?? []).map((tier) => ({
+      label: tier.name,
+      value: `${HEADER_TIER_FILTER_PREFIX}${tier.id}`,
+    })),
+  ]);
 
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
@@ -249,6 +317,7 @@ const MessageLog: Component = () => {
               onChange={setProviderFilter}
               options={providerOptions()}
             />
+            <Select value={tierFilter()} onChange={setTierFilter} options={tierOptions()} />
             <div class="cost-range-filter">
               <input
                 type="number"
@@ -438,11 +507,7 @@ const MessageLog: Component = () => {
               </div>
               <div class="data-table-scroll">
                 <MessageTable
-                  items={
-                    isSelfHosted()
-                      ? (data()?.items ?? [])
-                      : applyFeedbackOverrides(data()?.items ?? [])
-                  }
+                  items={displayedItems()}
                   columns={columns()}
                   agentName={params.agentName}
                   customProviderName={customProviderName}
@@ -450,6 +515,7 @@ const MessageLog: Component = () => {
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                   onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
+                  onOpenRecording={(id) => setRecordingModalId(id)}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -484,6 +550,13 @@ const MessageLog: Component = () => {
           onSubmit={handleFeedbackSubmit}
         />
       </Show>
+
+      <RecordedMessageModal
+        open={recordingModalId() !== null}
+        messageId={recordingModalId()}
+        onClose={() => setRecordingModalId(null)}
+        onDeleted={() => refetch()}
+      />
     </div>
   );
 };

@@ -158,6 +158,85 @@
   vertical-align: middle;
 }
 
+/* Actions group (add button + toggle) */
+.provider-toggle__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  flex-shrink: 0;
+}
+
+/* Add-key button (next to toggle) */
+.provider-toggle__add-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.provider-toggle__add-btn:hover {
+  background: hsl(var(--muted-foreground) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+.provider-toggle__add-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.dark .provider-toggle__add-tooltip {
+  background: #2a2a2a;
+  color: #e5e5e5;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.provider-toggle__add-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #fff;
+}
+
+.dark .provider-toggle__add-tooltip::after {
+  border-top-color: #2a2a2a;
+}
+
+.provider-toggle__add-btn:hover .provider-toggle__add-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
 /* Toggle switch */
 .provider-toggle__switch {
   position: relative;
@@ -285,8 +364,14 @@
   color: hsl(var(--foreground));
 }
 
-.provider-detail__last-refreshed {
-  margin-top: 2px;
+.provider-detail__models-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: 16px;
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
 }
@@ -431,6 +516,56 @@
   float: right;
 }
 
+/* Subscription detail layout: stacks a primary action (OAuth / device-code)
+ * above an optional "or paste a token" alternative, separated by a labelled
+ * divider. Used by subscription tiles that expose both flows side-by-side
+ * (MiniMax Coding Plan today; Anthropic Pro/Max will adopt this once #1835 lands). */
+.subscription-detail__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subscription-detail__btn {
+  /* Override .provider-detail__action's float so buttons stay block-level. */
+  width: 100%;
+  float: none;
+  margin: 0;
+}
+
+.subscription-detail__alt {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subscription-detail__alt-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.subscription-detail__alt-divider::before,
+.subscription-detail__alt-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: hsl(var(--border));
+}
+
+.subscription-detail__alt-hint {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin: 0;
+}
+
 .provider-detail__no-key {
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
@@ -458,6 +593,66 @@
 .provider-detail__disconnect {
   color: hsl(var(--destructive));
   border-color: hsl(var(--destructive) / 0.3);
+  float: none;
+  margin-top: 0;
+}
+
+.provider-detail__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* AnthropicOAuthDetailView layout. Stacks primary OAuth above the
+   manual CLI fallback, with full-width buttons so nothing crashes
+   into the section divider. */
+.anthropic-detail__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anthropic-detail__btn {
+  /* Override provider-detail__action's float so buttons stay block-level. */
+  width: 100%;
+  float: none;
+  margin: 0;
+}
+
+.anthropic-detail__alt {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.anthropic-detail__alt-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.anthropic-detail__alt-divider::before,
+.anthropic-detail__alt-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: hsl(var(--border));
+}
+
+.anthropic-detail__alt-hint {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin: 0;
 }
 
 .provider-detail__disconnect:hover {
@@ -545,6 +740,39 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.custom-provider-models__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.custom-provider-models__columns {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.custom-provider-models__column {
+  min-width: 0;
+}
+
+.custom-provider-models__column--name {
+  flex: 2;
+}
+
+.custom-provider-models__column--price {
+  flex: 1;
+}
+
+.custom-provider-models__column-spacer {
+  width: 32px;
+  flex-shrink: 0;
 }
 
 .custom-provider-model-row {

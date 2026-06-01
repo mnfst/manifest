@@ -23,9 +23,28 @@ interface SavingsChartProps {
 const SavingsChart: Component<SavingsChartProps> = (props) => {
   let el!: HTMLDivElement;
 
+  const buildData = (): uPlot.AlignedData => {
+    const isHourly = props.range === '24h';
+    const filled = fillDailyGaps(
+      props.data,
+      props.range ?? '',
+      isHourly ? 'hour' : 'date',
+      (key) =>
+        isHourly
+          ? { hour: key, actual_cost: 0, baseline_cost: 0 }
+          : { date: key, actual_cost: 0, baseline_cost: 0 },
+    );
+    return [
+      parseTimestamps(filled),
+      sanitizeNumbers(filled.map((d) => Math.max(0, d.baseline_cost - d.actual_cost))),
+    ];
+  };
+
   useChartLifecycle({
     el: () => el,
     data: () => props.data,
+    buildData,
+    structureKey: () => props.range,
     buildChart() {
       if (!el) return null;
       const w = el.clientWidth || el.getBoundingClientRect().width;
@@ -52,7 +71,10 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
           padding: [16, 40, 0, 0],
           cursor: createCursorSnap(bgColor, savingsColor),
           scales: {
-            x: { time: !isMultiDayRange(props.range), range: createTimeScaleRange(props.range) },
+            x: {
+              time: !isMultiDayRange(props.range),
+              range: createTimeScaleRange(props.range, true),
+            },
             y: { auto: true, range: (_u, _min, max) => [0, max > 0 ? max * 1.15 : 1] },
           },
           axes,
@@ -69,22 +91,7 @@ const SavingsChart: Component<SavingsChartProps> = (props) => {
             },
           ],
         },
-        (() => {
-          const isHourly = props.range === '24h';
-          const filled = fillDailyGaps(
-            props.data,
-            props.range ?? '',
-            isHourly ? 'hour' : 'date',
-            (key) =>
-              isHourly
-                ? { hour: key, actual_cost: 0, baseline_cost: 0 }
-                : { date: key, actual_cost: 0, baseline_cost: 0 },
-          );
-          return [
-            parseTimestamps(filled),
-            sanitizeNumbers(filled.map((d) => Math.max(0, d.baseline_cost - d.actual_cost))),
-          ];
-        })(),
+        buildData(),
         el,
       );
     },

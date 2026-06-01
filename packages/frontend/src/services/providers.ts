@@ -26,12 +26,25 @@ export interface ProviderDef {
    * for providers that historically used the Anthropic-style setup-token flow.
    */
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  /** Optional product name used when the subscription credential differs from the provider brand. */
+  subscriptionCredentialName?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
   /** Provider uses GitHub device login instead of token paste. */
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
-  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  /**
+   * Optional secondary subscription path. Lets a provider expose a pasted-token
+   * shortcut alongside its primary OAuth/device-code flow — currently used so
+   * MiniMax users can connect their Coding Plan via an `sk-cp-` token without
+   * going through the device-code popup.
+   */
+  subscriptionTokenAlternative?: {
+    prefix: string;
+    placeholder: string;
+    dividerLabel: string;
+  };
   /** Provider is subscription-only and should not appear in the API Keys tab. */
   subscriptionOnly?: boolean;
   /** External URL the user should open to sign in and retrieve their token (token mode). */
@@ -62,9 +75,15 @@ interface ProviderUIOverlay {
   subscriptionLabel?: string;
   subscriptionKeyPlaceholder?: string;
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  subscriptionCredentialName?: string;
   subscriptionCommand?: string;
   deviceLogin?: boolean;
-  subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
+  subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  subscriptionTokenAlternative?: {
+    prefix: string;
+    placeholder: string;
+    dividerLabel: string;
+  };
   subscriptionOnly?: boolean;
   subscriptionSignInUrl?: string;
   subscriptionSignInLabel?: string;
@@ -85,14 +104,17 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Claude Opus 4, Sonnet 4.5, Haiku',
     supportsSubscription: true,
     subscriptionLabel: 'Claude Max / Pro subscription',
-    subscriptionAuthMode: 'token',
-    subscriptionKeyPlaceholder: 'Paste your setup-token',
-    subscriptionCommand: 'claude setup-token',
+    subscriptionAuthMode: 'popup_paste',
     models: [],
   },
   deepseek: {
     initial: 'D',
     subtitle: 'DeepSeek V3, R1',
+    models: [],
+  },
+  fireworks: {
+    initial: 'Fw',
+    subtitle: 'DeepSeek, Kimi, Qwen, Llama',
     models: [],
   },
   copilot: {
@@ -120,6 +142,29 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   gemini: {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
+    supportsSubscription: true,
+    subscriptionLabel: 'Sign in with Google',
+    subscriptionAuthMode: 'popup_oauth',
+    models: [],
+  },
+  kiro: {
+    initial: 'K',
+    subtitle: 'Claude, DeepSeek, MiniMax, GLM, Qwen via Kiro',
+    supportsSubscription: true,
+    subscriptionLabel: 'Kiro subscription',
+    subscriptionAuthMode: 'device_code',
+    subscriptionOnly: true,
+    beta: true,
+    models: [],
+  },
+  groq: {
+    initial: 'Gq',
+    subtitle: 'Llama, Gemma, Mixtral — fast inference',
+    models: [],
+  },
+  kilo: {
+    initial: 'K',
+    subtitle: 'Kilo Gateway unified model access',
     models: [],
   },
   llamacpp: {
@@ -142,6 +187,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     supportsSubscription: true,
     subscriptionLabel: 'MiniMax Coding Plan',
     subscriptionAuthMode: 'device_code',
+    subscriptionTokenAlternative: {
+      prefix: 'sk-cp-',
+      placeholder: 'sk-cp-...',
+      dividerLabel: 'Or paste your Coding Plan token',
+    },
     models: [],
   },
   mistral: {
@@ -152,6 +202,17 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   moonshot: {
     initial: 'Mo',
     subtitle: 'Kimi k2, Moonshot v1',
+    supportsSubscription: true,
+    subscriptionLabel: 'Kimi Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'Kimi Code',
+    subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+    models: [],
+  },
+  nvidia: {
+    initial: 'Nv',
+    subtitle: 'Nemotron, Llama, Mistral via NVIDIA NIM',
     models: [],
   },
   ollama: {
@@ -222,6 +283,9 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   xai: {
     initial: 'X',
     subtitle: 'Grok 3, Grok 2',
+    supportsSubscription: true,
+    subscriptionLabel: 'Grok subscription',
+    subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
   zai: {
@@ -260,13 +324,18 @@ const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
   'deepseek',
+  'fireworks',
   'copilot',
   'gemini',
+  'groq',
+  'kilo',
+  'kiro',
   'llamacpp',
   'lmstudio',
   'minimax',
   'mistral',
   'moonshot',
+  'nvidia',
   'ollama',
   'ollama-cloud',
   'openai',
@@ -279,6 +348,7 @@ const PROVIDER_ORDER = [
 
 export const PROVIDERS: ProviderDef[] = PROVIDER_ORDER.map((id) => {
   const shared = SHARED_PROVIDER_BY_ID.get(id);
+  /* v8 ignore next 3 -- PROVIDER_ORDER is static and must match shared provider metadata. */
   if (!shared) {
     throw new Error(`Unknown provider id in PROVIDER_ORDER: "${id}"`);
   }

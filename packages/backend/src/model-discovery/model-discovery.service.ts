@@ -13,6 +13,7 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -24,6 +25,7 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -73,13 +75,29 @@ export class ModelDiscoveryService {
     // OAuth-backed subscription providers store an encrypted token blob.
     // Unwrap it so model discovery can call the provider-native /models endpoint.
     if (provider.auth_type === 'subscription' && apiKey) {
-      if (lowerProvider === 'openai' || lowerProvider === 'minimax') {
+      if (
+        lowerProvider === 'openai' ||
+        lowerProvider === 'minimax' ||
+        lowerProvider === 'kiro' ||
+        lowerProvider === 'xai'
+      ) {
+        // Kiro's token blob is an OAuthTokenBlob superset (source 'kiro-oidc',
+        // plus client credentials), so the generic unwrap reads its access
+        // token too. Refresh-on-expiry happens in the provider OAuth services;
+        // discovery just uses the stored token.
         const blob = parseOAuthTokenBlob(apiKey);
         if (blob?.t) {
           apiKey = blob.t;
           if (lowerProvider === 'minimax' && blob.u) {
             endpointOverride = blob.u;
           }
+        }
+        // Pasted MiniMax Coding Plan tokens (sk-cp-) have no OAuth blob, so
+        // discovery has no resource URL to use. Fall back to the persisted
+        // region column so CN tokens discover models against the CN host
+        // instead of incorrectly probing api.minimax.io.
+        if (lowerProvider === 'minimax' && !endpointOverride && provider.region === 'cn') {
+          endpointOverride = `${MINIMAX_BASE_URLS.cn}/anthropic`;
         }
       } else if (lowerProvider === 'copilot' && this.copilotTokenService) {
         try {
@@ -120,6 +138,19 @@ export class ModelDiscoveryService {
           provider.provider,
           raw.map((m) => m.id),
         );
+      }
+
+      // Subscription providers whose `/models` endpoint either does not
+      // exist (CodeAssist) or returns more than the subscription tier
+      // actually grants must use the curated `knownModels` list — otherwise
+      // the routing UI offers models that 404 at chat time.
+      if (raw.length === 0 && provider.auth_type === 'subscription') {
+        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        if (raw.length > 0) {
+          this.logger.log(
+            `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
+          );
+        }
       }
 
       // If native API returned no models, try models.dev first (native IDs), then OpenRouter
@@ -167,7 +198,7 @@ export class ModelDiscoveryService {
     }));
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
-    // Personal AI agents (OpenClaw, Hermes, SDK-based agents) almost always
+    // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
@@ -284,14 +315,16 @@ export class ModelDiscoveryService {
       if (!Array.isArray(rawCached)) continue;
       const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
       const providerAuthType: AuthType = p.auth_type;
+      const providerId = p.provider.toLowerCase();
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
-        // Deduplicate by model ID + auth type so subscription and API key
-        // versions of the same model are kept as independent entries.
-        const dedupeKey = `${m.id}::${effectiveAuthType}`;
+        // Deduplicate by the routable tuple, not just model ID. Multiple
+        // providers can expose the same native model name, and the picker must
+        // keep each provider-specific route selectable.
+        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
         if (!seen.has(dedupeKey)) {
           seen.set(dedupeKey, models.length);
-          models.push({ ...m, authType: effectiveAuthType });
+          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
         }
       }
     }
@@ -343,7 +376,10 @@ export class ModelDiscoveryService {
 
   async getModelForAgent(agentId: string, modelName: string): Promise<DiscoveredModel | undefined> {
     const all = await this.getModelsForAgent(agentId);
-    return all.find((m) => m.id === modelName);
+    const matches = all.filter((m) => m.id === modelName);
+    // Provider-less lookups are legacy fallbacks. Once multiple providers can
+    // expose the same model ID, only a single matching route is safe to infer.
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
@@ -396,6 +432,13 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+          ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
+          capabilities: mergeModelCapabilities(
+            model.capabilities,
+            mdEntry.capabilities,
+            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+          ),
         });
       }
     }
@@ -439,6 +482,13 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+      ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
+      capabilities: mergeModelCapabilities(
+        model.capabilities,
+        mdEntry.capabilities,
+        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+      ),
     };
   }
 

@@ -56,7 +56,9 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   const totalCopied = () => {
     const c = preview()?.copied;
     if (!c) return 0;
-    return c.providers + c.customProviders + c.tierAssignments + c.specificityAssignments;
+    return (
+      c.providers + c.customProviders + c.tierAssignments + c.specificityAssignments + c.modelParams
+    );
   };
 
   const handleNameInput = (value: string) => {

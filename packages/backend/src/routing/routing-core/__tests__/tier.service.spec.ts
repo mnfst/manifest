@@ -362,87 +362,6 @@ describe('TierService', () => {
     });
   });
 
-  // Per-tier model parameter defaults — drives the dialog opened from the
-  // sliders icon on the Routing page model chip. Storage is per-assignment
-  // so the same defaults apply to the primary AND every fallback in that
-  // tier (the proxy applies them per-attempt). Multi-key compatible by
-  // construction: switching pinned key on a route does not change
-  // `param_defaults` because they live one layer up.
-  describe('setParamDefaults', () => {
-    it('updates the existing row when one is present', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        param_defaults: null,
-      } as unknown as TierAssignment;
-      tierRepo.findOne.mockResolvedValue(existing);
-      const defaults = { thinking: { type: 'disabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-      expect(tierRepo.save).toHaveBeenCalledWith(existing);
-      expect(tierRepo.insert).not.toHaveBeenCalled();
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('clears defaults when null is passed', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        param_defaults: { thinking: { type: 'disabled' } },
-      } as unknown as TierAssignment;
-      tierRepo.findOne.mockResolvedValue(existing);
-
-      await svc.setParamDefaults('agent-1', 'user-1', 'standard', null);
-
-      expect(existing.param_defaults).toBeNull();
-      expect(tierRepo.save).toHaveBeenCalledWith(existing);
-    });
-
-    it('lazily inserts a new (empty) assignment row when none exists — the dialog can be opened before a primary is picked', async () => {
-      tierRepo.findOne.mockResolvedValue(null);
-      const defaults = { thinking: { type: 'enabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'simple', defaults);
-
-      expect(tierRepo.insert).toHaveBeenCalledTimes(1);
-      expect(result.param_defaults).toEqual(defaults);
-      expect(result.override_route).toBeNull();
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('retries on insert conflict when a concurrent caller created the row', async () => {
-      tierRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          tier: 'standard',
-          param_defaults: null,
-        } as TierAssignment)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          tier: 'standard',
-          param_defaults: null,
-        } as TierAssignment);
-      tierRepo.insert.mockRejectedValueOnce(new Error('duplicate'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults);
-      expect(result.param_defaults).toEqual(defaults);
-    });
-
-    it('rethrows insert failures when no concurrent row appeared (genuine DB error)', async () => {
-      tierRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      tierRepo.insert.mockRejectedValueOnce(new Error('unrelated'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      await expect(svc.setParamDefaults('agent-1', 'user-1', 'standard', defaults)).rejects.toThrow(
-        'unrelated',
-      );
-    });
-  });
-
   describe('clearOverride', () => {
     it('no-ops when no row exists', async () => {
       tierRepo.findOne.mockResolvedValue(null);
@@ -638,6 +557,91 @@ describe('TierService', () => {
       expect(existing.fallback_routes).toBeNull();
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('rejects clearing the only stream-capable route while stream mode is active', async () => {
+      tierRepo.findOne.mockResolvedValue({
+        tier: 'standard',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+        response_mode: 'stream',
+      } as TierAssignment);
+
+      await expect(svc.clearFallbacks('agent-1', 'standard')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stream response mode enforcement', () => {
+    it('rejects stream mode when the route chain has no stream-capable model', async () => {
+      tierRepo.findOne.mockResolvedValue({
+        tier: 'standard',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: null,
+      } as TierAssignment);
+
+      await expect(svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(tierRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('allows stream mode when only the primary route is stream-capable', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('allows stream mode when the active route chain supports streaming', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-3-5-sonnet')],
+        response_mode: 'buffered',
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('allows adding a non-stream fallback while tier stream mode is active when the primary streams', async () => {
+      const existing = {
+        tier: 'standard',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        response_mode: 'stream',
+      } as TierAssignment;
+      tierRepo.findOne.mockResolvedValue(existing);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('local-model', 'custom:local', 'api_key'),
+      ]);
+
+      const result = await svc.setFallbacks(
+        'agent-1',
+        'standard',
+        ['local-model'],
+        [route('custom:local', 'api_key', 'local-model')],
+      );
+
+      expect(result).toEqual([route('custom:local', 'api_key', 'local-model')]);
+      expect(tierRepo.save).toHaveBeenCalledWith(existing);
     });
   });
 });

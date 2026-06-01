@@ -100,6 +100,14 @@ describe('header-tiers API client', () => {
       authType: 'api_key',
       route: { provider: 'OpenAI', authType: 'api_key', model: 'gpt-4o' },
     });
+    await api.overrideHeaderTier('my-agent', 'ht-1', 'gpt-4o', 'OpenAI', 'api_key', 'Personal');
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      authType: 'api_key',
+      providerKeyLabel: 'Personal',
+      route: { provider: 'OpenAI', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Personal' },
+    });
   });
 
   it('resetHeaderTier DELETEs the override', async () => {
@@ -136,5 +144,16 @@ describe('header-tiers API client', () => {
     expect(init.method).toBe('PATCH');
     expect(init.headers['Content-Type']).toBe('application/json');
     expect(JSON.parse(init.body)).toEqual({ enabled: true });
+  });
+
+  it('setHeaderTierResponseMode PATCHes the response-mode endpoint', async () => {
+    const fetchMock = setupFetch({ id: 'ht-1', response_mode: 'stream' });
+    const out = await api.setHeaderTierResponseMode('my-agent', 'ht-1', 'stream');
+    expect(out).toEqual({ id: 'ht-1', response_mode: 'stream' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/header-tiers/ht-1/response-mode');
+    expect(init.method).toBe('PATCH');
+    expect(init.headers['Content-Type']).toBe('application/json');
+    expect(JSON.parse(init.body)).toEqual({ response_mode: 'stream' });
   });
 });

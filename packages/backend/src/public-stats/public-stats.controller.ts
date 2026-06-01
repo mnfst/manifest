@@ -7,6 +7,7 @@ import {
   TopModel,
   FreeModel,
   ProviderDailyTokens,
+  AgentDailyTokens,
 } from './public-stats.service';
 import { FreeModelsService, FreeProviderDto } from '../free-models/free-models.service';
 
@@ -27,6 +28,11 @@ interface ProviderTokensResponse {
   cached_at: string;
 }
 
+interface AgentTokensResponse {
+  agents: AgentDailyTokens[];
+  cached_at: string;
+}
+
 interface FreeProvidersResponse {
   providers: FreeProviderDto[];
   last_synced_at: string | null;
@@ -44,6 +50,10 @@ let freeInflight: Promise<FreeModelsResponse> | null = null;
 let cachedProviderTokens: ProviderTokensResponse | null = null;
 let providerTokensTimestamp = 0;
 let providerTokensInflight: Promise<ProviderTokensResponse> | null = null;
+
+let cachedAgentTokens: AgentTokensResponse | null = null;
+let agentTokensTimestamp = 0;
+let agentTokensInflight: Promise<AgentTokensResponse> | null = null;
 
 let cachedFreeProviders: FreeProvidersResponse | null = null;
 let freeProvidersTimestamp = 0;
@@ -118,6 +128,23 @@ export class PublicStatsController {
   }
 
   @Public()
+  @Get('agent-tokens')
+  async getAgentTokens(): Promise<AgentTokensResponse> {
+    this.assertEnabled();
+    if (cachedAgentTokens && Date.now() - agentTokensTimestamp < PUBLIC_STATS_CACHE_TTL_MS) {
+      return cachedAgentTokens;
+    }
+
+    if (!agentTokensInflight) {
+      agentTokensInflight = this.refreshAgentTokens().finally(() => {
+        agentTokensInflight = null;
+      });
+    }
+
+    return agentTokensInflight;
+  }
+
+  @Public()
   @Get('free-providers')
   getFreeProviders(): FreeProvidersResponse {
     this.assertEnabled();
@@ -186,5 +213,21 @@ export class PublicStatsController {
     }
 
     return cachedProviderTokens ?? { providers: [], cached_at: new Date().toISOString() };
+  }
+
+  private async refreshAgentTokens(): Promise<AgentTokensResponse> {
+    try {
+      const agents = await this.service.getAgentDailyTokens();
+      cachedAgentTokens = {
+        agents,
+        cached_at: new Date().toISOString(),
+      };
+      agentTokensTimestamp = Date.now();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Failed to fetch agent tokens: ${msg}`);
+    }
+
+    return cachedAgentTokens ?? { agents: [], cached_at: new Date().toISOString() };
   }
 }

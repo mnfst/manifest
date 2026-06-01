@@ -1,4 +1,6 @@
 import {
+  applyAnthropicMessagesMutations,
+  extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
   fromAnthropicResponse,
   transformAnthropicStreamChunk,
@@ -120,6 +122,41 @@ describe('Anthropic Adapter', () => {
       expect(result.top_k).toBe(40);
       expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 2048 });
       expect(result.stop_sequences).toEqual(['STOP', 'END']);
+    });
+
+    it('strips adaptive thinking when routing to Claude Haiku 4.5', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'adaptive' },
+      };
+
+      expect(toAnthropicRequest(body, 'claude-haiku-4-5-20251001').thinking).toBeUndefined();
+      expect(toAnthropicRequest(body, 'anthropic/claude-haiku-4.5').thinking).toBeUndefined();
+      expect(toAnthropicRequest(body, 'claude-haiku-4').thinking).toBeUndefined();
+    });
+
+    it('preserves extended thinking for Claude Haiku 4.5', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'enabled', budget_tokens: 2048 },
+      };
+
+      const result = toAnthropicRequest(body, 'claude-haiku-4-5-20251001');
+      expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 2048 });
+    });
+
+    it('preserves adaptive thinking for adaptive-capable Claude models', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        thinking: { type: 'adaptive' },
+      };
+
+      expect(toAnthropicRequest(body, 'claude-sonnet-4-6').thinking).toEqual({
+        type: 'adaptive',
+      });
+      expect(toAnthropicRequest(body, 'claude-opus-4-6').thinking).toEqual({
+        type: 'adaptive',
+      });
     });
 
     it('wraps a bare string `stop` value into stop_sequences (chat_completions accepts both shapes)', () => {
@@ -1191,6 +1228,27 @@ describe('Anthropic Adapter', () => {
       expect(usage.usage.cache_creation_tokens).toBe(5);
       expect(usage.usage.prompt_tokens_details.cached_tokens).toBe(10);
     });
+
+    it('prefers cumulative input and cache tokens from message_delta usage when present', () => {
+      const transform = createAnthropicStreamTransformer('claude-sonnet-4-20250514');
+
+      transform(
+        'event: message_start\n{"type":"message_start","message":{"usage":{"input_tokens":42,"cache_read_input_tokens":10,"cache_creation_input_tokens":5}}}',
+      );
+
+      const result = transform(
+        'event: message_delta\n{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"input_tokens":100,"cache_read_input_tokens":20,"cache_creation_input_tokens":7,"output_tokens":30}}',
+      );
+
+      const parts = result!.split('\n\n').filter(Boolean);
+      const usage = JSON.parse(parts[1].replace('data: ', ''));
+      expect(usage.usage.prompt_tokens).toBe(127);
+      expect(usage.usage.completion_tokens).toBe(30);
+      expect(usage.usage.total_tokens).toBe(157);
+      expect(usage.usage.cache_read_tokens).toBe(20);
+      expect(usage.usage.cache_creation_tokens).toBe(7);
+      expect(usage.usage.prompt_tokens_details.cached_tokens).toBe(20);
+    });
   });
 
   describe('extended-thinking round-trip (Fix 3)', () => {
@@ -1929,6 +1987,321 @@ describe('Anthropic Adapter', () => {
       // Should only modify the last system message (index 2)
       expect(typeof messages[0].content).toBe('string');
       expect(Array.isArray(messages[2].content)).toBe(true);
+    });
+  });
+
+  describe('applyAnthropicMessagesMutations', () => {
+    it('preserves Anthropic server tools with their type discriminator and skips input_schema (issue #1886)', () => {
+      const inbound = {
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'find cats' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'bash_20250124', name: 'bash' },
+          { name: 'my_custom', input_schema: { type: 'object' } },
+        ],
+      };
+      const result = applyAnthropicMessagesMutations(inbound);
+
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools).toHaveLength(3);
+      expect(tools[0]).toMatchObject({ type: 'web_search_20250305', name: 'web_search' });
+      expect(tools[0].input_schema).toBeUndefined();
+      expect(tools[1]).toMatchObject({ type: 'bash_20250124', name: 'bash' });
+      expect(tools[1].input_schema).toBeUndefined();
+      expect(tools[2]).toMatchObject({
+        name: 'my_custom',
+        input_schema: { type: 'object' },
+        cache_control: { type: 'ephemeral' },
+      });
+      // Inbound array isn't mutated.
+      expect((inbound.tools[2] as Record<string, unknown>).cache_control).toBeUndefined();
+    });
+
+    it('places cache_control on the last system block when system is an array', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [
+          { type: 'text', text: 'persona' },
+          { type: 'text', text: 'task' },
+        ],
+      });
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system).toHaveLength(2);
+      expect(system[0].cache_control).toBeUndefined();
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('wraps a string system in a block array and caches it', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: 'Be concise.',
+      });
+      expect(result.system).toEqual([
+        { type: 'text', text: 'Be concise.', cache_control: { type: 'ephemeral' } },
+      ]);
+    });
+
+    it('leaves string system intact when no mutations are needed', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: 'Be concise.',
+        },
+        { injectCacheControl: false },
+      );
+      expect(result.system).toBe('Be concise.');
+    });
+
+    it('prepends the subscription identity block ahead of an existing system', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: 'You are Manifest.',
+        },
+        { injectSubscriptionIdentity: true, injectCacheControl: false },
+      );
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system).toHaveLength(2);
+      expect(system[0].text).toMatch(/Claude agent/);
+      expect(system[1].text).toBe('You are Manifest.');
+    });
+
+    it('creates a system from scratch when subscription identity is requested and no system exists', () => {
+      const result = applyAnthropicMessagesMutations(
+        { messages: [{ role: 'user', content: 'hi' }] },
+        { injectSubscriptionIdentity: true, injectCacheControl: false },
+      );
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system).toHaveLength(1);
+      expect(system[0].text).toMatch(/Claude agent/);
+    });
+
+    it('drops system when input has none and no mutations need it', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      expect(result).not.toHaveProperty('system');
+    });
+
+    it('drops an explicitly-empty system array', () => {
+      // Edge case: caller sends `system: []`. The cache_control branch runs
+      // (Array.isArray is true) but produces no blocks, so we drop the field
+      // rather than echo a useless empty array.
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [],
+      });
+      expect(result).not.toHaveProperty('system');
+    });
+
+    it('omits cache_control when injectCacheControl is false', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [{ role: 'user', content: 'hi' }],
+          system: [{ type: 'text', text: 'persona' }],
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        },
+        { injectCacheControl: false },
+      );
+      const system = result.system as Array<Record<string, unknown>>;
+      expect(system[0].cache_control).toBeUndefined();
+      const tools = result.tools as Array<Record<string, unknown>>;
+      expect(tools[0].cache_control).toBeUndefined();
+    });
+
+    it('defaults max_tokens to 4096 when not provided', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      expect(result.max_tokens).toBe(4096);
+    });
+
+    it('keeps caller-supplied max_tokens', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 256,
+      });
+      expect(result.max_tokens).toBe(256);
+    });
+
+    it('replays cached thinking blocks ahead of tool_use in assistant turns', () => {
+      const cached = [{ type: 'thinking' as const, thinking: 'searching', signature: 'sig' }];
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            { role: 'user', content: 'find cats' },
+            {
+              role: 'assistant',
+              content: [
+                { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } },
+              ],
+            },
+          ],
+        },
+        { thinkingLookup: (id) => (id === 'call_1' ? cached : null) },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const assistant = messages[1];
+      const content = assistant.content as Array<Record<string, unknown>>;
+      expect(content[0]).toEqual({ type: 'thinking', thinking: 'searching', signature: 'sig' });
+      expect(content[1]).toMatchObject({ type: 'tool_use', id: 'call_1' });
+    });
+
+    it('does not duplicate thinking blocks the client already echoed', () => {
+      // Native Messages clients echo signed thinking blocks back to satisfy
+      // Anthropic's signature chain. Replaying a cached copy on top would
+      // duplicate signed blocks and the upstream would reject the request.
+      const cached = [{ type: 'thinking' as const, thinking: 'old', signature: 'sigA' }];
+      const echoed = {
+        role: 'assistant',
+        content: [
+          { type: 'thinking', thinking: 'echoed', signature: 'sigA' },
+          { type: 'tool_use', id: 'call_1', name: 'web_search', input: { q: 'cats' } },
+        ],
+      };
+      const result = applyAnthropicMessagesMutations(
+        { messages: [{ role: 'user', content: 'find cats' }, echoed] },
+        { thinkingLookup: () => cached },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      expect(messages[1].content).toEqual(echoed.content);
+    });
+
+    it('does not touch messages when thinkingLookup returns nothing', () => {
+      const inboundMessages = [
+        { role: 'user', content: 'hi' },
+        {
+          role: 'assistant',
+          content: [{ type: 'tool_use', id: 'call_x', name: 'foo', input: {} }],
+        },
+      ];
+      const result = applyAnthropicMessagesMutations(
+        { messages: inboundMessages },
+        { thinkingLookup: () => null },
+      );
+      expect(result.messages).toEqual(inboundMessages);
+    });
+
+    it('skips thinking replay for assistant turns without a tool_use block', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            { role: 'user', content: 'hi' },
+            { role: 'assistant', content: [{ type: 'text', text: 'reply' }] },
+          ],
+        },
+        {
+          thinkingLookup: () => [{ type: 'thinking' as const, thinking: 'x', signature: 's' }],
+        },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const content = messages[1].content as Array<Record<string, unknown>>;
+      expect(content).toEqual([{ type: 'text', text: 'reply' }]);
+    });
+
+    it('skips tool_use blocks without a string id', () => {
+      const result = applyAnthropicMessagesMutations(
+        {
+          messages: [
+            {
+              role: 'assistant',
+              content: [{ type: 'tool_use', name: 'foo', input: {} }],
+            },
+          ],
+        },
+        {
+          thinkingLookup: () => [{ type: 'thinking' as const, thinking: 'x', signature: 's' }],
+        },
+      );
+      const messages = result.messages as Array<Record<string, unknown>>;
+      const content = messages[0].content as Array<Record<string, unknown>>;
+      expect(content).toEqual([{ type: 'tool_use', name: 'foo', input: {} }]);
+    });
+
+    it('passes Anthropic-only fields through untouched (top_k, stop_sequences, thinking, metadata, tool_choice)', () => {
+      const result = applyAnthropicMessagesMutations({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'hi' }],
+        temperature: 0.5,
+        top_p: 0.9,
+        top_k: 40,
+        stop_sequences: ['END'],
+        thinking: { type: 'enabled', budget_tokens: 1024 },
+        metadata: { user_id: 'u' },
+        tool_choice: { type: 'auto' },
+      });
+      expect(result).toMatchObject({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        temperature: 0.5,
+        top_p: 0.9,
+        top_k: 40,
+        stop_sequences: ['END'],
+        thinking: { type: 'enabled', budget_tokens: 1024 },
+        metadata: { user_id: 'u' },
+        tool_choice: { type: 'auto' },
+      });
+    });
+  });
+
+  describe('extractThinkingBlocksFromMessagesResponse', () => {
+    it('returns undefined when there is no content array', () => {
+      expect(extractThinkingBlocksFromMessagesResponse({})).toBeUndefined();
+      expect(extractThinkingBlocksFromMessagesResponse({ content: 'string' })).toBeUndefined();
+    });
+
+    it('returns undefined when there are thinking blocks but no tool_use', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [{ type: 'thinking', thinking: 't', signature: 's' }],
+        }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when there is a tool_use but no thinking blocks', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [{ type: 'tool_use', id: 'toolu_1', name: 'x', input: {} }],
+        }),
+      ).toBeUndefined();
+    });
+
+    it('collects thinking blocks and keys them by the first tool_use id', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [
+            { type: 'thinking', thinking: 'reason 1', signature: 'a' },
+            { type: 'redacted_thinking', data: 'opaque' },
+            { type: 'tool_use', id: 'toolu_first', name: 'x', input: {} },
+            { type: 'tool_use', id: 'toolu_second', name: 'y', input: {} },
+            { type: 'text', text: 'narration' },
+          ],
+        }),
+      ).toEqual({
+        firstToolUseId: 'toolu_first',
+        blocks: [
+          { type: 'thinking', thinking: 'reason 1', signature: 'a' },
+          { type: 'redacted_thinking', data: 'opaque' },
+        ],
+      });
+    });
+
+    it('ignores tool_use blocks without a string id', () => {
+      expect(
+        extractThinkingBlocksFromMessagesResponse({
+          content: [
+            { type: 'thinking', thinking: 't', signature: 's' },
+            { type: 'tool_use', name: 'no_id' },
+            { type: 'tool_use', id: 'toolu_real', name: 'x', input: {} },
+          ],
+        }),
+      ).toEqual({
+        firstToolUseId: 'toolu_real',
+        blocks: [{ type: 'thinking', thinking: 't', signature: 's' }],
+      });
     });
   });
 });

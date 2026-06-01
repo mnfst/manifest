@@ -1,6 +1,7 @@
 import type { Tier } from './tiers';
 import type { ModelRoute } from './model-route';
-import type { RequestParamDefaults } from './request-params';
+import type { ResponseMode } from './response-mode';
+import type { OutputModality } from './output-modality';
 import type { SpecificityCategory } from './specificity';
 
 export interface ResolveResponse {
@@ -17,11 +18,9 @@ export interface ResolveResponse {
   route: ModelRoute | null;
   /** Ordered fallback routes for the resolved tier. */
   fallback_routes: ModelRoute[] | null;
+  /** Effective output modality configured on the resolved routing chain. */
+  output_modality?: OutputModality;
+  /** Effective transport policy configured on the resolved routing chain. */
+  response_mode?: ResponseMode;
   specificity_category?: SpecificityCategory;
-  /**
-   * Configured per-assignment request body defaults. Merged into the
-   * outbound provider request before forwarding; client-supplied fields in
-   * the request body take precedence by presence.
-   */
-  param_defaults?: RequestParamDefaults | null;
 }

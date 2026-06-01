@@ -22,6 +22,7 @@ import {
   createCursorSnap,
   createBaseAxes,
   rangeToSeconds,
+  binWidthSeconds,
   formatAxisTimestamp,
   formatLegendTimestamp,
   createFormatLegendTimestamp,
@@ -444,6 +445,81 @@ describe("createTimeScaleRange", () => {
     const [min, max] = fn(null as any, dataMin, now);
     expect(min).toBe(dataMin);
     expect(max).toBe(now);
+  });
+
+  // bars=true adds half-bin pad so the last bar is not clipped (issue #1756).
+
+  it("pads multi-day range by half a day when bars=true", () => {
+    const fn = createTimeScaleRange("7d", true);
+    const dataMin = 1_000_000;
+    const dataMax = dataMin + 6 * 86400;
+    const [min, max] = fn(null as any, dataMin, dataMax);
+    expect(min).toBe(dataMin - 43200);
+    expect(max).toBe(dataMax + 43200);
+  });
+
+  it("pads 30d range by half a day when bars=true", () => {
+    const fn = createTimeScaleRange("30d", true);
+    const dataMin = 1_000_000;
+    const dataMax = dataMin + 29 * 86400;
+    const [min, max] = fn(null as any, dataMin, dataMax);
+    expect(min).toBe(dataMin - 43200);
+    expect(max).toBe(dataMax + 43200);
+  });
+
+  it("pads 24h intraday range by half an hour when bars=true", () => {
+    const fn = createTimeScaleRange("24h", true);
+    const now = Date.now() / 1000;
+    const [min, max] = fn(null as any, now - 1000, now);
+    expect(max).toBeCloseTo(now + 1800, 0);
+    expect(min).toBeCloseTo(now - 86400 - 1800, 0);
+  });
+
+  it("pads 1h intraday range by half an hour when bars=true", () => {
+    const fn = createTimeScaleRange("1h", true);
+    const now = Date.now() / 1000;
+    const [min, max] = fn(null as any, now - 100, now);
+    expect(max).toBeCloseTo(now + 1800, 0);
+    expect(min).toBeCloseTo(now - 3600 - 1800, 0);
+  });
+
+  it("does not pad when bars=false (default), preserving line and area chart behaviour", () => {
+    const fn = createTimeScaleRange("7d");
+    const dataMin = 1_000_000;
+    const dataMax = dataMin + 7 * 86400;
+    const [min, max] = fn(null as any, dataMin, dataMax);
+    expect(min).toBe(dataMin);
+    expect(max).toBe(dataMax);
+  });
+
+  it("pads the small-span fallback when bars=true and no range given", () => {
+    const fn = createTimeScaleRange(undefined, true);
+    const [min, max] = fn(null as any, 1000, 2000);
+    expect(max).toBe(2000 + 1800);
+    expect(min).toBe(2000 - 6 * 3600 - 1800);
+  });
+
+  it("pads the large-span fallback when bars=true and no range given", () => {
+    const fn = createTimeScaleRange(undefined, true);
+    const [min, max] = fn(null as any, 0, 100000);
+    expect(min).toBe(0 - 1800);
+    expect(max).toBe(100000 + 1800);
+  });
+});
+
+// ---------- binWidthSeconds ----------
+
+describe("binWidthSeconds", () => {
+  it("returns one day for multi-day ranges", () => {
+    expect(binWidthSeconds("7d")).toBe(86400);
+    expect(binWidthSeconds("30d")).toBe(86400);
+  });
+
+  it("returns one hour for intraday and unknown ranges", () => {
+    expect(binWidthSeconds("1h")).toBe(3600);
+    expect(binWidthSeconds("24h")).toBe(3600);
+    expect(binWidthSeconds("6h")).toBe(3600);
+    expect(binWidthSeconds(undefined)).toBe(3600);
   });
 });
 
@@ -1005,6 +1081,58 @@ describe("useChartLifecycle", () => {
     mountCb!();
     vi.advanceTimersByTime(50);
     expect(mockChart.setCursor).toHaveBeenCalledWith({ left: -1, top: -1 });
+  });
+
+  it("effect updates data in place via setData when structureKey is unchanged", () => {
+    const mockChart = { destroy: vi.fn(), setSize: vi.fn(), setCursor: vi.fn(), setData: vi.fn() };
+    const buildChart = vi.fn().mockReturnValue(mockChart);
+    let currentData: unknown[] | undefined = [1, 2];
+    const alignedData = [[0, 1], [10, 20]];
+    useChartLifecycle({
+      el: () => mockEl,
+      data: () => currentData,
+      buildChart,
+      buildData: () => alignedData as any,
+      structureKey: () => "7d",
+    });
+
+    mountCb!();
+    vi.advanceTimersByTime(50);
+    expect(buildChart).toHaveBeenCalledTimes(1);
+
+    // Same structure → reuse instance, no destroy / rebuild
+    currentData = [3, 4, 5];
+    effectCb!();
+    expect(mockChart.setData).toHaveBeenCalledWith(alignedData);
+    expect(mockChart.destroy).not.toHaveBeenCalled();
+    expect(buildChart).toHaveBeenCalledTimes(1);
+  });
+
+  it("effect rebuilds the chart when structureKey changes", () => {
+    const mockChart = { destroy: vi.fn(), setSize: vi.fn(), setCursor: vi.fn(), setData: vi.fn() };
+    const buildChart = vi.fn().mockReturnValue(mockChart);
+    let currentData: unknown[] | undefined = [1, 2];
+    let key = "7d";
+    useChartLifecycle({
+      el: () => mockEl,
+      data: () => currentData,
+      buildChart,
+      buildData: () => [[0], [1]] as any,
+      structureKey: () => key,
+    });
+
+    mountCb!();
+    vi.advanceTimersByTime(50);
+    expect(buildChart).toHaveBeenCalledTimes(1);
+
+    // Range changed → must rebuild so axes/scales pick up the new structure
+    key = "24h";
+    currentData = [3, 4];
+    effectCb!();
+    expect(mockChart.setData).not.toHaveBeenCalled();
+    expect(mockChart.destroy).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(0);
+    expect(buildChart).toHaveBeenCalledTimes(2);
   });
 });
 

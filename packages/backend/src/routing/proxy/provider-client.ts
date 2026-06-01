@@ -1,11 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
+import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenRouterCacheControl } from './cache-injection';
 import {
+  applyAnthropicMessagesMutations,
   toGoogleRequest,
   toAnthropicRequest,
   toResponsesRequest,
@@ -18,9 +20,12 @@ import {
   convertAnthropicResponse as anthropicResponseConverter,
   convertAnthropicStreamChunk as anthropicStreamChunkConverter,
   createAnthropicTransformer,
+  createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
 import { toNativeResponsesRequest } from './responses-adapter';
+import { forwardKiroChat } from './kiro-adapter';
+import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 
 export interface ForwardResult {
   response: Response;
@@ -32,6 +37,12 @@ export interface ForwardResult {
   isChatGpt: boolean;
   /** True when the upstream already speaks the public Responses API format. */
   isResponses?: boolean;
+  /**
+   * True when the upstream is the CodeAssist API (Gemini OAuth flow). The
+   * response handler unwraps the `{ response: ... }` envelope before
+   * passing the inner body to the standard Google converters.
+   */
+  isCodeAssist?: boolean;
 }
 
 const parsedProviderTimeout = Number.parseInt(process.env.PROVIDER_TIMEOUT_MS ?? '', 10);
@@ -41,47 +52,35 @@ const PROVIDER_TIMEOUT_MS =
     : 180_000;
 
 /**
- * Endpoint keys (OpenAI-compatible format) whose streaming responses support
- * `stream_options.include_usage`. Token usage is needed for DB logging and for
- * downstream clients (e.g. OpenClaw context management).
- */
-const SUPPORTS_USAGE_STREAM_OPTIONS = new Set([
-  'openai',
-  'openrouter',
-  'ollama',
-  'ollama-cloud',
-  'mistral',
-  'deepseek',
-  'moonshot',
-  'minimax',
-  'qwen',
-  'xai',
-  'zai',
-  'zai-subscription',
-  'copilot',
-  'opencode-go',
-  'opencode-zen',
-  'custom',
-]);
-
-/**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
 function stripModelPrefix(model: string, endpointKey: string): string {
   // OpenRouter accepts and expects vendor prefixes
   if (endpointKey === 'openrouter') return model;
-  // Custom providers: CustomProviderService.rawModelName already stripped the
-  // internal "custom:<id>/" prefix upstream. Stripping again would eat a
-  // legitimate slash segment from the upstream model id
-  // (e.g. "MiniMaxAI/MiniMax-2.7" or "accounts/fireworks/routers/...").
-  if (endpointKey === 'custom') return model;
+  // Custom providers, Fireworks, Groq, Kilo, and NVIDIA NIM: model IDs from these APIs contain
+  // legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
+  // "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b", "anthropic/claude-sonnet-4.5").
+  // Stripping would mangle the name the upstream API expects.
+  if (
+    endpointKey === 'custom' ||
+    endpointKey === 'fireworks' ||
+    endpointKey === 'groq' ||
+    endpointKey === 'kilo' ||
+    endpointKey === 'nvidia'
+  )
+    return model;
   return stripVendorPrefix(model);
 }
 
 @Injectable()
 export class ProviderClient {
   private readonly logger = new Logger(ProviderClient.name);
+
+  constructor(
+    @Optional()
+    private readonly opencodeGoCatalog?: OpencodeGoCatalogService,
+  ) {}
 
   async forward(opts: ForwardOptions): Promise<ForwardResult> {
     const {
@@ -96,7 +95,7 @@ export class ProviderClient {
       authType,
     } = opts;
 
-    const { endpoint, endpointKey } = this.resolveEndpoint(
+    const { endpoint, endpointKey } = await this.resolveEndpoint(
       customEndpoint,
       provider,
       authType,
@@ -107,8 +106,28 @@ export class ProviderClient {
     const isAnthropic = endpoint.format === 'anthropic';
     const isResponses = opts.apiMode === 'responses' && endpoint.format === 'chatgpt';
     const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
+    const isCodeAssist = !!endpoint.codeAssistEnvelope;
 
     const bareModel = stripModelPrefix(model, endpointKey);
+    if (endpoint.format === 'kiro') {
+      const requestSource =
+        opts.apiMode && opts.apiMode !== 'chat_completions' ? (opts.chatBody ?? body) : body;
+      const response = await forwardKiroChat({
+        apiKey,
+        model: bareModel,
+        body: requestSource,
+        stream,
+        signal,
+        timeoutMs: PROVIDER_TIMEOUT_MS,
+        extraHeaders,
+      });
+      return {
+        response,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+    }
     const { url, headers, requestBody } = this.buildRequest({
       endpoint,
       endpointKey,
@@ -122,6 +141,8 @@ export class ProviderClient {
       stream,
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
+      reasoningContentLookup: opts.reasoningContentLookup,
+      providerResource: opts.providerResource,
     });
 
     const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
@@ -146,16 +167,17 @@ export class ProviderClient {
       isAnthropic,
       isChatGpt,
       isResponses,
+      isCodeAssist,
     });
   }
 
-  private resolveEndpoint(
+  private async resolveEndpoint(
     customEndpoint: ProviderEndpoint | undefined,
     provider: string,
     authType: string | undefined,
     model: string,
     apiMode: ForwardOptions['apiMode'],
-  ): { endpoint: ProviderEndpoint; endpointKey: string } {
+  ): Promise<{ endpoint: ProviderEndpoint; endpointKey: string }> {
     if (customEndpoint) {
       return { endpoint: customEndpoint, endpointKey: 'custom' };
     }
@@ -170,14 +192,28 @@ export class ProviderClient {
     if (apiMode === 'responses' && resolved === 'openai') {
       resolved = 'openai-responses';
     }
+    if (apiMode === 'responses' && resolved === 'xai') {
+      resolved = 'xai-responses';
+    }
     // OpenAI rejects these models on /v1/chat/completions; forward to /v1/responses.
     if (resolved === 'openai' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
       resolved = 'openai-responses';
     }
+    // xAI multi-agent models are Responses API-only; route them to /v1/responses
+    // while still accepting Chat Completions-shaped client requests.
+    if (resolved === 'xai' && XAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
+      resolved = 'xai-responses';
+    }
+    // Copilot serves Codex variants only at /responses; /chat/completions returns
+    // "Unsupported API for model" (gh issue mnfst/manifest#1849).
+    if (resolved === 'copilot' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
+      resolved = 'copilot-responses';
+    }
     if (resolved === 'opencode-go') {
-      // OpenCode Go uses two different API formats depending on the model:
-      // MiniMax models use Anthropic /v1/messages, all others use OpenAI /v1/chat/completions.
-      if (stripVendorPrefix(model).toLowerCase().startsWith('minimax-')) {
+      const bareOpenCodeModel = stripVendorPrefix(model).toLowerCase();
+      const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
+      const catalogFormat = await this.resolveOpencodeGoFormat(bareOpenCodeModel);
+      if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
         resolved = 'opencode-go-anthropic';
       }
     }
@@ -199,6 +235,21 @@ export class ProviderClient {
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
   }
 
+  private async resolveOpencodeGoFormat(bareModel: string): Promise<'openai' | 'anthropic' | null> {
+    if (!this.opencodeGoCatalog) return null;
+    try {
+      return await this.opencodeGoCatalog.resolveFormat(bareModel);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`OpenCode Go catalog format lookup failed: ${message}`);
+      return null;
+    }
+  }
+
+  private isKnownOpencodeGoAnthropicFamily(bareModel: string): boolean {
+    return bareModel.startsWith('minimax-') || bareModel.startsWith('qwen3.7');
+  }
+
   private buildRequest(ctx: {
     endpoint: ProviderEndpoint;
     endpointKey: string;
@@ -212,6 +263,8 @@ export class ProviderClient {
     stream: boolean;
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
+    reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
+    providerResource?: string;
   }): { url: string; headers: Record<string, string>; requestBody: Record<string, unknown> } {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // For non-chat_completions inbound modes ('responses', 'messages'), the
@@ -225,22 +278,51 @@ export class ProviderClient {
       // Google accepts the API key via header (set by buildHeaders below) so
       // we no longer need to embed it in the URL. Keeping the key out of the
       // URL avoids leaking it into upstream proxy / LB access logs.
-      let url = `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`;
+      const path =
+        stream && endpoint.buildStreamPath
+          ? endpoint.buildStreamPath(bareModel)
+          : endpoint.buildPath(bareModel);
+      let url = `${endpoint.baseUrl}${path}`;
       if (stream) url += '?alt=sse';
+      const innerBody = toGoogleRequest(requestSource, bareModel, ctx.signatureLookup);
+      const requestBody = endpoint.codeAssistEnvelope
+        ? // CodeAssist routes by `cloudaicompanionProject` rather than URL
+          // path; the project id was stashed in the OAuth blob's `u` field
+          // by GeminiOauthService.enrichBlob and travels through the proxy
+          // pipeline as `providerResource`.
+          { model: bareModel, project: ctx.providerResource ?? '', request: innerBody }
+        : innerBody;
       return {
         url,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody: toGoogleRequest(requestSource, bareModel, ctx.signatureLookup),
+        requestBody,
       };
     }
 
     if (endpoint.format === 'anthropic') {
       const isSubscription = authType === 'subscription';
-      const requestBody = toAnthropicRequest(requestSource, bareModel, {
-        injectCacheControl: !isSubscription,
-        injectSubscriptionIdentity: isSubscription,
-        thinkingLookup: ctx.thinkingLookup,
-      });
+      const injectSubscriptionIdentity = isSubscription && !endpoint.skipSubscriptionIdentity;
+      // When the inbound request is already Anthropic Messages
+      // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
+      // skip the OpenAI translation round-trip and apply only the additive
+      // mutations cache_control + subscription identity + max_tokens
+      // default + thinking-block replay. `chatBody` is still used for the
+      // routing/scoring layer earlier in the pipeline; only the wire body
+      // bypasses translation. This closes the lossy-roundtrip class of
+      // bugs that previously dropped Anthropic-native fields (server tool
+      // `type` tags, cache_control placement, etc.) — see #1886.
+      const requestBody =
+        ctx.apiMode === 'messages'
+          ? applyAnthropicMessagesMutations(body, {
+              injectCacheControl: !isSubscription,
+              injectSubscriptionIdentity,
+              thinkingLookup: ctx.thinkingLookup,
+            })
+          : toAnthropicRequest(requestSource, bareModel, {
+              injectCacheControl: !isSubscription,
+              injectSubscriptionIdentity,
+              thinkingLookup: ctx.thinkingLookup,
+            });
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
       return {
@@ -251,29 +333,49 @@ export class ProviderClient {
     }
 
     if (endpoint.format === 'chatgpt') {
+      const requestBody =
+        ctx.apiMode === 'responses'
+          ? // ChatGPT subscription tokens hit the Codex Responses backend, which
+            // requires instruction text, list-shaped input, and upstream SSE even
+            // when Manifest returns a non-streaming JSON response to the caller.
+            // It also rejects sampling/metadata/cache fields the OpenAI SDK
+            // routinely sends, so we drop those before forwarding.
+            toNativeResponsesRequest(body, bareModel, {
+              defaultInstructions: endpointKey === 'openai-subscription',
+              inputList: endpointKey === 'openai-subscription',
+              forceStream: endpointKey === 'openai-subscription',
+              stripCodexUnsupported: endpointKey === 'openai-subscription',
+            })
+          : toResponsesRequest(requestSource, bareModel, {
+              // The ChatGPT subscription backend rejects max_output_tokens with
+              // unsupported_parameter; only opt in for the API-key paths.
+              mapMaxOutputTokens:
+                endpointKey === 'openai-responses' ||
+                endpointKey === 'copilot-responses' ||
+                endpointKey === 'xai-responses',
+            });
+      // Force upstream streaming for copilot-responses so the SSE collector in
+      // handleNonStreamResponse stays the single source of truth. Without this,
+      // an explicit `stream: false` from the caller could hand us a plain JSON
+      // body that our SSE parser would silently drop (mnfst/manifest#1849).
+      if (endpointKey === 'copilot-responses') {
+        requestBody.stream = true;
+      }
       return {
         url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
         headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody:
-          ctx.apiMode === 'responses'
-            ? // ChatGPT subscription tokens hit the Codex Responses backend, which
-              // requires instruction text, list-shaped input, and upstream SSE even
-              // when Manifest returns a non-streaming JSON response to the caller.
-              // It also rejects sampling/metadata/cache fields the OpenAI SDK
-              // routinely sends, so we drop those before forwarding.
-              toNativeResponsesRequest(body, bareModel, {
-                defaultInstructions: endpointKey === 'openai-subscription',
-                inputList: endpointKey === 'openai-subscription',
-                forceStream: endpointKey === 'openai-subscription',
-                stripCodexUnsupported: endpointKey === 'openai-subscription',
-              })
-            : toResponsesRequest(requestSource, bareModel),
+        requestBody,
       };
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
-    if (stream && SUPPORTS_USAGE_STREAM_OPTIONS.has(endpointKey)) {
+    const sanitized = sanitizeOpenAiBody(
+      requestSource,
+      endpointKey,
+      ctx.model,
+      ctx.reasoningContentLookup,
+    );
+    if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
           ? (sanitized.stream_options as Record<string, unknown>)
@@ -301,6 +403,7 @@ export class ProviderClient {
       isAnthropic: boolean;
       isChatGpt: boolean;
       isResponses?: boolean;
+      isCodeAssist?: boolean;
     },
   ): Promise<ForwardResult> {
     const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
@@ -337,5 +440,6 @@ export class ProviderClient {
   readonly convertAnthropicResponse = anthropicResponseConverter;
   readonly convertAnthropicStreamChunk = anthropicStreamChunkConverter;
   readonly createAnthropicStreamTransformer = createAnthropicTransformer;
+  readonly createReasoningContentStreamTransformer = reasoningContentStreamTransformer;
   readonly collectChatGptSseResponse = chatGptSseCollector;
 }

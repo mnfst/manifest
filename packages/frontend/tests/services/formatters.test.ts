@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatNumber, formatCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime, formatDuration, formatTimeAgo } from "../../src/services/formatters";
+import { formatNumber, formatCost, formatPerRequestCost, formatTrend, formatStatus, formatMetricType, formatErrorMessage, formatRelativeTime, formatTime, formatDuration, formatTimeAgo } from "../../src/services/formatters";
 
 describe("formatNumber", () => {
   it("formats millions", () => {
@@ -36,6 +36,23 @@ describe("formatCost", () => {
   it("formats costs at or above one cent normally", () => {
     expect(formatCost(0.01)).toBe("$0.01");
     expect(formatCost(0.05)).toBe("$0.05");
+  });
+});
+
+describe("formatPerRequestCost", () => {
+  it("formats a per-request cost with 4 decimals", () => {
+    expect(formatPerRequestCost(0.013636)).toBe("$0.0136/req");
+    expect(formatPerRequestCost(0.05)).toBe("$0.0500/req");
+  });
+  it("returns a floor label for tiny positive costs", () => {
+    expect(formatPerRequestCost(0.00001)).toBe("< $0.0001/req");
+  });
+  it("returns null for missing, zero, negative, or non-finite values", () => {
+    expect(formatPerRequestCost(null)).toBeNull();
+    expect(formatPerRequestCost(undefined)).toBeNull();
+    expect(formatPerRequestCost(0)).toBeNull();
+    expect(formatPerRequestCost(-1)).toBeNull();
+    expect(formatPerRequestCost(Number.NaN)).toBeNull();
   });
 });
 

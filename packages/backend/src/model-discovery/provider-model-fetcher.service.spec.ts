@@ -20,8 +20,12 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'fireworks',
+      'groq',
+      'kilo',
       'mistral',
       'moonshot',
+      'nvidia',
       'xai',
       'minimax',
       'minimax-subscription',
@@ -289,6 +293,175 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  /* ── xAI provider ── */
+
+  describe('xai provider', () => {
+    it('uses the dynamic xAI models endpoint for subscription auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'grok-3' }, { id: 'grok-4' }],
+        }),
+      });
+
+      const result = await service.fetch('xai', 'xai-test-key', 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.x.ai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer xai-test-key' },
+        }),
+      );
+      expect(result.map((m) => m.id)).toEqual(['grok-3', 'grok-4']);
+      expect(result.every((m) => m.provider === 'xai')).toBe(true);
+    });
+  });
+
+  /* ── Fireworks provider ── */
+
+  describe('fireworks provider', () => {
+    it('fetches serverless models from the Fireworks account API with pagination', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'accounts/fireworks/models/deepseek-v3p1',
+                displayName: 'DeepSeek V3.1',
+                contextLength: 160000,
+                supportsServerless: true,
+                supportsTools: true,
+              },
+            ],
+            nextPageToken: 'page-2',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'accounts/fireworks/models/flux-1-schnell',
+                displayName: 'FLUX.1 schnell',
+                contextLength: 4096,
+                supportsServerless: true,
+              },
+              {
+                name: 'accounts/fireworks/models/kimi-k2-instruct',
+                displayName: 'Kimi K2',
+                supportsServerless: true,
+                supportsTools: false,
+              },
+            ],
+          }),
+        });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200&pageToken=page-2',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(result.map((m) => m.id)).toEqual([
+        'accounts/fireworks/models/deepseek-v3p1',
+        'accounts/fireworks/models/kimi-k2-instruct',
+      ]);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          displayName: 'DeepSeek V3.1',
+          contextWindow: 160000,
+          provider: 'fireworks',
+          capabilityCode: true,
+        }),
+      );
+      expect(result[1]).toEqual(
+        expect.objectContaining({
+          displayName: 'Kimi K2',
+          contextWindow: 128000,
+          provider: 'fireworks',
+          capabilityCode: false,
+        }),
+      );
+    });
+
+    it('stops pagination when Fireworks repeats a page token', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [{ name: 'accounts/fireworks/models/chat-a', supportsServerless: true }],
+            nextPageToken: 'page-2',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [{ name: 'accounts/fireworks/models/chat-b', supportsServerless: true }],
+            nextPageToken: 'page-2',
+          }),
+        });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(result.map((m) => m.id)).toEqual([
+        'accounts/fireworks/models/chat-a',
+        'accounts/fireworks/models/chat-b',
+      ]);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Stopping Fireworks model pagination after repeated token page-2',
+      );
+
+      warnSpy.mockRestore();
+    });
+
+    it('caps Fireworks pagination when unique page tokens never stop', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+
+      Array.from({ length: 25 }, (_, index) => {
+        fetchSpy.mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: `accounts/fireworks/models/chat-${index}`,
+                supportsServerless: true,
+              },
+            ],
+            nextPageToken: `page-${index + 1}`,
+          }),
+        });
+      });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(20);
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200&pageToken=page-19',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(result).toHaveLength(20);
+      expect(warnSpy).toHaveBeenCalledWith('Stopping Fireworks model pagination after 20 pages');
+
+      warnSpy.mockRestore();
+    });
+  });
+
   /* ── Mistral-specific filter ── */
 
   describe('parseMistralChatOnly (via mistral provider)', () => {
@@ -458,6 +631,293 @@ describe('ProviderModelFetcherService', () => {
       'https://open.bigmodel.cn/api/paas/v4/models',
       expect.any(Object),
     );
+  });
+
+  /* ── Kimi Coding Plan subscription routing ── */
+
+  it('should skip live model fetching for moonshot subscription auth', async () => {
+    const result = await service.fetch('moonshot', 'kimi-code-key', 'subscription');
+
+    expect(result).toEqual([]);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  /* ── Kiro subscription provider ── */
+
+  it('should fetch Kiro models dynamically through the Kiro model-list operation', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              model_id: 'auto',
+              model_name: 'auto',
+              context_window_tokens: 1000000,
+            },
+          ],
+          nextToken: 'next-page',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              modelId: 'claude-sonnet-4.5',
+              modelName: 'Claude Sonnet 4.5',
+              tokenLimits: { maxInputTokens: 200000 },
+            },
+          ],
+        }),
+      });
+
+    const result = await service.fetch('kiro', 'ksk_test', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://q.us-east-1.amazonaws.com',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ksk_test',
+          'Content-Type': 'application/x-amz-json-1.0',
+          'x-amz-target': 'AmazonCodeWhispererService.ListAvailableModels',
+        },
+      }),
+    );
+    expect(JSON.parse(fetchSpy.mock.calls[0][1].body)).toEqual({
+      origin: 'KIRO_CLI',
+      maxResults: 100,
+    });
+    expect(JSON.parse(fetchSpy.mock.calls[1][1].body)).toEqual({
+      origin: 'KIRO_CLI',
+      maxResults: 100,
+      nextToken: 'next-page',
+    });
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'kiro/auto',
+        displayName: 'auto',
+        provider: 'kiro',
+        contextWindow: 1000000,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        capabilityCode: true,
+      }),
+      expect.objectContaining({
+        id: 'kiro/claude-sonnet-4.5',
+        displayName: 'Claude Sonnet 4.5',
+        contextWindow: 200000,
+      }),
+    ]);
+  });
+
+  it('should return [] when Kiro model discovery rejects the API key', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: false,
+      status: 403,
+    });
+
+    const result = await service.fetch('kiro', 'ksk_bad', 'subscription');
+
+    expect(result).toEqual([]);
+  });
+
+  it('should clear the Kiro model discovery timeout when fetch rejects', async () => {
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+    fetchSpy.mockRejectedValue(new Error('network failure'));
+
+    const result = await service.fetch('kiro', 'ksk_test', 'subscription');
+
+    expect(result).toEqual([]);
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+    clearTimeoutSpy.mockRestore();
+  });
+
+  /* ── Groq provider ── */
+
+  describe('groq provider', () => {
+    it('should parse Groq models and filter non-chat entries', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'llama-3.3-70b-versatile' },
+            { id: 'llama-3.1-8b-instant' },
+            { id: 'whisper-large-v3' },
+            { id: 'whisper-large-v3-turbo' },
+            { id: 'meta-llama/llama-prompt-guard-2-86m' },
+            { id: 'openai/gpt-oss-20b' },
+            { id: 'openai/gpt-oss-safeguard-20b' },
+            { id: 'compound-beta' },
+            { id: 'compound-mini' },
+            { id: 'groq/compound' },
+            { id: 'groq/compound-mini' },
+            { id: 'canopylabs/orpheus-v1-english' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('groq', 'gsk_test');
+      // whisper filtered by universal filter; prompt-guard, orpheus and
+      // every compound variant (start-of-string, slash-prefixed, hyphen-
+      // prefixed) filtered by groq-specific filter. gpt-oss-safeguard-20b
+      // is a real chat model and must NOT be filtered.
+      expect(result.map((m) => m.id)).toEqual([
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'openai/gpt-oss-20b',
+        'openai/gpt-oss-safeguard-20b',
+      ]);
+    });
+
+    it('should hit the Groq models endpoint with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('groq', 'gsk_test_key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.groq.com/openai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer gsk_test_key' },
+        }),
+      );
+    });
+  });
+
+  describe('kilo provider', () => {
+    it('fetches the public Kilo Gateway model catalog with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'kilo-auto/frontier',
+              name: 'Auto Frontier',
+              context_length: 1000000,
+              pricing: { prompt: '0.000005', completion: '0.000025' },
+              supported_parameters: ['max_tokens', 'temperature', 'tools', 'reasoning'],
+              architecture: { output_modalities: ['text'] },
+            },
+            {
+              id: 'anthropic/claude-sonnet-4.5',
+              name: 'Claude Sonnet 4.5',
+              top_provider: { context_length: 200000 },
+              supported_parameters: ['max_tokens', 'tools'],
+              architecture: { output_modalities: ['text'] },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.kilo.ai/api/gateway/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer kilo-token' },
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'kilo-auto/frontier',
+          displayName: 'Auto Frontier',
+          provider: 'kilo',
+          contextWindow: 1000000,
+          inputPricePerToken: 0.000005,
+          outputPricePerToken: 0.000025,
+          capabilityReasoning: true,
+          capabilityCode: true,
+        }),
+        expect.objectContaining({
+          id: 'anthropic/claude-sonnet-4.5',
+          displayName: 'Claude Sonnet 4.5',
+          provider: 'kilo',
+          contextWindow: 200000,
+          capabilityReasoning: false,
+          capabilityCode: true,
+        }),
+      ]);
+    });
+
+    it('filters non-text output models from the Kilo catalog', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'openai/gpt-5.4', architecture: { output_modalities: ['text'] } },
+            { id: 'openai/gpt-image-2', architecture: { output_modalities: ['image'] } },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(result.map((m) => m.id)).toEqual(['openai/gpt-5.4']);
+    });
+
+    it('returns [] when the Kilo catalog data field is missing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await service.fetch('kilo', 'kilo-token');
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  /* ── NVIDIA NIM provider ── */
+
+  describe('nvidia provider', () => {
+    it('should hit the hosted NVIDIA NIM models endpoint with bearer auth', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [] }),
+      });
+
+      await service.fetch('nvidia', 'nvapi-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://integrate.api.nvidia.com/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer nvapi-test-key' },
+        }),
+      );
+    });
+
+    it('should deduplicate models and filter non-chat NIM catalog entries', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'deepseek-ai/deepseek-v4-pro' },
+            { id: 'deepseek-ai/deepseek-v4-pro' },
+            { id: 'nvidia/nemotron-3-super-120b-a12b' },
+            { id: 'openai/gpt-oss-20b' },
+            { id: 'nvidia/embed-qa-4' },
+            { id: 'black-forest-labs/flux_1-schnell' },
+            { id: 'nvidia/ai-synthetic-video-detector' },
+            { id: 'nvidia/nemotron-4-340b-reward' },
+            { id: 'nvidia/llama-3.1-nemoguard-8b-content-safety' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('nvidia', 'nvapi-test-key');
+      expect(result.map((m) => m.id)).toEqual([
+        'deepseek-ai/deepseek-v4-pro',
+        'nvidia/nemotron-3-super-120b-a12b',
+        'openai/gpt-oss-20b',
+      ]);
+      expect(result.every((m) => m.provider === 'nvidia')).toBe(true);
+    });
   });
 
   /* ── OpenAI-compatible providers use same parser ── */
@@ -829,6 +1289,15 @@ describe('ProviderModelFetcherService', () => {
         expect.stringContaining('key=my-gem-key'),
         expect.objectContaining({ headers: {} }),
       );
+    });
+
+    it('should return [] immediately without any HTTP call when authType is subscription', async () => {
+      // CodeAssist does not expose a /models endpoint; the discovery fallback
+      // chain handles Gemini subscription models via the OpenRouter cache.
+      const result = await service.fetch('gemini', 'ya29.some-oauth-access-token', 'subscription');
+
+      expect(result).toEqual([]);
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 

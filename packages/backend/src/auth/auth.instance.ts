@@ -37,10 +37,18 @@ function buildTrustedOrigins(): string[] {
     origins.push(process.env['CORS_ORIGIN']);
   }
   if (isDev) {
-    origins.push(`http://localhost:3000`, `http://localhost:${port}`);
+    origins.push(
+      `http://localhost:3000`,
+      `http://127.0.0.1:3000`,
+      `http://localhost:${port}`,
+      `http://127.0.0.1:${port}`,
+    );
   }
   if (process.env['FRONTEND_PORT']) {
-    origins.push(`http://localhost:${process.env['FRONTEND_PORT']}`);
+    origins.push(
+      `http://localhost:${process.env['FRONTEND_PORT']}`,
+      `http://127.0.0.1:${process.env['FRONTEND_PORT']}`,
+    );
   }
   return origins;
 }

@@ -33,6 +33,7 @@ vi.mock("../../src/services/setup-status.js", () => ({
 }));
 
 import Login from "../../src/pages/Login";
+import { getLastAuthMethod, setLastAuthMethod } from "../../src/services/last-auth-method";
 
 describe("Login", () => {
   beforeEach(() => {
@@ -40,6 +41,7 @@ describe("Login", () => {
     mockSearchParams = {};
     mockSignInEmail.mockResolvedValue({});
     mockCheckSocialProviders.mockResolvedValue([]);
+    localStorage.clear();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
   });
 
@@ -215,6 +217,48 @@ describe("Login", () => {
     vi.useRealTimers();
   });
 
+  it("stores email as last auth method on successful sign-in", async () => {
+    mockSignInEmail.mockResolvedValue({ error: null });
+    const { container } = render(() => <Login />);
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: "t@t.com" },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: "password123" },
+    });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(getLastAuthMethod()).toBe("email");
+    });
+  });
+
+  it("does not store last auth method when sign-in fails", async () => {
+    mockSignInEmail.mockResolvedValue({ error: { message: "nope" } });
+    const { container } = render(() => <Login />);
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: "t@t.com" },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: "wrong" },
+    });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("nope");
+    });
+    expect(getLastAuthMethod()).toBeNull();
+  });
+
+  it("forwards lastUsed to SocialButtons when previous method was a provider", async () => {
+    mockCheckSocialProviders.mockResolvedValue(["github"]);
+    setLastAuthMethod("github");
+    const { container } = render(() => <Login />);
+    await vi.waitFor(() => {
+      const githubBtn = container.querySelector(".auth-social-btn--github");
+      expect(githubBtn).not.toBeNull();
+      expect(githubBtn!.querySelector(".auth-last-used")).not.toBeNull();
+    });
+  });
+
   it("shows resend error when sendVerificationEmail fails", async () => {
     mockSignInEmail.mockResolvedValue({ error: { message: "Email is not verified", code: "EMAIL_NOT_VERIFIED" } });
     mockSendVerificationEmail.mockResolvedValue({ error: { message: "Rate limited" } });
@@ -232,5 +276,30 @@ describe("Login", () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain("Rate limited");
     });
+  });
+
+  it("clears the cooldown interval on unmount", async () => {
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+    mockSignInEmail.mockResolvedValue({
+      error: { message: "Email is not verified", code: "EMAIL_NOT_VERIFIED" },
+    });
+    mockSendVerificationEmail.mockResolvedValue({ error: null });
+    const { container, unmount } = render(() => <Login />);
+    fireEvent.input(container.querySelector('input[type="email"]')!, { target: { value: "u@t.com" } });
+    fireEvent.input(container.querySelector('input[type="password"]')!, { target: { value: "pass" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend verification email");
+    });
+    const resendBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("Resend verification email"),
+    )!;
+    fireEvent.click(resendBtn);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Resend in");
+    });
+    unmount();
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    clearIntervalSpy.mockRestore();
   });
 });

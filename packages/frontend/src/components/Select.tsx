@@ -12,6 +12,7 @@ interface SelectProps {
   placeholder?: string;
   label?: string;
   displayValue?: string;
+  disabled?: boolean;
 }
 
 const Select: Component<SelectProps> = (props) => {
@@ -47,7 +48,10 @@ const Select: Component<SelectProps> = (props) => {
       <button
         class="custom-select__trigger"
         classList={{ 'custom-select__trigger--open': open() }}
-        onClick={() => setOpen(!open())}
+        onClick={() => {
+          if (!props.disabled) setOpen(!open());
+        }}
+        disabled={props.disabled}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open()}

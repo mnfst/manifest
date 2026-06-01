@@ -56,6 +56,7 @@ export class CustomProviderController {
       body.base_url,
       body.apiKey,
       body.api_kind,
+      body.provider_name,
     );
     return { models };
   }

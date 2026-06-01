@@ -1,5 +1,5 @@
 import { fetchJson, fetchMutate, routingPath } from './core.js';
-import type { AuthType, ModelRoute } from './routing.js';
+import type { AuthType, ModelRoute, ResponseMode, OutputModality } from './routing.js';
 import type { TierColor } from 'manifest-shared';
 
 export interface HeaderTier {
@@ -13,6 +13,8 @@ export interface HeaderTier {
   enabled: boolean;
   override_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
+  output_modality?: OutputModality;
+  response_mode?: ResponseMode;
   created_at: string;
   updated_at: string;
 }
@@ -71,6 +73,21 @@ export function toggleHeaderTier(agentName: string, id: string, enabled: boolean
   );
 }
 
+export function setHeaderTierResponseMode(
+  agentName: string,
+  id: string,
+  responseMode: ResponseMode,
+) {
+  return fetchMutate<HeaderTier>(
+    routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/response-mode`),
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ response_mode: responseMode }),
+    },
+  );
+}
+
 export function deleteHeaderTier(agentName: string, id: string) {
   return fetchMutate(routingPath(agentName, `header-tiers/${encodeURIComponent(id)}`), {
     method: 'DELETE',
@@ -91,12 +108,16 @@ export function overrideHeaderTier(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   const body: Record<string, unknown> = { model, provider };
   if (authType) {
     body.authType = authType;
-    body.route = { provider, authType, model };
+    body.route = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
   }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<HeaderTier>(
     routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/override`),
     {

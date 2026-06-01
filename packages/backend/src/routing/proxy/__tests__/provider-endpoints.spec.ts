@@ -5,6 +5,7 @@ import {
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
+import { resolveSubscriptionEndpointKey } from '../provider-hooks';
 
 describe('buildCustomEndpoint', () => {
   it('strips trailing /v1 from base URL to avoid double /v1', () => {
@@ -36,6 +37,12 @@ describe('buildCustomEndpoint', () => {
     expect(path).toBe('/v1/chat/completions');
   });
 
+  it('requests exact streamed usage for OpenAI-compatible custom providers', () => {
+    const endpoint = buildCustomEndpoint('http://localhost:8000');
+
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
   it('returns an Anthropic-shaped endpoint when apiKind="anthropic"', () => {
     const endpoint = buildCustomEndpoint('https://api.anthropic.com', 'anthropic');
 
@@ -61,7 +68,10 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('fireworks')).toBe('fireworks');
+    expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
   });
 
@@ -77,6 +87,11 @@ describe('resolveEndpointKey', () => {
 
   it('resolves alias z.ai to zai', () => {
     expect(resolveEndpointKey('z.ai')).toBe('zai');
+  });
+
+  it('resolves Fireworks AI aliases to fireworks', () => {
+    expect(resolveEndpointKey('fireworks-ai')).toBe('fireworks');
+    expect(resolveEndpointKey('fireworks ai')).toBe('fireworks');
   });
 
   it('resolves qwen and alibaba to qwen', () => {
@@ -101,9 +116,12 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
+    expect(known).toContain('fireworks');
     expect(known).toContain('openrouter');
+    expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
+    expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
     expect(known).toContain('opencode-zen');
@@ -125,6 +143,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencode-zen')).toBe('opencode-zen');
     expect(resolveEndpointKey('OpenCode-Zen')).toBe('opencode-zen');
     expect(resolveEndpointKey('opencodezen')).toBe('opencode-zen');
+  });
+
+  it('resolves kilo and its aliases', () => {
+    expect(resolveEndpointKey('kilo')).toBe('kilo');
+    expect(resolveEndpointKey('KiloCode')).toBe('kilo');
+    expect(resolveEndpointKey('kilo-code')).toBe('kilo');
   });
 
   it('resolves every proxy-capable provider id and alias from the registry', () => {
@@ -158,6 +182,59 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
+  });
+
+  it('groq uses OpenAI-compatible format at api.groq.com/openai', () => {
+    const ep = PROVIDER_ENDPOINTS['groq'];
+    expect(ep.baseUrl).toBe('https://api.groq.com/openai');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('llama-3.3-70b-versatile')).toBe('/v1/chat/completions');
+  });
+
+  it('groq uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['groq'].buildHeaders('gsk_test_key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer gsk_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('kilo uses the Kilo Gateway OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['kilo'];
+    expect(ep.baseUrl).toBe('https://api.kilo.ai/api/gateway');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/chat/completions');
+    expect(ep.buildHeaders('kilo-token')).toEqual({
+      Authorization: 'Bearer kilo-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('fireworks uses the Fireworks OpenAI-compatible inference endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['fireworks'];
+    expect(ep.baseUrl).toBe('https://api.fireworks.ai/inference');
+    expect(ep.format).toBe('openai');
+    expect(ep.streamUsageReporting).toBeUndefined();
+    expect(ep.buildPath('accounts/fireworks/models/deepseek-v3p1')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('fw_test_key')).toEqual({
+      Authorization: 'Bearer fw_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('nvidia uses the hosted NIM OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['nvidia'];
+    expect(ep.baseUrl).toBe('https://integrate.api.nvidia.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('nvidia/nemotron-3-super-120b-a12b')).toBe('/v1/chat/completions');
+  });
+
+  it('nvidia uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['nvidia'].buildHeaders('nvapi-test-key');
+    expect(headers).toEqual({
+      Authorization: 'Bearer nvapi-test-key',
+      'Content-Type': 'application/json',
+    });
   });
 
   it('qwen uses DashScope compatible-mode endpoint', () => {
@@ -196,6 +273,31 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Editor-Version': 'vscode/1.100.0',
       'Editor-Plugin-Version': 'copilot/1.300.0',
       'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
+  it('copilot-responses targets /responses with chatgpt format and Copilot headers', () => {
+    const ep = PROVIDER_ENDPOINTS['copilot-responses'];
+    expect(ep.baseUrl).toBe('https://api.githubcopilot.com');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('gpt-5.3-codex')).toBe('/responses');
+    expect(ep.buildHeaders('ghu_token')).toEqual({
+      Authorization: 'Bearer ghu_token',
+      'Content-Type': 'application/json',
+      'Editor-Version': 'vscode/1.100.0',
+      'Editor-Plugin-Version': 'copilot/1.300.0',
+      'Copilot-Integration-Id': 'vscode-chat',
+    });
+  });
+
+  it('xai-responses targets /v1/responses with OpenAI-compatible auth headers', () => {
+    const ep = PROVIDER_ENDPOINTS['xai-responses'];
+    expect(ep.baseUrl).toBe('https://api.x.ai');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('grok-4.20-multi-agent')).toBe('/v1/responses');
+    expect(ep.buildHeaders('xai-test-key')).toEqual({
+      Authorization: 'Bearer xai-test-key',
+      'Content-Type': 'application/json',
     });
   });
 
@@ -258,6 +360,24 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('moonshot-subscription uses Kimi Coding Plan Anthropic-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['moonshot-subscription'];
+    expect(ep.baseUrl).toBe('https://api.kimi.com/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('kimi-for-coding')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+  });
+
+  it('moonshot-subscription uses Kimi Code API key headers', () => {
+    const headers = PROVIDER_ENDPOINTS['moonshot-subscription'].buildHeaders('kimi-code-key');
+    expect(headers).toEqual({
+      'x-api-key': 'kimi-code-key',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
+    expect(headers.Authorization).toBeUndefined();
+  });
+
   it('ollama-cloud points at ollama.com with OpenAI format', () => {
     const ep = PROVIDER_ENDPOINTS['ollama-cloud'];
     expect(ep.baseUrl).toBe('https://ollama.com');
@@ -270,6 +390,18 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers).toEqual({
       Authorization: 'Bearer sk-cloud-key',
       'Content-Type': 'application/json',
+    });
+  });
+
+  it('kiro uses the Kiro AWS JSON endpoint and target header', () => {
+    const ep = PROVIDER_ENDPOINTS['kiro'];
+    expect(ep.baseUrl).toBe('https://q.us-east-1.amazonaws.com');
+    expect(ep.format).toBe('kiro');
+    expect(ep.buildPath('kiro/auto')).toBe('/');
+    expect(ep.buildHeaders('ksk_test')).toEqual({
+      Authorization: 'Bearer ksk_test',
+      'Content-Type': 'application/x-amz-json-1.0',
+      'x-amz-target': 'AmazonCodeWhispererStreamingService.GenerateAssistantResponse',
     });
   });
 
@@ -352,6 +484,53 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Content-Type': 'application/json',
     });
   });
+
+  it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
+    const endpointKeys = [
+      'openai',
+      'deepseek',
+      'groq',
+      'kilo',
+      'mistral',
+      'xai',
+      'minimax',
+      'moonshot',
+      'nvidia',
+      'qwen',
+      'zai',
+      'zai-subscription',
+      'copilot',
+      'openrouter',
+      'ollama',
+      'ollama-cloud',
+      'opencode-go',
+      'opencode-zen',
+    ];
+
+    for (const key of endpointKeys) {
+      expect(PROVIDER_ENDPOINTS[key].streamUsageReporting).toBe('openai_stream_options');
+    }
+  });
+
+  it('does not send OpenAI stream usage options to native or Responses endpoints', () => {
+    const endpointKeys = [
+      'anthropic',
+      'google',
+      'gemini-subscription',
+      'kiro',
+      'openai-subscription',
+      'openai-responses',
+      'xai-responses',
+      'copilot-responses',
+      'minimax-subscription',
+      'opencode-go-anthropic',
+      'opencode-zen-google',
+    ];
+
+    for (const key of endpointKeys) {
+      expect(PROVIDER_ENDPOINTS[key].streamUsageReporting).toBeUndefined();
+    }
+  });
 });
 
 describe('buildEndpointOverride', () => {
@@ -367,5 +546,63 @@ describe('buildEndpointOverride', () => {
     expect(() => buildEndpointOverride('https://example.com', 'nonexistent-template')).toThrow(
       'No provider endpoint template configured for: nonexistent-template',
     );
+  });
+});
+
+describe('resolveSubscriptionEndpointKey', () => {
+  it('returns gemini-subscription for google (the Gemini API-key endpoint key)', () => {
+    expect(resolveSubscriptionEndpointKey('google')).toBe('gemini-subscription');
+  });
+
+  it('returns openai-subscription for openai', () => {
+    expect(resolveSubscriptionEndpointKey('openai')).toBe('openai-subscription');
+  });
+
+  it('returns minimax-subscription for minimax', () => {
+    expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns moonshot-subscription for moonshot', () => {
+    expect(resolveSubscriptionEndpointKey('moonshot')).toBe('moonshot-subscription');
+  });
+
+  it('returns undefined for providers with no subscription override', () => {
+    expect(resolveSubscriptionEndpointKey('anthropic')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('deepseek')).toBeUndefined();
+    expect(resolveSubscriptionEndpointKey('unknown')).toBeUndefined();
+  });
+});
+
+describe('gemini-subscription endpoint', () => {
+  const ep = PROVIDER_ENDPOINTS['gemini-subscription'];
+
+  it('exists in PROVIDER_ENDPOINTS', () => {
+    expect(ep).toBeDefined();
+  });
+
+  it('uses the CodeAssist base URL', () => {
+    expect(ep.baseUrl).toBe('https://cloudcode-pa.googleapis.com');
+  });
+
+  it('uses google format', () => {
+    expect(ep.format).toBe('google');
+  });
+
+  it('has codeAssistEnvelope set to true', () => {
+    expect(ep.codeAssistEnvelope).toBe(true);
+  });
+
+  it('buildHeaders returns Authorization: Bearer and Content-Type', () => {
+    const headers = ep.buildHeaders('my-access-token');
+    expect(headers['Authorization']).toBe('Bearer my-access-token');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('buildPath returns the non-streaming generateContent path', () => {
+    expect(ep.buildPath('gemini-2.5-pro')).toBe('/v1internal:generateContent');
+  });
+
+  it('buildStreamPath returns the streamGenerateContent path', () => {
+    expect(ep.buildStreamPath!('gemini-2.5-pro')).toBe('/v1internal:streamGenerateContent');
   });
 });

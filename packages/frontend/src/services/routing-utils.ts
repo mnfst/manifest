@@ -1,6 +1,12 @@
 import { PROVIDERS } from './providers.js';
 import { inferProviderFromModel, SHARED_PROVIDERS } from 'manifest-shared';
-import type { TierAssignment } from './api.js';
+import type { AuthType, ModelRoute, RoutingProvider } from './api.js';
+
+export interface RouteSlots {
+  override_route?: ModelRoute | null;
+  auto_assigned_route?: ModelRoute | null;
+  fallback_routes?: ModelRoute[] | null;
+}
 
 /**
  * Collect all key labels already used for a given model within a tier
@@ -13,10 +19,10 @@ import type { TierAssignment } from './api.js';
  *   own dropdown), or a fallback index to skip that fallback (for its dropdown).
  */
 export function usedKeyLabelsForModelInTier(
-  tier: TierAssignment | undefined,
+  tier: RouteSlots | undefined,
   modelName: string,
   excludeSlot?: 'primary' | number,
-  /** When the primary has no explicit key pin, the proxy uses the first key
+  /** When a route has no explicit key pin, the proxy uses the first key
    *  by priority. Pass that label here so it gets counted as "used". */
   defaultKeyLabel?: string,
 ): Set<string> {
@@ -36,11 +42,93 @@ export function usedKeyLabelsForModelInTier(
     if (excludeSlot === i) continue;
     const r = routes[i];
     if (!r) continue;
-    if (r.model === modelName && r.keyLabel) {
-      used.add(r.keyLabel.toLowerCase());
+    if (r.model === modelName) {
+      const label = r.keyLabel ?? defaultKeyLabel;
+      if (label) used.add(label.toLowerCase());
     }
   }
   return used;
+}
+
+/**
+ * All active credential rows for a (provider, auth_type) tuple, sorted by
+ * priority. Local providers do not expose account keys, so they are excluded.
+ */
+export function activeRouteKeys(
+  providers: RoutingProvider[],
+  providerId: string,
+  authType: AuthType,
+): RoutingProvider[] {
+  if (authType === 'local') return [];
+  return providers
+    .filter(
+      (p) =>
+        p.provider.toLowerCase() === providerId.toLowerCase() &&
+        p.auth_type === authType &&
+        p.is_active &&
+        p.has_api_key,
+    )
+    .slice()
+    .sort((a, b) => a.priority - b.priority);
+}
+
+/**
+ * Remaining credential rows that can still be used for a model in one tier.
+ * Unpinned matching routes count as the first key by priority because that is
+ * how the proxy resolves them at runtime.
+ */
+export function availableRouteKeysForModel(
+  providers: RoutingProvider[],
+  tier: RouteSlots | undefined,
+  modelName: string,
+  providerId: string,
+  authType: AuthType,
+  excludeSlot?: 'primary' | number,
+): RoutingProvider[] {
+  const keys = activeRouteKeys(providers, providerId, authType);
+  if (keys.length === 0) return keys;
+  const used = usedKeyLabelsForModelInTier(tier, modelName, excludeSlot, keys[0]?.label);
+  return keys.filter((key) => !used.has(key.label.toLowerCase()));
+}
+
+export interface RouteKeySelection {
+  /** Keys the user may choose from when a picker is needed. */
+  keys: RoutingProvider[];
+  /** A single key that can be applied without showing a picker. */
+  autoLabel?: string;
+  needsChoice: boolean;
+  exhausted: boolean;
+}
+
+export function routeKeySelectionForModel(input: {
+  providers: RoutingProvider[];
+  tier: RouteSlots | undefined;
+  modelName: string;
+  providerId: string;
+  authType: AuthType;
+  slot: 'primary' | 'fallback';
+}): RouteKeySelection {
+  const keys = activeRouteKeys(input.providers, input.providerId, input.authType);
+  if (keys.length <= 1) return { keys, needsChoice: false, exhausted: false };
+  if (input.slot === 'primary') return { keys, needsChoice: true, exhausted: false };
+
+  const availableKeys = availableRouteKeysForModel(
+    input.providers,
+    input.tier,
+    input.modelName,
+    input.providerId,
+    input.authType,
+  );
+  if (availableKeys.length === 0) return { keys: [], needsChoice: false, exhausted: true };
+  if (availableKeys.length === 1) {
+    return {
+      keys: availableKeys,
+      autoLabel: availableKeys[0]!.label,
+      needsChoice: false,
+      exhausted: false,
+    };
+  }
+  return { keys: availableKeys, needsChoice: true, exhausted: false };
 }
 
 /** Format per-million token price: $0.15 */

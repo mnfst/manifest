@@ -41,6 +41,11 @@ describe('ProxyMessageRecorder', () => {
     const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
     const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
     const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
+    const opencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(null),
+      resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+    } as never;
+    const recordingService = { save: jest.fn() } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
@@ -51,6 +56,8 @@ describe('ProxyMessageRecorder', () => {
       tierService,
       specificityService,
       headerTierService,
+      opencodeGoCatalog,
+      recordingService,
     );
   });
 
@@ -166,6 +173,30 @@ describe('ProxyMessageRecorder', () => {
       const inserted = insertMock.mock.calls[0][0];
       // 1000 * 0.0000025 + 500 * 0.00001 = 0.0075
       expect(inserted.cost_usd).toBeCloseTo(0.0075, 10);
+    });
+
+    it('computes cost_usd with cache-read pricing when usage has cached tokens', async () => {
+      getByModelMock.mockReturnValue({
+        model_name: 'deepseek-v4-pro',
+        provider: 'DeepSeek',
+        input_price_per_token: 0.435 / 1_000_000,
+        output_price_per_token: 0.87 / 1_000_000,
+        cache_read_price_per_token: 0.003625 / 1_000_000,
+        display_name: 'DeepSeek V4 Pro',
+      });
+
+      await recorder.recordFallbackSuccess(ctx, 'deepseek-v4-pro', 'standard', {
+        authType: 'api_key',
+        usage: {
+          prompt_tokens: 36_100,
+          completion_tokens: 1_200,
+          cache_read_tokens: 21_600,
+        },
+      });
+
+      const inserted = insertMock.mock.calls[0][0];
+      expect(inserted.cache_read_tokens).toBe(21_600);
+      expect(inserted.cost_usd).toBeCloseTo(0.0074298, 10);
     });
 
     it('sets cost_usd to 0 for subscription auth type', async () => {
@@ -649,6 +680,11 @@ describe('ProxyMessageRecorder', () => {
       const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
       const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
       const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
+      const opencodeGoCatalog = {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never;
+      const recordingService = { save: jest.fn() } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -659,6 +695,8 @@ describe('ProxyMessageRecorder', () => {
         tierService,
         specificityService,
         headerTierService,
+        opencodeGoCatalog,
+        recordingService,
       );
     });
 
@@ -1072,6 +1110,11 @@ describe('ProxyMessageRecorder', () => {
       const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
       const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
       const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
+      const opencodeGoCatalog = {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never;
+      const recordingService = { save: jest.fn() } as never;
       recorder = new ProxyMessageRecorder(
         repo,
         pricingCache,
@@ -1082,6 +1125,8 @@ describe('ProxyMessageRecorder', () => {
         tierService,
         specificityService,
         headerTierService,
+        opencodeGoCatalog,
+        recordingService,
       );
 
       // Insert path
@@ -1198,12 +1243,6 @@ describe('ProxyMessageRecorder', () => {
     });
   });
 
-  // Persistence proof for the per-message Model Parameters telemetry. Each
-  // record* path must thread `requestParams` to the inserted row so the
-  // dashboard's expanded message detail can show what the request actually
-  // had — and crucially, **omitting** the field must keep the column NULL
-  // (the back-compat property: existing call sites that don't know about
-  // this feature don't accidentally write garbage).
   describe('request_params persistence', () => {
     const params = { thinking: { type: 'disabled' as const } };
 
@@ -1250,10 +1289,6 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordFailedFallbacks(ctx, 'standard', 'gpt-4o', failures, {
         requestParams: params,
       });
-      // The recorder calls `insert` once with a row[] payload. Both rows
-      // need to carry the snapshot — when one fallback succeeds and the
-      // others fail, the dashboard should still show what was requested
-      // for each attempt.
       const rows = insertMock.mock.calls[0][0] as Array<{ request_params: unknown }>;
       expect(rows).toHaveLength(2);
       expect(rows[0].request_params).toEqual(params);
@@ -1270,13 +1305,6 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('arbitrary param shapes round-trip — forward-compat for future provider knobs and user-defined custom params', async () => {
-      // The persistence layer never inspects the JSONB content. Today's
-      // typed `RequestParamDefaults` shape carries `thinking`; tomorrow's
-      // shapes might include `reasoning_effort: 'high'`, a user-defined
-      // `custom_safety: { mode: 'permissive' }` from a custom provider, or
-      // anything else. Storing them all without code changes is the whole
-      // point of the JSONB column. Test that with a multi-key fixture the
-      // field round-trips byte-identically.
       const future = {
         thinking: { type: 'enabled' },
         reasoning_effort: 'high',
@@ -1286,16 +1314,112 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({ request_params: future });
     });
   });
+
+  describe('recordingPayload', () => {
+    function buildScopedRecorder(saveMock: jest.Mock): ProxyMessageRecorder {
+      const dedupWithLock = {
+        normalizeSessionKey: jest.fn().mockReturnValue(null),
+        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
+        withSuccessWriteLock: jest
+          .fn()
+          .mockImplementation(async (_k: string, fn: () => Promise<void>) => fn()),
+        withAgentMessageTransaction: jest
+          .fn()
+          .mockImplementation(async (_r: unknown, _c: unknown, fn: (m: unknown) => Promise<void>) =>
+            fn({ insert: insertMock, update: jest.fn() }),
+          ),
+        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+      } as unknown as ProxyMessageDedup;
+      const passthroughCustomProviders = {
+        canonicalizeAgentMessageKeys: jest
+          .fn()
+          .mockImplementation(
+            async (_agentId: string, provider: string | null, model: string | null) => ({
+              provider: provider ?? null,
+              model: model ?? null,
+            }),
+          ),
+      } as never;
+      return new ProxyMessageRecorder(
+        { insert: insertMock } as never,
+        { getByModel: getByModelMock } as never,
+        dedupWithLock,
+        { emit: emitMock } as never,
+        passthroughCustomProviders,
+        { getProviders: jest.fn().mockResolvedValue([]) } as never,
+        { getTiers: jest.fn().mockResolvedValue([]) } as never,
+        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
+        { list: jest.fn().mockResolvedValue([]) } as never,
+        {
+          getCostPerRequest: jest.fn().mockReturnValue(null),
+          resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+        } as never,
+        { save: saveMock } as never,
+      );
+    }
+
+    it('persists a recording and sets recorded=true on the message (insert path)', async () => {
+      const saveMock = jest.fn().mockResolvedValue(undefined);
+      const scopedRecorder = buildScopedRecorder(saveMock);
+
+      try {
+        await scopedRecorder.recordSuccessMessage(
+          ctx,
+          'gpt-4o',
+          'standard',
+          'scored',
+          { prompt_tokens: 10, completion_tokens: 5 },
+          {
+            recordingPayload: {
+              request_body: { messages: [{ role: 'user', content: 'hi' }] },
+              response_body: { type: 'json', body: { ok: true } },
+              response_headers: { 'content-type': 'application/json' },
+              size_bytes: 100,
+            },
+          },
+        );
+
+        expect(insertMock).toHaveBeenCalledTimes(1);
+        const inserted = insertMock.mock.calls[0][0];
+        expect(inserted.recorded).toBe(true);
+        expect(saveMock).toHaveBeenCalledTimes(1);
+        expect(saveMock.mock.calls[0][1].size_bytes).toBe(100);
+      } finally {
+        scopedRecorder.onModuleDestroy();
+      }
+    });
+
+    it('swallows errors from the recording service without failing the insert', async () => {
+      const saveMock = jest.fn().mockRejectedValue(new Error('disk full'));
+      const scopedRecorder = buildScopedRecorder(saveMock);
+
+      try {
+        await expect(
+          scopedRecorder.recordSuccessMessage(
+            ctx,
+            'gpt-4o',
+            'standard',
+            'scored',
+            { prompt_tokens: 1, completion_tokens: 1 },
+            {
+              recordingPayload: {
+                request_body: {},
+                response_body: null,
+                response_headers: {},
+                size_bytes: 0,
+              },
+            },
+          ),
+        ).resolves.toBeUndefined();
+        expect(saveMock).toHaveBeenCalled();
+        expect(insertMock).toHaveBeenCalled();
+      } finally {
+        scopedRecorder.onModuleDestroy();
+      }
+    });
+  });
 });
 
-/**
- * Integration-style assertions that exercise the recorder with a REAL
- * `CustomProviderService` (not the passthrough stub used in the suite
- * above) so the full write path — recorder → canonicalizeAgentMessageKeys
- * → custom_providers lookup → row rewrite → insert — is pinned end-to-end.
- * The only stubs are the TypeORM repo and the cache/scheduler services
- * `CustomProviderService` depends on for reasons unrelated to the rewrite.
- */
 describe('ProxyMessageRecorder with real CustomProviderService', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { CustomProviderService } = require('../../custom-provider/custom-provider.service');
@@ -1336,6 +1460,11 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
     const mockTierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
     const mockSpecificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
     const mockHeaderTierService = { list: jest.fn().mockResolvedValue([]) } as never;
+    const mockOpencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(null),
+      resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+    } as never;
+    const mockRecordingService = { save: jest.fn() } as never;
     const recorder = new ProxyMessageRecorder(
       messageRepo,
       pricingCache,
@@ -1346,6 +1475,8 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       mockTierService,
       mockSpecificityService,
       mockHeaderTierService,
+      mockOpencodeGoCatalog,
+      mockRecordingService,
     );
     return { recorder, insertMock };
   }
@@ -1394,5 +1525,187 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
     } finally {
       recorder.onModuleDestroy();
     }
+  });
+});
+
+describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
+  let recorder: ProxyMessageRecorder;
+  let insertMock: jest.Mock;
+  let dedupWithLock: ProxyMessageDedup;
+  let getCostPerRequestMock: jest.Mock;
+
+  beforeEach(() => {
+    insertMock = jest.fn();
+    const repo = { insert: insertMock } as never;
+    const pricingCache = {
+      getByModel: jest.fn().mockReturnValue(undefined),
+    } as unknown as ModelPricingCacheService;
+    dedupWithLock = {
+      normalizeSessionKey: jest.fn().mockReturnValue(null),
+      getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
+      withSuccessWriteLock: jest
+        .fn()
+        .mockImplementation(async (_key: string, fn: () => Promise<void>) => fn()),
+      withAgentMessageTransaction: jest
+        .fn()
+        .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
+          fn({ insert: insertMock }),
+        ),
+      findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
+    } as unknown as ProxyMessageDedup;
+    const eventBus = { emit: jest.fn() } as unknown as IngestEventBusService;
+    const customProviders = {
+      canonicalizeAgentMessageKeys: jest
+        .fn()
+        .mockImplementation(
+          async (_agentId: string, provider: string | null, model: string | null) => ({
+            provider: provider ?? null,
+            model: model ?? null,
+          }),
+        ),
+    } as never;
+    const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+    const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
+    const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
+    const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
+    getCostPerRequestMock = jest.fn().mockResolvedValue(0.01364);
+    const opencodeGoCatalog = {
+      getCostPerRequest: jest.fn().mockReturnValue(0.01364),
+      resolveCostPerRequest: getCostPerRequestMock,
+    } as never;
+    recorder = new ProxyMessageRecorder(
+      repo,
+      pricingCache,
+      dedupWithLock,
+      eventBus,
+      customProviders,
+      providerService,
+      tierService,
+      specificityService,
+      headerTierService,
+      opencodeGoCatalog,
+      { save: jest.fn() } as never,
+    );
+  });
+
+  afterEach(() => {
+    recorder.onModuleDestroy();
+  });
+
+  it('records the catalog per-request cost for an opencode-go subscription success', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 700, completion_tokens: 150 },
+      { provider: 'opencode-go', authType: 'subscription' },
+    );
+
+    expect(getCostPerRequestMock).toHaveBeenCalledWith('glm-5.1');
+    expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(insertMock.mock.calls[0][0]).toMatchObject({
+      model: 'glm-5.1',
+      provider: 'opencode-go',
+      auth_type: 'subscription',
+      cost_usd: 0.01364,
+    });
+  });
+
+  it('records the catalog per-request cost for an opencode-go subscription fallback success', async () => {
+    await recorder.recordFallbackSuccess(ctx, 'glm-5.1', 'standard', {
+      provider: 'opencode-go',
+      authType: 'subscription',
+      fallbackFromModel: 'kimi-k2.5',
+      fallbackIndex: 0,
+      usage: { prompt_tokens: 700, completion_tokens: 150 },
+    });
+
+    expect(getCostPerRequestMock).toHaveBeenCalledWith('glm-5.1');
+    expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(insertMock.mock.calls[0][0]).toMatchObject({
+      model: 'glm-5.1',
+      provider: 'opencode-go',
+      auth_type: 'subscription',
+      cost_usd: 0.01364,
+      fallback_from_model: 'kimi-k2.5',
+    });
+  });
+
+  it('falls back to $0 when the catalog has no cost for the model (cold-start safety)', async () => {
+    getCostPerRequestMock.mockResolvedValueOnce(null);
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 100, completion_tokens: 50 },
+      { provider: 'opencode-go', authType: 'subscription' },
+    );
+
+    expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(insertMock.mock.calls[0][0]).toMatchObject({
+      cost_usd: 0,
+      auth_type: 'subscription',
+    });
+  });
+
+  it('does not consult the catalog for non-subscription opencode-go calls', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 100, completion_tokens: 50 },
+      { provider: 'opencode-go', authType: 'api_key' },
+    );
+
+    expect(getCostPerRequestMock).not.toHaveBeenCalled();
+  });
+
+  it('records the catalog cost when the provider is stored under an alias (e.g. "opencodego")', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 700, completion_tokens: 150 },
+      { provider: 'opencodego', authType: 'subscription' },
+    );
+
+    expect(getCostPerRequestMock).toHaveBeenCalledWith('glm-5.1');
+    expect(insertMock.mock.calls[0][0]).toMatchObject({
+      cost_usd: 0.01364,
+      auth_type: 'subscription',
+    });
+  });
+
+  it('records $0 when provider is null and authType is subscription (defensive)', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'glm-5.1',
+      'standard',
+      'scored',
+      { prompt_tokens: 100, completion_tokens: 50 },
+      { provider: undefined, authType: 'subscription' },
+    );
+
+    expect(getCostPerRequestMock).not.toHaveBeenCalled();
+    expect(insertMock.mock.calls[0][0]).toMatchObject({ cost_usd: 0 });
+  });
+
+  it('does not consult the catalog for other providers on subscription auth', async () => {
+    await recorder.recordSuccessMessage(
+      ctx,
+      'claude-opus-4',
+      'reasoning',
+      'scored',
+      { prompt_tokens: 100, completion_tokens: 50 },
+      { provider: 'anthropic', authType: 'subscription' },
+    );
+
+    expect(getCostPerRequestMock).not.toHaveBeenCalled();
+    // Flat-fee subscription path: cost stays 0, not derived from token math.
+    expect(insertMock.mock.calls[0][0]).toMatchObject({ cost_usd: 0 });
   });
 });

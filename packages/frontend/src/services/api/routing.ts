@@ -1,7 +1,14 @@
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import type {
+  AuthType,
+  ModelCapability,
+  ModelModality,
+  ModelRoute,
+  ResponseMode,
+  OutputModality,
+} from 'manifest-shared';
 import { BASE_URL, fetchJson, fetchMutate, parseErrorMessage, routingPath } from './core.js';
 
-export type { AuthType, ModelRoute };
+export type { AuthType, ModelCapability, ModelModality, ModelRoute, ResponseMode, OutputModality };
 
 export interface RoutingProvider {
   id: string;
@@ -48,7 +55,13 @@ export function getProviders(agentName: string) {
 
 export function connectProvider(
   agentName: string,
-  data: { provider: string; apiKey?: string; authType?: AuthType; label?: string },
+  data: {
+    provider: string;
+    apiKey?: string;
+    authType?: AuthType;
+    label?: string;
+    region?: string;
+  },
 ) {
   return fetchMutate<{
     id: string;
@@ -164,18 +177,14 @@ export function toggleComplexity(agentName: string) {
 /* -- Routing: Tier Assignments -- */
 
 /**
- * Per-assignment outbound request body parameters merged into the provider
+ * Per-route outbound request body parameters merged into the provider
  * request before forwarding. Today's only knob is DeepSeek's `thinking`
- * toggle. New keys land here as we add support for more provider-specific
- * params (`reasoning_effort`, `safety`, custom-provider params, …).
- *
- * Stored at the assignment level (one per tier per agent), so the same
- * defaults apply to the primary model AND every fallback in that tier.
- * Multi-key compatible: switching pinned key does not affect params.
+ * toggle; new keys (`reasoning_effort`, `safety`, custom-provider params)
+ * land here as their UI ships. Storage is per-(agent, route) on the
+ * `agent_model_params` table — see `services/api/model-params.ts` for the
+ * CRUD client.
  */
-export interface RequestParamDefaults {
-  thinking?: { type: 'enabled' | 'disabled' };
-}
+export type { RequestParamDefaults } from 'manifest-shared';
 
 export interface TierAssignment {
   id: string;
@@ -184,7 +193,8 @@ export interface TierAssignment {
   override_route: ModelRoute | null;
   auto_assigned_route: ModelRoute | null;
   fallback_routes: ModelRoute[] | null;
-  param_defaults: RequestParamDefaults | null;
+  output_modality?: OutputModality;
+  response_mode?: ResponseMode;
   updated_at: string;
 }
 
@@ -227,23 +237,19 @@ export function resetTier(agentName: string, tier: string) {
   });
 }
 
-export function resetAllTiers(agentName: string) {
-  return fetchMutate(routingPath(agentName, 'tiers/reset-all'), { method: 'POST' });
-}
-
-export function setTierParamDefaults(
-  agentName: string,
-  tier: string,
-  paramDefaults: RequestParamDefaults | null,
-) {
+export function setTierResponseMode(agentName: string, tier: string, responseMode: ResponseMode) {
   return fetchMutate<TierAssignment>(
-    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/params`),
+    routingPath(agentName, `tiers/${encodeURIComponent(tier)}/response-mode`),
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paramDefaults }),
+      body: JSON.stringify({ response_mode: responseMode }),
     },
   );
+}
+
+export function resetAllTiers(agentName: string) {
+  return fetchMutate(routingPath(agentName, 'tiers/reset-all'), { method: 'POST' });
 }
 
 /* -- Routing: Fallbacks -- */
@@ -286,9 +292,14 @@ export interface AvailableModel {
   auth_type?: AuthType;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
+  /** Per-request USD cost for per-request subscriptions (e.g. OpenCode Go). */
+  cost_per_request?: number | null;
   context_window: number;
   capability_reasoning: boolean;
   capability_code: boolean;
+  capabilities?: ModelCapability[];
+  input_modalities?: ModelModality[];
+  output_modalities?: ModelModality[];
   quality_score: number;
   display_name?: string;
   provider_display_name?: string;
@@ -344,6 +355,7 @@ export interface CustomProviderModel {
   input_price_per_million_tokens?: number;
   output_price_per_million_tokens?: number;
   context_window?: number;
+  price_estimated?: boolean;
 }
 
 export interface CustomProviderData {
@@ -428,20 +440,21 @@ export async function probeCustomProvider(
   base_url: string,
   apiKey?: string,
   api_kind?: CustomProviderApiKind,
+  provider_name?: string,
 ) {
   const res = await fetch(`${BASE_URL}${routingPath(agentName, 'custom-providers/probe')}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ base_url, apiKey, api_kind }),
+    body: JSON.stringify({ base_url, apiKey, api_kind, provider_name }),
   });
   if (!res.ok) {
     const message = await parseErrorMessage(res);
     throw new Error(message);
   }
   const text = await res.text();
-  if (!text) return { models: [] } as { models: { model_name: string }[] };
-  return JSON.parse(text) as { models: { model_name: string }[] };
+  if (!text) return { models: [] } as { models: CustomProviderModel[] };
+  return JSON.parse(text) as { models: CustomProviderModel[] };
 }
 
 export function deleteCustomProvider(agentName: string, id: string) {

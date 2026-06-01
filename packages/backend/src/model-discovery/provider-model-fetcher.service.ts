@@ -11,12 +11,22 @@ import {
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
 import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
+import {
+  buildKiroHeaders,
+  KIRO_BASE_URL,
+  KIRO_MODELS_TARGET,
+  parseKiroModels,
+} from '../routing/proxy/kiro-adapter';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
+const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
+const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
+const FIREWORKS_MODELS_PAGE_SIZE = 200;
+const FIREWORKS_MODELS_MAX_PAGES = 20;
 
 /* ── Generic parser factory ── */
 
@@ -28,7 +38,7 @@ interface ModelParserConfig<T> {
   contextWindow?: number | ((entry: T) => number);
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
-  capabilityCode?: boolean;
+  capabilityCode?: boolean | ((entry: T) => boolean);
   qualityScore?: number;
 }
 
@@ -52,7 +62,10 @@ function createModelParser<T>(
           inputPricePerToken: config.inputPricePerToken ?? null,
           outputPricePerToken: config.outputPricePerToken ?? null,
           capabilityReasoning: false,
-          capabilityCode: config.capabilityCode ?? false,
+          capabilityCode:
+            typeof config.capabilityCode === 'function'
+              ? config.capabilityCode(entry)
+              : (config.capabilityCode ?? false),
           qualityScore: config.qualityScore ?? 3,
         };
       });
@@ -91,6 +104,16 @@ function parseOpenAIDeduped(body: unknown, provider: string): DiscoveredModel[] 
   });
 }
 
+function parseOpenAIDedupedById(body: unknown, provider: string): DiscoveredModel[] {
+  const parsed = parseOpenAI(body, provider);
+  const seen = new Set<string>();
+  return parsed.filter((m) => {
+    if (seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
+}
+
 /* ── Universal non-chat model filter ── */
 
 /**
@@ -110,11 +133,30 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|^gpt-3\.5-turbo-instruct|audio|^chatgpt-image|^gpt-image-|search-api)/i,
   'openai-subscription':
     /(?:moderation|davinci|babbage|^text-|realtime|-transcribe|^sora|audio|^chatgpt-image|^gpt-image-)/i,
+  // `flash-lite-preview-MM-YYYY` matches deprecated dated snapshots
+  // (e.g. gemini-2.5-flash-lite-preview-09-2025). The unsuffixed
+  // `gemini-3.1-flash-lite-preview` is the canonical preview alias and
+  // must NOT be filtered.
   gemini:
-    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview|robotics)/i,
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
-  xai: /(?:imagine|multi-agent)/i,
+  // Groq filters:
+  //  - compound family: server-side router/agent product (compound,
+  //    compound-mini, compound-beta). Not a model the user picks directly,
+  //    and OpenRouter's cache surfaces it with the wrong attribution if we
+  //    let it through. Match start-of-string, slash-prefixed (models.dev
+  //    returns `groq/compound`), and hyphen-prefixed forms.
+  //  - prompt-guard: small Llama classifier, not a chat model.
+  //  - orpheus: text-to-speech, not chat.
+  // Note: do NOT block "safeguard" — Groq's gpt-oss-safeguard-20b is a chat
+  // model the user can call.
+  groq: /(?:(?:^|\/|-)compound|prompt-guard|orpheus)/i,
+  fireworks:
+    /(?:flux|stable-diffusion|image|embedding|rerank|speech|audio|whisper|tts|upscaler|controlnet)/i,
+  nvidia:
+    /(?:flux|cosmos|detector|gliner|calibration|embed|retriever|parse|tts|translate|safety|guard|reward|nvclip|vila|neva)/i,
+  xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
 };
 
@@ -239,6 +281,24 @@ interface OpenRouterModelEntry {
   pricing?: { prompt?: string; completion?: string };
 }
 
+interface FireworksModelEntry {
+  name: string;
+  displayName?: string;
+  contextLength?: number;
+  supportsServerless?: boolean;
+  supportsTools?: boolean;
+}
+
+const parseFireworks = createModelParser<FireworksModelEntry>({
+  arrayKey: 'models',
+  filter: (entry) =>
+    typeof entry.name === 'string' && entry.name.length > 0 && entry.supportsServerless !== false,
+  getId: (entry) => entry.name,
+  getDisplayName: (entry, id) => entry.displayName || id,
+  contextWindow: (entry) => entry.contextLength ?? DEFAULT_CONTEXT_WINDOW,
+  capabilityCode: (entry) => entry.supportsTools === true,
+});
+
 function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
   const data = (body as { data?: unknown[] })?.data;
   if (!Array.isArray(data)) return [];
@@ -267,6 +327,52 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
           completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
         capabilityReasoning: false,
         capabilityCode: false,
+        qualityScore: 3,
+      };
+    });
+}
+
+interface KiloModelEntry {
+  id: string;
+  name?: string;
+  context_length?: number;
+  architecture?: { output_modalities?: string[] };
+  top_provider?: { context_length?: number };
+  pricing?: { prompt?: string; completion?: string };
+  supported_parameters?: string[];
+}
+
+function parseKilo(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown[] })?.data;
+  if (!Array.isArray(data)) return [];
+  return data
+    .filter((m: unknown) => {
+      const entry = m as KiloModelEntry;
+      if (typeof entry.id !== 'string' || entry.id.length === 0) return false;
+      const output = entry.architecture?.output_modalities?.map((o) => o.toLowerCase());
+      if (output && output.length > 0 && !output.every((o) => o === 'text')) {
+        return false;
+      }
+      return true;
+    })
+    .map((m: unknown) => {
+      const entry = m as KiloModelEntry;
+      const supported = Array.isArray(entry.supported_parameters) ? entry.supported_parameters : [];
+      const prompt = entry.pricing?.prompt ? Number(entry.pricing.prompt) : null;
+      const completion = entry.pricing?.completion ? Number(entry.pricing.completion) : null;
+      return {
+        id: entry.id,
+        displayName: entry.name || entry.id,
+        provider,
+        contextWindow:
+          entry.context_length ?? entry.top_provider?.context_length ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken:
+          prompt !== null && Number.isFinite(prompt) && prompt >= 0 ? prompt : null,
+        outputPricePerToken:
+          completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
+        capabilityReasoning:
+          supported.includes('reasoning') || supported.includes('include_reasoning'),
+        capabilityCode: supported.includes('tools'),
         qualityScore: 3,
       };
     });
@@ -356,6 +462,21 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  groq: {
+    endpoint: 'https://api.groq.com/openai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
+  fireworks: {
+    endpoint: FIREWORKS_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseFireworks,
+  },
+  kilo: {
+    endpoint: `${KILO_GATEWAY_BASE}/models`,
+    buildHeaders: bearerHeaders,
+    parse: parseKilo,
+  },
   mistral: {
     endpoint: 'https://api.mistral.ai/v1/models',
     buildHeaders: bearerHeaders,
@@ -365,6 +486,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.moonshot.ai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  nvidia: {
+    endpoint: 'https://integrate.api.nvidia.com/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAIDedupedById,
   },
   xai: {
     endpoint: 'https://api.x.ai/v1/models',
@@ -478,15 +604,30 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'moonshot' && authType === 'subscription') {
+      // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
+      // rather than a subscription-scoped /models endpoint.
+      return [];
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
       return this.fetchOpencodeGoCatalog();
+    } else if (configKey === 'gemini' && authType === 'subscription') {
+      // CodeAssist (`cloudcode-pa.googleapis.com`) does not expose a
+      // `/models` endpoint; the discovery fallback chain pulls Gemini
+      // models from the OpenRouter cache instead.
+      return [];
+    } else if (configKey === 'kiro') {
+      return this.fetchKiroModels(apiKey);
     }
     const config = PROVIDER_CONFIGS[configKey];
     if (!config) {
       this.logger.warn(`No fetcher config for provider: ${providerId}`);
       return [];
+    }
+
+    if (configKey === 'fireworks') {
+      return this.fetchFireworksModels(config, apiKey, providerId);
     }
 
     let url = typeof config.endpoint === 'function' ? config.endpoint(apiKey) : config.endpoint;
@@ -534,6 +675,71 @@ export class ProviderModelFetcherService {
     }
   }
 
+  private async fetchFireworksModels(
+    config: FetcherConfig,
+    apiKey: string,
+    providerId: string,
+  ): Promise<DiscoveredModel[]> {
+    const headers = config.buildHeaders(apiKey);
+    const all: DiscoveredModel[] = [];
+    let pageToken: string | undefined;
+    let pageCount = 0;
+    const seenPageTokens = new Set<string>();
+
+    try {
+      do {
+        if (pageToken) {
+          if (seenPageTokens.has(pageToken)) {
+            this.logger.warn(
+              `Stopping Fireworks model pagination after repeated token ${pageToken}`,
+            );
+            break;
+          }
+          seenPageTokens.add(pageToken);
+        }
+
+        const url = this.buildFireworksModelsUrl(pageToken);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+        const res = await fetch(url, { headers, signal: controller.signal });
+        clearTimeout(timeout);
+        pageCount += 1;
+
+        if (!res.ok) {
+          this.logger.warn(`Provider ${providerId} returned ${res.status} from ${url}`);
+          return [];
+        }
+
+        const body = await res.json();
+        all.push(...config.parse(body, providerId));
+        const nextPageToken = (body as { nextPageToken?: unknown })?.nextPageToken;
+        pageToken =
+          typeof nextPageToken === 'string' && nextPageToken.length > 0 ? nextPageToken : undefined;
+        if (pageToken && pageCount >= FIREWORKS_MODELS_MAX_PAGES) {
+          this.logger.warn(
+            `Stopping Fireworks model pagination after ${FIREWORKS_MODELS_MAX_PAGES} pages`,
+          );
+          pageToken = undefined;
+        }
+      } while (pageToken);
+
+      return filterNonChatModels(all, 'fireworks');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch models from ${providerId}: ${message}`);
+      return [];
+    }
+  }
+
+  private buildFireworksModelsUrl(pageToken?: string): string {
+    const params = new URLSearchParams({
+      filter: 'supports_serverless=true',
+      pageSize: String(FIREWORKS_MODELS_PAGE_SIZE),
+    });
+    if (pageToken) params.set('pageToken', pageToken);
+    return `${FIREWORKS_MODELS_URL}?${params.toString()}`;
+  }
+
   private async fetchOpencodeGoCatalog(): Promise<DiscoveredModel[]> {
     if (!this.opencodeGoCatalog) return [];
     const entries = await this.opencodeGoCatalog.list();
@@ -548,5 +754,55 @@ export class ProviderModelFetcherService {
       capabilityCode: true,
       qualityScore: 3,
     }));
+  }
+
+  private async fetchKiroModels(apiKey: string): Promise<DiscoveredModel[]> {
+    const models: DiscoveredModel[] = [];
+    let nextToken: string | undefined;
+
+    try {
+      for (let page = 0; page < 10; page += 1) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+        let res: Response;
+        try {
+          res = await fetch(KIRO_BASE_URL, {
+            method: 'POST',
+            headers: buildKiroHeaders(apiKey, KIRO_MODELS_TARGET),
+            body: JSON.stringify({
+              origin: 'KIRO_CLI',
+              maxResults: 100,
+              ...(nextToken ? { nextToken } : {}),
+            }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
+
+        if (!res.ok) {
+          this.logger.warn(`Provider kiro returned ${res.status} from ${KIRO_BASE_URL}`);
+          return [];
+        }
+
+        const body = await res.json();
+        models.push(...parseKiroModels(body, 'kiro'));
+        const maybeNextToken = (body as { nextToken?: unknown; next_token?: unknown }).nextToken;
+        const snakeNextToken = (body as { next_token?: unknown }).next_token;
+        nextToken =
+          typeof maybeNextToken === 'string'
+            ? maybeNextToken
+            : typeof snakeNextToken === 'string'
+              ? snakeNextToken
+              : undefined;
+        if (!nextToken) break;
+      }
+
+      return filterNonChatModels(models, 'kiro');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Failed to fetch models from kiro: ${message}`);
+      return [];
+    }
   }
 }

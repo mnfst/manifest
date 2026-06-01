@@ -76,6 +76,62 @@ describe('computeTokenCost', () => {
     expect(result).toBeCloseTo(0.0075, 10);
   });
 
+  it('prices cache-read input tokens with the cache-read price when available', () => {
+    const deepseekPricing: PricingEntry = {
+      model_name: 'deepseek-v4-pro',
+      provider: 'DeepSeek',
+      input_price_per_token: 0.435 / 1_000_000,
+      output_price_per_token: 0.87 / 1_000_000,
+      cache_read_price_per_token: 0.003625 / 1_000_000,
+      display_name: 'DeepSeek V4 Pro',
+    };
+
+    const result = computeTokenCost({
+      inputTokens: 36_100,
+      outputTokens: 1_200,
+      cacheReadTokens: 21_600,
+      model: 'deepseek-v4-pro',
+      pricing: deepseekPricing,
+    });
+
+    expect(result).toBeCloseTo(0.0074298, 10);
+  });
+
+  it('falls back to input price for cache-read tokens without cache-read pricing', () => {
+    const result = computeTokenCost({
+      inputTokens: 1000,
+      outputTokens: 500,
+      cacheReadTokens: 400,
+      model: 'gpt-4o',
+      pricing,
+    });
+
+    expect(result).toBeCloseTo(0.0075, 10);
+  });
+
+  it('uses cache-write pricing for cache-creation tokens when available', () => {
+    const cachePricing: PricingEntry = {
+      model_name: 'claude-opus-4-6',
+      provider: 'Anthropic',
+      input_price_per_token: 3 / 1_000_000,
+      output_price_per_token: 15 / 1_000_000,
+      cache_read_price_per_token: 0.3 / 1_000_000,
+      cache_write_price_per_token: 3.75 / 1_000_000,
+      display_name: 'Claude Opus 4.6',
+    };
+
+    const result = computeTokenCost({
+      inputTokens: 1000,
+      outputTokens: 100,
+      cacheReadTokens: 300,
+      cacheCreationTokens: 200,
+      model: 'claude-opus-4-6',
+      pricing: cachePricing,
+    });
+
+    expect(result).toBeCloseTo(0.00384, 12);
+  });
+
   it('computes cost with only input tokens', () => {
     const result = computeTokenCost({
       inputTokens: 2000,
@@ -211,6 +267,71 @@ describe('computeTokenCost', () => {
         isSubscription: true,
       }),
     ).toBe(0);
+  });
+
+  it('returns the per-request cost when subscription has a positive perRequestCostUsd', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 700,
+        outputTokens: 150,
+        model: 'glm-5.1',
+        pricing: undefined,
+        isSubscription: true,
+        perRequestCostUsd: 0.0136,
+      }),
+    ).toBeCloseTo(0.0136, 10);
+  });
+
+  it('falls back to 0 when subscription perRequestCostUsd is zero', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'flat-fee-model',
+        pricing: undefined,
+        isSubscription: true,
+        perRequestCostUsd: 0,
+      }),
+    ).toBe(0);
+  });
+
+  it('falls back to 0 when subscription perRequestCostUsd is negative (defensive)', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'flat-fee-model',
+        pricing: undefined,
+        isSubscription: true,
+        perRequestCostUsd: -1,
+      }),
+    ).toBe(0);
+  });
+
+  it('falls back to 0 when subscription perRequestCostUsd is null', () => {
+    expect(
+      computeTokenCost({
+        inputTokens: 100,
+        outputTokens: 50,
+        model: 'gpt-4o',
+        pricing,
+        isSubscription: true,
+        perRequestCostUsd: null,
+      }),
+    ).toBe(0);
+  });
+
+  it('ignores perRequestCostUsd entirely when isSubscription is false', () => {
+    const result = computeTokenCost({
+      inputTokens: 1000,
+      outputTokens: 500,
+      model: 'gpt-4o',
+      pricing,
+      isSubscription: false,
+      perRequestCostUsd: 0.05,
+    });
+    // 1000 * 0.0000025 + 500 * 0.00001 = 0.0075 — token math applies, not 0.05
+    expect(result).toBeCloseTo(0.0075, 10);
   });
 
   it('subscription check takes priority over negative pricing guard', () => {

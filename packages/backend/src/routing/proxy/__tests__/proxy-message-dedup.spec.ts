@@ -409,12 +409,15 @@ describe('ProxyMessageDedup', () => {
       expect(where).not.toHaveProperty('session_key');
     });
 
-    it('should include cache tokens in totalPromptTokens calculation', async () => {
+    it('matches when stored input_tokens equals incoming prompt_tokens regardless of cache split', async () => {
+      // agent_messages.input_tokens stores chat-shape prompt_tokens (the full
+      // total). Cache columns are subset reporting, not additive — comparing
+      // input_tokens directly avoids double-counting.
       const now = Date.now();
       const existing = {
         id: 'msg-1',
         timestamp: new Date(now - 500).toISOString(),
-        input_tokens: 50,
+        input_tokens: 100, // total including cache reads + creation
         output_tokens: 50,
         cache_read_tokens: 30,
         cache_creation_tokens: 20,
@@ -423,7 +426,6 @@ describe('ProxyMessageDedup', () => {
       const repo = makeMockMessageRepo();
       repo.find.mockResolvedValue([existing]);
 
-      // Total prompt tokens: 50 + 30 + 20 = 100
       const result = await dedup.findExistingSuccessMessage(
         repo as unknown as any,
         testCtx,

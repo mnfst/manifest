@@ -12,8 +12,6 @@ export default [
       'packages/backend/src/**/*.ts',
       'packages/frontend/src/**/*.ts',
       'packages/frontend/src/**/*.tsx',
-      'packages/wingman/src/**/*.ts',
-      'packages/wingman/src/**/*.tsx',
     ],
     languageOptions: {
       parser: tsParser,

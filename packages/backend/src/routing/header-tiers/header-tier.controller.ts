@@ -16,14 +16,20 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { CurrentUser } from '../../auth/current-user.decorator';
 import type { AuthUser } from '../../auth/auth.instance';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ModelRouteDto } from '../dto/routing.dto';
+import {
+  MAX_PROVIDER_KEY_LABEL_LENGTH,
+  ModelRouteDto,
+  SetResponseModeDto,
+  responseModeFromDto,
+} from '../dto/routing.dto';
 import { HeaderTierService } from './header-tier.service';
 import { AUTH_TYPES, type TierColor } from 'manifest-shared';
 
@@ -58,6 +64,13 @@ class OverrideBody {
   @IsOptional()
   @IsIn(AUTH_TYPES)
   authType?: 'api_key' | 'subscription' | 'local';
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  providerKeyLabel?: string;
 
   // Validate the nested route shape so a malformed payload can't bypass the
   // legacy field validators above by being smuggled in through `route`.
@@ -127,6 +140,19 @@ export class HeaderTierController {
     return this.headerTierService.setEnabled(agent.id, id, body.enabled);
   }
 
+  @Patch(':agentName/header-tiers/:id/response-mode')
+  async setResponseMode(
+    @CurrentUser() user: AuthUser,
+    @Param('agentName') agentName: string,
+    @Param('id') id: string,
+    @Body() body: SetResponseModeDto,
+  ) {
+    const responseMode = responseModeFromDto(body);
+    if (!responseMode) throw new BadRequestException('response_mode is required');
+    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    return this.headerTierService.setResponseMode(agent.id, id, responseMode);
+  }
+
   @Delete(':agentName/header-tiers/:id')
   async delete(
     @CurrentUser() user: AuthUser,
@@ -163,7 +189,15 @@ export class HeaderTierController {
     const model = body.route?.model ?? body.model;
     const provider = body.route?.provider ?? body.provider;
     const authType = body.route?.authType ?? body.authType;
-    return this.headerTierService.setOverride(agent.id, id, model, provider, authType);
+    const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
+    return this.headerTierService.setOverride(
+      agent.id,
+      id,
+      model,
+      provider,
+      authType,
+      providerKeyLabel,
+    );
   }
 
   @Delete(':agentName/header-tiers/:id/override')

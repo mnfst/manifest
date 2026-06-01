@@ -1,10 +1,11 @@
-import { createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { createSignal, For, onCleanup, Show, type Component } from 'solid-js';
 import { providerIcon } from './ProviderIcon.js';
 import {
   copilotDeviceCode,
   copilotPollToken,
   disconnectProvider,
   type CopilotPollStatus,
+  type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 
@@ -25,13 +26,16 @@ type Phase = 'idle' | 'loading' | 'awaiting' | 'success' | 'error';
 interface Props {
   agentName: string;
   connected: boolean;
+  activeKeys?: RoutingProvider[];
   onBack: () => void;
   onConnected: () => void;
+  onUpdated?: () => void;
   onDisconnected: () => void;
 }
 
 const SLOW_DOWN_INCREASE = 5;
 const MAX_POLL_ERRORS = 5;
+const MAX_KEYS_PER_PROVIDER = 5;
 
 const CopilotDeviceLogin: Component<Props> = (props) => {
   const [phase, setPhase] = createSignal<Phase>('idle');
@@ -42,6 +46,11 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   const [copied, setCopied] = createSignal(false);
   let pollTimeout: ReturnType<typeof setTimeout> | undefined;
   let cancelled = false;
+
+  const activeKeys = () => (props.activeKeys ?? []).slice().sort((a, b) => a.priority - b.priority);
+  const isMultiKey = () => activeKeys().length > 1;
+  const canAddAnother = () => activeKeys().length < MAX_KEYS_PER_PROVIDER;
+  const showConnectedState = () => props.connected && (phase() === 'idle' || phase() === 'error');
 
   onCleanup(() => {
     cancelled = true;
@@ -125,6 +134,21 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
     }
   };
 
+  const handleDeleteKey = async (label: string) => {
+    setBusy(true);
+    try {
+      const result = await disconnectProvider(props.agentName, 'copilot', 'subscription', label);
+      if (result?.notifications?.length) {
+        for (const msg of result.notifications) toast.error(msg);
+      }
+      props.onUpdated?.();
+    } catch {
+      /* error toast from fetchMutate */
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div class="provider-detail">
       <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
@@ -154,10 +178,76 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
       </div>
 
       {/* Connected state */}
-      <Show when={props.connected && phase() !== 'success'}>
-        <p class="provider-detail__hint" style="color: var(--success-color, #22c55e);">
-          Connected via GitHub device login.
-        </p>
+      <Show when={showConnectedState()}>
+        <Show
+          when={isMultiKey()}
+          fallback={
+            <p class="provider-detail__hint" style="color: var(--success-color, #22c55e);">
+              Connected via GitHub device login.
+            </p>
+          }
+        >
+          <div class="provider-detail__field">
+            <label class="provider-detail__label">Accounts</label>
+            <ul
+              role="list"
+              aria-label="Accounts for GitHub Copilot"
+              style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;"
+            >
+              <For each={activeKeys()}>
+                {(k) => (
+                  <li style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted) / 0.3);">
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {k.label}
+                      </div>
+                      <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                        Connected via GitHub Copilot subscription
+                      </div>
+                    </div>
+                    <button
+                      class="provider-detail__disconnect-icon"
+                      disabled={busy()}
+                      onClick={() => handleDeleteKey(k.label)}
+                      aria-label={`Delete account ${k.label}`}
+                      title="Delete account"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                      </svg>
+                    </button>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </div>
+        </Show>
+        <Show when={error()}>
+          <div class="provider-detail__error">{error()}</div>
+        </Show>
+        <Show when={canAddAnother()}>
+          <button
+            class="btn btn--primary provider-detail__action"
+            disabled={busy()}
+            onClick={startLogin}
+          >
+            <Show when={!busy()} fallback={<span class="spinner" />}>
+              Add another key
+            </Show>
+          </button>
+        </Show>
         <button
           class="btn btn--outline provider-detail__action provider-detail__disconnect"
           disabled={busy()}

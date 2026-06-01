@@ -229,83 +229,6 @@ describe('SpecificityService', () => {
     });
   });
 
-  // Mirrors `TierService.setParamDefaults` — same multi-key + per-fallback
-  // semantics, just keyed by category instead of tier.
-  describe('setParamDefaults', () => {
-    it('updates the existing row when one is present', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        category: 'coding',
-        param_defaults: null,
-      } as unknown as SpecificityAssignment;
-      repo.findOne.mockResolvedValue(existing);
-      const defaults = { thinking: { type: 'disabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-
-      expect(result.param_defaults).toEqual(defaults);
-      expect(repo.save).toHaveBeenCalledWith(existing);
-      expect(repo.insert).not.toHaveBeenCalled();
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('clears defaults when null is passed', async () => {
-      const existing = {
-        agent_id: 'agent-1',
-        category: 'coding',
-        param_defaults: { thinking: { type: 'disabled' } },
-      } as unknown as SpecificityAssignment;
-      repo.findOne.mockResolvedValue(existing);
-
-      await svc.setParamDefaults('agent-1', 'user-1', 'coding', null);
-
-      expect(existing.param_defaults).toBeNull();
-      expect(repo.save).toHaveBeenCalledWith(existing);
-    });
-
-    it('lazily inserts an inactive row so the popup can open before the user activates the category', async () => {
-      repo.findOne.mockResolvedValue(null);
-      const defaults = { thinking: { type: 'enabled' as const } };
-
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-
-      expect(repo.insert).toHaveBeenCalledTimes(1);
-      expect(result.param_defaults).toEqual(defaults);
-      expect(result.is_active).toBe(false);
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    });
-
-    it('retries on insert conflict when a concurrent caller created the row', async () => {
-      repo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          category: 'coding',
-          param_defaults: null,
-        } as SpecificityAssignment)
-        .mockResolvedValueOnce({
-          agent_id: 'agent-1',
-          category: 'coding',
-          param_defaults: null,
-        } as SpecificityAssignment);
-      repo.insert.mockRejectedValueOnce(new Error('duplicate'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      const result = await svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults);
-      expect(result.param_defaults).toEqual(defaults);
-    });
-
-    it('rethrows insert failures when no concurrent row exists (genuine DB error)', async () => {
-      repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      repo.insert.mockRejectedValueOnce(new Error('unrelated'));
-
-      const defaults = { thinking: { type: 'disabled' as const } };
-      await expect(svc.setParamDefaults('agent-1', 'user-1', 'coding', defaults)).rejects.toThrow(
-        'unrelated',
-      );
-    });
-  });
-
   describe('clearOverride', () => {
     it('no-ops when no row exists', async () => {
       repo.findOne.mockResolvedValue(null);
@@ -431,6 +354,21 @@ describe('SpecificityService', () => {
       expect(repo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
+
+    it('rejects clearing the only stream-capable route while stream mode is active', async () => {
+      repo.findOne.mockResolvedValue({
+        category: 'coding',
+        override_route: route('custom:local', 'api_key', 'local-model'),
+        auto_assigned_route: null,
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+        response_mode: 'stream',
+      } as SpecificityAssignment);
+
+      await expect(svc.clearFallbacks('agent-1', 'coding')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('resetAll', () => {
@@ -445,6 +383,51 @@ describe('SpecificityService', () => {
         }),
       );
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  describe('stream response mode enforcement', () => {
+    it('rejects stream mode when the category has no primary route', async () => {
+      repo.findOne.mockResolvedValue({
+        category: 'coding',
+        override_route: null,
+        auto_assigned_route: null,
+        fallback_routes: null,
+      } as SpecificityAssignment);
+
+      await expect(svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream')).rejects.toThrow(
+        /add at least one stream-capable model/,
+      );
+      expect(repo.save).not.toHaveBeenCalled();
+    });
+
+    it('allows stream mode when only the category primary is stream-capable', async () => {
+      const existing = {
+        category: 'coding',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        auto_assigned_route: null,
+        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+      } as SpecificityAssignment;
+      repo.findOne.mockResolvedValue(existing);
+
+      const result = await svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream');
+
+      expect(result.response_mode).toBe('stream');
+      expect(repo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('rejects assigning a non-stream primary while category stream mode is active with no stream fallback', async () => {
+      repo.findOne.mockResolvedValue({
+        category: 'coding',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        response_mode: 'stream',
+      } as SpecificityAssignment);
+
+      await expect(
+        svc.setOverride('agent-1', 'user-1', 'coding', 'local-model', 'custom:local', 'api_key'),
+      ).rejects.toThrow(/add at least one stream-capable model/);
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 });

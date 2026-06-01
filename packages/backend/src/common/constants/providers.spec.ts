@@ -95,6 +95,39 @@ describe('PROVIDER_REGISTRY', () => {
     expect(oz!.requiresApiKey).toBe(true);
     expect(oz!.localOnly).toBe(false);
   });
+
+  it('kilo is registered as a non-local gateway provider', () => {
+    const kilo = PROVIDER_REGISTRY.find((p) => p.id === 'kilo');
+    expect(kilo).toBeDefined();
+    expect(kilo!.displayName).toBe('Kilo');
+    expect(kilo!.aliases).toEqual(['kilocode', 'kilo-code']);
+    expect(kilo!.openRouterPrefixes).toEqual([]);
+    expect(kilo!.requiresApiKey).toBe(true);
+    expect(kilo!.localOnly).toBe(false);
+    expect(kilo!.color).toBe('#f0e68c');
+  });
+
+  it('fireworks is registered as an API-key provider', () => {
+    const fireworks = PROVIDER_REGISTRY.find((p) => p.id === 'fireworks');
+    expect(fireworks).toBeDefined();
+    expect(fireworks!.displayName).toBe('Fireworks AI');
+    expect(fireworks!.aliases).toEqual(['fireworks-ai', 'fireworks ai', 'fireworksai']);
+    expect(fireworks!.openRouterPrefixes).toEqual([]);
+    expect(fireworks!.requiresApiKey).toBe(true);
+    expect(fireworks!.localOnly).toBe(false);
+    expect(fireworks!.keyPrefix).toBe('fw_');
+  });
+
+  it('kiro is registered as a CLI OAuth subscription provider', () => {
+    const kiro = PROVIDER_REGISTRY.find((p) => p.id === 'kiro');
+    expect(kiro).toBeDefined();
+    expect(kiro!.displayName).toBe('Kiro');
+    expect(kiro!.aliases).toEqual([]);
+    expect(kiro!.openRouterPrefixes).toEqual([]);
+    expect(kiro!.requiresApiKey).toBe(false);
+    expect(kiro!.localOnly).toBe(false);
+    expect(kiro!.keyPrefix).toBe('');
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {
@@ -128,7 +161,7 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     const entry = PROVIDER_BY_ID_OR_ALIAS.get('alibaba') as ProviderRegistryEntry;
     expect(entry).toBeDefined();
     expect(entry.id).toBe('qwen');
-    expect(entry.displayName).toBe('Alibaba');
+    expect(entry.displayName).toBe('Alibaba Cloud');
   });
 
   it('resolves kimi alias to moonshot entry', () => {
@@ -148,6 +181,20 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     const entry = PROVIDER_BY_ID_OR_ALIAS.get('opencodezen') as ProviderRegistryEntry;
     expect(entry).toBeDefined();
     expect(entry.id).toBe('opencode-zen');
+  });
+
+  it('resolves kilocode alias to kilo entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('kilocode') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('kilo');
+    expect(entry.displayName).toBe('Kilo');
+  });
+
+  it('resolves fireworks-ai alias to fireworks entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('fireworks-ai') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('fireworks');
+    expect(entry.displayName).toBe('Fireworks AI');
   });
 
   it('returns undefined for an unknown alias', () => {
