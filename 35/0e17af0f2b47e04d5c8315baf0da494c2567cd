@@ -1,0 +1,21 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a80a5b2dd78a57::t_e6fb1ac9f01e09 29,663-664,668-670,672-677,683,695-700
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_a80a5b2dd78a57::t_715480bf5af4d0 396-461
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "350e17af0f2b47e04d5c8315baf0da494c2567cd",
+  "prompts": {},
+  "sessions": {
+    "s_a80a5b2dd78a57": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8242-0ef5-7ce1-af25-e2c60f940e09",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
