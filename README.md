@@ -58,7 +58,27 @@ bash <(curl -sSL https://raw.githubusercontent.com/mnfst/manifest/main/docker/in
 
 Open [http://localhost:2099](http://localhost:2099) and sign up — the first account you create becomes the admin. Full self-hosting guide: [docker/DOCKER_README.md](docker/DOCKER_README.md).
 
-> The legacy `manifest` npm package is deprecated and no longer published.
+### Integrate from your code
+
+Manifest is OpenAI-compatible. Point any OpenAI SDK at it by changing two constructor args:
+
+```ts
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.MANIFEST_API_KEY,        // get one at app.manifest.build, starts with mnfst_
+  baseURL: 'https://app.manifest.build/v1',    // cloud; self-hosted: http://localhost:2099/v1
+});
+
+const completion = await client.chat.completions.create({
+  model: 'auto',                               // Manifest picks the provider
+  messages: [{ role: 'user', content: 'Say hi' }],
+});
+```
+
+That's the whole integration. The Python `openai` SDK works the same way. For Anthropic's `@anthropic-ai/sdk`, drop the trailing `/v1` from the base URL (the SDK appends it itself).
+
+> The legacy `manifest` npm package was the self-hosted *server* distribution, replaced by the [Docker image](docker/DOCKER_README.md). There is no client SDK to install: the OpenAI and Anthropic SDKs already work.
 
 ## Providers
 
