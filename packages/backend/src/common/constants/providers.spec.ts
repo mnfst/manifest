@@ -97,6 +97,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(kilo!.color).toBe('#f0e68c');
   });
 
+  it('fireworks is registered as an API-key provider', () => {
+    const fireworks = PROVIDER_REGISTRY.find((p) => p.id === 'fireworks');
+    expect(fireworks).toBeDefined();
+    expect(fireworks!.displayName).toBe('Fireworks AI');
+    expect(fireworks!.aliases).toEqual(['fireworks-ai', 'fireworks ai', 'fireworksai']);
+    expect(fireworks!.openRouterPrefixes).toEqual([]);
+    expect(fireworks!.requiresApiKey).toBe(true);
+    expect(fireworks!.localOnly).toBe(false);
+    expect(fireworks!.keyPrefix).toBe('fw_');
+  });
+
   it('kiro is registered as a CLI OAuth subscription provider', () => {
     const kiro = PROVIDER_REGISTRY.find((p) => p.id === 'kiro');
     expect(kiro).toBeDefined();
@@ -161,6 +172,13 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry).toBeDefined();
     expect(entry.id).toBe('kilo');
     expect(entry.displayName).toBe('Kilo');
+  });
+
+  it('resolves fireworks-ai alias to fireworks entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('fireworks-ai') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('fireworks');
+    expect(entry.displayName).toBe('Fireworks AI');
   });
 
   it('returns undefined for an unknown alias', () => {

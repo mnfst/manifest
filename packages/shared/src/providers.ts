@@ -81,6 +81,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'fireworks',
+    displayName: 'Fireworks AI',
+    aliases: ['fireworks-ai', 'fireworks ai', 'fireworksai'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#FF5A1F',
+    keyPrefix: 'fw_',
+    minKeyLength: 20,
+    keyPlaceholder: 'fw_...',
+  },
+  {
     id: 'groq',
     displayName: 'Groq',
     aliases: [],

@@ -109,6 +109,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'DeepSeek V3, R1',
     models: [],
   },
+  fireworks: {
+    initial: 'Fw',
+    subtitle: 'DeepSeek, Kimi, Qwen, Llama',
+    models: [],
+  },
   copilot: {
     initial: 'GH',
     subtitle: 'Claude, GPT, Gemini via Copilot',
@@ -305,6 +310,7 @@ const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
   'deepseek',
+  'fireworks',
   'copilot',
   'gemini',
   'groq',

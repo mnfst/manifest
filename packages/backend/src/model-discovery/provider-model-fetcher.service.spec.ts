@@ -20,6 +20,7 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'fireworks',
       'groq',
       'kilo',
       'mistral',
@@ -312,6 +313,85 @@ describe('ProviderModelFetcherService', () => {
       );
       expect(result.map((m) => m.id)).toEqual(['grok-3', 'grok-4']);
       expect(result.every((m) => m.provider === 'xai')).toBe(true);
+    });
+  });
+
+  /* ── Fireworks provider ── */
+
+  describe('fireworks provider', () => {
+    it('fetches serverless models from the Fireworks account API with pagination', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'accounts/fireworks/models/deepseek-v3p1',
+                displayName: 'DeepSeek V3.1',
+                contextLength: 160000,
+                supportsServerless: true,
+                supportsTools: true,
+              },
+            ],
+            nextPageToken: 'page-2',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'accounts/fireworks/models/flux-1-schnell',
+                displayName: 'FLUX.1 schnell',
+                contextLength: 4096,
+                supportsServerless: true,
+              },
+              {
+                name: 'accounts/fireworks/models/kimi-k2-instruct',
+                displayName: 'Kimi K2',
+                supportsServerless: true,
+                supportsTools: false,
+              },
+            ],
+          }),
+        });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200&pageToken=page-2',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(result.map((m) => m.id)).toEqual([
+        'accounts/fireworks/models/deepseek-v3p1',
+        'accounts/fireworks/models/kimi-k2-instruct',
+      ]);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          displayName: 'DeepSeek V3.1',
+          contextWindow: 160000,
+          provider: 'fireworks',
+          capabilityCode: true,
+        }),
+      );
+      expect(result[1]).toEqual(
+        expect.objectContaining({
+          displayName: 'Kimi K2',
+          contextWindow: 128000,
+          provider: 'fireworks',
+          capabilityCode: false,
+        }),
+      );
     });
   });
 

@@ -68,6 +68,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('fireworks')).toBe('fireworks');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
@@ -86,6 +87,11 @@ describe('resolveEndpointKey', () => {
 
   it('resolves alias z.ai to zai', () => {
     expect(resolveEndpointKey('z.ai')).toBe('zai');
+  });
+
+  it('resolves Fireworks AI aliases to fireworks', () => {
+    expect(resolveEndpointKey('fireworks-ai')).toBe('fireworks');
+    expect(resolveEndpointKey('fireworks ai')).toBe('fireworks');
   });
 
   it('resolves qwen and alibaba to qwen', () => {
@@ -110,6 +116,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
+    expect(known).toContain('fireworks');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
@@ -191,6 +198,18 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.buildPath('anthropic/claude-sonnet-4.5')).toBe('/chat/completions');
     expect(ep.buildHeaders('kilo-token')).toEqual({
       Authorization: 'Bearer kilo-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('fireworks uses the Fireworks OpenAI-compatible inference endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['fireworks'];
+    expect(ep.baseUrl).toBe('https://api.fireworks.ai/inference');
+    expect(ep.format).toBe('openai');
+    expect(ep.streamUsageReporting).toBeUndefined();
+    expect(ep.buildPath('accounts/fireworks/models/deepseek-v3p1')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('fw_test_key')).toEqual({
+      Authorization: 'Bearer fw_test_key',
       'Content-Type': 'application/json',
     });
   });

@@ -16,6 +16,7 @@ const STREAMING_ENDPOINT_PROVIDERS = new Set([
   'anthropic',
   'copilot',
   'deepseek',
+  'fireworks',
   'gemini',
   'groq',
   'minimax',

@@ -77,6 +77,27 @@ describe('ProviderApiKeyTab', () => {
     expect(onEditCustom).toHaveBeenCalledWith(customProvider);
   });
 
+  it('renders the Fireworks SVG asset for the Fireworks API-key provider', async () => {
+    const { container } = render(() => (
+      <ProviderApiKeyTab
+        apiKeyProviders={[provider({ id: 'fireworks', name: 'Fireworks AI', initial: 'Fw' })]}
+        customProviders={[]}
+        isConnected={() => false}
+        isNoKeyConnected={() => false}
+        onOpenDetail={vi.fn()}
+        onOpenCustomForm={vi.fn()}
+        onEditCustom={vi.fn()}
+      />
+    ));
+    await flushMicrotasks();
+
+    const tile = Array.from(container.querySelectorAll('button.provider-toggle')).find((button) =>
+      button.textContent?.includes('Fireworks AI'),
+    );
+    expect(tile?.querySelector('img')?.getAttribute('src')).toBe('/icons/fireworks.svg');
+    expect(tile?.querySelector('.provider-card__logo-letter')).toBeNull();
+  });
+
   it('sorts a mix of standard and multiple custom providers by name', async () => {
     // With two customs the sort comparator reads b.cp.name at least once,
     // covering the second arm of the `b.kind === 'standard'` ternary.
