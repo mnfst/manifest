@@ -1,0 +1,63 @@
+packages/backend/src/common/constants/providers.spec.ts
+  s_a80a5b2dd78a57::t_a6278d958dfef2 104
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 100-103,105-110,177-181
+packages/frontend/src/components/ProviderIcon.tsx
+  s_a80a5b2dd78a57::t_8846911f77d760 198-200,209-210
+  s_a80a5b2dd78a57::t_efdcd45d916af3 201-208,475-477,504,517
+.changeset/fireworks-ai-provider.md
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 1-5
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 4
+packages/frontend/src/services/providers.ts
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 112-116,313
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_a80a5b2dd78a57::t_067d9eac4cddb3 209-210
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 71,92-96,119,205-208,211-212
+packages/frontend/tests/services/providers.test.ts
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 96-112,453-454
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_a80a5b2dd78a57::t_7b7c181004d649 19
+packages/frontend/public/icons/fireworks.svg
+  s_a80a5b2dd78a57::t_066d049e434f7e 8
+  s_a80a5b2dd78a57::t_d42eac497b2393 1-7
+packages/frontend/tests/components/ProviderApiKeyTab.test.tsx
+  s_a80a5b2dd78a57::t_314b4b335650c4 80-100
+packages/backend/src/database/models-dev-sync.service.ts
+  s_a80a5b2dd78a57::t_f6ea7a0d4b17e1 19
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_a80a5b2dd78a57::t_f6ea7a0d4b17e1 73-86,246-247,341,343-352,535
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 1998-2012
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a80a5b2dd78a57::t_8846911f77d760 40,64-67,298
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 27-28,154-155,283-297,299-300,455-459,605-608,654-697
+packages/shared/src/providers.ts
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 84-85,87-94
+  s_a80a5b2dd78a57::t_a6278d958dfef2 86
+packages/backend/src/routing/proxy/provider-client.ts
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 61-63,67
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_a80a5b2dd78a57::t_9fa5727c1d1221 100,143-144
+packages/shared/__tests__/providers.spec.ts
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 69-70,72-74,103-107
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 23,319-394
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_a80a5b2dd78a57::t_9b7ac2fce7fd16 321-333,349,352
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d950469fa3655f49b62a164bea88cba28ed6b8df",
+  "prompts": {},
+  "sessions": {
+    "s_a80a5b2dd78a57": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8242-0ef5-7ce1-af25-e2c60f940e09",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
