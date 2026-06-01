@@ -244,11 +244,27 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
   });
 
   const tt = () => tooltip();
+  const ROWS_PER_COL = 16;
+
+  const visibleEntries = () => tt().entries.filter((e) => e.value > 0);
+  const columns = () => {
+    const items = visibleEntries();
+    const cols: Array<typeof items> = [];
+    for (let i = 0; i < items.length; i += ROWS_PER_COL) {
+      cols.push(items.slice(i, i + ROWS_PER_COL));
+    }
+    return cols;
+  };
+
+  const hideTooltip = () => {
+    setTooltip((prev) => ({ ...prev, visible: false }));
+    props.onHoverValues?.(null);
+  };
 
   return (
-    <div style="position: relative; overflow: visible;">
+    <div style="position: relative; overflow: visible;" onMouseLeave={hideTooltip}>
       <div ref={el} style="width: 100%; min-height: 260px;" />
-      <Show when={tt().visible && tt().entries.length > 0}>
+      <Show when={tt().visible && visibleEntries().length > 0}>
         <div
           class="agent-chart-tooltip"
           style={{
@@ -258,16 +274,23 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
           }}
         >
           <div class="agent-chart-tooltip__date">{tt().date}</div>
-          <div class="agent-chart-tooltip__list">
-            <For each={tt().entries}>
-              {(entry) => (
-                <Show when={entry.value > 0}>
-                  <div class="agent-chart-tooltip__row">
-                    <span class="agent-chart-tooltip__swatch" style={{ background: entry.color }} />
-                    <span class="agent-chart-tooltip__name">{entry.agent}</span>
-                    <span class="agent-chart-tooltip__value">{fmtVal(entry.value)}</span>
-                  </div>
-                </Show>
+          <div class="agent-chart-tooltip__columns">
+            <For each={columns()}>
+              {(col) => (
+                <div class="agent-chart-tooltip__list">
+                  <For each={col}>
+                    {(entry) => (
+                      <div class="agent-chart-tooltip__row">
+                        <span
+                          class="agent-chart-tooltip__swatch"
+                          style={{ background: entry.color }}
+                        />
+                        <span class="agent-chart-tooltip__name">{entry.agent}</span>
+                        <span class="agent-chart-tooltip__value">{fmtVal(entry.value)}</span>
+                      </div>
+                    )}
+                  </For>
+                </div>
               )}
             </For>
           </div>

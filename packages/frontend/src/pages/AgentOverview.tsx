@@ -310,6 +310,38 @@ const AgentOverview: Component = () => {
               </button>
               <Show when={filterOpen()}>
                 <div class="agent-filter-select__dropdown">
+                  <div class="agent-filter-select__actions">
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedProviderCount() === allProviders().length}
+                      onClick={() => {
+                        setSelectedProviders(new Set(allProviders()));
+                        try {
+                          sessionStorage.setItem(storageKey(), JSON.stringify([...allProviders()]));
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedProviderCount() === 0}
+                      onClick={() => {
+                        setSelectedProviders(new Set<string>());
+                        try {
+                          sessionStorage.setItem(storageKey(), JSON.stringify([]));
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
+                    >
+                      Unselect all
+                    </button>
+                  </div>
                   <For each={allProviders()}>
                     {(provider) => {
                       const isOn = () => effectiveSelected().has(provider);

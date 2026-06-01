@@ -98,9 +98,13 @@
     0 4px 12px -2px rgb(0 0 0 / 0.12),
     0 2px 4px -2px rgb(0 0 0 / 0.08);
   min-width: 180px;
-  max-width: 260px;
   font-family: var(--font-family);
   font-size: 14px;
+}
+
+.agent-chart-tooltip__columns {
+  display: flex;
+  gap: 32px;
 }
 
 .agent-chart-tooltip__date {
@@ -231,6 +235,36 @@
 
 .agent-filter-select__item:hover {
   background: hsl(var(--muted));
+}
+
+.agent-filter-select__actions {
+  display: flex;
+  gap: 8px;
+  padding: 4px 8px 6px;
+  border-bottom: 1px solid hsl(var(--border));
+  margin-bottom: 4px;
+}
+
+.agent-filter-select__action-btn {
+  border: none;
+  background: none;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.agent-filter-select__action-btn:hover {
+  color: hsl(var(--foreground));
+}
+
+.agent-filter-select__action-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .agent-filter-select__swatch {

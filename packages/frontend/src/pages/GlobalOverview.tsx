@@ -18,12 +18,13 @@ import {
 } from '../services/api/analytics.js';
 import { formatNumber, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import Select from '../components/Select.jsx';
-import { authBadgeFor } from '../components/AuthBadge.jsx';
-import { platformIcon } from 'manifest-shared';
+import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
+import { platformIcon, PLATFORM_LABELS } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
 import { agentPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
@@ -318,6 +319,21 @@ const GlobalOverview: Component = () => {
     return result.slice(0, 5);
   });
 
+  const platformGroups = createMemo(() => {
+    const counts = new Map<string, { name: string; icon: string | undefined; count: number }>();
+    for (const a of agentList()) {
+      const p = a.agent_platform || 'other';
+      const existing = counts.get(p);
+      if (existing) {
+        existing.count++;
+      } else {
+        const label = (PLATFORM_LABELS as Record<string, string>)[p] ?? p;
+        counts.set(p, { name: label, icon: platformIcon(p, a.agent_category), count: 1 });
+      }
+    }
+    return [...counts.values()].sort((a, b) => b.count - a.count);
+  });
+
   const sortedAgents = createMemo(() => {
     return [...agentList()].sort((a, b) => (b.total_tokens ?? 0) - (a.total_tokens ?? 0));
   });
@@ -332,7 +348,106 @@ const GlobalOverview: Component = () => {
           <h1 class="page-header__title">Overview</h1>
           <p class="page-header__subtitle">Your AI infrastructure at a glance</p>
         </div>
-        <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <Show when={allAgents().length > 1}>
+            <div class="agent-filter-select" ref={agentFilterRef}>
+              <button
+                class="agent-filter-select__trigger"
+                onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                type="button"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                {selectedAgentCount() === allAgents().length
+                  ? `All agents (${allAgents().length})`
+                  : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <Show when={agentFilterOpen()}>
+                <div class="agent-filter-select__dropdown">
+                  <div class="agent-filter-select__actions">
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedAgentCount() === allAgents().length}
+                      onClick={() => {
+                        setSelectedAgents(new Set(allAgents()));
+                        try {
+                          sessionStorage.setItem(storageKey, JSON.stringify([...allAgents()]));
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedAgentCount() === 0}
+                      onClick={() => {
+                        setSelectedAgents(new Set<string>());
+                        try {
+                          sessionStorage.setItem(storageKey, JSON.stringify([]));
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
+                    >
+                      Unselect all
+                    </button>
+                  </div>
+                  <For each={allAgents()}>
+                    {(agent) => {
+                      const isOn = () => effectiveSelected().has(agent);
+                      return (
+                        <button
+                          class="agent-filter-select__item"
+                          onClick={() => toggleAgent(agent)}
+                          type="button"
+                        >
+                          <span
+                            class="agent-filter-select__swatch"
+                            style={{ background: agentColorMap()[agent] }}
+                          />
+                          <span class="agent-filter-select__name">{agent}</span>
+                          <span
+                            class="agent-filter-select__toggle"
+                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                          >
+                            <span class="agent-filter-select__toggle-thumb" />
+                          </span>
+                        </button>
+                      );
+                    }}
+                  </For>
+                </div>
+              </Show>
+            </div>
+          </Show>
           <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
         </div>
       </div>
@@ -341,129 +456,93 @@ const GlobalOverview: Component = () => {
         when={overview() !== undefined && agents() !== undefined && providers() !== undefined}
         fallback={<GlobalOverviewSkeleton />}
       >
-        {/* ── 2. Summary Stat Cards ───────────────────────────────────── */}
-        <div class="overview-stats" style="gap: 24px;">
-          <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Connections</span>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span class="overview-stat-card__value">{providerList().length}</span>
-              <div style="display: flex; gap: 4px; align-items: center;">
-                <For each={uniqueProviders()}>
-                  {(pid) => <span style="opacity: 0.7;">{providerIcon(pid, 16)}</span>}
-                </For>
+        {/* ── 2. Summary Stat Cards (4 columns) ────────────────────── */}
+        {(() => {
+          const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
+          const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
+          const local = () => providerList().filter((g) => g.auth_type === 'local');
+          const totalConns = (list: ProviderGroup[]) =>
+            list.reduce((s, g) => s + g.connections.length, 0);
+          const providerTag = (g: ProviderGroup) => {
+            const count = g.connections.length;
+            const prov = PROVIDERS.find((p) => p.id === g.provider);
+            const displayName = prov?.name ?? g.provider;
+            return (
+              <span
+                title={`${displayName}: ${count} connection${count !== 1 ? 's' : ''}`}
+                style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); background: hsl(var(--card)); font-size: var(--font-size-xs); white-space: nowrap; height: 24px;"
+              >
+                <span style="flex-shrink: 0; display: flex; align-items: center;">
+                  {providerIcon(g.provider, 14)}
+                </span>
+                <span style="font-weight: 600; color: hsl(var(--foreground));">{count}</span>
+              </span>
+            );
+          };
+          return (
+            <div class="overview-stats" style="grid-template-columns: repeat(4, 1fr);">
+              <div class="overview-stat-card">
+                <span class="overview-stat-card__label">Subscriptions</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                  <span class="overview-stat-card__value">{totalConns(subs())}</span>
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                    <For each={subs()}>{(g) => providerTag(g)}</For>
+                  </div>
+                </div>
+              </div>
+              <div class="overview-stat-card">
+                <span class="overview-stat-card__label">BYOK</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                  <span class="overview-stat-card__value">{totalConns(byok())}</span>
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                    <For each={byok()}>{(g) => providerTag(g)}</For>
+                  </div>
+                </div>
+              </div>
+              <div class="overview-stat-card">
+                <span class="overview-stat-card__label">Local</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                  <span class="overview-stat-card__value">{totalConns(local())}</span>
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                    <For each={local()}>{(g) => providerTag(g)}</For>
+                  </div>
+                </div>
+              </div>
+              <div class="overview-stat-card">
+                <span class="overview-stat-card__label">Agents</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                  <span class="overview-stat-card__value">{agentList().length}</span>
+                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
+                    <For each={platformGroups()}>
+                      {(group) => (
+                        <span
+                          title={`${group.name}: ${group.count} agent${group.count !== 1 ? 's' : ''}`}
+                          style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); background: hsl(var(--card)); font-size: var(--font-size-xs); white-space: nowrap; height: 24px;"
+                        >
+                          <Show when={group.icon}>
+                            <img
+                              src={group.icon!}
+                              alt=""
+                              width="14"
+                              height="14"
+                              style="flex-shrink: 0;"
+                            />
+                          </Show>
+                          <span style="font-weight: 600; color: hsl(var(--foreground));">
+                            {group.count}
+                          </span>
+                        </span>
+                      )}
+                    </For>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Agents</span>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span class="overview-stat-card__value">{agentList().length}</span>
-              <div style="display: flex; gap: 4px; align-items: center;">
-                <For each={uniquePlatforms()}>
-                  {(p) => {
-                    const icon = platformIcon(p.platform, p.category);
-                    return (
-                      <Show when={icon}>
-                        <img src={icon!} alt="" width="16" height="16" style="opacity: 0.7;" />
-                      </Show>
-                    );
-                  }}
-                </For>
-              </div>
-            </div>
-          </div>
-          <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Messages</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="overview-stat-card__value">
-                {formatNumber(overview()?.summary.messages.value ?? 0)}
-              </span>
-              {trendBadge(overview()?.summary.messages.trend_pct ?? 0)}
-            </div>
-          </div>
-          <div class="overview-stat-card">
-            <span class="overview-stat-card__label">Tokens</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="overview-stat-card__value">
-                {formatNumber(overview()?.summary.tokens_today.value ?? 0)}
-              </span>
-              {trendBadge(overview()?.summary.tokens_today.trend_pct ?? 0)}
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* ── 3. Chart Card ───────────────────────────────────────────── */}
         <div style="margin-bottom: 24px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; justify-content: flex-end;">
-            <Show when={allAgents().length > 1}>
-              <div class="agent-filter-select" ref={agentFilterRef}>
-                <button
-                  class="agent-filter-select__trigger"
-                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                  type="button"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                  </svg>
-                  {selectedAgentCount() === allAgents().length
-                    ? `All agents (${allAgents().length})`
-                    : `${selectedAgentCount()} of ${allAgents().length} agents`}
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-                <Show when={agentFilterOpen()}>
-                  <div class="agent-filter-select__dropdown">
-                    <For each={allAgents()}>
-                      {(agent) => {
-                        const isOn = () => effectiveSelected().has(agent);
-                        return (
-                          <button
-                            class="agent-filter-select__item"
-                            onClick={() => toggleAgent(agent)}
-                            type="button"
-                          >
-                            <span
-                              class="agent-filter-select__swatch"
-                              style={{ background: agentColorMap()[agent] }}
-                            />
-                            <span class="agent-filter-select__name">{agent}</span>
-                            <span
-                              class="agent-filter-select__toggle"
-                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                            >
-                              <span class="agent-filter-select__toggle-thumb" />
-                            </span>
-                          </button>
-                        );
-                      }}
-                    </For>
-                  </div>
-                </Show>
-              </div>
-            </Show>
-          </div>
-
           <ProviderChartCard
             activeView={chartView()}
             onViewChange={setChartView}
@@ -480,13 +559,11 @@ const GlobalOverview: Component = () => {
           />
         </div>
 
-        {/* ── 4. Row 1: Top Models + Recent Messages ──────────────────── */}
+        {/* ── 4. Row 1: Model usage + Recent Messages ──────────────────── */}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-          {/* Top Models */}
+          {/* Model usage */}
           <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__header">
-              <h3 class="panel__title">Top Models</h3>
-            </div>
+            <div class="panel__title">Model usage</div>
             <div
               class="scroll-panel__body"
               onScroll={(e) => {
@@ -552,9 +629,12 @@ const GlobalOverview: Component = () => {
 
           {/* Recent Messages */}
           <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__header">
-              <h3 class="panel__title">Recent Messages</h3>
-              <A href="/messages" class="panel__action">
+            <div
+              class="panel__title"
+              style="display: flex; justify-content: space-between; align-items: center;"
+            >
+              Recent Messages
+              <A href="/messages" class="view-more-link">
                 View more
               </A>
             </div>
@@ -612,13 +692,11 @@ const GlobalOverview: Component = () => {
           </div>
         </div>
 
-        {/* ── 5. Row 2: Connections + Top Agents ──────────────────────── */}
+        {/* ── 5. Row 2: Connections + Agents ──────────────────────── */}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
           {/* Connections */}
           <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__header">
-              <h3 class="panel__title">Connections</h3>
-            </div>
+            <div class="panel__title">Provider connections</div>
             <div
               class="scroll-panel__body"
               onScroll={(e) => {
@@ -631,9 +709,8 @@ const GlobalOverview: Component = () => {
                 <thead>
                   <tr>
                     <th>Provider</th>
-                    <th>Access</th>
-                    <th style="text-align: right;">Tokens (30d)</th>
-                    <th style="width: 120px;">Trend</th>
+                    <th>Type</th>
+                    <th>Usage (30d)</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -660,14 +737,20 @@ const GlobalOverview: Component = () => {
                               </span>
                             </div>
                           </td>
-                          <td>{authBadgeFor(group.auth_type, 18)}</td>
-                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                            {formatNumber(group.consumption_tokens)}
+                          <td style="color: hsl(var(--muted-foreground));">
+                            {authLabel(group.auth_type)}
                           </td>
                           <td>
-                            <Show when={group.sparkline_7d.length > 0}>
-                              <Sparkline data={group.sparkline_7d} width={100} height={28} />
-                            </Show>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <Show when={group.sparkline_7d.length > 0}>
+                                <span style="flex-shrink: 0;">
+                                  <Sparkline data={group.sparkline_7d} width={60} height={24} />
+                                </span>
+                              </Show>
+                              <span style="font-variant-numeric: tabular-nums;">
+                                {formatNumber(group.consumption_tokens)} tokens
+                              </span>
+                            </div>
                           </td>
                           <td>
                             <Show
@@ -702,11 +785,9 @@ const GlobalOverview: Component = () => {
             </div>
           </div>
 
-          {/* Top Agents */}
+          {/* Agents */}
           <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__header">
-              <h3 class="panel__title">Top Agents</h3>
-            </div>
+            <div class="panel__title">Agents</div>
             <div
               class="scroll-panel__body"
               onScroll={(e) => {
@@ -719,9 +800,8 @@ const GlobalOverview: Component = () => {
                 <thead>
                   <tr>
                     <th>Agent</th>
-                    <th style="text-align: right;">Tokens (30d)</th>
+                    <th>Usage (30d)</th>
                     <th style="text-align: right;">Messages</th>
-                    <th style="width: 120px;">Trend</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -749,16 +829,20 @@ const GlobalOverview: Component = () => {
                               </span>
                             </div>
                           </td>
-                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                            {formatNumber(agent.total_tokens ?? 0)}
+                          <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <Show when={(agent.sparkline ?? []).length > 0}>
+                                <span style="flex-shrink: 0;">
+                                  <Sparkline data={agent.sparkline} width={60} height={24} />
+                                </span>
+                              </Show>
+                              <span style="font-variant-numeric: tabular-nums;">
+                                {formatNumber(agent.total_tokens ?? 0)} tokens
+                              </span>
+                            </div>
                           </td>
                           <td style="text-align: right; font-variant-numeric: tabular-nums;">
                             {formatNumber(agent.message_count ?? 0)}
-                          </td>
-                          <td>
-                            <Show when={(agent.sparkline ?? []).length > 0}>
-                              <Sparkline data={agent.sparkline} width={100} height={28} />
-                            </Show>
                           </td>
                         </tr>
                       );

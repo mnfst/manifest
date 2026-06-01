@@ -112,14 +112,21 @@ const Sidebar: Component<SidebarProps> = (props) => {
       </A>
 
       {/* Agents section — same label style as PROVIDERS */}
-      <div class="sidebar__section-label sidebar__section-label--interactive">
+      <div
+        class="sidebar__section-label sidebar__section-label--interactive"
+        style="cursor: pointer;"
+        onClick={() => setAgentsCollapsed(!agentsCollapsed())}
+      >
         <div class="sidebar__section-label-left">
           <span>AGENTS</span>
           <button
             type="button"
             class="sidebar__section-add"
             title="Create new agent"
-            onClick={() => setAddModalOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setAddModalOpen(true);
+            }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -136,7 +143,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
         <button
           type="button"
           class="sidebar__section-caret"
-          onClick={() => setAgentsCollapsed(!agentsCollapsed())}
+          onClick={(e) => {
+            e.stopPropagation();
+            setAgentsCollapsed(!agentsCollapsed());
+          }}
           aria-expanded={!agentsCollapsed()}
           aria-label={agentsCollapsed() ? 'Expand agents' : 'Collapse agents'}
         >

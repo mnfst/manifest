@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -7,6 +7,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 
 /**
  * User-level provider management endpoints.
@@ -29,11 +30,17 @@ export class UserProvidersController {
    * Groups by (provider, auth_type) and returns connected count, model count,
    * and aggregate token consumption for the current period.
    */
+  private readonly logger = new Logger(UserProvidersController.name);
+
   @Get()
   async listProviders(@CurrentUser() user: AuthUser) {
-    const providers = await this.providerRepo.find({
+    let providers = await this.providerRepo.find({
       where: { user_id: user.id },
     });
+
+    // Deduplicate connections sharing the same API key for the same (provider, auth_type).
+    // This cleans up historical duplicates from OAuth reconnects.
+    providers = await this.deduplicateConnections(providers);
 
     // Get tenant for message queries
     const tenant = await this.tenantRepo.findOne({ where: { name: user.id } });
@@ -210,5 +217,51 @@ export class UserProvidersController {
       providers: result,
       model_counts: Object.fromEntries(modelCountByProvider),
     };
+  }
+
+  /**
+   * Detect and remove duplicate connections that share the same encrypted API key
+   * for the same (provider, auth_type). Keeps the connection with the most cached models
+   * (or the oldest one as tiebreaker). Deletes the rest from the database.
+   */
+  private async deduplicateConnections(providers: UserProvider[]): Promise<UserProvider[]> {
+    const secret = getEncryptionSecret();
+    const byKey = new Map<string, UserProvider[]>();
+
+    for (const p of providers) {
+      if (!p.api_key_encrypted) continue;
+      let plain: string;
+      try {
+        plain = decrypt(p.api_key_encrypted, secret);
+      } catch {
+        continue;
+      }
+      const groupKey = `${p.provider}::${p.auth_type}::${plain}`;
+      const list = byKey.get(groupKey);
+      if (list) list.push(p);
+      else byKey.set(groupKey, [p]);
+    }
+
+    const toDelete: string[] = [];
+    for (const dupes of byKey.values()) {
+      if (dupes.length <= 1) continue;
+      // Keep the one with most models, then oldest connected_at as tiebreaker
+      dupes.sort((a, b) => {
+        const modelsA = Array.isArray(a.cached_models) ? a.cached_models.length : 0;
+        const modelsB = Array.isArray(b.cached_models) ? b.cached_models.length : 0;
+        if (modelsB !== modelsA) return modelsB - modelsA;
+        return new Date(a.connected_at).getTime() - new Date(b.connected_at).getTime();
+      });
+      for (let i = 1; i < dupes.length; i++) {
+        toDelete.push(dupes[i]!.id);
+      }
+    }
+
+    if (toDelete.length > 0) {
+      this.logger.log(`Deduplicating ${toDelete.length} duplicate provider connection(s)`);
+      await this.providerRepo.delete(toDelete);
+      return providers.filter((p) => !toDelete.includes(p.id));
+    }
+    return providers;
   }
 }

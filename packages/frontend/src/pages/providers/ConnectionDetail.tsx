@@ -497,6 +497,38 @@ const ConnectionDetail: Component = () => {
                       </button>
                       <Show when={agentFilterOpen()}>
                         <div class="agent-filter-select__dropdown">
+                          <div class="agent-filter-select__actions">
+                            <button
+                              class="agent-filter-select__action-btn"
+                              type="button"
+                              disabled={selectedAgentCount() === allAgents().length}
+                              onClick={() => {
+                                setSelectedAgents(new Set(allAgents()));
+                                try {
+                                  sessionStorage.setItem(storageKey(), JSON.stringify(allAgents()));
+                                } catch {
+                                  /* ignore */
+                                }
+                              }}
+                            >
+                              Select all
+                            </button>
+                            <button
+                              class="agent-filter-select__action-btn"
+                              type="button"
+                              disabled={selectedAgentCount() === 0}
+                              onClick={() => {
+                                setSelectedAgents(new Set<string>());
+                                try {
+                                  sessionStorage.setItem(storageKey(), JSON.stringify([]));
+                                } catch {
+                                  /* ignore */
+                                }
+                              }}
+                            >
+                              Unselect all
+                            </button>
+                          </div>
                           <For each={allAgents()}>
                             {(agent) => {
                               const isOn = () => effectiveSelected().has(agent);
@@ -579,9 +611,7 @@ const ConnectionDetail: Component = () => {
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
                 {/* Left: Model usage */}
                 <div class="panel scroll-panel" style="margin-bottom: 0;">
-                  <div class="panel__title" style="padding: 16px 16px 0;">
-                    Models
-                  </div>
+                  <div class="panel__title">Models</div>
                   <Show
                     when={detail()!.model_usage.length > 0}
                     fallback={
@@ -652,7 +682,7 @@ const ConnectionDetail: Component = () => {
                 <div class="panel scroll-panel" style="margin-bottom: 0;">
                   <div
                     class="panel__title"
-                    style="padding: 16px 16px 0; display: flex; justify-content: space-between; align-items: center;"
+                    style="display: flex; justify-content: space-between; align-items: center;"
                   >
                     Recent Messages
                     <A href={`/messages`} class="view-more-link">
@@ -712,9 +742,7 @@ const ConnectionDetail: Component = () => {
 
               {/* Full-width: Agents table */}
               <div class="panel scroll-panel" style="margin-bottom: 0;">
-                <div class="panel__title" style="padding: 16px 16px 0;">
-                  Agents
-                </div>
+                <div class="panel__title">Agents</div>
                 <Show
                   when={detail()!.agents.length > 0}
                   fallback={

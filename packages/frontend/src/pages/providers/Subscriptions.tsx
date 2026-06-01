@@ -133,7 +133,7 @@ const Subscriptions: Component = () => {
   };
 
   // Chart state
-  const [chartRange, setChartRange] = createSignal('24h');
+  const [chartRange, setChartRange] = createSignal('7d');
   const [chartView, setChartView] = createSignal<'messages' | 'tokens'>('tokens');
   const [chartAgent, setChartAgent] = createSignal('');
 

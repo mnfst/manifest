@@ -85,6 +85,8 @@
   margin-bottom: var(--gap-lg);
   box-shadow: var(--card-shadow);
   animation: fadeInUp 300ms ease-out both;
+  position: relative;
+  z-index: 10;
 }
 
 .chart-card__header {
@@ -188,6 +190,11 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+}
+
+.scroll-panel > .panel__title {
+  padding: 16px 16px 0;
+  margin-bottom: 0;
 }
 
 .scroll-panel__body {

@@ -177,21 +177,20 @@ export class ProviderService {
       );
     }
 
-    // Reject duplicate-value submissions: a different label on top of an
-    // already-stored key value is just clutter (charges still hit the same
-    // upstream account). The unique index protects label uniqueness; this
-    // catches the value-side collision the index can't see.
+    // If the same API key value already exists (active or inactive), update
+    // that row instead of creating a duplicate. This handles OAuth reconnects
+    // where the token is the same but nextOAuthLabel() generated a new label.
     if (apiKey) {
-      const conflict = existingRows.find(
-        (r) =>
-          r.is_active &&
-          !!r.api_key_encrypted &&
-          this.decryptOrNull(r.api_key_encrypted) === apiKey,
+      const sameKey = existingRows.find(
+        (r) => !!r.api_key_encrypted && this.decryptOrNull(r.api_key_encrypted) === apiKey,
       );
-      if (conflict) {
-        throw new BadRequestException(
-          `That key is already saved for this provider as "${conflict.label}"`,
-        );
+      if (sameKey) {
+        sameKey.region = resolvedRegion;
+        sameKey.is_active = true;
+        sameKey.updated_at = new Date().toISOString();
+        await this.providerRepo.save(sameKey);
+        await this.afterProviderChange(agentId, userId);
+        return { provider: sameKey, isNew: false };
       }
     }
 
