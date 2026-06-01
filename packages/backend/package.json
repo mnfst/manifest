@@ -5,7 +5,7 @@
   "scripts": {
     "build": "rm -f tsconfig.build.tsbuildinfo && nest build",
     "start": "node dist/main",
-    "start:dev": "nest start --watch",
+    "start:dev": "NODE_OPTIONS='-r dotenv/config' nest start --watch",
     "start:prod": "node dist/main",
     "test": "jest",
     "test:watch": "jest --watch",
