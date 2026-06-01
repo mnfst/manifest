@@ -3,6 +3,7 @@ import { Show, type ParentComponent } from 'solid-js';
 import { A } from '@solidjs/router';
 import { Title } from '@solidjs/meta';
 import { agentPath } from '../services/routing.js';
+import { agentPlatformIcon } from '../services/agent-platform-store.js';
 
 /**
  * Agent detail layout with horizontal tabs: Routing, Settings, Providers.
@@ -30,8 +31,21 @@ const AgentDetail: ParentComponent = (props) => {
     <div class="container--lg">
       <Title>{agentName()} | Manifest</Title>
 
-      <div style="border: none; margin-bottom: 0; padding-bottom: 0;">
-        <h1 class="page-header__title">{agentName()}</h1>
+      <div style="margin-bottom: 8px;">
+        <A
+          href="/overview"
+          style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
+        >
+          ← Agents
+        </A>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+        <Show when={agentPlatformIcon()}>
+          <img src={agentPlatformIcon()!} alt="" width="28" height="28" style="flex-shrink: 0;" />
+        </Show>
+        <h1 class="page-header__title" style="margin: 0;">
+          {agentName()}
+        </h1>
       </div>
 
       {/* Horizontal tabs */}
@@ -70,7 +84,7 @@ const AgentDetail: ParentComponent = (props) => {
           class="panel__tab"
           classList={{ 'panel__tab--active': isActive('/guardrails') }}
         >
-          Guardrails
+          Limits
         </A>
         <A
           href={path('/settings')}

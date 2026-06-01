@@ -98,7 +98,7 @@ const TokenChart: Component<TokenChartProps> = (props) => {
           series: [
             { value: createFormatLegendTimestamp(props.range) },
             {
-              label: 'Sent to AI',
+              label: 'Input tokens',
               scale: 'y',
               stroke: inputColor,
               width: 2.5,
@@ -106,7 +106,7 @@ const TokenChart: Component<TokenChartProps> = (props) => {
               value: formatLegendTokens,
             },
             {
-              label: 'Received from AI',
+              label: 'Output tokens',
               scale: 'y2',
               stroke: outputColor,
               width: 2,
