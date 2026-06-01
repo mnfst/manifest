@@ -15,6 +15,10 @@ import {
   getOverview,
   getGlobalPerAgentTimeseries,
   getGlobalPerAgentMessageTimeseries,
+  getGlobalPerProviderTimeseries,
+  getGlobalPerProviderMessageTimeseries,
+  getGlobalPerModelTimeseries,
+  getGlobalPerModelMessageTimeseries,
   getGlobalPerAgentCostTimeseries,
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
@@ -59,6 +63,12 @@ interface RecentActivityRow {
   agent_name: string;
   model: string;
   total_tokens: number;
+  status?: string;
+  provider?: string;
+  auth_type?: string;
+  description?: string;
+  first_message?: string;
+  cost_usd?: number;
 }
 
 interface OverviewResponse {
@@ -91,7 +101,14 @@ const RANGE_OPTIONS = [
   { label: 'Last 30 days', value: '30d' },
 ];
 
+const GROUP_OPTIONS = [
+  { label: 'By agent', value: 'agent' },
+  { label: 'By provider', value: 'provider' },
+  { label: 'By model', value: 'model' },
+];
+
 const RANGE_STORAGE_KEY = 'manifest_global_range';
+const GROUP_STORAGE_KEY = 'manifest_global_group';
 
 function loadRange(): string {
   try {
@@ -124,6 +141,26 @@ const GlobalOverview: Component = () => {
     setChartRangeRaw(v);
     try {
       localStorage.setItem(RANGE_STORAGE_KEY, v);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // ── Group by state (persisted in localStorage) ───────────────────────
+  const loadGroup = (): string => {
+    try {
+      const v = localStorage.getItem(GROUP_STORAGE_KEY);
+      if (v === 'provider' || v === 'model') return v;
+    } catch {
+      /* ignore */
+    }
+    return 'agent';
+  };
+  const [groupBy, setGroupByRaw] = createSignal(loadGroup());
+  const setGroupBy = (v: string) => {
+    setGroupByRaw(v);
+    try {
+      localStorage.setItem(GROUP_STORAGE_KEY, v);
     } catch {
       /* ignore */
     }
@@ -162,31 +199,32 @@ const GlobalOverview: Component = () => {
     },
   );
 
+  type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
+  const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider') return getGlobalPerProviderTimeseries(range) as Promise<TSResult>;
+    if (group === 'model') return getGlobalPerModelTimeseries(range) as Promise<TSResult>;
+    return getGlobalPerAgentTimeseries(range) as Promise<TSResult>;
+  };
+  const msgFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider')
+      return getGlobalPerProviderMessageTimeseries(range) as Promise<TSResult>;
+    if (group === 'model') return getGlobalPerModelMessageTimeseries(range) as Promise<TSResult>;
+    return getGlobalPerAgentMessageTimeseries(range) as Promise<TSResult>;
+  };
+
   const [agentTimeseries] = createResource(
-    () => chartRange(),
-    (range) =>
-      getGlobalPerAgentTimeseries(range) as Promise<{
-        agents: string[];
-        timeseries: Array<Record<string, number | string>>;
-      }>,
+    () => ({ range: chartRange(), group: groupBy() }),
+    (p) => tokenFetcher(p.range, p.group),
   );
 
   const [agentMessageTimeseries] = createResource(
-    () => chartRange(),
-    (range) =>
-      getGlobalPerAgentMessageTimeseries(range) as Promise<{
-        agents: string[];
-        timeseries: Array<Record<string, number | string>>;
-      }>,
+    () => ({ range: chartRange(), group: groupBy() }),
+    (p) => msgFetcher(p.range, p.group),
   );
 
   const [agentCostTimeseries] = createResource(
     () => chartRange(),
-    (range) =>
-      getGlobalPerAgentCostTimeseries(range) as Promise<{
-        agents: string[];
-        timeseries: Array<Record<string, number | string>>;
-      }>,
+    (range) => getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>,
   );
 
   // ── Agent filter state (sessionStorage) ──────────────────────────────
@@ -298,8 +336,8 @@ const GlobalOverview: Component = () => {
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
-    const filtered_agents = raw.agents.filter((a) => sel.has(a));
-    const timeseries = raw.timeseries.map((row) => {
+    const filtered_agents = raw.agents.filter((a: string) => sel.has(a));
+    const timeseries = raw.timeseries.map((row: Record<string, number | string>) => {
       const filtered: Record<string, number | string> = {};
       for (const [k, v] of Object.entries(row)) {
         if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
@@ -375,6 +413,7 @@ const GlobalOverview: Component = () => {
           <p class="page-header__subtitle">All your agents and providers</p>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
+          <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
           <Show when={allAgents().length > 1}>
             <div class="agent-filter-select" ref={agentFilterRef}>
               <button
@@ -395,9 +434,17 @@ const GlobalOverview: Component = () => {
                 >
                   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                 </svg>
-                {selectedAgentCount() === allAgents().length
-                  ? `All agents (${allAgents().length})`
-                  : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                {(() => {
+                  const label =
+                    groupBy() === 'provider'
+                      ? 'providers'
+                      : groupBy() === 'model'
+                        ? 'models'
+                        : 'agents';
+                  return selectedAgentCount() === allAgents().length
+                    ? `All ${label} (${allAgents().length})`
+                    : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
+                })()}
                 <svg
                   width="10"
                   height="10"
@@ -482,7 +529,29 @@ const GlobalOverview: Component = () => {
         when={overview() !== undefined && agents() !== undefined && providers() !== undefined}
         fallback={<GlobalOverviewSkeleton />}
       >
-        {/* ── 2. Summary Stat Cards (4 columns) ────────────────────── */}
+        {/* ── 2. Chart Card ───────────────────────────────────────────── */}
+        <div style="margin-bottom: 24px;">
+          <ProviderChartCard
+            activeView={chartView()}
+            onViewChange={setChartView}
+            messagesValue={overview()?.summary.messages.value ?? 0}
+            messagesTrendPct={overview()?.summary.messages.trend_pct ?? 0}
+            tokensValue={overview()?.summary.tokens_today.value ?? 0}
+            tokensTrendPct={overview()?.summary.tokens_today.trend_pct ?? 0}
+            costValue={overview()?.summary.cost_today.value ?? 0}
+            costTrendPct={overview()?.summary.cost_today.trend_pct ?? 0}
+            costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+            tokenUsage={overview()?.token_usage ?? []}
+            messageChartData={messageChartData()}
+            range={chartRange()}
+            agentTimeseries={filteredAgentTimeseries() ?? undefined}
+            agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+            agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
+            colorMap={agentColorMap()}
+          />
+        </div>
+
+        {/* ── 3. Summary Stat Cards (4 columns) ────────────────────── */}
         {(() => {
           const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
           const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
@@ -567,345 +636,353 @@ const GlobalOverview: Component = () => {
           );
         })()}
 
-        {/* ── 3. Chart Card ───────────────────────────────────────────── */}
-        <div style="margin-bottom: 24px;">
-          <ProviderChartCard
-            activeView={chartView()}
-            onViewChange={setChartView}
-            messagesValue={overview()?.summary.messages.value ?? 0}
-            messagesTrendPct={overview()?.summary.messages.trend_pct ?? 0}
-            tokensValue={overview()?.summary.tokens_today.value ?? 0}
-            tokensTrendPct={overview()?.summary.tokens_today.trend_pct ?? 0}
-            costValue={overview()?.summary.cost_today.value ?? 0}
-            costTrendPct={overview()?.summary.cost_today.trend_pct ?? 0}
-            tokenUsage={overview()?.token_usage ?? []}
-            messageChartData={messageChartData()}
-            range={chartRange()}
-            agentTimeseries={filteredAgentTimeseries() ?? undefined}
-            agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
-            agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
-            colorMap={agentColorMap()}
-          />
+        {/* ── 4. Recent Messages (full width) ──────────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div
+            class="panel__title"
+            style="display: flex; justify-content: space-between; align-items: center;"
+          >
+            Recent Messages
+            <A href="/messages" class="view-more-link">
+              View more
+            </A>
+          </div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Agent</th>
+                  <th>Model</th>
+                  <th>Message</th>
+                  <th style="text-align: right;">Cost</th>
+                  <th style="text-align: right;">Tokens</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={overview()?.recent_activity ?? []}>
+                  {(row) => (
+                    <tr>
+                      <td style="white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                        {formatTimeAgo(row.timestamp) ?? '—'}
+                      </td>
+                      <td>
+                        {(() => {
+                          const s = (row.status ?? 'ok').toLowerCase();
+                          if (s === 'ok' || s === 'success')
+                            return (
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.1); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
+                                Success
+                              </span>
+                            );
+                          if (s === 'retry')
+                            return (
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(38 92% 50% / 0.15); color: hsl(38 92% 40%); font-size: var(--font-size-xs); font-weight: 500;">
+                                Retried
+                              </span>
+                            );
+                          return (
+                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); font-size: var(--font-size-xs); font-weight: 500;">
+                              Failed
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {row.agent_name}
+                        </span>
+                      </td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <Show when={row.provider}>
+                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                              {providerIcon(row.provider!, 16)}
+                              {authBadgeFor(row.auth_type ?? null, 12)}
+                            </span>
+                          </Show>
+                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                            {row.model || '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                        {row.description || row.first_message || '—'}
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground));">
+                        {formatCost(Number(row.cost_usd ?? 0)) ?? '—'}
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                        {formatNumber(Number(row.total_tokens ?? 0))}
+                      </td>
+                    </tr>
+                  )}
+                </For>
+                <Show when={(overview()?.recent_activity ?? []).length === 0}>
+                  <tr>
+                    <td
+                      colspan="7"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No messages yet
+                    </td>
+                  </tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* ── 4. Row 1: Model usage + Recent Messages ──────────────────── */}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-          {/* Model usage */}
-          <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__title">Model usage</div>
-            <div
-              class="scroll-panel__body"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
-            >
-              <table class="data-table">
-                <thead>
+        {/* ── 5. Model usage (full width) ────────────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div class="panel__title">Model usage</div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th style="text-align: right;">Tokens</th>
+                  <th style="text-align: right;">Share</th>
+                  <th style="text-align: right;">Est. cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={(overview()?.cost_by_model ?? []).slice(0, 10)}>
+                  {(row) => (
+                    <tr>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <Show when={row.provider}>
+                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                              {providerIcon(row.provider!, 16)}
+                              {authBadgeFor(row.auth_type, 12)}
+                            </span>
+                          </Show>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {row.display_name || row.model}
+                          </span>
+                        </div>
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                        {formatNumber(row.tokens)}
+                      </td>
+                      <td style="text-align: right;">
+                        <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                          <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
+                            <div
+                              style={{
+                                width: `${row.share_pct}%`,
+                                height: '100%',
+                                background: 'hsl(var(--success))',
+                                'border-radius': '3px',
+                              }}
+                            />
+                          </div>
+                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                            {row.share_pct}%
+                          </span>
+                        </div>
+                      </td>
+                      <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                        {formatCost(row.estimated_cost) ?? '$0.00'}
+                      </td>
+                    </tr>
+                  )}
+                </For>
+                <Show when={(overview()?.cost_by_model ?? []).length === 0}>
                   <tr>
-                    <th>Model</th>
-                    <th style="text-align: right;">Tokens</th>
-                    <th style="text-align: right;">Share</th>
-                    <th style="text-align: right;">Cost</th>
+                    <td
+                      colspan="3"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No model data yet
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  <For each={(overview()?.cost_by_model ?? []).slice(0, 10)}>
-                    {(row) => (
-                      <tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── 6. Provider connections (full width) ────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div class="panel__title">Provider connections</div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th>Type</th>
+                  <th>Usage (30d)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={providerList()}>
+                  {(group) => {
+                    const firstId = () => group.connections[0]?.id;
+                    const isActive = () => group.connections.some((c) => c.is_active);
+                    return (
+                      <tr
+                        style="cursor: pointer;"
+                        onClick={() => {
+                          const id = firstId();
+                          if (id) navigate(`/providers/connections/${id}`);
+                        }}
+                      >
                         <td>
-                          <div style="display: flex; align-items: center; gap: 6px;">
-                            <Show when={row.provider}>
-                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
-                                {providerIcon(row.provider!, 16)}
-                                {authBadgeFor(row.auth_type, 8)}
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="flex-shrink: 0;">{providerIcon(group.provider, 20)}</span>
+                            <span style="font-weight: 500; color: hsl(var(--foreground));">
+                              {group.provider}
+                            </span>
+                          </div>
+                        </td>
+                        <td style="color: hsl(var(--muted-foreground));">
+                          {authLabel(group.auth_type)}
+                        </td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={group.sparkline_7d.length > 0}>
+                              <span style="flex-shrink: 0;">
+                                <Sparkline data={group.sparkline_7d} width={60} height={24} />
                               </span>
+                            </Show>
+                            <span style="font-variant-numeric: tabular-nums;">
+                              {formatNumber(group.consumption_tokens)} tokens
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <Show
+                            when={isActive()}
+                            fallback={
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                                Inactive
+                              </span>
+                            }
+                          >
+                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                              Active
+                            </span>
+                          </Show>
+                        </td>
+                      </tr>
+                    );
+                  }}
+                </For>
+                <Show when={providerList().length === 0}>
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No connections yet
+                    </td>
+                  </tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── 7. Agents (full width) ─────────────────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div class="panel__title">Agents</div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Usage (30d)</th>
+                  <th style="text-align: right;">Messages</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={sortedAgents()}>
+                  {(agent) => {
+                    const icon = platformIcon(agent.agent_platform, agent.agent_category);
+                    return (
+                      <tr
+                        style="cursor: pointer;"
+                        onClick={() => navigate(`/agents/${agent.agent_name}`)}
+                      >
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={icon}>
+                              <img
+                                src={icon!}
+                                alt=""
+                                width="20"
+                                height="20"
+                                style="flex-shrink: 0;"
+                              />
                             </Show>
                             <span style="font-weight: 500; color: hsl(var(--foreground));">
-                              {row.display_name || row.model}
+                              {agent.display_name || agent.agent_name}
                             </span>
                           </div>
-                        </td>
-                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                          {formatNumber(row.tokens)}
-                        </td>
-                        <td style="text-align: right;">
-                          <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
-                            <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
-                              <div
-                                style={{
-                                  width: `${row.share_pct}%`,
-                                  height: '100%',
-                                  background: 'hsl(var(--success))',
-                                  'border-radius': '3px',
-                                }}
-                              />
-                            </div>
-                            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                              {row.share_pct}%
-                            </span>
-                          </div>
-                        </td>
-                        <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
-                          {formatCost(row.estimated_cost) ?? '$0.00'}
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                  <Show when={(overview()?.cost_by_model ?? []).length === 0}>
-                    <tr>
-                      <td
-                        colspan="3"
-                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
-                      >
-                        No model data yet
-                      </td>
-                    </tr>
-                  </Show>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Recent Messages */}
-          <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div
-              class="panel__title"
-              style="display: flex; justify-content: space-between; align-items: center;"
-            >
-              Recent Messages
-              <A href="/messages" class="view-more-link">
-                View more
-              </A>
-            </div>
-            <div
-              class="scroll-panel__body"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
-            >
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Agent</th>
-                    <th>Model</th>
-                    <th style="text-align: right;">Tokens</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={overview()?.recent_activity ?? []}>
-                    {(row) => (
-                      <tr>
-                        <td style="white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                          {formatTimeAgo(row.timestamp) ?? '—'}
                         </td>
                         <td>
-                          <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {row.agent_name}
-                          </span>
-                        </td>
-                        <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                          {row.model || '—'}
-                        </td>
-                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                          {formatNumber(Number(row.total_tokens ?? 0))}
-                        </td>
-                      </tr>
-                    )}
-                  </For>
-                  <Show when={(overview()?.recent_activity ?? []).length === 0}>
-                    <tr>
-                      <td
-                        colspan="4"
-                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
-                      >
-                        No messages yet
-                      </td>
-                    </tr>
-                  </Show>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* ── 5. Row 2: Connections + Agents ──────────────────────── */}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-          {/* Connections */}
-          <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__title">Provider connections</div>
-            <div
-              class="scroll-panel__body"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
-            >
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Provider</th>
-                    <th>Type</th>
-                    <th>Usage (30d)</th>
-                    <th style="text-align: right;">Cost (30d)</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <For each={providerList()}>
-                    {(group) => {
-                      const firstId = () => group.connections[0]?.id;
-                      const isActive = () => group.connections.some((c) => c.is_active);
-                      return (
-                        <tr
-                          style="cursor: pointer;"
-                          onClick={() => {
-                            const id = firstId();
-                            if (id) navigate(`/providers/connections/${id}`);
-                          }}
-                        >
-                          <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={(agent.sparkline ?? []).length > 0}>
                               <span style="flex-shrink: 0;">
-                                {providerIcon(group.provider, 20)}
-                              </span>
-                              <span style="font-weight: 500; color: hsl(var(--foreground));">
-                                {group.provider}
-                              </span>
-                            </div>
-                          </td>
-                          <td style="color: hsl(var(--muted-foreground));">
-                            {authLabel(group.auth_type)}
-                          </td>
-                          <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                              <Show when={group.sparkline_7d.length > 0}>
-                                <span style="flex-shrink: 0;">
-                                  <Sparkline data={group.sparkline_7d} width={60} height={24} />
-                                </span>
-                              </Show>
-                              <span style="font-variant-numeric: tabular-nums;">
-                                {formatNumber(group.consumption_tokens)} tokens
-                              </span>
-                            </div>
-                          </td>
-                          <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
-                            {formatCost(group.consumption_cost) ?? '$0.00'}
-                          </td>
-                          <td>
-                            <Show
-                              when={isActive()}
-                              fallback={
-                                <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                                  Inactive
-                                </span>
-                              }
-                            >
-                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
-                                Active
+                                <Sparkline data={agent.sparkline} width={60} height={24} />
                               </span>
                             </Show>
-                          </td>
-                        </tr>
-                      );
-                    }}
-                  </For>
-                  <Show when={providerList().length === 0}>
-                    <tr>
-                      <td
-                        colspan="5"
-                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
-                      >
-                        No connections yet
-                      </td>
-                    </tr>
-                  </Show>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Agents */}
-          <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__title">Agents</div>
-            <div
-              class="scroll-panel__body"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
-            >
-              <table class="data-table">
-                <thead>
+                            <span style="font-variant-numeric: tabular-nums;">
+                              {formatNumber(agent.total_tokens ?? 0)} tokens
+                            </span>
+                          </div>
+                        </td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                          {formatNumber(agent.message_count ?? 0)}
+                        </td>
+                      </tr>
+                    );
+                  }}
+                </For>
+                <Show when={agentList().length === 0}>
                   <tr>
-                    <th>Agent</th>
-                    <th>Usage (30d)</th>
-                    <th style="text-align: right;">Messages</th>
+                    <td
+                      colspan="4"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No agents yet
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  <For each={sortedAgents()}>
-                    {(agent) => {
-                      const icon = platformIcon(agent.agent_platform, agent.agent_category);
-                      return (
-                        <tr
-                          style="cursor: pointer;"
-                          onClick={() => navigate(`/agents/${agent.agent_name}`)}
-                        >
-                          <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                              <Show when={icon}>
-                                <img
-                                  src={icon!}
-                                  alt=""
-                                  width="20"
-                                  height="20"
-                                  style="flex-shrink: 0;"
-                                />
-                              </Show>
-                              <span style="font-weight: 500; color: hsl(var(--foreground));">
-                                {agent.display_name || agent.agent_name}
-                              </span>
-                            </div>
-                          </td>
-                          <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                              <Show when={(agent.sparkline ?? []).length > 0}>
-                                <span style="flex-shrink: 0;">
-                                  <Sparkline data={agent.sparkline} width={60} height={24} />
-                                </span>
-                              </Show>
-                              <span style="font-variant-numeric: tabular-nums;">
-                                {formatNumber(agent.total_tokens ?? 0)} tokens
-                              </span>
-                            </div>
-                          </td>
-                          <td style="text-align: right; font-variant-numeric: tabular-nums;">
-                            {formatNumber(agent.message_count ?? 0)}
-                          </td>
-                        </tr>
-                      );
-                    }}
-                  </For>
-                  <Show when={agentList().length === 0}>
-                    <tr>
-                      <td
-                        colspan="4"
-                        style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
-                      >
-                        No agents yet
-                      </td>
-                    </tr>
-                  </Show>
-                </tbody>
-              </table>
-            </div>
+                </Show>
+              </tbody>
+            </table>
           </div>
         </div>
       </Show>

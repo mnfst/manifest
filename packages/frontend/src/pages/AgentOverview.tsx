@@ -386,6 +386,7 @@ const AgentOverview: Component = () => {
           tokensTrendPct={overview()?.summary?.tokens_today?.trend_pct ?? 0}
           costValue={overview()?.summary?.cost_today?.value ?? 0}
           costTrendPct={overview()?.summary?.cost_today?.trend_pct ?? 0}
+          costInfoTooltip="Actual API key costs only. Subscription usage is not included."
           tokenUsage={overview()?.token_usage ?? []}
           messageChartData={messageChartData()}
           range={chartRange()}
@@ -426,7 +427,7 @@ const AgentOverview: Component = () => {
                               <Show when={row.provider}>
                                 <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
                                   {providerIcon(row.provider!, 16)}
-                                  {authBadgeFor(row.auth_type, 8)}
+                                  {authBadgeFor(row.auth_type, 12)}
                                 </span>
                               </Show>
                               {row.display_name ?? row.model}

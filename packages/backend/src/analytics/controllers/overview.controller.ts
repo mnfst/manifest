@@ -111,6 +111,30 @@ export class OverviewController {
     );
   }
 
+  @Get('overview/per-model-timeseries')
+  async getPerModelTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerModelTimeseries(range, user.id, hourly, tenantId, agentName);
+  }
+
+  @Get('overview/per-model-message-timeseries')
+  async getPerModelMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerModelMessageTimeseries(
+      range,
+      user.id,
+      hourly,
+      tenantId,
+      agentName,
+    );
+  }
+
   private async hasActiveProviders(userId: string, agentName?: string): Promise<boolean> {
     if (!agentName) return false;
     try {

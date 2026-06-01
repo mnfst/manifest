@@ -1,7 +1,6 @@
 import { Show, type Component } from 'solid-js';
-import SingleTokenChart from './SingleTokenChart.jsx';
-import TokenChart from './TokenChart.jsx';
 import MultiAgentTokenChart from './MultiAgentTokenChart.jsx';
+import InfoTooltip from './InfoTooltip.jsx';
 import { formatNumber, formatCost } from '../services/formatters.js';
 
 type ProviderView = 'messages' | 'tokens' | 'cost';
@@ -33,6 +32,7 @@ interface ProviderChartCardProps {
   tokensTrendPct: number;
   costValue?: number;
   costTrendPct?: number;
+  costInfoTooltip?: string;
   tokenUsage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   messageChartData: Array<{ time: string; value: number }>;
   range: string;
@@ -41,6 +41,12 @@ interface ProviderChartCardProps {
   agentCostTimeseries?: AgentTimeseries;
   colorMap?: Record<string, string>;
 }
+
+const EMPTY = (msg: string) => (
+  <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
+    {msg}
+  </div>
+);
 
 const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
   const showCost = () => props.costValue != null;
@@ -76,7 +82,12 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
             classList={{ 'chart-card__stat--active': props.activeView === 'cost' }}
             onClick={() => props.onViewChange('cost')}
           >
-            <span class="chart-card__label">Cost</span>
+            <span class="chart-card__label">
+              Cost
+              <Show when={props.costInfoTooltip}>
+                <InfoTooltip text={props.costInfoTooltip!} />
+              </Show>
+            </span>
             <div class="chart-card__value-row">
               <span class="chart-card__value">{formatCost(props.costValue!) ?? '$0.00'}</span>
               {trendBadge(props.costTrendPct ?? 0, props.costValue!)}
@@ -88,23 +99,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         <Show when={props.activeView === 'messages'}>
           <Show
             when={props.agentMessageTimeseries?.agents.length}
-            fallback={
-              <Show
-                when={props.messageChartData.length}
-                fallback={
-                  <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                    No message data for this time range
-                  </div>
-                }
-              >
-                <SingleTokenChart
-                  data={props.messageChartData}
-                  label="Messages"
-                  colorVar="--chart-1"
-                  range={props.range}
-                />
-              </Show>
-            }
+            fallback={EMPTY('No message data for this time range')}
           >
             <MultiAgentTokenChart
               agents={props.agentMessageTimeseries!.agents}
@@ -118,18 +113,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         <Show when={props.activeView === 'tokens'}>
           <Show
             when={props.agentTimeseries?.agents.length}
-            fallback={
-              <Show
-                when={props.tokenUsage?.length}
-                fallback={
-                  <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                    No token data for this time range
-                  </div>
-                }
-              >
-                <TokenChart data={props.tokenUsage} range={props.range} />
-              </Show>
-            }
+            fallback={EMPTY('No token data for this time range')}
           >
             <MultiAgentTokenChart
               agents={props.agentTimeseries!.agents}
@@ -142,11 +126,7 @@ const ProviderChartCard: Component<ProviderChartCardProps> = (props) => {
         <Show when={props.activeView === 'cost'}>
           <Show
             when={props.agentCostTimeseries?.agents.length}
-            fallback={
-              <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-                No cost data for this time range
-              </div>
-            }
+            fallback={EMPTY('No cost data for this time range')}
           >
             <MultiAgentTokenChart
               agents={props.agentCostTimeseries!.agents}

@@ -137,10 +137,8 @@
 }
 
 .provider-auth-badge--overlay {
-  width: 8px;
-  height: 8px;
-  top: -2px;
-  right: -2px;
+  top: -4px;
+  right: -6px;
   border-width: 1.5px;
 }
 

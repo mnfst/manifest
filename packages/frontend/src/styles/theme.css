@@ -221,6 +221,13 @@ h6 {
   color: hsl(var(--foreground));
 }
 
+.page-header__subtitle {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+  margin: 4px 0 0;
+}
+
 .page-header .breadcrumb {
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));

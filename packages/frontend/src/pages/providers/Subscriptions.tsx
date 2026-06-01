@@ -1,15 +1,29 @@
 import { Title } from '@solidjs/meta';
 import { useNavigate } from '@solidjs/router';
-import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
+import {
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  Show,
+  onCleanup,
+  type Component,
+} from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
-import { getProviderAnalytics, getProviderAnalyticsAgents } from '../../services/api/analytics.js';
+import {
+  getProviderAnalytics,
+  getProviderAnalyticsAgents,
+  getPerAgentTimeseries,
+  getPerAgentMessageTimeseries,
+} from '../../services/api/analytics.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
 import { formatNumber, formatTimeAgo } from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import ActionMenu from '../../components/ActionMenu.jsx';
 import Select from '../../components/Select.jsx';
@@ -135,11 +149,6 @@ const Subscriptions: Component = () => {
   // Chart state
   const [chartRange, setChartRange] = createSignal('7d');
   const [chartView, setChartView] = createSignal<'messages' | 'tokens'>('tokens');
-  const [chartAgent, setChartAgent] = createSignal('');
-
-  const [chartAgents] = createResource(() =>
-    getProviderAnalyticsAgents('subscription').catch(() => ({ agents: [] as string[] })),
-  );
 
   interface AnalyticsResponse {
     summary: {
@@ -156,13 +165,18 @@ const Subscriptions: Component = () => {
   }
 
   const [analytics] = createResource(
-    () => ({ range: chartRange(), agent: chartAgent() }),
-    (p) =>
-      getProviderAnalytics(
-        'subscription',
-        p.range,
-        p.agent || undefined,
-      ) as Promise<AnalyticsResponse>,
+    () => chartRange(),
+    (range) => getProviderAnalytics('subscription', range) as Promise<AnalyticsResponse>,
+  );
+
+  const [agentTimeseries] = createResource(
+    () => chartRange(),
+    (range) => getPerAgentTimeseries('subscription', '', range),
+  );
+
+  const [agentMessageTimeseries] = createResource(
+    () => chartRange(),
+    (range) => getPerAgentMessageTimeseries('subscription', '', range),
   );
 
   const messageChartData = createMemo(() => {
@@ -170,10 +184,86 @@ const Subscriptions: Component = () => {
     return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
   });
 
-  const agentOptions = () => {
-    const list = chartAgents()?.agents ?? [];
-    return [{ label: 'All agents', value: '' }, ...list.map((a) => ({ label: a, value: a }))];
+  // Agent filter (multi-select toggle)
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(new Set<string>());
+  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
+  let agentFilterRef: HTMLDivElement | undefined;
+
+  if (typeof document !== 'undefined') {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) setAgentFilterOpen(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAgentFilterOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    onCleanup(() => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    });
+  }
+
+  const allAgents = createMemo(() => {
+    const t = agentTimeseries()?.agents ?? [];
+    const m = agentMessageTimeseries()?.agents ?? [];
+    return [...new Set([...t, ...m])].sort();
+  });
+
+  const agentColorMap = createMemo(() => {
+    const map: Record<string, string> = {};
+    const agents = allAgents();
+    for (let i = 0; i < agents.length; i++)
+      map[agents[i]!] = AGENT_COLORS[i % AGENT_COLORS.length]!;
+    return map;
+  });
+
+  const effectiveSelected = () => {
+    const sel = selectedAgents();
+    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
+    return sel;
   };
+  const selectedAgentCount = () => effectiveSelected().size;
+
+  const toggleAgent = (agent: string) => {
+    const current = effectiveSelected();
+    const next = new Set(current);
+    if (next.has(agent)) next.delete(agent);
+    else next.add(agent);
+    setSelectedAgents(next);
+  };
+
+  const filteredAgentTimeseries = createMemo(() => {
+    const raw = agentTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents, timeseries };
+  });
+
+  const filteredAgentMessageTimeseries = createMemo(() => {
+    const raw = agentMessageTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents, timeseries };
+  });
 
   const providerDeepLink = () => {
     const p = deepLinkProvider();
@@ -191,7 +281,91 @@ const Subscriptions: Component = () => {
           </p>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <Select value={chartAgent()} onChange={setChartAgent} options={agentOptions()} />
+          <Show when={allAgents().length > 1}>
+            <div class="agent-filter-select" ref={agentFilterRef}>
+              <button
+                class="agent-filter-select__trigger"
+                onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                type="button"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                {selectedAgentCount() === allAgents().length
+                  ? `All agents (${allAgents().length})`
+                  : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <Show when={agentFilterOpen()}>
+                <div class="agent-filter-select__dropdown">
+                  <div class="agent-filter-select__actions">
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedAgentCount() === allAgents().length}
+                      onClick={() => setSelectedAgents(new Set(allAgents()))}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedAgentCount() === 0}
+                      onClick={() => setSelectedAgents(new Set<string>())}
+                    >
+                      Unselect all
+                    </button>
+                  </div>
+                  <For each={allAgents()}>
+                    {(agent) => {
+                      const isOn = () => effectiveSelected().has(agent);
+                      return (
+                        <button
+                          class="agent-filter-select__item"
+                          onClick={() => toggleAgent(agent)}
+                          type="button"
+                        >
+                          <span
+                            class="agent-filter-select__swatch"
+                            style={{ background: agentColorMap()[agent] }}
+                          />
+                          <span class="agent-filter-select__name">{agent}</span>
+                          <span
+                            class="agent-filter-select__toggle"
+                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                          >
+                            <span class="agent-filter-select__toggle-thumb" />
+                          </span>
+                        </button>
+                      );
+                    }}
+                  </For>
+                </div>
+              </Show>
+            </div>
+          </Show>
           <Select
             value={chartRange()}
             onChange={setChartRange}
@@ -214,6 +388,9 @@ const Subscriptions: Component = () => {
           tokenUsage={analytics()!.token_usage}
           messageChartData={messageChartData()}
           range={chartRange()}
+          agentTimeseries={filteredAgentTimeseries() ?? undefined}
+          agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+          colorMap={agentColorMap()}
         />
       </Show>
 
