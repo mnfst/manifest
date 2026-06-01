@@ -70,6 +70,20 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  'fireworks-ai': {
+    id: 'fireworks-ai',
+    name: 'Fireworks AI',
+    models: {
+      'accounts/fireworks/models/deepseek-v4-flash': {
+        id: 'accounts/fireworks/models/deepseek-v4-flash',
+        name: 'DeepSeek V4 Flash',
+        cost: { input: 0.14, output: 0.28, cache_read: 0.03 },
+        limit: { context: 1000000, output: 384000 },
+        tool_call: true,
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   mistral: {
     id: 'mistral',
     name: 'Mistral',
@@ -229,8 +243,8 @@ describe('ModelsDevSyncService', () => {
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
-      // mistral: 6, xai: 3, groq: 2, nvidia: 1 = 17
-      expect(count).toBe(17);
+      // fireworks: 1, mistral: 6, xai: 3, groq: 2, nvidia: 1 = 18
+      expect(count).toBe(18);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -322,6 +336,18 @@ describe('ModelsDevSyncService', () => {
       expect(model).not.toBeNull();
       expect(model!.name).toBe('Nemotron 3 Super 120B A12B');
       expect(model!.inputPricePerToken).toBe(0.8 / 1_000_000);
+    });
+
+    it('should find Fireworks AI models via our fireworks provider ID', () => {
+      const model = service.lookupModel('fireworks', 'accounts/fireworks/models/deepseek-v4-flash');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('DeepSeek V4 Flash');
+      expect(model!.inputPricePerToken).toBe(0.14 / 1_000_000);
+      expect(model!.outputPricePerToken).toBe(0.28 / 1_000_000);
+      expect(model!.cacheReadPricePerToken).toBe(0.03 / 1_000_000);
+      expect(model!.contextWindow).toBe(1000000);
+      expect(model!.maxOutputTokens).toBe(384000);
+      expect(model!.toolCall).toBe(true);
     });
 
     it('should return null for unknown model', () => {
@@ -506,6 +532,7 @@ describe('ModelsDevSyncService', () => {
       expect(service.isProviderSupported('gemini')).toBe(true);
       expect(service.isProviderSupported('nvidia')).toBe(true);
       expect(service.isProviderSupported('qwen')).toBe(true);
+      expect(service.isProviderSupported('fireworks')).toBe(true);
     });
 
     it('should return false for unmapped providers', () => {

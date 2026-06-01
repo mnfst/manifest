@@ -1995,6 +1995,21 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('nvidia/nemotron-3-super-120b-a12b');
     });
+
+    it('preserves Fireworks account model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-test',
+        model: 'accounts/fireworks/models/deepseek-v3p1',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('accounts/fireworks/models/deepseek-v3p1');
+    });
   });
 
   describe('Body sanitization for non-OpenAI providers', () => {

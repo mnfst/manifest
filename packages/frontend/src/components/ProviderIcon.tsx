@@ -195,6 +195,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Fireworks AI ─────────────────────────────── */
+    case 'fireworks':
+      return (
+        <img
+          src="/icons/fireworks.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain', 'border-radius': '4px' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── Mistral (multi-color bars) ───────────────── */
     case 'mistral':
       return (
@@ -459,6 +472,9 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   'google gemini': '/icons/gemini.svg',
   'github models': '/icons/github.svg',
   groq: '/icons/groq.svg',
+  fireworks: '/icons/fireworks.svg',
+  'fireworks ai': '/icons/fireworks.svg',
+  fireworksai: '/icons/fireworks.svg',
   'hugging face': '/icons/huggingface.svg',
   huggingface: '/icons/huggingface.svg',
   'kilo code': '/icons/kilocode.svg',
@@ -485,6 +501,7 @@ const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
   [/generativelanguage\.googleapis\.com/i, 'gemini'],
   [/models\.inference\.ai\.azure\.com/i, 'github models'],
   [/api\.groq\.com/i, 'groq'],
+  [/api\.fireworks\.ai/i, 'fireworks'],
   [/huggingface\.co/i, 'hugging face'],
   [/kilo\.ai/i, 'kilo code'],
   [/integrate\.api\.nvidia\.com/i, 'nvidia nim'],
@@ -497,6 +514,7 @@ const MODEL_NAME_TO_PROVIDER: [RegExp, string][] = [
   [/^@cf\//i, 'cloudflare workers ai'],
   [/^@hf\//i, 'hugging face'],
   [/gemini/i, 'gemini'],
+  [/^accounts\/fireworks\/models\//i, 'fireworks'],
   [/^mistral/i, 'mistral ai'],
   [/^nvidia\//i, 'nvidia'],
   [/^qwen\//i, 'qwen'],
