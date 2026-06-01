@@ -183,7 +183,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
   minimax: {
     initial: 'Mm',
-    subtitle: 'MiniMax M2.7, M2.5, M1',
+    subtitle: 'MiniMax M3, M2.7',
     supportsSubscription: true,
     subscriptionLabel: 'MiniMax Coding Plan',
     subscriptionAuthMode: 'device_code',

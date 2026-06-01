@@ -220,11 +220,11 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('copilot/gpt-5.4');
   });
 
-  it('returns known models for minimax including M2.7', () => {
+  it('returns known models for minimax including M3', () => {
     const models = getSubscriptionKnownModels('minimax');
+    expect(models).toContain('MiniMax-M3');
+    expect(models).toContain('MiniMax-M3-highspeed');
     expect(models).toContain('MiniMax-M2.7');
-    expect(models).toContain('MiniMax-M2.7-highspeed');
-    expect(models).toContain('MiniMax-M2.5');
   });
 
   it('returns the fixed model id for moonshot Kimi Coding Plan', () => {

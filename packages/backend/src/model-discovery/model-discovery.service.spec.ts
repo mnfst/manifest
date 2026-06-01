@@ -2155,13 +2155,10 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(null as never, 'minimax');
 
       expect(result.map((m) => m.id)).toEqual([
+        'MiniMax-M3',
+        'MiniMax-M3-highspeed',
         'MiniMax-M2.7',
         'MiniMax-M2.7-highspeed',
-        'MiniMax-M2.5',
-        'MiniMax-M2.5-highspeed',
-        'MiniMax-M2.1',
-        'MiniMax-M2.1-highspeed',
-        'MiniMax-M2',
       ]);
     });
 
@@ -2362,9 +2359,10 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'minimax');
 
-      expect(result.map((m) => m.id)).toContain('MiniMax-M2.1');
-      expect(result.map((m) => m.id)).toContain('MiniMax-M2');
-      expect(result.map((m) => m.id)).not.toContain('MiniMax-M2.5');
+      expect(result.map((m) => m.id)).toContain('MiniMax-M3');
+      expect(result.map((m) => m.id)).toContain('MiniMax-M3-highspeed');
+      expect(result.map((m) => m.id)).toContain('MiniMax-M2.7');
+      expect(result.map((m) => m.id)).not.toContain('MiniMax-M2');
     });
 
     it('should supplement Z.ai known models including glm-5.1', () => {

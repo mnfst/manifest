@@ -35,7 +35,7 @@ describe('inferProviderFromModel', () => {
     ['open-mistral-nemo', 'mistral'],
     ['kimi-k2', 'moonshot'],
     ['moonshot-v1', 'moonshot'],
-    ['MiniMax-M2.5', 'minimax'],
+    ['MiniMax-M3', 'minimax'],
     ['glm-4', 'zai'],
     ['qwen2.5-coder', 'qwen'],
     ['qwq-32b', 'qwen'],

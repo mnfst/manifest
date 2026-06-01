@@ -43,13 +43,10 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'MiniMax Coding Plan',
     subscriptionAuthMode: 'device_code' as const,
     knownModels: Object.freeze([
+      'MiniMax-M3',
+      'MiniMax-M3-highspeed',
       'MiniMax-M2.7',
       'MiniMax-M2.7-highspeed',
-      'MiniMax-M2.5',
-      'MiniMax-M2.5-highspeed',
-      'MiniMax-M2.1',
-      'MiniMax-M2.1-highspeed',
-      'MiniMax-M2',
     ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,

@@ -54,7 +54,7 @@ describe('inferProviderFromModel', () => {
   });
 
   it('returns "minimax" for minimax- prefix', () => {
-    expect(inferProviderFromModel('MiniMax-M2.5')).toBe('minimax');
+    expect(inferProviderFromModel('MiniMax-M3')).toBe('minimax');
   });
 
   it('returns "zai" for glm- prefix', () => {

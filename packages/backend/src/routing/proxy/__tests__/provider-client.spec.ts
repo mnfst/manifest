@@ -2716,7 +2716,7 @@ describe('ProviderClient', () => {
       ['deepseek', 'deepseek-chat'],
       ['moonshot', 'kimi-k2-0905-preview'],
       ['kilo', 'kilo-auto/free'],
-      ['minimax', 'MiniMax-M2'],
+      ['minimax', 'MiniMax-M3'],
       ['nvidia', 'nvidia/nemotron-3-super-120b-a12b'],
       ['qwen', 'qwen-max'],
       ['xai', 'grok-3'],

@@ -136,11 +136,11 @@ describe('model-name-normalizer', () => {
     });
 
     it('includes MiniMax mixed-case aliases', () => {
-      const map = buildAliasMap(['minimax-m2.7', 'minimax-m2.5', 'minimax-m1']);
+      const map = buildAliasMap(['minimax-m3', 'minimax-m2.7']);
+      expect(map.get('MiniMax-M3')).toBe('minimax-m3');
+      expect(map.get('MiniMax-M3-highspeed')).toBe('minimax-m3-highspeed');
       expect(map.get('MiniMax-M2.7')).toBe('minimax-m2.7');
       expect(map.get('MiniMax-M2.7-highspeed')).toBe('minimax-m2.7-highspeed');
-      expect(map.get('MiniMax-M2.5')).toBe('minimax-m2.5');
-      expect(map.get('MiniMax-M1')).toBe('minimax-m1');
     });
 
     it('indexes by bare name without version suffix', () => {
@@ -236,15 +236,15 @@ describe('model-name-normalizer', () => {
     });
 
     it('resolves MiniMax mixed-case alias', () => {
-      const map = buildAliasMap(['minimax-m2.7', 'minimax-m2.5', 'minimax-m1']);
+      const map = buildAliasMap(['minimax-m3', 'minimax-m2.7']);
+      expect(resolveModelName('MiniMax-M3', map)).toBe('minimax-m3');
+      expect(resolveModelName('MiniMax-M3-highspeed', map)).toBe('minimax-m3-highspeed');
       expect(resolveModelName('MiniMax-M2.7', map)).toBe('minimax-m2.7');
-      expect(resolveModelName('MiniMax-M2.7-highspeed', map)).toBe('minimax-m2.7-highspeed');
-      expect(resolveModelName('MiniMax-M2.5', map)).toBe('minimax-m2.5');
     });
 
     it('resolves minimax/ prefixed model', () => {
-      const map = buildAliasMap(['minimax-m2.5']);
-      expect(resolveModelName('minimax/minimax-m2.5', map)).toBe('minimax-m2.5');
+      const map = buildAliasMap(['minimax-m3']);
+      expect(resolveModelName('minimax/minimax-m3', map)).toBe('minimax-m3');
     });
 
     it('resolves dot-variant to dash-canonical via normalization', () => {

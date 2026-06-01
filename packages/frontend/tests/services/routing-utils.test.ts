@@ -142,8 +142,8 @@ describe("inferProviderFromModel", () => {
   });
 
   it("detects MiniMax models", () => {
-    expect(inferProviderFromModel("minimax-m2.5")).toBe("minimax");
-    expect(inferProviderFromModel("MiniMax-M1")).toBe("minimax");
+    expect(inferProviderFromModel("minimax-m3")).toBe("minimax");
+    expect(inferProviderFromModel("MiniMax-M3")).toBe("minimax");
   });
 
   it("detects Z.ai GLM models", () => {
@@ -201,7 +201,7 @@ describe("inferProviderName", () => {
   });
 
   it("returns MiniMax for minimax models", () => {
-    expect(inferProviderName("minimax-m2.5")).toBe("MiniMax");
+    expect(inferProviderName("minimax-m3")).toBe("MiniMax");
   });
 
   it("returns Z.ai for GLM models", () => {

@@ -30,14 +30,10 @@ const KNOWN_ALIASES: ReadonlyArray<readonly [string, string]> = [
   ['deepseek-chat-v3-0324', 'deepseek-chat'],
   ['deepseek-r1', 'deepseek-reasoner'],
   // MiniMax mixed-case aliases
+  ['MiniMax-M3', 'minimax-m3'],
+  ['MiniMax-M3-highspeed', 'minimax-m3-highspeed'],
   ['MiniMax-M2.7', 'minimax-m2.7'],
   ['MiniMax-M2.7-highspeed', 'minimax-m2.7-highspeed'],
-  ['MiniMax-M2.5', 'minimax-m2.5'],
-  ['MiniMax-M2.5-highspeed', 'minimax-m2.5-highspeed'],
-  ['MiniMax-M2.1', 'minimax-m2.1'],
-  ['MiniMax-M2.1-highspeed', 'minimax-m2.1-highspeed'],
-  ['MiniMax-M2', 'minimax-m2'],
-  ['MiniMax-M1', 'minimax-m1'],
   // Mistral version aliases
   ['mistral-large', 'mistral-large-latest'],
   ['codestral', 'codestral-latest'],

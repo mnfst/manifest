@@ -518,7 +518,7 @@ describe('ProxyFallbackService', () => {
       await service.tryForwardToProvider({
         provider: 'minimax',
         apiKey: 'token',
-        model: 'MiniMax-M2.5',
+        model: 'MiniMax-M3',
         body,
         stream: false,
         sessionKey: 'sess-1',
@@ -529,7 +529,7 @@ describe('ProxyFallbackService', () => {
       expect(providerClient.forward).toHaveBeenCalledWith({
         provider: 'minimax',
         apiKey: 'token',
-        model: 'MiniMax-M2.5',
+        model: 'MiniMax-M3',
         body,
         stream: false,
         customEndpoint: expect.objectContaining({
@@ -551,7 +551,7 @@ describe('ProxyFallbackService', () => {
       await service.tryForwardToProvider({
         provider: 'minimax',
         apiKey: 'token',
-        model: 'MiniMax-M2.5',
+        model: 'MiniMax-M3',
         body,
         stream: false,
         sessionKey: 'sess-1',
@@ -563,7 +563,7 @@ describe('ProxyFallbackService', () => {
       expect(providerClient.forward).toHaveBeenCalledWith({
         provider: 'minimax',
         apiKey: 'token',
-        model: 'MiniMax-M2.5',
+        model: 'MiniMax-M3',
         body,
         stream: false,
         authType: 'subscription',
@@ -581,7 +581,7 @@ describe('ProxyFallbackService', () => {
       await service.tryForwardToProvider({
         provider: 'minimax',
         apiKey: 'sk-cp-cn-token',
-        model: 'MiniMax-M2.5',
+        model: 'MiniMax-M3',
         body,
         stream: false,
         sessionKey: 'sess-1',
@@ -637,7 +637,7 @@ describe('ProxyFallbackService', () => {
       await service.tryForwardToProvider({
         provider: 'minimax',
         apiKey: 'sk-cp-global-token',
-        model: 'MiniMax-M2.5',
+        model: 'MiniMax-M3',
         body,
         stream: false,
         sessionKey: 'sess-1',
