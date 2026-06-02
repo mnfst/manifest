@@ -14,11 +14,19 @@ import {
   setHeaderTierFallbacks,
   clearHeaderTierFallbacks,
 } from '../services/api/header-tiers.js';
+import { PROVIDERS } from '../services/providers.js';
 import { providerIdForModel } from '../services/routing-model-utils.js';
+import {
+  activeRouteKeys,
+  routeKeySelectionForModel,
+  usedKeyLabelsForModelInTier,
+} from '../services/routing-utils.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
+import KeyPickerModal from './KeyPickerModal.js';
 import RoutingTierModelSlots from './RoutingTierModelSlots.js';
+import RouteKeyChip from './RouteKeyChip.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForHeaderTier, headerTierNameToModelAlias } from 'manifest-shared';
 
@@ -118,6 +126,58 @@ const HeaderTierCard: Component<Props> = (props) => {
     if (provs.some((p) => p.auth_type === 'api_key')) return 'api_key';
     if (provs.some((p) => p.auth_type === 'local')) return 'local';
     return null;
+  };
+
+  const primaryKeys = (): RoutingProvider[] => {
+    const id = providerId();
+    const auth = effectiveAuth();
+    if (!id || !auth || auth === 'local') return [];
+    return activeRouteKeys(props.connectedProviders, id, auth);
+  };
+
+  const handlePrimaryKeyPick = async (label: string | null): Promise<void> => {
+    const route = props.tier.override_route;
+    const provider = providerId() ?? route?.provider;
+    const auth = effectiveAuth() ?? route?.authType;
+    if (!route || !provider || !auth) return;
+    await props.onOverride(route.model, provider, auth, label ?? undefined);
+  };
+
+  const addFallbackRoute = async (
+    model: string,
+    provider: string,
+    authType: AuthType | undefined,
+    keyLabel?: string,
+  ): Promise<void> => {
+    const next = [...fallbacks(), model];
+    const currentRoutes = props.tier.fallback_routes ?? [];
+    const effectiveAuth = authType ?? 'api_key';
+    const nextRoute: ModelRoute = keyLabel
+      ? { provider, authType: effectiveAuth, model, keyLabel }
+      : { provider, authType: effectiveAuth, model };
+    const nextRoutes = [...currentRoutes, nextRoute];
+    try {
+      await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
+      props.onFallbacksUpdate(next, nextRoutes);
+      toast.success('Fallback added');
+    } catch {
+      toast.error('Failed to add fallback');
+    }
+  };
+
+  const completePickerSelection = async (
+    mode: Exclude<PickerMode, null>,
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    keyLabel?: string,
+  ): Promise<void> => {
+    if (mode === 'primary') {
+      if (keyLabel === undefined) await props.onOverride(model, provider, authType);
+      else await props.onOverride(model, provider, authType, keyLabel);
+      return;
+    }
+    await addFallbackRoute(model, provider, authType, keyLabel);
   };
 
   const handlePickerSelect = async (
@@ -329,6 +389,28 @@ const HeaderTierCard: Component<Props> = (props) => {
         effectiveAuthForPrimary={effectiveAuth}
         primaryLabel={(model) => modelLabel() || model}
         primarySkipped={primarySkipped}
+        renderPrimaryExtension={(modelName) => (
+          <Show when={primaryKeys().length > 1}>
+            <RouteKeyChip
+              keys={primaryKeys()}
+              currentLabel={props.tier.override_route?.keyLabel}
+              modelLabel={modelLabel() || modelName}
+              usedLabels={() =>
+                usedKeyLabelsForModelInTier(
+                  props.tier,
+                  modelName,
+                  'primary',
+                  primaryKeys()[0]?.label,
+                )
+              }
+              onPick={handlePrimaryKeyPick}
+              buttonClass="routing-card__key-chip"
+              allowClear={true}
+              leadingMargin={true}
+              stopPropagation={true}
+            />
+          </Show>
+        )}
         onFallbackUpdate={(updated, updatedRoutes) =>
           props.onFallbacksUpdate(updated, updatedRoutes)
         }
