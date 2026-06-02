@@ -387,9 +387,9 @@ describe('PROVIDERS', () => {
     expect(commandcode.subscriptionCredentialKind).toBe('api-key');
     expect(commandcode.subscriptionLabel).toBe('Command Code subscription');
     expect(commandcode.subscriptionKeyPlaceholder).toBe('Paste your Command Code API key');
-    expect(commandcode.subscriptionSignInUrl).toBe(
-      'https://commandcode.ai/studio/settings/api-keys',
-    );
+    expect(commandcode.subscriptionSignInUrl).toBeUndefined();
+    expect(commandcode.subscriptionSignInLabel).toBeUndefined();
+    expect(commandcode.subscriptionSignInHint).toBeUndefined();
     expect(commandcode.models).toEqual([]);
   });
 
@@ -445,13 +445,9 @@ describe('PROVIDERS', () => {
     expect(getSubscriptionProviderKeyUrl('moonshot')).toBe('https://www.kimi.com/code/console');
   });
 
-  it('provides key URLs for Command Code', () => {
-    expect(getRoutingProviderApiKeyUrl('commandcode')).toBe(
-      'https://commandcode.ai/studio/settings/api-keys',
-    );
-    expect(getSubscriptionProviderKeyUrl('commandcode')).toBe(
-      'https://commandcode.ai/studio/settings/api-keys',
-    );
+  it('provides only the subscription-key URL for Command Code', () => {
+    expect(getRoutingProviderApiKeyUrl('commandcode')).toBeUndefined();
+    expect(getSubscriptionProviderKeyUrl('commandcode')).toBe('https://commandcode.ai/studio');
   });
 
   it('provides an API-key URL for Kilo', () => {

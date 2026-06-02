@@ -148,9 +148,6 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'token',
     subscriptionCredentialKind: 'api-key',
     subscriptionKeyPlaceholder: 'Paste your Command Code API key',
-    subscriptionSignInUrl: 'https://commandcode.ai/studio/settings/api-keys',
-    subscriptionSignInLabel: 'Open Command Code API keys',
-    subscriptionSignInHint: 'Create a Command Code API key from Studio settings.',
     models: [],
   },
   gemini: {
