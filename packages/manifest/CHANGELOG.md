@@ -1,5 +1,18 @@
 # manifest
 
+## 6.9.0
+
+### Minor Changes
+
+- 50e7ecd: Add OpenCode Zen as an API-key provider. OpenCode Zen exposes an OpenAI-compatible `/v1/models` catalog and `/v1/chat/completions` proxy endpoint, plus a native Anthropic `/v1/messages` endpoint for Claude models. Manifest now discovers Zen models on connect and routes Claude requests through `/v1/messages` (with `x-api-key` auth) and everything else through `/v1/chat/completions` (with Bearer auth).
+
+### Patch Changes
+
+- 0eff607: Keep same-name models from different providers available in the routing model picker.
+- d950469: Add Fireworks AI as an official API-key routing provider.
+- d439884: Add Kimi Coding Plan subscription routing for Moonshot/Kimi with the `kimi-for-coding` model.
+- 31383c5: Refresh OAuth subscription credentials once when the upstream rejects a stored access token.
+
 ## 6.8.3
 
 ### Patch Changes
