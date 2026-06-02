@@ -29,6 +29,12 @@ import { toast } from '../services/toast-store.js';
 export const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
 
+const ProviderKeyRequirementNote: Component<{ note?: string }> = (props) => (
+  <Show when={props.note}>
+    <p class="provider-detail__key-note">{props.note}</p>
+  </Show>
+);
+
 export interface ProviderKeyFormProps {
   provDef: ProviderDef;
   provId: string;
@@ -79,6 +85,8 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
     props.isSubMode()
       ? getSubscriptionProviderKeyUrl(props.provId)
       : getRoutingProviderApiKeyUrl(props.provId);
+  const requirementNote = () =>
+    props.isSubMode() ? props.provDef.subscriptionRequirementNote : undefined;
 
   // Multi-key chains are supported for api_key and subscription. Local
   // providers (Ollama / LM Studio) don't carry credentials, so they stay
@@ -237,6 +245,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
               </a>
             </p>
           </Show>
+          <ProviderKeyRequirementNote note={requirementNote()} />
         </div>
         <button
           class="btn btn--primary provider-detail__action"
@@ -349,6 +358,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
                 </a>
               </p>
             </Show>
+            <ProviderKeyRequirementNote note={requirementNote()} />
             <button
               class="btn btn--primary provider-detail__action"
               disabled={props.busy() || !props.keyInput().trim()}
@@ -375,6 +385,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           credentialNoun={credentialNoun}
           credentialOwnerName={credentialOwnerName}
           whereToGetUrl={whereToGetUrl}
+          requirementNote={requirementNote}
           addKeyOpen={props.addKeyOpen}
           setAddKeyOpen={props.setAddKeyOpen}
           onUpdate={props.onUpdate}
@@ -427,6 +438,7 @@ export interface AddAnotherKeyActionProps {
   provDef: ProviderDef;
   placeholder: string;
   whereToGetUrl: () => string | undefined;
+  requirementNote?: () => string | undefined;
   credentialNoun: () => string;
   credentialOwnerName: () => string;
   existingLabels: () => string[];
@@ -544,6 +556,7 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
             </a>
           </p>
         </Show>
+        <ProviderKeyRequirementNote note={props.requirementNote?.()} />
         <div style="display: flex; justify-content: space-between; margin-top: 12px;">
           <button
             class="btn btn--outline btn--sm"
@@ -579,6 +592,7 @@ interface KeyChainViewProps {
   credentialNoun: () => string;
   credentialOwnerName: () => string;
   whereToGetUrl: () => string | undefined;
+  requirementNote: () => string | undefined;
   addKeyOpen?: Accessor<boolean>;
   setAddKeyOpen?: Setter<boolean>;
   onUpdate: () => void;
@@ -737,6 +751,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
           provDef={props.provDef}
           placeholder={props.placeholder}
           whereToGetUrl={props.whereToGetUrl}
+          requirementNote={props.requirementNote}
           credentialNoun={props.credentialNoun}
           credentialOwnerName={props.credentialOwnerName}
           existingLabels={() => props.activeKeys().map((k) => k.label)}

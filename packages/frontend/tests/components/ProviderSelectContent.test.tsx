@@ -303,6 +303,7 @@ describe("ProviderSelectContent", () => {
       );
       expect(link).not.toBeNull();
       expect(link!.textContent).toContain("Command Code");
+      expect(container.textContent).toContain("Requires Command Code Pro or higher.");
     });
     expect(container.querySelector(".provider-detail__signin-btn")).toBeNull();
     expect(

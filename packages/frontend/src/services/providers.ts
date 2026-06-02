@@ -20,6 +20,8 @@ export interface ProviderDef {
   subscriptionLabel?: string;
   /** Placeholder for the subscription token input (providers that need a pasted token). */
   subscriptionKeyPlaceholder?: string;
+  /** Optional note shown near the subscription credential field. */
+  subscriptionRequirementNote?: string;
   /**
    * Credential kind used for subscription auth. Drives the input label and
    * aria-labels in the subscription detail view. Defaults to 'setup-token'
@@ -74,6 +76,7 @@ interface ProviderUIOverlay {
   supportsSubscription?: boolean;
   subscriptionLabel?: string;
   subscriptionKeyPlaceholder?: string;
+  subscriptionRequirementNote?: string;
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
   subscriptionCredentialName?: string;
   subscriptionCommand?: string;
@@ -148,6 +151,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'token',
     subscriptionCredentialKind: 'api-key',
     subscriptionKeyPlaceholder: 'Paste your Command Code API key',
+    subscriptionRequirementNote: 'Requires Command Code Pro or higher.',
     models: [],
   },
   gemini: {
