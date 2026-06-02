@@ -257,6 +257,9 @@ export class ProxyService {
       stream,
       sessionKey,
       signal,
+      agentId,
+      userId,
+      rawApiKey: credentials.rawApiKey,
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -422,7 +425,12 @@ export class ProxyService {
     agentId: string,
     userId: string,
     resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
-  ): Promise<{ apiKey: string; resourceUrl?: string; providerRegion?: string | null } | null> {
+  ): Promise<{
+    apiKey: string;
+    rawApiKey: string;
+    resourceUrl?: string;
+    providerRegion?: string | null;
+  } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
       agentId,
       resolved.provider,
@@ -444,13 +452,20 @@ export class ProxyService {
       this.kiroOauth,
       this.xaiOauth,
     );
+    const unwrappedApiKey = unwrapped.apiKey;
+    if (unwrappedApiKey === null) return null;
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
     );
-    return { ...unwrapped, providerRegion };
+    return {
+      apiKey: unwrappedApiKey,
+      rawApiKey: apiKey,
+      resourceUrl: unwrapped.resourceUrl,
+      providerRegion,
+    };
   }
 
   private async tryFallbackChain(args: {
