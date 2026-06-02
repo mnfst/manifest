@@ -1553,6 +1553,64 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Command Code provider', () => {
+    it('routes non-Claude models through the Provider API chat completions endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'commandcode',
+        apiKey: 'user_test',
+        model: 'commandcode/deepseek/deepseek-v4-flash',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.commandcode.ai/provider/v1/chat/completions',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer user_test',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('deepseek/deepseek-v4-flash');
+      expect(result.isAnthropic).toBe(false);
+      expect(result.isChatGpt).toBe(false);
+      expect(result.isGoogle).toBe(false);
+    });
+
+    it('routes Claude models through the Provider API messages endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'commandcode',
+        apiKey: 'user_test',
+        model: 'commandcode/claude-sonnet-4-6',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.commandcode.ai/provider/v1/messages',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-api-key': 'user_test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('claude-sonnet-4-6');
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
+    });
+  });
+
   describe('convertChatGptResponse', () => {
     it('delegates to fromResponsesResponse', () => {
       const data = {
@@ -2722,6 +2780,7 @@ describe('ProviderClient', () => {
       ['xai', 'grok-3'],
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
+      ['commandcode', 'commandcode/deepseek/deepseek-v4-flash'],
       ['opencode-go', 'claude-sonnet-4'],
       ['opencode-zen', 'qwen3.6-plus'],
     ])(

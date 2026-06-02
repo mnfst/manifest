@@ -196,6 +196,18 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  commandcode: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Command Code subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Command Code API key',
+    // Model list is fetched dynamically from Command Code's public Provider API catalog.
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
 });
 
 export const SUPPORTED_SUBSCRIPTION_PROVIDER_IDS: readonly string[] = Object.freeze(

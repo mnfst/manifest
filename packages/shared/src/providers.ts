@@ -136,6 +136,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: '',
   },
   {
+    id: 'commandcode',
+    displayName: 'Command Code',
+    aliases: ['command-code', 'command code', 'cmd'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#000000',
+    keyPrefix: 'user_',
+    minKeyLength: 50,
+    keyPlaceholder: 'user_...',
+  },
+  {
     id: 'gemini',
     displayName: 'Google',
     aliases: ['google'],

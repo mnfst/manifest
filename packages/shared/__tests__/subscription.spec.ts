@@ -17,6 +17,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'minimax',
         'moonshot',
         'copilot',
+        'commandcode',
         'ollama-cloud',
         'zai',
         'opencode-go',
@@ -87,6 +88,16 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config).toMatchObject({
       subscriptionLabel: 'GitHub Copilot subscription',
       subscriptionAuthMode: 'device_code',
+    });
+  });
+
+  it('returns config for Command Code', () => {
+    const config = getSubscriptionProviderConfig('commandcode');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Command Code subscription',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Command Code API key',
     });
   });
 
@@ -193,6 +204,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
+    expect(supportsSubscriptionProvider('commandcode')).toBe(true);
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
     expect(supportsSubscriptionProvider('zai')).toBe(true);
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
@@ -218,6 +230,10 @@ describe('getSubscriptionKnownModels', () => {
     const models = getSubscriptionKnownModels('copilot');
     expect(models).toContain('copilot/claude-opus-4.6');
     expect(models).toContain('copilot/gpt-5.4');
+  });
+
+  it('returns null for Command Code (dynamic Provider API catalog, no hardcoded list)', () => {
+    expect(getSubscriptionKnownModels('commandcode')).toBeNull();
   });
 
   it('returns known models for minimax including M2.7', () => {
@@ -348,6 +364,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('xai');
     expect(caps).toMatchObject({
       maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Command Code', () => {
+    const caps = getSubscriptionCapabilities('commandcode');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1000000,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

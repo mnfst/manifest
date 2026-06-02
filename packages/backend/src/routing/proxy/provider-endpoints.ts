@@ -97,6 +97,7 @@ const anthropicApiKeyHeaders = (apiKey: string): Record<string, string> => ({
  * endpoint to accept requests, but may break if OpenAI changes validation.
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
@@ -146,6 +147,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
+  },
+  commandcode: {
+    baseUrl: COMMAND_CODE_PROVIDER_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'commandcode-anthropic': {
+    baseUrl: COMMAND_CODE_PROVIDER_BASE,
+    buildHeaders: anthropicApiKeyHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
   },
   fireworks: {
     baseUrl: FIREWORKS_INFERENCE_BASE,

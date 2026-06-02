@@ -288,6 +288,30 @@ describe("ProviderSelectContent", () => {
     });
   });
 
+  it("shows only the Command Code key-form link to Studio", async () => {
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    fireEvent.click(screen.getByText("Command Code"));
+    await waitFor(() => {
+      const link = container.querySelector<HTMLAnchorElement>(
+        'a[href="https://commandcode.ai/studio"]',
+      );
+      expect(link).not.toBeNull();
+      expect(link!.textContent).toContain("Command Code");
+    });
+    const subtitle = container.querySelector(".provider-detail__subtitle");
+    expect(subtitle?.textContent).toBe("Requires Command Code Pro or higher.");
+    expect(container.querySelector(".provider-detail__signin-btn")).toBeNull();
+    expect(
+      container.querySelector('a[href="https://commandcode.ai/studio/settings/api-keys"]'),
+    ).toBeNull();
+  });
+
   it("switches tabs on click", () => {
     const { container } = render(() => (
       <ProviderSelectContent

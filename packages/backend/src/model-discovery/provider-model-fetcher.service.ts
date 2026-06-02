@@ -23,6 +23,7 @@ const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
+const COMMAND_CODE_MODELS_URL = 'https://api.commandcode.ai/provider/v1/models';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
@@ -80,11 +81,25 @@ interface OpenAIModelEntry {
   owned_by?: string;
 }
 
+interface CommandCodeModelEntry extends OpenAIModelEntry {
+  name?: string;
+  context_length?: number;
+}
+
 const parseOpenAI = createModelParser<OpenAIModelEntry>({
   arrayKey: 'data',
   filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
+});
+
+const parseCommandCode = createModelParser<CommandCodeModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => `commandcode/${entry.id}`,
+  getDisplayName: (entry, id) => entry.name || id,
+  contextWindow: (entry) => entry.context_length ?? DEFAULT_CONTEXT_WINDOW,
+  capabilityCode: true,
 });
 
 /* ── OpenAI-specific structural filters (not non-chat) ── */
@@ -461,6 +476,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.deepseek.com/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  commandcode: {
+    endpoint: COMMAND_CODE_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseCommandCode,
   },
   groq: {
     endpoint: 'https://api.groq.com/openai/v1/models',

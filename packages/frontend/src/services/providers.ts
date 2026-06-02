@@ -20,6 +20,8 @@ export interface ProviderDef {
   subscriptionLabel?: string;
   /** Placeholder for the subscription token input (providers that need a pasted token). */
   subscriptionKeyPlaceholder?: string;
+  /** Optional note shown near the subscription credential field. */
+  subscriptionRequirementNote?: string;
   /**
    * Credential kind used for subscription auth. Drives the input label and
    * aria-labels in the subscription detail view. Defaults to 'setup-token'
@@ -74,6 +76,7 @@ interface ProviderUIOverlay {
   supportsSubscription?: boolean;
   subscriptionLabel?: string;
   subscriptionKeyPlaceholder?: string;
+  subscriptionRequirementNote?: string;
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
   subscriptionCredentialName?: string;
   subscriptionCommand?: string;
@@ -138,6 +141,18 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
       { label: 'Gemini 3.1 Pro', value: 'copilot/gemini-3.1-pro-preview' },
       { label: 'Grok Code Fast 1', value: 'copilot/grok-code-fast-1' },
     ],
+  },
+  commandcode: {
+    initial: 'CC',
+    subtitle: 'Claude, GPT, Kimi, DeepSeek, Qwen',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'Command Code subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionKeyPlaceholder: 'Paste your Command Code API key',
+    subscriptionRequirementNote: 'Requires Command Code Pro or higher.',
+    models: [],
   },
   gemini: {
     initial: 'G',
@@ -323,6 +338,7 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
 const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
+  'commandcode',
   'deepseek',
   'fireworks',
   'copilot',
