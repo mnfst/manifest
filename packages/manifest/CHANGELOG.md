@@ -1,5 +1,15 @@
 # manifest
 
+## 6.9.1
+
+### Patch Changes
+
+- e2ec0a6: Add BytePlus ModelArk Coding Plan as a subscription provider.
+- 90e7af5: Add Command Code subscription routing with dynamic model discovery and OpenAI/Anthropic Provider API forwarding.
+- c78f6fb: Persist refreshed OAuth subscription tokens to the same provider account label that supplied the token.
+- 4884967: Add Qwen Token Plan as a subscription option for the Alibaba Cloud provider.
+- 6cdd23d: Add a Z.ai GLM Coding Plan endpoint selector for outside-China and China Mainland subscription routing.
+
 ## 6.9.0
 
 ### Minor Changes
