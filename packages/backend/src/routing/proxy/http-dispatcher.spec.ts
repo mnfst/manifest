@@ -85,6 +85,14 @@ describe('http-dispatcher', () => {
       );
     });
 
+    it('falls back to defaults for numeric-prefixed garbage (rejects the parseInt trap)', () => {
+      process.env.UNDICI_CONNECTIONS = '128abc';
+      buildDispatcher();
+      expect(AgentMock).toHaveBeenCalledWith(
+        expect.objectContaining({ connections: DISPATCHER_DEFAULTS.connections }),
+      );
+    });
+
     it('falls back to defaults for zero / negative overrides', () => {
       process.env.UNDICI_CONNECTIONS = '0';
       process.env.UNDICI_CONNECT_TIMEOUT_MS = '-1';

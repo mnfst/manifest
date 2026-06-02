@@ -335,7 +335,13 @@ export class ModelDiscoveryService {
     if (cached) this.modelsCache.delete(agentId);
 
     const models = await this.fetchModelsForAgent(agentId);
-    this.modelsCache.set(agentId, { data: models, expiresAt: Date.now() + MODELS_CACHE_TTL_MS });
+    const now = Date.now();
+    // Sweep expired entries on populate so the cache can't grow unbounded as
+    // agents come and go (entries are otherwise only dropped on miss/invalidate).
+    for (const [key, entry] of this.modelsCache) {
+      if (entry.expiresAt <= now) this.modelsCache.delete(key);
+    }
+    this.modelsCache.set(agentId, { data: models, expiresAt: now + MODELS_CACHE_TTL_MS });
     return models;
   }
 

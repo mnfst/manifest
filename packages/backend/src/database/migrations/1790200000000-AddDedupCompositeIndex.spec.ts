@@ -24,17 +24,19 @@ describe('AddDedupCompositeIndex1790200000000', () => {
     await migration.up(mockQueryRunner);
     expect(queries).toHaveLength(1);
     expect(queries[0]).toContain(
-      'CREATE INDEX IF NOT EXISTS "IDX_agent_messages_tenant_agent_model_status_ts"',
+      'CREATE INDEX IF NOT EXISTS "IDX_agent_messages_tenant_agent_model_status_user_ts"',
     );
     expect(queries[0]).toContain('ON "agent_messages"');
-    expect(queries[0]).toContain('("tenant_id", "agent_id", "model", "status", "timestamp")');
+    expect(queries[0]).toContain(
+      '("tenant_id", "agent_id", "model", "status", "user_id", "timestamp")',
+    );
   });
 
   it('drops the composite dedup index on rollback', async () => {
     await migration.down(mockQueryRunner);
     expect(queries).toHaveLength(1);
     expect(queries[0]).toContain(
-      'DROP INDEX IF EXISTS "IDX_agent_messages_tenant_agent_model_status_ts"',
+      'DROP INDEX IF EXISTS "IDX_agent_messages_tenant_agent_model_status_user_ts"',
     );
   });
 });

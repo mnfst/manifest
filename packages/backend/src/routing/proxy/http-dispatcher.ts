@@ -3,12 +3,13 @@ import { Agent, setGlobalDispatcher } from 'undici';
 /**
  * Shared keep-alive HTTP dispatcher for all outbound provider traffic.
  *
- * Node's global `fetch` (undici) opens a fresh socket per request by default,
- * so every chat/completions forward pays a full DNS + TCP + TLS handshake. For
- * a proxy that fans the same agent's traffic at a handful of provider hosts,
- * that handshake tax dominates time-to-first-token. A process-wide keep-alive
- * `Agent` with a connection pool amortises it: sockets to a provider are
- * reused across requests for up to `keepAliveMaxTimeout`.
+ * Node's global `fetch` (undici) already pools connections, but with
+ * conservative defaults (small per-origin pool, short keep-alive) that aren't
+ * tuned for a proxy fanning sustained traffic at a handful of provider hosts.
+ * Under load or after idle gaps, forwards still pay avoidable DNS + TCP + TLS
+ * handshakes that add to time-to-first-token. A process-wide keep-alive `Agent`
+ * with a larger pool and longer keep-alive amortises that: sockets to a
+ * provider are reused across requests for up to `keepAliveMaxTimeout`.
  *
  * This module is intentionally a small, pure, dependency-free unit — it only
  * builds an `Agent` and installs it as the global dispatcher. It does NOT
@@ -17,7 +18,10 @@ import { Agent, setGlobalDispatcher } from 'undici';
 
 /** Parse a positive-integer env override, falling back to `fallback`. */
 function envInt(name: string, fallback: number): number {
-  const parsed = Number.parseInt(process.env[name] ?? '', 10);
+  // Strict digits-only: reject values like "128abc" that parseInt would
+  // silently half-accept, so a malformed override falls back cleanly.
+  const raw = process.env[name];
+  const parsed = raw !== undefined && /^\d+$/.test(raw) ? Number(raw) : Number.NaN;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 

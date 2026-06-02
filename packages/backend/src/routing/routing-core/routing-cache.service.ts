@@ -146,6 +146,13 @@ export class RoutingCacheService {
     const prefix = `${agentId}:`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);
-    for (const listener of this.invalidationListeners) listener(agentId);
+    for (const listener of this.invalidationListeners) {
+      try {
+        listener(agentId);
+      } catch {
+        // Best-effort fan-out: a listener failure must not break invalidation
+        // callers or skip the remaining listeners.
+      }
+    }
   }
 }

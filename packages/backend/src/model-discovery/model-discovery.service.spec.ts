@@ -805,6 +805,25 @@ describe('ModelDiscoveryService', () => {
       // user_providers across the two getModelsForAgent calls).
       expect(providerRepo.find).toHaveBeenCalledTimes(2);
     });
+
+    it('sweeps expired entries on populate so the cache cannot grow unbounded', async () => {
+      jest.useFakeTimers();
+      try {
+        const cache = (service as unknown as { modelsCache: Map<string, unknown> }).modelsCache;
+        await service.getModelsForAgent('agent-1');
+        await service.getModelsForAgent('agent-2'); // sweep sees agent-1 still fresh (skip branch)
+        expect(cache.size).toBe(2);
+
+        jest.advanceTimersByTime(120_001); // agent-1 + agent-2 now expired
+        await service.getModelsForAgent('agent-3'); // sweep evicts the two stale entries
+
+        expect(cache.size).toBe(1);
+        expect(cache.has('agent-3')).toBe(true);
+        expect(providerRepo.find).toHaveBeenCalledTimes(3);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 
   /* ── getModelForAgent ── */
