@@ -116,6 +116,18 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'popup_paste',
     models: [],
   },
+  byteplus: {
+    initial: 'Bp',
+    subtitle: 'Ark Code, Seed Code, GLM, Kimi',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'ModelArk Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'ModelArk Coding Plan',
+    subscriptionKeyPlaceholder: 'Paste your ModelArk Coding Plan API key',
+    models: [],
+  },
   deepseek: {
     initial: 'D',
     subtitle: 'DeepSeek V3, R1',
@@ -344,6 +356,7 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
 const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
+  'byteplus',
   'commandcode',
   'deepseek',
   'fireworks',

@@ -69,6 +69,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-ant-...',
   },
   {
+    id: 'byteplus',
+    displayName: 'BytePlus',
+    aliases: ['byteplus-plan', 'byteplus plan', 'modelark', 'modelark-coding-plan'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#0B5CFF',
+    keyPrefix: '',
+    minKeyLength: 10,
+    keyPlaceholder: 'ModelArk Coding Plan API key',
+  },
+  {
     id: 'deepseek',
     displayName: 'DeepSeek',
     aliases: [],

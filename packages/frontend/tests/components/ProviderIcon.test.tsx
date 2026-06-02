@@ -5,6 +5,7 @@ import { providerIcon, customProviderLogo } from '../../src/components/ProviderI
 const KNOWN_PROVIDERS = [
   'openai',
   'anthropic',
+  'byteplus',
   'copilot',
   'commandcode',
   'gemini',

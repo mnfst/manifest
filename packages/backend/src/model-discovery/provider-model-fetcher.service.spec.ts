@@ -20,6 +20,7 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'byteplus',
       'commandcode',
       'fireworks',
       'groq',
@@ -590,6 +591,30 @@ describe('ProviderModelFetcherService', () => {
   });
 
   /* ── Z.ai subscription routing ── */
+
+  it('should fetch BytePlus ModelArk Coding Plan models with Bearer auth', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'ark-code-latest' },
+          { id: 'deepseek-v4-flash' },
+          { id: 'seedream-3-0-t2i-250415' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('byteplus', 'bp-sub-key', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://ark.ap-southeast.bytepluses.com/api/coding/v3/models',
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer bp-sub-key' }),
+      }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['ark-code-latest', 'deepseek-v4-flash']);
+    expect(result.every((m) => m.provider === 'byteplus')).toBe(true);
+  });
 
   it('should return glm-5.1 from zai models (no longer blocklisted)', async () => {
     fetchSpy.mockResolvedValue({

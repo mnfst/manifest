@@ -38,6 +38,24 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── BytePlus ─────────────────────────────────── */
+    case 'byteplus':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 32 32"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            fill="#0B5CFF"
+            d="M3 11.6 9.4 6v8.4L20.2 6v8.8L29 7.7v8.5L17.4 26v-8.7L6.6 26v-8.5L3 20.4v-8.8Z"
+          />
+          <path fill="#4CA3FF" d="M9.4 14.4 20.2 6v8.8L9.4 23.3v-8.9Z" opacity="0.72" />
+        </svg>
+      );
+
     /* ── Gemini ───────────────────────────────────── */
     case 'gemini':
       return (
@@ -516,6 +534,8 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   azure: '/icons/azure.svg',
   'azure openai': '/icons/azure.svg',
   'microsoft azure': '/icons/azure.svg',
+  byteplus: '/icons/byteplus.svg',
+  modelark: '/icons/byteplus.svg',
   cerebras: '/icons/cerebras.svg',
   'cloudflare workers ai': '/icons/workersai.svg',
   cohere: '/icons/cohere.svg',
@@ -549,6 +569,7 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
 const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
   [/\.azure\.com|azure\.openai\.com|openai\.azure\.com/i, 'azure'],
   [/api\.cerebras\.ai/i, 'cerebras'],
+  [/bytepluses\.com|byteplus\.com/i, 'byteplus'],
   [/api\.cloudflare\.com|workers\.ai/i, 'cloudflare workers ai'],
   [/cohere\.ai/i, 'cohere'],
   [/commandcode\.ai/i, 'command code'],

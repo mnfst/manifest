@@ -1691,6 +1691,36 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('BytePlus provider', () => {
+    it('routes subscription traffic through the ModelArk Coding Plan messages endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'byteplus',
+        apiKey: 'bp-token',
+        model: 'ark-code-latest',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://ark.ap-southeast.bytepluses.com/api/coding/v1/messages',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer bp-token',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('ark-code-latest');
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
+    });
+  });
+
   describe('convertChatGptResponse', () => {
     it('delegates to fromResponsesResponse', () => {
       const data = {

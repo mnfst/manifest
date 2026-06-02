@@ -128,6 +128,22 @@ describe('PROVIDER_REGISTRY', () => {
     expect(kiro!.localOnly).toBe(false);
     expect(kiro!.keyPrefix).toBe('');
   });
+
+  it('byteplus is registered as a ModelArk Coding Plan token provider', () => {
+    const byteplus = PROVIDER_REGISTRY.find((p) => p.id === 'byteplus');
+    expect(byteplus).toBeDefined();
+    expect(byteplus!.displayName).toBe('BytePlus');
+    expect(byteplus!.aliases).toEqual([
+      'byteplus-plan',
+      'byteplus plan',
+      'modelark',
+      'modelark-coding-plan',
+    ]);
+    expect(byteplus!.openRouterPrefixes).toEqual([]);
+    expect(byteplus!.requiresApiKey).toBe(true);
+    expect(byteplus!.localOnly).toBe(false);
+    expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
+  });
 });
 
 describe('PROVIDER_BY_ID', () => {
@@ -195,6 +211,13 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry).toBeDefined();
     expect(entry.id).toBe('fireworks');
     expect(entry.displayName).toBe('Fireworks AI');
+  });
+
+  it('resolves modelark alias to byteplus entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('modelark') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('byteplus');
+    expect(entry.displayName).toBe('BytePlus');
   });
 
   it('returns undefined for an unknown alias', () => {

@@ -97,6 +97,7 @@ const anthropicApiKeyHeaders = (apiKey: string): Record<string, string> => ({
  * endpoint to accept requests, but may break if OpenAI changes validation.
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const BYTEPLUS_CODING_BASE = 'https://ark.ap-southeast.bytepluses.com/api/coding';
 const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
@@ -148,6 +149,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
+  },
+  byteplus: {
+    baseUrl: BYTEPLUS_CODING_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v3/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'byteplus-anthropic': {
+    baseUrl: BYTEPLUS_CODING_BASE,
+    buildHeaders: anthropicBearerHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
   },
   commandcode: {
     baseUrl: COMMAND_CODE_PROVIDER_BASE,
