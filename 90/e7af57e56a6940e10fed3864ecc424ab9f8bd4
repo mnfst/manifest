@@ -1,0 +1,58 @@
+packages/frontend/src/components/ProviderIcon.tsx
+  s_a543a0ab2059f0::t_6109935fb98482 184-203
+  s_a543a0ab2059f0::t_52bd3ea2f09e50 522-523,554
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 100,151-163
+packages/backend/src/routing/proxy/provider-client.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 61-63,223-228
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 17
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 3,34
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_a543a0ab2059f0::t_1c83aaa5438c80 71,98-103,126-127,497-520,539,559
+packages/frontend/src/services/providers.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 142-155
+  s_a543a0ab2059f0::t_2bb2f9876790d9 340
+.changeset/commandcode-subscription-provider.md
+  s_a543a0ab2059f0::t_71a8355fdce200 1-5
+packages/shared/__tests__/provider-inference.spec.ts
+  s_a543a0ab2059f0::t_352b398cd066a9 44-45
+packages/shared/__tests__/subscription.spec.ts
+  s_a543a0ab2059f0::t_6694de52db2c8d 20,94-103,207,235-238,372-375
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_a543a0ab2059f0::t_64e11d1062607f 23,1912-1955
+packages/shared/__tests__/providers.spec.ts
+  s_a543a0ab2059f0::t_2fe32fb556a5a0 75-84,119-125
+packages/frontend/tests/services/providers.test.ts
+  s_a543a0ab2059f0::t_d23e8c83533b70 382,384-385,390,392-393
+packages/shared/src/providers.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 139-149
+packages/frontend/public/icons/commandcode.svg
+  s_a543a0ab2059f0::t_71a8355fdce200 1-13
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 26,84-88,96-104,480-483
+packages/shared/src/subscription/configs.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 199-210
+packages/shared/src/provider-inference.ts
+  s_a543a0ab2059f0::t_31c9ccb6fba3ae 18
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_a543a0ab2059f0::t_07c15e9b319c10 2783
+  s_a543a0ab2059f0::t_6dc722e26f8dad 1556-1613
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "90e7af57e56a6940e10fed3864ecc424ab9f8bd4",
+  "prompts": {},
+  "sessions": {
+    "s_a543a0ab2059f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8841-cef4-7de1-966b-b5d7a1e011de",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
