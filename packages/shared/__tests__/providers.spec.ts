@@ -72,6 +72,16 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     }
   });
 
+  it('resolves Command Code aliases to the canonical provider entry', () => {
+    for (const name of ['commandcode', 'command-code', 'Command Code', 'cmd']) {
+      const normalized = normalizeProviderName(name);
+      const entry =
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+      expect(entry?.id).toBe('commandcode');
+    }
+  });
+
   it('returns undefined for unknown names', () => {
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('unknownprovider')).toBeUndefined();
   });
@@ -105,6 +115,14 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     const fireworks = SHARED_PROVIDER_BY_ID.get('fireworks');
     expect(fireworks).toBeDefined();
     expect(fireworks!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('commandcode has no openRouter prefixes (native Provider API /models is authoritative)', () => {
+    const commandcode = SHARED_PROVIDER_BY_ID.get('commandcode');
+    expect(commandcode).toBeDefined();
+    expect(commandcode!.displayName).toBe('Command Code');
+    expect(commandcode!.openRouterPrefixes).toEqual([]);
+    expect(commandcode!.keyPrefix).toBe('user_');
   });
 });
 

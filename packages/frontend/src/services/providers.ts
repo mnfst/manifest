@@ -139,6 +139,20 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
       { label: 'Grok Code Fast 1', value: 'copilot/grok-code-fast-1' },
     ],
   },
+  commandcode: {
+    initial: 'CC',
+    subtitle: 'Claude, GPT, Kimi, DeepSeek, Qwen',
+    supportsSubscription: true,
+    subscriptionOnly: true,
+    subscriptionLabel: 'Command Code subscription',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionKeyPlaceholder: 'Paste your Command Code API key',
+    subscriptionSignInUrl: 'https://commandcode.ai/studio/settings/api-keys',
+    subscriptionSignInLabel: 'Open Command Code API keys',
+    subscriptionSignInHint: 'Create a Command Code API key from Studio settings.',
+    models: [],
+  },
   gemini: {
     initial: 'G',
     subtitle: 'Gemini 2.5, Gemini 2.0 Flash',
@@ -323,6 +337,7 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
 const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
+  'commandcode',
   'deepseek',
   'fireworks',
   'copilot',

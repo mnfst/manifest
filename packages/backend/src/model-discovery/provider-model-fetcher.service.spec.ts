@@ -20,6 +20,7 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'commandcode',
       'fireworks',
       'groq',
       'kilo',
@@ -1905,6 +1906,53 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('opencode-go', 'og-token', 'subscription');
       expect(result).toEqual([]);
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('commandcode provider', () => {
+    it('fetches the Provider API /models catalog with Bearer auth and namespaces model ids', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'claude-sonnet-4-6',
+              name: 'Claude Sonnet 4.6',
+              context_length: 1000000,
+            },
+            {
+              id: 'deepseek/deepseek-v4-flash',
+              name: 'DeepSeek V4 Flash',
+              context_length: 1000000,
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('commandcode', 'user_test', 'subscription');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.commandcode.ai/provider/v1/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer user_test' }),
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'commandcode/claude-sonnet-4-6',
+          displayName: 'Claude Sonnet 4.6',
+          provider: 'commandcode',
+          contextWindow: 1000000,
+          capabilityCode: true,
+        }),
+        expect.objectContaining({
+          id: 'commandcode/deepseek/deepseek-v4-flash',
+          displayName: 'DeepSeek V4 Flash',
+          provider: 'commandcode',
+          contextWindow: 1000000,
+          capabilityCode: true,
+        }),
+      ]);
     });
   });
 

@@ -1,5 +1,6 @@
 export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
+  commandcode: 'https://commandcode.ai/studio/settings/api-keys',
   deepseek: 'https://platform.deepseek.com/api_keys',
   fireworks: 'https://app.fireworks.ai/api-keys',
   gemini: 'https://aistudio.google.com/apikey',
@@ -30,6 +31,7 @@ export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefi
  * Anthropic setup-tokens come from the Claude Code CLI, not the API console).
  */
 export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
+  commandcode: 'https://commandcode.ai/studio/settings/api-keys',
   moonshot: 'https://www.kimi.com/code/console',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   kiro: 'https://app.kiro.dev',

@@ -41,6 +41,8 @@ describe('inferProviderFromModel', () => {
     ['qwq-32b', 'qwen'],
     ['copilot/gpt-5.4', 'copilot'],
     ['copilot/claude-opus-4.6', 'copilot'],
+    ['commandcode/claude-sonnet-4-6', 'commandcode'],
+    ['commandcode/deepseek/deepseek-v4-flash', 'commandcode'],
     ['opencode-go/glm-5.1', 'opencode-go'],
     ['opencode-go/kimi-k2.5', 'opencode-go'],
     ['opencode-go/minimax-m2.7', 'opencode-go'],
@@ -66,7 +68,9 @@ describe('inferProviderFromModel', () => {
 
   it('does not treat OpenRouter vendor/model:variant as ollama', () => {
     expect(inferProviderFromModel('anthropic/claude-sonnet-4:thinking')).toBe('openrouter');
-    expect(inferProviderFromModel('nvidia/llama-3.1-nemotron-70b-instruct:extended')).toBe('openrouter');
+    expect(inferProviderFromModel('nvidia/llama-3.1-nemotron-70b-instruct:extended')).toBe(
+      'openrouter',
+    );
     expect(inferProviderFromModel('meta-llama/llama-4-scout:free')).toBe('openrouter');
   });
 

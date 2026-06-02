@@ -68,6 +68,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
@@ -94,6 +95,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('fireworks ai')).toBe('fireworks');
   });
 
+  it('resolves Command Code aliases to commandcode', () => {
+    expect(resolveEndpointKey('command-code')).toBe('commandcode');
+    expect(resolveEndpointKey('Command Code')).toBe('commandcode');
+    expect(resolveEndpointKey('cmd')).toBe('commandcode');
+  });
+
   it('resolves qwen and alibaba to qwen', () => {
     expect(resolveEndpointKey('qwen')).toBe('qwen');
     expect(resolveEndpointKey('alibaba')).toBe('qwen');
@@ -116,6 +123,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
+    expect(known).toContain('commandcode');
+    expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
@@ -485,6 +494,30 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('commandcode uses the Command Code Provider API chat endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['commandcode'];
+    expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('deepseek/deepseek-v4-flash')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('user_test')).toEqual({
+      Authorization: 'Bearer user_test',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('commandcode-anthropic uses the Command Code Provider API messages endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['commandcode-anthropic'];
+    expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('claude-sonnet-4-6')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+    expect(ep.buildHeaders('user_test')).toEqual({
+      'x-api-key': 'user_test',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
+  });
+
   it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
     const endpointKeys = [
       'openai',
@@ -503,6 +536,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'openrouter',
       'ollama',
       'ollama-cloud',
+      'commandcode',
       'opencode-go',
       'opencode-zen',
     ];
@@ -522,6 +556,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'openai-responses',
       'xai-responses',
       'copilot-responses',
+      'commandcode-anthropic',
       'minimax-subscription',
       'opencode-go-anthropic',
       'opencode-zen-google',

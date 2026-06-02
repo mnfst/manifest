@@ -58,6 +58,9 @@ const PROVIDER_TIMEOUT_MS =
 function stripModelPrefix(model: string, endpointKey: string): string {
   // OpenRouter accepts and expects vendor prefixes
   if (endpointKey === 'openrouter') return model;
+  if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
+    return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;
+  }
   // Custom providers, Fireworks, Groq, Kilo, and NVIDIA NIM: model IDs from these APIs contain
   // legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
   // "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b", "anthropic/claude-sonnet-4.5").
@@ -215,6 +218,14 @@ export class ProviderClient {
       const catalogFormat = await this.resolveOpencodeGoFormat(bareOpenCodeModel);
       if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
         resolved = 'opencode-go-anthropic';
+      }
+    }
+    if (resolved === 'commandcode') {
+      const bareCommandCodeModel = model.startsWith('commandcode/')
+        ? model.slice('commandcode/'.length).toLowerCase()
+        : model.toLowerCase();
+      if (bareCommandCodeModel.startsWith('claude-')) {
+        resolved = 'commandcode-anthropic';
       }
     }
     if (
