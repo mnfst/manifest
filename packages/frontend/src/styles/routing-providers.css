@@ -1059,15 +1059,18 @@
   margin-top: 16px;
 }
 
-.provider-icon--opencode-go-dark {
+.provider-icon--opencode-go-dark,
+.provider-icon--opencode-zen-dark {
   display: none;
 }
 
-.dark .provider-icon--opencode-go-light {
+.dark .provider-icon--opencode-go-light,
+.dark .provider-icon--opencode-zen-light {
   display: none;
 }
 
-.dark .provider-icon--opencode-go-dark {
+.dark .provider-icon--opencode-go-dark,
+.dark .provider-icon--opencode-zen-dark {
   display: inline;
 }
 

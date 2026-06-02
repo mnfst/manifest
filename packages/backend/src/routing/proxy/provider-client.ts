@@ -58,12 +58,13 @@ const PROVIDER_TIMEOUT_MS =
 function stripModelPrefix(model: string, endpointKey: string): string {
   // OpenRouter accepts and expects vendor prefixes
   if (endpointKey === 'openrouter') return model;
-  // Custom providers, Groq, Kilo, and NVIDIA NIM: model IDs from these APIs contain legitimate
-  // slash segments (e.g. "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b",
-  // "anthropic/claude-sonnet-4.5").
+  // Custom providers, Fireworks, Groq, Kilo, and NVIDIA NIM: model IDs from these APIs contain
+  // legitimate slash segments (e.g. "accounts/fireworks/models/deepseek-v3p1",
+  // "MiniMaxAI/MiniMax-2.7", "meta-llama/llama-guard-4-12b", "anthropic/claude-sonnet-4.5").
   // Stripping would mangle the name the upstream API expects.
   if (
     endpointKey === 'custom' ||
+    endpointKey === 'fireworks' ||
     endpointKey === 'groq' ||
     endpointKey === 'kilo' ||
     endpointKey === 'nvidia'
@@ -216,6 +217,21 @@ export class ProviderClient {
         resolved = 'opencode-go-anthropic';
       }
     }
+    if (
+      resolved === 'opencode-zen' &&
+      stripVendorPrefix(model).toLowerCase().startsWith('gemini-')
+    ) {
+      // TODO(opencode-zen): once Zen's gateway stops forwarding the client
+      // Authorization header to Vertex AI, drop this branch and let Gemini
+      // ride the unified /v1/chat/completions route like every other family.
+      // Today, sending `Authorization: Bearer <zen_key>` against the unified
+      // path triggers GCP OVERLOADED_CREDENTIALS (Zen also attaches its own
+      // GCP creds upstream). The dedicated Gemini route uses Google's
+      // `x-goog-api-key` header against `/v1/models/{id}:generateContent`,
+      // which Zen documents at https://opencode.ai/docs/zen/ and does not
+      // leak through to Vertex AI.
+      resolved = 'opencode-zen-google';
+    }
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
   }
 
@@ -285,6 +301,7 @@ export class ProviderClient {
 
     if (endpoint.format === 'anthropic') {
       const isSubscription = authType === 'subscription';
+      const injectSubscriptionIdentity = isSubscription && !endpoint.skipSubscriptionIdentity;
       // When the inbound request is already Anthropic Messages
       // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
       // skip the OpenAI translation round-trip and apply only the additive
@@ -298,12 +315,12 @@ export class ProviderClient {
         ctx.apiMode === 'messages'
           ? applyAnthropicMessagesMutations(body, {
               injectCacheControl: !isSubscription,
-              injectSubscriptionIdentity: isSubscription,
+              injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectCacheControl: !isSubscription,
-              injectSubscriptionIdentity: isSubscription,
+              injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
             });
       requestBody.model = bareModel;
