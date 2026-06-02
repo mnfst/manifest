@@ -17,6 +17,7 @@ import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
+import { isZaiCodingPlanRegion, isZaiProviderId } from '../zai-region';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -307,6 +308,16 @@ export class ProviderService {
       }
       if (!isMinimaxRegion(requestedRegion)) {
         throw new BadRequestException('MiniMax subscription region must be one of: global, cn');
+      }
+      return requestedRegion;
+    }
+
+    if (isZaiProviderId(lower) && authType === 'subscription') {
+      if (requestedRegion === undefined) {
+        return isZaiCodingPlanRegion(existing?.region) ? existing.region : null;
+      }
+      if (!isZaiCodingPlanRegion(requestedRegion)) {
+        throw new BadRequestException('Z.ai subscription region must be one of: global, cn');
       }
       return requestedRegion;
     }

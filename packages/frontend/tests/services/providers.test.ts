@@ -532,6 +532,10 @@ describe('PROVIDERS', () => {
     expect(zai.subscriptionLabel).toBe('GLM Coding Plan');
     expect(zai.subscriptionAuthMode).toBe('token');
     expect(zai.subscriptionKeyPlaceholder).toBe('Paste your Z.ai API key');
+    expect(zai.subscriptionEndpointRegions).toEqual([
+      { value: 'global', label: 'Outside China (api.z.ai)' },
+      { value: 'cn', label: 'China Mainland (open.bigmodel.cn)' },
+    ]);
     expect(zai.subscriptionOnly).toBeUndefined();
   });
 

@@ -450,7 +450,7 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai-subscription uses Coding Plan base URL', () => {
     const ep = PROVIDER_ENDPOINTS['zai-subscription'];
-    expect(ep.baseUrl).toBe('https://open.bigmodel.cn/api/coding/paas/v4');
+    expect(ep.baseUrl).toBe('https://api.z.ai/api/coding/paas/v4');
   });
 
   it('zai-subscription builds /chat/completions path', () => {

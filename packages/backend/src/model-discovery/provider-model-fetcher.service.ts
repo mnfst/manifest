@@ -10,6 +10,7 @@ import {
 } from '../common/constants/subscription-clients';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
+import { getZaiCodingPlanBaseUrl, normalizeZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
 import {
   buildKiroHeaders,
@@ -572,7 +573,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     parse: parseOpenAI,
   },
   'zai-subscription': {
-    endpoint: 'https://open.bigmodel.cn/api/coding/paas/v4/models',
+    endpoint: `${getZaiCodingPlanBaseUrl('global')}/models`,
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
@@ -697,6 +698,13 @@ export class ProviderModelFetcherService {
         url = `${qwenBaseUrl}/v1/models`;
       } else {
         this.logger.warn('Ignoring invalid Qwen endpoint override');
+      }
+    } else if (endpointOverride && configKey === 'zai-subscription') {
+      const zaiBaseUrl = normalizeZaiCodingPlanBaseUrl(endpointOverride);
+      if (zaiBaseUrl) {
+        url = `${zaiBaseUrl}/models`;
+      } else {
+        this.logger.warn('Ignoring invalid Z.ai subscription endpoint override');
       }
     }
 

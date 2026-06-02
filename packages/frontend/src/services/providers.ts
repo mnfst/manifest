@@ -2,6 +2,11 @@
 
 import { SHARED_PROVIDER_BY_ID, type SharedProviderEntry } from 'manifest-shared';
 
+export interface SubscriptionEndpointRegion {
+  value: string;
+  label: string;
+}
+
 export interface ProviderDef {
   id: string;
   name: string;
@@ -36,6 +41,8 @@ export interface ProviderDef {
   deviceLogin?: boolean;
   /** UI auth mode for subscription flows. */
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  /** Optional endpoint selector for token-mode subscription providers. */
+  subscriptionEndpointRegions?: SubscriptionEndpointRegion[];
   /**
    * Optional secondary subscription path. Lets a provider expose a pasted-token
    * shortcut alongside its primary OAuth/device-code flow — currently used so
@@ -82,6 +89,7 @@ interface ProviderUIOverlay {
   subscriptionCommand?: string;
   deviceLogin?: boolean;
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
+  subscriptionEndpointRegions?: SubscriptionEndpointRegion[];
   subscriptionTokenAlternative?: {
     prefix: string;
     placeholder: string;
@@ -329,6 +337,10 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'token',
     subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
     subscriptionCredentialKind: 'api-key',
+    subscriptionEndpointRegions: [
+      { value: 'global', label: 'Outside China (api.z.ai)' },
+      { value: 'cn', label: 'China Mainland (open.bigmodel.cn)' },
+    ],
     models: [],
   },
 };

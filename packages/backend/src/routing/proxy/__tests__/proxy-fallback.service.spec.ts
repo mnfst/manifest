@@ -835,6 +835,84 @@ describe('ProxyFallbackService', () => {
       const call = providerClient.forward.mock.calls[0][0];
       expect(call.customEndpoint).toBeUndefined();
     });
+
+    it('routes Z.ai subscription region=cn to the China Coding Plan endpoint', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'zai',
+        apiKey: 'zai-sub-key',
+        model: 'glm-5.1',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'cn',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://open.bigmodel.cn/api/coding/paas/v4',
+            format: 'openai',
+          }),
+        }),
+      );
+    });
+
+    it('leaves Z.ai subscription region=global on the built-in outside-China endpoint', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'zai',
+        apiKey: 'zai-sub-key',
+        model: 'glm-5.1',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'global',
+      });
+
+      const call = providerClient.forward.mock.calls[0][0];
+      expect(call.customEndpoint).toBeUndefined();
+    });
+
+    it('strips Z.ai vendor prefixes on subscription routes before endpoint overrides', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'zai',
+        apiKey: 'zai-sub-key',
+        model: 'z-ai/glm-5.1',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'cn',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'glm-5.1',
+        }),
+      );
+    });
   });
 
   describe('tryFallbacks', () => {

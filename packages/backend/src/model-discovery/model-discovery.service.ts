@@ -14,6 +14,7 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
+import { getZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -112,6 +113,13 @@ export class ModelDiscoveryService {
     }
     if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
       endpointOverride = getQwenCompatibleBaseUrl(provider.region);
+    }
+    if (
+      provider.provider.toLowerCase() === 'zai' &&
+      provider.auth_type === 'subscription' &&
+      provider.region === 'cn'
+    ) {
+      endpointOverride = getZaiCodingPlanBaseUrl('cn');
     }
 
     let raw: DiscoveredModel[];

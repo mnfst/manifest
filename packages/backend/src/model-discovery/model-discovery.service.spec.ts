@@ -1357,6 +1357,43 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('routes Z.ai CN subscription discovery to the China Coding Plan host', async () => {
+      mockDecrypt.mockReturnValue('zai-sub-key');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'zai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'cn',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'zai',
+        'zai-sub-key',
+        'subscription',
+        'https://open.bigmodel.cn/api/coding/paas/v4',
+      );
+    });
+
+    it('leaves Z.ai global subscription discovery on the default outside-China host', async () => {
+      mockDecrypt.mockReturnValue('zai-sub-key');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'zai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'global',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith('zai', 'zai-sub-key', 'subscription', undefined);
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);
