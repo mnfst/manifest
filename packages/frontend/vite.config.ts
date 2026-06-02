@@ -67,6 +67,18 @@ export default defineConfig(({ command }) => ({
           if (id.includes('node_modules/better-auth')) {
             return 'auth';
           }
+          // Syntax highlighting (highlight.js) is only pulled in by the
+          // recorded-message viewer. Pin it to a stable named chunk so it
+          // caches independently of the route chunks that lazy-load it.
+          if (id.includes('node_modules/highlight.js')) {
+            return 'syntax';
+          }
+          // Markdown rendering (marked + dompurify) is shared across the
+          // few surfaces that render model output. A dedicated chunk keeps
+          // its hash stable across route-chunk changes.
+          if (id.includes('node_modules/marked') || id.includes('node_modules/dompurify')) {
+            return 'markdown';
+          }
         },
       },
     },

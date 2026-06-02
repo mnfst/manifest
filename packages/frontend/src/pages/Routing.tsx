@@ -45,6 +45,9 @@ import {
 } from '../services/api.js';
 import { parseCustomProviderParams, parseProviderDeepLink } from '../services/routing-params.js';
 import { STAGES } from '../services/providers.js';
+// Route-scoped: keep the large routing stylesheet (and its sub-imports) out
+// of the global theme bundle so login/overview/etc. don't download it.
+import '../styles/routing.css';
 
 const Routing: Component = () => {
   const params = useParams<{ agentName: string }>();

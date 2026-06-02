@@ -385,6 +385,7 @@ const EmptyModelsState: Component<{
 
       <video
         src="/icons/lmstudio-load-models.mp4"
+        preload="none"
         autoplay
         loop
         muted
@@ -530,6 +531,7 @@ const FailureState: Component<{
             </div>
             <video
               src="/icons/lmstudio-start-server.mp4"
+              preload="none"
               autoplay
               loop
               muted

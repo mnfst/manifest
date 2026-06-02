@@ -38,6 +38,9 @@ function setWithEviction<T>(map: Map<string, CachedEntry<T>>, key: string, data:
   map.set(key, { data, expiresAt: Date.now() + TTL_MS });
 }
 
+/** Notified with the agentId whenever that agent's routing cache is invalidated. */
+export type AgentInvalidationListener = (agentId: string) => void;
+
 @Injectable()
 export class RoutingCacheService {
   private readonly tiers = new Map<string, CachedEntry<TierAssignment[]>>();
@@ -47,6 +50,12 @@ export class RoutingCacheService {
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
   private readonly headerTiers = new Map<string, CachedEntry<HeaderTier[]>>();
   private readonly modelParams = new Map<string, CachedEntry<AgentModelParams[]>>();
+
+  // External caches keyed by agentId that must be dropped alongside the routing
+  // cache. Kept as plain callbacks (not DI) so dependents in other modules can
+  // subscribe without forming an import cycle — every provider mutation already
+  // funnels through invalidateAgent(), so this is the one place to fan out.
+  private readonly invalidationListeners: AgentInvalidationListener[] = [];
 
   getTiers(agentId: string): TierAssignment[] | null {
     return getOrExpire(this.tiers, agentId) ?? null;
@@ -117,6 +126,16 @@ export class RoutingCacheService {
     this.modelParams.delete(agentId);
   }
 
+  /**
+   * Register a callback fired (with the agentId) on every invalidateAgent().
+   * Used to keep agent-keyed caches that live in other modules — e.g.
+   * ModelDiscoveryService's discovered-model cache — in sync without creating
+   * a module-level circular dependency.
+   */
+  addInvalidationListener(listener: AgentInvalidationListener): void {
+    this.invalidationListeners.push(listener);
+  }
+
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
     this.providers.delete(agentId);
@@ -127,5 +146,6 @@ export class RoutingCacheService {
     const prefix = `${agentId}:`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);
+    for (const listener of this.invalidationListeners) listener(agentId);
   }
 }
