@@ -6,6 +6,7 @@ import {
   capabilitiesFromModelsDev,
   modelModalitiesFromModelsDev,
 } from '../model-discovery/model-capabilities';
+import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
 
 /**
  * Mapping from our internal provider IDs to models.dev provider directory names.
@@ -86,8 +87,6 @@ const DATE_SUFFIX_RE = /-\d{4}-?\d{2}-?\d{2}$/;
 const SHORT_DATE_SUFFIX_RE = /-\d{4}$/;
 /** Common suffix aliases: try appending -latest when the base name is not found. */
 const LATEST_SUFFIX = '-latest';
-/** Google variant suffixes: -preview-MM-DD, -preview-YYYY-MM-DD, -exp-MMDD, -latest. */
-const GOOGLE_VARIANT_RE = /-(?:preview(?:-\d{2,4}){1,3}|exp-\d{4}|latest)$/;
 /** xAI reasoning/non-reasoning mode suffixes. */
 const REASONING_SUFFIX_RE = /-(reasoning|non-reasoning)$/;
 /**

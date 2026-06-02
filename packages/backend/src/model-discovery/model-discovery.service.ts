@@ -6,7 +6,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
-import { DiscoveredModel } from './model-fetcher';
+import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
@@ -369,7 +369,7 @@ export class ModelDiscoveryService {
           displayName: m.model_name,
           provider: cpKey,
           authType: customAuthTypes.get(cpKey) ?? 'api_key',
-          contextWindow: m.context_window ?? 128000,
+          contextWindow: m.context_window ?? DEFAULT_CONTEXT_WINDOW,
           inputPricePerToken: inputPerToken,
           outputPricePerToken: outputPerToken,
           capabilityReasoning: false,

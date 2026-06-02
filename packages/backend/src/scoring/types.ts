@@ -10,6 +10,18 @@ export interface ScorerTool {
   [key: string]: unknown;
 }
 
+/**
+ * Extract a tool's name across the two shapes agents send: a top-level `name`
+ * (Anthropic-style) or a nested `function.name` (OpenAI-style). Returns null
+ * when neither is present.
+ */
+export function extractToolName(tool: ScorerTool): string | null {
+  if (typeof tool.name === 'string') return tool.name;
+  const fn = tool.function as { name?: string } | undefined;
+  if (fn && typeof fn.name === 'string') return fn.name;
+  return null;
+}
+
 export interface ScorerInput {
   messages: ScorerMessage[];
   tools?: ScorerTool[];

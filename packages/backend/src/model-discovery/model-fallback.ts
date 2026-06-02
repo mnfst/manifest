@@ -1,4 +1,4 @@
-import { DiscoveredModel } from './model-fetcher';
+import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
@@ -160,7 +160,7 @@ export function buildModelsDevFallback(
     id: e.id,
     displayName: e.name || e.id,
     provider: providerId,
-    contextWindow: e.contextWindow ?? 128000,
+    contextWindow: e.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
     inputPricePerToken: e.inputPricePerToken,
     outputPricePerToken: e.outputPricePerToken,
     capabilityReasoning: e.reasoning ?? false,
@@ -206,7 +206,7 @@ export function buildFallbackModels(
       id: modelId,
       displayName: entry.displayName || modelId,
       provider: providerId,
-      contextWindow: entry.contextWindow ?? 128000,
+      contextWindow: entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
       inputPricePerToken: entry.input,
       outputPricePerToken: entry.output,
       capabilityReasoning: false,
@@ -252,7 +252,7 @@ export function buildSubscriptionFallbackModels(
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 
-      let contextWindow = entry.contextWindow ?? 128000;
+      let contextWindow = entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
       if (capabilities?.maxContextWindow && contextWindow > capabilities.maxContextWindow) {
         contextWindow = capabilities.maxContextWindow;
       }

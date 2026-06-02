@@ -348,6 +348,31 @@ describe('ProviderService — route-only cleanup paths', () => {
     });
   });
 
+  describe('removeProvider — removeKeyByLabel', () => {
+    it('throws NotFoundException when no keys match the (provider, auth_type)', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'default')).rejects.toThrow(
+        'Provider not found',
+      );
+    });
+
+    it('throws NotFoundException when no key carries the requested label', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'primary',
+          is_active: true,
+        } as unknown as UserProvider,
+      ]);
+      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'secondary')).rejects.toThrow(
+        'Provider key not found',
+      );
+    });
+  });
+
   describe('deactivateAllProviders', () => {
     it('updates providers and tiers, then recalculates and invalidates cache', async () => {
       await svc.deactivateAllProviders('agent-1');
