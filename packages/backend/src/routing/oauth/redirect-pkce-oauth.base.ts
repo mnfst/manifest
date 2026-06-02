@@ -249,6 +249,14 @@ export abstract class RedirectPkceOauthBaseService {
     // still produce a usable short-lived access token.
     if (Date.now() < blob.e - 60_000) return blob.t;
     if (!blob.r) return null;
+    return this.refreshAndPersistToken(blob, agentId, userId);
+  }
+
+  private async refreshAndPersistToken(
+    blob: OAuthTokenBlob,
+    agentId: string,
+    userId: string,
+  ): Promise<string | null> {
     try {
       const refreshed = await this.refreshAccessToken(blob.r, blob.u);
       await this.providerService.upsertProvider(

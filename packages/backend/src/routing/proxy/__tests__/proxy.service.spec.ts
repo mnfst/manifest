@@ -311,6 +311,43 @@ describe('ProxyService — orchestration', () => {
       expect(momentum.recordTier).toHaveBeenCalledWith('sess-1', 'standard');
     });
 
+    it('passes the raw stored OpenAI OAuth blob alongside the unwrapped access token', async () => {
+      const rawBlob = JSON.stringify({
+        t: 'cached-access',
+        r: 'refresh-token',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.3-codex'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
+      openaiOauth.unwrapToken.mockResolvedValue('cached-access');
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'subscription',
+          apiKey: 'cached-access',
+          rawApiKey: rawBlob,
+          agentId: 'agent-1',
+          userId: 'user-1',
+        }),
+      );
+    });
+
     it('records the specificity category when the route originates from specificity', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
