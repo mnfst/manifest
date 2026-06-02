@@ -66,30 +66,6 @@ interface PendingOverride {
   isFallback?: boolean;
 }
 
-/**
- * All active credential rows for a (provider, auth_type) tuple, sorted by
- * priority. Used to decide whether to show the "Which key?" picker. Local
- * providers (Ollama) don't carry keys, so they're excluded — the chain
- * concept doesn't apply.
- */
-function activeKeysFor(
-  providers: RoutingProvider[],
-  providerId: string,
-  authType: AuthType,
-): RoutingProvider[] {
-  if (authType === 'local') return [];
-  return providers
-    .filter(
-      (p) =>
-        p.provider.toLowerCase() === providerId.toLowerCase() &&
-        p.auth_type === authType &&
-        p.is_active &&
-        p.has_api_key,
-    )
-    .slice()
-    .sort((a, b) => a.priority - b.priority);
-}
-
 function providerDisplayName(providerId: string, customProviders: CustomProviderData[]): string {
   if (providerId.startsWith('custom:')) {
     const id = providerId.slice('custom:'.length);
@@ -121,13 +97,20 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
     authType?: AuthType,
   ) => {
     const effectiveAuth = authType ?? 'api_key';
-    const keys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
-    if (keys.length <= 1) {
+    const selection = routeKeySelectionForModel({
+      providers: props.connectedProviders(),
+      tier: props.getTier(tierId),
+      modelName,
+      providerId,
+      authType: effectiveAuth,
+      slot: 'primary',
+    });
+    if (!selection.needsChoice) {
       props.onOverride(tierId, modelName, providerId, authType);
       return;
     }
     // 2+ keys → ask the user which one before persisting.
-    setPendingOverride({ tierId, modelName, providerId, authType, keys });
+    setPendingOverride({ tierId, modelName, providerId, authType, keys: selection.keys });
   };
 
   const resolvePending = (label: string | null) => {
@@ -198,32 +181,12 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
 
       <Show when={props.fallbackPickerTier()}>
         {(tierId) => {
-          const usedKeysForModel = (
-            modelName: string,
-            providerId?: string,
-            authType?: AuthType,
-          ) => {
-            // The default key (priority 0) is implicitly used when the primary has no pin
-            let defaultLabel: string | undefined;
-            if (providerId) {
-              const effectiveAuth = authType ?? 'api_key';
-              const keys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
-              defaultLabel = keys[0]?.label;
-            }
-            return usedKeyLabelsForModelInTier(
-              props.getTier(tierId()),
-              modelName,
-              undefined,
-              defaultLabel,
-            );
-          };
-
           const filteredModels = () => {
             return props.models().filter((m) => {
               // Find how many keys exist for this model's provider
               const providerId = m.provider;
               const authType = m.auth_type ?? 'api_key';
-              const keys = activeKeysFor(props.connectedProviders(), providerId, authType);
+              const keys = activeRouteKeys(props.connectedProviders(), providerId, authType);
               if (keys.length <= 1) {
                 // Single-key model: hide if already used as primary or fallback
                 // (matched on the full route tuple — same model on a different
@@ -247,8 +210,15 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 );
               }
               // Multi-key model: hide only if ALL keys are already used
-              const used = usedKeysForModel(m.model_name, providerId, authType);
-              return used.size < keys.length;
+              return (
+                availableRouteKeysForModel(
+                  props.connectedProviders(),
+                  props.getTier(tierId()),
+                  m.model_name,
+                  providerId,
+                  authType,
+                ).length > 0
+              );
             });
           };
 
@@ -259,24 +229,29 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             authType?: AuthType,
           ) => {
             const effectiveAuth = authType ?? 'api_key';
-            const allKeys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
+            const allKeys = activeRouteKeys(props.connectedProviders(), providerId, effectiveAuth);
             if (allKeys.length <= 1) {
               // Single-key (or no-key) provider: add fallback without key selection
               props.onFallbackPickerClose();
               props.onAddFallback(tid, modelName, providerId, authType);
               return;
             }
-            // Filter out keys already used for this model
-            const used = usedKeysForModel(modelName, providerId, authType);
-            const availableKeys = allKeys.filter((k) => !used.has(k.label.toLowerCase()));
-            if (availableKeys.length === 0) {
+            const selection = routeKeySelectionForModel({
+              providers: props.connectedProviders(),
+              tier: props.getTier(tierId()),
+              modelName,
+              providerId,
+              authType: effectiveAuth,
+              slot: 'fallback',
+            });
+            if (selection.exhausted) {
               // All keys exhausted — shouldn't happen since filteredModels hides it
               return;
             }
-            if (availableKeys.length === 1) {
+            if (selection.autoLabel) {
               // Only one key left — auto-select it, close picker for fresh data
               props.onFallbackPickerClose();
-              props.onAddFallback(tid, modelName, providerId, authType, availableKeys[0]!.label);
+              props.onAddFallback(tid, modelName, providerId, authType, selection.autoLabel);
               return;
             }
             // 2+ keys available → ask which one
@@ -285,7 +260,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               modelName,
               providerId,
               authType,
-              keys: availableKeys,
+              keys: selection.keys,
               isFallback: true,
             });
           };

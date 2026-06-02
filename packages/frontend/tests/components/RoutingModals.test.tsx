@@ -9,11 +9,15 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
   default: (props: Record<string, unknown>) => {
     pickerCalls.push({
       tierId: props.tierId,
+      agentName: props.agentName,
       modelsCount: (props.models as { length: number } | undefined)?.length ?? 0,
       modelsList: ((props.models as { model_name: string }[] | undefined) ?? []).map(
         (m) => `${m.model_name}:${(m as { auth_type?: string }).auth_type ?? ''}`,
       ),
       tiersCount: (props.tiers as { length: number } | undefined)?.length ?? 0,
+      customProvidersCount: (props.customProviders as { length: number } | undefined)?.length ?? 0,
+      connectedProvidersCount:
+        (props.connectedProviders as { length: number } | undefined)?.length ?? 0,
       requiredCapability: props.requiredCapability,
       providerRefreshed: props.onProviderRefreshed,
     });
@@ -610,6 +614,38 @@ describe('RoutingModals', () => {
         'api_key',
         'Personal',
       );
+    });
+
+    it('does nothing if a stale fallback selection has no available keys left', () => {
+      const tierWithEveryKeyUsed: TierAssignment = {
+        ...tiers[0]!,
+        override_route: {
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-4o',
+          keyLabel: 'Work',
+        },
+        fallback_routes: [
+          { provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Personal' },
+        ],
+      };
+      const onAddFallback = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            fallbackPickerTier: () => 'simple',
+            tiers: () => [tierWithEveryKeyUsed],
+            getTier: (id: string) => [tierWithEveryKeyUsed].find((t) => t.tier === id),
+            connectedProviders: () => multiKeyProviders,
+            onAddFallback,
+          })}
+        />
+      ));
+
+      fireEvent.click(getByTestId('picker-simple'));
+
+      expect(onAddFallback).not.toHaveBeenCalled();
+      expect(queryByTestId('key-picker-modal')).toBeNull();
     });
 
     it('closes the picker without calling onOverride when the user cancels', () => {

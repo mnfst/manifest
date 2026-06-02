@@ -20,6 +20,7 @@ describe('ProviderModelFetcherService', () => {
       'openai',
       'openai-subscription',
       'deepseek',
+      'fireworks',
       'groq',
       'kilo',
       'mistral',
@@ -37,6 +38,7 @@ describe('ProviderModelFetcherService', () => {
       'ollama',
       'ollama-cloud',
       'copilot',
+      'opencode-zen',
     ];
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
@@ -315,6 +317,151 @@ describe('ProviderModelFetcherService', () => {
     });
   });
 
+  /* ── Fireworks provider ── */
+
+  describe('fireworks provider', () => {
+    it('fetches serverless models from the Fireworks account API with pagination', async () => {
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'accounts/fireworks/models/deepseek-v3p1',
+                displayName: 'DeepSeek V3.1',
+                contextLength: 160000,
+                supportsServerless: true,
+                supportsTools: true,
+              },
+            ],
+            nextPageToken: 'page-2',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'accounts/fireworks/models/flux-1-schnell',
+                displayName: 'FLUX.1 schnell',
+                contextLength: 4096,
+                supportsServerless: true,
+              },
+              {
+                name: 'accounts/fireworks/models/kimi-k2-instruct',
+                displayName: 'Kimi K2',
+                supportsServerless: true,
+                supportsTools: false,
+              },
+            ],
+          }),
+        });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        1,
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(fetchSpy).toHaveBeenNthCalledWith(
+        2,
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200&pageToken=page-2',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(result.map((m) => m.id)).toEqual([
+        'accounts/fireworks/models/deepseek-v3p1',
+        'accounts/fireworks/models/kimi-k2-instruct',
+      ]);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          displayName: 'DeepSeek V3.1',
+          contextWindow: 160000,
+          provider: 'fireworks',
+          capabilityCode: true,
+        }),
+      );
+      expect(result[1]).toEqual(
+        expect.objectContaining({
+          displayName: 'Kimi K2',
+          contextWindow: 128000,
+          provider: 'fireworks',
+          capabilityCode: false,
+        }),
+      );
+    });
+
+    it('stops pagination when Fireworks repeats a page token', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+
+      fetchSpy
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [{ name: 'accounts/fireworks/models/chat-a', supportsServerless: true }],
+            nextPageToken: 'page-2',
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [{ name: 'accounts/fireworks/models/chat-b', supportsServerless: true }],
+            nextPageToken: 'page-2',
+          }),
+        });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(result.map((m) => m.id)).toEqual([
+        'accounts/fireworks/models/chat-a',
+        'accounts/fireworks/models/chat-b',
+      ]);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Stopping Fireworks model pagination after repeated token page-2',
+      );
+
+      warnSpy.mockRestore();
+    });
+
+    it('caps Fireworks pagination when unique page tokens never stop', async () => {
+      const warnSpy = jest.spyOn((service as any).logger, 'warn').mockImplementation(() => {});
+
+      Array.from({ length: 25 }, (_, index) => {
+        fetchSpy.mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: `accounts/fireworks/models/chat-${index}`,
+                supportsServerless: true,
+              },
+            ],
+            nextPageToken: `page-${index + 1}`,
+          }),
+        });
+      });
+
+      const result = await service.fetch('fireworks', 'fw-test-key');
+
+      expect(fetchSpy).toHaveBeenCalledTimes(20);
+      expect(fetchSpy).toHaveBeenLastCalledWith(
+        'https://api.fireworks.ai/v1/accounts/fireworks/models?filter=supports_serverless%3Dtrue&pageSize=200&pageToken=page-19',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer fw-test-key' },
+        }),
+      );
+      expect(result).toHaveLength(20);
+      expect(warnSpy).toHaveBeenCalledWith('Stopping Fireworks model pagination after 20 pages');
+
+      warnSpy.mockRestore();
+    });
+  });
+
   /* ── Mistral-specific filter ── */
 
   describe('parseMistralChatOnly (via mistral provider)', () => {
@@ -484,6 +631,15 @@ describe('ProviderModelFetcherService', () => {
       'https://open.bigmodel.cn/api/paas/v4/models',
       expect.any(Object),
     );
+  });
+
+  /* ── Kimi Coding Plan subscription routing ── */
+
+  it('should skip live model fetching for moonshot subscription auth', async () => {
+    const result = await service.fetch('moonshot', 'kimi-code-key', 'subscription');
+
+    expect(result).toEqual([]);
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   /* ── Kiro subscription provider ── */
@@ -1714,6 +1870,41 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('opencode-go', 'og-token', 'subscription');
       expect(result).toEqual([]);
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('opencode-zen provider', () => {
+    it('fetches the OpenAI-compatible /v1/models catalog with Bearer auth and namespaces every model id', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'qwen3.6-plus', object: 'model', owned_by: 'opencode' },
+            { id: 'claude-opus-4-7', object: 'model', owned_by: 'opencode' },
+            { id: 'gemini-3-flash', object: 'model', owned_by: 'opencode' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('opencode-zen', 'oz-token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer oz-token' }),
+        }),
+      );
+      expect(result).toHaveLength(3);
+      // IDs must be prefixed so they cannot collide with the same bare model
+      // names served by a directly-connected Google/Qwen/Anthropic provider.
+      expect(result.map((m) => m.id)).toEqual([
+        'opencode-zen/qwen3.6-plus',
+        'opencode-zen/claude-opus-4-7',
+        'opencode-zen/gemini-3-flash',
+      ]);
+      expect(result[0]).toEqual(
+        expect.objectContaining({ provider: 'opencode-zen', displayName: 'qwen3.6-plus' }),
+      );
     });
   });
 

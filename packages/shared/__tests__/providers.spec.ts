@@ -66,6 +66,12 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     }
   });
 
+  it('resolves Fireworks AI aliases to the canonical provider entry', () => {
+    for (const name of ['fireworks', 'fireworks-ai', 'fireworks ai']) {
+      expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name))?.id).toBe('fireworks');
+    }
+  });
+
   it('returns undefined for unknown names', () => {
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('unknownprovider')).toBeUndefined();
   });
@@ -93,6 +99,12 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     const nvidia = SHARED_PROVIDER_BY_ID.get('nvidia');
     expect(nvidia).toBeDefined();
     expect(nvidia!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('fireworks has no openRouter prefixes (native serverless /models is authoritative)', () => {
+    const fireworks = SHARED_PROVIDER_BY_ID.get('fireworks');
+    expect(fireworks).toBeDefined();
+    expect(fireworks!.openRouterPrefixes).toEqual([]);
   });
 });
 

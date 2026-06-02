@@ -30,17 +30,21 @@ vi.mock('../../src/components/AuthBadge.js', () => ({
     authType === 'subscription' ? 'Subscription' : 'API Key',
 }));
 
-vi.mock('../../src/services/routing-utils.js', () => ({
-  resolveProviderId: (p: string) => p.toLowerCase(),
-  inferProviderFromModel: (m: string) => {
-    if (m.startsWith('gpt')) return 'openai';
-    if (m.startsWith('claude')) return 'anthropic';
-    if (/^[a-z][\w-]*\//.test(m)) return 'openrouter';
-    return undefined;
-  },
-  pricePerM: (n: number) => `$${(n * 1_000_000).toFixed(2)}`,
-  stripCustomPrefix: (m: string) => m,
-}));
+vi.mock('../../src/services/routing-utils.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/services/routing-utils.js')>();
+  return {
+    ...actual,
+    resolveProviderId: (p: string) => p.toLowerCase(),
+    inferProviderFromModel: (m: string) => {
+      if (m.startsWith('gpt')) return 'openai';
+      if (m.startsWith('claude')) return 'anthropic';
+      if (/^[a-z][\w-]*\//.test(m)) return 'openrouter';
+      return undefined;
+    },
+    pricePerM: (n: number) => `$${(n * 1_000_000).toFixed(2)}`,
+    stripCustomPrefix: (m: string) => m,
+  };
+});
 
 vi.mock('../../src/services/providers.js', () => ({
   PROVIDERS: [
@@ -71,6 +75,7 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.models,
       props.customProviders,
       props.connectedProviders,
+      props.tierData,
       props.getModelParams,
       props.setModelParams,
       props.modelHasParams,
@@ -158,6 +163,26 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
           pick
         </button>
         <button data-testid="picker-close" onClick={() => (props.onClose as () => void)()}>
+          close
+        </button>
+      </div>
+    );
+  },
+}));
+
+vi.mock('../../src/components/KeyPickerModal.js', () => ({
+  default: (props: Record<string, unknown>) => {
+    const _read = [props.providerName, props.modelName, props.keys];
+    void _read;
+    return (
+      <div data-testid="key-picker-modal">
+        <button
+          data-testid="key-picker-pick-personal"
+          onClick={() => (props.onPick as (label: string | null) => void)('Personal')}
+        >
+          pick Personal
+        </button>
+        <button data-testid="key-picker-close" onClick={() => (props.onClose as () => void)()}>
           close
         </button>
       </div>
@@ -257,6 +282,8 @@ const connectedProviders: RoutingProvider[] = [
     auth_type: 'api_key',
     is_active: true,
     has_api_key: true,
+    label: 'Default',
+    priority: 0,
     connected_at: '2025-01-01',
   },
 ];
@@ -363,6 +390,90 @@ describe('HeaderTierCard', () => {
     ));
     expect(container.querySelector('[data-testid="auth-subscription"]')).not.toBeNull();
     expect(container.textContent).toContain('Included in subscription');
+  });
+
+  it('shows the primary account chip for multi-account header tier routes', () => {
+    const onOverride = vi.fn();
+    const tierSub = {
+      ...baseTier,
+      override_route: { provider: 'openai', authType: 'subscription', model: 'gpt-4o' } as const,
+    };
+    const providers: RoutingProvider[] = [
+      {
+        ...connectedProviders[0],
+        id: 'sub-1',
+        auth_type: 'subscription',
+        label: 'Default',
+        priority: 0,
+      },
+      {
+        ...connectedProviders[0],
+        id: 'sub-2',
+        auth_type: 'subscription',
+        label: 'Personal',
+        priority: 1,
+      },
+    ];
+    const { container, getByRole, queryByTestId } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierSub}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={providers}
+        onOverride={onOverride}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+
+    const chip = container.querySelector('.routing-card__key-chip') as HTMLButtonElement;
+    expect(chip.textContent).toContain('Default');
+    fireEvent.click(chip);
+    fireEvent.click(getByRole('option', { name: /Personal/ }));
+
+    expect(onOverride).toHaveBeenCalledWith('gpt-4o', 'openai', 'subscription', 'Personal');
+    expect(queryByTestId('model-picker')).toBeNull();
+  });
+
+  it('shows an explicit primary account pin on header tier routes', () => {
+    const tierSub = {
+      ...baseTier,
+      override_route: {
+        provider: 'openai',
+        authType: 'subscription',
+        model: 'gpt-4o',
+        keyLabel: 'Personal',
+      } as const,
+    };
+    const providers: RoutingProvider[] = [
+      {
+        ...connectedProviders[0],
+        id: 'sub-1',
+        auth_type: 'subscription',
+        label: 'Default',
+        priority: 0,
+      },
+      {
+        ...connectedProviders[0],
+        id: 'sub-2',
+        auth_type: 'subscription',
+        label: 'Personal',
+        priority: 1,
+      },
+    ];
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierSub}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={providers}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+
+    expect(container.querySelector('.routing-card__key-chip')?.textContent).toContain('Personal');
   });
 
   it('shows the per-request cost for per-request subscriptions', () => {
@@ -713,6 +824,98 @@ describe('HeaderTierCard', () => {
           { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
         ],
       );
+    });
+  });
+
+  it('auto-pins the next available account when adding the same model as a custom fallback', async () => {
+    const providers: RoutingProvider[] = [
+      {
+        ...connectedProviders[0],
+        id: 'p-default',
+        label: 'Default',
+        priority: 0,
+      },
+      {
+        ...connectedProviders[0],
+        id: 'p-personal',
+        label: 'Personal',
+        priority: 1,
+      },
+    ];
+    const onFallbacksUpdate = vi.fn();
+    const { getByTestId, queryByTestId } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={baseTier}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={providers}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={onFallbacksUpdate}
+      />
+    ));
+
+    fireEvent.click(getByTestId('fb-add') as HTMLButtonElement);
+    fireEvent.click(getByTestId('picker-pick') as HTMLButtonElement);
+
+    await waitFor(() => {
+      const expectedRoutes = [
+        { provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Personal' },
+      ];
+      expect(mockSetHeaderTierFallbacks).toHaveBeenCalledWith(
+        'demo',
+        'ht-1',
+        ['gpt-4o'],
+        expectedRoutes,
+      );
+      expect(onFallbacksUpdate).toHaveBeenCalledWith(['gpt-4o'], expectedRoutes);
+      expect(queryByTestId('key-picker-modal')).toBeNull();
+    });
+  });
+
+  it('opens account picker when replacing the primary with a multi-account model', async () => {
+    const providers: RoutingProvider[] = [
+      {
+        ...connectedProviders[0],
+        id: 'p-default',
+        label: 'Default',
+        priority: 0,
+      },
+      {
+        ...connectedProviders[0],
+        id: 'p-personal',
+        label: 'Personal',
+        priority: 1,
+      },
+    ];
+    const onOverride = vi.fn();
+    const { container, getByTestId, queryByTestId } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={{ ...baseTier, override_route: null }}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={providers}
+        onOverride={onOverride}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+
+    fireEvent.click(
+      Array.from(container.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes('+ Add model'),
+      ) as HTMLButtonElement,
+    );
+    fireEvent.click(getByTestId('picker-pick') as HTMLButtonElement);
+
+    expect(onOverride).not.toHaveBeenCalled();
+    expect(queryByTestId('key-picker-modal')).not.toBeNull();
+
+    fireEvent.click(getByTestId('key-picker-pick-personal') as HTMLButtonElement);
+
+    await waitFor(() => {
+      expect(onOverride).toHaveBeenCalledWith('gpt-4o', 'openai', 'api_key', 'Personal');
+      expect(queryByTestId('key-picker-modal')).toBeNull();
     });
   });
 

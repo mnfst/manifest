@@ -1178,6 +1178,54 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Kimi Coding Plan subscription provider', () => {
+    it('routes Moonshot subscription auth to Kimi Code Anthropic endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'moonshot',
+        apiKey: 'kimi-code-key',
+        model: 'kimi-for-coding',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.kimi.com/coding/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'kimi-code-key',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('kimi-for-coding');
+      expect(sentBody.stream).toBeUndefined();
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
+    });
+
+    it('keeps standard Moonshot API-key auth on the Moonshot OpenAI endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-moon',
+        model: 'kimi-k2',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.moonshot.ai/v1/chat/completions');
+    });
+  });
+
   describe('Kilo API-key provider', () => {
     it('routes to the Kilo Gateway and preserves provider-prefixed model IDs', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -1444,6 +1492,64 @@ describe('ProviderClient', () => {
       expect(url).toBe('https://opencode.ai/zen/go/v1/chat/completions');
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('kimi-k2.5');
+    });
+  });
+
+  describe('OpenCode Zen provider', () => {
+    it.each([
+      ['claude-opus-4-7', 'claude-opus-4-7'],
+      ['gpt-5.5', 'gpt-5.5'],
+      ['qwen3.6-plus', 'qwen3.6-plus'],
+    ])(
+      'routes %s through the unified /v1/chat/completions endpoint with Bearer auth',
+      async (modelName, expectedSentModel) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'opencode-zen',
+          apiKey: 'oz-token',
+          model: `opencode-zen/${modelName}`,
+          body,
+          stream: false,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://opencode.ai/zen/v1/chat/completions',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer oz-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.model).toBe(expectedSentModel);
+        expect(result.isAnthropic).toBe(false);
+        expect(result.isChatGpt).toBe(false);
+        expect(result.isGoogle).toBe(false);
+      },
+    );
+
+    it('routes gemini-* models to the dedicated generateContent endpoint with x-goog-api-key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-zen',
+        apiKey: 'oz-token',
+        model: 'opencode-zen/gemini-3-flash',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-goog-api-key': 'oz-token',
+          }),
+        }),
+      );
+      expect(result.isGoogle).toBe(true);
     });
   });
 
@@ -1994,6 +2100,21 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('nvidia/nemotron-3-super-120b-a12b');
+    });
+
+    it('preserves Fireworks account model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-test',
+        model: 'accounts/fireworks/models/deepseek-v3p1',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('accounts/fireworks/models/deepseek-v3p1');
     });
   });
 
@@ -2602,6 +2723,7 @@ describe('ProviderClient', () => {
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
       ['opencode-go', 'claude-sonnet-4'],
+      ['opencode-zen', 'qwen3.6-plus'],
     ])(
       'injects stream_options.include_usage for %s streaming requests',
       async (provider, model) => {

@@ -15,6 +15,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'anthropic',
         'openai',
         'minimax',
+        'moonshot',
         'copilot',
         'ollama-cloud',
         'zai',
@@ -67,6 +68,17 @@ describe('getSubscriptionProviderConfig', () => {
     const config = getSubscriptionProviderConfig('minimax');
     expect(config).toMatchObject({
       subscriptionAuthMode: 'device_code',
+    });
+  });
+
+  it('returns config for moonshot Kimi Coding Plan', () => {
+    const config = getSubscriptionProviderConfig('moonshot');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Kimi Coding Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+      knownModelsMatch: 'exact',
     });
   });
 
@@ -179,6 +191,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('anthropic')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
+    expect(supportsSubscriptionProvider('moonshot')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
     expect(supportsSubscriptionProvider('ollama-cloud')).toBe(true);
     expect(supportsSubscriptionProvider('zai')).toBe(true);
@@ -212,6 +225,10 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('MiniMax-M2.7');
     expect(models).toContain('MiniMax-M2.7-highspeed');
     expect(models).toContain('MiniMax-M2.5');
+  });
+
+  it('returns the fixed model id for moonshot Kimi Coding Plan', () => {
+    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding']);
   });
 
   it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
@@ -266,6 +283,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
     expect(getSubscriptionKnownModelsMatch('gemini')).toBe('exact');
   });
 
+  it('returns exact for moonshot Kimi Coding Plan', () => {
+    expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
+  });
+
   it('returns prefix for unsupported providers (graceful fallback)', () => {
     expect(getSubscriptionKnownModelsMatch('unknown')).toBe('prefix');
   });
@@ -309,6 +330,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('zai');
     expect(caps).toMatchObject({
       maxContextWindow: 204800,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for moonshot Kimi Coding Plan', () => {
+    const caps = getSubscriptionCapabilities('moonshot');
+    expect(caps).toMatchObject({
+      maxContextWindow: 262144,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

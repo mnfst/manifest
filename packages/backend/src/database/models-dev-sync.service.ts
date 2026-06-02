@@ -16,6 +16,7 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   openai: 'openai',
   gemini: 'google',
   deepseek: 'deepseek',
+  fireworks: 'fireworks-ai',
   mistral: 'mistral',
   xai: 'xai',
   minimax: 'minimax',

@@ -26,6 +26,8 @@ export interface ProviderDef {
    * for providers that historically used the Anthropic-style setup-token flow.
    */
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  /** Optional product name used when the subscription credential differs from the provider brand. */
+  subscriptionCredentialName?: string;
   /** Instructions text shown in the subscription detail view. */
   subscriptionCommand?: string;
   /** Provider uses GitHub device login instead of token paste. */
@@ -73,6 +75,7 @@ interface ProviderUIOverlay {
   subscriptionLabel?: string;
   subscriptionKeyPlaceholder?: string;
   subscriptionCredentialKind?: 'setup-token' | 'api-key';
+  subscriptionCredentialName?: string;
   subscriptionCommand?: string;
   deviceLogin?: boolean;
   subscriptionAuthMode?: 'popup_oauth' | 'popup_paste' | 'device_code' | 'token';
@@ -107,6 +110,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   deepseek: {
     initial: 'D',
     subtitle: 'DeepSeek V3, R1',
+    models: [],
+  },
+  fireworks: {
+    initial: 'Fw',
+    subtitle: 'DeepSeek, Kimi, Qwen, Llama',
     models: [],
   },
   copilot: {
@@ -194,6 +202,12 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   moonshot: {
     initial: 'Mo',
     subtitle: 'Kimi k2, Moonshot v1',
+    supportsSubscription: true,
+    subscriptionLabel: 'Kimi Coding Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'Kimi Code',
+    subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
     models: [],
   },
   nvidia: {
@@ -256,6 +270,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     beta: true,
     models: [],
   },
+  'opencode-zen': {
+    initial: 'OZ',
+    subtitle: 'Curated Claude, GPT, Gemini, Qwen, GLM, MiniMax',
+    models: [],
+  },
   openrouter: {
     initial: 'OR',
     subtitle: 'Auto-route to 300+ models',
@@ -305,6 +324,7 @@ const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
   'deepseek',
+  'fireworks',
   'copilot',
   'gemini',
   'groq',
@@ -320,6 +340,7 @@ const PROVIDER_ORDER = [
   'ollama-cloud',
   'openai',
   'opencode-go',
+  'opencode-zen',
   'openrouter',
   'xai',
   'zai',

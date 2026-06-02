@@ -22,13 +22,27 @@ import RoutingTierModelSlots from './RoutingTierModelSlots.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForHeaderTier, headerTierNameToModelAlias } from 'manifest-shared';
 
+function providerDisplayName(providerId: string, customProviders: CustomProviderData[]): string {
+  if (providerId.startsWith('custom:')) {
+    const id = providerId.slice('custom:'.length);
+    const cp = customProviders.find((p) => p.id === id);
+    if (cp) return cp.name;
+  }
+  return PROVIDERS.find((p) => p.id === providerId)?.name ?? providerId;
+}
+
 interface Props {
   agentName: string;
   tier: HeaderTier;
   models: AvailableModel[];
   customProviders: CustomProviderData[];
   connectedProviders: RoutingProvider[];
-  onOverride: (model: string, provider: string, authType?: AuthType) => void | Promise<void>;
+  onOverride: (
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+  ) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
@@ -53,7 +67,15 @@ interface Props {
 
 const HeaderTierCard: Component<Props> = (props) => {
   type PickerMode = 'primary' | 'fallback' | null;
+  interface PendingKeyPick {
+    mode: Exclude<PickerMode, null>;
+    model: string;
+    provider: string;
+    authType?: AuthType;
+    keys: RoutingProvider[];
+  }
   const [pickerMode, setPickerMode] = createSignal<PickerMode>(null);
+  const [pendingKeyPick, setPendingKeyPick] = createSignal<PendingKeyPick | null>(null);
   const [snippetOpen, setSnippetOpen] = createSignal(false);
   const [menuOpen, setMenuOpen] = createSignal(false);
   const [resetting, setResetting] = createSignal(false);
@@ -106,21 +128,39 @@ const HeaderTierCard: Component<Props> = (props) => {
   ): Promise<void> => {
     const mode = pickerMode();
     setPickerMode(null);
-    if (mode === 'primary') {
-      await props.onOverride(model, provider, authType);
-    } else if (mode === 'fallback') {
-      const next = [...fallbacks(), model];
-      const currentRoutes = props.tier.fallback_routes ?? [];
-      const nextRoutes =
-        authType !== undefined ? [...currentRoutes, { provider, authType, model }] : undefined;
-      try {
-        await setHeaderTierFallbacks(props.agentName, props.tier.id, next, nextRoutes);
-        props.onFallbacksUpdate(next, nextRoutes ?? null);
-        toast.success('Fallback added');
-      } catch {
-        toast.error('Failed to add fallback');
-      }
+    if (!mode) return;
+    const effectiveAuth = authType ?? 'api_key';
+    const selection = routeKeySelectionForModel({
+      providers: props.connectedProviders,
+      tier: props.tier,
+      modelName: model,
+      providerId: provider,
+      authType: effectiveAuth,
+      slot: mode,
+    });
+    if (selection.exhausted) return;
+    if (selection.autoLabel) {
+      await completePickerSelection(mode, model, provider, authType, selection.autoLabel);
+      return;
     }
+    if (!selection.needsChoice) {
+      await completePickerSelection(mode, model, provider, authType);
+      return;
+    }
+    setPendingKeyPick({ mode, model, provider, authType, keys: selection.keys });
+  };
+
+  const handlePendingKeyPick = (label: string | null): void => {
+    const pending = pendingKeyPick();
+    if (!pending) return;
+    setPendingKeyPick(null);
+    void completePickerSelection(
+      pending.mode,
+      pending.model,
+      pending.provider,
+      pending.authType,
+      label ?? undefined,
+    );
   };
 
   const handleReset = async () => {
@@ -363,6 +403,18 @@ const HeaderTierCard: Component<Props> = (props) => {
           onClose={() => setPickerMode(null)}
           onSelect={handlePickerSelect}
         />
+      </Show>
+
+      <Show when={pendingKeyPick()}>
+        {(pending) => (
+          <KeyPickerModal
+            providerName={providerDisplayName(pending().provider, props.customProviders)}
+            modelName={pending().model}
+            keys={pending().keys}
+            onPick={handlePendingKeyPick}
+            onClose={() => setPendingKeyPick(null)}
+          />
+        )}
       </Show>
 
       <Show when={snippetOpen()}>

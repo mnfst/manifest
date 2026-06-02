@@ -1,4 +1,4 @@
-import { createSignal, createEffect, onCleanup, For, Show, type Component } from 'solid-js';
+import { createSignal, Show, type Component } from 'solid-js';
 import { PROVIDERS } from '../services/providers.js';
 import type { StageDef } from '../services/providers.js';
 import { getModelLabel } from '../services/provider-utils.js';
@@ -10,6 +10,7 @@ import {
 import { providerIdForModel } from '../services/routing-model-utils.js';
 import ModelParamsAffordance from '../components/ModelParamsAffordance.jsx';
 import RoutingTierModelSlots from '../components/RoutingTierModelSlots.js';
+import RouteKeyChip from '../components/RouteKeyChip.js';
 import { setFallbacks as setFallbacksApi } from '../services/api.js';
 import { modelParamsScopeForTier } from 'manifest-shared';
 
@@ -390,18 +391,6 @@ interface PrimaryKeyChipProps {
 }
 
 const PrimaryKeyChip: Component<PrimaryKeyChipProps> = (props) => {
-  const [open, setOpen] = createSignal(false);
-  let containerRef: HTMLSpanElement | undefined;
-  createEffect(() => {
-    if (open()) {
-      const handler = (e: MouseEvent) => {
-        if (containerRef && !containerRef.contains(e.target as Node)) setOpen(false);
-      };
-      document.addEventListener('mousedown', handler);
-      onCleanup(() => document.removeEventListener('mousedown', handler));
-    }
-  });
-
   const keys = () => {
     const id = props.provId();
     const auth = props.effectiveAuth();
@@ -427,75 +416,25 @@ const PrimaryKeyChip: Component<PrimaryKeyChipProps> = (props) => {
     const effective = t?.override_route ?? t?.auto_assigned_route ?? null;
     return effective?.keyLabel ?? null;
   };
-  const displayLabel = () => pinned() ?? keys()[0]?.label ?? '';
 
   const usedByFallbacks = () =>
-    usedKeyLabelsForModelInTier(props.tier(), props.modelName(), 'primary');
+    usedKeyLabelsForModelInTier(props.tier(), props.modelName(), 'primary', keys()[0]?.label);
 
   return (
     <Show when={keys().length > 1}>
-      <span ref={containerRef} style="position: relative; display: inline-flex; flex-shrink: 0;">
-        <button
-          type="button"
-          class="routing-card__key-chip"
-          aria-haspopup="listbox"
-          aria-expanded={open()}
-          aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
-          title={displayLabel()}
-          disabled={props.disabled()}
-          onClick={() => setOpen(!open())}
-          style="background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 8px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); cursor: pointer; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;"
-        >
-          <span style="overflow: hidden; text-overflow: ellipsis;">{displayLabel()}</span>
-          <span aria-hidden="true">▾</span>
-        </button>
-        <Show when={open()}>
-          <ul
-            role="listbox"
-            aria-label="Choose API key"
-            style="position: absolute; top: 100%; right: 0; margin-top: 4px; list-style: none; padding: 4px; min-width: 140px; border: 1px solid hsl(var(--border)); border-radius: 6px; background: hsl(var(--background)); box-shadow: 0 4px 12px hsl(var(--foreground) / 0.08); z-index: 10; display: flex; flex-direction: column; gap: 2px;"
-          >
-            <For each={keys()}>
-              {(k) => {
-                const isUsedElsewhere = () => usedByFallbacks().has(k.label.toLowerCase());
-                const isSelected = () =>
-                  pinned()
-                    ? pinned()!.toLowerCase() === k.label.toLowerCase()
-                    : displayLabel().toLowerCase() === k.label.toLowerCase();
-                return (
-                  <li>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected()}
-                      disabled={props.disabled() || isUsedElsewhere()}
-                      onClick={() => {
-                        setOpen(false);
-                        if (pinned()?.toLowerCase() !== k.label.toLowerCase()) {
-                          props.onPinKey(k.label);
-                        }
-                      }}
-                      style={`width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--foreground)); display: flex; align-items: center; gap: 6px;${isUsedElsewhere() ? ' opacity: 0.4; cursor: not-allowed;' : ''}`}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="8"
-                        height="8"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                        style={`visibility: ${isSelected() ? 'visible' : 'hidden'}`}
-                      >
-                        <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
-                      </svg>
-                      {k.label}
-                    </button>
-                  </li>
-                );
-              }}
-            </For>
-          </ul>
-        </Show>
-      </span>
+      <RouteKeyChip
+        keys={keys()}
+        currentLabel={pinned()}
+        modelLabel={props.modelLabel}
+        usedLabels={usedByFallbacks}
+        buttonClass="routing-card__key-chip"
+        disabled={props.disabled()}
+        leadingMargin
+        menuMinWidth={140}
+        onPick={(label) => {
+          if (label) props.onPinKey(label);
+        }}
+      />
     </Show>
   );
 };
