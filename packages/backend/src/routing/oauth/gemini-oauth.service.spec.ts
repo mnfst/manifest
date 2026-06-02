@@ -333,6 +333,8 @@ describe('GeminiOauthService', () => {
         'gemini',
         expect.stringContaining('"u":"proj-abc"'),
         'subscription',
+        undefined,
+        undefined,
       );
     });
 
@@ -341,7 +343,7 @@ describe('GeminiOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
-      const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
       expect(token).toBe('new');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
@@ -349,6 +351,8 @@ describe('GeminiOauthService', () => {
         'gemini',
         expect.stringContaining('"t":"new"'),
         'subscription',
+        undefined,
+        'Work',
       );
     });
 

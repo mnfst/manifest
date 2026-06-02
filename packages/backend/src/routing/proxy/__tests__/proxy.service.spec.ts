@@ -319,7 +319,7 @@ describe('ProxyService — orchestration', () => {
       });
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
-        route: route('openai', 'subscription', 'gpt-5.3-codex'),
+        route: { ...route('openai', 'subscription', 'gpt-5.3-codex'), keyLabel: 'Work' },
         fallback_routes: null,
         confidence: 0.9,
         score: 5,
@@ -342,6 +342,7 @@ describe('ProxyService — orchestration', () => {
           authType: 'subscription',
           apiKey: 'cached-access',
           rawApiKey: rawBlob,
+          providerKeyLabel: 'Work',
           agentId: 'agent-1',
           userId: 'user-1',
         }),

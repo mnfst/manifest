@@ -311,9 +311,10 @@ describe('MinimaxOauthService', () => {
       fetchMock.mockResolvedValueOnce(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expired_in: 3600 }),
       );
-      const out = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      const out = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
       expect(out?.t).toBe('new');
       expect(provider.upsertProvider).toHaveBeenCalled();
+      expect(provider.upsertProvider.mock.calls[0][6]).toBe('Work');
     });
 
     it('returns the original blob (not null) when refresh fails', async () => {

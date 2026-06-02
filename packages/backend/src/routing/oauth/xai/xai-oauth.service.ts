@@ -170,7 +170,12 @@ export class XaiOauthService {
     };
   }
 
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) return null;
     if (Date.now() < blob.e - 60_000) return blob.t;
@@ -182,6 +187,8 @@ export class XaiOauthService {
         'xai',
         serializeOAuthTokenBlob(refreshed),
         'subscription',
+        undefined,
+        keyLabel,
       );
       this.logger.log(`xAI OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;
