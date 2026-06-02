@@ -29,6 +29,7 @@ import {
 } from './dto/routing.dto';
 import { isQwenRegion } from './qwen-region';
 import { isMinimaxRegion } from './oauth/minimax-oauth-helpers';
+import { isZaiCodingPlanRegion, isZaiProviderId } from './zai-region';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -97,6 +98,7 @@ export class ProviderController {
     const lowerProvider = body.provider.toLowerCase();
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
     const isMinimaxSubscription = lowerProvider === 'minimax' && body.authType === 'subscription';
+    const isZaiSubscription = isZaiProviderId(lowerProvider) && body.authType === 'subscription';
 
     if (body.region !== undefined) {
       if (isQwenProvider) {
@@ -107,9 +109,13 @@ export class ProviderController {
         if (!isMinimaxRegion(body.region)) {
           throw new BadRequestException('MiniMax subscription region must be one of: global, cn');
         }
+      } else if (isZaiSubscription) {
+        if (!isZaiCodingPlanRegion(body.region)) {
+          throw new BadRequestException('Z.ai subscription region must be one of: global, cn');
+        }
       } else {
         throw new BadRequestException(
-          'region is only supported for Alibaba/Qwen providers and MiniMax subscriptions',
+          'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, and Z.ai subscriptions',
         );
       }
     }

@@ -1155,7 +1155,7 @@ describe('ProviderClient', () => {
       });
 
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toBe('https://open.bigmodel.cn/api/coding/paas/v4/chat/completions');
+      expect(url).toBe('https://api.z.ai/api/coding/paas/v4/chat/completions');
 
       const headers = mockFetch.mock.calls[0][1].headers;
       expect(headers['Authorization']).toBe('Bearer zai-sub-key');

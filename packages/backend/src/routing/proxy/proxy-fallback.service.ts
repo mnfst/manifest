@@ -70,6 +70,7 @@ import { inferProviderFromModelName } from '../../common/utils/provider-aliases'
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
+import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
   isTransportError,
@@ -449,6 +450,14 @@ export class ProxyFallbackService {
     ) {
       forwardModel = forwardModel.substring('minimax/'.length);
     }
+    if (provider.toLowerCase() === 'zai' && authType === 'subscription') {
+      const lowerModel = forwardModel.toLowerCase();
+      if (lowerModel.startsWith('z-ai/')) {
+        forwardModel = forwardModel.substring('z-ai/'.length);
+      } else if (lowerModel.startsWith('zai/')) {
+        forwardModel = forwardModel.substring('zai/'.length);
+      }
+    }
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
@@ -479,6 +488,12 @@ export class ProxyFallbackService {
         const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
         customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
       }
+    } else if (
+      authType === 'subscription' &&
+      provider.toLowerCase() === 'zai' &&
+      providerRegion === 'cn'
+    ) {
+      customEndpoint = buildEndpointOverride(getZaiCodingPlanBaseUrl('cn'), 'zai-subscription');
     }
 
     const reasoningEndpointKey =

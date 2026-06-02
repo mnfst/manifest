@@ -637,12 +637,31 @@ describe('ProviderModelFetcherService', () => {
     const result = await service.fetch('zai', 'zai-sub-key', 'subscription');
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://open.bigmodel.cn/api/coding/paas/v4/models',
+      'https://api.z.ai/api/coding/paas/v4/models',
       expect.objectContaining({
         headers: expect.objectContaining({ Authorization: 'Bearer zai-sub-key' }),
       }),
     );
     expect(result.map((m) => m.id)).toEqual(['glm-5.1', 'glm-4.7']);
+  });
+
+  it('should route zai+subscription endpoint override to selected Coding Plan models endpoint', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [{ id: 'glm-5.1' }] }),
+    });
+
+    await service.fetch(
+      'zai',
+      'zai-sub-key',
+      'subscription',
+      'https://open.bigmodel.cn/api/coding/paas/v4',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://open.bigmodel.cn/api/coding/paas/v4/models',
+      expect.any(Object),
+    );
   });
 
   it('should route zai+api_key to standard models endpoint', async () => {

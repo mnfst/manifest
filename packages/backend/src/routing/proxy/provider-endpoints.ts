@@ -8,6 +8,7 @@ import {
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
+import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { buildKiroHeaders, KIRO_BASE_URL, KIRO_CHAT_TARGET } from './kiro-adapter';
 
 export interface ProviderEndpoint {
@@ -102,7 +103,7 @@ const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
 const QWEN_TOKEN_PLAN_BASE = 'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode';
-const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
+const ZAI_SUBSCRIPTION_BASE = getZaiCodingPlanBaseUrl('global');
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
 const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
