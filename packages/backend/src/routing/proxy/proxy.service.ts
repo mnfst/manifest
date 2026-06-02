@@ -260,6 +260,7 @@ export class ProxyService {
       agentId,
       userId,
       rawApiKey: credentials.rawApiKey,
+      providerKeyLabel: route.keyLabel ?? undefined,
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -451,6 +452,7 @@ export class ProxyService {
       this.geminiOauth,
       this.kiroOauth,
       this.xaiOauth,
+      resolved.provider_key_label,
     );
     const unwrappedApiKey = unwrapped.apiKey;
     if (unwrappedApiKey === null) return null;

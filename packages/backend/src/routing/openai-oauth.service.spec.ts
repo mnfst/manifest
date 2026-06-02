@@ -280,7 +280,7 @@ describe('OpenaiOauthService', () => {
         }),
       });
 
-      const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
 
       expect(result).toBe('new-access');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
@@ -289,6 +289,8 @@ describe('OpenaiOauthService', () => {
         'openai',
         expect.any(String),
         'subscription',
+        undefined,
+        'Work',
       );
     });
 

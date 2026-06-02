@@ -240,7 +240,12 @@ export abstract class RedirectPkceOauthBaseService {
   }
 
   /** Parse an OAuth blob and return a valid access token, refreshing if expired. */
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) return null;
     // Access token + expiry are required to use the token at all. Refresh
@@ -249,13 +254,14 @@ export abstract class RedirectPkceOauthBaseService {
     // still produce a usable short-lived access token.
     if (Date.now() < blob.e - 60_000) return blob.t;
     if (!blob.r) return null;
-    return this.refreshAndPersistToken(blob, agentId, userId);
+    return this.refreshAndPersistToken(blob, agentId, userId, keyLabel);
   }
 
   private async refreshAndPersistToken(
     blob: OAuthTokenBlob,
     agentId: string,
     userId: string,
+    keyLabel?: string,
   ): Promise<string | null> {
     try {
       const refreshed = await this.refreshAccessToken(blob.r, blob.u);
@@ -265,6 +271,8 @@ export abstract class RedirectPkceOauthBaseService {
         this.oauthConfig.providerId,
         serializeOAuthTokenBlob(refreshed),
         'subscription',
+        undefined,
+        keyLabel,
       );
       this.logger.log(`${this.oauthConfig.providerId} OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;

@@ -354,9 +354,10 @@ describe('KiroOauthService', () => {
           expiresIn: 3600,
         }),
       );
-      expect(await service.unwrapToken(raw, 'agent-1', 'user-1')).toBe('fresh-access');
+      expect(await service.unwrapToken(raw, 'agent-1', 'user-1', 'Work')).toBe('fresh-access');
       const saved = parseKiroOAuthTokenBlob(provider.upsertProvider.mock.calls[0][3] as string);
       expect(saved).toMatchObject({ t: 'fresh-access', r: 'fresh-refresh' });
+      expect(provider.upsertProvider.mock.calls[0][6]).toBe('Work');
     });
 
     it('keeps the old refresh token when the refresh response omits one', async () => {

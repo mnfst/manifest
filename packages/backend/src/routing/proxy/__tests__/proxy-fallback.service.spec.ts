@@ -271,6 +271,7 @@ describe('ProxyFallbackService', () => {
           provider,
           apiKey: 'old-access-token',
           rawApiKey: rawBlob,
+          providerKeyLabel: 'Work',
           agentId: 'agent-1',
           userId: 'user-1',
           model: `${provider}-model`,
@@ -294,6 +295,7 @@ describe('ProxyFallbackService', () => {
         };
         expect(expiredBlob.e).toBe(0);
         if (provider === 'kiro') expect(expiredBlob.source).toBe('kiro-oidc');
+        expect(unwrap().mock.calls[0][3]).toBe('Work');
       },
     );
 
@@ -1204,10 +1206,11 @@ describe('ProxyFallbackService', () => {
         geminiOauth,
         kiroOauth,
         xaiOauth,
+        'Work',
       );
 
       expect(result.apiKey).toBe('access-token');
-      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', 'Work');
     });
 
     it('unwraps MiniMax subscription token with resource URL', async () => {
@@ -1294,7 +1297,12 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('access-claude');
-      expect(anthropicOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+      expect(anthropicOauth.unwrapToken).toHaveBeenCalledWith(
+        'blob',
+        'agent-1',
+        'user-1',
+        undefined,
+      );
     });
 
     it('returns the original key when Anthropic unwrap returns null', async () => {
@@ -1336,7 +1344,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('kiro-access');
-      expect(kiroOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+      expect(kiroOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', undefined);
     });
 
     it('does not unwrap for non-OAuth subscription providers (e.g. Qwen)', async () => {
@@ -1380,7 +1388,7 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.apiKey).toBe('xai-access');
-      expect(xaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1');
+      expect(xaiOauth.unwrapToken).toHaveBeenCalledWith('blob', 'agent-1', 'user-1', undefined);
     });
 
     it('returns original key when MiniMax unwrap returns null', async () => {
@@ -1452,7 +1460,7 @@ describe('ProxyFallbackService', () => {
 
       expect(result.apiKey).toBe('fresh-access-token');
       expect(result.resourceUrl).toBe('proj-789');
-      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith(blob, 'agent-1', 'user-1');
+      expect(geminiOauth.unwrapToken).toHaveBeenCalledWith(blob, 'agent-1', 'user-1', undefined);
     });
 
     it('returns null when Gemini unwrapToken cannot recover a stored OAuth blob', async () => {

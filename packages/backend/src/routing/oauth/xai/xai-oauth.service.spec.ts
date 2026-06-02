@@ -168,7 +168,7 @@ describe('XaiOauthService', () => {
       }),
     );
 
-    const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+    const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
 
     expect(token).toBe('new-access');
     expect(fetchMock).toHaveBeenCalledWith(
@@ -181,6 +181,8 @@ describe('XaiOauthService', () => {
       'xai',
       expect.stringContaining('"t":"new-access"'),
       'subscription',
+      undefined,
+      'Work',
     );
   });
 
