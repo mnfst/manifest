@@ -36,6 +36,72 @@ describe('CreateNotificationRuleDto', () => {
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
   });
+
+  it.each([['hour'], ['day'], ['week'], ['month']])('accepts valid period "%s"', async (period) => {
+    const dto = plainToInstance(CreateNotificationRuleDto, {
+      agent_name: 'demo-agent',
+      metric_type: 'tokens',
+      threshold: 1000,
+      period,
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it.each([['invalid'], ['daily'], ['yearly'], ['HOUR'], ['Day'], ['minute'], ['second'], ['']])(
+    'rejects invalid period "%s"',
+    async (period) => {
+      const dto = plainToInstance(CreateNotificationRuleDto, {
+        agent_name: 'demo-agent',
+        metric_type: 'tokens',
+        threshold: 1000,
+        period,
+      });
+      const errors = await validate(dto);
+      expect(errors.length).toBeGreaterThan(0);
+      const periodError = errors.find((e) => e.property === 'period');
+      expect(periodError).toBeDefined();
+      expect(periodError?.constraints).toHaveProperty('isIn');
+    },
+  );
+
+  it('rejects missing period (required field)', async () => {
+    const dto = plainToInstance(CreateNotificationRuleDto, {
+      agent_name: 'demo-agent',
+      metric_type: 'tokens',
+      threshold: 1000,
+    });
+    const errors = await validate(dto);
+    const periodError = errors.find((e) => e.property === 'period');
+    expect(periodError).toBeDefined();
+    expect(periodError?.constraints).toHaveProperty('isIn');
+  });
+
+  it('rejects numeric period', async () => {
+    const dto = plainToInstance(CreateNotificationRuleDto, {
+      agent_name: 'demo-agent',
+      metric_type: 'tokens',
+      threshold: 1000,
+      period: 1,
+    });
+    const errors = await validate(dto);
+    const periodError = errors.find((e) => e.property === 'period');
+    expect(periodError).toBeDefined();
+    expect(periodError?.constraints).toHaveProperty('isIn');
+  });
+
+  it('rejects null period', async () => {
+    const dto = plainToInstance(CreateNotificationRuleDto, {
+      agent_name: 'demo-agent',
+      metric_type: 'tokens',
+      threshold: 1000,
+      period: null,
+    });
+    const errors = await validate(dto);
+    const periodError = errors.find((e) => e.property === 'period');
+    expect(periodError).toBeDefined();
+    expect(periodError?.constraints).toHaveProperty('isIn');
+  });
 });
 
 describe('UpdateNotificationRuleDto', () => {
@@ -59,6 +125,31 @@ describe('UpdateNotificationRuleDto', () => {
     });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it.each([['hour'], ['day'], ['week'], ['month']])('accepts valid period "%s"', async (period) => {
+    const dto = plainToInstance(UpdateNotificationRuleDto, { period });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it.each([['invalid'], ['daily'], ['HOUR'], ['Day'], ['minute'], ['second'], ['']])(
+    'rejects invalid period "%s" with isIn constraint',
+    async (period) => {
+      const dto = plainToInstance(UpdateNotificationRuleDto, { period });
+      const errors = await validate(dto);
+      const periodError = errors.find((e) => e.property === 'period');
+      expect(periodError).toBeDefined();
+      expect(periodError?.constraints).toHaveProperty('isIn');
+    },
+  );
+
+  it('rejects numeric period', async () => {
+    const dto = plainToInstance(UpdateNotificationRuleDto, { period: 7 });
+    const errors = await validate(dto);
+    const periodError = errors.find((e) => e.property === 'period');
+    expect(periodError).toBeDefined();
+    expect(periodError?.constraints).toHaveProperty('isIn');
   });
 
   it('transforms is_active via @Type(() => Boolean)', async () => {

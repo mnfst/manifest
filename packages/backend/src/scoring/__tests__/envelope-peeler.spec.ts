@@ -103,4 +103,93 @@ describe('peelEnvelope', () => {
     const wrapped = 'Sender (untrusted metadata):\n```json\n{"k":"v"}\n```\n\nline one\nline two';
     expect(peelEnvelope(wrapped)).toBe('line one\nline two');
   });
+
+  // ---------------------------------------------------------------------------
+  // looksLikeStructuredData heuristic — exercised via peelEnvelope on unlabeled
+  // fences. The body must independently look structured (>=2 yaml-shaped lines
+  // or balanced { } / [ ]) for an unlabeled fence to be treated as an envelope.
+  // ---------------------------------------------------------------------------
+
+  it('peels an unlabeled YAML fence with blank lines interleaved between valid keys', () => {
+    // Blank lines are skipped by the heuristic; the two `key: value` lines
+    // still satisfy the >=2 yamlLines threshold.
+    const wrapped = '```\nlabel: openclaw\n\nid: tui\n```\n\nhello';
+    expect(peelEnvelope(wrapped)).toBe('hello');
+  });
+
+  it('peels an unlabeled fence that uses YAML list-item syntax', () => {
+    // The `^- ` branch of the heuristic — two list items count as structure.
+    const wrapped = '```\n- one\n- two\n```\n\nlist follows';
+    expect(peelEnvelope(wrapped)).toBe('list follows');
+  });
+
+  it('does not peel a fence with a bare key followed by list items (no value on the key)', () => {
+    // `labels:` has no value after the colon, so the key-value regex rejects
+    // it and the line is also not a `- ` list item. The heuristic short-
+    // circuits to false on the first non-matching line.
+    const text = '```\nlabels:\n- a\n- b\nid: tui\n```\n\nmixed shape';
+    expect(peelEnvelope(text)).toBe(text);
+  });
+
+  it('peels an unlabeled fence whose YAML keys carry value content', () => {
+    const wrapped = '```\nname: agent\nversion: 1\n- item\n```\n\nhi';
+    expect(peelEnvelope(wrapped)).toBe('hi');
+  });
+
+  it('does not peel a fence that mixes one YAML line with prose', () => {
+    // First line is YAML-shaped; the prose line breaks the structure check
+    // and the heuristic short-circuits to false.
+    const text = '```\nlabel: openclaw\nbut also some prose here\n```\n\nhi';
+    expect(peelEnvelope(text)).toBe(text);
+  });
+
+  it('does not peel a fence whose key has no value after the colon', () => {
+    // The regex requires `\s*:\s*\S` — bare `key:` lines must not count.
+    const text = '```\nlabel:\nid:\n```\n\nhi';
+    expect(peelEnvelope(text)).toBe(text);
+  });
+
+  it('does not peel a fence whose lines look like prose with a colon (no leading identifier)', () => {
+    // The identifier anchor `^[A-Za-z_]` rejects lines starting with punctuation,
+    // digits, or whitespace — useful for sentences that happen to contain ":".
+    const text = '```\n1: skip\n2: skip\n```\n\nhi';
+    expect(peelEnvelope(text)).toBe(text);
+  });
+
+  it('peels keys containing dots, dashes, and underscores', () => {
+    // `\w.-` in the identifier tail must accept these characters.
+    const wrapped = '```\nmodel.id: gpt-4\nagent-name: cli_v2\n```\n\ngo';
+    expect(peelEnvelope(wrapped)).toBe('go');
+  });
+
+  it('peels a balanced JSON object with surrounding whitespace inside the fence', () => {
+    // The structural check trims before inspecting first/last chars, so
+    // padding inside the fence must not defeat detection.
+    const wrapped = '```\n   { "k": "v" }   \n```\n\nhi';
+    expect(peelEnvelope(wrapped)).toBe('hi');
+  });
+
+  it('peels a balanced JSON array body', () => {
+    const wrapped = '```\n[1, 2, 3]\n```\n\nhi';
+    expect(peelEnvelope(wrapped)).toBe('hi');
+  });
+
+  it('does not peel a fence whose body is only whitespace', () => {
+    // An all-whitespace inner body trims to empty and short-circuits to false.
+    const text = '```\n   \n```\n\nhi';
+    expect(peelEnvelope(text)).toBe(text);
+  });
+
+  it('does not peel JSON-ish content that is unbalanced (opens but never closes)', () => {
+    // First char is `{` but last is not `}` — the bracket shortcut must not fire.
+    const text = '```\n{ not really json\n```\n\nhi';
+    expect(peelEnvelope(text)).toBe(text);
+  });
+
+  it('does not peel an array opener with a non-matching closer', () => {
+    // `[` opens but the last meaningful char is `}` — the disjunction fails
+    // and the YAML fallback also rejects (no valid key/value lines).
+    const text = '```\n[ foo: bar }\n```\n\nhi';
+    expect(peelEnvelope(text)).toBe(text);
+  });
 });

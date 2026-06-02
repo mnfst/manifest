@@ -114,6 +114,30 @@ describe("monitorOAuthPopup", () => {
 
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onFailure).not.toHaveBeenCalled();
+
+    // null data — !!null short-circuits isOAuthMessage to false
+    window.dispatchEvent(new MessageEvent("message", { data: null }));
+
+    vi.advanceTimersByTime(300);
+
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+
+    // Empty object — typeof === 'object' but 'type' not in data
+    window.dispatchEvent(new MessageEvent("message", { data: {} }));
+
+    vi.advanceTimersByTime(300);
+
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+
+    // undefined data — !!undefined short-circuits isOAuthMessage to false
+    window.dispatchEvent(new MessageEvent("message", { data: undefined }));
+
+    vi.advanceTimersByTime(300);
+
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
   });
 
   it("recognizes custom provider done paths during URL polling", () => {

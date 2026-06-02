@@ -88,7 +88,6 @@ export default defineConfig(({ command }) => ({
         'src/components/SingleTokenChart.tsx',
         'src/components/SavingsChart.tsx',
         'src/components/Sparkline.tsx',
-        'src/services/auth-client.ts',
       ],
     },
   },

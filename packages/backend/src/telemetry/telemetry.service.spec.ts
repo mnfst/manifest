@@ -112,6 +112,60 @@ describe('TelemetryService', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
+    it('skips when first_send_at is one millisecond in the future (boundary)', async () => {
+      const { service, install, payloadBuilder } = makeService();
+      const now = new Date('2026-04-20T12:00:00.000Z');
+      const oneMsAhead = new Date(now.getTime() + 1).toISOString();
+      install.getOrCreate.mockResolvedValue({
+        ...baseInstall,
+        first_send_at: oneMsAhead,
+        last_sent_at: null,
+      });
+
+      await service.tick(now);
+
+      expect(payloadBuilder.build).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(install.markSent).not.toHaveBeenCalled();
+    });
+
+    it('sends when first_send_at is exactly now (boundary uses strict greater-than)', async () => {
+      const { service, install, payloadBuilder } = makeService();
+      const now = new Date('2026-04-20T12:00:00.000Z');
+      install.getOrCreate.mockResolvedValue({
+        ...baseInstall,
+        first_send_at: now.toISOString(),
+        last_sent_at: null,
+      });
+      payloadBuilder.build.mockResolvedValue(payloadStub());
+      fetchSpy.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await service.tick(now);
+
+      expect(payloadBuilder.build).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(install.markSent).toHaveBeenCalledWith(now);
+    });
+
+    it('sends when first_send_at is one millisecond in the past (boundary)', async () => {
+      const { service, install, payloadBuilder } = makeService();
+      const now = new Date('2026-04-20T12:00:00.000Z');
+      const oneMsAgo = new Date(now.getTime() - 1).toISOString();
+      install.getOrCreate.mockResolvedValue({
+        ...baseInstall,
+        first_send_at: oneMsAgo,
+        last_sent_at: null,
+      });
+      payloadBuilder.build.mockResolvedValue(payloadStub());
+      fetchSpy.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await service.tick(now);
+
+      expect(payloadBuilder.build).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(install.markSent).toHaveBeenCalledTimes(1);
+    });
+
     it('skips when the last send was less than 24h ago', async () => {
       const { service, install, payloadBuilder } = makeService();
       const now = new Date('2026-04-20T12:00:00');
