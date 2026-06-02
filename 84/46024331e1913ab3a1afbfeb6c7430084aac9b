@@ -1,0 +1,33 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_62913d1505b1f0::t_4e89a96c2b1325 428-431,433
+  s_62913d1505b1f0::t_bf5469c0de2864 455-456,463-468
+  s_62913d1505b1f0::t_f40991aabc6db3 260-262
+.changeset/openai-oauth-invalidated-refresh.md
+  s_62913d1505b1f0::t_839a8d81f96565 1,3-5
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_62913d1505b1f0::t_2fcb235c9f2e36 74,173-183,185-249,1151,1153,1157,1169,1351,1369
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_62913d1505b1f0::t_2fcb235c9f2e36 284-306,308-312
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_62913d1505b1f0::t_d59f73034e9d8c 314-350
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_62913d1505b1f0::t_4e89a96c2b1325 59-67,242-247,268-270,318-320,330-331,351-399,410-412,585,591,596,601,611,616,621
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_62913d1505b1f0::t_4e89a96c2b1325 252-258,260-270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8446024331e1913ab3a1afbfeb6c7430084aac9b",
+  "prompts": {},
+  "sessions": {
+    "s_62913d1505b1f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e87db-0b95-7600-86fe-0d72261561ea",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
