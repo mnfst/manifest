@@ -138,6 +138,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
+    expect(known).toContain('qwen-subscription');
+    expect(known).toContain('qwen-subscription-responses');
     expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
@@ -537,6 +539,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('qwen-subscription uses the Token Plan OpenAI-compatible chat endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['qwen-subscription'];
+    expect(ep.baseUrl).toBe('https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('qwen3.6-plus')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('sk-sp-test')).toEqual({
+      Authorization: 'Bearer sk-sp-test',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('commandcode-anthropic uses the Command Code Provider API messages endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['commandcode-anthropic'];
     expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
@@ -548,6 +561,13 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Content-Type': 'application/json',
       'anthropic-version': '2023-06-01',
     });
+  });
+
+  it('qwen-subscription-responses uses the Token Plan Responses endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['qwen-subscription-responses'];
+    expect(ep.baseUrl).toBe('https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('qwen3.7-max')).toBe('/v1/responses');
   });
 
   it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
@@ -563,6 +583,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'moonshot',
       'nvidia',
       'qwen',
+      'qwen-subscription',
       'zai',
       'zai-subscription',
       'copilot',
@@ -592,6 +613,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'commandcode-anthropic',
       'byteplus-anthropic',
       'minimax-subscription',
+      'qwen-subscription-responses',
       'opencode-go-anthropic',
       'opencode-zen-google',
     ];

@@ -80,6 +80,18 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  qwen: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Qwen Token Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Qwen Token Plan API key',
+    subscriptionTokenPrefix: 'sk-sp-',
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 991000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   moonshot: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'Kimi Coding Plan',

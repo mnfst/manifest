@@ -33,6 +33,11 @@ export function validateApiKey(
 const SUBSCRIPTION_PREFIXES: Record<string, string> = {
   anthropic: 'sk-ant-oat',
   minimax: 'sk-cp-',
+  qwen: 'sk-sp-',
+};
+
+const SUBSCRIPTION_MIN_LENGTHS: Record<string, number> = {
+  qwen: 30,
 };
 
 /** Prefixes that identify API keys — reject these in subscription mode. */
@@ -67,9 +72,10 @@ export function validateSubscriptionKey(
   // providers (Anthropic setup-token, OpenAI ChatGPT JWT) stay on the generic
   // 10-char floor since their tokens can be legitimately shorter.
   const minLength =
-    provider.subscriptionTokenAlternative && provider.minKeyLength > 10
+    SUBSCRIPTION_MIN_LENGTHS[provider.id] ??
+    (provider.subscriptionTokenAlternative && provider.minKeyLength > 10
       ? provider.minKeyLength
-      : 10;
+      : 10);
   if (trimmed.length < minLength) {
     return {
       valid: false,

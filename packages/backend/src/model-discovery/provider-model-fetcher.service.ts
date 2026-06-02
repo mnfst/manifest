@@ -26,6 +26,9 @@ const BYTEPLUS_CODING_MODELS_URL = 'https://ark.ap-southeast.bytepluses.com/api/
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 const COMMAND_CODE_MODELS_URL = 'https://api.commandcode.ai/provider/v1/models';
+const QWEN_TOKEN_PLAN_MODELS_URL =
+  'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models';
+const QWEN_TOKEN_PLAN_CONTEXT_WINDOW = 991000;
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
@@ -109,6 +112,16 @@ const parseBytePlusCodingPlan = (body: unknown, provider: string): DiscoveredMod
   return parseOpenAI(body, provider).filter((model) => known.has(model.id));
 };
 
+const parseQwenTokenPlan = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => id,
+  contextWindow: QWEN_TOKEN_PLAN_CONTEXT_WINDOW,
+  inputPricePerToken: 0,
+  outputPricePerToken: 0,
+});
+
 /* ── OpenAI-specific structural filters (not non-chat) ── */
 
 /** Date-suffixed snapshots returned by OpenAI (e.g. gpt-4o-mini-2024-07-18). */
@@ -178,6 +191,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:flux|stable-diffusion|image|embedding|rerank|speech|audio|whisper|tts|upscaler|controlnet)/i,
   nvidia:
     /(?:flux|cosmos|detector|gliner|calibration|embed|retriever|parse|tts|translate|safety|guard|reward|nvclip|vila|neva)/i,
+  'qwen-subscription': /(?:^qwen-image-|^wan.*image)/i,
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
 };
@@ -547,6 +561,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  'qwen-subscription': {
+    endpoint: QWEN_TOKEN_PLAN_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseQwenTokenPlan,
+  },
   zai: {
     endpoint: 'https://open.bigmodel.cn/api/paas/v4/models',
     buildHeaders: bearerHeaders,
@@ -640,6 +659,8 @@ export class ProviderModelFetcherService {
       // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
       // rather than a subscription-scoped /models endpoint.
       return [];
+    } else if (configKey === 'qwen' && authType === 'subscription') {
+      configKey = 'qwen-subscription';
     } else if (configKey === 'zai' && authType === 'subscription') {
       configKey = 'zai-subscription';
     } else if (configKey === 'opencode-go') {
@@ -670,7 +691,7 @@ export class ProviderModelFetcherService {
       } else {
         this.logger.warn('Ignoring invalid MiniMax subscription endpoint override');
       }
-    } else if (endpointOverride && configKey === 'qwen') {
+    } else if (endpointOverride && (configKey === 'qwen' || configKey === 'qwen-subscription')) {
       const qwenBaseUrl = normalizeQwenCompatibleBaseUrl(endpointOverride);
       if (qwenBaseUrl) {
         url = `${qwenBaseUrl}/v1/models`;
