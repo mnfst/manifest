@@ -11,8 +11,8 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 @Index(['tenant_id', 'model'])
 @Index(['tenant_id', 'agent_id', 'status'])
 // Per-completion success dedup (ProxyMessageDedup.findExistingSuccessMessage)
-// filters tenant_id + agent_id + user_id + model + status='ok', orders by timestamp.
-@Index(['tenant_id', 'agent_id', 'model', 'status', 'user_id', 'timestamp'])
+// filters tenant_id + agent_id + model + status='ok' and orders by timestamp.
+@Index(['tenant_id', 'agent_id', 'model', 'status', 'timestamp'])
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
