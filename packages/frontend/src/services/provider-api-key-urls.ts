@@ -31,6 +31,7 @@ export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefi
  */
 export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   commandcode: 'https://commandcode.ai/studio',
+  qwen: 'https://home.qwencloud.com/api-keys',
   moonshot: 'https://www.kimi.com/code/console',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   kiro: 'https://app.kiro.dev',

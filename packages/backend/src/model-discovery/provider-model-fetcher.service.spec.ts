@@ -634,6 +634,58 @@ describe('ProviderModelFetcherService', () => {
     );
   });
 
+  /* ── Qwen Token Plan subscription routing ── */
+
+  it('should fetch Qwen Token Plan models and filter image-only models', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'qwen3.6-plus', object: 'model' },
+          { id: 'qwen-image-2.0', object: 'model' },
+          { id: 'wan2.7-image-pro', object: 'model' },
+          { id: 'deepseek-v4-pro', object: 'model' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('qwen', 'sk-sp-token-plan-key', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-sp-token-plan-key' },
+      }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['qwen3.6-plus', 'deepseek-v4-pro']);
+    expect(result[0]).toMatchObject({
+      contextWindow: 991000,
+      inputPricePerToken: 0,
+      outputPricePerToken: 0,
+    });
+  });
+
+  it('should apply endpoint override for Qwen Token Plan subscription discovery', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch(
+      'qwen',
+      'sk-sp-token-plan-key',
+      'subscription',
+      'https://dashscope-intl.aliyuncs.com/compatible-mode',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-sp-token-plan-key' },
+      }),
+    );
+  });
+
   /* ── Kimi Coding Plan subscription routing ── */
 
   it('should skip live model fetching for moonshot subscription auth', async () => {

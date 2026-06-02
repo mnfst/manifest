@@ -229,6 +229,29 @@ describe('validateSubscriptionKey', () => {
     });
   });
 
+  it('rejects a regular Qwen API key in Token Plan subscription mode', () => {
+    const qwen = getProvider('qwen')!;
+    expect(validateSubscriptionKey(qwen, 'sk-' + 'a'.repeat(40))).toEqual({
+      valid: false,
+      error: 'Alibaba Cloud subscription tokens start with "sk-sp-"',
+    });
+  });
+
+  it('accepts a valid Qwen Token Plan sk-sp API key', () => {
+    const qwen = getProvider('qwen')!;
+    expect(validateSubscriptionKey(qwen, 'sk-sp-' + 'a'.repeat(40))).toEqual({
+      valid: true,
+    });
+  });
+
+  it('rejects a too-short Qwen Token Plan key', () => {
+    const qwen = getProvider('qwen')!;
+    expect(validateSubscriptionKey(qwen, 'sk-sp-1234')).toEqual({
+      valid: false,
+      error: 'Token is too short (minimum 30 characters)',
+    });
+  });
+
   it("rejects a MiniMax Coding Plan token shorter than the provider's minKeyLength", () => {
     const minimax = getProvider('minimax')!;
     // sk-cp- prefix (6) + 4 chars = 10 total: passes the generic 10-char floor
@@ -401,6 +424,17 @@ describe('PROVIDERS', () => {
     expect(minimax.subscriptionAuthMode).toBe('device_code');
   });
 
+  it('Qwen supports Token Plan subscription with token flow', () => {
+    const qwen = PROVIDERS.find((p) => p.id === 'qwen')!;
+    expect(qwen.supportsSubscription).toBe(true);
+    expect(qwen.subscriptionLabel).toBe('Qwen Token Plan');
+    expect(qwen.subscriptionAuthMode).toBe('token');
+    expect(qwen.subscriptionKeyPlaceholder).toBe('Paste your Qwen Token Plan API key');
+    expect(qwen.subscriptionCredentialKind).toBe('api-key');
+    expect(qwen.subscriptionCredentialName).toBe('Qwen Token Plan');
+    expect(qwen.subscriptionOnly).toBeUndefined();
+  });
+
   it('Moonshot supports Kimi Coding Plan subscription with token flow', () => {
     const moonshot = PROVIDERS.find((p) => p.id === 'moonshot')!;
     expect(moonshot.supportsSubscription).toBe(true);
@@ -449,6 +483,10 @@ describe('PROVIDERS', () => {
   it('provides only the subscription-key URL for Command Code', () => {
     expect(getRoutingProviderApiKeyUrl('commandcode')).toBeUndefined();
     expect(getSubscriptionProviderKeyUrl('commandcode')).toBe('https://commandcode.ai/studio');
+  });
+
+  it('provides a subscription-key URL for Qwen Token Plan', () => {
+    expect(getSubscriptionProviderKeyUrl('qwen')).toBe('https://home.qwencloud.com/api-keys');
   });
 
   it('provides an API-key URL for Kilo', () => {

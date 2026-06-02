@@ -15,6 +15,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'anthropic',
         'openai',
         'minimax',
+        'qwen',
         'moonshot',
         'copilot',
         'commandcode',
@@ -70,6 +71,19 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config).toMatchObject({
       subscriptionAuthMode: 'device_code',
     });
+  });
+
+  it('returns config for Qwen Token Plan', () => {
+    const config = getSubscriptionProviderConfig('qwen');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Qwen Token Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your Qwen Token Plan API key',
+      subscriptionTokenPrefix: 'sk-sp-',
+    });
+    expect(config?.knownModels).toBeUndefined();
+    expect(config?.knownModelsMatch).toBeUndefined();
   });
 
   it('returns config for moonshot Kimi Coding Plan', () => {
@@ -202,6 +216,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('anthropic')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
+    expect(supportsSubscriptionProvider('qwen')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
     expect(supportsSubscriptionProvider('commandcode')).toBe(true);
@@ -241,6 +256,10 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('MiniMax-M2.7');
     expect(models).toContain('MiniMax-M2.7-highspeed');
     expect(models).toContain('MiniMax-M2.5');
+  });
+
+  it('returns null known models for Qwen Token Plan (relies on live /v1/models discovery)', () => {
+    expect(getSubscriptionKnownModels('qwen')).toBeNull();
   });
 
   it('returns the fixed model id for moonshot Kimi Coding Plan', () => {
@@ -303,6 +322,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
     expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
   });
 
+  it('returns prefix for Qwen Token Plan (no hardcoded known-model matching)', () => {
+    expect(getSubscriptionKnownModelsMatch('qwen')).toBe('prefix');
+  });
+
   it('returns prefix for unsupported providers (graceful fallback)', () => {
     expect(getSubscriptionKnownModelsMatch('unknown')).toBe('prefix');
   });
@@ -355,6 +378,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('moonshot');
     expect(caps).toMatchObject({
       maxContextWindow: 262144,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Qwen Token Plan', () => {
+    const caps = getSubscriptionCapabilities('qwen');
+    expect(caps).toMatchObject({
+      maxContextWindow: 991000,
       supportsPromptCaching: false,
       supportsBatching: false,
     });
