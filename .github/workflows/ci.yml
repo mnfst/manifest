@@ -11,6 +11,7 @@ on:
 
 jobs:
   lint:
+    if: github.repository == 'mnfst/manifest'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -24,6 +25,7 @@ jobs:
         run: node .github/scripts/db-diagram/smoke-test.cjs
 
   backend-postgres:
+    if: github.repository == 'mnfst/manifest'
     name: Backend (PostgreSQL)
     runs-on: ubuntu-latest
 
@@ -72,6 +74,7 @@ jobs:
           fail_ci_if_error: false
 
   frontend:
+    if: github.repository == 'mnfst/manifest'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -98,6 +101,7 @@ jobs:
           fail_ci_if_error: false
 
   shared:
+    if: github.repository == 'mnfst/manifest'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -120,7 +124,7 @@ jobs:
   changeset-check:
     name: Changeset status
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    if: github.repository == 'mnfst/manifest' && github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
