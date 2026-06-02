@@ -1,0 +1,23 @@
+packages/frontend/tests/components/ProviderSelectContent.test.tsx
+  s_a543a0ab2059f0::t_086d2d00f0ae8a 291-312
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_a543a0ab2059f0::t_5d32cdac6e74e0 33
+packages/frontend/tests/services/providers.test.ts
+  s_a543a0ab2059f0::t_e1acbb668fae31 390-392,448-450
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ccae3914c600c75c8ec9c8f1d2bb09646f9e47a2",
+  "prompts": {},
+  "sessions": {
+    "s_a543a0ab2059f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8841-cef4-7de1-966b-b5d7a1e011de",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
