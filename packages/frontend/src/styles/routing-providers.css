@@ -483,12 +483,6 @@
   font-size: var(--font-size-xs);
 }
 
-.provider-detail__key-note {
-  margin: 4px 0 0;
-  font-size: var(--font-size-xs);
-  color: hsl(var(--muted-foreground));
-}
-
 .provider-detail__key-help-link {
   color: hsl(var(--muted-foreground));
   text-decoration: underline;

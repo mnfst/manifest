@@ -303,8 +303,9 @@ describe("ProviderSelectContent", () => {
       );
       expect(link).not.toBeNull();
       expect(link!.textContent).toContain("Command Code");
-      expect(container.textContent).toContain("Requires Command Code Pro or higher.");
     });
+    const subtitle = container.querySelector(".provider-detail__subtitle");
+    expect(subtitle?.textContent).toBe("Requires Command Code Pro or higher.");
     expect(container.querySelector(".provider-detail__signin-btn")).toBeNull();
     expect(
       container.querySelector('a[href="https://commandcode.ai/studio/settings/api-keys"]'),
