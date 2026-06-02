@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -454,12 +454,12 @@ export class ProviderService {
     // Legacy disconnect: deactivate every active key for the (provider,
     // [auth_type]) tuple. Falls back to findOne for compatibility with the
     // already-disconnected case so tier-cleanup still runs.
-    const where: Record<string, unknown> = { agent_id: agentId, provider, is_active: true };
+    const where: FindOptionsWhere<UserProvider> = { agent_id: agentId, provider, is_active: true };
     if (authType) where.auth_type = authType;
     const activeRows = await this.providerRepo.find({ where });
 
     if (activeRows.length === 0) {
-      const fallbackWhere: Record<string, unknown> = { agent_id: agentId, provider };
+      const fallbackWhere: FindOptionsWhere<UserProvider> = { agent_id: agentId, provider };
       if (authType) fallbackWhere.auth_type = authType;
       const any = await this.providerRepo.findOne({ where: fallbackWhere });
       if (!any) throw new NotFoundException('Provider not found');
@@ -521,7 +521,7 @@ export class ProviderService {
     authType: AuthType | undefined,
     label: string,
   ): Promise<{ notifications: string[] }> {
-    const where: Record<string, unknown> = { agent_id: agentId, provider };
+    const where: FindOptionsWhere<UserProvider> = { agent_id: agentId, provider };
     if (authType) where.auth_type = authType;
     const matching = await this.providerRepo.find({ where });
     if (matching.length === 0) throw new NotFoundException('Provider not found');

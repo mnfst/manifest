@@ -22,21 +22,6 @@ const GONE_RESPONSE = {
 };
 
 /**
- * Some old clients prepend /api/v1 to the OTLP path or strip the /otlp prefix,
- * producing paths like /api/v1/otlp/v1/metrics or /v1/metrics. Catch those too.
- */
-const GONE_RESPONSE_MISROUTED = {
-  error: {
-    message:
-      'OTLP telemetry endpoints have been removed. ' +
-      'Use the routing proxy at /v1/chat/completions instead. ' +
-      'See https://manifest.build/docs/migration for details.',
-    type: 'gone',
-    status: 410,
-  },
-};
-
-/**
  * Structured 404 response for /chat/completions (missing /v1 prefix).
  * The OpenAI SDK appends /chat/completions to the base URL, so users who
  * set baseURL without the /v1 suffix hit this path.
@@ -85,41 +70,44 @@ export class OtlpDeprecatedController {
   }
 
   // --- Misrouted OTLP variants (wrong prefix) ---
+  // Some old clients prepend /api/v1 to the OTLP path or strip the /otlp
+  // prefix, producing paths like /api/v1/otlp/v1/metrics or /v1/metrics.
+  // Catch those too and return the same 410 Gone payload.
 
   @All('api/v1/otlp/v1/traces')
   @HttpCode(HttpStatus.GONE)
   misroutedTraces() {
-    return GONE_RESPONSE_MISROUTED;
+    return GONE_RESPONSE;
   }
 
   @All('api/v1/otlp/v1/metrics')
   @HttpCode(HttpStatus.GONE)
   misroutedMetrics() {
-    return GONE_RESPONSE_MISROUTED;
+    return GONE_RESPONSE;
   }
 
   @All('api/v1/otlp/v1/logs')
   @HttpCode(HttpStatus.GONE)
   misroutedLogs() {
-    return GONE_RESPONSE_MISROUTED;
+    return GONE_RESPONSE;
   }
 
   @All('v1/metrics')
   @HttpCode(HttpStatus.GONE)
   strippedMetrics() {
-    return GONE_RESPONSE_MISROUTED;
+    return GONE_RESPONSE;
   }
 
   @All('v1/traces')
   @HttpCode(HttpStatus.GONE)
   strippedTraces() {
-    return GONE_RESPONSE_MISROUTED;
+    return GONE_RESPONSE;
   }
 
   @All('v1/logs')
   @HttpCode(HttpStatus.GONE)
   strippedLogs() {
-    return GONE_RESPONSE_MISROUTED;
+    return GONE_RESPONSE;
   }
 
   // --- Wrong path for chat completions (missing /v1 prefix) ---

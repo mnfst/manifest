@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import { DiscoveredModel, FetcherConfig } from './model-fetcher';
+import { DiscoveredModel, FetcherConfig, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../common/constants/ollama';
 import {
   CODEX_CLI_ORIGINATOR,
@@ -19,7 +19,6 @@ import {
 } from '../routing/proxy/kiro-adapter';
 
 const FETCH_TIMEOUT_MS = 5000;
-const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
@@ -335,7 +334,7 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
         id: entry.id,
         displayName: entry.name || entry.id,
         provider,
-        contextWindow: entry.context_length ?? 128000,
+        contextWindow: entry.context_length ?? DEFAULT_CONTEXT_WINDOW,
         inputPricePerToken:
           prompt !== null && Number.isFinite(prompt) && prompt >= 0 ? prompt : null,
         outputPricePerToken:

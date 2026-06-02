@@ -1,8 +1,9 @@
 import { IsOptional, IsString, IsIn } from 'class-validator';
+import { RANGE_VALUES } from '../utils/range.util';
 
 export class RangeQueryDto {
   @IsOptional()
-  @IsIn(['1h', '6h', '24h', '7d', '30d'])
+  @IsIn(RANGE_VALUES)
   range?: string;
 
   @IsOptional()

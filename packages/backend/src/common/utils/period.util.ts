@@ -1,9 +1,9 @@
+import { toSqlTimestamp } from './postgres-sql';
+
 export interface PeriodBoundaries {
   periodStart: string;
   periodEnd: string;
 }
-
-const fmt = (d: Date) => d.toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
 export function computePeriodBoundaries(period: string): PeriodBoundaries {
   const now = new Date();
@@ -34,7 +34,7 @@ export function computePeriodBoundaries(period: string): PeriodBoundaries {
   }
 
   const end = new Date(now.getTime());
-  return { periodStart: fmt(start), periodEnd: fmt(end) };
+  return { periodStart: toSqlTimestamp(start), periodEnd: toSqlTimestamp(end) };
 }
 
 export function computePeriodResetDate(period: string): string {
@@ -67,5 +67,5 @@ export function computePeriodResetDate(period: string): string {
       );
   }
 
-  return fmt(reset);
+  return toSqlTimestamp(reset);
 }
