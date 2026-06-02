@@ -141,11 +141,21 @@ describe('HeaderTierService', () => {
       ).rejects.toThrow(/Header key is required/);
     });
 
-    it('rejects reserved header keys', async () => {
-      const reserved = [...RESERVED_HEADER_KEYS][0];
-      await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_key: reserved })),
-      ).rejects.toThrow(/stripped for security/);
+    it('rejects all reserved header keys', async () => {
+      for (const key of RESERVED_HEADER_KEYS) {
+        await expect(
+          svc.create('agent-1', 'user-1', null, validInput({ header_key: key })),
+        ).rejects.toThrow(/stripped for security/);
+      }
+    });
+
+    it('rejects reserved header keys with mixed case and whitespace', async () => {
+      for (const key of RESERVED_HEADER_KEYS) {
+        const mutated = `  ${key.toUpperCase()}  `;
+        await expect(
+          svc.create('agent-1', 'user-1', null, validInput({ header_key: mutated })),
+        ).rejects.toThrow(/stripped for security/);
+      }
     });
 
     it('rejects empty header values', async () => {
@@ -280,6 +290,24 @@ describe('HeaderTierService', () => {
       await expect(svc.update('agent-1', 'h1', { header_value: 'b' })).rejects.toThrow(
         /already matches/,
       );
+    });
+
+    it('rejects reserved header keys when updating header_key field', async () => {
+      const row = {
+        id: 'h1',
+        agent_id: 'agent-1',
+        name: 'A',
+        header_key: 'x-tier',
+        header_value: 'v',
+      } as HeaderTier;
+      for (const key of RESERVED_HEADER_KEYS) {
+        repo.findOne.mockResolvedValue(row);
+        repo.find.mockResolvedValue([row]);
+        await expect(svc.update('agent-1', 'h1', { header_key: key })).rejects.toThrow(
+          /stripped for security/,
+        );
+      }
+      expect(repo.save).not.toHaveBeenCalled();
     });
   });
 

@@ -203,4 +203,90 @@ describe("ResetPassword - Set new password form (with token)", () => {
     render(() => <ResetPassword />);
     expect(screen.getByText("Back to sign in")).toBeDefined();
   });
+
+  it("renders RequestResetForm when token is empty string", () => {
+    mockSearchParamsValue = { token: "" };
+    render(() => <ResetPassword />);
+    expect(screen.getByPlaceholderText("you@example.com")).toBeDefined();
+    expect(screen.getByText("Reset your password")).toBeDefined();
+    expect(screen.queryByText("Set new password")).toBeNull();
+  });
+
+  it("renders RequestResetForm when token is undefined", () => {
+    mockSearchParamsValue = {};
+    render(() => <ResetPassword />);
+    expect(screen.getByPlaceholderText("you@example.com")).toBeDefined();
+    expect(screen.getByText("Reset your password")).toBeDefined();
+    expect(screen.queryByText("Set new password")).toBeNull();
+  });
+
+  it("form remains interactive after API error", async () => {
+    mockResetPassword.mockResolvedValue({ error: { message: "Token invalid" } });
+    const { container } = render(() => <ResetPassword />);
+    const inputs = container.querySelectorAll('input[type="password"]');
+    fireEvent.input(inputs[0], { target: { value: "newpass123" } });
+    fireEvent.input(inputs[1], { target: { value: "newpass123" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Token invalid");
+    });
+    const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.querySelector(".spinner")).toBeNull();
+    // Form is still rendered and can be re-submitted
+    expect(container.querySelector("form")).not.toBeNull();
+    mockResetPassword.mockResolvedValue({ error: null });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(mockResetPassword).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+
+describe("ResetPassword - Invalid/malformed token", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSearchParamsValue = { token: "not-a-valid-uuid" };
+  });
+
+  it("shows error when token is malformed", async () => {
+    mockResetPassword.mockResolvedValue({
+      error: { message: "Token is invalid or expired" },
+    });
+    const { container } = render(() => <ResetPassword />);
+    const inputs = container.querySelectorAll('input[type="password"]');
+    fireEvent.input(inputs[0], { target: { value: "newpass123" } });
+    fireEvent.input(inputs[1], { target: { value: "newpass123" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Token is invalid or expired");
+    });
+    expect(mockResetPassword).toHaveBeenCalledWith({
+      newPassword: "newpass123",
+      token: "not-a-valid-uuid",
+    });
+  });
+
+  it("form recovers after token expiry mid-request (race condition)", async () => {
+    // Race: user submits, token expires server-side, API rejects mid-request
+    mockResetPassword.mockResolvedValue({
+      error: { message: "Token expired" },
+    });
+    const { container } = render(() => <ResetPassword />);
+    const inputs = container.querySelectorAll('input[type="password"]');
+    fireEvent.input(inputs[0], { target: { value: "newpass123" } });
+    fireEvent.input(inputs[1], { target: { value: "newpass123" } });
+    fireEvent.submit(container.querySelector("form")!);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Token expired");
+    });
+    // Button is re-enabled and spinner is gone so the user can retry
+    const btn = container.querySelector('button[type="submit"]') as HTMLButtonElement;
+    expect(btn.disabled).toBe(false);
+    expect(btn.querySelector(".spinner")).toBeNull();
+    // Form fields are still mounted and editable
+    const inputsAfter = container.querySelectorAll('input[type="password"]');
+    expect(inputsAfter.length).toBe(2);
+    expect((inputsAfter[0] as HTMLInputElement).value).toBe("newpass123");
+  });
 });

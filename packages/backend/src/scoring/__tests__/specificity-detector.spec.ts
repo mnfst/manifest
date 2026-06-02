@@ -97,6 +97,57 @@ describe('detectSpecificity', () => {
       expect(result).not.toBeNull();
       expect(result!.category).toBe('data_analysis');
     });
+
+    it('should detect image_generation with imageGeneration dimension matches', () => {
+      const matches = [
+        match('generate', 'imageGeneration', 0),
+        match('create', 'imageGeneration', 10),
+      ];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('image_generation');
+    });
+
+    it('should detect video_generation with videoGeneration dimension matches', () => {
+      const matches = [
+        match('generate', 'videoGeneration', 0),
+        match('edit', 'videoGeneration', 10),
+      ];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('video_generation');
+    });
+
+    it('should detect social_media with socialMedia dimension matches', () => {
+      const matches = [match('post', 'socialMedia', 0), match('tweet', 'socialMedia', 10)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('social_media');
+    });
+
+    it('should detect email_management with emailManagement dimension matches', () => {
+      const matches = [match('send', 'emailManagement', 0), match('draft', 'emailManagement', 10)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('email_management');
+    });
+
+    it('should detect calendar_management with calendarManagement dimension matches', () => {
+      const matches = [
+        match('schedule', 'calendarManagement', 0),
+        match('meeting', 'calendarManagement', 10),
+      ];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('calendar_management');
+    });
+
+    it('should detect trading with trading dimension matches', () => {
+      const matches = [match('buy', 'trading', 0), match('sell', 'trading', 10)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
+    });
   });
 
   describe('no detection', () => {
@@ -236,6 +287,169 @@ describe('detectSpecificity', () => {
       const matches = [match('function', 'codeGeneration', 0)];
       const result = detectSpecificity(matches, [], undefined, 2);
       expect(result).toBeNull();
+    });
+
+    // For categories with threshold=1.0, a single tool-prefix match (TOOL_MATCH_WEIGHT=3)
+    // is enough to activate on its own — no keyword matches required.
+    it('should boost image_generation for image_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'image_generate' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('image_generation');
+    });
+
+    it('should boost image_generation for midjourney_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'midjourney_imagine' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('image_generation');
+    });
+
+    it('should boost image_generation for firefly_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'firefly_generate' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('image_generation');
+    });
+
+    it('should boost image_generation for leonardo_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'leonardo_generate' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('image_generation');
+    });
+
+    it('should boost video_generation for video_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'video_create' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('video_generation');
+    });
+
+    it('should boost video_generation for runway_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'runway_gen' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('video_generation');
+    });
+
+    it('should boost video_generation for sora_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'sora_generate' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('video_generation');
+    });
+
+    it('should boost social_media for social_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'social_post' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('social_media');
+    });
+
+    it('should boost social_media for hootsuite_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'hootsuite_schedule' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('social_media');
+    });
+
+    it('should boost social_media for buffer_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'buffer_post' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('social_media');
+    });
+
+    it('should boost email_management for email_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'email_send' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('email_management');
+    });
+
+    it('should boost email_management for gmail_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'gmail_send' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('email_management');
+    });
+
+    it('should boost email_management for outlook_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'outlook_send' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('email_management');
+    });
+
+    it('should boost email_management for superhuman_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'superhuman_send' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('email_management');
+    });
+
+    it('should boost calendar_management for calendar_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'calendar_create_event' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('calendar_management');
+    });
+
+    it('should boost calendar_management for gcal_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'gcal_create' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('calendar_management');
+    });
+
+    it('should boost calendar_management for calendly_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'calendly_book' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('calendar_management');
+    });
+
+    it('should boost calendar_management for reclaim_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'reclaim_schedule' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('calendar_management');
+    });
+
+    it('should boost trading for trade_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'trade_execute' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
+    });
+
+    it('should boost trading for exchange_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'exchange_order' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
+    });
+
+    it('should boost trading for robinhood_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'robinhood_buy' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
+    });
+
+    it('should boost trading for kalshi_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'kalshi_trade' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
+    });
+
+    it('should boost trading for coinbase_ prefixed tool', () => {
+      const tools: ScorerTool[] = [{ name: 'coinbase_buy' }];
+      const result = detectSpecificity([], tools);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
     });
   });
 
@@ -417,6 +631,118 @@ describe('detectSpecificity', () => {
     it('should still honor header override regardless of threshold', () => {
       const result = detectSpecificity([], undefined, 'coding', 100);
       expect(result).toEqual({ category: 'coding', confidence: 1.0 });
+    });
+  });
+
+  describe('ACTIVATION_THRESHOLDS per-category boundaries', () => {
+    // These tests exercise the REAL ACTIVATION_THRESHOLDS map (no override) to
+    // pin the per-category activation floor. web_browsing is intentionally high
+    // (3.0) vs every other category (1.0); regressions in those values would
+    // silently change routing behavior.
+
+    it('web_browsing requires score >= 3.0 to activate (real threshold)', () => {
+      // 'navigate' has weight 3 → score = 3.0 exactly = threshold → activates.
+      const matches = [match('navigate', 'webBrowsing', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('web_browsing');
+    });
+
+    it('web_browsing does NOT activate at score 2.0 (below 3.0 threshold)', () => {
+      // 'click the' has weight 2 → score = 2.0 < 3.0 → no activation.
+      const matches = [match('click the', 'webBrowsing', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).toBeNull();
+    });
+
+    it('web_browsing does NOT activate at score 1.5 (single weak noun)', () => {
+      // 'website' has weight 1.5 → 1.5 < 3.0 → no activation.
+      const matches = [match('website', 'webBrowsing', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).toBeNull();
+    });
+
+    it('coding activates at score 1.0 (single default-weight match)', () => {
+      // Unknown keyword → weight 1 → score = 1.0 = threshold → activates.
+      const matches = [match('anything', 'codeGeneration', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('coding');
+    });
+
+    it('data_analysis activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'dataAnalysis', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('data_analysis');
+    });
+
+    it('image_generation activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'imageGeneration', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('image_generation');
+    });
+
+    it('video_generation activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'videoGeneration', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('video_generation');
+    });
+
+    it('social_media activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'socialMedia', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('social_media');
+    });
+
+    it('email_management activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'emailManagement', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('email_management');
+    });
+
+    it('calendar_management activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'calendarManagement', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('calendar_management');
+    });
+
+    it('trading activates at score 1.0 (single default-weight match)', () => {
+      const matches = [match('anything', 'trading', 0)];
+      const result = detectSpecificity(matches);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('trading');
+    });
+
+    it('thresholdOverride uniformly raises the bar for every category', () => {
+      // Override of 4 — coding match (1.0) and web_browsing strong anchor (3.0)
+      // both fall below, so no category activates.
+      const matches = [
+        match('function', 'codeGeneration', 0),
+        match('navigate', 'webBrowsing', 10),
+      ];
+      const result = detectSpecificity(matches, undefined, undefined, 4);
+      expect(result).toBeNull();
+    });
+
+    it('thresholdOverride applies the >= comparison at the exact boundary', () => {
+      // Score = 3.0 (from 'navigate'); override = 3.0; should activate.
+      const matches = [match('navigate', 'webBrowsing', 0)];
+      const result = detectSpecificity(matches, undefined, undefined, 3);
+      expect(result).not.toBeNull();
+      expect(result!.category).toBe('web_browsing');
+    });
+
+    it('thresholdOverride just above score does not activate', () => {
+      // Score = 3.0 (from 'navigate'); override = 3.01 → 3.0 < 3.01 → null.
+      const matches = [match('navigate', 'webBrowsing', 0)];
+      const result = detectSpecificity(matches, undefined, undefined, 3.01);
+      expect(result).toBeNull();
     });
   });
 });

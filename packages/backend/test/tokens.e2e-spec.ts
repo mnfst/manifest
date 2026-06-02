@@ -54,6 +54,12 @@ describe('GET /api/v1/tokens', () => {
     expect(Array.isArray(res.body.hourly)).toBe(true);
     expect(res.body.hourly.length).toBeGreaterThan(0);
   });
+
+  it('rejects request without auth with 401', async () => {
+    await request(app.getHttpServer())
+      .get('/api/v1/tokens?range=24h')
+      .expect(401);
+  });
 });
 
 describe('GET /api/v1/costs', () => {

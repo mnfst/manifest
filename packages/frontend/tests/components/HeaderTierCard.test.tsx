@@ -1550,4 +1550,56 @@ describe('HeaderTierCard', () => {
       );
     });
   });
+
+  it('handles empty model in override_route gracefully', () => {
+    const tierEmptyModel = {
+      ...baseTier,
+      override_route: {
+        provider: 'openai',
+        authType: 'api_key' as const,
+        model: '',
+      },
+    };
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierEmptyModel}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    // Empty model is falsy under <Show when={currentModel()}>, so the chip is
+    // suppressed and the "+ Add model" affordance takes the fallback slot.
+    expect(container.querySelector('.routing-card__model-chip')).toBeNull();
+    expect(container.textContent).toContain('+ Add model');
+  });
+
+  it('handles null provider with valid model by inferring from model name', () => {
+    const tierNullProvider = {
+      ...baseTier,
+      override_route: {
+        provider: null as unknown as string,
+        authType: 'api_key' as const,
+        model: 'gpt-4o',
+      },
+    };
+    const { container } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={tierNullProvider}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={connectedProviders}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={vi.fn()}
+      />
+    ));
+    // A null provider is falsy, so providerId() falls to providerIdForModel,
+    // which resolves the openai prefix and renders the matching icon.
+    expect(container.querySelector('.routing-card__main')?.textContent).toBe('GPT-4o');
+    expect(container.querySelector('[data-testid="provider-icon-openai"]')).not.toBeNull();
+  });
 });

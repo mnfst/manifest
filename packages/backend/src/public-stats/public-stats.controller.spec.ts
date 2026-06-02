@@ -1,3 +1,22 @@
+// IMPORTANT: PublicStatsController uses module-level cache variables (cachedUsage,
+// cachedFree, cachedProviderTokens, cachedAgentTokens, cachedFreeProviders) plus the
+// matching `*Timestamp` and `*Inflight` lets. These survive between `it()` blocks
+// because they live in the module closure, not on the controller instance.
+//
+// We reset them by calling `jest.resetModules()` in beforeEach() and then
+// re-importing the controller via freshImport(). This drops the cached module
+// from Jest's module registry so the next `import()` re-evaluates the file with
+// all module-level lets back at their initial value (`null` / `0`).
+//
+// When adding a new describe block: either inherit the parent describe's
+// beforeEach (preferred) or, if you override beforeEach, you MUST call
+// `jest.resetModules()` and use `freshImport()` to obtain the controller.
+// Skipping this leaks cached values across tests and produces nondeterministic
+// passes/failures depending on test order.
+//
+// Future refactor: hoist the caches into an injectable service (e.g. a
+// PublicStatsCacheService) so NestJS DI can give each test a fresh instance
+// without needing module reimport gymnastics.
 import type { ConfigService } from '@nestjs/config';
 import type {
   PublicStatsService,
@@ -63,6 +82,10 @@ describe('PublicStatsController', () => {
   }
 
   beforeEach(async () => {
+    // Reset module to clear module-level cache state (cachedUsage, cachedFree,
+    // cachedProviderTokens, cachedAgentTokens, cachedFreeProviders) plus the
+    // matching `*Timestamp` and `*Inflight` lets. Without this, cached values
+    // from a previous test would leak into the next one.
     jest.resetModules();
     Object.values(mockService).forEach((m) => m.mockReset());
     controller = await freshImport();
@@ -708,6 +731,74 @@ describe('PublicStatsController', () => {
       expect(json).not.toContain('user_id');
       expect(json).not.toContain('email');
       expect(json).not.toContain('password');
+    });
+  });
+
+  // Regression: module-level caches MUST be reset between tests. If the
+  // beforeEach loses its jest.resetModules() + freshImport() pair, these
+  // assertions will fail because state from previous tests would leak in.
+  describe('module-level cache isolation (regression)', () => {
+    it('cachedUsage starts as null in every test (no leak from sibling tests)', async () => {
+      // The parent beforeEach already ran freshImport() and reset mocks.
+      // The mock is unconfigured, so the first call hits refreshUsage(),
+      // the service throws (no mock return value), and the fallback runs.
+      // If the cache leaked, total_messages would be whatever the previous
+      // test stored (e.g. 100 from STATS_FIXTURE).
+      mockService.getUsageStats.mockRejectedValueOnce(new Error('boom'));
+
+      const result = await controller.getUsage();
+
+      expect(result.total_messages).toBe(0);
+      expect(result.top_models).toEqual([]);
+    });
+
+    it('cachedProviderTokens starts as null in every test', async () => {
+      mockService.getProviderDailyTokens.mockRejectedValueOnce(new Error('boom'));
+
+      const result = await controller.getProviderTokens();
+
+      expect(result.providers).toEqual([]);
+    });
+
+    it('cachedAgentTokens starts as null in every test', async () => {
+      mockService.getAgentDailyTokens.mockRejectedValueOnce(new Error('boom'));
+
+      const result = await controller.getAgentTokens();
+
+      expect(result.agents).toEqual([]);
+    });
+
+    it('cachedFreeProviders starts as null in every test', () => {
+      mockFreeModelsService.getAll.mockReset();
+      mockFreeModelsService.getAll.mockReturnValue({ providers: [], last_synced_at: null });
+
+      const result = controller.getFreeProviders();
+
+      // Fresh import means the cache is empty, so the service MUST be called.
+      // If the cache leaked, getAll would be skipped and we'd see a stale list.
+      expect(mockFreeModelsService.getAll).toHaveBeenCalledTimes(1);
+      expect(result.providers).toEqual([]);
+    });
+
+    it('freshImport() returns a controller whose getUsage refetches from scratch', async () => {
+      // Seed the first controller's cache, then verify a freshly imported
+      // controller does NOT see that cached value.
+      mockService.getUsageStats.mockResolvedValue(STATS_FIXTURE);
+      const first = await controller.getUsage();
+      expect(first.total_messages).toBe(100);
+
+      // freshImport() calls jest.resetModules() implicitly? No — only the
+      // parent beforeEach does. So we re-do the dance manually here to prove
+      // the pattern.
+      jest.resetModules();
+      Object.values(mockService).forEach((m) => m.mockReset());
+      mockService.getUsageStats.mockRejectedValueOnce(new Error('boom'));
+      const fresh = await freshImport();
+
+      const second = await fresh.getUsage();
+
+      // Fresh controller + fresh module = empty cache + failed fetch = fallback.
+      expect(second.total_messages).toBe(0);
     });
   });
 });

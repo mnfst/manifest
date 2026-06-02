@@ -558,6 +558,11 @@ vi.mock('../../src/pages/RoutingPanels.js', () => ({
 }));
 
 const mockActionGetTier = vi.fn();
+const mockActionHandleOverride = vi.fn();
+const mockActionHandleResetAll = vi.fn();
+const mockActionHandleReset = vi.fn();
+const mockActionHandleAddFallback = vi.fn();
+const mockActionHandleFallbackUpdate = vi.fn();
 vi.mock('../../src/pages/RoutingActions.js', () => ({
   createRoutingActions: () => ({
     changingTier: () => null,
@@ -566,11 +571,11 @@ vi.mock('../../src/pages/RoutingActions.js', () => ({
     addingFallback: () => null,
     getTier: (...args: unknown[]) => mockActionGetTier(...args),
     getFallbacksFor: () => [],
-    handleOverride: vi.fn(),
-    handleResetAll: vi.fn(),
-    handleReset: vi.fn(),
-    handleAddFallback: vi.fn(),
-    handleFallbackUpdate: vi.fn(),
+    handleOverride: (...args: unknown[]) => mockActionHandleOverride(...args),
+    handleResetAll: (...args: unknown[]) => mockActionHandleResetAll(...args),
+    handleReset: (...args: unknown[]) => mockActionHandleReset(...args),
+    handleAddFallback: (...args: unknown[]) => mockActionHandleAddFallback(...args),
+    handleFallbackUpdate: (...args: unknown[]) => mockActionHandleFallbackUpdate(...args),
   }),
 }));
 
@@ -1175,27 +1180,50 @@ describe('Routing page', () => {
       expect(screen.getByText('Connect providers')).toBeDefined();
     });
     fireEvent.click(screen.getByText('Connect providers'));
+    // After opening, showProviderModal accessor reports true.
+    await waitFor(() => {
+      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(true);
+    });
     fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    // No throw / hang is sufficient — internal state flips and reads cleanly.
-    expect(true).toBe(true);
+    // After close, the signal flips back to false.
+    await waitFor(() => {
+      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(false);
+    });
   });
 
   it('closes the instruction modal via onInstructionClose', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByTestId('modal-trigger-instruction-close')).toBeDefined();
+      expect(screen.getByTestId('show-instructions')).toBeDefined();
     });
+    // Open the instruction modal first via the footer.
+    fireEvent.click(screen.getByTestId('show-instructions'));
+    await waitFor(() => {
+      expect((lastModalsProps?.instructionModal as () => string | null)()).toBe('enable');
+    });
+    // Close it — both instructionModal and instructionProvider reset to null.
     fireEvent.click(screen.getByTestId('modal-trigger-instruction-close'));
-    expect(true).toBe(true);
+    await waitFor(() => {
+      expect((lastModalsProps?.instructionModal as () => string | null)()).toBeNull();
+      expect((lastModalsProps?.instructionProvider as () => string | null)()).toBeNull();
+    });
   });
 
   it('closes the fallback picker via onFallbackPickerClose', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByTestId('modal-trigger-fallback-close')).toBeDefined();
+      expect(screen.getByTestId('spec-add-fallback')).toBeDefined();
     });
+    // Open the fallback picker first by clicking the spec section button.
+    fireEvent.click(screen.getByTestId('spec-add-fallback'));
+    await waitFor(() => {
+      expect((lastModalsProps?.fallbackPickerTier as () => string | null)()).toBe('coding');
+    });
+    // Close it — fallbackPickerTier resets to null.
     fireEvent.click(screen.getByTestId('modal-trigger-fallback-close'));
-    expect(true).toBe(true);
+    await waitFor(() => {
+      expect((lastModalsProps?.fallbackPickerTier as () => string | null)()).toBeNull();
+    });
   });
 
   it('triggers ResetAll via the footer', async () => {
@@ -1204,8 +1232,10 @@ describe('Routing page', () => {
       expect(screen.getByTestId('reset-all')).toBeDefined();
     });
     fireEvent.click(screen.getByTestId('reset-all'));
-    // No assertion — handler is mocked via createRoutingActions.
-    expect(true).toBe(true);
+    // Footer's onResetAll is wired to actions.handleResetAll.
+    await waitFor(() => {
+      expect(mockActionHandleResetAll).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('opens the instructions modal via the footer', async () => {
@@ -1214,7 +1244,10 @@ describe('Routing page', () => {
       expect(screen.getByTestId('show-instructions')).toBeDefined();
     });
     fireEvent.click(screen.getByTestId('show-instructions'));
-    expect(true).toBe(true);
+    // Footer's onShowInstructions sets instructionModal to 'enable'.
+    await waitFor(() => {
+      expect((lastModalsProps?.instructionModal as () => string | null)()).toBe('enable');
+    });
   });
 
   it('opens the dropdown picker from the default tier section', async () => {
@@ -1223,7 +1256,10 @@ describe('Routing page', () => {
       expect(screen.getByTestId('open-dropdown')).toBeDefined();
     });
     fireEvent.click(screen.getByTestId('open-dropdown'));
-    expect(true).toBe(true);
+    // The default-section's onDropdownOpen('simple') flows through to setDropdownTier.
+    await waitFor(() => {
+      expect((lastModalsProps?.dropdownTier as () => string | null)()).toBe('simple');
+    });
   });
 
   it('opens the specificity dropdown picker from the spec section', async () => {
@@ -1232,7 +1268,10 @@ describe('Routing page', () => {
       expect(screen.getByTestId('spec-open')).toBeDefined();
     });
     fireEvent.click(screen.getByTestId('spec-open'));
-    expect(true).toBe(true);
+    // spec-open triggers onDropdownOpen('coding') which sets specificityDropdown.
+    await waitFor(() => {
+      expect((lastModalsProps?.specificityDropdown as () => string | null)()).toBe('coding');
+    });
   });
 
   it('opens the spec fallback picker from the spec section', async () => {
@@ -1241,7 +1280,10 @@ describe('Routing page', () => {
       expect(screen.getByTestId('spec-add-fallback')).toBeDefined();
     });
     fireEvent.click(screen.getByTestId('spec-add-fallback'));
-    expect(true).toBe(true);
+    // spec-add-fallback triggers onAddFallback('coding') → setFallbackPickerTier.
+    await waitFor(() => {
+      expect((lastModalsProps?.fallbackPickerTier as () => string | null)()).toBe('coding');
+    });
   });
 
   it('auto-opens the provider modal when location.state.openProviders is set', async () => {
@@ -1260,10 +1302,23 @@ describe('Routing page', () => {
     });
     // Open dropdown first via the default-section open button.
     fireEvent.click(screen.getByTestId('open-dropdown'));
+    await waitFor(() => {
+      expect((lastModalsProps?.dropdownTier as () => string | null)()).toBe('simple');
+    });
     // Then trigger an override — Routing.tsx wraps actions.handleOverride and
     // resets the dropdown tier in the same call.
     fireEvent.click(screen.getByTestId('modal-trigger-override'));
-    expect(true).toBe(true);
+    await waitFor(() => {
+      // dropdownTier signal cleared back to null.
+      expect((lastModalsProps?.dropdownTier as () => string | null)()).toBeNull();
+      // actions.handleOverride was invoked with the args from the modal trigger.
+      expect(mockActionHandleOverride).toHaveBeenCalledWith(
+        'simple',
+        'gpt-4o',
+        'openai',
+        'api_key',
+      );
+    });
   });
 
   it('calls actions.handleAddFallback for non-specificity tiers when modals add a fallback', async () => {
@@ -1272,8 +1327,18 @@ describe('Routing page', () => {
       expect(screen.getByTestId('modal-trigger-add-fallback')).toBeDefined();
     });
     fireEvent.click(screen.getByTestId('modal-trigger-add-fallback'));
-    // The default-tier path delegates to actions.handleAddFallback (mocked).
-    expect(true).toBe(true);
+    // The default-tier path delegates to actions.handleAddFallback.
+    await waitFor(() => {
+      expect(mockActionHandleAddFallback).toHaveBeenCalledWith(
+        'simple',
+        'fb-new',
+        'openai',
+        'api_key',
+        undefined,
+      );
+    });
+    // No specificity persist should occur for a non-spec tier.
+    expect(mockSetSpecificityFallbacks).not.toHaveBeenCalled();
   });
 
   it('ignores duplicate fallback adds for an already-listed model on a specificity tier', async () => {
@@ -1369,17 +1434,30 @@ describe('Routing page', () => {
       expect(mockGetProviders).toHaveBeenCalledTimes(2);
     });
     fireEvent.click(screen.getByTestId('modal-trigger-provider-close'));
-    // The instruction modal flows through internal state — assertion is implicit.
-    expect(true).toBe(true);
+    // closeProviderModal sets instructionModal to 'enable' because
+    // wasEnabledBeforeModal()=false, isEnabled()=true now, hadProvidersBeforeModal()=true.
+    await waitFor(() => {
+      expect((lastModalsProps?.instructionModal as () => string | null)()).toBe('enable');
+      // And the provider modal flipped back to closed.
+      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(false);
+    });
   });
 
   it('getTier returns the generalist assignment when one exists', async () => {
+    // Make actions.getTier resolve to a real generalist row so the outer
+    // getTier short-circuits before falling back to specificity.
+    const generalist = { tier: 'simple', response_mode: 'buffered' as const };
+    mockActionGetTier.mockReturnValue(generalist);
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId('modal-trigger-get-tier')).toBeDefined();
     });
+    mockActionGetTier.mockClear();
     fireEvent.click(screen.getByTestId('modal-trigger-get-tier'));
-    expect(true).toBe(true);
+    // The modal-side getTier delegates to actions.getTier('simple').
+    expect(mockActionGetTier).toHaveBeenCalledWith('simple');
+    // Outer getTier returns the generalist value verbatim.
+    expect((lastModalsProps?.getTier as (id: string) => unknown)('simple')).toBe(generalist);
   });
 
   it('getTier falls back to the specificity assignment when no generalist tier matches', async () => {
@@ -1395,12 +1473,29 @@ describe('Routing page', () => {
         updated_at: '2025-01-01',
       },
     ]);
+    // No generalist tier matches 'coding'.
+    mockActionGetTier.mockReturnValue(undefined);
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId('modal-trigger-get-tier-spec')).toBeDefined();
     });
+    // Wait until the specificity resource resolves so the outer getTier can
+    // find the 'coding' assignment in the array.
+    await waitFor(() => {
+      expect(mockGetSpecificityAssignments).toHaveBeenCalled();
+      const specs = (lastModalsProps?.specificityAssignments as () => unknown[])();
+      expect(specs?.length).toBeGreaterThan(0);
+    });
     fireEvent.click(screen.getByTestId('modal-trigger-get-tier-spec'));
-    expect(true).toBe(true);
+    // actions.getTier was consulted first with the category id.
+    expect(mockActionGetTier).toHaveBeenCalledWith('coding');
+    // Outer getTier maps the specificity row's category to tier and returns it.
+    const result = (lastModalsProps?.getTier as (id: string) => Record<string, unknown> | undefined)(
+      'coding',
+    );
+    expect(result).toBeDefined();
+    expect(result?.tier).toBe('coding');
+    expect(result?.category).toBe('coding');
   });
 
   // Verify the per-model params wiring. Each Section's mock invokes the
@@ -1504,12 +1599,34 @@ describe('Routing page', () => {
   });
 
   it('getModelParams threads through to the Specificity Section without a fetch per surface', async () => {
+    // Seed the in-memory model-params cache so getModelParamsFor has a row to
+    // surface for the (scope, provider, authType, model) key used by spec-saved-params.
+    const saved = { thinking: { type: 'disabled' as const } };
+    mockListModelParams.mockResolvedValue([
+      {
+        scope: 'specificity:coding',
+        provider: 'deepseek',
+        authType: 'api_key' as const,
+        model: 'deepseek-v4',
+        params: saved,
+      },
+    ]);
     render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByTestId('spec-saved-params')).toBeDefined();
     });
+    // listModelParams should be called exactly once on mount — not per surface —
+    // since the cache is shared across the default tier, specificity, and custom sections.
+    expect(mockListModelParams).toHaveBeenCalledTimes(1);
+    expect(mockListModelParams).toHaveBeenCalledWith('demo');
+    // The spec section's getModelParams accessor reads from that same cache.
     fireEvent.click(screen.getByTestId('spec-saved-params'));
-    expect(true).toBe(true);
+    // No extra network calls for a UI lookup — listModelParams stays at one call.
+    await new Promise((r) => setTimeout(r, 5));
+    expect(mockListModelParams).toHaveBeenCalledTimes(1);
+    // setModelParams was NOT triggered by a read-only lookup.
+    expect(mockSetModelParams).not.toHaveBeenCalled();
+    expect(mockDeleteModelParams).not.toHaveBeenCalled();
   });
 
   it('renders the response mode button in headerRight (lines 538-556)', async () => {
