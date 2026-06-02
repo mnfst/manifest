@@ -54,12 +54,12 @@ jobs:
         if: steps.check.outputs.has_updates == 'true'
         run: git push origin main
 
-      - name: Rebase staging onto updated main
+      - name: Merge main into staging
         if: steps.check.outputs.has_updates == 'true'
         run: |
           git checkout staging
-          git rebase origin/main
+          git merge origin/main --no-edit
 
       - name: Push staging to origin
         if: steps.check.outputs.has_updates == 'true'
-        run: git push --force-with-lease origin staging
+        run: git push origin staging
