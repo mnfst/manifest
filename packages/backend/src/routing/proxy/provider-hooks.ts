@@ -14,6 +14,7 @@
  */
 const SUBSCRIPTION_ENDPOINT_OVERRIDES: Record<string, string> = {
   openai: 'openai-subscription',
+  byteplus: 'byteplus-anthropic',
   minimax: 'minimax-subscription',
   moonshot: 'moonshot-subscription',
   zai: 'zai-subscription',

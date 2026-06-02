@@ -67,6 +67,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('openai')).toBe('openai');
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
+    expect(resolveEndpointKey('byteplus')).toBe('byteplus');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
@@ -101,6 +102,11 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('cmd')).toBe('commandcode');
   });
 
+  it('resolves BytePlus ModelArk aliases to byteplus', () => {
+    expect(resolveEndpointKey('byteplus-plan')).toBe('byteplus');
+    expect(resolveEndpointKey('ModelArk')).toBe('byteplus');
+  });
+
   it('resolves qwen and alibaba to qwen', () => {
     expect(resolveEndpointKey('qwen')).toBe('qwen');
     expect(resolveEndpointKey('alibaba')).toBe('qwen');
@@ -123,6 +129,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
+    expect(known).toContain('byteplus');
+    expect(known).toContain('byteplus-anthropic');
     expect(known).toContain('commandcode');
     expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
@@ -228,6 +236,30 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.buildHeaders('fw_test_key')).toEqual({
       Authorization: 'Bearer fw_test_key',
       'Content-Type': 'application/json',
+    });
+  });
+
+  it('byteplus uses the ModelArk Coding Plan OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['byteplus'];
+    expect(ep.baseUrl).toBe('https://ark.ap-southeast.bytepluses.com/api/coding');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('ark-code-latest')).toBe('/v3/chat/completions');
+    expect(ep.buildHeaders('bp-token')).toEqual({
+      Authorization: 'Bearer bp-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('byteplus-anthropic uses the ModelArk Coding Plan Anthropic-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['byteplus-anthropic'];
+    expect(ep.baseUrl).toBe('https://ark.ap-southeast.bytepluses.com/api/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('ark-code-latest')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+    expect(ep.buildHeaders('bp-token')).toEqual({
+      Authorization: 'Bearer bp-token',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
     });
   });
 
@@ -521,6 +553,7 @@ describe('PROVIDER_ENDPOINTS', () => {
   it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
     const endpointKeys = [
       'openai',
+      'byteplus',
       'deepseek',
       'groq',
       'kilo',
@@ -557,6 +590,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'xai-responses',
       'copilot-responses',
       'commandcode-anthropic',
+      'byteplus-anthropic',
       'minimax-subscription',
       'opencode-go-anthropic',
       'opencode-zen-google',
@@ -595,6 +629,10 @@ describe('resolveSubscriptionEndpointKey', () => {
 
   it('returns minimax-subscription for minimax', () => {
     expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns byteplus-anthropic for byteplus', () => {
+    expect(resolveSubscriptionEndpointKey('byteplus')).toBe('byteplus-anthropic');
   });
 
   it('returns moonshot-subscription for moonshot', () => {

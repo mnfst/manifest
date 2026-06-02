@@ -2084,6 +2084,28 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].inputPricePerToken).toBe(0);
     });
 
+    it('should return BytePlus knownModels directly when pricingSync is null', () => {
+      const result = buildSubscriptionFallbackModels(null as never, 'byteplus');
+
+      expect(result.map((m) => m.id)).toEqual([
+        'ark-code-latest',
+        'bytedance-seed-code',
+        'glm-5.1',
+        'glm-4.7',
+        'deepseek-v3.2',
+        'deepseek-v4-flash',
+        'deepseek-v4-pro',
+        'kimi-k2.5',
+        'gpt-oss-120b',
+      ]);
+      expect(result[0]).toMatchObject({
+        provider: 'byteplus',
+        contextWindow: 256000,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      });
+    });
+
     it('should not duplicate knownModel when already in OpenRouter', () => {
       const orMap = new Map([
         [

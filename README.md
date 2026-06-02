@@ -62,7 +62,7 @@ Open [http://localhost:2099](http://localhost:2099) and sign up — the first ac
 
 ## Providers
 
-Manifest connects to **300+ models across 16 providers** plus any custom provider (OpenAI/Anthropic compatible). Bring your own API key, reuse a paid subscription you already have, or run models locally — all routed through
+Manifest connects to **300+ models across 17 providers** plus any custom provider (OpenAI/Anthropic compatible). Bring your own API key, reuse a paid subscription you already have, or run models locally — all routed through
   the same `/auto` endpoint.
 
   | Provider | API key | Subscription | Featured models |
@@ -77,6 +77,7 @@ Manifest connects to **300+ models across 16 providers** plus any custom provide
   | [**Moonshot** (Kimi)](https://kimi.ai/) | ✅ | ✅ Kimi Coding Plan | kimi-k2, kimi-for-coding, moonshot-v1-128k |
   | [**MiniMax**](https://www.minimax.io/) | ✅ | ✅ MiniMax Coding Plan | minimax-m2, abab7-chat-preview |
   | [**Z.ai** (Zhipu)](https://z.ai/) | ✅ | ✅ GLM Coding Plan | glm-4.6, glm-4.5-air |
+  | [**BytePlus**](https://www.byteplus.com/en/activity/codingplan) | — | ✅ ModelArk Coding Plan | ark-code-latest, bytedance-seed-code, deepseek-v4-flash |
   | [**OpenCode**](https://opencode.ai/) | — | ✅ Go subscription | Routes via OpenCode Go catalog |
   | [**Ollama**](https://ollama.com/) | 🖥️ Local | ✅ Ollama Cloud | Any GGUF model, port `11434` |
   | [**LM Studio**](https://lmstudio.ai/) | 🖥️ Local | — | Any GGUF model, port `1234` |

@@ -235,6 +235,18 @@ describe("ProviderSelectContent", () => {
     expect(screen.getAllByText("Kimi Coding Plan").length).toBeGreaterThan(0);
   });
 
+  it("shows BytePlus ModelArk Coding Plan in the subscription tab", () => {
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    expect(screen.getByText("BytePlus")).toBeDefined();
+    expect(screen.getAllByText("ModelArk Coding Plan").length).toBeGreaterThan(0);
+  });
+
   it("opens token paste detail view when Z.ai is clicked in subscription tab", async () => {
     const { container } = render(() => (
       <ProviderSelectContent
@@ -285,6 +297,24 @@ describe("ProviderSelectContent", () => {
       );
       expect(link).not.toBeNull();
       expect(link!.textContent).toContain("Kimi Code");
+    });
+  });
+
+  it("shows 'Get ModelArk Coding Plan API key' link to the BytePlus console", async () => {
+    const { container } = render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        onUpdate={onUpdate}
+      />
+    ));
+    fireEvent.click(screen.getByText("BytePlus"));
+    await waitFor(() => {
+      const link = container.querySelector<HTMLAnchorElement>(
+        'a[href="https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey"]',
+      );
+      expect(link).not.toBeNull();
+      expect(link!.textContent).toContain("ModelArk Coding Plan");
     });
   });
 

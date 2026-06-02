@@ -13,6 +13,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
     expect(Object.keys(SUBSCRIPTION_PROVIDER_CONFIGS)).toEqual(
       expect.arrayContaining([
         'anthropic',
+        'byteplus',
         'openai',
         'minimax',
         'moonshot',
@@ -63,6 +64,25 @@ describe('getSubscriptionProviderConfig', () => {
       supportsSubscription: true,
       subscriptionAuthMode: 'popup_oauth',
     });
+  });
+
+  it('returns config for BytePlus ModelArk Coding Plan', () => {
+    const config = getSubscriptionProviderConfig('byteplus');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'ModelArk Coding Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your ModelArk Coding Plan API key',
+      knownModelsMatch: 'exact',
+    });
+    expect(config?.knownModels).toEqual(
+      expect.arrayContaining([
+        'ark-code-latest',
+        'bytedance-seed-code',
+        'deepseek-v4-flash',
+        'deepseek-v4-pro',
+      ]),
+    );
   });
 
   it('returns config for minimax', () => {
@@ -200,6 +220,7 @@ describe('getSubscriptionProviderConfig', () => {
 describe('supportsSubscriptionProvider', () => {
   it('returns true for supported providers', () => {
     expect(supportsSubscriptionProvider('anthropic')).toBe(true);
+    expect(supportsSubscriptionProvider('byteplus')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
@@ -230,6 +251,13 @@ describe('getSubscriptionKnownModels', () => {
     const models = getSubscriptionKnownModels('copilot');
     expect(models).toContain('copilot/claude-opus-4.6');
     expect(models).toContain('copilot/gpt-5.4');
+  });
+
+  it('returns known models for BytePlus ModelArk Coding Plan', () => {
+    const models = getSubscriptionKnownModels('byteplus');
+    expect(models).toEqual(
+      expect.arrayContaining(['ark-code-latest', 'bytedance-seed-code', 'glm-5.1', 'kimi-k2.5']),
+    );
   });
 
   it('returns null for Command Code (dynamic Provider API catalog, no hardcoded list)', () => {
@@ -299,6 +327,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
     expect(getSubscriptionKnownModelsMatch('gemini')).toBe('exact');
   });
 
+  it('returns exact for BytePlus ModelArk Coding Plan', () => {
+    expect(getSubscriptionKnownModelsMatch('byteplus')).toBe('exact');
+  });
+
   it('returns exact for moonshot Kimi Coding Plan', () => {
     expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
   });
@@ -337,6 +369,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('ollama-cloud');
     expect(caps).toMatchObject({
       maxContextWindow: 128000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for BytePlus ModelArk Coding Plan', () => {
+    const caps = getSubscriptionCapabilities('byteplus');
+    expect(caps).toMatchObject({
+      maxContextWindow: 256000,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

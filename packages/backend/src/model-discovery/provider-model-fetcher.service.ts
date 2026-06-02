@@ -17,10 +17,12 @@ import {
   KIRO_MODELS_TARGET,
   parseKiroModels,
 } from '../routing/proxy/kiro-adapter';
+import { getSubscriptionKnownModels } from 'manifest-shared';
 
 const FETCH_TIMEOUT_MS = 5000;
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
+const BYTEPLUS_CODING_MODELS_URL = 'https://ark.ap-southeast.bytepluses.com/api/coding/v3/models';
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 const COMMAND_CODE_MODELS_URL = 'https://api.commandcode.ai/provider/v1/models';
@@ -101,6 +103,11 @@ const parseCommandCode = createModelParser<CommandCodeModelEntry>({
   contextWindow: (entry) => entry.context_length ?? DEFAULT_CONTEXT_WINDOW,
   capabilityCode: true,
 });
+
+const parseBytePlusCodingPlan = (body: unknown, provider: string): DiscoveredModel[] => {
+  const known = new Set(getSubscriptionKnownModels('byteplus') ?? []);
+  return parseOpenAI(body, provider).filter((model) => known.has(model.id));
+};
 
 /* ── OpenAI-specific structural filters (not non-chat) ── */
 
@@ -476,6 +483,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.deepseek.com/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  byteplus: {
+    endpoint: BYTEPLUS_CODING_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseBytePlusCodingPlan,
   },
   commandcode: {
     endpoint: COMMAND_CODE_MODELS_URL,

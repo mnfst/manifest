@@ -394,6 +394,20 @@ describe('PROVIDERS', () => {
     expect(commandcode.models).toEqual([]);
   });
 
+  it('BytePlus is subscription-only with ModelArk Coding Plan token paste flow', () => {
+    const byteplus = PROVIDERS.find((p) => p.id === 'byteplus')!;
+    expect(byteplus).toBeDefined();
+    expect(byteplus.name).toBe('BytePlus');
+    expect(byteplus.supportsSubscription).toBe(true);
+    expect(byteplus.subscriptionOnly).toBe(true);
+    expect(byteplus.subscriptionAuthMode).toBe('token');
+    expect(byteplus.subscriptionCredentialKind).toBe('api-key');
+    expect(byteplus.subscriptionCredentialName).toBe('ModelArk Coding Plan');
+    expect(byteplus.subscriptionLabel).toBe('ModelArk Coding Plan');
+    expect(byteplus.subscriptionKeyPlaceholder).toBe('Paste your ModelArk Coding Plan API key');
+    expect(byteplus.models).toEqual([]);
+  });
+
   it('MiniMax supports subscription with device-code flow', () => {
     const minimax = PROVIDERS.find((p) => p.id === 'minimax')!;
     expect(minimax.supportsSubscription).toBe(true);
@@ -449,6 +463,13 @@ describe('PROVIDERS', () => {
   it('provides only the subscription-key URL for Command Code', () => {
     expect(getRoutingProviderApiKeyUrl('commandcode')).toBeUndefined();
     expect(getSubscriptionProviderKeyUrl('commandcode')).toBe('https://commandcode.ai/studio');
+  });
+
+  it('provides only the subscription-key URL for BytePlus', () => {
+    expect(getRoutingProviderApiKeyUrl('byteplus')).toBeUndefined();
+    expect(getSubscriptionProviderKeyUrl('byteplus')).toBe(
+      'https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey',
+    );
   });
 
   it('provides an API-key URL for Kilo', () => {
@@ -580,6 +601,21 @@ describe('PROVIDERS', () => {
       error: 'Token is too short (minimum 10 characters)',
     });
     expect(validateSubscriptionKey(commandcode, 'user_' + 'a'.repeat(40))).toEqual({
+      valid: true,
+    });
+  });
+
+  it('BytePlus subscription key is validated with generic token length', () => {
+    const byteplus = PROVIDERS.find((p) => p.id === 'byteplus')!;
+    expect(validateSubscriptionKey(byteplus, '')).toEqual({
+      valid: false,
+      error: 'Token is required',
+    });
+    expect(validateSubscriptionKey(byteplus, 'short')).toEqual({
+      valid: false,
+      error: 'Token is too short (minimum 10 characters)',
+    });
+    expect(validateSubscriptionKey(byteplus, 'bp-valid-token-1234')).toEqual({
       valid: true,
     });
   });
