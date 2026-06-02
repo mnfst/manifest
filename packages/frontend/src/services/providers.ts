@@ -99,7 +99,13 @@ interface ProviderUIOverlay {
 const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   qwen: {
     initial: 'Al',
-    subtitle: 'Qwen3, Qwen2.5, QwQ',
+    subtitle: 'Qwen, DeepSeek, Kimi, GLM via Alibaba Cloud',
+    supportsSubscription: true,
+    subscriptionLabel: 'Qwen Token Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'Qwen Token Plan',
+    subscriptionKeyPlaceholder: 'Paste your Qwen Token Plan API key',
     models: [],
   },
   anthropic: {

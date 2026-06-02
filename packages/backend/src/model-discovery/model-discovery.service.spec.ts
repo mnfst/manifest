@@ -1603,6 +1603,27 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).not.toHaveBeenCalled();
     });
 
+    it('should not hardcode Qwen Token Plan fallback models when subscription fetch returns no models', async () => {
+      mockDecrypt.mockReturnValue('sk-sp-token-plan-key');
+      fetcher.fetch.mockResolvedValue([]);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'qwen',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-token-plan-key',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'qwen',
+        'sk-sp-token-plan-key',
+        'subscription',
+        undefined,
+      );
+      expect(result).toEqual([]);
+    });
+
     it('should exchange Copilot GitHub token before fetching models', async () => {
       mockDecrypt.mockReturnValue('ghu_github_oauth_token');
       mockCopilotTokenService.getCopilotToken.mockResolvedValue('tid=copilot-api-token');
@@ -2163,6 +2184,43 @@ describe('ModelDiscoveryService', () => {
         'MiniMax-M2.1-highspeed',
         'MiniMax-M2',
       ]);
+    });
+
+    it('should not build hardcoded Qwen Token Plan fallback models', () => {
+      const orMap = new Map([
+        [
+          'qwen/qwen3.6-plus',
+          {
+            input: 0.0000005,
+            output: 0.000003,
+            contextWindow: 1000000,
+            displayName: 'Qwen 3.6 Plus',
+          },
+        ],
+        [
+          'qwen/qwen3.6-plus-20260402',
+          {
+            input: 0.0000005,
+            output: 0.000003,
+            contextWindow: 1000000,
+            displayName: 'Qwen 3.6 Plus snapshot',
+          },
+        ],
+        [
+          'qwen/qwen-image-2.0',
+          {
+            input: 0,
+            output: 0,
+            contextWindow: 0,
+            displayName: 'Qwen Image 2.0',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'qwen');
+
+      expect(result).toEqual([]);
     });
 
     it('should use exact match mode for gemini — excludes suffixed cache entries', () => {

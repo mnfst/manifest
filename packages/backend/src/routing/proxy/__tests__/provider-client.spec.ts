@@ -1226,6 +1226,86 @@ describe('ProviderClient', () => {
     });
   });
 
+  describe('Qwen Token Plan subscription provider', () => {
+    it('routes Qwen subscription auth to the Token Plan chat endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.6-plus',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer sk-sp-token-plan-key',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.6-plus');
+    });
+
+    it('routes qwen3.7-max through the Token Plan Responses endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.7-max',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/responses',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.7-max');
+      expect(sentBody.input).toBeDefined();
+      expect(sentBody.messages).toBeUndefined();
+      expect(result.isChatGpt).toBe(true);
+    });
+
+    it('routes inbound Responses API requests through the Token Plan Responses endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.7-max',
+        body: {
+          input: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/responses',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.7-max');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(result.isResponses).toBe(true);
+    });
+  });
+
   describe('Kilo API-key provider', () => {
     it('routes to the Kilo Gateway and preserves provider-prefixed model IDs', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -2806,6 +2886,21 @@ describe('ProviderClient', () => {
         provider: 'zai',
         apiKey: 'sk-zai-sub',
         model: 'glm-4.6',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Qwen Token Plan streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.6-plus',
         body: { messages: [{ role: 'user', content: 'Hello' }] },
         stream: true,
         authType: 'subscription',

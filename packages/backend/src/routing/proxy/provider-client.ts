@@ -50,6 +50,7 @@ const PROVIDER_TIMEOUT_MS =
   Number.isFinite(parsedProviderTimeout) && parsedProviderTimeout > 0
     ? parsedProviderTimeout
     : 180_000;
+const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 
 /**
  * Strip vendor prefix from model name (e.g. "anthropic/claude-sonnet-4" → "claude-sonnet-4").
@@ -191,6 +192,12 @@ export class ProviderClient {
     if (authType === 'subscription') {
       const override = resolveSubscriptionEndpointKey(resolved);
       if (override) resolved = override;
+    }
+    if (resolved === 'qwen-subscription') {
+      const bareQwenModel = stripVendorPrefix(model);
+      if (apiMode === 'responses' || QWEN_TOKEN_PLAN_RESPONSES_RE.test(bareQwenModel)) {
+        resolved = 'qwen-subscription-responses';
+      }
     }
     if (apiMode === 'responses' && resolved === 'openai') {
       resolved = 'openai-responses';
