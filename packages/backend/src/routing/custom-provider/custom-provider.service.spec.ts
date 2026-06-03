@@ -293,7 +293,17 @@ describe('CustomProviderService', () => {
     };
 
     it('throws Conflict when an agent already has a provider with the same name', async () => {
-      const { svc } = makeDeps({ findOneResults: [{ id: 'existing' } as CustomProvider] });
+      const { svc } = makeDeps({
+        findResult: [{ id: 'existing', name: dto.name } as CustomProvider],
+      });
+      await expect(svc.create('user-1', dto)).rejects.toBeInstanceOf(ConflictException);
+    });
+
+    it('throws Conflict when a case-variant of the same name already exists (e.g. "my-openai" vs "MY-OPENAI")', async () => {
+      const { svc } = makeDeps({
+        findResult: [{ id: 'existing', name: 'MY-OPENAI' } as CustomProvider],
+      });
+      // dto.name is 'my-openai' — differs only in case, must still conflict.
       await expect(svc.create('user-1', dto)).rejects.toBeInstanceOf(ConflictException);
     });
 
@@ -486,8 +496,28 @@ describe('CustomProviderService', () => {
     it('throws Conflict when renaming collides with an existing provider', async () => {
       const existing = { id: 'cp1', name: 'old' } as CustomProvider;
       const { svc } = makeDeps({
-        findOneResults: [existing, { id: 'other', name: 'new' } as CustomProvider],
+        findOneResults: [existing],
+        findResult: [
+          { id: 'cp1', name: 'old' } as CustomProvider,
+          { id: 'other', name: 'new' } as CustomProvider,
+        ],
       });
+      await expect(svc.update('cp1', 'user-1', { name: 'new' })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
+    });
+
+    it('throws Conflict when renaming to a case-variant of an existing provider name', async () => {
+      const existing = { id: 'cp1', name: 'old' } as CustomProvider;
+      const { svc } = makeDeps({
+        findOneResults: [existing],
+        // 'OTHER' is a different provider (id: 'other2') whose lowercase name is 'new'
+        findResult: [
+          { id: 'cp1', name: 'old' } as CustomProvider,
+          { id: 'other2', name: 'NEW' } as CustomProvider,
+        ],
+      });
+      // Renaming cp1 to 'new' must conflict with existing 'NEW' (case-insensitive)
       await expect(svc.update('cp1', 'user-1', { name: 'new' })).rejects.toBeInstanceOf(
         ConflictException,
       );

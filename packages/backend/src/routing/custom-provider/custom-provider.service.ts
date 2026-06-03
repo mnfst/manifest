@@ -184,9 +184,11 @@ export class CustomProviderService {
   }
 
   async create(userId: string, dto: CreateCustomProviderDto): Promise<CustomProvider> {
-    const existing = await this.repo.findOne({
-      where: { user_id: userId, name: dto.name },
-    });
+    // Use case-insensitive comparison to match the DB unique index on
+    // (user_id, LOWER(name)) — an exact findOne would miss "My Provider"
+    // vs "my provider" and fall through to a raw constraint 500.
+    const allForUser = await this.repo.find({ where: { user_id: userId } });
+    const existing = allForUser.find((r) => r.name.toLowerCase() === dto.name.toLowerCase());
     if (existing) {
       throw new ConflictException(`Custom provider "${dto.name}" already exists`);
     }
@@ -241,9 +243,13 @@ export class CustomProviderService {
 
     const previousName = cp.name;
     if (dto.name !== undefined && dto.name !== cp.name) {
-      const dup = await this.repo.findOne({
-        where: { user_id: userId, name: dto.name },
-      });
+      // Use case-insensitive comparison to match the DB unique index on
+      // (user_id, LOWER(name)) so "My Provider" → "my provider" returns
+      // a ConflictException instead of hitting a raw DB constraint 500.
+      const allForUser = await this.repo.find({ where: { user_id: userId } });
+      const dup = allForUser.find(
+        (r) => r.id !== id && r.name.toLowerCase() === dto.name!.toLowerCase(),
+      );
       if (dup) {
         throw new ConflictException(`Custom provider "${dto.name}" already exists`);
       }

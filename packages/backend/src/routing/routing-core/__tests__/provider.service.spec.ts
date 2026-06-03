@@ -89,6 +89,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       });
       // After save, no other active records.
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
@@ -124,6 +125,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
@@ -157,6 +159,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       pricingCache.getByModel.mockReturnValue({ provider: 'openai' } as never);
       tierRepo.find.mockResolvedValueOnce([
         {
@@ -184,6 +187,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
@@ -208,6 +212,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
@@ -232,6 +237,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([]);
       tierRepo.find.mockResolvedValueOnce([]);
       specRepo.find.mockResolvedValue([
@@ -295,6 +301,7 @@ describe('ProviderService — route-only cleanup paths', () => {
             is_active: true,
           },
         ]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
@@ -340,6 +347,70 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(result.notifications[0]).toMatch(/claude-sonnet-4-6 is no longer available/);
     });
 
+    it('fans out tier cleanup to ALL owned agents when a standard (non-null) agentId provider is removed', async () => {
+      // The request comes in for agent-1, but the user also owns agent-2.
+      // Removing a user-global provider must clean stale routes on agent-2 too.
+      providerRepo.find
+        // active rows to deactivate
+        .mockResolvedValueOnce([
+          { id: 'r1', provider: 'openai', auth_type: 'api_key', is_active: true },
+        ])
+        // otherActive after deactivation → none usable
+        .mockResolvedValueOnce([]);
+      // listOwnedAgentIds returns both agents
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }, { id: 'agent-2' }]);
+
+      // agent-1 has an override_route pointing at openai
+      // agent-2 has a fallback_route pointing at openai (the sibling stale route)
+      tierRepo.find
+        // cleanupProviderReferences for agent-1
+        .mockResolvedValueOnce([
+          {
+            tier: 'standard',
+            override_route: route('openai', 'gpt-4o'),
+            fallback_routes: null,
+          } as unknown as TierAssignment,
+        ])
+        // re-read tiers for notification map (agent-1)
+        .mockResolvedValueOnce([
+          { tier: 'standard', override_route: null, auto_assigned_route: null } as TierAssignment,
+        ])
+        // cleanupProviderReferences for agent-2 — stale fallback pointing at openai
+        .mockResolvedValueOnce([
+          {
+            tier: 'standard',
+            override_route: null,
+            fallback_routes: [route('openai', 'gpt-4o-mini'), route('anthropic', 'claude')],
+          } as unknown as TierAssignment,
+        ])
+        // re-read tiers for notification map (agent-2)
+        .mockResolvedValueOnce([
+          { tier: 'standard', override_route: null, auto_assigned_route: null } as TierAssignment,
+        ]);
+      specRepo.find.mockResolvedValue([]);
+
+      const result = await svc.removeProvider('agent-1', 'user-1', 'openai');
+
+      // autoAssign.recalculate must be called for BOTH agents, not just agent-1
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-2', 'user-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-2');
+
+      // tierRepo.save should have been called twice: once per agent that had stale routes
+      // (agent-1 override cleared, agent-2 fallback filtered)
+      const allSaveCalls = tierRepo.save.mock.calls;
+      // agent-1: override_route cleared
+      const agent1Save = allSaveCalls[0][0];
+      expect(agent1Save[0].override_route).toBeNull();
+      // agent-2: openai fallback filtered out, anthropic route preserved
+      const agent2Save = allSaveCalls[1][0];
+      expect(agent2Save[0].fallback_routes).toEqual([route('anthropic', 'claude')]);
+
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(result.notifications.length).toBeGreaterThan(0);
+    });
+
     it('throws NotFoundException when no provider record exists', async () => {
       providerRepo.findOne.mockResolvedValue(null);
       await expect(svc.removeProvider('agent-1', 'user-1', 'missing')).rejects.toThrow();
@@ -354,6 +425,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
       providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
       tierRepo.find.mockResolvedValueOnce([]);
       tierRepo.find.mockResolvedValueOnce([]);
       specRepo.find.mockResolvedValue([]);

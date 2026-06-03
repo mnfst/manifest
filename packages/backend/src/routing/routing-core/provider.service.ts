@@ -518,10 +518,12 @@ export class ProviderService {
       return { notifications: [] };
     }
 
-    // A null agentId means the provider is user-global (e.g. a custom
-    // provider) with no single agent context — clean tier references and
-    // recalculate across every owned agent.
-    const targetAgentIds = agentId !== null ? [agentId] : await this.listOwnedAgentIds(userId);
+    // Providers are user-global: removing one affects the available model
+    // set for every agent the user owns, not just the agent in the request.
+    // Always fan out cleanup across all owned agents so sibling agents don't
+    // keep stale override_route / auto_assigned_route / fallback_routes
+    // pointing at the now-removed provider's models.
+    const targetAgentIds = await this.listOwnedAgentIds(userId);
     const notifications: string[] = [];
     for (const target of targetAgentIds) {
       notifications.push(
