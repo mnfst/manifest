@@ -97,6 +97,14 @@ export function getGlobalPerModelMessageTimeseries(range = '24h'): PivotedTimese
   return fetchJson('/overview/per-model-message-timeseries', { range }) as PivotedTimeseries;
 }
 
+export function getGlobalPerProviderCostTimeseries(range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-provider-cost-timeseries', { range }) as PivotedTimeseries;
+}
+
+export function getGlobalPerModelCostTimeseries(range = '24h'): PivotedTimeseries {
+  return fetchJson('/overview/per-model-cost-timeseries', { range }) as PivotedTimeseries;
+}
+
 export function getPerProviderTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
   return fetchJson('/overview/per-provider-timeseries', {
     agent_name: agentName,

@@ -1,5 +1,5 @@
 import { Title } from '@solidjs/meta';
-import { useNavigate } from '@solidjs/router';
+import { useNavigate, useSearchParams } from '@solidjs/router';
 import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
@@ -115,6 +115,15 @@ const LocalProviders: Component = () => {
       .filter((m: any) => m.auth_type === 'local')
       .reduce((sum: number, m: any) => sum + (m.estimated_cost ?? 0), 0);
   });
+
+  // Auto-open modal if ?add=true in URL
+  const [searchParams, setSearchParams] = useSearchParams();
+  if (searchParams.add === 'true') {
+    queueMicrotask(() => {
+      setSearchParams({ add: undefined });
+      openConnect();
+    });
+  }
 
   const providerDeepLink = () => {
     const p = deepLinkProvider();

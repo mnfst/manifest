@@ -618,140 +618,137 @@ const ConnectionDetail: Component = () => {
                 })()}
               </Show>
 
-              {/* Two-column grid: Models + Recent Messages */}
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
-                {/* Left: Model usage */}
-                <div class="panel scroll-panel" style="margin-bottom: 0;">
-                  <div class="panel__title">Models</div>
-                  <Show
-                    when={detail()!.model_usage.length > 0}
-                    fallback={
-                      <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                        No model usage data yet.
-                      </div>
-                    }
-                  >
-                    <div
-                      class="scroll-panel__body"
-                      onScroll={(e) => {
-                        const el = e.currentTarget;
-                        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                        el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                      }}
-                    >
-                      <table class="data-table">
-                        <thead>
-                          <tr>
-                            <th>Model</th>
-                            <th>Tokens</th>
-                            <th>% of total</th>
-                            <Show when={isByok()}>
-                              <th>Cost</th>
-                            </Show>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <For each={detail()!.model_usage}>
-                            {(m) => (
-                              <tr>
-                                <td style="font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                  {m.model}
-                                </td>
-                                <td>{formatNumber(m.tokens)}</td>
-                                <td>
-                                  <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
-                                      <div
-                                        style={{
-                                          width: `${m.pct_of_total}%`,
-                                          height: '100%',
-                                          background: 'hsl(var(--success))',
-                                          'border-radius': '3px',
-                                        }}
-                                      />
-                                    </div>
-                                    <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                                      {m.pct_of_total}%
-                                    </span>
-                                  </div>
-                                </td>
-                                <Show when={isByok()}>
-                                  <td style="font-weight: 600; color: hsl(var(--foreground));">
-                                    {formatCost(m.cost) ?? '$0.00'}
-                                  </td>
-                                </Show>
-                              </tr>
-                            )}
-                          </For>
-                        </tbody>
-                      </table>
-                    </div>
-                  </Show>
+              {/* Recent Messages (full width) */}
+              <div class="panel scroll-panel" style="margin-bottom: 24px;">
+                <div
+                  class="panel__title"
+                  style="display: flex; justify-content: space-between; align-items: center;"
+                >
+                  Recent Messages
+                  <A href={`/messages`} class="view-more-link">
+                    View more
+                  </A>
                 </div>
-
-                {/* Right: Recent Messages */}
-                <div class="panel scroll-panel" style="margin-bottom: 0;">
+                <Show
+                  when={detail()!.recent_messages.length > 0}
+                  fallback={
+                    <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
+                      No messages yet.
+                    </div>
+                  }
+                >
                   <div
-                    class="panel__title"
-                    style="display: flex; justify-content: space-between; align-items: center;"
+                    class="scroll-panel__body"
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+                    }}
                   >
-                    Recent Messages
-                    <A href={`/messages`} class="view-more-link">
-                      View more
-                    </A>
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Message</th>
+                          <th>Model</th>
+                          <th>Tokens</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <For each={detail()!.recent_messages}>
+                          {(msg: any) => (
+                            <tr>
+                              <td style="white-space: nowrap;">
+                                {msg.timestamp ? formatTimeAgo(msg.timestamp) : '—'}
+                              </td>
+                              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {msg.description || msg.first_message || '—'}
+                              </td>
+                              <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {msg.model || '—'}
+                              </td>
+                              <td>
+                                {formatNumber((msg.input_tokens ?? 0) + (msg.output_tokens ?? 0))}
+                              </td>
+                            </tr>
+                          )}
+                        </For>
+                      </tbody>
+                    </table>
                   </div>
-                  <Show
-                    when={detail()!.recent_messages.length > 0}
-                    fallback={
-                      <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                        No messages yet.
-                      </div>
-                    }
-                  >
-                    <div
-                      class="scroll-panel__body"
-                      onScroll={(e) => {
-                        const el = e.currentTarget;
-                        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                        el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                      }}
-                    >
-                      <table class="data-table">
-                        <thead>
-                          <tr>
-                            <th>Date</th>
-                            <th>Message</th>
-                            <th>Model</th>
-                            <th>Tokens</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <For each={detail()!.recent_messages}>
-                            {(msg: any) => (
-                              <tr>
-                                <td style="white-space: nowrap;">
-                                  {msg.timestamp ? formatTimeAgo(msg.timestamp) : '—'}
-                                </td>
-                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                  {msg.description || msg.first_message || '—'}
-                                </td>
-                                <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                  {msg.model || '—'}
-                                </td>
-                                <td>
-                                  {formatNumber((msg.input_tokens ?? 0) + (msg.output_tokens ?? 0))}
-                                </td>
-                              </tr>
-                            )}
-                          </For>
-                        </tbody>
-                      </table>
-                    </div>
-                  </Show>
-                </div>
+                </Show>
               </div>
 
-              {/* Full-width: Agents table */}
+              {/* Models (full width) */}
+              <div class="panel scroll-panel" style="margin-bottom: 24px;">
+                <div class="panel__title">Models</div>
+                <Show
+                  when={detail()!.model_usage.length > 0}
+                  fallback={
+                    <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
+                      No model usage data yet.
+                    </div>
+                  }
+                >
+                  <div
+                    class="scroll-panel__body"
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+                    }}
+                  >
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>Model</th>
+                          <th>Tokens</th>
+                          <th>% of total</th>
+                          <Show when={isByok()}>
+                            <th>Cost</th>
+                          </Show>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <For each={detail()!.model_usage}>
+                          {(m) => (
+                            <tr>
+                              <td style="font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {m.model}
+                              </td>
+                              <td>{formatNumber(m.tokens)}</td>
+                              <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                  <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
+                                    <div
+                                      style={{
+                                        width: `${m.pct_of_total}%`,
+                                        height: '100%',
+                                        background: 'hsl(var(--success))',
+                                        'border-radius': '3px',
+                                      }}
+                                    />
+                                  </div>
+                                  <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                                    {m.pct_of_total}%
+                                  </span>
+                                </div>
+                              </td>
+                              <Show when={isByok()}>
+                                <td style="font-weight: 600; color: hsl(var(--foreground));">
+                                  {formatCost(m.cost) ?? '$0.00'}
+                                </td>
+                              </Show>
+                            </tr>
+                          )}
+                        </For>
+                      </tbody>
+                    </table>
+                  </div>
+                </Show>
+              </div>
+
+              {/* Agents (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 0;">
                 <div class="panel__title">Agents</div>
                 <Show

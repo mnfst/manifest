@@ -7,7 +7,7 @@ import {
   onCleanup,
   type Component,
 } from 'solid-js';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import AgentTypeSelect from '../components/AgentTypeSelect.jsx';
@@ -289,6 +289,13 @@ const Workspace: Component = () => {
     () => getAgents() as Promise<AgentsData>,
   );
   const [modalOpen, setModalOpen] = createSignal(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  if (searchParams.add === 'true') {
+    queueMicrotask(() => {
+      setSearchParams({ add: undefined });
+      setModalOpen(true);
+    });
+  }
   const [duplicateSource, setDuplicateSource] = createSignal<string | null>(null);
   const [deleteTarget, setDeleteTarget] = createSignal<string | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = createSignal('');

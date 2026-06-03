@@ -20,6 +20,8 @@ import {
   getGlobalPerModelTimeseries,
   getGlobalPerModelMessageTimeseries,
   getGlobalPerAgentCostTimeseries,
+  getGlobalPerProviderCostTimeseries,
+  getGlobalPerModelCostTimeseries,
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -102,9 +104,8 @@ const RANGE_OPTIONS = [
 ];
 
 const GROUP_OPTIONS = [
-  { label: 'By agent', value: 'agent' },
   { label: 'By provider', value: 'provider' },
-  { label: 'By model', value: 'model' },
+  { label: 'By agent', value: 'agent' },
 ];
 
 const RANGE_STORAGE_KEY = 'manifest_global_range';
@@ -150,11 +151,11 @@ const GlobalOverview: Component = () => {
   const loadGroup = (): string => {
     try {
       const v = localStorage.getItem(GROUP_STORAGE_KEY);
-      if (v === 'provider' || v === 'model') return v;
+      if (v === 'provider' || v === 'agent') return v;
     } catch {
       /* ignore */
     }
-    return 'agent';
+    return 'provider';
   };
   const [groupBy, setGroupByRaw] = createSignal(loadGroup());
   const setGroupBy = (v: string) => {
@@ -222,9 +223,15 @@ const GlobalOverview: Component = () => {
     (p) => msgFetcher(p.range, p.group),
   );
 
+  const costFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider') return getGlobalPerProviderCostTimeseries(range) as Promise<TSResult>;
+    if (group === 'model') return getGlobalPerModelCostTimeseries(range) as Promise<TSResult>;
+    return getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>;
+  };
+
   const [agentCostTimeseries] = createResource(
-    () => chartRange(),
-    (range) => getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>,
+    () => ({ range: chartRange(), group: groupBy() }),
+    (p) => costFetcher(p.range, p.group),
   );
 
   // ── Agent filter state (sessionStorage) ──────────────────────────────
@@ -577,7 +584,18 @@ const GlobalOverview: Component = () => {
           return (
             <div class="overview-stats" style="grid-template-columns: repeat(4, 1fr);">
               <div class="overview-stat-card">
-                <span class="overview-stat-card__label">Subscriptions</span>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span class="overview-stat-card__label">Subscriptions</span>
+                  <div style="display: flex; gap: 4px;">
+                    <A href="/providers/subscriptions" class="view-more-link">
+                      View
+                    </A>
+                    <span style="color: hsl(var(--border));">|</span>
+                    <A href="/providers/subscriptions?add=true" class="view-more-link">
+                      Add
+                    </A>
+                  </div>
+                </div>
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                   <span class="overview-stat-card__value">{totalConns(subs())}</span>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
@@ -586,7 +604,18 @@ const GlobalOverview: Component = () => {
                 </div>
               </div>
               <div class="overview-stat-card">
-                <span class="overview-stat-card__label">BYOK</span>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span class="overview-stat-card__label">BYOK</span>
+                  <div style="display: flex; gap: 4px;">
+                    <A href="/providers/byok" class="view-more-link">
+                      View
+                    </A>
+                    <span style="color: hsl(var(--border));">|</span>
+                    <A href="/providers/byok?add=true" class="view-more-link">
+                      Add
+                    </A>
+                  </div>
+                </div>
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                   <span class="overview-stat-card__value">{totalConns(byok())}</span>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
@@ -595,7 +624,18 @@ const GlobalOverview: Component = () => {
                 </div>
               </div>
               <div class="overview-stat-card">
-                <span class="overview-stat-card__label">Local</span>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span class="overview-stat-card__label">Local</span>
+                  <div style="display: flex; gap: 4px;">
+                    <A href="/providers/local" class="view-more-link">
+                      View
+                    </A>
+                    <span style="color: hsl(var(--border));">|</span>
+                    <A href="/providers/local?add=true" class="view-more-link">
+                      Add
+                    </A>
+                  </div>
+                </div>
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                   <span class="overview-stat-card__value">{totalConns(local())}</span>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
@@ -604,7 +644,18 @@ const GlobalOverview: Component = () => {
                 </div>
               </div>
               <div class="overview-stat-card">
-                <span class="overview-stat-card__label">Agents</span>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span class="overview-stat-card__label">Agents</span>
+                  <div style="display: flex; gap: 4px;">
+                    <A href="/agents" class="view-more-link">
+                      View
+                    </A>
+                    <span style="color: hsl(var(--border));">|</span>
+                    <A href="/agents?add=true" class="view-more-link">
+                      Add
+                    </A>
+                  </div>
+                </div>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
                   <span class="overview-stat-card__value">{agentList().length}</span>
                   <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">

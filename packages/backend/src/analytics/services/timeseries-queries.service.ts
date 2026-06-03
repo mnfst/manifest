@@ -636,6 +636,92 @@ export class TimeseriesQueriesService {
     return { agents: models, timeseries };
   }
 
+  async getPerProviderCostTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.provider', 'provider')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.provider IS NOT NULL');
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.provider')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+    const providerSet = new Set<string>();
+    for (const r of rows) providerSet.add(String(r['provider']));
+    const providers = [...providerSet].sort();
+    const byBucket = new Map<string, Record<string, number>>();
+    for (const r of rows) {
+      const bucket = String(r[bucketAlias]);
+      if (!byBucket.has(bucket)) byBucket.set(bucket, {});
+      byBucket.get(bucket)![String(r['provider'])] = Number(r['cost'] ?? 0);
+    }
+    const timeseries = [...byBucket.entries()].map(([bucket, map]) => {
+      const row: Record<string, number | string> = { [bucketAlias]: bucket };
+      for (const p of providers) row[p] = map[p] ?? 0;
+      return row;
+    });
+    return { agents: providers, timeseries };
+  }
+
+  async getPerModelCostTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.model', 'model')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.model IS NOT NULL');
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.model')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+    const modelSet = new Set<string>();
+    for (const r of rows) modelSet.add(String(r['model']));
+    const models = [...modelSet].sort();
+    const byBucket = new Map<string, Record<string, number>>();
+    for (const r of rows) {
+      const bucket = String(r[bucketAlias]);
+      if (!byBucket.has(bucket)) byBucket.set(bucket, {});
+      byBucket.get(bucket)![String(r['model'])] = Number(r['cost'] ?? 0);
+    }
+    const timeseries = [...byBucket.entries()].map(([bucket, map]) => {
+      const row: Record<string, number | string> = { [bucketAlias]: bucket };
+      for (const m of models) row[m] = map[m] ?? 0;
+      return row;
+    });
+    return { agents: models, timeseries };
+  }
+
   async getAgentNamesByAuthType(
     authType: string,
     userId: string,

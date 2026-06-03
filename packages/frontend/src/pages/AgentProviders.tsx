@@ -9,6 +9,7 @@ interface Connection {
   id: string;
   label: string;
   cached_model_count: number;
+  is_active: boolean;
 }
 
 interface ConnectedProvider {
@@ -67,6 +68,7 @@ const AgentProviders: Component = () => {
     }> = [];
     for (const p of providers() ?? []) {
       for (const c of p.connections) {
+        if (!c.is_active) continue;
         list.push({
           userProviderId: c.id,
           provider: p.provider,
