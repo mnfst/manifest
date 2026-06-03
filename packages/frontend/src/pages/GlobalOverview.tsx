@@ -409,9 +409,54 @@ const GlobalOverview: Component = () => {
     return [...agentList()].sort((a, b) => (b.total_tokens ?? 0) - (a.total_tokens ?? 0));
   });
 
+  // Onboarding: detect empty states
+  const hasNoAgents = () => agents() !== undefined && agentList().length === 0;
+  const hasNoProviders = () => providers() !== undefined && providerList().length === 0;
+
   return (
     <div class="container--lg">
       <Title>Overview | Manifest</Title>
+
+      {/* Onboarding banners */}
+      <Show when={hasNoAgents() && hasNoProviders()}>
+        <div class="waiting-banner" style="margin-bottom: 24px;">
+          <i class="bxd bx-rocket" />
+          <p>Welcome to Manifest. Start by connecting your first agent.</p>
+          <a
+            href="/agents?add=true"
+            class="btn btn--primary btn--sm"
+            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
+          >
+            Create agent
+          </a>
+        </div>
+      </Show>
+      <Show when={!hasNoAgents() && hasNoProviders()}>
+        <div class="waiting-banner" style="margin-bottom: 24px;">
+          <i class="bxd bx-plug" />
+          <p>Connect a provider to start routing your agents' LLM calls.</p>
+          <a
+            href="/providers/subscriptions?add=true"
+            class="btn btn--primary btn--sm"
+            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
+          >
+            Add subscription
+          </a>
+        </div>
+      </Show>
+      <Show when={hasNoAgents() && !hasNoProviders()}>
+        <div class="waiting-banner" style="margin-bottom: 24px;">
+          <i class="bxd bx-bot" />
+          <p>You have providers connected. Create an agent to start routing.</p>
+          <a
+            href="/agents?add=true"
+            class="btn btn--primary btn--sm"
+            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
+          >
+            Create agent
+          </a>
+        </div>
+      </Show>
 
       {/* ── 1. Page Header ──────────────────────────────────────────── */}
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">

@@ -7,8 +7,10 @@ import {
   onCleanup,
   type Component,
 } from 'solid-js';
-import { A } from '@solidjs/router';
+import { A, useLocation, useNavigate } from '@solidjs/router';
 import { useAgentName } from '../services/routing.js';
+import { isRecentlyCreated } from '../services/recent-agents.js';
+import SetupModal from '../components/SetupModal.jsx';
 import {
   getOverview,
   getPerProviderTimeseries,
@@ -44,6 +46,7 @@ interface OverviewResponse {
   }>;
   recent_activity: any[];
   has_data: boolean;
+  has_providers: boolean;
 }
 
 type PivotedTimeseries = {
@@ -62,6 +65,27 @@ const VALID_RANGES = new Set(['24h', '7d', '30d']);
 const AgentOverview: Component = () => {
   const getAgentName = useAgentName();
   const agentName = () => getAgentName();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Setup modal for newly created agents
+  const newApiKey = () => (location.state as any)?.newApiKey ?? null;
+  const [setupOpen, setSetupOpen] = createSignal(
+    agentName()
+      ? isRecentlyCreated(agentName()!) && !localStorage.getItem(`setup_completed_${agentName()}`)
+      : false,
+  );
+
+  const handleSetupDone = () => {
+    if (agentName()) localStorage.setItem(`setup_completed_${agentName()}`, '1');
+    setSetupOpen(false);
+    // After setup, go to routing (with provider modal if no providers)
+    const hasProviders = overview()?.has_providers === true;
+    navigate(
+      `/agents/${encodeURIComponent(agentName()!)}/routing`,
+      hasProviders ? {} : { state: { openProviders: true } },
+    );
+  };
 
   // ── Range state (sessionStorage per agent) ──────────────────────────
   const rangeKey = () => `agent-overview-range:${agentName()}`;
@@ -593,6 +617,23 @@ const AgentOverview: Component = () => {
             </table>
           </div>
         </div>
+      </Show>
+
+      {/* Setup modal for first-time agent creation */}
+      <Show when={setupOpen() && agentName()}>
+        <SetupModal
+          open={setupOpen()}
+          agentName={agentName()!}
+          apiKey={newApiKey()}
+          agentPlatform={null}
+          agentCategory={null}
+          onClose={() => {
+            setSetupOpen(false);
+            if (agentName()) localStorage.setItem(`setup_completed_${agentName()}`, '1');
+          }}
+          onDone={handleSetupDone}
+          onGoToRouting={handleSetupDone}
+        />
       </Show>
     </div>
   );
