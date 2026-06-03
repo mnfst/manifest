@@ -467,14 +467,7 @@ const Playground: Component = () => {
             Send one prompt to multiple models and compare cost, speed, and quality.
           </p>
         </div>
-        <Show when={hasAgents()}>
-          <Select
-            value={agentName()}
-            onChange={setSelectedAgent}
-            options={agentSelectOptions()}
-            label="Agent"
-          />
-        </Show>
+        {/* Agent resolved silently from user's first agent */}
       </header>
 
       <Show when={!hasAgents() && agentList() !== undefined}>

@@ -23,8 +23,13 @@ import { fetchMutate, routingPath } from '../../services/api/core.js';
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
-import { formatNumber, formatCost, formatTimeAgo } from '../../services/formatters.js';
-import { getAgents } from '../../services/api.js';
+import {
+  formatNumber,
+  formatCost,
+  formatTimeAgo,
+  customProviderColor,
+} from '../../services/formatters.js';
+import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
 import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
@@ -102,6 +107,34 @@ const ConnectionDetail: Component = () => {
 
   const conn = () => detail()?.connection ?? null;
   const provDef = () => PROVIDERS.find((p) => p.id === conn()?.provider);
+  const isCustomProvider = () => conn()?.provider?.startsWith('custom:') ?? false;
+
+  // Fetch custom provider name for custom: providers
+  const [customProviderData] = createResource(
+    () => {
+      const c = conn();
+      if (!c || !c.provider.startsWith('custom:')) return null;
+      const agentName = (agents() ?? [])[0]?.agent_name;
+      return agentName ? { agentName, providerId: c.provider.replace('custom:', '') } : null;
+    },
+    async (p) => {
+      if (!p) return null;
+      try {
+        const list = await fetchCustomProviders(p.agentName);
+        return (list as any[])?.find((cp: any) => cp.id === p.providerId) ?? null;
+      } catch {
+        return null;
+      }
+    },
+  );
+
+  const providerDisplayName = () => {
+    if (provDef()) return provDef()!.name;
+    const cp = customProviderData();
+    if (cp) return cp.name;
+    return conn()?.provider ?? '';
+  };
+
   const backLink = () =>
     BACK_LINKS[conn()?.auth_type ?? 'subscription'] ?? '/providers/subscriptions';
   const backLabel = () => AUTH_TYPE_LABELS[conn()?.auth_type ?? 'subscription'] ?? 'Providers';
@@ -111,7 +144,7 @@ const ConnectionDetail: Component = () => {
     const c = conn();
     const prov = provDef();
     if (c) {
-      setConnectionBreadcrumb(prov?.name ?? c.provider, backLink());
+      setConnectionBreadcrumb(providerDisplayName(), backLink());
     }
   });
 
@@ -401,7 +434,7 @@ const ConnectionDetail: Component = () => {
           return (
             <>
               <Title>
-                {prov?.name ?? c.provider} — {c.label} | Manifest
+                {providerDisplayName()} — {c.label} | Manifest
               </Title>
 
               {/* Back link */}
@@ -419,11 +452,38 @@ const ConnectionDetail: Component = () => {
                 <div>
                   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                     <span style="display: flex; align-items: center; width: 32px; height: 32px;">
-                      {providerIcon(c.provider, 32)}
+                      <Show
+                        when={providerIcon(c.provider, 32)}
+                        fallback={
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              'align-items': 'center',
+                              'justify-content': 'center',
+                              width: '32px',
+                              height: '32px',
+                              'border-radius': '8px',
+                              'font-size': '16px',
+                              'font-weight': '700',
+                              color: 'white',
+                              background: customProviderColor(providerDisplayName()),
+                            }}
+                          >
+                            {providerDisplayName().charAt(0).toUpperCase()}
+                          </span>
+                        }
+                      >
+                        {providerIcon(c.provider, 32)}
+                      </Show>
                     </span>
                     <h1 class="page-header__title" style="margin: 0;">
-                      {prov?.name ?? c.provider}
+                      {providerDisplayName()}
                     </h1>
+                    <Show when={isCustomProvider()}>
+                      <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                        Custom
+                      </span>
+                    </Show>
                     <Show
                       when={c.is_active}
                       fallback={
@@ -971,7 +1031,7 @@ const ConnectionDetail: Component = () => {
                     aria-modal="true"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <h2 class="modal-card__title">Disconnect {prov?.name ?? c.provider}</h2>
+                    <h2 class="modal-card__title">Disconnect {providerDisplayName()}</h2>
                     <p class="modal-card__desc">
                       Disconnecting this provider will remove it from your active connections. Your
                       routing configuration may be affected if models from this provider are
@@ -996,7 +1056,7 @@ const ConnectionDetail: Component = () => {
                               c.auth_type as any,
                               c.label,
                             );
-                            toast.success(`${prov?.name ?? c.provider} disconnected`);
+                            toast.success(`${providerDisplayName()} disconnected`);
                             navigate(backLink());
                           } catch {
                             // toast from fetchMutate

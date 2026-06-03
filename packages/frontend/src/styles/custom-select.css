@@ -59,6 +59,11 @@
   animation: fadeInUp 100ms ease-out;
 }
 
+.select-align-right .custom-select__dropdown {
+  left: auto;
+  right: 0;
+}
+
 .custom-select__option {
   display: block;
   width: 100%;

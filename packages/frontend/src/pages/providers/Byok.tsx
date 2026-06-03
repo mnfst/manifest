@@ -3,10 +3,18 @@ import { useNavigate, useSearchParams } from '@solidjs/router';
 import { createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
-import { getProviders as getAgentProviders } from '../../services/api/routing.js';
+import {
+  getProviders as getAgentProviders,
+  getCustomProviders,
+} from '../../services/api/routing.js';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
-import { formatNumber, formatCost, formatTimeAgo } from '../../services/formatters.js';
+import {
+  formatNumber,
+  formatCost,
+  formatTimeAgo,
+  customProviderColor,
+} from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
@@ -59,6 +67,15 @@ const Byok: Component = () => {
     }
   });
   const firstAgentName = () => (agents() ?? [])[0]?.agent_name ?? '';
+  const [customProvidersList, { refetch: refetchCustomProviders }] = createResource(
+    () => firstAgentName(),
+    (name) => (name ? getCustomProviders(name) : Promise.resolve([])),
+  );
+  const customProviderName = (providerId: string) => {
+    const id = providerId.replace('custom:', '');
+    const cp = (customProvidersList() ?? []).find((c: any) => c.id === id);
+    return cp?.name ?? providerId;
+  };
   const connectedMap = () => {
     const map = new Map<string, ConnectedProvider>();
     for (const p of data()?.providers ?? []) {
@@ -76,19 +93,37 @@ const Byok: Component = () => {
     return modelCounts()[provId.toLowerCase()] ?? modelCounts()[provId] ?? null;
   };
 
-  // Flatten: one row per connection (not per provider)
+  // Flatten: one row per connection (not per provider), including custom providers
+  // Access customProvidersList() to ensure reactivity when it loads
   const connectedRows = () => {
+    const _cpList = customProvidersList();
     const rows: Array<{
-      prov: (typeof BYOK_PROVIDERS)[0];
+      prov: { id: string; name: string };
       conn: Connection;
       cp: ConnectedProvider;
     }> = [];
+    // Known BYOK providers
     for (const prov of connectedProviders()) {
       const cp = getConnected(prov.id)!;
       const hasConsumption = cp.consumption_tokens > 0 || cp.consumption_messages > 0;
       for (const conn of cp.connections) {
         if (conn.is_active || hasConsumption) {
           rows.push({ prov, conn, cp });
+        }
+      }
+    }
+    // Custom/unknown providers: any api_key provider not in the known BYOK list
+    const knownIds = new Set(BYOK_PROVIDERS.map((p) => p.id));
+    for (const cp of (data()?.providers ?? []).filter(
+      (p) => p.auth_type === 'api_key' && !knownIds.has(p.provider),
+    )) {
+      const name = cp.provider.startsWith('custom:')
+        ? customProviderName(cp.provider)
+        : cp.provider;
+      const hasConsumption = cp.consumption_tokens > 0 || cp.consumption_messages > 0;
+      for (const conn of cp.connections) {
+        if (conn.is_active || hasConsumption) {
+          rows.push({ prov: { id: cp.provider, name }, conn, cp });
         }
       }
     }
@@ -115,6 +150,7 @@ const Byok: Component = () => {
     setShowModal(false);
     setDeepLinkProvider(null);
     refetch();
+    refetchCustomProviders();
   };
 
   // Auto-open modal if ?add=true in URL
@@ -213,10 +249,39 @@ const Byok: Component = () => {
                     >
                       <td>
                         <span style="display: flex; align-items: center; gap: 10px;">
-                          <span style="display: flex; align-items: center; width: 20px; height: 20px;">
-                            {providerIcon(row.prov.id, 20)}
-                          </span>
+                          <Show
+                            when={
+                              !row.prov.id.startsWith('custom:') || providerIcon(row.prov.id, 20)
+                            }
+                            fallback={
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  'align-items': 'center',
+                                  'justify-content': 'center',
+                                  width: '20px',
+                                  height: '20px',
+                                  'border-radius': '4px',
+                                  'font-size': '11px',
+                                  'font-weight': '600',
+                                  color: 'white',
+                                  background: customProviderColor(row.prov.name),
+                                }}
+                              >
+                                {row.prov.name.charAt(0).toUpperCase()}
+                              </span>
+                            }
+                          >
+                            <span style="display: flex; align-items: center; width: 20px; height: 20px;">
+                              {providerIcon(row.prov.id, 20)}
+                            </span>
+                          </Show>
                           <span style="font-weight: 500;">{row.prov.name}</span>
+                          <Show when={row.prov.id.startsWith('custom:')}>
+                            <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                              Custom
+                            </span>
+                          </Show>
                         </span>
                       </td>
                       <td>{row.conn.cached_model_count || getModelCount(row.prov.id) || '—'}</td>
@@ -445,11 +510,13 @@ const Byok: Component = () => {
         <ProviderSelectModal
           agentName={firstAgentName()}
           providers={modalProviders() ?? []}
+          customProviders={customProvidersList() ?? []}
           providerDeepLink={providerDeepLink()}
           initialTab="api_key"
           onUpdate={() => {
             refetch();
             refetchModalProviders();
+            refetchCustomProviders();
           }}
           onClose={handleModalClose}
         />

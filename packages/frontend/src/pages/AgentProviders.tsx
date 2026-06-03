@@ -1,8 +1,10 @@
 import { useParams } from '@solidjs/router';
 import { createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson, fetchMutate } from '../services/api/core.js';
+import { getCustomProviders } from '../services/api.js';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { customProviderColor } from '../services/formatters.js';
 import { toast } from '../services/toast-store.js';
 
 interface Connection {
@@ -152,6 +154,20 @@ const AgentProviders: Component = () => {
   };
 
   const provDef = (id: string) => PROVIDERS.find((p) => p.id === id);
+  const [customProvidersList] = createResource(
+    () => agentName(),
+    (name) => getCustomProviders(name).catch(() => []),
+  );
+  const resolveProviderName = (id: string) => {
+    const known = provDef(id);
+    if (known) return known.name;
+    if (id.startsWith('custom:')) {
+      const uuid = id.replace('custom:', '');
+      const cp = (customProvidersList() ?? []).find((c: any) => c.id === uuid);
+      if (cp) return (cp as any).name;
+    }
+    return id;
+  };
 
   return (
     <div>
@@ -200,10 +216,41 @@ const AgentProviders: Component = () => {
                     <tr style={{ opacity: enabled() ? '1' : '0.5' }}>
                       <td>
                         <span style="display: flex; align-items: center; gap: 10px;">
-                          <span style="display: flex; align-items: center; width: 20px; height: 20px;">
-                            {providerIcon(conn.provider, 20)}
+                          <Show
+                            when={providerIcon(conn.provider, 20)}
+                            fallback={
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  'align-items': 'center',
+                                  'justify-content': 'center',
+                                  width: '20px',
+                                  height: '20px',
+                                  'border-radius': '4px',
+                                  'font-size': '11px',
+                                  'font-weight': '600',
+                                  color: 'white',
+                                  background: customProviderColor(
+                                    resolveProviderName(conn.provider),
+                                  ),
+                                }}
+                              >
+                                {resolveProviderName(conn.provider).charAt(0).toUpperCase()}
+                              </span>
+                            }
+                          >
+                            <span style="display: flex; align-items: center; width: 20px; height: 20px;">
+                              {providerIcon(conn.provider, 20)}
+                            </span>
+                          </Show>
+                          <span style="font-weight: 500;">
+                            {resolveProviderName(conn.provider)}
                           </span>
-                          <span style="font-weight: 500;">{prov?.name ?? conn.provider}</span>
+                          <Show when={conn.provider.startsWith('custom:')}>
+                            <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                              Custom
+                            </span>
+                          </Show>
                         </span>
                       </td>
                       <td>

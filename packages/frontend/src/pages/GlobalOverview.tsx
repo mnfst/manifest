@@ -10,7 +10,9 @@ import {
   type Component,
 } from 'solid-js';
 import { fetchJson } from '../services/api/core.js';
-import { getAgents } from '../services/api.js';
+import { getAgents, getCustomProviders } from '../services/api.js';
+import { customProviderColor } from '../services/formatters.js';
+import { customProviderLogo } from '../components/ProviderIcon.jsx';
 import {
   getOverview,
   getGlobalPerAgentTimeseries,
@@ -199,6 +201,19 @@ const GlobalOverview: Component = () => {
       }
     },
   );
+
+  // Custom providers for name resolution
+  const firstAgent = () => agentList()[0]?.agent_name ?? '';
+  const [customProviderData] = createResource(
+    () => firstAgent(),
+    (name) => (name ? getCustomProviders(name).catch(() => []) : Promise.resolve([])),
+  );
+  const resolveCustomName = (providerId: string) => {
+    if (!providerId.startsWith('custom:')) return null;
+    const uuid = providerId.replace('custom:', '');
+    const cp = (customProviderData() ?? []).find((c: any) => c.id === uuid);
+    return cp ? (cp as any).name : null;
+  };
 
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
   const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
@@ -631,10 +646,11 @@ const GlobalOverview: Component = () => {
             for (const g of groups) {
               for (const c of g.connections.slice(0, 5 - items.length)) {
                 const prov = PROVIDERS.find((p) => p.id === g.provider);
+                const customName = resolveCustomName(g.provider);
                 items.push({
                   id: c.id,
                   icon: g.provider,
-                  name: prov?.name ?? g.provider,
+                  name: prov?.name ?? customName ?? g.provider,
                   label: c.label,
                 });
                 if (items.length >= 5) break;
@@ -670,7 +686,26 @@ const GlobalOverview: Component = () => {
                         href={`/providers/connections/${item.id}`}
                         style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                       >
-                        <span style="flex-shrink: 0;">{providerIcon(item.icon, 14)}</span>
+                        <span style="flex-shrink: 0;">
+                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '14px',
+                                height: '14px',
+                                'border-radius': '3px',
+                                'font-size': '9px',
+                                'font-weight': '600',
+                                color: 'white',
+                                background: customProviderColor(item.name),
+                              }}
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
                         <span style="font-weight: 500; color: hsl(var(--foreground));">
                           {item.name}
                         </span>
@@ -708,7 +743,26 @@ const GlobalOverview: Component = () => {
                         href={`/providers/connections/${item.id}`}
                         style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                       >
-                        <span style="flex-shrink: 0;">{providerIcon(item.icon, 14)}</span>
+                        <span style="flex-shrink: 0;">
+                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '14px',
+                                height: '14px',
+                                'border-radius': '3px',
+                                'font-size': '9px',
+                                'font-weight': '600',
+                                color: 'white',
+                                background: customProviderColor(item.name),
+                              }}
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
                         <span style="font-weight: 500; color: hsl(var(--foreground));">
                           {item.name}
                         </span>
@@ -746,7 +800,26 @@ const GlobalOverview: Component = () => {
                         href={`/providers/connections/${item.id}`}
                         style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                       >
-                        <span style="flex-shrink: 0;">{providerIcon(item.icon, 14)}</span>
+                        <span style="flex-shrink: 0;">
+                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '14px',
+                                height: '14px',
+                                'border-radius': '3px',
+                                'font-size': '9px',
+                                'font-weight': '600',
+                                color: 'white',
+                                background: customProviderColor(item.name),
+                              }}
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
                         <span style="font-weight: 500; color: hsl(var(--foreground));">
                           {item.name}
                         </span>
