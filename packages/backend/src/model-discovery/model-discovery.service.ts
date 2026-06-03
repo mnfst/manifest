@@ -301,7 +301,7 @@ export class ModelDiscoveryService {
     }
   }
 
-  async getModelsForAgent(userId: string, agentId?: string): Promise<DiscoveredModel[]> {
+  async getModelsForAgent(userId: string, _agentId?: string): Promise<DiscoveredModel[]> {
     const providers = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },
     });
@@ -335,12 +335,12 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Custom providers are still agent-scoped. When agentId is provided, include
-    // their models in the discovery result so tier assignment and model validation
-    // work correctly for agents that use custom providers.
-    const customProviders: CustomProvider[] = agentId
-      ? await this.customProviderRepo.find({ where: { agent_id: agentId } })
-      : [];
+    // Custom providers are user-global, so they always load for the user
+    // regardless of agentId. This also fixes getModelForAgent (which calls
+    // with no agentId) silently dropping custom models.
+    const customProviders: CustomProvider[] = await this.customProviderRepo.find({
+      where: { user_id: userId },
+    });
     for (const cp of customProviders) {
       if (!Array.isArray(cp.models)) continue;
       const cpKey = customProviderKey(cp.id);

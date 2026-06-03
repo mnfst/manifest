@@ -63,7 +63,6 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
 function makeCustomProvider(overrides: Partial<CustomProvider> = {}): CustomProvider {
   return {
     id: 'cp-1',
-    agent_id: 'agent-1',
     user_id: 'user-1',
     name: 'My Custom',
     base_url: 'http://localhost:8000',
@@ -667,11 +666,11 @@ describe('ModelDiscoveryService', () => {
       expect(result).toHaveLength(0);
     });
 
-    it('should include custom provider models when agentId is provided', async () => {
+    it('includes user-global custom provider models regardless of agentId', async () => {
       providerRepo.find.mockResolvedValue([]);
       const cp = makeCustomProvider({
         id: 'cp-test',
-        agent_id: 'agent-abc',
+        user_id: 'user-1',
         models: [
           {
             model_name: 'my-custom-model',
@@ -686,20 +685,24 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('user-1', 'agent-abc');
 
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-abc' },
+        where: { user_id: 'user-1' },
       });
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('custom:cp-test/my-custom-model');
       expect(result[0].provider).toBe('custom:cp-test');
     });
 
-    it('should not query custom providers when agentId is omitted', async () => {
+    it('loads custom providers by user even when agentId is omitted (fixes getModelForAgent)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      customProviderRepo.find.mockResolvedValue([]);
+      const cp = makeCustomProvider({ id: 'cp-test', user_id: 'user-1' });
+      customProviderRepo.find.mockResolvedValue([cp]);
 
-      await service.getModelsForAgent('user-1');
+      const result = await service.getModelsForAgent('user-1');
 
-      expect(customProviderRepo.find).not.toHaveBeenCalled();
+      expect(customProviderRepo.find).toHaveBeenCalledWith({
+        where: { user_id: 'user-1' },
+      });
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 

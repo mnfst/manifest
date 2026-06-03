@@ -4,6 +4,7 @@ import { Repository, In } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { Agent } from '../../entities/agent.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
@@ -33,6 +34,8 @@ export class ProviderService {
     private readonly tierRepo: Repository<TierAssignment>,
     @InjectRepository(SpecificityAssignment)
     private readonly specificityRepo: Repository<SpecificityAssignment>,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly routingCache: RoutingCacheService,
@@ -42,6 +45,19 @@ export class ProviderService {
   async recalculateTiers(agentId: string, userId: string): Promise<void> {
     await this.autoAssign.recalculate(agentId, userId);
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /**
+   * Recalculate tier assignments for every agent the user owns. Used when a
+   * user-global resource changes (e.g. a custom provider) without a single
+   * agent context — the change affects every agent's available model list, so
+   * each agent's auto-assigned routes must be refreshed.
+   */
+  async recalculateTiersForUser(userId: string): Promise<void> {
+    for (const agentId of await this.listOwnedAgentIds(userId)) {
+      await this.autoAssign.recalculate(agentId, userId);
+      this.routingCache.invalidateAgent(agentId);
+    }
   }
 
   async getProviders(userId: string): Promise<UserProvider[]> {
@@ -57,7 +73,7 @@ export class ProviderService {
   }
 
   async upsertProvider(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     apiKey?: string,
@@ -133,7 +149,7 @@ export class ProviderService {
   }
 
   private async upsertProviderWithLabel(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     apiKey: string | undefined,
@@ -399,9 +415,15 @@ export class ProviderService {
     return { isNew: true };
   }
 
-  private async afterProviderChange(agentId: string, userId: string): Promise<void> {
-    await this.autoAssign.recalculate(agentId, userId);
-    this.routingCache.invalidateAgent(agentId);
+  private async afterProviderChange(agentId: string | null, userId: string): Promise<void> {
+    // A null agentId means the change is user-global (e.g. a custom provider)
+    // and has no single agent context — recalculate every owned agent instead.
+    if (agentId === null) {
+      await this.recalculateTiersForUser(userId);
+    } else {
+      await this.autoAssign.recalculate(agentId, userId);
+      this.routingCache.invalidateAgent(agentId);
+    }
     this.routingCache.invalidateUser(userId);
   }
 
@@ -413,7 +435,7 @@ export class ProviderService {
    * tier assignments for what is visually just a name change.
    */
   async retagAuthType(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     nextAuthType: AuthType,
@@ -445,20 +467,22 @@ export class ProviderService {
     });
 
     if (invalidated) {
-      this.routingCache.invalidateAgent(agentId);
+      if (agentId !== null) this.routingCache.invalidateAgent(agentId);
       this.routingCache.invalidateUser(userId);
     }
   }
 
   async removeProvider(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
   ): Promise<{ notifications: string[] }> {
     if (label) {
-      return this.removeKeyByLabel(agentId, userId, provider, authType, label);
+      // Labeled key chains only exist for agent-scoped standard providers;
+      // user-global custom providers never pass a label, so agentId is set.
+      return this.removeKeyByLabel(agentId as string, userId, provider, authType, label);
     }
 
     // Legacy disconnect: deactivate every active key for the (provider,
@@ -489,17 +513,57 @@ export class ProviderService {
     if (hasOtherUsableAuthType && !authType) {
       // Provider is still available and the caller did not target a specific
       // auth type, so preserve existing route assignments.
-      this.routingCache.invalidateAgent(agentId);
+      if (agentId !== null) this.routingCache.invalidateAgent(agentId);
       this.routingCache.invalidateUser(userId);
       return { notifications: [] };
     }
 
+    // A null agentId means the provider is user-global (e.g. a custom
+    // provider) with no single agent context — clean tier references and
+    // recalculate across every owned agent.
+    const targetAgentIds = agentId !== null ? [agentId] : await this.listOwnedAgentIds(userId);
+    const notifications: string[] = [];
+    for (const target of targetAgentIds) {
+      notifications.push(
+        ...(await this.cleanupAgentAfterRemoval(
+          target,
+          userId,
+          provider,
+          hasOtherUsableAuthType,
+          authType,
+        )),
+      );
+    }
+    this.routingCache.invalidateUser(userId);
+
+    return { notifications };
+  }
+
+  /** Resolve the ids of every non-deleted agent the user owns. */
+  private async listOwnedAgentIds(userId: string): Promise<string[]> {
+    const agents = await this.agentRepo
+      .createQueryBuilder('a')
+      .leftJoin('a.tenant', 't')
+      .where('t.name = :userId', { userId })
+      .andWhere('a.deleted_at IS NULL')
+      .select('a.id', 'id')
+      .getRawMany<{ id: string }>();
+    return agents.map((a) => a.id);
+  }
+
+  /** Clean tier references for one agent after a provider removal and surface notifications. */
+  private async cleanupAgentAfterRemoval(
+    agentId: string,
+    userId: string,
+    provider: string,
+    hasOtherUsableAuthType: boolean,
+    authType?: AuthType,
+  ): Promise<string[]> {
     const { invalidated } = await this.cleanupProviderReferences(agentId, [provider], {
       authType: hasOtherUsableAuthType ? authType : undefined,
     });
     await this.autoAssign.recalculate(agentId, userId);
     this.routingCache.invalidateAgent(agentId);
-    this.routingCache.invalidateUser(userId);
 
     const notifications: string[] = [];
     if (invalidated.length > 0) {
@@ -518,8 +582,7 @@ export class ProviderService {
         notifications.push(`${modelName} is no longer available. ${suffix}`);
       }
     }
-
-    return { notifications };
+    return notifications;
   }
 
   /**

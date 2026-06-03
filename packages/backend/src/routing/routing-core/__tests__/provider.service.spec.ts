@@ -3,6 +3,7 @@ import { ProviderService } from '../provider.service';
 import { UserProvider } from '../../../entities/user-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
+import { Agent } from '../../../entities/agent.entity';
 import type { Repository } from 'typeorm';
 import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
@@ -32,6 +33,8 @@ describe('ProviderService — route-only cleanup paths', () => {
   let providerRepo: ReturnType<typeof makeRepo>;
   let tierRepo: ReturnType<typeof makeRepo>;
   let specRepo: ReturnType<typeof makeRepo>;
+  let agentRepo: { createQueryBuilder: jest.Mock };
+  let agentQb: { getRawMany: jest.Mock };
   let autoAssign: jest.Mocked<Pick<TierAutoAssignService, 'recalculate'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
   let routingCache: {
@@ -46,6 +49,15 @@ describe('ProviderService — route-only cleanup paths', () => {
     providerRepo = makeRepo();
     tierRepo = makeRepo();
     specRepo = makeRepo();
+    agentQb = { getRawMany: jest.fn().mockResolvedValue([]) };
+    const chain = {
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      getRawMany: (...args: unknown[]) => agentQb.getRawMany(...args),
+    };
+    agentRepo = { createQueryBuilder: jest.fn().mockReturnValue(chain) };
     autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     routingCache = {
@@ -59,6 +71,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo as unknown as Repository<UserProvider>,
       tierRepo as unknown as Repository<TierAssignment>,
       specRepo as unknown as Repository<SpecificityAssignment>,
+      agentRepo as unknown as Repository<Agent>,
       autoAssign as unknown as TierAutoAssignService,
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
@@ -555,6 +568,112 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       const label = await svc.nextOAuthLabel('agent-1', 'openai');
       expect(label).toBe('Key 3');
+    });
+  });
+
+  describe('recalculateTiersForUser', () => {
+    it('recalculates and invalidates every agent the user owns', async () => {
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }, { id: 'agent-2' }]);
+      await svc.recalculateTiersForUser('user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-2', 'user-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-2');
+    });
+
+    it('is a no-op when the user owns no agents', async () => {
+      agentQb.getRawMany.mockResolvedValue([]);
+      await svc.recalculateTiersForUser('user-1');
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('user-global changes (null agentId)', () => {
+    it('upsertProvider with a null agentId recalculates every owned agent', async () => {
+      // No existing row → insert path, then afterProviderChange(null) fans out.
+      providerRepo.findOne.mockResolvedValue(null);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }, { id: 'agent-2' }]);
+
+      const { isNew } = await svc.upsertProvider(
+        null,
+        'user-1',
+        'custom:cp1',
+        undefined,
+        'api_key',
+      );
+
+      expect(isNew).toBe(true);
+      expect(providerRepo.insert).toHaveBeenCalledTimes(1);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-2', 'user-1');
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+    });
+
+    it('retagAuthType with a null agentId flips the row without touching agent caches', async () => {
+      const target = {
+        id: 'r1',
+        provider: 'custom:cp1',
+        auth_type: 'local',
+        label: 'Default',
+        is_active: true,
+      };
+      providerRepo.manager.transaction.mockImplementation(async (cb: (m: unknown) => unknown) => {
+        const txRepo = {
+          find: jest.fn().mockResolvedValue([target]),
+          remove: jest.fn(),
+          save: jest.fn(),
+        };
+        return cb({ getRepository: () => txRepo });
+      });
+
+      await svc.retagAuthType(null, 'user-1', 'custom:cp1', 'api_key');
+
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+    });
+
+    it('removeProvider with a null agentId cleans references across every owned agent', async () => {
+      providerRepo.find
+        // active rows to deactivate
+        .mockResolvedValueOnce([
+          { id: 'r1', provider: 'custom:cp1', auth_type: 'api_key', is_active: true },
+        ])
+        // otherActive after deactivation → none usable
+        .mockResolvedValueOnce([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }, { id: 'agent-2' }]);
+      // cleanupProviderReferences reads tiers/specificity per agent — return empty.
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+
+      const result = await svc.removeProvider(null, 'user-1', 'custom:cp1');
+
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-2', 'user-1');
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(result.notifications).toEqual([]);
+    });
+
+    it('removeProvider with a null agentId and a still-usable provider skips agent-cache invalidation', async () => {
+      providerRepo.find
+        .mockResolvedValueOnce([
+          { id: 'r1', provider: 'custom:cp1', auth_type: 'api_key', is_active: true },
+        ])
+        // otherActive still has a usable key → early return, no agent invalidation.
+        .mockResolvedValueOnce([
+          {
+            id: 'r2',
+            provider: 'custom:cp1',
+            auth_type: 'api_key',
+            is_active: true,
+            api_key_encrypted: 'enc',
+          },
+        ]);
+
+      const result = await svc.removeProvider(null, 'user-1', 'custom:cp1');
+
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(result.notifications).toEqual([]);
     });
   });
 });

@@ -89,8 +89,8 @@ export class ModelController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const models = await this.discoveryService.getModelsForAgent(user.id, agent.id);
 
-    // Build display name map for custom providers
-    const customProviders = await this.customProviderService.list(agent.id);
+    // Build display name map for custom providers (user-global)
+    const customProviders = await this.customProviderService.list(user.id);
     const cpNameMap = new Map<string, string>();
     for (const cp of customProviders) {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
