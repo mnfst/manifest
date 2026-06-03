@@ -34,8 +34,8 @@ import {
   ProxyFallbackService,
   FailedFallback,
   normalizeProviderModel,
-  resolveApiKey,
 } from './proxy-fallback.service';
+import { isRefreshableOAuthCredential, resolveApiKey } from './oauth-credentials';
 import {
   ProxyApiMode,
   ProxyRequestOptions,
@@ -456,6 +456,16 @@ export class ProxyService {
     );
     const unwrappedApiKey = unwrapped.apiKey;
     if (unwrappedApiKey === null) return null;
+    let rawApiKey = apiKey;
+    if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
+      rawApiKey =
+        (await this.providerKeyService.getProviderApiKey(
+          agentId,
+          resolved.provider,
+          resolved.auth_type,
+          resolved.provider_key_label,
+        )) ?? apiKey;
+    }
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
       resolved.provider,
@@ -464,7 +474,7 @@ export class ProxyService {
     );
     return {
       apiKey: unwrappedApiKey,
-      rawApiKey: apiKey,
+      rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
       providerRegion,
     };
