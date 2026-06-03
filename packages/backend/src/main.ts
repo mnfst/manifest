@@ -13,9 +13,17 @@ import {
   buildFrameSrc,
   createCorsOriginHandler,
 } from './cors-csp-config';
+import { installGlobalDispatcher } from './routing/proxy/http-dispatcher';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
+
+  // Install the shared keep-alive undici dispatcher before any outbound
+  // provider traffic so every `fetch` reuses pooled sockets (no per-request
+  // DNS + TCP + TLS handshake). App-layer SSRF validation still runs before
+  // each fetch — the dispatcher only governs socket pooling, not routing.
+  installGlobalDispatcher();
+
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
     logger: new ConsoleLogger({ prefix: 'Manifest' }),
