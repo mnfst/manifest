@@ -1,0 +1,24 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_95f25ebeb4cb65::t_a02f08f206c180 1116-1171
+  s_95f25ebeb4cb65::t_9a67d81bf11259 59,1246-1291
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_95f25ebeb4cb65::t_4bbda07fdaaef2 200-203,233-238
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_95f25ebeb4cb65::t_6b974443eef30c 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "d3d9f332363bef6de2cea6d188052683f2901ea9",
+  "prompts": {},
+  "sessions": {
+    "s_95f25ebeb4cb65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8f11-4357-7cc0-8a27-d1dc33e233e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
