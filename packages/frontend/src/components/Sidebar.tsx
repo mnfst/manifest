@@ -28,7 +28,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) handleNav();
       }}
     >
-      {/* Observability */}
+      {/* Dashboard */}
       <A
         href="/overview"
         class="sidebar__link"
@@ -44,6 +44,20 @@ const Sidebar: Component<SidebarProps> = (props) => {
         aria-current={isGlobalActive('/messages') ? 'page' : undefined}
       >
         Messages
+      </A>
+      <A
+        href="/agents"
+        class="sidebar__link"
+        classList={{
+          active: location.pathname === '/agents' || location.pathname.startsWith('/agents/'),
+        }}
+        aria-current={
+          location.pathname === '/agents' || location.pathname.startsWith('/agents/')
+            ? 'page'
+            : undefined
+        }
+      >
+        Agents
       </A>
 
       {/* Providers */}
@@ -73,21 +87,15 @@ const Sidebar: Component<SidebarProps> = (props) => {
         Local
       </A>
 
-      {/* Agents */}
-      <div class="sidebar__section-label">AGENTS</div>
+      {/* Tools */}
+      <div class="sidebar__section-label">TOOLS</div>
       <A
-        href="/agents"
+        href="/playground"
         class="sidebar__link"
-        classList={{
-          active: location.pathname === '/agents' || location.pathname.startsWith('/agents/'),
-        }}
-        aria-current={
-          location.pathname === '/agents' || location.pathname.startsWith('/agents/')
-            ? 'page'
-            : undefined
-        }
+        classList={{ active: isGlobalActive('/playground') }}
+        aria-current={isGlobalActive('/playground') ? 'page' : undefined}
       >
-        Agents
+        Playground
       </A>
 
       <div class="sidebar__spacer" />

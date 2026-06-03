@@ -12,6 +12,7 @@ import { useParams, useSearchParams } from '@solidjs/router';
 import { Meta, Title } from '@solidjs/meta';
 import type { AuthType, PlaygroundHistoryRunSummary } from '../services/api.js';
 import {
+  getAgents,
   getAvailableModels,
   getPlaygroundRun,
   getCustomProviders,
@@ -20,6 +21,7 @@ import {
 } from '../services/api.js';
 import {
   getOrCreatePlaygroundStore,
+  createPlaygroundStore,
   MAX_COLUMNS,
   type PlaygroundColumn as ColumnData,
 } from '../services/playground-store.js';
@@ -30,6 +32,7 @@ import PlaygroundSummaryTable from '../components/playground/PlaygroundSummaryTa
 import PlaygroundModelPicker from '../components/playground/PlaygroundModelPicker.jsx';
 import PlaygroundEmptyState from '../components/playground/PlaygroundEmptyState.jsx';
 import PlaygroundRecentSidebar from '../components/playground/PlaygroundHistoryDrawer.jsx';
+import Select from '../components/Select.jsx';
 import RequestHeadersPopover, {
   blankEntry,
   isBlockedHeaderKey,
@@ -118,16 +121,41 @@ function findWinners(columns: readonly ColumnData[]): {
 const Playground: Component = () => {
   const params = useParams<{ agentName: string }>();
   const [searchParams, setSearchParams] = useSearchParams<{ run?: string }>();
-  const agentName = () => decodeURIComponent(params.agentName);
 
-  const [available, { refetch: refetchAvailable }] = createResource(agentName, getAvailableModels);
-  const [providers, { refetch: refetchProviders }] = createResource(agentName, getProviders);
+  // Playground is now a global page — user picks an agent for provider/model context
+  const [agentList] = createResource(async () => {
+    try {
+      const data = await getAgents();
+      const list = ((data as any)?.agents ?? data ?? []) as Array<{ agent_name: string }>;
+      return list.map((a) => a.agent_name);
+    } catch {
+      return [] as string[];
+    }
+  });
+  const [selectedAgent, setSelectedAgent] = createSignal('');
+  const agentName = () => {
+    if (params.agentName) return decodeURIComponent(params.agentName);
+    const sel = selectedAgent();
+    if (sel) return sel;
+    return agentList()?.[0] ?? '';
+  };
+  const hasAgents = () => (agentList() ?? []).length > 0;
+  const agentSelectOptions = () => (agentList() ?? []).map((a) => ({ label: a, value: a }));
+
+  const [available, { refetch: refetchAvailable }] = createResource(
+    () => agentName() || undefined,
+    (name) => getAvailableModels(name),
+  );
+  const [providers, { refetch: refetchProviders }] = createResource(
+    () => agentName() || undefined,
+    (name) => getProviders(name),
+  );
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
-    agentName,
-    getCustomProviders,
+    () => agentName() || undefined,
+    (name) => getCustomProviders(name),
   );
 
-  const store = getOrCreatePlaygroundStore(agentName());
+  const store = createPlaygroundStore(() => agentName());
   const [pickerForColumn, setPickerForColumn] = createSignal<string | null>(null);
   const [showAddPicker, setShowAddPicker] = createSignal(false);
   const [announcement, setAnnouncement] = createSignal('');
@@ -218,7 +246,7 @@ const Playground: Component = () => {
     if (store.columns.length > 0) return;
     const runId = searchParams.run || sessionStorage.getItem('manifest.playground.lastRun');
     if (runId && !activeRunId()) {
-      getPlaygroundRun(runId, params.agentName)
+      getPlaygroundRun(runId, agentName())
         .then((detail) => {
           store.loadHistoryRun(detail);
           setCompletedResults([...store.columns]);
@@ -432,21 +460,40 @@ const Playground: Component = () => {
         content="Compare models side by side for cost, speed, and quality."
       />
 
-      <header class="page-header">
+      <header class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
-          <h1>Playground</h1>
-          <p class="page-header__sub">
+          <h1 class="page-header__title">Playground</h1>
+          <p class="page-header__subtitle">
             Send one prompt to multiple models and compare cost, speed, and quality.
           </p>
         </div>
-        <button
-          type="button"
-          class="btn btn--primary btn--sm"
-          onClick={() => setShowProviderModal(true)}
-        >
-          Connect providers
-        </button>
+        <Show when={hasAgents()}>
+          <Select
+            value={agentName()}
+            onChange={setSelectedAgent}
+            options={agentSelectOptions()}
+            label="Agent"
+          />
+        </Show>
       </header>
+
+      <Show when={!hasAgents() && agentList() !== undefined}>
+        <div class="waiting-banner" style="margin-bottom: 24px;">
+          <i class="bxd bx-info-circle" />
+          <p>
+            {(providers() ?? []).length === 0
+              ? 'Create an agent and connect a provider to start using the Playground.'
+              : 'Create an agent to start using the Playground.'}
+          </p>
+          <a
+            href="/agents?add=true"
+            class="btn btn--primary btn--sm"
+            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
+          >
+            Create agent
+          </a>
+        </div>
+      </Show>
 
       <Show
         when={(available() && providers() && hasConnectedProviders()) || viewingHistory()}

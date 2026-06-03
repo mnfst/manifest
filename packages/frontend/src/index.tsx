@@ -31,6 +31,7 @@ const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
 const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
 const ConnectionDetail = lazyReload(() => import('./pages/providers/ConnectionDetail.jsx'));
 const Workspace = lazyReload(() => import('./pages/Workspace.jsx'));
+const Playground = lazyReload(() => import('./pages/Playground.jsx'));
 
 // Auth / account pages
 const Account = lazyReload(() => import('./pages/Account.jsx'));
@@ -76,6 +77,9 @@ render(
           <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
           <Route path="/providers" component={() => <Navigate href="/providers/subscriptions" />} />
 
+          {/* Tools */}
+          <Route path="/playground" component={Playground} />
+
           {/* Agent detail: horizontal tabs (routing, providers, guardrails, settings) */}
           <Route path="/agents/:agentName" component={AgentGuard}>
             <Route path="" component={AgentDetail}>
@@ -90,6 +94,7 @@ render(
             {/* Redirects for removed pages */}
             <Route path="/messages" component={() => <Navigate href="/messages" />} />
             <Route path="/playground" component={() => <Navigate href="/overview" />} />
+
             <Route
               path="/free-models"
               component={() => <Navigate href="/providers/subscriptions" />}
