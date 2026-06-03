@@ -206,7 +206,7 @@ const GlobalOverview: Component = () => {
   const firstAgent = () => agentList()[0]?.agent_name ?? '';
   const [customProviderData] = createResource(
     () => firstAgent(),
-    (name) => (name ? getCustomProviders(name).catch(() => []) : Promise.resolve([])),
+    (name) => (name ? getCustomProviders().catch(() => []) : Promise.resolve([])),
   );
   const resolveCustomName = (providerId: string) => {
     if (!providerId.startsWith('custom:')) return null;

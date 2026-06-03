@@ -69,7 +69,7 @@ const Byok: Component = () => {
   const firstAgentName = () => (agents() ?? [])[0]?.agent_name ?? '';
   const [customProvidersList, { refetch: refetchCustomProviders }] = createResource(
     () => firstAgentName(),
-    (name) => (name ? getCustomProviders(name) : Promise.resolve([])),
+    (name) => (name ? getCustomProviders() : Promise.resolve([])),
   );
   const customProviderName = (providerId: string) => {
     const id = providerId.replace('custom:', '');
