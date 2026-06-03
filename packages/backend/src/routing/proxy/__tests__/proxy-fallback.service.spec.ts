@@ -56,6 +56,7 @@ describe('ProxyFallbackService', () => {
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn(),
+      getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),
@@ -1112,6 +1113,62 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('uses the selected default key label for unpinned structured subscription fallbacks', async () => {
+      const rawBlob = JSON.stringify({
+        t: 'cached-access',
+        r: 'refresh-token',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-5.3-codex'],
+        body,
+        false,
+        'sess-1',
+        'claude-sonnet-4',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [{ provider: 'openai', authType: 'subscription', model: 'gpt-5.3-codex' }],
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getAuthType).not.toHaveBeenCalled();
+      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+      );
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+        'Work',
+      );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
+      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+        'Work',
+      );
+    });
+
     it('uses the latest stored OAuth blob for fallback retries after preflight refresh', async () => {
       const staleBlob = JSON.stringify({
         t: 'stale-access',
@@ -1142,7 +1199,6 @@ describe('ProxyFallbackService', () => {
           isAnthropic: false,
           isChatGpt: true,
         });
-
       const result = await service.tryFallbacks(
         'agent-1',
         'user-1',
@@ -1185,6 +1241,55 @@ describe('ProxyFallbackService', () => {
         t: 'fresh-access',
       });
       expect(openaiOauth.unwrapToken.mock.calls[1][3]).toBe('Work');
+    });
+
+    it('uses the selected default subscription key label when refreshing legacy fallbacks', async () => {
+      const rawBlob = JSON.stringify({
+        t: 'cached-access',
+        r: 'refresh-token',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      providerKeyService.getAuthType.mockResolvedValue('subscription');
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
+      pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-5.3-codex'],
+        body,
+        false,
+        'sess-1',
+        'claude-sonnet-4',
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        'subscription',
+      );
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        'subscription',
+        'Work',
+      );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
+      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        'subscription',
+        'Work',
+      );
     });
 
     it('does not exclude auth types for different provider', async () => {

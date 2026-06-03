@@ -197,10 +197,10 @@ export class ProxyFallbackService {
       let authType: AuthType;
       // Pinned key label: prefer the structured route's keyLabel. Each
       // fallback can be pinned to a specific provider key (e.g. "Work" vs
-      // "Personal" Anthropic Console). When no route is supplied (legacy
-      // string-only inputs), the pin is undefined and we fall back to the
-      // priority-0 default key inside getProviderApiKey().
-      const providerKeyLabel = route?.keyLabel ?? undefined;
+      // "Personal" Anthropic Console). When no label is supplied for a
+      // subscription fallback, resolve the priority-0 key's label so OAuth
+      // refresh persistence updates the same key getProviderApiKey selected.
+      let providerKeyLabel = route?.keyLabel ?? undefined;
 
       if (route) {
         provider = route.provider;
@@ -229,6 +229,13 @@ export class ProxyFallbackService {
           provider,
           excludeAuth,
         )) as AuthType;
+      }
+      if (!providerKeyLabel && authType === 'subscription') {
+        providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
+          agentId,
+          provider,
+          authType,
+        );
       }
 
       const model = normalizeProviderModel(provider, requestedModel);
