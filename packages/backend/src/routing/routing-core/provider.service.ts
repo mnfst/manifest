@@ -115,7 +115,6 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: null,
       provider,
       auth_type: effectiveAuthType,
       label: DEFAULT_LABEL,
@@ -197,7 +196,6 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: null,
       provider,
       auth_type: authType,
       label,
@@ -385,7 +383,6 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: null,
       provider,
       auth_type: 'subscription',
       label: DEFAULT_LABEL,

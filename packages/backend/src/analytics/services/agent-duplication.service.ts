@@ -5,7 +5,6 @@ import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { UserProvider } from '../../entities/user-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -67,9 +66,8 @@ export class AgentDuplicationService {
     const source = await this.findOwnedAgent(userId, sourceName);
     if (!source) throw new NotFoundException(`Agent "${sourceName}" not found`);
 
-    const [providers, customProviders, tierAssignments, specificityAssignments, modelParams] =
+    const [customProviders, tierAssignments, specificityAssignments, modelParams] =
       await Promise.all([
-        this.dataSource.getRepository(UserProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(CustomProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
         this.dataSource
@@ -78,7 +76,7 @@ export class AgentDuplicationService {
         this.dataSource.getRepository(AgentModelParams).count({ where: { agent_id: source.id } }),
       ]);
 
-    return { providers, customProviders, tierAssignments, specificityAssignments, modelParams };
+    return { providers: 0, customProviders, tierAssignments, specificityAssignments, modelParams };
   }
 
   async suggestName(userId: string, sourceName: string): Promise<string> {
@@ -165,31 +163,6 @@ export class AgentDuplicationService {
         await manager.getRepository(CustomProvider).insert(newCustomProviders);
       }
 
-      const providers = await manager
-        .getRepository(UserProvider)
-        .find({ where: { agent_id: source.id } });
-      if (providers.length > 0) {
-        await manager.getRepository(UserProvider).insert(
-          providers.map((p) => ({
-            id: uuidv4(),
-            user_id: p.user_id,
-            agent_id: newAgentId,
-            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
-            api_key_encrypted: p.api_key_encrypted,
-            key_prefix: p.key_prefix,
-            auth_type: p.auth_type,
-            label: p.label,
-            priority: p.priority,
-            region: p.region,
-            is_active: p.is_active,
-            connected_at: now,
-            updated_at: now,
-            cached_models: p.cached_models,
-            models_fetched_at: p.models_fetched_at,
-          })),
-        );
-      }
-
       const tiers = await manager
         .getRepository(TierAssignment)
         .find({ where: { agent_id: source.id } });
@@ -270,7 +243,7 @@ export class AgentDuplicationService {
       }
 
       return {
-        providers: providers.length,
+        providers: 0,
         customProviders: customProviders.length,
         tierAssignments: tiers.length,
         specificityAssignments: specificity.length,

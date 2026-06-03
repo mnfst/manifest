@@ -11,9 +11,6 @@ export class UserProvider {
   @Column('varchar')
   user_id!: string;
 
-  @Column('varchar', { nullable: true, default: null })
-  agent_id!: string | null;
-
   @Column('varchar')
   provider!: string;
 

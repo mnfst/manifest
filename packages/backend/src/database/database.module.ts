@@ -24,7 +24,6 @@ import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
-import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { ProviderRateLimit } from '../entities/provider-rate-limit.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -137,7 +136,6 @@ const entities = [
   PlaygroundRun,
   PlaygroundColumn,
   ReasoningContentCacheEntry,
-  AgentProviderAccess,
   ProviderRateLimit,
 ];
 
@@ -275,7 +273,6 @@ const migrations = [
       MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
-      AgentProviderAccess,
       ProviderRateLimit,
     ]),
     ModelPricesModule,
