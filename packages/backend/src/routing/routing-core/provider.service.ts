@@ -725,6 +725,10 @@ export class ProviderService {
       if (!route) return false;
       if (options?.authType && route.authType !== options.authType) return false;
       if (providerNames.has(route.provider.toLowerCase())) return true;
+      // The route explicitly names a different provider. The same model can be
+      // served by multiple providers (e.g. claude via OpenRouter), so do NOT clear
+      // it based on model-name inference — that would delete a still-valid route.
+      if (route.provider) return false;
       return modelBelongs(route.model);
     };
 

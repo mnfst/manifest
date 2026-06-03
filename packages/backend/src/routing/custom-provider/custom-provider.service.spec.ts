@@ -592,6 +592,35 @@ describe('CustomProviderService', () => {
       expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
+    it('persists the custom provider row (repo.save) before recalculating tiers in update()', async () => {
+      // Regression guard: tier recalculation must see the NEW model list, not
+      // the stale one. The only way to guarantee that is for repo.save to be
+      // called before recalculateTiersForUser / upsertProvider.
+      const existing = { id: 'cp1', name: 'n' } as CustomProvider;
+      const callOrder: string[] = [];
+      const { svc, save, recalculateTiersForUser } = makeDeps({ findOneResults: [existing] });
+      save.mockImplementation(() => {
+        callOrder.push('save');
+        return Promise.resolve(undefined);
+      });
+      recalculateTiersForUser.mockImplementation(() => {
+        callOrder.push('recalc');
+        return Promise.resolve(undefined);
+      });
+
+      await svc.update('cp1', 'user-1', {
+        models: [
+          {
+            model_name: 'm1',
+            input_price_per_million_tokens: 1,
+            output_price_per_million_tokens: 1,
+          },
+        ],
+      });
+
+      expect(callOrder.indexOf('save')).toBeLessThan(callOrder.indexOf('recalc'));
+    });
+
     it('fills missing model update prices from models.dev using the current provider name', async () => {
       const existing = { id: 'cp1', name: 'Kilo Gateway' } as CustomProvider;
       const modelsDevSync = {

@@ -273,6 +273,17 @@ export class CustomProviderService {
       cp.models = this.enrichCustomProviderModels(cp.name, dto.models);
     }
 
+    // Persist the updated state first so tier recalculation (below) operates
+    // against the new model list, not the stale one.
+    await this.repo.save(cp);
+    this.routingCache.invalidateUser(userId);
+
+    // Reload pricing cache when the model list changes so the tier
+    // auto-assigner (called below) can score models with fresh prices.
+    if (dto.models !== undefined) {
+      await this.pricingCache.reload();
+    }
+
     // Retag auth_type when the name changes categories (freeform ↔ canonical
     // local). This path fires even without an apiKey update because renaming
     // "LM Studio" to "My Home Server" should move the row off the Local tab,
@@ -310,15 +321,6 @@ export class CustomProviderService {
     // without API key change). The upsert/retag paths already recalc.
     if (dto.models !== undefined && !('apiKey' in dto) && !nameCategoryChanged) {
       await this.providerService.recalculateTiersForUser(userId);
-    }
-
-    await this.repo.save(cp);
-    this.routingCache.invalidateUser(userId);
-
-    // Reload pricing cache when the model list changes so new prices (or
-    // edits to existing ones) are used for subsequent cost computations.
-    if (dto.models !== undefined) {
-      await this.pricingCache.reload();
     }
 
     return cp;

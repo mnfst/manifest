@@ -179,7 +179,7 @@ describe('ST-03: Seed agent data', () => {
 describe('ST-04: Routing enabled', () => {
   it('creates a custom provider and enables routing', async () => {
     const res = await auth(
-      api().post(`/api/v1/routing/${smokeAgentName}/custom-providers`),
+      api().post(`/api/v1/custom-providers`),
     )
       .send({
         name: 'Mock Provider',

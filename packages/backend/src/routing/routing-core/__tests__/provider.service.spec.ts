@@ -116,7 +116,11 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(result.notifications[0]).toMatch(/automatic mode \(claude\)/);
     });
 
-    it('uses model-prefix matching for routes whose provider does not equal the removed key', async () => {
+    it('preserves a route when the model prefix matches but the route explicitly names a different provider', async () => {
+      // Regression guard for the provider-removal data-loss bug: a route with
+      // provider="other" and model="custom-x/some" must NOT be cleared when
+      // removing provider "custom-x" — the route explicitly names a different
+      // provider, so model-name inference must be skipped.
       providerRepo.findOne.mockResolvedValue({
         id: 'p1',
         agent_id: 'agent-1',
@@ -136,7 +140,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
-          override_route: null,
+          override_route: { provider: 'other', authType: 'api_key', model: 'custom-x/some' },
           auto_assigned_route: null,
           fallback_routes: null,
         } as unknown as TierAssignment,
@@ -144,13 +148,15 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
 
       const result = await svc.removeProvider('agent-1', 'user-1', 'custom-x');
-      const saved = tierRepo.save.mock.calls[0][0];
-      expect(saved[0].override_route).toBeNull();
-      // Notification for the removed model.
-      expect(result.notifications).toHaveLength(1);
+      // The route explicitly uses a different provider — it must be preserved.
+      expect(tierRepo.save).not.toHaveBeenCalled();
+      expect(result.notifications).toHaveLength(0);
     });
 
-    it('uses pricing cache provider attribution for opaque model names', async () => {
+    it('uses pricing cache provider attribution only when the route has no explicit provider set', async () => {
+      // A route that has no provider field (empty string) should still be
+      // matchable via pricing-cache attribution. This verifies the fallback
+      // path is still exercised for model-only references.
       providerRepo.findOne.mockResolvedValue({
         id: 'p1',
         agent_id: 'agent-1',
@@ -164,8 +170,8 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([
         {
           tier: 'standard',
-          // provider in route doesn't match — only pricing cache attribution does.
-          override_route: { provider: 'mystery', authType: 'api_key', model: 'opaque-id' },
+          // No explicit provider field — pricing cache attribution applies.
+          override_route: { provider: '', authType: 'api_key', model: 'opaque-id' },
           fallback_routes: null,
         } as unknown as TierAssignment,
       ]);
@@ -176,6 +182,52 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.removeProvider('agent-1', 'user-1', 'openai');
       expect(tierRepo.save).toHaveBeenCalled();
+    });
+
+    it('does NOT clear a route via openrouter when anthropic is removed and model belongs to anthropic in pricing cache', async () => {
+      // Core regression: removing provider "anthropic" must not clear a tier
+      // route whose provider is "openrouter" — even if the model
+      // (claude-3-5-sonnet) is attributed to anthropic by the pricing cache.
+      // The route is still valid because openrouter is a separate provider.
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'anthropic',
+        auth_type: 'api_key',
+        is_active: true,
+      });
+      providerRepo.find.mockResolvedValue([]);
+      agentQb.getRawMany.mockResolvedValue([{ id: 'agent-1' }]);
+      pricingCache.getByModel.mockReturnValue({ provider: 'anthropic' } as never);
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: {
+            provider: 'openrouter',
+            authType: 'api_key',
+            model: 'claude-3-5-sonnet',
+          },
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      // Re-read tiers for notification map — route still present (not cleared).
+      tierRepo.find.mockResolvedValueOnce([
+        {
+          tier: 'standard',
+          override_route: {
+            provider: 'openrouter',
+            authType: 'api_key',
+            model: 'claude-3-5-sonnet',
+          },
+          auto_assigned_route: null,
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([]);
+
+      const result = await svc.removeProvider('agent-1', 'user-1', 'anthropic');
+      // The openrouter route must be preserved — do not save any tier changes.
+      expect(tierRepo.save).not.toHaveBeenCalled();
+      expect(result.notifications).toHaveLength(0);
     });
 
     it('filters fallback_routes and nulls when emptied', async () => {
