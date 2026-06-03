@@ -487,6 +487,31 @@ describe('ProviderService — route-only cleanup paths', () => {
     });
   });
 
+  describe('removeProvider — removeKeyByLabel', () => {
+    it('throws NotFoundException when no keys match the (provider, auth_type)', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'default')).rejects.toThrow(
+        'Provider not found',
+      );
+    });
+
+    it('throws NotFoundException when no key carries the requested label', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'primary',
+          is_active: true,
+        } as unknown as UserProvider,
+      ]);
+      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'secondary')).rejects.toThrow(
+        'Provider key not found',
+      );
+    });
+  });
+
   describe('deactivateAllProviders', () => {
     it('updates providers and tiers, then recalculates and invalidates cache', async () => {
       await svc.deactivateAllProviders('agent-1', 'user-1');
@@ -660,6 +685,104 @@ describe('ProviderService — route-only cleanup paths', () => {
       await expect(
         svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
       ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
+    });
+  });
+
+  describe('upsertProvider — Z.ai subscription region', () => {
+    let originalSecret: string | undefined;
+    beforeAll(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+    afterAll(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('persists region=global on a new Z.ai subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-sub-key', 'subscription', 'global');
+
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'zai',
+          auth_type: 'subscription',
+          region: 'global',
+        }),
+      );
+    });
+
+    it('updates region on an existing Z.ai subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'zai',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-new-key', 'subscription', 'global');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'global',
+        }),
+      );
+    });
+
+    it('preserves existing Z.ai subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'zai',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('preserves existing dotted Z.ai alias subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'z.ai',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'z.ai', 'zai-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'z.ai',
+          region: 'cn',
+        }),
+      );
+    });
+
+    it('rejects unsupported Z.ai subscription region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-sub-key', 'subscription', 'eu'),
+      ).rejects.toThrow('Z.ai subscription region must be one of: global, cn');
     });
   });
 

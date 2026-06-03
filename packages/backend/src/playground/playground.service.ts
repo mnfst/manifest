@@ -176,6 +176,8 @@ export class PlaygroundService {
       const cost = computeTokenCost({
         inputTokens,
         outputTokens,
+        cacheReadTokens,
+        cacheCreationTokens,
         model: dto.model,
         pricing: this.pricingCache.getByModel(dto.model),
         isSubscription: authType === 'subscription',

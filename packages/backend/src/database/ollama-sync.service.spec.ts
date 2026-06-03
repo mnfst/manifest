@@ -202,6 +202,48 @@ describe('OllamaSyncService', () => {
 
       expect(result).toEqual({ count: 6 });
     });
+
+    /* ── Discovery service rejection (fail-fast) ── */
+
+    it('should rethrow when discoverModels rejects for a single provider', async () => {
+      const provider = { id: 'p1', provider: 'ollama', is_active: true };
+      mockProviderRepo.find.mockResolvedValue([provider]);
+      const discoveryError = new Error('discovery failed');
+      mockDiscovery.discoverModels.mockRejectedValueOnce(discoveryError);
+
+      await expect(service.sync()).rejects.toThrow('discovery failed');
+      expect(mockDiscovery.discoverModels).toHaveBeenCalledTimes(1);
+    });
+
+    it('should halt loop on first provider rejection and not invoke later providers', async () => {
+      const provider1 = { id: 'p1', provider: 'ollama', is_active: true };
+      const provider2 = { id: 'p2', provider: 'ollama', is_active: true };
+      mockProviderRepo.find.mockResolvedValue([provider1, provider2]);
+      mockDiscovery.discoverModels
+        .mockRejectedValueOnce(new Error('first failed'))
+        .mockResolvedValueOnce([{ id: 'm1' }]);
+
+      await expect(service.sync()).rejects.toThrow('first failed');
+      // Fail-fast: loop halts immediately; second provider is never queried
+      expect(mockDiscovery.discoverModels).toHaveBeenCalledTimes(1);
+      expect(mockDiscovery.discoverModels).toHaveBeenCalledWith(provider1);
+      expect(mockDiscovery.discoverModels).not.toHaveBeenCalledWith(provider2);
+    });
+
+    it('should rethrow even if some providers already succeeded (no partial count)', async () => {
+      const provider1 = { id: 'p1', provider: 'ollama', is_active: true };
+      const provider2 = { id: 'p2', provider: 'ollama', is_active: true };
+      const provider3 = { id: 'p3', provider: 'ollama', is_active: true };
+      mockProviderRepo.find.mockResolvedValue([provider1, provider2, provider3]);
+      mockDiscovery.discoverModels
+        .mockResolvedValueOnce([{ id: 'm1' }, { id: 'm2' }])
+        .mockRejectedValueOnce(new Error('second failed'))
+        .mockResolvedValueOnce([{ id: 'm3' }]);
+
+      // sync() rejects rather than returning a partial { count: 2 }
+      await expect(service.sync()).rejects.toThrow('second failed');
+      expect(mockDiscovery.discoverModels).toHaveBeenCalledTimes(2);
+    });
   });
 
   /* ── Provider repo query ── */
@@ -215,6 +257,41 @@ describe('OllamaSyncService', () => {
       expect(mockProviderRepo.find).toHaveBeenCalledWith({
         where: { provider: 'ollama', is_active: true },
       });
+    });
+
+    it('should query with exact where shape (toStrictEqual)', async () => {
+      global.fetch = mockFetchSuccess([]);
+
+      await service.sync();
+
+      expect(mockProviderRepo.find).toHaveBeenCalledTimes(1);
+      const callArg = mockProviderRepo.find.mock.calls[0][0];
+      // Exact structural match catches accidental field additions/removals
+      // (e.g., an inverted is_active or a missing provider filter).
+      expect(callArg).toStrictEqual({
+        where: { provider: 'ollama', is_active: true },
+      });
+      expect(callArg).toEqual(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            provider: 'ollama',
+            is_active: true,
+          }),
+        }),
+      );
+    });
+
+    it('should fall through to API ping when find returns empty (simulates is_active=false filter)', async () => {
+      // If is_active were inverted to false, no rows would match — the service
+      // should hit the API ping branch instead of calling discoverModels.
+      mockProviderRepo.find.mockResolvedValue([]);
+      global.fetch = mockFetchSuccess([{ name: 'llama3' }]);
+
+      const result = await service.sync();
+
+      expect(result).toEqual({ count: 1 });
+      expect(mockDiscovery.discoverModels).not.toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledTimes(1);
     });
   });
 });

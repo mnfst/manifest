@@ -201,14 +201,19 @@ export class HeaderTierService {
     model: string,
     provider?: string,
     authType?: AuthType,
+    providerKeyLabel?: string | null,
   ): Promise<HeaderTier> {
     const row = await this.findOrThrow(agentId, id);
     // When the caller passes an explicit (provider, authType) the route is
     // already unambiguous — skip the discovery fetch.
-    const explicit = explicitRoute(model, provider, authType);
+    const explicit = explicitRoute(model, provider, authType, providerKeyLabel);
     const route =
       explicit ??
-      unambiguousRoute(model, await this.discoveryService.getModelsForAgent(userId, agentId));
+      unambiguousRoute(
+        model,
+        await this.discoveryService.getModelsForAgent(userId, agentId),
+        providerKeyLabel,
+      );
     assertStreamableResponseMode(
       row.response_mode,
       `custom tier "${row.name}"`,

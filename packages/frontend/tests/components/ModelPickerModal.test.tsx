@@ -1054,7 +1054,12 @@ describe('ModelPickerModal', () => {
     const modelsWithCapabilities: AvailableModel[] = [
       { ...baseModels[0]!, capabilities: ['text', 'stream', 'tools'] },
       { ...baseModels[1]!, capabilities: ['text', 'stream'] },
-      { ...baseModels[2]!, capabilities: ['text', 'image'], auth_type: 'api_key', provider: 'OpenAI' },
+      {
+        ...baseModels[2]!,
+        capabilities: ['text', 'image'],
+        auth_type: 'api_key',
+        provider: 'OpenAI',
+      },
     ];
 
     it('renders capability filter pills for capabilities present in the model list', () => {
@@ -1068,12 +1073,14 @@ describe('ModelPickerModal', () => {
           onClose={vi.fn()}
         />
       ));
-      const pills = container.querySelectorAll('.routing-modal__filter-right .routing-modal__cap-pill');
-      // Should have pills for stream, tools, image (the caps found in models)
+      const pills = container.querySelectorAll(
+        '.routing-modal__filter-right .routing-modal__cap-pill',
+      );
+      // Modalities are shown in the row columns; filter pills stay action-focused.
       const pillTexts = Array.from(pills).map((p) => p.textContent?.trim());
       expect(pillTexts.some((t) => t?.includes('Stream'))).toBe(true);
       expect(pillTexts.some((t) => t?.includes('Tools'))).toBe(true);
-      expect(pillTexts.some((t) => t?.includes('Image'))).toBe(true);
+      expect(pillTexts.some((t) => t?.includes('Image'))).toBe(false);
     });
 
     it('toggles a capability filter on and off when clicking a pill', () => {
@@ -1087,9 +1094,13 @@ describe('ModelPickerModal', () => {
           onClose={vi.fn()}
         />
       ));
-      const pills = container.querySelectorAll('.routing-modal__filter-right .routing-modal__cap-pill');
+      const pills = container.querySelectorAll(
+        '.routing-modal__filter-right .routing-modal__cap-pill',
+      );
       // Find the "Tools" pill
-      const toolsPill = Array.from(pills).find((p) => p.textContent?.includes('Tools')) as HTMLButtonElement;
+      const toolsPill = Array.from(pills).find((p) =>
+        p.textContent?.includes('Tools'),
+      ) as HTMLButtonElement;
       expect(toolsPill).toBeDefined();
       // Toggle on
       fireEvent.click(toolsPill);
@@ -1114,14 +1125,41 @@ describe('ModelPickerModal', () => {
           onClose={vi.fn()}
         />
       ));
-      const pills = container.querySelectorAll('.routing-modal__filter-right .routing-modal__cap-pill');
-      // stream, tools, image should be present (text is not in capOrder so it is filtered out)
-      // audio and video are not in any model so they are not shown
-      expect(pills.length).toBe(3);
+      const pills = container.querySelectorAll(
+        '.routing-modal__filter-right .routing-modal__cap-pill',
+      );
+      expect(pills.length).toBe(2);
     });
   });
 
-  it('clicks the Local tab when local + api_key models are both present', () => {
+  it('renders capabilities, input modalities, and output modalities as separate columns', () => {
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={[
+          {
+            ...baseModels[0]!,
+            capabilities: ['text', 'image', 'stream', 'tools'],
+            input_modalities: ['text', 'image'],
+            output_modalities: ['text'],
+          },
+        ]}
+        tiers={tiers}
+        connectedProviders={apiKeyOnly}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    expect(container.querySelector('.routing-modal__table-head')?.textContent).toContain(
+      'Capabilities',
+    );
+    expect(container.querySelector('[aria-label="Capabilities: Stream, Tools"]')).toBeTruthy();
+    expect(container.querySelector('[aria-label="Input: Text, Image"]')).toBeTruthy();
+    expect(container.querySelector('[aria-label="Output: Text"]')).toBeTruthy();
+  });
+
+  it('clicks the Local tab when local + api_key are both connected', () => {
     const localAndApi: RoutingProvider[] = [
       ...apiKeyOnly,
       {

@@ -86,6 +86,16 @@ describe('PROVIDER_REGISTRY', () => {
     expect(og!.localOnly).toBe(false);
   });
 
+  it('opencode-zen is registered as an API-key provider with opencodezen alias', () => {
+    const oz = PROVIDER_REGISTRY.find((p) => p.id === 'opencode-zen');
+    expect(oz).toBeDefined();
+    expect(oz!.displayName).toBe('OpenCode Zen');
+    expect(oz!.aliases).toEqual(['opencodezen']);
+    expect(oz!.openRouterPrefixes).toEqual([]);
+    expect(oz!.requiresApiKey).toBe(true);
+    expect(oz!.localOnly).toBe(false);
+  });
+
   it('kilo is registered as a non-local gateway provider', () => {
     const kilo = PROVIDER_REGISTRY.find((p) => p.id === 'kilo');
     expect(kilo).toBeDefined();
@@ -97,6 +107,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(kilo!.color).toBe('#f0e68c');
   });
 
+  it('fireworks is registered as an API-key provider', () => {
+    const fireworks = PROVIDER_REGISTRY.find((p) => p.id === 'fireworks');
+    expect(fireworks).toBeDefined();
+    expect(fireworks!.displayName).toBe('Fireworks AI');
+    expect(fireworks!.aliases).toEqual(['fireworks-ai', 'fireworks ai', 'fireworksai']);
+    expect(fireworks!.openRouterPrefixes).toEqual([]);
+    expect(fireworks!.requiresApiKey).toBe(true);
+    expect(fireworks!.localOnly).toBe(false);
+    expect(fireworks!.keyPrefix).toBe('fw_');
+  });
+
   it('kiro is registered as a CLI OAuth subscription provider', () => {
     const kiro = PROVIDER_REGISTRY.find((p) => p.id === 'kiro');
     expect(kiro).toBeDefined();
@@ -106,6 +127,22 @@ describe('PROVIDER_REGISTRY', () => {
     expect(kiro!.requiresApiKey).toBe(false);
     expect(kiro!.localOnly).toBe(false);
     expect(kiro!.keyPrefix).toBe('');
+  });
+
+  it('byteplus is registered as a ModelArk Coding Plan token provider', () => {
+    const byteplus = PROVIDER_REGISTRY.find((p) => p.id === 'byteplus');
+    expect(byteplus).toBeDefined();
+    expect(byteplus!.displayName).toBe('BytePlus');
+    expect(byteplus!.aliases).toEqual([
+      'byteplus-plan',
+      'byteplus plan',
+      'modelark',
+      'modelark-coding-plan',
+    ]);
+    expect(byteplus!.openRouterPrefixes).toEqual([]);
+    expect(byteplus!.requiresApiKey).toBe(true);
+    expect(byteplus!.localOnly).toBe(false);
+    expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
   });
 });
 
@@ -156,11 +193,31 @@ describe('PROVIDER_BY_ID_OR_ALIAS', () => {
     expect(entry.displayName).toBe('Z.ai');
   });
 
+  it('resolves opencodezen alias to opencode-zen entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('opencodezen') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('opencode-zen');
+  });
+
   it('resolves kilocode alias to kilo entry', () => {
     const entry = PROVIDER_BY_ID_OR_ALIAS.get('kilocode') as ProviderRegistryEntry;
     expect(entry).toBeDefined();
     expect(entry.id).toBe('kilo');
     expect(entry.displayName).toBe('Kilo');
+  });
+
+  it('resolves fireworks-ai alias to fireworks entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('fireworks-ai') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('fireworks');
+    expect(entry.displayName).toBe('Fireworks AI');
+  });
+
+  it('resolves modelark alias to byteplus entry', () => {
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get('modelark') as ProviderRegistryEntry;
+    expect(entry).toBeDefined();
+    expect(entry.id).toBe('byteplus');
+    expect(entry.displayName).toBe('BytePlus');
   });
 
   it('returns undefined for an unknown alias', () => {

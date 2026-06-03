@@ -1,7 +1,8 @@
 import { IsNotEmpty, IsOptional, IsString, IsIn, MaxLength } from 'class-validator';
+import { RANGE_VALUES } from '../utils/range.util';
 
 export class SavingsQueryDto {
-  @IsIn(['1h', '6h', '24h', '7d', '30d'])
+  @IsIn(RANGE_VALUES)
   range!: string;
 
   @IsNotEmpty()
@@ -15,7 +16,7 @@ export class SavingsQueryDto {
 }
 
 export class SavingsTimeseriesQueryDto {
-  @IsIn(['1h', '6h', '24h', '7d', '30d'])
+  @IsIn(RANGE_VALUES)
   range!: string;
 
   @IsNotEmpty()

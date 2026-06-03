@@ -141,11 +141,21 @@ describe('HeaderTierService', () => {
       ).rejects.toThrow(/Header key is required/);
     });
 
-    it('rejects reserved header keys', async () => {
-      const reserved = [...RESERVED_HEADER_KEYS][0];
-      await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_key: reserved })),
-      ).rejects.toThrow(/stripped for security/);
+    it('rejects all reserved header keys', async () => {
+      for (const key of RESERVED_HEADER_KEYS) {
+        await expect(
+          svc.create('agent-1', 'user-1', null, validInput({ header_key: key })),
+        ).rejects.toThrow(/stripped for security/);
+      }
+    });
+
+    it('rejects reserved header keys with mixed case and whitespace', async () => {
+      for (const key of RESERVED_HEADER_KEYS) {
+        const mutated = `  ${key.toUpperCase()}  `;
+        await expect(
+          svc.create('agent-1', 'user-1', null, validInput({ header_key: mutated })),
+        ).rejects.toThrow(/stripped for security/);
+      }
     });
 
     it('rejects empty header values', async () => {
@@ -281,6 +291,24 @@ describe('HeaderTierService', () => {
         /already matches/,
       );
     });
+
+    it('rejects reserved header keys when updating header_key field', async () => {
+      const row = {
+        id: 'h1',
+        agent_id: 'agent-1',
+        name: 'A',
+        header_key: 'x-tier',
+        header_value: 'v',
+      } as HeaderTier;
+      for (const key of RESERVED_HEADER_KEYS) {
+        repo.findOne.mockResolvedValue(row);
+        repo.find.mockResolvedValue([row]);
+        await expect(svc.update('agent-1', 'h1', { header_key: key })).rejects.toThrow(
+          /stripped for security/,
+        );
+      }
+      expect(repo.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('setEnabled', () => {
@@ -369,6 +397,28 @@ describe('HeaderTierService', () => {
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(repo.save).toHaveBeenCalledWith(row);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('persists keyLabel on explicit header-tier overrides', async () => {
+      const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
+      repo.findOne.mockResolvedValue(row);
+
+      const result = await svc.setOverride(
+        'agent-1',
+        'h1',
+        'gpt-4o',
+        'openai',
+        'subscription',
+        'Personal',
+      );
+
+      expect(discoveryService.getModelsForAgent).not.toHaveBeenCalled();
+      expect(result.override_route).toEqual({
+        provider: 'openai',
+        authType: 'subscription',
+        model: 'gpt-4o',
+        keyLabel: 'Personal',
+      });
     });
 
     it('resolves via discovery when only the model is given', async () => {

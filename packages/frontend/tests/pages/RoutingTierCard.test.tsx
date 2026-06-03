@@ -546,12 +546,30 @@ describe('RoutingTierCard', () => {
     expect(mockSetFallbacks).not.toHaveBeenCalled();
   });
 
-  it('clears the fallbackDragging state on drag end', () => {
-    const { getByTestId } = render(() => <RoutingTierCard {...makeProps()} />);
+  it('clears the fallbackDragging state on drag end so subsequent drops are no-ops', async () => {
+    // After a fallback drag ends, the internal `fallbackDragging` signal must
+    // reset to null. Verify the state change via observable behavior:
+    // - With fallbackDragging set, a drop on the primary chip would call
+    //   swapPrimaryWithFallback → onOverride.
+    // - With fallbackDragging cleared (after drag-end), the drop handler
+    //   short-circuits at `if (fbIndex === null) return;` and onOverride is
+    //   never invoked.
+    const onOverride = vi.fn();
+    const { container, getByTestId } = render(() => (
+      <RoutingTierCard {...makeProps({ onOverride })} />
+    ));
     fireEvent.click(getByTestId('trigger-fb-drag-start-1'));
     fireEvent.click(getByTestId('trigger-fb-drag-end'));
-    // No assertion on internal state — coverage of the end handler is sufficient.
-    expect(true).toBe(true);
+    // Now that drag-end has fired, a drop on the primary chip should be a no-op.
+    const chip = container.querySelector('.routing-card__model-chip') as HTMLElement;
+    fireEvent.drop(chip, {
+      dataTransfer: { dropEffect: '' },
+      preventDefault: vi.fn(),
+    });
+    // Wait a tick to let any potential async swap kick off.
+    await Promise.resolve();
+    expect(onOverride).not.toHaveBeenCalled();
+    expect(mockSetFallbacks).not.toHaveBeenCalled();
   });
 
   it('renders the FallbackList only when there is an effective model', () => {
@@ -720,21 +738,45 @@ describe('RoutingTierCard', () => {
     expect(container.querySelector('.routing-card__main')?.textContent).toBe('OpenAI / GPT-4o');
   });
 
-  it('invokes onPrimaryDragStart wiring without throwing', () => {
+  it('sets dataTransfer payload on dragStart and toggles the dragging class', () => {
+    // handlePrimaryDragStart should: (1) write the primary drag payload to
+    // dataTransfer (`text/plain` = "primary", `application/x-primary` = "true",
+    // effectAllowed = "move"), and (2) set the primaryDragging signal so the
+    // chip gets the `--dragging` class. handlePrimaryDragEnd should clear it.
+    const setData = vi.fn();
+    const dataTransfer: { effectAllowed: string; setData: typeof setData } = {
+      effectAllowed: '',
+      setData,
+    };
     const { container } = render(() => <RoutingTierCard {...makeProps()} />);
     const chip = container.querySelector('.routing-card__model-chip') as HTMLElement;
-    fireEvent.dragStart(chip, { dataTransfer: { effectAllowed: '', setData: vi.fn() } });
+    fireEvent.dragStart(chip, { dataTransfer });
+    // dataTransfer payload + effectAllowed set
+    expect(dataTransfer.effectAllowed).toBe('move');
+    expect(setData).toHaveBeenCalledWith('text/plain', 'primary');
+    expect(setData).toHaveBeenCalledWith('application/x-primary', 'true');
+    // dragging class is reflected on the chip
+    expect(chip.classList.contains('routing-card__model-chip--dragging')).toBe(true);
+    // After drag-end, both dragging and drop-target classes clear.
     fireEvent.dragEnd(chip);
-    // Coverage of the drag-start/drag-end handlers is sufficient.
-    expect(true).toBe(true);
+    expect(chip.classList.contains('routing-card__model-chip--dragging')).toBe(false);
+    expect(chip.classList.contains('routing-card__model-chip--drop-target')).toBe(false);
   });
 
-  it('clears primaryDropTarget on dragLeave', () => {
-    const { container } = render(() => <RoutingTierCard {...makeProps()} />);
+  it('toggles the drop-target class on dragOver and clears it on dragLeave', () => {
+    // dragOver is gated by `fallbackDragging() !== null`, so first signal a
+    // fallback drag-start from FallbackList. Then dragOver should set the
+    // `--drop-target` class, and dragLeave should clear it.
+    const { container, getByTestId } = render(() => <RoutingTierCard {...makeProps()} />);
     const chip = container.querySelector('.routing-card__model-chip') as HTMLElement;
+    fireEvent.click(getByTestId('trigger-fb-drag-start-1'));
+    fireEvent.dragOver(chip, {
+      dataTransfer: { dropEffect: '' },
+      preventDefault: vi.fn(),
+    });
+    expect(chip.classList.contains('routing-card__model-chip--drop-target')).toBe(true);
     fireEvent.dragLeave(chip);
-    // Coverage of dragLeave handler.
-    expect(true).toBe(true);
+    expect(chip.classList.contains('routing-card__model-chip--drop-target')).toBe(false);
   });
 
   it('falls back to legacy persist (no routes) when fallback_routes length is mismatched', async () => {

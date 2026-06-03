@@ -216,7 +216,12 @@ export class KiroOauthService {
     return { status: 'success' };
   }
 
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseKiroOAuthTokenBlob(rawValue);
     if (!blob) return null;
     if (Date.now() < blob.e - 60_000) return blob.t;
@@ -228,6 +233,8 @@ export class KiroOauthService {
         'kiro',
         serializeKiroOAuthTokenBlob(refreshed),
         'subscription',
+        undefined,
+        keyLabel,
       );
       this.logger.log(`Kiro OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;

@@ -246,6 +246,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
                 <span class="provider-detail__beta-badge">beta</span>
               </Show>
             </div>
+            <Show when={isSubMode() && provDef.subscriptionRequirementNote}>
+              <div class="provider-detail__subtitle">{provDef.subscriptionRequirementNote}</div>
+            </Show>
           </div>
         </div>
         <div class="provider-detail__header-actions">

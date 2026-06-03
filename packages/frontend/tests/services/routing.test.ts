@@ -22,7 +22,6 @@ describe("agentPath", () => {
     expect(agentPath(null, "/overview")).toBe("/");
   });
 });
-
 describe("getComplexityStatus", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -235,4 +234,3 @@ describe("custom-providers cache", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 });
-

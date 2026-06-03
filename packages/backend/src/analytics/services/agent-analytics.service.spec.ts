@@ -7,16 +7,20 @@ describe('AgentAnalyticsService', () => {
   let service: AgentAnalyticsService;
   let mockGetRawOne: jest.Mock;
   let mockGetRawMany: jest.Mock;
+  let mockSelect: jest.Mock;
+  let mockAddSelect: jest.Mock;
 
   const scope = { tenantId: 't1', agentId: 'a1' };
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn();
     mockGetRawMany = jest.fn();
+    mockSelect = jest.fn().mockReturnThis();
+    mockAddSelect = jest.fn().mockReturnThis();
 
     const mockQb = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
+      select: mockSelect,
+      addSelect: mockAddSelect,
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       groupBy: jest.fn().mockReturnThis(),
@@ -103,6 +107,24 @@ describe('AgentAnalyticsService', () => {
 
       expect(result.total_cost_usd).toBe(0);
       expect(result.by_model).toEqual([]);
+    });
+
+    it('sanitizes negative costs (failed pricing lookups) in every cost sum', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ total: 0 }).mockResolvedValueOnce({ total: 0 });
+      mockGetRawMany.mockResolvedValueOnce([]);
+
+      await service.getCosts('24h', scope);
+
+      const sanitized = 'CASE WHEN at.cost_usd >= 0 THEN at.cost_usd ELSE NULL END';
+      const costExprs = [
+        ...mockSelect.mock.calls.map((c) => String(c[0])),
+        ...mockAddSelect.mock.calls.map((c) => String(c[0])),
+      ].filter((expr) => expr.includes('cost_usd'));
+      // current total + previous total + per-model breakdown = 3 cost sums.
+      expect(costExprs).toHaveLength(3);
+      for (const expr of costExprs) {
+        expect(expr).toContain(sanitized);
+      }
     });
   });
 });

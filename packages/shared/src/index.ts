@@ -50,6 +50,7 @@ export {
   isParamApplicability,
   isProviderParamPath,
   MODEL_CAPABILITIES,
+  MODEL_MODALITIES,
   normalizeProviderParamProviderId,
   omitProviderInapplicableParams,
   pickProviderCompatibleParams,
@@ -59,6 +60,7 @@ export {
 } from './provider-params-spec';
 export type {
   ModelCapability,
+  ModelModality,
   ModelParamGroup,
   ModelParamDefinition,
   ModelParamRange,

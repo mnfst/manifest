@@ -196,7 +196,12 @@ export class AnthropicOauthService {
    *   - Plain string (from the legacy `claude setup-token` paste flow) —
    *     returned as-is, since those tokens have no refresh counterpart.
    */
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) {
       // Legacy setup-token paste — keep working until the user reconnects.
@@ -216,6 +221,8 @@ export class AnthropicOauthService {
         'anthropic',
         serializeOAuthTokenBlob(refreshed),
         'subscription',
+        undefined,
+        keyLabel,
       );
       this.logger.log(`Anthropic OAuth token refreshed for agent=${agentId}`);
       return refreshed.t;

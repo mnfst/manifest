@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
 import { computeTrend } from './query-helpers';
-import { computeCutoff } from '../../common/utils/postgres-sql';
+import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
 interface AgentScope {
   tenantId: string;
@@ -88,18 +88,21 @@ export class AgentAnalyticsService {
     const prevInterval = rangeToPreviousInterval(range);
     const cutoff = computeCutoff(interval);
     const prevCutoff = computeCutoff(prevInterval);
+    // Treat negative costs (failed pricing lookups) as NULL so this agent-key
+    // endpoint stays consistent with the dashboard's session-auth cost path.
+    const safeCost = sqlSanitizeCost('at.cost_usd');
 
     const [currentRows, prevRows, modelRows] = await Promise.all([
       this.turnRepo
         .createQueryBuilder('at')
-        .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
+        .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
         .where('at.timestamp >= :cutoff', { cutoff })
         .andWhere('at.tenant_id = :tenantId', { tenantId: scope.tenantId })
         .andWhere('at.agent_id = :agentId', { agentId: scope.agentId })
         .getRawOne(),
       this.turnRepo
         .createQueryBuilder('at')
-        .select('COALESCE(SUM(at.cost_usd), 0)', 'total')
+        .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
         .where('at.timestamp >= :prevCutoff', { prevCutoff })
         .andWhere('at.timestamp < :cutoff', { cutoff })
         .andWhere('at.tenant_id = :tenantId', { tenantId: scope.tenantId })
@@ -108,7 +111,7 @@ export class AgentAnalyticsService {
       this.turnRepo
         .createQueryBuilder('at')
         .select('at.model', 'model')
-        .addSelect('COALESCE(SUM(at.cost_usd), 0)', 'cost_usd')
+        .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost_usd')
         .addSelect('COALESCE(SUM(at.input_tokens), 0)', 'input_tokens')
         .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'output_tokens')
         .where('at.timestamp >= :cutoff', { cutoff })

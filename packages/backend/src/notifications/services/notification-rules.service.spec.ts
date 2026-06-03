@@ -219,49 +219,8 @@ describe('NotificationRulesService', () => {
     });
   });
 
-  describe('getConsumption', () => {
-    it('sums input+output tokens for tokens metric', async () => {
-      const qb = makeQb({ total: '12345' });
-      messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
-
-      const result = await service.getConsumption(
-        't1',
-        'a1',
-        'tokens',
-        '2026-02-17 00:00:00',
-        '2026-02-17 14:00:00',
-      );
-
-      expect(result).toBe(12345);
-      expect(qb.select).toHaveBeenCalledWith(
-        expect.stringContaining('SUM(at.input_tokens + at.output_tokens)'),
-        'total',
-      );
-    });
-
-    it('sums cost_usd for cost metric', async () => {
-      const qb = makeQb({ total: '3.45' });
-      messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
-
-      const result = await service.getConsumption(
-        't1',
-        'a1',
-        'cost',
-        '2026-02-01 00:00:00',
-        '2026-02-17 14:00:00',
-      );
-
-      expect(result).toBe(3.45);
-      expect(qb.select).toHaveBeenCalledWith(expect.stringContaining('SUM(at.cost_usd)'), 'total');
-    });
-
-    it('returns 0 when no rows match', async () => {
-      messageRepo.createQueryBuilder.mockReturnValueOnce(makeQb(null));
-
-      const result = await service.getConsumption('t1', 'a1', 'tokens', '', '');
-      expect(result).toBe(0);
-    });
-  });
+  // getConsumption tests live in notification-rules.service.consumption.spec.ts
+  // (split to keep this file under the 300-line limit; see CLAUDE.md "File Size Limits").
 
   describe('getAllActiveRules', () => {
     it('returns active notify+both rules', async () => {

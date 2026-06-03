@@ -573,7 +573,7 @@ describe('ModelDiscoveryService', () => {
       expect(result).toHaveLength(0);
     });
 
-    it('should deduplicate models by id', async () => {
+    it('should deduplicate duplicate models for the same provider and auth type', async () => {
       const providers = [
         makeProvider({
           id: 'p1',
@@ -582,7 +582,7 @@ describe('ModelDiscoveryService', () => {
         }),
         makeProvider({
           id: 'p2',
-          provider: 'deepseek',
+          provider: 'openai',
           cached_models: [makeModel({ id: 'gpt-4' })],
         }),
       ];
@@ -590,6 +590,31 @@ describe('ModelDiscoveryService', () => {
 
       const result = await service.getModelsForAgent('user-1');
       expect(result).toHaveLength(1);
+    });
+
+    it('should keep the same model id from different providers as separate routes', async () => {
+      const providers = [
+        makeProvider({
+          id: 'p1',
+          provider: 'openrouter',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'openrouter' })],
+        }),
+        makeProvider({
+          id: 'p2',
+          provider: 'deepseek',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'deepseek' })],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => `${m.provider}:${m.authType}:${m.id}`)).toEqual([
+        'openrouter:api_key:deepseek-chat',
+        'deepseek:api_key:deepseek-chat',
+      ]);
     });
 
     it('should skip providers with no cached_models', async () => {
@@ -719,6 +744,23 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelForAgent('user-1', 'gpt-4');
       expect(result).toBeDefined();
       expect(result!.id).toBe('gpt-4');
+    });
+
+    it('should not infer a provider when the model id is shared by multiple routes', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          provider: 'openrouter',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'openrouter' })],
+        }),
+        makeProvider({
+          provider: 'deepseek',
+          cached_models: [makeModel({ id: 'deepseek-chat', provider: 'deepseek' })],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelForAgent('agent-1', 'deepseek-chat');
+      expect(result).toBeUndefined();
     });
 
     it('should return undefined for missing model', async () => {
@@ -1313,6 +1355,43 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('routes Z.ai CN subscription discovery to the China Coding Plan host', async () => {
+      mockDecrypt.mockReturnValue('zai-sub-key');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'zai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'cn',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'zai',
+        'zai-sub-key',
+        'subscription',
+        'https://open.bigmodel.cn/api/coding/paas/v4',
+      );
+    });
+
+    it('leaves Z.ai global subscription discovery on the default outside-China host', async () => {
+      mockDecrypt.mockReturnValue('zai-sub-key');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'zai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'global',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith('zai', 'zai-sub-key', 'subscription', undefined);
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);
@@ -1557,6 +1636,27 @@ describe('ModelDiscoveryService', () => {
         expect(m.authType).toBe('subscription');
       }
       expect(fetcher.fetch).not.toHaveBeenCalled();
+    });
+
+    it('should not hardcode Qwen Token Plan fallback models when subscription fetch returns no models', async () => {
+      mockDecrypt.mockReturnValue('sk-sp-token-plan-key');
+      fetcher.fetch.mockResolvedValue([]);
+
+      const result = await service.discoverModels(
+        makeProvider({
+          provider: 'qwen',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted-token-plan-key',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'qwen',
+        'sk-sp-token-plan-key',
+        'subscription',
+        undefined,
+      );
+      expect(result).toEqual([]);
     });
 
     it('should exchange Copilot GitHub token before fetching models', async () => {
@@ -2040,6 +2140,28 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].inputPricePerToken).toBe(0);
     });
 
+    it('should return BytePlus knownModels directly when pricingSync is null', () => {
+      const result = buildSubscriptionFallbackModels(null as never, 'byteplus');
+
+      expect(result.map((m) => m.id)).toEqual([
+        'ark-code-latest',
+        'bytedance-seed-code',
+        'glm-5.1',
+        'glm-4.7',
+        'deepseek-v3.2',
+        'deepseek-v4-flash',
+        'deepseek-v4-pro',
+        'kimi-k2.5',
+        'gpt-oss-120b',
+      ]);
+      expect(result[0]).toMatchObject({
+        provider: 'byteplus',
+        contextWindow: 256000,
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      });
+    });
+
     it('should not duplicate knownModel when already in OpenRouter', () => {
       const orMap = new Map([
         [
@@ -2119,6 +2241,43 @@ describe('ModelDiscoveryService', () => {
         'MiniMax-M2.1-highspeed',
         'MiniMax-M2',
       ]);
+    });
+
+    it('should not build hardcoded Qwen Token Plan fallback models', () => {
+      const orMap = new Map([
+        [
+          'qwen/qwen3.6-plus',
+          {
+            input: 0.0000005,
+            output: 0.000003,
+            contextWindow: 1000000,
+            displayName: 'Qwen 3.6 Plus',
+          },
+        ],
+        [
+          'qwen/qwen3.6-plus-20260402',
+          {
+            input: 0.0000005,
+            output: 0.000003,
+            contextWindow: 1000000,
+            displayName: 'Qwen 3.6 Plus snapshot',
+          },
+        ],
+        [
+          'qwen/qwen-image-2.0',
+          {
+            input: 0,
+            output: 0,
+            contextWindow: 0,
+            displayName: 'Qwen Image 2.0',
+          },
+        ],
+      ]);
+      mockPricingSync.getAll.mockReturnValue(orMap);
+
+      const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'qwen');
+
+      expect(result).toEqual([]);
     });
 
     it('should use exact match mode for gemini — excludes suffixed cache entries', () => {

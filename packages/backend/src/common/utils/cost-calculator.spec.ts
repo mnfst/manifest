@@ -76,6 +76,62 @@ describe('computeTokenCost', () => {
     expect(result).toBeCloseTo(0.0075, 10);
   });
 
+  it('prices cache-read input tokens with the cache-read price when available', () => {
+    const deepseekPricing: PricingEntry = {
+      model_name: 'deepseek-v4-pro',
+      provider: 'DeepSeek',
+      input_price_per_token: 0.435 / 1_000_000,
+      output_price_per_token: 0.87 / 1_000_000,
+      cache_read_price_per_token: 0.003625 / 1_000_000,
+      display_name: 'DeepSeek V4 Pro',
+    };
+
+    const result = computeTokenCost({
+      inputTokens: 36_100,
+      outputTokens: 1_200,
+      cacheReadTokens: 21_600,
+      model: 'deepseek-v4-pro',
+      pricing: deepseekPricing,
+    });
+
+    expect(result).toBeCloseTo(0.0074298, 10);
+  });
+
+  it('falls back to input price for cache-read tokens without cache-read pricing', () => {
+    const result = computeTokenCost({
+      inputTokens: 1000,
+      outputTokens: 500,
+      cacheReadTokens: 400,
+      model: 'gpt-4o',
+      pricing,
+    });
+
+    expect(result).toBeCloseTo(0.0075, 10);
+  });
+
+  it('uses cache-write pricing for cache-creation tokens when available', () => {
+    const cachePricing: PricingEntry = {
+      model_name: 'claude-opus-4-6',
+      provider: 'Anthropic',
+      input_price_per_token: 3 / 1_000_000,
+      output_price_per_token: 15 / 1_000_000,
+      cache_read_price_per_token: 0.3 / 1_000_000,
+      cache_write_price_per_token: 3.75 / 1_000_000,
+      display_name: 'Claude Opus 4.6',
+    };
+
+    const result = computeTokenCost({
+      inputTokens: 1000,
+      outputTokens: 100,
+      cacheReadTokens: 300,
+      cacheCreationTokens: 200,
+      model: 'claude-opus-4-6',
+      pricing: cachePricing,
+    });
+
+    expect(result).toBeCloseTo(0.00384, 12);
+  });
+
   it('computes cost with only input tokens', () => {
     const result = computeTokenCost({
       inputTokens: 2000,

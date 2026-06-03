@@ -4,6 +4,7 @@ import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { MESSAGE_ROW_SELECT_ALIASES } from './query-helpers';
 
 describe('TimeseriesQueriesService', () => {
   let service: TimeseriesQueriesService;
@@ -214,17 +215,31 @@ describe('TimeseriesQueriesService', () => {
       expect(rows[0]!['specificity_category']).toBe('coding');
     });
 
-    it('projects specificity_category through the shared helper (regression: dashboard badge drift)', async () => {
+    it('projects exactly the columns declared in MESSAGE_ROW_SELECT_ALIASES (regression: helper drift)', async () => {
       mockGetRawMany.mockResolvedValue([]);
       await service.getRecentActivity('24h', 'u1');
 
+      // getRecentActivity routes its column projection through the shared
+      // selectMessageRowColumns helper. Any divergence between the helper
+      // and this endpoint silently breaks the dashboard message badges, so
+      // pin the projected alias set to MESSAGE_ROW_SELECT_ALIASES exactly.
       const projectedAliases = [
-        ...mockTurnQb.select.mock.calls.map((call) => call[1]),
-        ...mockTurnQb.addSelect.mock.calls.map((call) => call[1]),
+        ...mockTurnQb.select.mock.calls.map((call) => call[1] as string),
+        ...mockTurnQb.addSelect.mock.calls.map((call) => call[1] as string),
       ];
-      expect(projectedAliases).toContain('specificity_category');
-      expect(projectedAliases).toContain('routing_tier');
-      expect(projectedAliases).toContain('routing_reason');
+
+      expect(mockTurnQb.select).toHaveBeenCalledTimes(1);
+      expect(mockTurnQb.addSelect).toHaveBeenCalledTimes(MESSAGE_ROW_SELECT_ALIASES.length - 1);
+      expect(projectedAliases).toEqual([...MESSAGE_ROW_SELECT_ALIASES]);
+    });
+
+    it('applies tenant isolation via addTenantFilter so cross-tenant data cannot leak', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'u1', 5, undefined, 'tenant-123');
+
+      // When a tenantId is provided the helper filters by tenant_id (not user_id).
+      const andWhereCalls = mockTurnQb.andWhere.mock.calls.map((call) => call[0] as string);
+      expect(andWhereCalls).toContain('at.tenant_id = :tenantId');
     });
   });
 

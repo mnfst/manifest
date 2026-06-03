@@ -8,6 +8,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from '../dto/notification-rule.dto';
+import { toSqlTimestamp } from '../../common/utils/postgres-sql';
 
 export interface NotificationRuleWithTriggerCount extends NotificationRule {
   trigger_count: number;
@@ -56,7 +57,7 @@ export class NotificationRulesService {
   async createRule(userId: string, dto: CreateNotificationRuleDto): Promise<NotificationRule> {
     const agent = await this.resolveAgent(userId, dto.agent_name);
     const id = uuid();
-    const now = nowSqlTimestamp();
+    const now = toSqlTimestamp();
 
     const rule: Partial<NotificationRule> = {
       id,
@@ -95,7 +96,7 @@ export class NotificationRulesService {
       return this.getRule(ruleId);
     }
 
-    patch.updated_at = nowSqlTimestamp();
+    patch.updated_at = toSqlTimestamp();
     await this.ruleRepo.update({ id: ruleId }, patch);
     return this.getRule(ruleId);
   }
@@ -189,8 +190,4 @@ export class NotificationRulesService {
     const count = await this.ruleRepo.count({ where: { id: ruleId, user_id: userId } });
     if (count === 0) throw new NotFoundException('Notification rule not found');
   }
-}
-
-function nowSqlTimestamp(): string {
-  return new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 }

@@ -418,6 +418,79 @@ describe('ProviderController', () => {
       ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
     });
 
+    it('should accept region=cn for Z.ai subscription', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'zai',
+          is_active: true,
+          auth_type: 'subscription',
+          region: 'cn',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'zai',
+        apiKey: 'zai-sub-key',
+        authType: 'subscription',
+        region: 'cn',
+      });
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'zai',
+        'zai-sub-key',
+        'subscription',
+        'cn',
+        undefined,
+      );
+      expect(result.region).toBe('cn');
+    });
+
+    it('should accept region=cn for dotted Z.ai subscription alias', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'z.ai',
+          is_active: true,
+          auth_type: 'subscription',
+          region: 'cn',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'z.ai',
+        apiKey: 'zai-sub-key',
+        authType: 'subscription',
+        region: 'cn',
+      });
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'z.ai',
+        'zai-sub-key',
+        'subscription',
+        'cn',
+        undefined,
+      );
+      expect(result.region).toBe('cn');
+    });
+
+    it('should reject invalid Z.ai subscription region', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'zai',
+          apiKey: 'zai-sub-key',
+          authType: 'subscription',
+          region: 'eu',
+        }),
+      ).rejects.toThrow('Z.ai subscription region must be one of: global, cn');
+    });
+
     it('should reject region when MiniMax is connected with api_key auth', async () => {
       await expect(
         controller.upsertProvider(mockUser, mockAgentName, {
@@ -427,7 +500,7 @@ describe('ProviderController', () => {
           region: 'cn',
         }),
       ).rejects.toThrow(
-        'region is only supported for Alibaba/Qwen providers and MiniMax subscriptions',
+        'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, and Z.ai subscriptions',
       );
     });
   });

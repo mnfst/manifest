@@ -408,6 +408,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const costUsd = computeTokenCost({
       inputTokens,
       outputTokens,
+      cacheReadTokens: usage?.cache_read_tokens ?? 0,
+      cacheCreationTokens: usage?.cache_creation_tokens ?? 0,
       model,
       pricing: usage ? this.pricingCache.getByModel(model) : undefined,
       isSubscription: authType === 'subscription',
@@ -487,6 +489,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const costUsd = computeTokenCost({
       inputTokens: usage.prompt_tokens,
       outputTokens: usage.completion_tokens,
+      cacheReadTokens: usage.cache_read_tokens ?? 0,
+      cacheCreationTokens: usage.cache_creation_tokens ?? 0,
       model,
       pricing: this.pricingCache.getByModel(model),
       isSubscription: authType === 'subscription',

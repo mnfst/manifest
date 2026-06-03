@@ -264,6 +264,7 @@ export class MinimaxOauthService {
     rawValue: string,
     agentId: string,
     userId: string,
+    keyLabel?: string,
   ): Promise<OAuthTokenBlob | null> {
     let blob: OAuthTokenBlob;
     try {
@@ -283,6 +284,8 @@ export class MinimaxOauthService {
         'minimax',
         JSON.stringify(refreshed),
         'subscription',
+        undefined,
+        keyLabel,
       );
       this.logger.log(`MiniMax OAuth token refreshed for agent=${agentId}`);
       return refreshed;

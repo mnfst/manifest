@@ -103,6 +103,63 @@ describe('First-run setup wizard', () => {
       expect(res.body.message).toBeDefined();
     });
 
+    // Email format edge cases — class-validator's @IsEmail() wraps
+    // validator.js's isEmail with default options (require_tld: true,
+    // allow_display_name: false, ignore_max_length: false). These tests
+    // pin the validator behaviour so an upstream change can't silently
+    // accept malformed addresses on the first-run setup endpoint.
+    it.each([
+      ['test@', 'missing domain'],
+      ['test@.com', 'domain starts with dot'],
+      ['test @example.com', 'space in local part'],
+      ['a@b', 'single-label domain (no TLD)'],
+      ['@example.com', 'missing local part'],
+      ['plainaddress', 'no @ symbol at all'],
+    ])('rejects email %p (%s)', async (email) => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/setup/admin')
+        .send({ email, name: 'Founder', password: 'secret-password' })
+        .expect(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    it('rejects email exceeding the 254-character MaxLength', async () => {
+      // Total > 254 triggers @MaxLength(254). validator.js also enforces
+      // a 254-char default cap (ignore_max_length: false) — either layer
+      // is sufficient to reject this address; we want both to keep it out.
+      const longEmail = `${'a'.repeat(64)}@${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(63)}.com`;
+      expect(longEmail.length).toBeGreaterThan(254);
+
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/setup/admin')
+        .send({ email: longEmail, name: 'Founder', password: 'secret-password' })
+        .expect(400);
+      expect(res.body.message).toBeDefined();
+    });
+
+    // Valid-format emails: the DTO validation must pass them through to
+    // the service. We assert this indirectly: with a user already in the
+    // table, the service throws ConflictException (409) — which is only
+    // reachable AFTER ValidationPipe has accepted the body.
+    it.each([
+      ['founder+label@example.com', 'plus addressing'],
+      ['founder.tag@sub.example.co.uk', 'dotted local + multi-label TLD'],
+    ])('accepts valid email %p (%s) past DTO validation', async (email) => {
+      const ds = app.get(DataSource);
+      await ds.query(
+        `INSERT INTO "user" (id, email, "emailVerified") VALUES ($1, $2, true)`,
+        ['blocking-admin', 'admin@example.com'],
+      );
+
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/setup/admin')
+        .send({ email, name: 'Founder', password: 'secret-password' });
+
+      // 409 (not 400) proves validation passed and the request reached
+      // SetupService, which rejected due to the existing user.
+      expect(res.status).toBe(409);
+    });
+
     it('rejects when name is missing', async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/setup/admin')

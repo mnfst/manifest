@@ -108,12 +108,16 @@ export function overrideHeaderTier(
   model: string,
   provider: string,
   authType?: AuthType,
+  providerKeyLabel?: string,
 ) {
   const body: Record<string, unknown> = { model, provider };
   if (authType) {
     body.authType = authType;
-    body.route = { provider, authType, model };
+    body.route = providerKeyLabel
+      ? { provider, authType, model, keyLabel: providerKeyLabel }
+      : { provider, authType, model };
   }
+  if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
   return fetchMutate<HeaderTier>(
     routingPath(agentName, `header-tiers/${encodeURIComponent(id)}/override`),
     {

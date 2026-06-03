@@ -6,7 +6,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
-import { DiscoveredModel } from './model-fetcher';
+import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
@@ -14,6 +14,7 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
+import { getZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -112,6 +113,13 @@ export class ModelDiscoveryService {
     }
     if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
       endpointOverride = getQwenCompatibleBaseUrl(provider.region);
+    }
+    if (
+      provider.provider.toLowerCase() === 'zai' &&
+      provider.auth_type === 'subscription' &&
+      provider.region === 'cn'
+    ) {
+      endpointOverride = getZaiCodingPlanBaseUrl('cn');
     }
 
     let raw: DiscoveredModel[];
@@ -315,14 +323,16 @@ export class ModelDiscoveryService {
       if (!Array.isArray(rawCached)) continue;
       const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
       const providerAuthType: AuthType = p.auth_type;
+      const providerId = p.provider.toLowerCase();
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
-        // Deduplicate by model ID + auth type so subscription and API key
-        // versions of the same model are kept as independent entries.
-        const dedupeKey = `${m.id}::${effectiveAuthType}`;
+        // Deduplicate by the routable tuple, not just model ID. Multiple
+        // providers can expose the same native model name, and the picker must
+        // keep each provider-specific route selectable.
+        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
         if (!seen.has(dedupeKey)) {
           seen.set(dedupeKey, models.length);
-          models.push({ ...m, authType: effectiveAuthType });
+          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
         }
       }
     }
@@ -361,7 +371,7 @@ export class ModelDiscoveryService {
           displayName: m.model_name,
           provider: cpKey,
           authType: customAuthTypes.get(cpKey) ?? 'api_key',
-          contextWindow: m.context_window ?? 128000,
+          contextWindow: m.context_window ?? DEFAULT_CONTEXT_WINDOW,
           inputPricePerToken: inputPerToken,
           outputPricePerToken: outputPerToken,
           capabilityReasoning: false,
@@ -376,7 +386,10 @@ export class ModelDiscoveryService {
 
   async getModelForAgent(userId: string, modelName: string): Promise<DiscoveredModel | undefined> {
     const all = await this.getModelsForAgent(userId);
-    return all.find((m) => m.id === modelName);
+    const matches = all.filter((m) => m.id === modelName);
+    // Provider-less lookups are legacy fallbacks. Once multiple providers can
+    // expose the same model ID, only a single matching route is safe to infer.
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
@@ -429,6 +442,8 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+          ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
           capabilities: mergeModelCapabilities(
             model.capabilities,
             mdEntry.capabilities,
@@ -477,6 +492,8 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+      ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
       capabilities: mergeModelCapabilities(
         model.capabilities,
         mdEntry.capabilities,

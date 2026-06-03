@@ -202,4 +202,63 @@ describe('ApiKeyGuard', () => {
 
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
   });
+
+  it('rejects x-api-key header when provided as an array', async () => {
+    // Express returns an array when multiple values are supplied for the
+    // same header (e.g. duplicate `X-API-Key: ...` lines). `typeof` an
+    // array is 'object', so the guard's `typeof apiKey !== 'string'` check
+    // must reject this case rather than coerce / pick a value silently.
+    const ctx = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          headers: { 'x-api-key': ['key1', 'key2'] },
+          ip: '127.0.0.1',
+        }),
+      }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('X-API-Key header required');
+    expect(mockFind).not.toHaveBeenCalled();
+  });
+
+  it('rejects x-api-key header when provided as a single-element array', async () => {
+    // Even when only one value is present, an array shape must not pass —
+    // otherwise downstream `apiKey.substring(...)` / hash lookups would
+    // explode at runtime on `array.substring is not a function`.
+    const ctx = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          headers: { 'x-api-key': ['only-key'] },
+          ip: '127.0.0.1',
+        }),
+      }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(ctx)).rejects.toThrow('X-API-Key header required');
+    expect(mockFind).not.toHaveBeenCalled();
+  });
+
+  it('rejects x-api-key header when provided as an empty array', async () => {
+    // Falsy short-circuit (`!apiKey`) handles `[]` because empty arrays
+    // are truthy in JS — the explicit type guard is what catches this.
+    const ctx = {
+      switchToHttp: () => ({
+        getRequest: () => ({
+          headers: { 'x-api-key': [] as string[] },
+          ip: '127.0.0.1',
+        }),
+      }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    expect(mockFind).not.toHaveBeenCalled();
+  });
 });

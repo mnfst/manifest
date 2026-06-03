@@ -175,6 +175,11 @@ export class EmailProviderConfigService {
   }
 
   async setNotificationEmail(userId: string, email: string): Promise<void> {
+    const normalized = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    if (!normalized) {
+      throw new BadRequestException('Notification email must be a non-empty string');
+    }
+
     const existing = await this.ds.query(
       `SELECT id FROM email_provider_configs WHERE user_id = $1`,
       [userId],
@@ -184,7 +189,7 @@ export class EmailProviderConfigService {
     if (existing.length > 0) {
       await this.ds.query(
         `UPDATE email_provider_configs SET notification_email = $1, updated_at = $2 WHERE user_id = $3`,
-        [email.trim().toLowerCase(), now, userId],
+        [normalized, now, userId],
       );
     }
   }

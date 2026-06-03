@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -18,6 +18,7 @@ import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
+import { isZaiCodingPlanRegion, isZaiProviderId } from '../zai-region';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -328,6 +329,16 @@ export class ProviderService {
       return requestedRegion;
     }
 
+    if (isZaiProviderId(lower) && authType === 'subscription') {
+      if (requestedRegion === undefined) {
+        return isZaiCodingPlanRegion(existing?.region) ? existing.region : null;
+      }
+      if (!isZaiCodingPlanRegion(requestedRegion)) {
+        throw new BadRequestException('Z.ai subscription region must be one of: global, cn');
+      }
+      return requestedRegion;
+    }
+
     const isQwenProvider = lower === 'qwen' || lower === 'alibaba';
     if (!isQwenProvider || authType !== 'api_key') return null;
 
@@ -488,12 +499,12 @@ export class ProviderService {
     // Legacy disconnect: deactivate every active key for the (provider,
     // [auth_type]) tuple. Falls back to findOne for compatibility with the
     // already-disconnected case so tier-cleanup still runs.
-    const where: Record<string, unknown> = { user_id: userId, provider, is_active: true };
+    const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider, is_active: true };
     if (authType) where.auth_type = authType;
     const activeRows = await this.providerRepo.find({ where });
 
     if (activeRows.length === 0) {
-      const fallbackWhere: Record<string, unknown> = { user_id: userId, provider };
+      const fallbackWhere: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
       if (authType) fallbackWhere.auth_type = authType;
       const any = await this.providerRepo.findOne({ where: fallbackWhere });
       if (!any) throw new NotFoundException('Provider not found');
@@ -599,7 +610,7 @@ export class ProviderService {
     authType: AuthType | undefined,
     label: string,
   ): Promise<{ notifications: string[] }> {
-    const where: Record<string, unknown> = { user_id: userId, provider };
+    const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
     if (authType) where.auth_type = authType;
     const matching = await this.providerRepo.find({ where });
     if (matching.length === 0) throw new NotFoundException('Provider not found');

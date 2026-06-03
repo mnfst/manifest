@@ -318,6 +318,19 @@ describe('filterNonChatModels', () => {
     });
   });
 
+  describe('Fireworks-specific patterns', () => {
+    it('filters non-chat serverless models while preserving chat account IDs', () => {
+      const models = [
+        makeModel('accounts/fireworks/models/deepseek-v3p1'),
+        makeModel('accounts/fireworks/models/flux-1-schnell'),
+        makeModel('accounts/fireworks/models/nomic-embed-text-v1'),
+        makeModel('accounts/fireworks/models/fireworks-rerank-v1'),
+      ];
+      const result = filterNonChatModels(models, 'fireworks');
+      expect(result.map((m) => m.id)).toEqual(['accounts/fireworks/models/deepseek-v3p1']);
+    });
+  });
+
   describe('providers without specific filters', () => {
     it('only applies universal filter for unknown config keys', () => {
       const models = [makeModel('some-chat-model'), makeModel('text-embedding-ada')];
@@ -333,9 +346,10 @@ describe('filterNonChatModels', () => {
   });
 
   describe('PROVIDER_NON_CHAT registry', () => {
-    it('has entries for openai, openai-subscription, gemini, mistral, and xai', () => {
+    it('has entries for openai, openai-subscription, fireworks, gemini, mistral, and xai', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai');
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai-subscription');
+      expect(PROVIDER_NON_CHAT).toHaveProperty('fireworks');
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
       expect(PROVIDER_NON_CHAT).toHaveProperty('xai');
