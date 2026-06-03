@@ -19,7 +19,6 @@ clearReloadFlag();
 const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
 const Routing = lazyReload(() => import('./pages/Routing.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
-const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
 const Limits = lazyReload(() => import('./pages/Limits.jsx'));
 const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
 
@@ -87,7 +86,6 @@ render(
               <Route path="/overview" component={AgentOverview} />
               <Route path="/routing" component={Routing} />
               <Route path="/settings/*" component={Settings} />
-              <Route path="/providers" component={AgentProviders} />
               <Route path="/guardrails" component={Limits} />
             </Route>
 
