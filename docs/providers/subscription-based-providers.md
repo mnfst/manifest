@@ -30,7 +30,7 @@ If you already pay for one of the plans below, Manifest can route through that s
 3. Pick the Subscription tab.
 4. Complete the provider's auth flow.
 
-Providers that support both API keys and subscriptions show both tabs. Subscription-only providers show only the subscription flow.
+Providers that support both API keys and subscriptions show both tabs. Subscription-only providers show only the subscription flow. In routing pickers, subscription rows appear only after a usable subscription credential is saved (`has_api_key=true`).
 
 ## How auth works per provider
 
