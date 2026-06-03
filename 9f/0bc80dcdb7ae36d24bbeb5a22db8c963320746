@@ -1,0 +1,19 @@
+docs/providers/subscription-based-providers.md
+  s_3de61d8f856afc::t_d7e97782ce94c6 33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9f0bc80dcdb7ae36d24bbeb5a22db8c963320746",
+  "prompts": {},
+  "sessions": {
+    "s_3de61d8f856afc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8ed7-2947-71c0-b4e5-13debae4403d",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
