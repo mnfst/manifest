@@ -112,6 +112,7 @@ import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/17900
 import { AddReasoningContentCache1790100000000 } from './migrations/1790100000000-AddReasoningContentCache';
 import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
 import { AddProviderRateLimits1791100000000 } from './migrations/1791100000000-AddProviderRateLimits';
+import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 
 const entities = [
   AgentMessage,
@@ -225,6 +226,7 @@ const migrations = [
   AddReasoningContentCache1790100000000,
   LiftProvidersToUserLevel1791000000000,
   AddProviderRateLimits1791100000000,
+  LiftCustomProvidersToUserLevel1791200000000,
 ];
 
 @Module({
