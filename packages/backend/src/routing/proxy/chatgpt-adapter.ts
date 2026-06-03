@@ -85,6 +85,14 @@ export function toResponsesRequest(
     }
   }
 
+  if (isObjectRecord(body.reasoning)) {
+    request.reasoning = body.reasoning;
+  }
+
+  if (isObjectRecord(body.text)) {
+    request.text = body.text;
+  }
+
   if (Array.isArray(body.tools)) {
     request.tools = convertTools(body.tools as Record<string, unknown>[]);
   }
