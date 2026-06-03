@@ -2,4 +2,4 @@
 "manifest": patch
 ---
 
-Lower the latency Manifest adds to LLM calls and speed up the dashboard: reused upstream connections, unbuffered SSE streaming, smaller render-blocking CSS, lazy-loaded modals, and new indexes for hot queries.
+Speed up the dashboard and lower proxy overhead: unbuffered SSE streaming, smaller render-blocking CSS, lazy-loaded modals, cached per-agent model lookups, and new indexes for hot queries.
