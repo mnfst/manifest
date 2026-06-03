@@ -85,16 +85,21 @@ export class TierService {
       throw err;
     }
 
-    // If agent has active providers, recalculate so new slots get auto-assigned models.
-    const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
-    const usableProviders = providers.filter(isManifestUsableProvider);
-    if (usableProviders.length > 0 && userId) {
-      await this.autoAssign.recalculate(agentId, userId);
-      const result = await this.tierRepo.find({ where: { agent_id: agentId } });
-      this.routingCache.setTiers(agentId, result);
-      return result;
+    // If the user has active providers, recalculate so new slots get
+    // auto-assigned models. Providers are user-scoped (agent_id is NULL after
+    // the LiftProvidersToUserLevel migration), so filter by user_id — filtering
+    // by agent_id here would always return zero rows and silently skip backfill.
+    if (userId) {
+      const providers = await this.providerRepo.find({
+        where: { user_id: userId, is_active: true },
+      });
+      const usableProviders = providers.filter(isManifestUsableProvider);
+      if (usableProviders.length > 0) {
+        await this.autoAssign.recalculate(agentId, userId);
+        const result = await this.tierRepo.find({ where: { agent_id: agentId } });
+        this.routingCache.setTiers(agentId, result);
+        return result;
+      }
     }
 
     const merged = [...rows, ...created];

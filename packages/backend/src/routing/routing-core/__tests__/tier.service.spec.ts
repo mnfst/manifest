@@ -196,6 +196,36 @@ describe('TierService', () => {
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', finalRows);
       expect(result).toBe(finalRows);
     });
+
+    // Regression: providers are user-scoped (agent_id is NULL after the
+    // LiftProvidersToUserLevel migration). The backfill must filter active
+    // providers by user_id — filtering by agent_id finds nothing and silently
+    // skips the auto-assign that fills newly-created tier slots.
+    it('looks up active providers by user_id, not the nulled agent_id', async () => {
+      tierRepo.find.mockResolvedValueOnce([]);
+      providerRepo.find.mockResolvedValue([
+        { user_id: 'user-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
+      ]);
+      tierRepo.find.mockResolvedValueOnce(
+        TIER_SLOTS.map((slot) => ({ tier: slot }) as TierAssignment),
+      );
+
+      await svc.getTiers('agent-1', 'user-1');
+
+      expect(providerRepo.find).toHaveBeenCalledWith({
+        where: { user_id: 'user-1', is_active: true },
+      });
+      expect(providerRepo.find).not.toHaveBeenCalledWith({
+        where: { agent_id: 'agent-1', is_active: true },
+      });
+    });
+
+    it('skips the provider lookup entirely when no userId is passed', async () => {
+      tierRepo.find.mockResolvedValueOnce([]);
+      await svc.getTiers('agent-1');
+      expect(providerRepo.find).not.toHaveBeenCalled();
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+    });
   });
 
   describe('setOverride', () => {

@@ -29,27 +29,31 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
       WHERE "agent_id" IS NOT NULL
     `);
 
-    // 4. Deduplicate: merge provider rows that have the same
-    //    (user_id, provider, auth_type, api_key_encrypted) across different agents.
-    //    Keep the row with the lowest priority (primary key preference).
+    // 4. Deduplicate: merge provider rows that collide on the new user-scoped
+    //    uniqueness key (user_id, provider, auth_type, LOWER(label)) across
+    //    different agents. We group by that exact tuple — NOT by
+    //    api_key_encrypted — because keys are encrypted with a random IV
+    //    (crypto.util.ts), so the same key yields different ciphertext on every
+    //    row. Grouping on the ciphertext would never detect these as duplicates,
+    //    leaving collisions that crash the unique index created in step 6.
+    //    Keep the row with the lowest priority (earliest connected as tiebreak).
     //    Reassign access entries to the kept row, then delete duplicates.
     await queryRunner.query(`
       DO $$
       DECLARE
         rec RECORD;
         keep_id varchar;
-        dup_id varchar;
         agent varchar;
       BEGIN
-        -- Find groups of duplicates
+        -- Find groups that would violate the new unique index
         FOR rec IN
           SELECT
-            "user_id", "provider", "auth_type", "api_key_encrypted",
+            "user_id", "provider", "auth_type", LOWER("label") AS label_key,
             array_agg("id" ORDER BY "priority" ASC, "connected_at" ASC) AS ids,
             array_agg(DISTINCT "agent_id") FILTER (WHERE "agent_id" IS NOT NULL) AS agents
           FROM "user_providers"
           WHERE "user_id" IS NOT NULL
-          GROUP BY "user_id", "provider", "auth_type", "api_key_encrypted"
+          GROUP BY "user_id", "provider", "auth_type", LOWER("label")
           HAVING COUNT(*) > 1
         LOOP
           -- Keep the first row (lowest priority / earliest connected)
