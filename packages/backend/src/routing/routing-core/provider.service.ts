@@ -428,7 +428,7 @@ export class ProviderService {
       const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
       if (!target) return false;
 
-      // Protect the unique index on (agent_id, provider, auth_type, LOWER(label)):
+      // Protect the unique index on (user_id, provider, auth_type, LOWER(label)):
       // if a row already exists for the destination auth_type with the same
       // label, the UPDATE would fail. Drop the stale destination row first.
       const collision = rows.find(
