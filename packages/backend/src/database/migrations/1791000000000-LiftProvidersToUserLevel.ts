@@ -29,55 +29,37 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
       WHERE "agent_id" IS NOT NULL
     `);
 
-    // 4. Deduplicate: merge provider rows that collide on the new user-scoped
-    //    uniqueness key (user_id, provider, auth_type, LOWER(label)) across
-    //    different agents. We group by that exact tuple — NOT by
-    //    api_key_encrypted — because keys are encrypted with a random IV
-    //    (crypto.util.ts), so the same key yields different ciphertext on every
-    //    row. Grouping on the ciphertext would never detect these as duplicates,
-    //    leaving collisions that crash the unique index created in step 6.
-    //    Keep the row with the lowest priority (earliest connected as tiebreak).
-    //    Reassign access entries to the kept row, then delete duplicates.
+    // 4. Disambiguate rows that collide on the new user-scoped uniqueness key
+    //    (user_id, provider, auth_type, LOWER(label)) by RELABELING, never
+    //    deleting. The common pre-PR state is the same api key connected to N
+    //    agents: N rows, all label 'Default', different agent_id. They collide
+    //    on the new index. We CANNOT merge them safely — keys are AES-256-GCM
+    //    with a random IV (crypto.util.ts), so the same plaintext key has
+    //    different ciphertext on every row and pure SQL can't prove equality.
+    //    Deleting "duplicates" would silently drop a distinct key in the case
+    //    where two agents genuinely hold different keys under the same label.
+    //    Instead, keep the lowest-priority row's label and suffix every other
+    //    colliding row with its own (globally unique) id, so every key survives
+    //    and the unique index in step 6 holds. The agent_provider_access rows
+    //    inserted in step 3 already point each agent at its own row, so they
+    //    stay correct — no reassignment needed. Worst case is a few near-
+    //    identical entries the user can tidy up; no key is ever lost.
     await queryRunner.query(`
-      DO $$
-      DECLARE
-        rec RECORD;
-        keep_id varchar;
-        agent varchar;
-      BEGIN
-        -- Find groups that would violate the new unique index
-        FOR rec IN
-          SELECT
-            "user_id", "provider", "auth_type", LOWER("label") AS label_key,
-            array_agg("id" ORDER BY "priority" ASC, "connected_at" ASC) AS ids,
-            array_agg(DISTINCT "agent_id") FILTER (WHERE "agent_id" IS NOT NULL) AS agents
-          FROM "user_providers"
-          WHERE "user_id" IS NOT NULL
-          GROUP BY "user_id", "provider", "auth_type", LOWER("label")
-          HAVING COUNT(*) > 1
-        LOOP
-          -- Keep the first row (lowest priority / earliest connected)
-          keep_id := rec.ids[1];
-
-          -- Ensure all agents have access to the kept row
-          IF rec.agents IS NOT NULL THEN
-            FOREACH agent IN ARRAY rec.agents LOOP
-              INSERT INTO "agent_provider_access" ("agent_id", "user_provider_id")
-              VALUES (agent, keep_id)
-              ON CONFLICT DO NOTHING;
-            END LOOP;
-          END IF;
-
-          -- Delete access entries pointing to duplicate rows
-          DELETE FROM "agent_provider_access"
-          WHERE "user_provider_id" = ANY(rec.ids[2:]);
-
-          -- Delete the duplicate provider rows
-          DELETE FROM "user_providers"
-          WHERE "id" = ANY(rec.ids[2:]);
-        END LOOP;
-      END
-      $$
+      WITH ranked AS (
+        SELECT
+          "id",
+          "label",
+          ROW_NUMBER() OVER (
+            PARTITION BY "user_id", "provider", "auth_type", LOWER("label")
+            ORDER BY "priority" ASC, "connected_at" ASC, "id" ASC
+          ) AS rn
+        FROM "user_providers"
+        WHERE "user_id" IS NOT NULL AND "label" IS NOT NULL
+      )
+      UPDATE "user_providers" up
+      SET "label" = ranked."label" || ' [' || ranked."id" || ']'
+      FROM ranked
+      WHERE up."id" = ranked."id" AND ranked.rn > 1
     `);
 
     // 5. Drop the old agent-scoped unique index
