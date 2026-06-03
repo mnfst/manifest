@@ -220,6 +220,49 @@ describe('Responses adapter', () => {
     ]);
   });
 
+  it('passes typed non-message Responses items through when normalizing native input', () => {
+    const reasoning = { type: 'reasoning', id: 'rs_1', summary: [] };
+    const itemReference = { type: 'item_reference', id: 'fc_1' };
+    const result = toNativeResponsesRequest(
+      {
+        input: [{ type: 'message', role: 'user', content: 'hello' }, reasoning, itemReference],
+      },
+      'gpt-5.4',
+    ).input as unknown[];
+
+    expect(result).toEqual([
+      { type: 'message', role: 'user', content: [{ type: 'input_text', text: 'hello' }] },
+      reasoning,
+      itemReference,
+    ]);
+    expect(result[1]).toBe(reasoning);
+    expect(result[2]).toBe(itemReference);
+  });
+
+  it('does not add roles to typed non-message Responses items in native input lists', () => {
+    const reasoning = { type: 'reasoning', id: 'rs_1', summary: [] };
+    const itemReference = { type: 'item_reference', id: 'fc_1' };
+    const result = toNativeResponsesRequest(
+      {
+        input: [
+          { type: 'message', role: 'assistant', content: [{ type: 'text', text: 'done' }] },
+          reasoning,
+          itemReference,
+        ],
+      },
+      'gpt-5.4',
+      { inputList: true },
+    ).input as unknown[];
+
+    expect(result).toEqual([
+      { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'done' }] },
+      reasoning,
+      itemReference,
+    ]);
+    expect(result[1]).toBe(reasoning);
+    expect(result[2]).toBe(itemReference);
+  });
+
   it('normalizes legacy image_url content parts in native Responses input lists', () => {
     expect(
       toNativeResponsesRequest(

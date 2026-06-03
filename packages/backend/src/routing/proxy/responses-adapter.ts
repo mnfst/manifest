@@ -199,7 +199,7 @@ function normalizeNativeResponsesInput(input: unknown): unknown {
 
   return input.map((item) => {
     if (!isRecord(item)) return item;
-    if (item.type === 'function_call' || item.type === 'function_call_output') return item;
+    if (!isNativeResponsesMessageItem(item)) return item;
 
     const role = typeof item.role === 'string' ? item.role : 'user';
     return { ...item, content: toNativeResponsesContent(item.content, role) };
@@ -216,13 +216,16 @@ function toNativeResponsesInput(input: unknown): unknown {
     if (typeof item === 'string') {
       return [{ role: 'user', content: [{ type: 'input_text', text: item }] }];
     }
-    if (!isRecord(item) || item.type === 'function_call' || item.type === 'function_call_output') {
-      return isRecord(item) ? [item] : [];
-    }
+    if (!isRecord(item)) return [];
+    if (!isNativeResponsesMessageItem(item)) return [item];
 
     const role = typeof item.role === 'string' ? item.role : 'user';
     return [{ ...item, role, content: toNativeResponsesContent(item.content, role) }];
   });
+}
+
+function isNativeResponsesMessageItem(item: JsonRecord): boolean {
+  return item.type === undefined || item.type === 'message';
 }
 
 function toNativeResponsesContent(content: unknown, role: string): unknown {
