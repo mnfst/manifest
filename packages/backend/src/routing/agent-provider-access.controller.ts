@@ -90,6 +90,14 @@ export class AgentProviderAccessController {
     const agent = await this.resolveAgent(agentName, user.id);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
+    // The provider must belong to the caller. Without this check a user could
+    // grant their agent access to another user's provider (there is no FK on
+    // the junction table to catch it).
+    const provider = await this.userProviderRepo.findOne({
+      where: { id: userProviderId, user_id: user.id },
+    });
+    if (!provider) throw new HttpException('Provider not found', HttpStatus.NOT_FOUND);
+
     await this.accessRepo
       .createQueryBuilder()
       .insert()
