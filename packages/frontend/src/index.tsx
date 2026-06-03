@@ -30,6 +30,7 @@ const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.j
 const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
 const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
 const ConnectionDetail = lazyReload(() => import('./pages/providers/ConnectionDetail.jsx'));
+const Workspace = lazyReload(() => import('./pages/Workspace.jsx'));
 
 // Auth / account pages
 const Account = lazyReload(() => import('./pages/Account.jsx'));
@@ -66,6 +67,7 @@ render(
           {/* Global: overview & messages (filterable by agent) */}
           <Route path="/overview" component={Overview} />
           <Route path="/messages" component={MessageLog} />
+          <Route path="/agents" component={Workspace} />
 
           {/* Global: providers (user-level) */}
           <Route path="/providers/subscriptions" component={Subscriptions} />

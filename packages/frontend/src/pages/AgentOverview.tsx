@@ -23,6 +23,7 @@ import ProviderChartCard from '../components/ProviderChartCard.jsx';
 import Select from '../components/Select.jsx';
 import { messagePing } from '../services/sse.js';
 import '../styles/charts.css';
+import '../styles/overview.css';
 
 interface OverviewResponse {
   summary: {
@@ -74,7 +75,7 @@ const AgentOverview: Component = () => {
     } catch {
       /* ignore */
     }
-    return '24h';
+    return '7d';
   };
 
   const loadView = (): 'messages' | 'tokens' | 'cost' => {
@@ -262,334 +263,336 @@ const AgentOverview: Component = () => {
 
   return (
     <div class="container--lg">
-      <Show
-        when={overview()?.has_data !== false}
-        fallback={
-          <div style="padding: 48px 24px; text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-            No usage data for this agent yet. Send requests through Manifest to see analytics here.
-          </div>
-        }
-      >
-        {/* ── 1. Range selector + provider filter ──────────────────────── */}
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 24px; gap: 8px; align-items: center;">
-          <Show when={allProviders().length > 1}>
-            <div class="agent-filter-select" ref={filterRef}>
-              <button
-                class="agent-filter-select__trigger"
-                onClick={() => setFilterOpen(!filterOpen())}
-                type="button"
+      <Show when={overview()?.has_data === false}>
+        <div class="waiting-banner">
+          <i class="bxd bx-time-five" />
+          <p>No activity yet. Your dashboard updates seconds after the first LLM call.</p>
+        </div>
+      </Show>
+
+      {/* ── 1. Range selector + provider filter ──────────────────────── */}
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 24px; gap: 8px; align-items: center;">
+        <Show when={allProviders().length > 1}>
+          <div class="agent-filter-select" ref={filterRef}>
+            <button
+              class="agent-filter-select__trigger"
+              onClick={() => setFilterOpen(!filterOpen())}
+              type="button"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-                {selectedProviderCount() === allProviders().length
-                  ? `All providers (${allProviders().length})`
-                  : `${selectedProviderCount()} of ${allProviders().length} providers`}
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              <Show when={filterOpen()}>
-                <div class="agent-filter-select__dropdown">
-                  <div class="agent-filter-select__actions">
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedProviderCount() === allProviders().length}
-                      onClick={() => {
-                        setSelectedProviders(new Set(allProviders()));
-                        try {
-                          sessionStorage.setItem(storageKey(), JSON.stringify([...allProviders()]));
-                        } catch {
-                          /* ignore */
-                        }
-                      }}
-                    >
-                      Select all
-                    </button>
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedProviderCount() === 0}
-                      onClick={() => {
-                        setSelectedProviders(new Set<string>());
-                        try {
-                          sessionStorage.setItem(storageKey(), JSON.stringify([]));
-                        } catch {
-                          /* ignore */
-                        }
-                      }}
-                    >
-                      Unselect all
-                    </button>
-                  </div>
-                  <For each={allProviders()}>
-                    {(provider) => {
-                      const isOn = () => effectiveSelected().has(provider);
-                      return (
-                        <button
-                          class="agent-filter-select__item"
-                          onClick={() => toggleProvider(provider)}
-                          type="button"
-                        >
-                          <span
-                            class="agent-filter-select__swatch"
-                            style={{ background: providerColorMap()[provider] }}
-                          />
-                          <span class="agent-filter-select__name">
-                            {providerDisplayName(provider)}
-                          </span>
-                          <span
-                            class="agent-filter-select__toggle"
-                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                          >
-                            <span class="agent-filter-select__toggle-thumb" />
-                          </span>
-                        </button>
-                      );
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              {selectedProviderCount() === allProviders().length
+                ? `All providers (${allProviders().length})`
+                : `${selectedProviderCount()} of ${allProviders().length} providers`}
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <Show when={filterOpen()}>
+              <div class="agent-filter-select__dropdown">
+                <div class="agent-filter-select__actions">
+                  <button
+                    class="agent-filter-select__action-btn"
+                    type="button"
+                    disabled={selectedProviderCount() === allProviders().length}
+                    onClick={() => {
+                      setSelectedProviders(new Set(allProviders()));
+                      try {
+                        sessionStorage.setItem(storageKey(), JSON.stringify([...allProviders()]));
+                      } catch {
+                        /* ignore */
+                      }
                     }}
-                  </For>
+                  >
+                    Select all
+                  </button>
+                  <button
+                    class="agent-filter-select__action-btn"
+                    type="button"
+                    disabled={selectedProviderCount() === 0}
+                    onClick={() => {
+                      setSelectedProviders(new Set<string>());
+                      try {
+                        sessionStorage.setItem(storageKey(), JSON.stringify([]));
+                      } catch {
+                        /* ignore */
+                      }
+                    }}
+                  >
+                    Unselect all
+                  </button>
                 </div>
-              </Show>
-            </div>
-          </Show>
-          <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
-        </div>
-
-        {/* ── 2. Chart Card (ProviderChartCard) ────────────────────────── */}
-        <ProviderChartCard
-          activeView={chartView()}
-          onViewChange={setChartView}
-          messagesValue={overview()?.summary?.messages?.value ?? 0}
-          messagesTrendPct={overview()?.summary?.messages?.trend_pct ?? 0}
-          tokensValue={overview()?.summary?.tokens_today?.value ?? 0}
-          tokensTrendPct={overview()?.summary?.tokens_today?.trend_pct ?? 0}
-          costValue={overview()?.summary?.cost_today?.value ?? 0}
-          costTrendPct={overview()?.summary?.cost_today?.trend_pct ?? 0}
-          costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-          tokenUsage={overview()?.token_usage ?? []}
-          messageChartData={messageChartData()}
-          range={chartRange()}
-          agentTimeseries={filteredProviderTimeseries() ?? undefined}
-          agentMessageTimeseries={filteredProviderMessageTimeseries() ?? undefined}
-          colorMap={providerColorMap()}
-        />
-
-        {/* ── 3. Two columns: Models + Recent Messages ─────────────────── */}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
-          {/* Models */}
-          <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div class="panel__title">Models</div>
-            <div
-              class="scroll-panel__body"
-              style="max-height: 480px; overflow-y: auto;"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
-            >
-              <Show
-                when={(overview()?.cost_by_model ?? []).length > 0}
-                fallback={
-                  <div style="padding: 24px; text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                    No model data yet.
-                  </div>
-                }
-              >
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tbody>
-                    <For each={overview()?.cost_by_model ?? []}>
-                      {(row) => (
-                        <tr>
-                          <td style="padding: 10px 16px; font-size: 14px;">
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                              <Show when={row.provider}>
-                                <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
-                                  {providerIcon(row.provider!, 16)}
-                                  {authBadgeFor(row.auth_type, 12)}
-                                </span>
-                              </Show>
-                              {row.display_name ?? row.model}
-                            </div>
-                          </td>
-                          <td style="padding: 10px 8px; font-size: 14px; text-align: right; white-space: nowrap;">
-                            {formatNumber(row.tokens)}
-                          </td>
-                          <td style="padding: 10px 16px; width: 80px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                              <div
-                                style={{
-                                  width: '60px',
-                                  height: '6px',
-                                  'border-radius': '3px',
-                                  background: 'hsl(var(--muted) / 0.3)',
-                                  overflow: 'hidden',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: `${row.share_pct}%`,
-                                    height: '100%',
-                                    'border-radius': '3px',
-                                    background: '#1cc4bf',
-                                  }}
-                                />
-                              </div>
-                              <span style="font-size: 12px; color: hsl(var(--muted-foreground)); min-width: 32px; text-align: right;">
-                                {Math.round(row.share_pct)}%
-                              </span>
-                            </div>
-                          </td>
-                          <td style="padding: 10px 16px; font-size: 14px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
-                            {formatCost(row.estimated_cost) ?? '$0.00'}
-                          </td>
-                        </tr>
-                      )}
-                    </For>
-                  </tbody>
-                </table>
-              </Show>
-            </div>
+                <For each={allProviders()}>
+                  {(provider) => {
+                    const isOn = () => effectiveSelected().has(provider);
+                    return (
+                      <button
+                        class="agent-filter-select__item"
+                        onClick={() => toggleProvider(provider)}
+                        type="button"
+                      >
+                        <span
+                          class="agent-filter-select__swatch"
+                          style={{ background: providerColorMap()[provider] }}
+                        />
+                        <span class="agent-filter-select__name">
+                          {providerDisplayName(provider)}
+                        </span>
+                        <span
+                          class="agent-filter-select__toggle"
+                          classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                        >
+                          <span class="agent-filter-select__toggle-thumb" />
+                        </span>
+                      </button>
+                    );
+                  }}
+                </For>
+              </div>
+            </Show>
           </div>
+        </Show>
+        <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
+      </div>
 
-          {/* Recent Messages */}
-          <div class="panel scroll-panel" style="margin-bottom: 0;">
-            <div
-              class="panel__title"
-              style="display: flex; justify-content: space-between; align-items: center;"
-            >
-              Recent Messages
-              <Show when={agentName()}>
-                <A
-                  href={`/agents/${encodeURIComponent(agentName()!)}/messages`}
-                  class="view-more-link"
-                >
-                  View more
-                </A>
-              </Show>
-            </div>
-            <div
-              class="scroll-panel__body"
-              style="max-height: 480px; overflow-y: auto;"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
-            >
-              <Show
-                when={(overview()?.recent_activity ?? []).length > 0}
-                fallback={
-                  <div style="padding: 24px; text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                    No recent messages yet.
-                  </div>
-                }
-              >
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tbody>
-                    <For each={overview()?.recent_activity ?? []}>
-                      {(row: any) => (
-                        <tr>
-                          <td style="padding: 10px 16px; font-size: 13px; color: hsl(var(--muted-foreground)); white-space: nowrap;">
-                            {formatTimeAgo(row.timestamp) ?? ''}
-                          </td>
-                          <td style="padding: 10px 8px; font-size: 14px;">
-                            {row.display_name ?? row.model ?? ''}
-                          </td>
-                          <td style="padding: 10px 16px; font-size: 14px; text-align: right; white-space: nowrap;">
-                            {formatNumber(row.total_tokens ?? 0)}
-                          </td>
-                        </tr>
-                      )}
-                    </For>
-                  </tbody>
-                </table>
-              </Show>
-            </div>
-          </div>
-        </div>
+      {/* ── 2. Chart Card (ProviderChartCard) ────────────────────────── */}
+      <ProviderChartCard
+        activeView={chartView()}
+        onViewChange={setChartView}
+        messagesValue={overview()?.summary?.messages?.value ?? 0}
+        messagesTrendPct={overview()?.summary?.messages?.trend_pct ?? 0}
+        tokensValue={overview()?.summary?.tokens_today?.value ?? 0}
+        tokensTrendPct={overview()?.summary?.tokens_today?.trend_pct ?? 0}
+        costValue={overview()?.summary?.cost_today?.value ?? 0}
+        costTrendPct={overview()?.summary?.cost_today?.trend_pct ?? 0}
+        costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+        tokenUsage={overview()?.token_usage ?? []}
+        messageChartData={messageChartData()}
+        range={chartRange()}
+        agentTimeseries={filteredProviderTimeseries() ?? undefined}
+        agentMessageTimeseries={filteredProviderMessageTimeseries() ?? undefined}
+        colorMap={providerColorMap()}
+      />
 
-        {/* ── 4. Providers table ───────────────────────────────────────── */}
-        <Show when={providerTotals().length > 0}>
-          <div class="panel scroll-panel" style="margin-bottom: 0; margin-top: 24px;">
-            <div class="panel__title">Providers</div>
-            <div
-              class="scroll-panel__body"
-              style="max-height: 480px; overflow-y: auto;"
-              onScroll={(e) => {
-                const el = e.currentTarget;
-                const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-              }}
+      {/* ── 3. Two columns: Models + Recent Messages ─────────────────── */}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+        {/* Models */}
+        <div class="panel scroll-panel" style="margin-bottom: 0;">
+          <div class="panel__title">Models</div>
+          <div
+            class="scroll-panel__body"
+            style="max-height: 480px; overflow-y: auto;"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <Show
+              when={(overview()?.cost_by_model ?? []).length > 0}
+              fallback={
+                <div style="padding: 24px; text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                  No model data yet.
+                </div>
+              }
             >
-              <table style="width: 100%; border-collapse: collapse;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th style="text-align: right;">Tokens</th>
+                    <th style="text-align: right;">Share</th>
+                    <th style="text-align: right;">Est. cost</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  <For each={providerTotals()}>
+                  <For each={overview()?.cost_by_model ?? []}>
                     {(row) => (
                       <tr>
-                        <td style="padding: 10px 16px; font-size: 14px;">
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            {providerIcon(row.provider, 16)}
-                            <span>{providerDisplayName(row.provider)}</span>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <Show when={row.provider}>
+                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                                {providerIcon(row.provider!, 16)}
+                                {authBadgeFor(row.auth_type, 12)}
+                              </span>
+                            </Show>
+                            <span style="font-weight: 500;">{row.display_name ?? row.model}</span>
                           </div>
                         </td>
-                        <td style="padding: 10px 8px; font-size: 14px; text-align: right; white-space: nowrap;">
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
                           {formatNumber(row.tokens)}
                         </td>
-                        <td style="padding: 10px 16px; width: 80px;">
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <div
-                              style={{
-                                width: '60px',
-                                height: '6px',
-                                'border-radius': '3px',
-                                background: 'hsl(var(--muted) / 0.3)',
-                                overflow: 'hidden',
-                              }}
-                            >
+                        <td style="text-align: right;">
+                          <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                            <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
                               <div
                                 style={{
-                                  width: `${row.pct}%`,
+                                  width: `${row.share_pct}%`,
                                   height: '100%',
+                                  background: 'hsl(var(--success))',
                                   'border-radius': '3px',
-                                  background: '#1cc4bf',
                                 }}
                               />
                             </div>
-                            <span style="font-size: 12px; color: hsl(var(--muted-foreground)); min-width: 32px; text-align: right;">
-                              {row.pct}%
+                            <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                              {Math.round(row.share_pct)}%
                             </span>
                           </div>
+                        </td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                          {formatCost(row.estimated_cost) ?? '$0.00'}
                         </td>
                       </tr>
                     )}
                   </For>
                 </tbody>
               </table>
-            </div>
+            </Show>
           </div>
-        </Show>
+        </div>
+
+        {/* Recent Messages */}
+        <div class="panel scroll-panel" style="margin-bottom: 0;">
+          <div
+            class="panel__title"
+            style="display: flex; justify-content: space-between; align-items: center;"
+          >
+            Recent Messages
+            <Show when={agentName()}>
+              <A
+                href={`/agents/${encodeURIComponent(agentName()!)}/messages`}
+                class="view-more-link"
+              >
+                View more
+              </A>
+            </Show>
+          </div>
+          <div
+            class="scroll-panel__body"
+            style="max-height: 480px; overflow-y: auto;"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <Show
+              when={(overview()?.recent_activity ?? []).length > 0}
+              fallback={
+                <div style="padding: 24px; text-align: center; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                  No recent messages yet.
+                </div>
+              }
+            >
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Model</th>
+                    <th style="text-align: right;">Tokens</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={overview()?.recent_activity ?? []}>
+                    {(row: any) => (
+                      <tr>
+                        <td style="white-space: nowrap; color: hsl(var(--muted-foreground));">
+                          {formatTimeAgo(row.timestamp) ?? ''}
+                        </td>
+                        <td style="font-weight: 500;">{row.display_name ?? row.model ?? ''}</td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                          {formatNumber(row.total_tokens ?? 0)}
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </Show>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 4. Providers table ───────────────────────────────────────── */}
+      <Show when={providerTotals().length > 0}>
+        <div class="panel scroll-panel" style="margin-bottom: 0; margin-top: 24px;">
+          <div class="panel__title">Providers</div>
+          <div
+            class="scroll-panel__body"
+            style="max-height: 480px; overflow-y: auto;"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th style="text-align: right;">Tokens</th>
+                  <th style="text-align: right;">% of total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={providerTotals()}>
+                  {(row) => (
+                    <tr>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          {providerIcon(row.provider, 16)}
+                          <span style="font-weight: 500;">{providerDisplayName(row.provider)}</span>
+                        </div>
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                        {formatNumber(row.tokens)}
+                      </td>
+                      <td style="text-align: right;">
+                        <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                          <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
+                            <div
+                              style={{
+                                width: `${row.pct}%`,
+                                height: '100%',
+                                background: 'hsl(var(--success))',
+                                'border-radius': '3px',
+                              }}
+                            />
+                          </div>
+                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                            {row.pct}%
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Show>
     </div>
   );

@@ -33,7 +33,7 @@ const AgentDetail: ParentComponent = (props) => {
 
       <div style="margin-bottom: 8px;">
         <A
-          href="/overview"
+          href="/agents"
           style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
         >
           ← Agents

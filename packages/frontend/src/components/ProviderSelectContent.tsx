@@ -29,6 +29,7 @@ export interface ProviderSelectContentProps {
   onClose?: () => void;
   showHeader?: boolean;
   showFooter?: boolean;
+  initialTab?: 'subscription' | 'api_key' | 'local';
 }
 
 const noop = () => {};
@@ -42,7 +43,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
-    'subscription',
+    props.initialTab ?? 'subscription',
   );
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(async () => {
@@ -68,7 +69,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
-  const [addKeyIntent, setAddKeyIntent] = createSignal(false);
+  const [addKeyIntent, setAddKeyIntent] = createSignal(deepLink?.addKey === true);
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
   const localProviders = () => PROVIDERS.filter((p) => p.localOnly);

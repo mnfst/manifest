@@ -1,6 +1,7 @@
 import { Title } from '@solidjs/meta';
 import { A, useNavigate, useParams } from '@solidjs/router';
 import {
+  createEffect,
   createMemo,
   createResource,
   createSignal,
@@ -30,6 +31,7 @@ import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import ActionMenu from '../../components/ActionMenu.jsx';
 import Select from '../../components/Select.jsx';
 import { toast } from '../../services/toast-store.js';
+import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-store.js';
 import '../../styles/charts.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
@@ -104,6 +106,15 @@ const ConnectionDetail: Component = () => {
     BACK_LINKS[conn()?.auth_type ?? 'subscription'] ?? '/providers/subscriptions';
   const backLabel = () => AUTH_TYPE_LABELS[conn()?.auth_type ?? 'subscription'] ?? 'Providers';
 
+  // Set breadcrumb for Header
+  createEffect(() => {
+    const c = conn();
+    const prov = provDef();
+    if (c) {
+      setConnectionBreadcrumb(prov?.name ?? c.provider, backLink());
+    }
+  });
+
   // Chart state (persisted in sessionStorage)
   const rangeKey = () => `chart-range:${params.connectionId}`;
   const viewKey = () => `chart-view:${params.connectionId}`;
@@ -114,7 +125,7 @@ const ConnectionDetail: Component = () => {
     } catch {
       /* ignore */
     }
-    return '24h';
+    return '7d';
   };
   const savedView = () => {
     try {
@@ -887,6 +898,19 @@ const ConnectionDetail: Component = () => {
                         </button>
                       </Show>
                     </div>
+                    <Show when={!c.is_active}>
+                      <p style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-top: 8px;">
+                        To reactivate, go to{' '}
+                        <A
+                          href={backLink()}
+                          style="color: hsl(var(--foreground)); font-weight: 500; text-decoration: underline;"
+                        >
+                          {backLabel()}
+                        </A>{' '}
+                        and reconnect your account. A new connection will be created if the
+                        credentials differ.
+                      </p>
+                    </Show>
 
                     <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
                       <button

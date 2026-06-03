@@ -117,7 +117,7 @@ function loadRange(): string {
   } catch {
     /* ignore */
   }
-  return '24h';
+  return '7d';
 }
 
 const trendBadge = (pct: number) => {

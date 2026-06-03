@@ -21,6 +21,8 @@ export interface ProviderDeepLink {
   authType?: 'subscription' | 'api_key' | 'local';
   /** When true, the back button in the detail view closes the modal instead of returning to the list. */
   closeOnBack?: boolean;
+  /** When true, auto-expands the "add another key" form in the provider detail view. */
+  addKey?: boolean;
 }
 
 export interface CustomProviderPrefill {

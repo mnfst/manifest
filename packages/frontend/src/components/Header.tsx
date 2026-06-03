@@ -5,6 +5,10 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import {
+  connectionBreadcrumbName,
+  connectionBreadcrumbBackLink,
+} from '../services/connection-breadcrumb-store.js';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
 
 const GITHUB_REPO = 'mnfst/manifest';
@@ -132,10 +136,22 @@ const Header: Component<HeaderProps> = (props) => {
             Dev
           </span>
         )}
+        <Show when={location.pathname.startsWith('/providers/connections/')}>
+          <span class="header__separator">/</span>
+          <A href={connectionBreadcrumbBackLink()} class="header__breadcrumb-link">
+            Providers
+          </A>
+          <Show when={connectionBreadcrumbName()}>
+            <span class="header__separator">/</span>
+            <span class="header__breadcrumb-current">
+              <span>{connectionBreadcrumbName()}</span>
+            </span>
+          </Show>
+        </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A href="/" class="header__breadcrumb-link">
-            Workspace
+          <A href="/agents" class="header__breadcrumb-link">
+            Agents
           </A>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">

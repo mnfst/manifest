@@ -144,21 +144,19 @@ export class AgentProviderAccessController {
       }
     }
 
-    // If no explicit entries exist yet, populate with all user providers first
-    const existing = await this.accessRepo.count({ where: { agent_id: agent.id } });
-    if (existing === 0) {
-      const allProviders = await this.userProviderRepo.find({
-        where: { user_id: user.id, is_active: true },
-      });
-      if (allProviders.length > 0) {
-        await this.accessRepo
-          .createQueryBuilder()
-          .insert()
-          .into(AgentProviderAccess)
-          .values(allProviders.map((p) => ({ agent_id: agent.id, user_provider_id: p.id })))
-          .orIgnore()
-          .execute();
-      }
+    // Ensure all user providers have access rows (orIgnore handles duplicates).
+    // This repairs any stale state from previous buggy disables.
+    const allProviders = await this.userProviderRepo.find({
+      where: { user_id: user.id },
+    });
+    if (allProviders.length > 0) {
+      await this.accessRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AgentProviderAccess)
+        .values(allProviders.map((p) => ({ agent_id: agent.id, user_provider_id: p.id })))
+        .orIgnore()
+        .execute();
     }
 
     // Remove the one being disabled

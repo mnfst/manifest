@@ -317,14 +317,14 @@ const Workspace: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>My Agents - Manifest</Title>
+      <Title>Agents - Manifest</Title>
       <Meta
         name="description"
         content="View and manage all your AI agents. Monitor usage, messages, and costs."
       />
       <div class="page-header">
         <div>
-          <h1>My Agents</h1>
+          <h1>Agents</h1>
           <span class="breadcrumb">View and manage all your connected AI agents</span>
         </div>
         <button class="btn btn--primary btn--sm" onClick={() => setModalOpen(true)}>

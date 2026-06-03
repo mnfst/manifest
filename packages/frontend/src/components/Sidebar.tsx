@@ -1,11 +1,5 @@
 import { A, useLocation } from '@solidjs/router';
-import { Show, For, createSignal, createResource, type Component } from 'solid-js';
-import { useAgentName, agentPath } from '../services/routing.js';
-import { getAgents } from '../services/api.js';
-import { agentPing } from '../services/sse.js';
-import { authClient } from '../services/auth-client.js';
-import { platformIcon } from 'manifest-shared';
-import AddAgentModal from './AddAgentModal.jsx';
+import { type Component } from 'solid-js';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -14,41 +8,9 @@ interface SidebarProps {
 
 const Sidebar: Component<SidebarProps> = (props) => {
   const location = useLocation();
-  const getAgentName = useAgentName();
-  const session = authClient.useSession();
-  const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
-  const [addModalOpen, setAddModalOpen] = createSignal(false);
-
-  const [agents] = createResource(
-    () => agentPing(),
-    async () => {
-      try {
-        const data = await getAgents();
-        return (data as any)?.agents ?? data ?? [];
-      } catch {
-        return [];
-      }
-    },
-  );
-
-  const currentAgent = () => getAgentName();
-
-  const isAgentActive = (agentName: string, sub: string) => {
-    const p = agentPath(agentName, sub);
-    if (sub === '') return location.pathname === p;
-    return location.pathname.startsWith(p);
-  };
 
   const isGlobalActive = (route: string) => {
     return location.pathname === route || location.pathname.startsWith(route + '/');
-  };
-
-  const userName = () => session()?.data?.user?.name;
-  const workspaceTitle = () => {
-    const name = userName();
-    if (!name) return 'My workspace';
-    const first = name.split(' ')[0];
-    return `${first}'s workspace`;
   };
 
   const handleNav = () => {
@@ -111,89 +73,22 @@ const Sidebar: Component<SidebarProps> = (props) => {
         Local
       </A>
 
-      {/* Agents section — same label style as PROVIDERS */}
-      <div
-        class="sidebar__section-label sidebar__section-label--interactive"
-        style="cursor: pointer;"
-        onClick={() => setAgentsCollapsed(!agentsCollapsed())}
+      {/* Agents */}
+      <div class="sidebar__section-label">AGENTS</div>
+      <A
+        href="/agents"
+        class="sidebar__link"
+        classList={{
+          active: location.pathname === '/agents' || location.pathname.startsWith('/agents/'),
+        }}
+        aria-current={
+          location.pathname === '/agents' || location.pathname.startsWith('/agents/')
+            ? 'page'
+            : undefined
+        }
       >
-        <div class="sidebar__section-label-left">
-          <span>AGENTS</span>
-          <button
-            type="button"
-            class="sidebar__section-add"
-            title="Create new agent"
-            onClick={(e) => {
-              e.stopPropagation();
-              setAddModalOpen(true);
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" />
-            </svg>
-          </button>
-        </div>
-        <button
-          type="button"
-          class="sidebar__section-caret"
-          onClick={(e) => {
-            e.stopPropagation();
-            setAgentsCollapsed(!agentsCollapsed());
-          }}
-          aria-expanded={!agentsCollapsed()}
-          aria-label={agentsCollapsed() ? 'Expand agents' : 'Collapse agents'}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            style={{
-              transition: 'transform 150ms',
-              transform: agentsCollapsed() ? 'rotate(-90deg)' : 'rotate(0deg)',
-            }}
-          >
-            <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
-          </svg>
-        </button>
-      </div>
-
-      <Show when={!agentsCollapsed()}>
-        <div class="sidebar__agents-list">
-          <For each={agents() ?? []}>
-            {(agent: any) => {
-              const name = () => agent.agent_name;
-              const display = () => agent.display_name || agent.agent_name;
-              const icon = () => platformIcon(agent.agent_platform, agent.agent_category);
-              const isSelected = () => currentAgent() === name();
-              return (
-                <>
-                  <A
-                    href={`/agents/${name()}`}
-                    class="sidebar__agent-item"
-                    classList={{ 'sidebar__agent-item--active': isSelected() }}
-                    aria-current={isSelected() ? 'page' : undefined}
-                    onClick={handleNav}
-                  >
-                    <Show when={icon()}>
-                      <img src={icon()} alt="" class="sidebar__agent-icon" />
-                    </Show>
-                    <span class="sidebar__agent-item-name">{display()}</span>
-                  </A>
-                </>
-              );
-            }}
-          </For>
-        </div>
-      </Show>
+        Agents
+      </A>
 
       <div class="sidebar__spacer" />
 
@@ -209,9 +104,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Feedback
         </span>
       </a>
-
-      {/* Add Agent Modal */}
-      <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
     </nav>
   );
 };

@@ -1,32 +1,16 @@
 import { Title } from '@solidjs/meta';
 import { useNavigate } from '@solidjs/router';
-import {
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  Show,
-  onCleanup,
-  type Component,
-} from 'solid-js';
+import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { fetchJson } from '../../services/api/core.js';
 import { getAgents } from '../../services/api.js';
-import {
-  getProviderAnalytics,
-  getProviderAnalyticsAgents,
-  getPerAgentTimeseries,
-  getPerAgentMessageTimeseries,
-} from '../../services/api/analytics.js';
+import { getOverview } from '../../services/api/analytics.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
-import { formatNumber, formatTimeAgo } from '../../services/formatters.js';
+import { formatNumber, formatTimeAgo, formatCost } from '../../services/formatters.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
-import ProviderChartCard from '../../components/ProviderChartCard.jsx';
-import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
-import ActionMenu from '../../components/ActionMenu.jsx';
-import Select from '../../components/Select.jsx';
+import InfoTooltip from '../../components/InfoTooltip.jsx';
 import type { RoutingProvider } from '../../services/api/routing.js';
 import '../../styles/charts.css';
 
@@ -95,6 +79,19 @@ const Subscriptions: Component = () => {
     },
   );
 
+  // Savings data from overview endpoint
+  const [overviewData] = createResource(
+    () => true,
+    () => getOverview('30d') as Promise<any>,
+  );
+
+  const totalSavings = createMemo(() => {
+    const models = overviewData()?.cost_by_model ?? [];
+    return models
+      .filter((m: any) => m.auth_type === 'subscription')
+      .reduce((sum: number, m: any) => sum + (m.estimated_cost ?? 0), 0);
+  });
+
   const connectedMap = () => {
     const map = new Map<string, ConnectedProvider>();
     for (const p of data()?.providers ?? []) {
@@ -127,6 +124,8 @@ const Subscriptions: Component = () => {
     return rows;
   };
 
+  const totalSubTokens = () => connectedRows().reduce((s, r) => s + r.cp.consumption_tokens, 0);
+
   const getModelCount = (provId: string) => {
     const cp = getConnected(provId);
     if (cp && cp.total_models > 0) return cp.total_models;
@@ -146,128 +145,16 @@ const Subscriptions: Component = () => {
     refetch();
   };
 
-  // Chart state
-  const [chartRange, setChartRange] = createSignal('7d');
-  const [chartView, setChartView] = createSignal<'messages' | 'tokens'>('tokens');
-
-  interface AnalyticsResponse {
-    summary: {
-      messages: { value: number; trend_pct: number };
-      tokens: { value: number; trend_pct: number };
-    };
-    token_usage: Array<{
-      hour?: string;
-      date?: string;
-      input_tokens: number;
-      output_tokens: number;
-    }>;
-    message_usage: Array<{ hour?: string; date?: string; count: number }>;
-  }
-
-  const [analytics] = createResource(
-    () => chartRange(),
-    (range) => getProviderAnalytics('subscription', range) as Promise<AnalyticsResponse>,
-  );
-
-  const [agentTimeseries] = createResource(
-    () => chartRange(),
-    (range) => getPerAgentTimeseries('subscription', '', range),
-  );
-
-  const [agentMessageTimeseries] = createResource(
-    () => chartRange(),
-    (range) => getPerAgentMessageTimeseries('subscription', '', range),
-  );
-
-  const messageChartData = createMemo(() => {
-    const src = analytics()?.message_usage;
-    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
-  });
-
-  // Agent filter (multi-select toggle)
-  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(new Set<string>());
-  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
-  let agentFilterRef: HTMLDivElement | undefined;
-
-  if (typeof document !== 'undefined') {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) setAgentFilterOpen(false);
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAgentFilterOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  }
-
-  const allAgents = createMemo(() => {
-    const t = agentTimeseries()?.agents ?? [];
-    const m = agentMessageTimeseries()?.agents ?? [];
-    return [...new Set([...t, ...m])].sort();
-  });
-
-  const agentColorMap = createMemo(() => {
-    const map: Record<string, string> = {};
-    const agents = allAgents();
-    for (let i = 0; i < agents.length; i++)
-      map[agents[i]!] = AGENT_COLORS[i % AGENT_COLORS.length]!;
-    return map;
-  });
-
-  const effectiveSelected = () => {
-    const sel = selectedAgents();
-    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
-    return sel;
-  };
-  const selectedAgentCount = () => effectiveSelected().size;
-
-  const toggleAgent = (agent: string) => {
-    const current = effectiveSelected();
-    const next = new Set(current);
-    if (next.has(agent)) next.delete(agent);
-    else next.add(agent);
-    setSelectedAgents(next);
-  };
-
-  const filteredAgentTimeseries = createMemo(() => {
-    const raw = agentTimeseries();
-    if (!raw) return undefined;
-    const sel = effectiveSelected();
-    if (sel.size === 0) return raw;
-    const agents = raw.agents.filter((a) => sel.has(a));
-    const timeseries = raw.timeseries.map((row) => {
-      const filtered: Record<string, number | string> = {};
-      for (const [k, v] of Object.entries(row)) {
-        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
-      }
-      return filtered;
-    });
-    return { agents, timeseries };
-  });
-
-  const filteredAgentMessageTimeseries = createMemo(() => {
-    const raw = agentMessageTimeseries();
-    if (!raw) return undefined;
-    const sel = effectiveSelected();
-    if (sel.size === 0) return raw;
-    const agents = raw.agents.filter((a) => sel.has(a));
-    const timeseries = raw.timeseries.map((row) => {
-      const filtered: Record<string, number | string> = {};
-      for (const [k, v] of Object.entries(row)) {
-        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
-      }
-      return filtered;
-    });
-    return { agents, timeseries };
-  });
-
   const providerDeepLink = () => {
     const p = deepLinkProvider();
-    return p ? { providerId: p, authType: 'subscription' as const, closeOnBack: true } : null;
+    if (!p) return null;
+    const alreadyConnected = isConnected(p);
+    return {
+      providerId: p,
+      authType: 'subscription' as const,
+      closeOnBack: true,
+      addKey: alreadyConnected,
+    };
   };
 
   return (
@@ -280,119 +167,21 @@ const Subscriptions: Component = () => {
             Connect flat-rate subscriptions to route queries through your existing plans.
           </p>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <Show when={allAgents().length > 1}>
-            <div class="agent-filter-select" ref={agentFilterRef}>
-              <button
-                class="agent-filter-select__trigger"
-                onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                type="button"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-                {selectedAgentCount() === allAgents().length
-                  ? `All agents (${allAgents().length})`
-                  : `${selectedAgentCount()} of ${allAgents().length} agents`}
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              <Show when={agentFilterOpen()}>
-                <div class="agent-filter-select__dropdown">
-                  <div class="agent-filter-select__actions">
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedAgentCount() === allAgents().length}
-                      onClick={() => setSelectedAgents(new Set(allAgents()))}
-                    >
-                      Select all
-                    </button>
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedAgentCount() === 0}
-                      onClick={() => setSelectedAgents(new Set<string>())}
-                    >
-                      Unselect all
-                    </button>
-                  </div>
-                  <For each={allAgents()}>
-                    {(agent) => {
-                      const isOn = () => effectiveSelected().has(agent);
-                      return (
-                        <button
-                          class="agent-filter-select__item"
-                          onClick={() => toggleAgent(agent)}
-                          type="button"
-                        >
-                          <span
-                            class="agent-filter-select__swatch"
-                            style={{ background: agentColorMap()[agent] }}
-                          />
-                          <span class="agent-filter-select__name">{agent}</span>
-                          <span
-                            class="agent-filter-select__toggle"
-                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                          >
-                            <span class="agent-filter-select__toggle-thumb" />
-                          </span>
-                        </button>
-                      );
-                    }}
-                  </For>
-                </div>
-              </Show>
-            </div>
-          </Show>
-          <Select
-            value={chartRange()}
-            onChange={setChartRange}
-            options={[
-              { label: 'Last 24 hours', value: '24h' },
-              { label: 'Last 7 days', value: '7d' },
-              { label: 'Last 30 days', value: '30d' },
-            ]}
-          />
+        <button class="btn btn--primary btn--sm" onClick={() => openConnect()}>
+          Add subscription
+        </button>
+      </div>
+
+      {/* Savings card */}
+      <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
+        <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
+          Estimated savings (30d)
+          <InfoTooltip text="Equivalent API cost you saved by using subscriptions instead of pay-per-use." />
+        </span>
+        <div class="chart-card__value-row" style="margin-top: 4px;">
+          <span class="chart-card__value">{formatCost(totalSavings()) ?? '$0.00'}</span>
         </div>
       </div>
-      <Show when={analytics()}>
-        <ProviderChartCard
-          activeView={chartView()}
-          onViewChange={setChartView}
-          messagesValue={analytics()!.summary.messages.value}
-          messagesTrendPct={analytics()!.summary.messages.trend_pct}
-          tokensValue={analytics()!.summary.tokens.value}
-          tokensTrendPct={analytics()!.summary.tokens.trend_pct}
-          tokenUsage={analytics()!.token_usage}
-          messageChartData={messageChartData()}
-          range={chartRange()}
-          agentTimeseries={filteredAgentTimeseries() ?? undefined}
-          agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
-          colorMap={agentColorMap()}
-        />
-      </Show>
 
       {/* TABLE 1: My Subscriptions (active + inactive with history) */}
       <Show when={connectedRows().length > 0}>
@@ -406,6 +195,7 @@ const Subscriptions: Component = () => {
               <col style="width: 60px;" />
               <col style="width: 100px;" />
               <col />
+              <col style="width: 100px;" />
               <col style="width: 90px;" />
               <col style="width: 70px;" />
               <col style="width: 100px;" />
@@ -416,6 +206,7 @@ const Subscriptions: Component = () => {
                 <th>Models</th>
                 <th>Name</th>
                 <th>Usage (30d)</th>
+                <th>Savings (30d)</th>
                 <th>Status</th>
                 <th>Last used</th>
                 <th />
@@ -427,6 +218,11 @@ const Subscriptions: Component = () => {
                   const perKeyTokens = () =>
                     Math.round(row.cp.consumption_tokens / row.cp.connection_count);
                   const active = () => row.conn.is_active;
+                  const rowSavings = () => {
+                    const total = totalSubTokens();
+                    if (total === 0) return 0;
+                    return (row.cp.consumption_tokens / total) * totalSavings();
+                  };
                   return (
                     <tr
                       style="cursor: pointer;"
@@ -450,6 +246,7 @@ const Subscriptions: Component = () => {
                           <span>{formatNumber(perKeyTokens())} tokens</span>
                         </div>
                       </td>
+                      <td>{formatCost(rowSavings()) ?? '$0.00'}</td>
                       <td>
                         <Show
                           when={active()}
@@ -591,7 +388,7 @@ const Subscriptions: Component = () => {
                             </span>
                           </Show>
                           <button
-                            class="btn btn--primary btn--sm"
+                            class="btn btn--outline btn--sm"
                             style="white-space: nowrap;"
                             onClick={() => openConnect(prov.id)}
                           >
@@ -650,7 +447,7 @@ const Subscriptions: Component = () => {
                       </span>
                     </Show>
                     <button
-                      class="btn btn--primary btn--sm"
+                      class="btn btn--outline btn--sm"
                       style="font-size: var(--font-size-xs); white-space: nowrap;"
                       onClick={() => openConnect(prov.id)}
                     >
@@ -670,6 +467,7 @@ const Subscriptions: Component = () => {
           agentName={firstAgentName()}
           providers={modalProviders() ?? []}
           providerDeepLink={providerDeepLink()}
+          initialTab="subscription"
           onUpdate={() => {
             refetch();
             refetchModalProviders();
