@@ -581,106 +581,187 @@ const GlobalOverview: Component = () => {
               </span>
             );
           };
+          const connList = (groups: ProviderGroup[], linkBase: string) => {
+            const items: Array<{ id: string; icon: string; name: string; label: string }> = [];
+            for (const g of groups) {
+              for (const c of g.connections.slice(0, 5 - items.length)) {
+                const prov = PROVIDERS.find((p) => p.id === g.provider);
+                items.push({
+                  id: c.id,
+                  icon: g.provider,
+                  name: prov?.name ?? g.provider,
+                  label: c.label,
+                });
+                if (items.length >= 5) break;
+              }
+              if (items.length >= 5) break;
+            }
+            return items;
+          };
+          const cardStyle = 'display: flex; flex-direction: column; padding: 20px;';
           return (
-            <div class="overview-stats" style="grid-template-columns: repeat(4, 1fr);">
-              <div class="overview-stat-card">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div
+              class="overview-stats"
+              style="grid-template-columns: repeat(4, 1fr); align-items: stretch;"
+            >
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Subscriptions</span>
-                  <div style="display: flex; gap: 4px;">
-                    <A href="/providers/subscriptions" class="view-more-link">
-                      View
-                    </A>
-                    <span style="color: hsl(var(--border));">|</span>
-                    <A href="/providers/subscriptions?add=true" class="view-more-link">
-                      Add
-                    </A>
-                  </div>
+                  <A
+                    href="/providers/subscriptions?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
                 </div>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                  <span class="overview-stat-card__value">{totalConns(subs())}</span>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
-                    <For each={subs()}>{(g) => providerTag(g)}</For>
-                  </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {totalConns(subs())}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={connList(subs(), '/providers/connections/')}>
+                    {(item) => (
+                      <A
+                        href={`/providers/connections/${item.id}`}
+                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                      >
+                        <span style="flex-shrink: 0;">{providerIcon(item.icon, 14)}</span>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {item.name}
+                        </span>
+                        <Show when={item.label !== 'Default'}>
+                          <span>{item.label}</span>
+                        </Show>
+                      </A>
+                    )}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/providers/subscriptions" class="view-more-link">
+                    View more
+                  </A>
                 </div>
               </div>
-              <div class="overview-stat-card">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">BYOK</span>
-                  <div style="display: flex; gap: 4px;">
-                    <A href="/providers/byok" class="view-more-link">
-                      View
-                    </A>
-                    <span style="color: hsl(var(--border));">|</span>
-                    <A href="/providers/byok?add=true" class="view-more-link">
-                      Add
-                    </A>
-                  </div>
+                  <A
+                    href="/providers/byok?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
                 </div>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                  <span class="overview-stat-card__value">{totalConns(byok())}</span>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
-                    <For each={byok()}>{(g) => providerTag(g)}</For>
-                  </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {totalConns(byok())}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={connList(byok(), '/providers/connections/')}>
+                    {(item) => (
+                      <A
+                        href={`/providers/connections/${item.id}`}
+                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                      >
+                        <span style="flex-shrink: 0;">{providerIcon(item.icon, 14)}</span>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {item.name}
+                        </span>
+                        <Show when={item.label !== 'Default'}>
+                          <span>{item.label}</span>
+                        </Show>
+                      </A>
+                    )}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/providers/byok" class="view-more-link">
+                    View more
+                  </A>
                 </div>
               </div>
-              <div class="overview-stat-card">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Local</span>
-                  <div style="display: flex; gap: 4px;">
-                    <A href="/providers/local" class="view-more-link">
-                      View
-                    </A>
-                    <span style="color: hsl(var(--border));">|</span>
-                    <A href="/providers/local?add=true" class="view-more-link">
-                      Add
-                    </A>
-                  </div>
+                  <A
+                    href="/providers/local?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
                 </div>
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                  <span class="overview-stat-card__value">{totalConns(local())}</span>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
-                    <For each={local()}>{(g) => providerTag(g)}</For>
-                  </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {totalConns(local())}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={connList(local(), '/providers/connections/')}>
+                    {(item) => (
+                      <A
+                        href={`/providers/connections/${item.id}`}
+                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                      >
+                        <span style="flex-shrink: 0;">{providerIcon(item.icon, 14)}</span>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {item.name}
+                        </span>
+                        <Show when={item.label !== 'Default'}>
+                          <span>{item.label}</span>
+                        </Show>
+                      </A>
+                    )}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/providers/local" class="view-more-link">
+                    View more
+                  </A>
                 </div>
               </div>
-              <div class="overview-stat-card">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Agents</span>
-                  <div style="display: flex; gap: 4px;">
-                    <A href="/agents" class="view-more-link">
-                      View
-                    </A>
-                    <span style="color: hsl(var(--border));">|</span>
-                    <A href="/agents?add=true" class="view-more-link">
-                      Add
-                    </A>
-                  </div>
+                  <A
+                    href="/agents?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
                 </div>
-                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
-                  <span class="overview-stat-card__value">{agentList().length}</span>
-                  <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end;">
-                    <For each={platformGroups()}>
-                      {(group) => (
-                        <span
-                          title={`${group.name}: ${group.count} agent${group.count !== 1 ? 's' : ''}`}
-                          style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); background: hsl(var(--card)); font-size: var(--font-size-xs); white-space: nowrap; height: 24px;"
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {agentList().length}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={sortedAgents().slice(0, 5)}>
+                    {(agent) => {
+                      const icon = platformIcon(agent.agent_platform, agent.agent_category);
+                      return (
+                        <A
+                          href={`/agents/${agent.agent_name}`}
+                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                         >
-                          <Show when={group.icon}>
+                          <Show when={icon}>
                             <img
-                              src={group.icon!}
+                              src={icon!}
                               alt=""
                               width="14"
                               height="14"
                               style="flex-shrink: 0;"
                             />
                           </Show>
-                          <span style="font-weight: 600; color: hsl(var(--foreground));">
-                            {group.count}
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {agent.display_name || agent.agent_name}
                           </span>
-                        </span>
-                      )}
-                    </For>
-                  </div>
+                        </A>
+                      );
+                    }}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/agents" class="view-more-link">
+                    View more
+                  </A>
                 </div>
               </div>
             </div>
