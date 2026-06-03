@@ -1038,6 +1038,26 @@ describe('ProviderClient', () => {
       },
     );
 
+    it('preserves reasoning and text params when converting Copilot Codex requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.2-codex',
+        body: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          reasoning: { effort: 'high', summary: 'concise' },
+          text: { verbosity: 'low' },
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'high', summary: 'concise' });
+      expect(sentBody.text).toEqual({ verbosity: 'low' });
+    });
+
     it('leaves non-Codex Copilot models on /chat/completions', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
