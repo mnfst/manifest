@@ -272,7 +272,6 @@ export class ProxyService {
       thinkingLookup,
       reasoningContentLookup,
       paramMergeContext,
-      userId,
     });
 
     // Capture rate limit headers (fire-and-forget, never blocks proxy)

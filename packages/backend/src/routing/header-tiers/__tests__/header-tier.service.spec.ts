@@ -405,6 +405,7 @@ describe('HeaderTierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
+        'user-1',
         'h1',
         'gpt-4o',
         'openai',

@@ -150,6 +150,7 @@ describe('ResolveService — edge cases', () => {
       // should not match and we should fall through to scored routing.
       const result = await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,
@@ -174,7 +175,7 @@ describe('ResolveService — edge cases', () => {
 
     it('falls through when confidence is just below the gate (0.399 < 0.4)', async () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.399 } as never);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('scored');
     });
 
@@ -182,7 +183,7 @@ describe('ResolveService — edge cases', () => {
       // `< 0.4` is false when value equals 0.4 — boundary is inclusive on the
       // accepting side, so this must route as specificity, not fall through.
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.4 } as never);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.specificity_category).toBe('coding');
       expect(result.confidence).toBe(0.4);
@@ -190,7 +191,7 @@ describe('ResolveService — edge cases', () => {
 
     it('routes via specificity when confidence is just above the gate (0.401)', async () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.401 } as never);
-      const result = await svc.resolve('agent-1', messages);
+      const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.reason).toBe('specificity');
       expect(result.confidence).toBe(0.401);
     });
@@ -227,7 +228,7 @@ describe('ResolveService — edge cases', () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.3 } as never);
       tierService.getTiers.mockResolvedValue([fallbackTierAssignment()]);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
 
       expectMessageLogged(debugSpy, 'below 0.4');
       expectMessageLogged(debugSpy, 'coding');
@@ -239,7 +240,7 @@ describe('ResolveService — edge cases', () => {
       providerKeyService.isModelAvailable.mockResolvedValue(false);
       tierService.getTiers.mockResolvedValue([fallbackTierAssignment()]);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
 
       expectMessageLogged(warnSpy, 'Specificity override orphaned is unavailable');
     });
@@ -255,7 +256,7 @@ describe('ResolveService — edge cases', () => {
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
-      await svc.resolve('agent-1', messages);
+      await svc.resolve('agent-1', 'user-1', messages);
 
       expectMessageLogged(warnSpy, 'Override orphaned unavailable for agent=agent-1');
     });
@@ -266,6 +267,7 @@ describe('ResolveService — edge cases', () => {
 
       await svc.resolve(
         'agent-1',
+        'user-1',
         messages,
         undefined,
         undefined,

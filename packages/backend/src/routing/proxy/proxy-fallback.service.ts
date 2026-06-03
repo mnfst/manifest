@@ -293,7 +293,6 @@ export class ProxyFallbackService {
         thinkingLookup,
         reasoningContentLookup,
         paramMergeContext,
-        userId,
       });
 
       if (forward.response.ok) {

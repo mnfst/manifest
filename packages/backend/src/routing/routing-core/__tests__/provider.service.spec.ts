@@ -490,7 +490,7 @@ describe('ProviderService — route-only cleanup paths', () => {
   describe('removeProvider — removeKeyByLabel', () => {
     it('throws NotFoundException when no keys match the (provider, auth_type)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'default')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'default')).rejects.toThrow(
         'Provider not found',
       );
     });
@@ -506,7 +506,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           is_active: true,
         } as unknown as UserProvider,
       ]);
-      await expect(svc.removeProvider('agent-1', 'openai', 'api_key', 'secondary')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'secondary')).rejects.toThrow(
         'Provider key not found',
       );
     });

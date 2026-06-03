@@ -134,6 +134,7 @@ describe('HeaderTierController', () => {
     });
     expect(service.setOverride).toHaveBeenCalledWith(
       'agent-1',
+      'user-1',
       'ht-1',
       'gpt-4o',
       'openai',
