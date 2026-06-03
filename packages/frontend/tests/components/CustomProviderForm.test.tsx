@@ -54,7 +54,7 @@ describe("CustomProviderForm", () => {
 
   it("renders the form fields", () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
     expect(screen.getByPlaceholderText("e.g. Groq, Together, Azure")).toBeDefined();
     expect(screen.getByPlaceholderText("https://api.example.com/v1")).toBeDefined();
@@ -64,7 +64,7 @@ describe("CustomProviderForm", () => {
 
   it("Create button is disabled when required fields are empty", () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
     const createBtn = screen.getByText("Connect");
     expect(createBtn.hasAttribute("disabled")).toBe(true);
@@ -72,7 +72,7 @@ describe("CustomProviderForm", () => {
 
   it("enables Create button when required fields are filled", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
     const nameInput = screen.getByPlaceholderText("e.g. Groq, Together, Azure");
     const urlInput = screen.getByPlaceholderText("https://api.example.com/v1");
@@ -89,7 +89,7 @@ describe("CustomProviderForm", () => {
 
   it("calls createCustomProvider and onCreated on submit", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -105,7 +105,7 @@ describe("CustomProviderForm", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Groq",
         base_url: "https://api.groq.com/v1",
         api_kind: "openai",
@@ -119,7 +119,7 @@ describe("CustomProviderForm", () => {
 
   it("calls onBack when back button is clicked", () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
     fireEvent.click(screen.getByLabelText("Back to providers"));
     expect(onBack).toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe("CustomProviderForm", () => {
     mockCreateCustomProvider.mockRejectedValue(new Error("Name already exists"));
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -151,7 +151,7 @@ describe("CustomProviderForm", () => {
 
   it("submits with API key when provided", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -170,7 +170,7 @@ describe("CustomProviderForm", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Groq",
         base_url: "https://api.groq.com/v1",
         api_kind: "openai",
@@ -182,7 +182,7 @@ describe("CustomProviderForm", () => {
 
   it("submits with pricing fields when provided", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -204,7 +204,7 @@ describe("CustomProviderForm", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Groq",
         base_url: "https://api.groq.com/v1",
         api_kind: "openai",
@@ -222,7 +222,7 @@ describe("CustomProviderForm", () => {
 
   it("converts comma decimal separators to dots in pricing fields", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -244,7 +244,7 @@ describe("CustomProviderForm", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Groq",
         base_url: "https://api.groq.com/v1",
         api_kind: "openai",
@@ -264,7 +264,7 @@ describe("CustomProviderForm", () => {
     mockCreateCustomProvider.mockRejectedValue("string error");
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -288,7 +288,7 @@ describe("CustomProviderForm", () => {
     mockCreateCustomProvider.mockRejectedValue(new Error("Some error"));
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -318,7 +318,7 @@ describe("CustomProviderForm", () => {
     mockCreateCustomProvider.mockRejectedValue(new Error("URL error"));
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -346,7 +346,7 @@ describe("CustomProviderForm", () => {
 
   it("remove button is disabled when only one model row exists", () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
     const removeBtn = screen.getByLabelText("Remove model 1");
     expect(removeBtn.hasAttribute("disabled")).toBe(true);
@@ -354,7 +354,7 @@ describe("CustomProviderForm", () => {
 
   it("does not remove last model row when clicking remove", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     const removeBtn = screen.getByLabelText("Remove model 1");
@@ -372,7 +372,7 @@ describe("CustomProviderForm", () => {
     );
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -404,7 +404,7 @@ describe("CustomProviderForm", () => {
 
   it("filters out empty model names on submit", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     const modelInput = screen.getByPlaceholderText("Model name");
@@ -424,7 +424,7 @@ describe("CustomProviderForm", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Test",
         base_url: "https://api.example.com/v1",
         api_kind: "openai",
@@ -436,7 +436,7 @@ describe("CustomProviderForm", () => {
 
   it("adds and removes model rows", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     const modelInput = screen.getByPlaceholderText("Model name");
@@ -476,7 +476,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     });
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -487,7 +487,6 @@ describe("CustomProviderForm — Fetch models probe", () => {
 
     await waitFor(() => {
       expect(mockProbeCustomProvider).toHaveBeenCalledWith(
-        "test-agent",
         "http://host.docker.internal:8000/v1",
         undefined,
         "openai",
@@ -504,7 +503,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     mockProbeCustomProvider.mockRejectedValue(new Error("Connection refused"));
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -530,7 +529,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     });
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -544,7 +543,6 @@ describe("CustomProviderForm — Fetch models probe", () => {
 
     await waitFor(() => {
       expect(mockProbeCustomProvider).toHaveBeenCalledWith(
-        "test-agent",
         "https://api.kilo.ai/api/gateway",
         undefined,
         "openai",
@@ -566,7 +564,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     });
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -599,7 +597,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     });
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("e.g. Groq, Together, Azure"), {
@@ -633,7 +631,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Mammouth AI",
         base_url: "https://api.mammouth.ai/v1",
         api_kind: "openai",
@@ -654,7 +652,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
     mockProbeCustomProvider.mockResolvedValue({ models: [] });
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -670,7 +668,7 @@ describe("CustomProviderForm — Fetch models probe", () => {
 
   it("disables the Fetch models button when the base URL is empty", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     const fetchBtn = screen.getByText("Fetch models");
@@ -698,7 +696,6 @@ describe("CustomProviderForm — prefill from URL params", () => {
   it("pre-fills fields from prefill prop", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         prefill={{
@@ -733,7 +730,6 @@ describe("CustomProviderForm — prefill from URL params", () => {
   it("shows empty row when prefill has no models", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         prefill={{ name: "Test" }}
@@ -749,7 +745,6 @@ describe("CustomProviderForm — prefill from URL params", () => {
   it("submits prefilled data correctly", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         prefill={{
@@ -763,7 +758,7 @@ describe("CustomProviderForm — prefill from URL params", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Groq",
         base_url: "https://api.groq.com/v1",
         api_kind: "openai",
@@ -804,7 +799,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("renders with pre-populated fields", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -820,7 +814,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("shows masked API key with Change button", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -834,7 +827,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("shows 'No key set' when has_api_key is false", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={{ ...initialData, has_api_key: false }}
@@ -847,7 +839,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("reveals API key input when Change is clicked", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -864,7 +855,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("calls updateCustomProvider on submit", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -878,7 +868,7 @@ describe("CustomProviderForm — edit mode", () => {
     fireEvent.click(screen.getByText("Save changes"));
 
     await waitFor(() => {
-      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1", {
+      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("cp-1", {
         name: "Updated Groq",
         base_url: "https://api.groq.com/openai/v1",
         models: [
@@ -897,7 +887,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("includes apiKey in payload when key is changed", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -917,7 +906,7 @@ describe("CustomProviderForm — edit mode", () => {
     fireEvent.click(screen.getByText("Save changes"));
 
     await waitFor(() => {
-      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1", {
+      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("cp-1", {
         name: "Groq",
         base_url: "https://api.groq.com/openai/v1",
         apiKey: "new-key-123",
@@ -935,7 +924,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("shows Delete provider button", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -949,7 +937,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("calls deleteCustomProvider and onDeleted on delete", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -968,7 +955,7 @@ describe("CustomProviderForm — edit mode", () => {
     fireEvent.click(screen.getByText("Delete"));
 
     await waitFor(() => {
-      expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
+      expect(mockDeleteCustomProvider).toHaveBeenCalledWith("cp-1");
       expect(toast.success).toHaveBeenCalledWith("Groq removed");
       expect(onDeleted).toHaveBeenCalled();
     });
@@ -979,7 +966,6 @@ describe("CustomProviderForm — edit mode", () => {
 
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -998,7 +984,7 @@ describe("CustomProviderForm — edit mode", () => {
     fireEvent.click(screen.getByText("Delete"));
 
     await waitFor(() => {
-      expect(mockDeleteCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1");
+      expect(mockDeleteCustomProvider).toHaveBeenCalledWith("cp-1");
     });
     // Should not throw, should not call onDeleted
     expect(onDeleted).not.toHaveBeenCalled();
@@ -1007,7 +993,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("does not delete when confirm is cancelled", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -1030,7 +1015,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("closes delete confirm modal on Escape key", async () => {
     const { container } = render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -1061,7 +1045,6 @@ describe("CustomProviderForm — edit mode", () => {
 
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -1083,7 +1066,6 @@ describe("CustomProviderForm — edit mode", () => {
 
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -1102,7 +1084,6 @@ describe("CustomProviderForm — edit mode", () => {
 
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -1119,7 +1100,6 @@ describe("CustomProviderForm — edit mode", () => {
   it("pre-populates model rows from initialData", () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -1146,7 +1126,7 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
     // remove the disabled attribute from the DOM so jsdom dispatches the
     // click — the guard then reads '' from baseUrl() and short-circuits.
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -1177,7 +1157,7 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
     mockProbeCustomProvider.mockRejectedValue("boom");
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.input(screen.getByPlaceholderText("https://api.example.com/v1"), {
@@ -1196,7 +1176,7 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
     // strip `disabled` and fire the click to exercise the defensive
     // `prev.length <= 1 ? prev : prev.filter(...)` short-circuit.
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     const removeBtn = screen.getByLabelText("Remove model 1") as HTMLButtonElement;
@@ -1209,7 +1189,7 @@ describe("CustomProviderForm — probe edge cases and model-row interactions", (
 
   it("updates only the targeted row when multiple rows exist", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     // Row 1
@@ -1254,7 +1234,7 @@ describe("CustomProviderForm — API format selector", () => {
 
   it("defaults to the OpenAI option and shows both paths", () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     const openaiRadio = screen.getByRole("radio", { name: /OpenAI/ }) as HTMLInputElement;
@@ -1268,7 +1248,7 @@ describe("CustomProviderForm — API format selector", () => {
 
   it("swaps the base URL placeholder when Anthropic is selected", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     expect(screen.getByPlaceholderText("https://api.example.com/v1")).toBeDefined();
@@ -1284,7 +1264,7 @@ describe("CustomProviderForm — API format selector", () => {
 
   it("submits api_kind='anthropic' after selecting the Anthropic option", async () => {
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.click(screen.getByRole("radio", { name: /Anthropic/ }));
@@ -1306,7 +1286,7 @@ describe("CustomProviderForm — API format selector", () => {
     fireEvent.click(screen.getByText("Connect"));
 
     await waitFor(() => {
-      expect(mockCreateCustomProvider).toHaveBeenCalledWith("test-agent", {
+      expect(mockCreateCustomProvider).toHaveBeenCalledWith({
         name: "Azure Claude",
         base_url: "https://api.anthropic.com",
         api_kind: "anthropic",
@@ -1322,7 +1302,7 @@ describe("CustomProviderForm — API format selector", () => {
     });
 
     render(() => (
-      <CustomProviderForm agentName="test-agent" onCreated={onCreated} onBack={onBack} />
+      <CustomProviderForm onCreated={onCreated} onBack={onBack} />
     ));
 
     fireEvent.click(screen.getByRole("radio", { name: /Anthropic/ }));
@@ -1339,7 +1319,6 @@ describe("CustomProviderForm — API format selector", () => {
 
     await waitFor(() => {
       expect(mockProbeCustomProvider).toHaveBeenCalledWith(
-        "test-agent",
         "https://api.anthropic.com",
         undefined,
         "anthropic",
@@ -1361,7 +1340,6 @@ describe("CustomProviderForm — API format selector", () => {
 
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -1408,7 +1386,6 @@ describe("CustomProviderForm — edit mode: extra API key + delete UI branches",
   it("sends apiKey=undefined when Change is clicked and the new key is left blank", async () => {
     render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         initialData={initialData}
@@ -1425,7 +1402,7 @@ describe("CustomProviderForm — edit mode: extra API key + delete UI branches",
     fireEvent.click(screen.getByText("Save changes"));
 
     await waitFor(() => {
-      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("test-agent", "cp-1", {
+      expect(mockUpdateCustomProvider).toHaveBeenCalledWith("cp-1", {
         name: "Groq",
         base_url: "https://api.groq.com/openai/v1",
         apiKey: undefined,
@@ -1443,7 +1420,6 @@ describe("CustomProviderForm — edit mode: extra API key + delete UI branches",
   it("closes the confirm modal when the overlay itself is clicked", async () => {
     const { container } = render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -1469,7 +1445,6 @@ describe("CustomProviderForm — edit mode: extra API key + delete UI branches",
   it("clicks inside the confirm modal content without closing the modal", async () => {
     const { container } = render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}
@@ -1493,7 +1468,6 @@ describe("CustomProviderForm — edit mode: extra API key + delete UI branches",
   it("closes the confirm modal when the close (X) button is clicked", async () => {
     const { container } = render(() => (
       <CustomProviderForm
-        agentName="test-agent"
         onCreated={onCreated}
         onBack={onBack}
         onDeleted={onDeleted}

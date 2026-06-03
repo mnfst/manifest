@@ -70,7 +70,6 @@ describe('LocalServerDetailView', () => {
     const onConnected = vi.fn();
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={onConnected}
         onBack={vi.fn()}
@@ -78,7 +77,7 @@ describe('LocalServerDetailView', () => {
     ));
 
     await waitFor(() => {
-      expect(mockProbe).toHaveBeenCalledWith('a1', 'http://localhost:1234/v1');
+      expect(mockProbe).toHaveBeenCalledWith('http://localhost:1234/v1');
       expect(container.textContent).toContain('1 model');
       expect(container.textContent).toContain('llama-3.1-8b');
     });
@@ -91,7 +90,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -114,7 +112,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={onConnected}
         onBack={vi.fn()}
@@ -132,7 +129,7 @@ describe('LocalServerDetailView', () => {
     fireEvent.click(btn);
 
     await waitFor(() => {
-      expect(mockCreate).toHaveBeenCalledWith('a1', {
+      expect(mockCreate).toHaveBeenCalledWith({
         name: 'LM Studio',
         base_url: 'http://localhost:1234/v1',
         models: [
@@ -152,7 +149,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -182,7 +178,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -209,7 +204,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={unknownProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -228,7 +222,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -268,7 +261,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -325,7 +317,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -362,7 +353,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -394,7 +384,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -436,7 +425,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -488,7 +476,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         editData={editData}
         onConnected={onConnected}
@@ -513,7 +500,7 @@ describe('LocalServerDetailView', () => {
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
-      expect(mockUpdate).toHaveBeenCalledWith('a1', 'cp-42', {
+      expect(mockUpdate).toHaveBeenCalledWith('cp-42', {
         models: expect.arrayContaining([
           expect.objectContaining({ model_name: 'alpha' }),
           expect.objectContaining({ model_name: 'beta' }),
@@ -542,7 +529,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         editData={editData}
         onConnected={onConnected}
@@ -561,7 +547,7 @@ describe('LocalServerDetailView', () => {
     fireEvent.click(deleteBtn);
 
     await waitFor(() => {
-      expect(mockDelete).toHaveBeenCalledWith('a1', 'cp-99');
+      expect(mockDelete).toHaveBeenCalledWith('cp-99');
       expect(onConnected).toHaveBeenCalled();
       expect(mockToast.success).toHaveBeenCalledWith(expect.stringContaining('disconnected'));
     });
@@ -584,7 +570,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         editData={editData}
         onConnected={vi.fn()}
@@ -612,7 +597,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -639,7 +623,6 @@ describe('LocalServerDetailView', () => {
 
     render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         editData={editData}
         onConnected={vi.fn()}
@@ -662,7 +645,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -696,7 +678,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -726,7 +707,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={llamacppProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -753,7 +733,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={llamacppProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -778,7 +757,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={llamacppProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
@@ -798,7 +776,6 @@ describe('LocalServerDetailView', () => {
 
     const { container } = render(() => (
       <LocalServerDetailView
-        agentName="a1"
         provider={lmsProv}
         onConnected={vi.fn()}
         onBack={vi.fn()}
