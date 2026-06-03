@@ -1,0 +1,24 @@
+packages/backend/src/playground/playground.module.ts
+  s_95f25ebeb4cb65::t_5786a26b4c82ac 11,23
+packages/backend/src/playground/playground.service.spec.ts
+  s_95f25ebeb4cb65::t_dcd15f344af1e4 7-12,23-29,144-158,164,172-177,193,201-206,223-228
+  s_95f25ebeb4cb65::t_57db2f89c436a3 340,393,411,442-530,532-543
+packages/backend/src/playground/playground.service.ts
+  s_95f25ebeb4cb65::t_5786a26b4c82ac 12-14,18-23,43-48,68-70,83-85,92-119,149,159-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "4db6b943f3121ba8dc954d6d36c2eb4c9c8da218",
+  "prompts": {},
+  "sessions": {
+    "s_95f25ebeb4cb65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8f11-4357-7cc0-8a27-d1dc33e233e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
