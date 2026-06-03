@@ -4,6 +4,8 @@ import {
   connectProvider,
   disconnectProvider,
   getComplexityStatus,
+  getCustomProviders,
+  invalidateCustomProvidersCache,
   renameProviderKey,
   reorderProviderKeys,
   toggleComplexity,
@@ -163,6 +165,74 @@ describe("multi-key provider API helpers", () => {
       labels: ["Work", "Personal"],
       authType: "api_key",
     });
+  });
+});
+
+describe("custom-providers cache", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+    invalidateCustomProvidersCache();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    invalidateCustomProvidersCache();
+  });
+
+  it("caches the result so a second call does not re-fetch", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([{ id: "cp-1", name: "My Provider" }]),
+    } as Response);
+
+    const first = await getCustomProviders();
+    const second = await getCustomProviders();
+
+    expect(first).toEqual(second);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("invalidateCustomProvidersCache forces a fresh fetch on the next call", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve([{ id: "cp-1", name: "My Provider" }]),
+    } as Response);
+
+    await getCustomProviders();
+    invalidateCustomProvidersCache();
+    await getCustomProviders();
+
+    // Two fetches: one before invalidation, one after
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("prevents stale custom providers from leaking to the next session after logout", async () => {
+    const userAProviders = [{ id: "cp-user-a", name: "User A Provider" }];
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(userAProviders),
+    } as Response);
+
+    // User A fetches their providers
+    const beforeLogout = await getCustomProviders();
+    expect(beforeLogout).toEqual(userAProviders);
+
+    // Logout clears the cache (mirrors what Header.tsx does)
+    invalidateCustomProvidersCache();
+
+    // User B fetches — must trigger a fresh request, not see User A's data
+    const userBProviders = [{ id: "cp-user-b", name: "User B Provider" }];
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve(userBProviders),
+    } as Response);
+
+    const afterLogin = await getCustomProviders();
+    expect(afterLogin).toEqual(userBProviders);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 });
 

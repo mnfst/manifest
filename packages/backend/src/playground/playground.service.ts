@@ -87,7 +87,7 @@ export class PlaygroundService {
     let forwardModel = dto.model;
     if (CustomProviderService.isCustom(dto.provider)) {
       const cp = await this.customProviderRepo.findOne({
-        where: { id: CustomProviderService.extractId(dto.provider) },
+        where: { id: CustomProviderService.extractId(dto.provider), user_id: userId },
       });
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');

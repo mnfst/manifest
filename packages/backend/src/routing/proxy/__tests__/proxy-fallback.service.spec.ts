@@ -476,6 +476,69 @@ describe('ProxyFallbackService', () => {
       });
     });
 
+    it('scopes custom provider lookup by userId when provided', async () => {
+      customProviderRepo.findOne.mockResolvedValue({
+        id: 'cp-1',
+        user_id: 'user-alice',
+        base_url: 'https://api.groq.com/openai/v1',
+      } as never);
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        userId: 'user-alice',
+      });
+
+      // findOne must be called with both id AND user_id to prevent cross-user resolution
+      expect(customProviderRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'cp-1', user_id: 'user-alice' },
+      });
+      expect(providerClient.forward).toHaveBeenCalled();
+    });
+
+    it('does not resolve a custom provider belonging to a different user', async () => {
+      // The repo mock returns null when the userId filter excludes another user's row.
+      customProviderRepo.findOne.mockImplementation(async (opts: unknown) => {
+        const where = (opts as { where: { id: string; user_id?: string } }).where;
+        if (where.user_id && where.user_id !== 'user-alice') return null;
+        return {
+          id: 'cp-1',
+          user_id: 'user-alice',
+          base_url: 'https://secret.example/v1',
+        } as never;
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        userId: 'user-bob', // different user — must not see alice's provider
+      });
+
+      // No customEndpoint means the repo returned null for user-bob's id/user_id combo
+      const callArg = providerClient.forward.mock.calls[0][0];
+      expect(callArg.customEndpoint).toBeUndefined();
+    });
+
     it('routes Anthropic-kind custom providers to /v1/messages with anthropic format', async () => {
       customProviderRepo.findOne.mockResolvedValue({
         id: 'cp-anth',

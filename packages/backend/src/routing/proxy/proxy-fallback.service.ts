@@ -258,6 +258,7 @@ export class ProxyFallbackService {
         thinkingLookup,
         reasoningContentLookup,
         paramMergeContext,
+        userId,
       });
 
       if (forward.response.ok) {
@@ -304,6 +305,7 @@ export class ProxyFallbackService {
     thinkingLookup?: ThinkingBlockLookup;
     reasoningContentLookup?: ReasoningContentLookup;
     paramMergeContext?: ParamMergeContext;
+    userId?: string;
   }): Promise<ForwardResult> {
     try {
       return await this.forwardToProvider(opts);
@@ -343,6 +345,7 @@ export class ProxyFallbackService {
     thinkingLookup?: ThinkingBlockLookup;
     reasoningContentLookup?: ReasoningContentLookup;
     paramMergeContext?: ParamMergeContext;
+    userId?: string;
   }): Promise<ForwardResult> {
     const {
       provider,
@@ -410,7 +413,9 @@ export class ProxyFallbackService {
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
-      const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
+      const cp = await this.customProviderRepo.findOne({
+        where: opts.userId ? { id: cpId, user_id: opts.userId } : { id: cpId },
+      });
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
         forwardModel = CustomProviderService.rawModelName(opts.model);

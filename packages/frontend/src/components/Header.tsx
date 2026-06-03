@@ -10,6 +10,7 @@ import {
   connectionBreadcrumbBackLink,
 } from '../services/connection-breadcrumb-store.js';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
+import { invalidateCustomProvidersCache } from '../services/api/routing.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -85,6 +86,7 @@ const Header: Component<HeaderProps> = (props) => {
   };
 
   const handleLogout = async () => {
+    invalidateCustomProvidersCache();
     await authClient.signOut();
     navigate('/login', { replace: true });
   };
