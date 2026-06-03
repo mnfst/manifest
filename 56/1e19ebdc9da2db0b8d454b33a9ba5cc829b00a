@@ -1,0 +1,51 @@
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_c1e2284966bb9e::t_c9b28530c871d0 88-95
+packages/frontend/src/services/api/model-params.ts
+  s_c1e2284966bb9e::t_29f7452f64040e 7-9,35-48,50-72
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_c1e2284966bb9e::t_05c465e0b18c48 1041-1060
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_c1e2284966bb9e::t_7c875b57cd7d86 74-112,190-258,260-268
+  s_c1e2284966bb9e::t_95f0955b06d72a 272-277
+  s_c1e2284966bb9e::t_670b663352b8a4 153-178
+  s_c1e2284966bb9e::t_0fc31fa623a16e 271,278-327
+  s_c1e2284966bb9e::t_d0a8d7e60fc629 259
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_c1e2284966bb9e::t_f565d1d228da40 31-32,63-67,77,217-220,228-231,233,237,243-260
+  s_c1e2284966bb9e::t_d7dfe2e2e852c5 142-143
+  s_c1e2284966bb9e::t_120f0c3d474c84 13,28,30,33-35,58-62,108,193-216,221-227,234-236,238-242,261-317
+  s_c1e2284966bb9e::t_ea022cad521943 232
+  s_c1e2284966bb9e::t_74bf2909771089 348-359
+.changeset/providerless-modelparams-lookup.md
+  s_c1e2284966bb9e::t_1ed7164c245487 1-5
+docs/model-parameters-schema.md
+  s_c1e2284966bb9e::t_365cfca539dfde 10
+  s_c1e2284966bb9e::t_1ef8d71e51ecb6 11-15
+packages/frontend/tests/services/api/model-params.test.ts
+  s_d55d26a37e6be3::t_a2af444ac40314 85-86
+  s_c1e2284966bb9e::t_a8b539a4929eb7 3,14,49-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "561e19ebdc9da2db0b8d454b33a9ba5cc829b00a",
+  "prompts": {},
+  "sessions": {
+    "s_c1e2284966bb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8ea9-2adb-7c30-ba7d-9e546f4ae53c",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    },
+    "s_d55d26a37e6be3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3cc4-24e3-74b0-a24b-ea4a41761278",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
