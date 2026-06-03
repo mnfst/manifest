@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_c1e2284966bb9e::t_05c465e0b18c48 1041-1060
+docs/model-parameters-schema.md
+  s_c1e2284966bb9e::t_365cfca539dfde 10
+  s_c1e2284966bb9e::t_1ef8d71e51ecb6 11-15
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_c1e2284966bb9e::t_7c875b57cd7d86 74-112,190-258,260-268
+  s_c1e2284966bb9e::t_d0a8d7e60fc629 259
+  s_c1e2284966bb9e::t_670b663352b8a4 153-178
+  s_c1e2284966bb9e::t_0fc31fa623a16e 271-322
+.changeset/providerless-modelparams-lookup.md
+  s_c1e2284966bb9e::t_1ed7164c245487 1-5
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_c1e2284966bb9e::t_c9b28530c871d0 88-95
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_c1e2284966bb9e::t_f565d1d228da40 31-32,63-67,77,217-220,228-232,234,238,244-261
+  s_c1e2284966bb9e::t_ea022cad521943 233
+  s_c1e2284966bb9e::t_d7dfe2e2e852c5 142-143
+  s_c1e2284966bb9e::t_120f0c3d474c84 13,28,30,33-35,58-62,108,193-216,221-227,235-237,239-243,262-318
+  s_c1e2284966bb9e::t_74bf2909771089 349-360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "9b87c0ac0aa96e63a7bdc4c12de1ddad512ab0cd",
+  "prompts": {},
+  "sessions": {
+    "s_c1e2284966bb9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e8ea9-2adb-7c30-ba7d-9e546f4ae53c",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
