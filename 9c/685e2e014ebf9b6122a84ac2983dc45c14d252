@@ -1,0 +1,90 @@
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_92a09cacaa2362::t_d9d657068e4974 133,138,143
+  s_92a09cacaa2362::t_960e1201b0f7f4 321-322,329-330,332
+  s_92a09cacaa2362::t_ebd0d98b973de9 284,294,296,303-304,306,310
+  s_92a09cacaa2362::t_4744b3d599722f 177-178,181-182,186,188,191,214-219,221
+  s_92a09cacaa2362::t_88af407a25485d 162
+  s_92a09cacaa2362::t_fac07d2159189f 237,245,248
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_92a09cacaa2362::t_c78d29635b8df6 131-133
+  s_92a09cacaa2362::t_e12e02edca8549 197-199
+  s_92a09cacaa2362::t_8d8a20ab9f3c7f 58-64,66
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_92a09cacaa2362::t_b3b92b077941fc 12,19-20,22,42,53-55,72,78,95-97
+  s_92a09cacaa2362::t_8a0b129fe9c64d 43
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_92a09cacaa2362::t_ce2dad1ca20514 45,51,60,62-63,69,88,107,112-113,122,134,136,151,160,167,169,178,189-190,192,200-201,216,230
+packages/backend/src/entities/custom-provider.entity.ts
+  s_92a09cacaa2362::t_72fd504ec70393 1,15
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_92a09cacaa2362::t_717f95b5378cfb 669,673,688,695,697-698,700,702-705
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_92a09cacaa2362::t_e62ff2657ae2ea 118,137-138
+  s_92a09cacaa2362::t_429684a38d965a 186-204
+  s_92a09cacaa2362::t_078d9a300d7ece 153,174,185,206,216-218,220-223,225-227
+  s_92a09cacaa2362::t_25ccb96d7f1317 11
+  s_92a09cacaa2362::t_a27084154307d6 91,93
+packages/backend/src/routing/routing-core/routing-cache.service.spec.ts
+  s_92a09cacaa2362::t_805abebc685051 101-102,105
+  s_92a09cacaa2362::t_4bfa8d91bc75f1 121
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_92a09cacaa2362::t_374ad36ec68240 573-589
+  s_92a09cacaa2362::t_8c751e689dcc5a 36-37
+  s_92a09cacaa2362::t_6dc476882f4176 590-596,604-626,628-678
+  s_92a09cacaa2362::t_b15c90a2b0b116 52-60
+  s_92a09cacaa2362::t_966bae844161b1 74
+  s_92a09cacaa2362::t_03d148c1184317 597-601,603
+  s_92a09cacaa2362::t_14a07b46627011 6
+packages/backend/src/routing/model.controller.ts
+  s_92a09cacaa2362::t_48a24bc2fbcada 92-93
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_92a09cacaa2362::t_3046f1ff94dec6 304
+  s_92a09cacaa2362::t_dc654372427b78 338-343
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_92a09cacaa2362::t_77180de4dd979d 140
+  s_92a09cacaa2362::t_f7831ebd036bc2 354,377-378
+  s_92a09cacaa2362::t_cb990be7d3eb13 288-290
+  s_92a09cacaa2362::t_876e10af976edc 334-340,348
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_92a09cacaa2362::t_bc935aaa02b547 37-38
+  s_92a09cacaa2362::t_796c9e12cb7188 418-426
+  s_92a09cacaa2362::t_3185c4821c4b98 76
+  s_92a09cacaa2362::t_94bb4e2a5517f1 438
+  s_92a09cacaa2362::t_5ea05346b75fee 470
+  s_92a09cacaa2362::t_59a95f3f1108e1 7
+  s_92a09cacaa2362::t_0d58ba2d1315cc 54
+  s_92a09cacaa2362::t_c8cfb819ebd05a 476
+  s_92a09cacaa2362::t_216d3295e4574b 57
+  s_92a09cacaa2362::t_852c752390b121 483-485
+  s_92a09cacaa2362::t_afa9c7e16161de 50-53,55-56,58-62
+  s_92a09cacaa2362::t_a4e1aff1ac0d16 516,521-532,534-561,585
+  s_92a09cacaa2362::t_13e8355d318ea4 152
+packages/backend/src/routing/routing-core/routing-cache.service.ts
+  s_92a09cacaa2362::t_971e5bc7420027 67-68,71-72
+  s_92a09cacaa2362::t_3f631089aa74a0 127-130,133
+packages/backend/src/routing/routing-cache.service.spec.ts
+  s_92a09cacaa2362::t_d4e6fc20d5b902 215,220,228
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_92a09cacaa2362::t_2484c6c15428e4 42,47,52,56,80,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9c685e2e014ebf9b6122a84ac2983dc45c14d252",
+  "prompts": {},
+  "humans": {
+    "h_ea64bf97c4e382": {
+      "author": "Guillaume Gay"
+    }
+  },
+  "sessions": {
+    "s_92a09cacaa2362": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7d589c94-160b-444b-90b4-89f654b51aa0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
