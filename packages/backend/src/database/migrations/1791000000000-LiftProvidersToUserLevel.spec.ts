@@ -42,29 +42,37 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     );
   });
 
-  it('dedups on the SAME tuple the unique index enforces, not on the encrypted key', async () => {
+  it('disambiguates colliding rows by relabeling on the index tuple, never on the encrypted key', async () => {
     await migration.up(queryRunner);
 
-    const dedup = queries.find((q) => q.includes('HAVING COUNT(*) > 1'));
-    expect(dedup).toBeDefined();
+    const relabel = queries.find((q) => q.includes('ROW_NUMBER() OVER'));
+    expect(relabel).toBeDefined();
     // Regression guard: keys are encrypted with a random IV, so the same key
-    // yields different ciphertext per row. Grouping on api_key_encrypted would
-    // never collapse those duplicates and the unique index in step 6 would then
-    // fail on boot. The dedup MUST group on (user_id, provider, auth_type,
+    // yields different ciphertext per row. Partitioning on api_key_encrypted
+    // would miss real collisions and the unique index in step 6 would fail on
+    // boot. The relabel MUST partition on (user_id, provider, auth_type,
     // LOWER(label)) — the exact tuple the new index keys on.
-    expect(dedup).toContain('GROUP BY "user_id", "provider", "auth_type", LOWER("label")');
-    expect(dedup).not.toContain('"api_key_encrypted"');
+    expect(relabel).toContain('PARTITION BY "user_id", "provider", "auth_type", LOWER("label")');
+    expect(relabel).not.toContain('"api_key_encrypted"');
   });
 
-  it('runs the dedup BEFORE creating the unique index', async () => {
+  it('NEVER deletes a provider row (relabels instead, so no key is lost)', async () => {
+    await migration.up(queryRunner);
+    // The whole point of relabeling: two agents with different keys under the
+    // same label must both survive. A DELETE on user_providers would silently
+    // drop a real key, which is the data-loss bug this approach avoids.
+    expect(queries.some((q) => /DELETE\s+FROM\s+"user_providers"/i.test(q))).toBe(false);
+  });
+
+  it('relabels BEFORE creating the unique index', async () => {
     await migration.up(queryRunner);
 
-    const dedupIdx = queries.findIndex((q) => q.includes('HAVING COUNT(*) > 1'));
+    const relabelIdx = queries.findIndex((q) => q.includes('ROW_NUMBER() OVER'));
     const createIdx = queries.findIndex((q) =>
       q.includes('CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"'),
     );
-    expect(dedupIdx).toBeGreaterThan(-1);
-    expect(createIdx).toBeGreaterThan(dedupIdx);
+    expect(relabelIdx).toBeGreaterThan(-1);
+    expect(createIdx).toBeGreaterThan(relabelIdx);
   });
 
   it('down restores the agent-scoped schema', async () => {
