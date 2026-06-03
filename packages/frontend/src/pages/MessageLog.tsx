@@ -142,10 +142,7 @@ const MessageLog: Component = () => {
     setFeedbackModalOpen(false);
   };
 
-  const [customProviders] = createResource(
-    () => params.agentName,
-    (name) => getCustomProviders(decodeURIComponent(name)),
-  );
+  const [customProviders] = createResource(getCustomProviders);
 
   const [routingStatus] = createResource(
     () => params.agentName,

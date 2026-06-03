@@ -189,30 +189,20 @@ describe('routing API client (additional coverage)', () => {
   describe('custom providers cache', () => {
     it('caches the result and returns the same promise on subsequent calls', async () => {
       const fetchMock = setupFetch([{ id: 'cp-1' }]);
-      const p1 = routing.getCustomProviders('demo');
-      const p2 = routing.getCustomProviders('demo');
+      const p1 = routing.getCustomProviders();
+      const p2 = routing.getCustomProviders();
       expect(p1).toBe(p2);
       await p1;
       // Only one network call
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidateCustomProvidersCache(name) drops the cached entry for that agent', async () => {
+    it('invalidateCustomProvidersCache() clears the cache so the next call re-fetches', async () => {
       const fetchMock = setupFetch([]);
-      await routing.getCustomProviders('demo');
-      routing.invalidateCustomProvidersCache('demo');
-      await routing.getCustomProviders('demo');
-      expect(fetchMock).toHaveBeenCalledTimes(2);
-    });
-
-    it('invalidateCustomProvidersCache() with no arg clears the entire cache', async () => {
-      const fetchMock = setupFetch([]);
-      await routing.getCustomProviders('a');
-      await routing.getCustomProviders('b');
+      await routing.getCustomProviders();
       routing.invalidateCustomProvidersCache();
-      await routing.getCustomProviders('a');
-      // initial 2 + 1 after invalidation
-      expect(fetchMock).toHaveBeenCalledTimes(3);
+      await routing.getCustomProviders();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     it('drops the cache entry on fetch failure so the next call retries', async () => {
@@ -233,14 +223,14 @@ describe('routing API client (additional coverage)', () => {
         });
       vi.stubGlobal('fetch', fetchMock);
 
-      await expect(routing.getCustomProviders('demo')).rejects.toThrow();
+      await expect(routing.getCustomProviders()).rejects.toThrow();
       // Next call should re-fetch
-      await routing.getCustomProviders('demo');
+      await routing.getCustomProviders();
       expect(fetchMock).toHaveBeenCalledTimes(2);
     });
   });
 
-  it('createCustomProvider invalidates the cache and POSTs', async () => {
+  it('createCustomProvider invalidates the cache and POSTs to the user-scoped endpoint', async () => {
     const fetchMock = setupFetch({
       id: 'cp-new',
       name: 'New',
@@ -249,17 +239,18 @@ describe('routing API client (additional coverage)', () => {
       models: [],
       created_at: '2025-01-01',
     });
-    await routing.createCustomProvider('demo', {
+    await routing.createCustomProvider({
       name: 'New',
       base_url: 'http://x',
       models: [],
     });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/routing/demo/custom-providers');
+    expect(url).toContain('/api/v1/custom-providers');
+    expect(url).not.toContain('/routing/');
     expect((init as RequestInit).method).toBe('POST');
   });
 
-  it('updateCustomProvider invalidates the cache and PUTs to the id-scoped endpoint', async () => {
+  it('updateCustomProvider invalidates the cache and PUTs to the user-scoped id endpoint', async () => {
     const fetchMock = setupFetch({
       id: 'cp-1',
       name: 'Updated',
@@ -268,9 +259,10 @@ describe('routing API client (additional coverage)', () => {
       models: [],
       created_at: '2025-01-01',
     });
-    await routing.updateCustomProvider('demo', 'cp-1', { name: 'Updated' });
+    await routing.updateCustomProvider('cp-1', { name: 'Updated' });
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/routing/demo/custom-providers/cp-1');
+    expect(url).toContain('/api/v1/custom-providers/cp-1');
+    expect(url).not.toContain('/routing/');
     expect((init as RequestInit).method).toBe('PUT');
   });
 
@@ -282,7 +274,7 @@ describe('routing API client (additional coverage)', () => {
       text: async () => '',
     });
     vi.stubGlobal('fetch', fetchMock);
-    const out = await routing.probeCustomProvider('demo', 'http://x');
+    const out = await routing.probeCustomProvider('http://x');
     expect(out).toEqual({ models: [] });
   });
 
@@ -294,7 +286,7 @@ describe('routing API client (additional coverage)', () => {
       text: async () => JSON.stringify({ models: [] }),
     });
     vi.stubGlobal('fetch', fetchMock);
-    await routing.probeCustomProvider('demo', 'http://x', undefined, 'anthropic');
+    await routing.probeCustomProvider('http://x', undefined, 'anthropic');
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.api_kind).toBe('anthropic');
   });
@@ -307,7 +299,7 @@ describe('routing API client (additional coverage)', () => {
       text: async () => JSON.stringify({ models: [] }),
     });
     vi.stubGlobal('fetch', fetchMock);
-    await routing.probeCustomProvider('demo', 'http://x', undefined, 'openai', 'Kilo Gateway');
+    await routing.probeCustomProvider('http://x', undefined, 'openai', 'Kilo Gateway');
     const body = JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(body.provider_name).toBe('Kilo Gateway');
   });
@@ -319,6 +311,6 @@ describe('routing API client (additional coverage)', () => {
       json: async () => ({ message: 'bad URL' }),
     });
     vi.stubGlobal('fetch', fetchMock);
-    await expect(routing.probeCustomProvider('demo', 'http://x')).rejects.toThrow('bad URL');
+    await expect(routing.probeCustomProvider('http://x')).rejects.toThrow('bad URL');
   });
 });

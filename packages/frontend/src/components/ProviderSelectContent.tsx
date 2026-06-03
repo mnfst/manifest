@@ -241,7 +241,6 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       <Show when={localServerProvider() && !showCustomForm() && !editingCustomProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <LocalServerDetailView
-            agentName={props.agentName}
             provider={localServerProvider()!}
             editData={localServerEditData()}
             onConnected={() => {
@@ -261,7 +260,6 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
       <Show when={(showCustomForm() || editingCustomProvider()) && !localServerProvider()}>
         <div class="provider-modal__view provider-modal__view--from-right">
           <CustomProviderForm
-            agentName={props.agentName}
             initialData={editingCustomProvider() ?? undefined}
             prefill={
               !editingCustomProvider()

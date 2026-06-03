@@ -67,10 +67,7 @@ const Routing: Component = () => {
     () => agentName(),
     getProviders,
   );
-  const [customProviders, { refetch: refetchCustomProviders }] = createResource(
-    () => agentName(),
-    getCustomProviders,
-  );
+  const [customProviders, { refetch: refetchCustomProviders }] = createResource(getCustomProviders);
   const [specificityAssignments, { refetch: refetchSpecificity, mutate: mutateSpecificity }] =
     createResource(() => agentName(), getSpecificityAssignments);
   const [headerTiers, { refetch: refetchHeaderTiers, mutate: mutateHeaderTiers }] = createResource(

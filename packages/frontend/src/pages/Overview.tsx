@@ -120,10 +120,7 @@ const Overview: Component = () => {
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
-  const [customProviders] = createResource(
-    () => params.agentName,
-    (name) => getCustomProviders(decodeURIComponent(name)),
-  );
+  const [customProviders] = createResource(getCustomProviders);
 
   const customProviderName = (model: string): string | undefined => {
     const match = model.match(/^custom:([^/]+)\//);

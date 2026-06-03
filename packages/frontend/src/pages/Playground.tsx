@@ -150,10 +150,7 @@ const Playground: Component = () => {
     () => agentName() || undefined,
     (name) => getProviders(name),
   );
-  const [customProviders, { refetch: refetchCustomProviders }] = createResource(
-    () => agentName() || undefined,
-    (name) => getCustomProviders(name),
-  );
+  const [customProviders, { refetch: refetchCustomProviders }] = createResource(getCustomProviders);
 
   const store = createPlaygroundStore(() => agentName());
   const [pickerForColumn, setPickerForColumn] = createSignal<string | null>(null);
