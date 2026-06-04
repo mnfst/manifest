@@ -6,6 +6,12 @@ import type { ResolveAgentService } from '../routing/routing-core/resolve-agent.
 import type { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import type { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import type { PlaygroundHistoryService } from './playground-history.service';
+import type { OpenaiOauthService } from '../routing/oauth/openai-oauth.service';
+import type { MinimaxOauthService } from '../routing/oauth/minimax-oauth.service';
+import type { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
+import type { GeminiOauthService } from '../routing/oauth/gemini-oauth.service';
+import type { KiroOauthService } from '../routing/oauth/kiro-oauth.service';
+import type { XaiOauthService } from '../routing/oauth/xai/xai-oauth.service';
 import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
 import type { CustomProvider } from '../entities/custom-provider.entity';
@@ -82,6 +88,7 @@ interface Mocks {
   providerKeyService: {
     hasActiveProvider: jest.Mock;
     getAuthType: jest.Mock;
+    getProviderKeys: jest.Mock;
     getProviderApiKey: jest.Mock;
   };
   providerClient: {
@@ -90,6 +97,12 @@ interface Mocks {
     createAnthropicStreamTransformer: jest.Mock;
     convertChatGptStreamChunk: jest.Mock;
   };
+  openaiOauth: { unwrapToken: jest.Mock };
+  minimaxOauth: { unwrapToken: jest.Mock };
+  anthropicOauth: { unwrapToken: jest.Mock };
+  geminiOauth: { unwrapToken: jest.Mock };
+  kiroOauth: { unwrapToken: jest.Mock };
+  xaiOauth: { unwrapToken: jest.Mock };
   pricingCache: { getByModel: jest.Mock };
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
@@ -105,6 +118,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     providerKeyService: {
       hasActiveProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
+      getProviderKeys: jest.fn().mockResolvedValue([{ apiKey: 'sk-test', label: 'Default' }]),
       getProviderApiKey: jest.fn().mockResolvedValue('sk-test'),
     },
     providerClient: {
@@ -113,6 +127,12 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
       createAnthropicStreamTransformer: jest.fn(),
       convertChatGptStreamChunk: jest.fn(),
     },
+    openaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    minimaxOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    anthropicOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    geminiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    kiroOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
+    xaiOauth: { unwrapToken: jest.fn().mockResolvedValue(null) },
     pricingCache: {
       getByModel: jest.fn().mockReturnValue({
         input_price_per_token: 0.000001,
@@ -129,6 +149,12 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     full.resolveAgent as unknown as ResolveAgentService,
     full.providerKeyService as unknown as ProviderKeyService,
     full.providerClient as unknown as ProviderClient,
+    full.openaiOauth as unknown as OpenaiOauthService,
+    full.minimaxOauth as unknown as MinimaxOauthService,
+    full.anthropicOauth as unknown as AnthropicOauthService,
+    full.geminiOauth as unknown as GeminiOauthService,
+    full.kiroOauth as unknown as KiroOauthService,
+    full.xaiOauth as unknown as XaiOauthService,
     full.pricingCache as unknown as ModelPricingCacheService,
     full.eventBus as unknown as IngestEventBusService,
     full.history as unknown as PlaygroundHistoryService,
