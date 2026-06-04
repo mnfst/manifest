@@ -1,0 +1,9 @@
+.changeset/playground-minimax-region.md
+  ai_agent 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "6677b95b4ea956ec765edce543d01ee2bd6f744b",
+  "prompts": {}
+}
