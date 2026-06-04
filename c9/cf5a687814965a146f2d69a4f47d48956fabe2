@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_d0475581f851a5::t_5d7c66ee40ef5b 993-1005
+packages/backend/src/routing/proxy/reasoning-format.ts
+  s_d0475581f851a5::t_c29b5b61997362 40-41,100-101,113-115,117,124-127,141-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "c9cf5a687814965a146f2d69a4f47d48956fabe2",
+  "prompts": {},
+  "sessions": {
+    "s_d0475581f851a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e92d4-257b-7741-8a46-1a5b3158c8a2",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
