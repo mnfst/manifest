@@ -172,10 +172,7 @@ export class ModelDiscoveryService {
 
       // Register confirmed model IDs from native API for future fallback filtering
       if (raw.length > 0 && this.modelRegistry) {
-        this.modelRegistry.registerModels(
-          provider.provider,
-          raw.map((m) => m.id),
-        );
+        this.modelRegistry.registerModels(provider.provider, raw);
       }
 
       // Subscription providers whose `/models` endpoint either does not

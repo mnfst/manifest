@@ -51,6 +51,7 @@ interface ModelParserConfig<T> {
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
   capabilityCode?: boolean | ((entry: T) => boolean);
+  supportedEndpoints?: (entry: T) => readonly string[] | undefined;
   qualityScore?: number;
 }
 
@@ -66,6 +67,7 @@ function createModelParser<T>(
         const entry = m as T;
         const id = config.getId(entry);
         const ctxVal = config.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+        const supportedEndpoints = config.supportedEndpoints?.(entry);
         return {
           id,
           displayName: config.getDisplayName(entry, id),
@@ -78,10 +80,17 @@ function createModelParser<T>(
             typeof config.capabilityCode === 'function'
               ? config.capabilityCode(entry)
               : (config.capabilityCode ?? false),
+          ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
           qualityScore: config.qualityScore ?? 3,
         };
       });
   };
+}
+
+function getStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const strings = value.filter((entry): entry is string => typeof entry === 'string');
+  return strings.length > 0 ? strings : undefined;
 }
 
 /* ── Shared OpenAI-compatible parser ── */
@@ -90,6 +99,7 @@ interface OpenAIModelEntry {
   id: string;
   object?: string;
   owned_by?: string;
+  supported_endpoints?: unknown;
 }
 
 interface CommandCodeModelEntry extends OpenAIModelEntry {
@@ -486,6 +496,7 @@ const parseCopilot = createModelParser<OpenAIModelEntry>({
   getDisplayName: (entry) => entry.id,
   inputPricePerToken: 0,
   outputPricePerToken: 0,
+  supportedEndpoints: (entry) => getStringArray(entry.supported_endpoints),
 });
 
 /* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */

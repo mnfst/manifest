@@ -1,5 +1,6 @@
 import { ProviderClient } from '../provider-client';
 import { buildCustomEndpoint } from '../provider-endpoints';
+import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
 
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
@@ -1028,6 +1029,16 @@ describe('ProviderClient', () => {
       'gpt-5.3-codex',
       'gpt-5.1-codex-mini',
     ];
+    const createClientWithCopilotMetadata = (models: Record<string, readonly string[]>) => {
+      const registry: Pick<ProviderModelRegistryService, 'getModelMetadata'> = {
+        getModelMetadata: jest.fn((provider: string, model: string) => {
+          if (provider !== 'copilot') return null;
+          const endpoints = models[model.toLowerCase()];
+          return endpoints ? { id: model.toLowerCase(), supportedEndpoints: endpoints } : null;
+        }),
+      };
+      return new ProviderClient(undefined, registry as unknown as ProviderModelRegistryService);
+    };
 
     it.each(copilotResponsesOnlyModels)(
       'routes Copilot + Codex model %s to /responses with chatgpt format',
@@ -1061,6 +1072,99 @@ describe('ProviderClient', () => {
         expect(sentBody.model).toBe(model);
       },
     );
+
+    it('routes Copilot chat input to /responses when supported_endpoints excludes chat', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const metadataClient = createClientWithCopilotMetadata({
+        'copilot/gpt-5.5': ['/responses', 'ws:/responses'],
+      });
+
+      const result = await metadataClient.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.5',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.githubcopilot.com/responses');
+      expect(result.isChatGpt).toBe(true);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(Array.isArray(sentBody.input)).toBe(true);
+      expect(sentBody.messages).toBeUndefined();
+      expect(sentBody.model).toBe('gpt-5.5');
+    });
+
+    it('keeps Copilot chat input on /chat/completions when chat is supported', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const metadataClient = createClientWithCopilotMetadata({
+        'copilot/gpt-5.4': ['/responses', '/chat/completions', 'ws:/responses'],
+      });
+
+      const result = await metadataClient.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.4',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.githubcopilot.com/chat/completions');
+      expect(result.isChatGpt).toBe(false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toBeDefined();
+      expect(sentBody.input).toBeUndefined();
+    });
+
+    it('routes Copilot Responses input to /responses when supported', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const metadataClient = createClientWithCopilotMetadata({
+        'copilot/gpt-5.4': ['/responses', '/chat/completions'],
+      });
+
+      const result = await metadataClient.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.4',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.githubcopilot.com/responses');
+      expect(result.isResponses).toBe(true);
+    });
+
+    it('routes Copilot Responses input to /chat/completions when only chat is supported', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const metadataClient = createClientWithCopilotMetadata({
+        'copilot/claude-sonnet-4.6': ['/chat/completions', '/v1/messages'],
+      });
+
+      const result = await metadataClient.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'claude-sonnet-4.6',
+        body: { input: 'Hello', stream: false },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.githubcopilot.com/chat/completions');
+      expect(result.isChatGpt).toBe(false);
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toBeDefined();
+      expect(sentBody.input).toBeUndefined();
+    });
 
     it('preserves reasoning and text params when converting Copilot Codex requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
