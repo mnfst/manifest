@@ -8,6 +8,7 @@ import { AgentModelParams } from '../../entities/agent-model-params.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { HeaderTier } from '../../entities/header-tier.entity';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
 import { ProviderService } from './provider.service';
@@ -33,6 +34,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
       Agent,
       Tenant,
       AgentMessage,
+      HeaderTier,
     ]),
     ModelPricesModule,
     ModelDiscoveryModule,

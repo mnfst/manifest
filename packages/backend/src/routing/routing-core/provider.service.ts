@@ -5,6 +5,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { Agent } from '../../entities/agent.entity';
+import { HeaderTier } from '../../entities/header-tier.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
@@ -37,6 +38,8 @@ export class ProviderService {
     private readonly specificityRepo: Repository<SpecificityAssignment>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    @InjectRepository(HeaderTier)
+    private readonly headerTierRepo: Repository<HeaderTier>,
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly routingCache: RoutingCacheService,
@@ -681,6 +684,16 @@ export class ProviderService {
         updated_at: new Date().toISOString(),
       },
     );
+    // Custom (header) tiers are user-configured only — clear their routes too
+    // so deactivating every provider doesn't leave stale pins behind.
+    await this.headerTierRepo.update(
+      { agent_id: agentId },
+      {
+        override_route: null,
+        fallback_routes: null,
+        updated_at: new Date().toISOString(),
+      },
+    );
     await this.autoAssign.recalculate(agentId, userId);
     this.routingCache.invalidateAgent(agentId);
     this.routingCache.invalidateUser(userId);
@@ -820,6 +833,33 @@ export class ProviderService {
     }
     if (specToSave.length > 0) await this.specificityRepo.save(specToSave);
 
+    // Custom (header) tiers reference the same providers. Drop routes that
+    // belong to the removed provider so they don't linger after a full
+    // disconnect. Header tiers have no auto-assigned slot, so a cleared
+    // override just leaves the tier empty (resolve treats that as fallthrough)
+    // — no notification path, unlike standard tiers above.
+    const headerTiers = await this.headerTierRepo.find({ where: { agent_id: agentId } });
+    const headerTiersToSave: HeaderTier[] = [];
+    for (const h of headerTiers) {
+      let changed = false;
+      if (h.override_route && routeBelongs(h.override_route)) {
+        h.override_route = null;
+        changed = true;
+      }
+      if (h.fallback_routes && h.fallback_routes.length > 0) {
+        const filteredRoutes = h.fallback_routes.filter((route) => !routeBelongs(route));
+        if (filteredRoutes.length !== h.fallback_routes.length) {
+          h.fallback_routes = filteredRoutes.length > 0 ? filteredRoutes : null;
+          changed = true;
+        }
+      }
+      if (changed) {
+        h.updated_at = new Date().toISOString();
+        headerTiersToSave.push(h);
+      }
+    }
+    if (headerTiersToSave.length > 0) await this.headerTierRepo.save(headerTiersToSave);
+
     return { invalidated, hadTierAssignments };
   }
 
@@ -901,6 +941,31 @@ export class ProviderService {
       }
     }
     if (specsToSave.length > 0) await this.specificityRepo.save(specsToSave);
+
+    // Custom (header) tiers carry the same ModelRoute shape. They were
+    // omitted here originally, so disconnecting one account out of several
+    // (or renaming a key) left header-tier routes pinned to a label that no
+    // longer exists — the account chip then renders blank. Relabel them too.
+    const headerTiers = await this.headerTierRepo.find({ where: { agent_id: agentId } });
+    const headerTiersToSave: HeaderTier[] = [];
+    for (const h of headerTiers) {
+      let mutated = false;
+      if (routeMatchesKey(h.override_route)) {
+        h.override_route = replaceKeyLabel(h.override_route!);
+        mutated = true;
+      }
+      if (h.fallback_routes && h.fallback_routes.some(routeMatchesKey)) {
+        h.fallback_routes = h.fallback_routes.map((r) =>
+          routeMatchesKey(r) ? replaceKeyLabel(r) : r,
+        );
+        mutated = true;
+      }
+      if (mutated) {
+        h.updated_at = now;
+        headerTiersToSave.push(h);
+      }
+    }
+    if (headerTiersToSave.length > 0) await this.headerTierRepo.save(headerTiersToSave);
   }
 
   private async renumberPriorities(

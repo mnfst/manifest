@@ -8,6 +8,7 @@ import { CommonModule } from '../common/common.module';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { ProxyModule } from '../routing/proxy/proxy.module';
+import { OAuthModule } from '../routing/oauth/oauth.module';
 import { PlaygroundController } from './playground.controller';
 import { PlaygroundService } from './playground.service';
 import { PlaygroundHistoryService } from './playground-history.service';
@@ -19,6 +20,7 @@ import { PlaygroundHistoryService } from './playground-history.service';
     ModelPricesModule,
     RoutingCoreModule,
     ProxyModule,
+    OAuthModule,
   ],
   controllers: [PlaygroundController],
   providers: [PlaygroundService, PlaygroundHistoryService],
