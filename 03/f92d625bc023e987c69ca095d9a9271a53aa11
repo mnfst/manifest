@@ -1,0 +1,23 @@
+packages/backend/src/routing/oauth/gemini-oauth.controller.ts
+  s_c460367371114a::t_fd1d6ceb3ec30e 46,74,116,123
+packages/backend/src/routing/oauth/xai/xai-oauth.controller.ts
+  s_c460367371114a::t_fd1d6ceb3ec30e 40,62,69,82
+packages/backend/src/routing/oauth/openai-oauth.controller.ts
+  s_c460367371114a::t_fd1d6ceb3ec30e 44,72,114,121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "03f92d625bc023e987c69ca095d9a9271a53aa11",
+  "prompts": {},
+  "sessions": {
+    "s_c460367371114a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e9389-1373-7841-8970-84019936f3ae",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
