@@ -17,6 +17,21 @@ describe('Custom Providers (e2e)', () => {
 
   let createdId: string;
 
+  async function enableCustomProviderForAgent(providerId: string): Promise<void> {
+    const providers = await request(app.getHttpServer())
+      .get(`/api/v1/routing/${agentName}/providers`)
+      .set(headers)
+      .expect(200);
+    const row = providers.body.find(
+      (p: { id: string; provider: string }) => p.provider === `custom:${providerId}`,
+    );
+    expect(row).toBeDefined();
+    await request(app.getHttpServer())
+      .put(`/api/v1/agents/${agentName}/provider-access/${row.id}`)
+      .set(headers)
+      .expect(200);
+  }
+
   it('GET /custom-providers returns empty array initially', async () => {
     const res = await request(app.getHttpServer())
       .get(`/api/v1/custom-providers`)
@@ -53,6 +68,7 @@ describe('Custom Providers (e2e)', () => {
     expect(res.body.models).toHaveLength(2);
     expect(res.body.id).toBeDefined();
     createdId = res.body.id;
+    await enableCustomProviderForAgent(createdId);
   });
 
   it('GET /custom-providers lists the created provider', async () => {
@@ -104,9 +120,7 @@ describe('Custom Providers (e2e)', () => {
       .put(`/api/v1/custom-providers/${createdId}`)
       .set(headers)
       .send({
-        models: [
-          { model_name: 'new-model', input_price_per_million_tokens: 1.0 },
-        ],
+        models: [{ model_name: 'new-model', input_price_per_million_tokens: 1.0 }],
       })
       .expect(200);
 
@@ -343,6 +357,7 @@ describe('Custom Providers (e2e)', () => {
     // Verify models in response don't have default 0 prices
     expect(res.body.models[0].input_price_per_million_tokens).toBeUndefined();
     expect(res.body.models[0].output_price_per_million_tokens).toBeUndefined();
+    await enableCustomProviderForAgent(res.body.id);
 
     // Verify available-models returns null prices
     const modelsRes = await request(app.getHttpServer())
@@ -372,16 +387,19 @@ describe('Custom Providers (e2e)', () => {
       .send({
         name: 'Free Provider',
         base_url: 'http://localhost:9001/v1',
-        models: [{
-          model_name: 'free-model',
-          input_price_per_million_tokens: 0,
-          output_price_per_million_tokens: 0,
-        }],
+        models: [
+          {
+            model_name: 'free-model',
+            input_price_per_million_tokens: 0,
+            output_price_per_million_tokens: 0,
+          },
+        ],
       })
       .expect(201);
 
     expect(res.body.models[0].input_price_per_million_tokens).toBe(0);
     expect(res.body.models[0].output_price_per_million_tokens).toBe(0);
+    await enableCustomProviderForAgent(res.body.id);
 
     // Verify available-models returns 0 prices (not null)
     const modelsRes = await request(app.getHttpServer())

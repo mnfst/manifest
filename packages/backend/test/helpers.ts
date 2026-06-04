@@ -37,6 +37,7 @@ import { MessageRecording } from '../src/entities/message-recording.entity';
 import { AgentModelParams } from '../src/entities/agent-model-params.entity';
 import { PlaygroundRun } from '../src/entities/playground-run.entity';
 import { PlaygroundColumn } from '../src/entities/playground-column.entity';
+import { AgentProviderAccess } from '../src/entities/agent-provider-access.entity';
 import { ProviderRateLimit } from '../src/entities/provider-rate-limit.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
@@ -78,6 +79,7 @@ const entities = [
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
+  AgentProviderAccess,
   ProviderRateLimit,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
