@@ -29,6 +29,8 @@ import {
 } from '../xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../zai-region';
 
+const XIAOMI_MODEL_PREFIXES = ['xiaomi/', 'mimo/', 'xiaomi-mimo/'] as const;
+
 /** A custom provider's stored endpoint config (subset used for forwarding). */
 export interface CustomProviderEndpointConfig {
   base_url: string;
@@ -96,12 +98,12 @@ export function resolveForwardEndpoint(
       forwardModel = forwardModel.substring('zai/'.length);
     }
   }
-  if (
-    isXiaomiProviderId(lower) &&
-    authType === 'subscription' &&
-    forwardModel.toLowerCase().startsWith('xiaomi/')
-  ) {
-    forwardModel = forwardModel.substring('xiaomi/'.length);
+  if (isXiaomiProviderId(lower) && authType === 'subscription') {
+    const lowerModel = forwardModel.toLowerCase();
+    const prefix = XIAOMI_MODEL_PREFIXES.find((candidate) => lowerModel.startsWith(candidate));
+    if (prefix) {
+      forwardModel = forwardModel.substring(prefix.length);
+    }
   }
 
   // --- Endpoint overrides --------------------------------------------------

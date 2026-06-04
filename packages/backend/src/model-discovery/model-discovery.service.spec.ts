@@ -1038,6 +1038,36 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('New Model');
     });
 
+    it('should enrich Xiaomi MiMo API-key models from provider pricing', async () => {
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'xiaomi/mimo-v2.5-pro') {
+          return {
+            input: 0.000003,
+            output: 0.000012,
+            displayName: 'MiMo V2.5 Pro',
+          };
+        }
+        return null;
+      });
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'mimo-v2.5-pro',
+          provider: 'xiaomi',
+          inputPricePerToken: null,
+          outputPricePerToken: null,
+        }),
+      ]);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'xiaomi' }));
+
+      expect(mockPricingSync.lookupPricing).toHaveBeenCalledWith('xiaomi/mimo-v2.5-pro');
+      expect(result[0].inputPricePerToken).toBe(0.000003);
+      expect(result[0].outputPricePerToken).toBe(0.000012);
+      expect(result[0].displayName).toBe('MiMo V2.5 Pro');
+    });
+
     it('should skip prefix lookup when provider has no OpenRouter prefix', async () => {
       // Use a provider that has no OpenRouter prefix mapping
       const models = [makeModel({ id: 'unknown-model' })];

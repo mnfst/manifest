@@ -760,8 +760,8 @@ describe('ProviderModelFetcherService', () => {
     expect(result[0]).toMatchObject({
       provider: 'xiaomi',
       contextWindow: 1048576,
-      inputPricePerToken: 0,
-      outputPricePerToken: 0,
+      inputPricePerToken: null,
+      outputPricePerToken: null,
       capabilityCode: true,
     });
   });

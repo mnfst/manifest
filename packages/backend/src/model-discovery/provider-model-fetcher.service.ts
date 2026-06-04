@@ -152,8 +152,6 @@ const parseXiaomiMimo = createModelParser<OpenAIModelEntry>({
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
   contextWindow: (entry) => XIAOMI_MIMO_CONTEXT_WINDOWS.get(entry.id) ?? DEFAULT_CONTEXT_WINDOW,
-  inputPricePerToken: 0,
-  outputPricePerToken: 0,
   capabilityCode: true,
 });
 
