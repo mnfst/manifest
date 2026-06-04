@@ -1,5 +1,13 @@
 # manifest
 
+## 6.9.2
+
+### Patch Changes
+
+- 2d7541b: Resolve model parameter specs through the providerless modelparams.dev by-model endpoint so gateway routes such as GitHub Copilot can expose the underlying model's thinking and reasoning controls.
+- 5006434: Speed up the dashboard and lower proxy overhead: unbuffered SSE streaming, smaller render-blocking CSS, lazy-loaded modals, cached per-agent model lookups, and new indexes for hot queries.
+- aad3033: Fix native `/v1/responses` forwarding so typed non-message input items such as `reasoning` and `item_reference` are preserved without a `role`, preventing ChatGPT subscription Codex backend 400 errors on multi-turn Codex requests.
+
 ## 6.9.1
 
 ### Patch Changes
