@@ -326,10 +326,7 @@ describe('ModelDiscoveryService', () => {
 
       await service.discoverModels(makeProvider());
 
-      expect(mockModelRegistry.registerModels).toHaveBeenCalledWith('openai', [
-        'gpt-4o',
-        'gpt-4-turbo',
-      ]);
+      expect(mockModelRegistry.registerModels).toHaveBeenCalledWith('openai', models);
     });
 
     it('should not register models when native fetch returns empty', async () => {
