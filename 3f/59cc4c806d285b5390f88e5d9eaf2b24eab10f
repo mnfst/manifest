@@ -1,0 +1,39 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_2e1f2f4aa91ca8::t_e707ae66cd0ca5 3,1008-1009,1015-1017
+  s_2e1f2f4aa91ca8::t_4fc003363c92b2 1010-1014,1052-1143
+packages/backend/src/routing/proxy/provider-client.ts
+  s_2e1f2f4aa91ca8::t_9f684fa7ea7df5 29,55-56,90-91,222-230,281-310,312-316
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_2e1f2f4aa91ca8::t_fd3f2c6a9fb268 1876-1880,1897
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_2e1f2f4aa91ca8::t_0953395aec2fe1 48,64,77,84-89,96,472
+packages/backend/src/model-discovery/provider-model-registry.service.ts
+  s_2e1f2f4aa91ca8::t_8ba2c9ebf67ecc 5-11,25,40,42-52,54,62-63,76-77,103-106,120-141
+  s_2e1f2f4aa91ca8::t_2b8ccf5536f3dc 13,95-102
+.changeset/copilot-supported-endpoints.md
+  s_2e1f2f4aa91ca8::t_36e7e3fb7b0641 1,3-5
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_2e1f2f4aa91ca8::t_3746ef569df362 163
+packages/backend/src/model-discovery/provider-model-registry.service.spec.ts
+  s_2e1f2f4aa91ca8::t_16cb89949c3bc4 43-72,117-124,151-171
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_2e1f2f4aa91ca8::t_077af665e1d656 329
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_2e1f2f4aa91ca8::t_d7fca0d8402aa9 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3f59cc4c806d285b5390f88e5d9eaf2b24eab10f",
+  "prompts": {},
+  "sessions": {
+    "s_2e1f2f4aa91ca8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e92d3-d954-7de2-a011-805708330949",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
