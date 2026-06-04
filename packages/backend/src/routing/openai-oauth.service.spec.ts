@@ -35,6 +35,7 @@ describe('OpenaiOauthService', () => {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: true }),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
       nextOAuthLabel: jest.fn().mockResolvedValue(undefined),
+      getFreshSubscriptionCredential: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<ProviderService>;
 
     configService = {
