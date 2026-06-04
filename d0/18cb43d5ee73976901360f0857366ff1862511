@@ -1,0 +1,37 @@
+packages/backend/src/routing/routing-core/routing-core.module.ts
+  s_4adf886f4f23e9::t_c00da920cd6dcd 10
+  s_4adf886f4f23e9::t_5007ae8ed3a72c 35
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_4adf886f4f23e9::t_1c4da9b6e93457 6
+  s_4adf886f4f23e9::t_a36f287ab3bc68 52
+  s_4adf886f4f23e9::t_34ea346fe11e4a 443-447,475-479,506-510
+  s_4adf886f4f23e9::t_eac9efa607d15d 398-401,407-442,448-474,480-505,511-520
+  s_4adf886f4f23e9::t_daa05077e5188c 29
+  s_4adf886f4f23e9::t_f3a923e93fdab4 38
+  s_4adf886f4f23e9::t_4d59739554c6c5 65
+  s_4adf886f4f23e9::t_176ebc12e5a12d 830
+.changeset/header-tier-disconnect-cleanup.md
+  s_4adf886f4f23e9::t_633140c32a7d44 1-5
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_4adf886f4f23e9::t_825bb2b7390d09 750-776
+  s_4adf886f4f23e9::t_964686aa90919d 608-617
+  s_4adf886f4f23e9::t_5f61158971fd26 38-39
+  s_4adf886f4f23e9::t_36e546c5fac995 7
+  s_4adf886f4f23e9::t_059269ab7bf897 858-882
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "d018cb43d5ee73976901360f0857366ff1862511",
+  "prompts": {},
+  "sessions": {
+    "s_4adf886f4f23e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe84aa03-0e45-475a-b5ff-91eec36e22b1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
