@@ -1,0 +1,21 @@
+packages/backend/src/playground/playground.service.spec.ts
+  s_4adf886f4f23e9::t_18995c990d25f7 339-341
+packages/backend/src/playground/playground.service.ts
+  s_4adf886f4f23e9::t_1138453be79630 174-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "cd30668d7ef24293b8e8dc84224848e989d02a44",
+  "prompts": {},
+  "sessions": {
+    "s_4adf886f4f23e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe84aa03-0e45-475a-b5ff-91eec36e22b1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
