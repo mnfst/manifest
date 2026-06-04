@@ -1,0 +1,25 @@
+packages/backend/src/playground/playground.service.ts
+  s_4adf886f4f23e9::t_470f772a604c61 73-76
+  s_4adf886f4f23e9::t_f75a63a2006349 131-134
+  s_4adf886f4f23e9::t_2b7c04af6ce53e 10-11
+  s_4adf886f4f23e9::t_98e361dea0a29e 163-176
+packages/backend/src/playground/playground.service.spec.ts
+  s_4adf886f4f23e9::t_4d6f4e53a287fc 364-383
+  s_4adf886f4f23e9::t_fabc1600408558 316-363
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3c9e467b9eb1f21f811315d9e82dd3125d1ffce0",
+  "prompts": {},
+  "sessions": {
+    "s_4adf886f4f23e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe84aa03-0e45-475a-b5ff-91eec36e22b1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
