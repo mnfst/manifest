@@ -150,7 +150,7 @@ const FreeModels: Component = () => {
         <div>
           <h1>Free Models</h1>
           <span class="breadcrumb">
-            Cloud providers offering free API access for {agentDisplayName() ?? 'your agent'}
+            Cloud providers offering free API access for {agentDisplayName() ?? 'your harness'}
           </span>
         </div>
       </div>

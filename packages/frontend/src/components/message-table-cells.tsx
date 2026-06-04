@@ -122,6 +122,7 @@ export function ThumbDownIcon(props: { filled?: boolean }): JSX.Element {
 
 const HEADER_LABELS: Record<MessageColumnKey, string> = {
   date: 'Date',
+  agent: 'Harness',
   message: 'Message',
   cost: 'Cost',
   totalTokens: 'Tokens',
@@ -150,6 +151,14 @@ export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Ele
     </>
   ) : (
     <>{label}</>
+  );
+}
+
+export function AgentCell(item: MessageRow): JSX.Element {
+  return (
+    <td style="white-space: nowrap; font-weight: 500; font-size: var(--font-size-xs);">
+      {item.agent_name ?? '—'}
+    </td>
   );
 }
 
@@ -300,7 +309,7 @@ export function ModelCell(
           <span class="tier-badge tier-badge--specificity">
             {item.specificity_category.replace(/_/g, ' ')}
           </span>
-        ) : item.routing_tier ? (
+        ) : item.routing_tier && item.routing_tier !== 'playground' ? (
           <span class={`tier-badge tier-badge--${item.routing_tier}`}>{item.routing_tier}</span>
         ) : null}
         {item.fallback_from_model && (
@@ -460,6 +469,8 @@ export function renderCell(
   switch (key) {
     case 'date':
       return DateCell(item);
+    case 'agent':
+      return AgentCell(item);
     case 'message':
       return MessageCell(item);
     case 'cost':

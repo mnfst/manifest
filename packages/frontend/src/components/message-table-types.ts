@@ -29,6 +29,7 @@ export interface MessageRow {
 
 export type MessageColumnKey =
   | 'date'
+  | 'agent'
   | 'message'
   | 'cost'
   | 'totalTokens'
@@ -54,6 +55,7 @@ export const DETAILED_COLUMNS: MessageColumnKey[] = [
   'feedback',
   'date',
   'status',
+  'agent',
   'model',
   'message',
   'cost',

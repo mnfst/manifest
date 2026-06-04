@@ -159,7 +159,7 @@ const Limits: Component = () => {
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <span>
-            One or more hard limits triggered. New proxy requests for this agent will be blocked
+            One or more hard limits triggered. New proxy requests for this harness will be blocked
             until the usage resets in the next period.
           </span>
         </div>

@@ -1,7 +1,8 @@
 import { createSignal, Show, type Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
-import { createAgent } from '../services/api.js';
+import { createAgent, getCustomProviders } from '../services/api.js';
+import { fetchJson } from '../services/api/core.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
@@ -30,14 +31,28 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
       });
-      toast.success(`Agent "${agentName}" connected`);
+      toast.success(`Harness "${agentName}" connected`);
       props.onClose();
       resetForm();
       const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
-      navigate(`/agents/${encodeURIComponent(slug)}`, {
-        state: { newApiKey: result?.apiKey },
-      });
+
+      // Check if any providers are connected to decide where to navigate
+      let hasProviders = false;
+      try {
+        const res = (await fetchJson('/providers')) as { providers: Array<{ provider: string }> };
+        hasProviders = (res?.providers?.length ?? 0) > 0;
+      } catch {
+        /* ignore */
+      }
+
+      if (hasProviders) {
+        navigate(`/agents/${encodeURIComponent(slug)}/routing`);
+      } else {
+        navigate(`/agents/${encodeURIComponent(slug)}/routing`, {
+          state: { openProviders: true },
+        });
+      }
     } catch {
       // error toast already shown by fetchMutate
     } finally {
@@ -78,10 +93,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
-            Connect Agent
+            Connect Harness
           </h2>
           <p class="modal-card__desc">
-            Name your agent to start tracking its LLM usage, costs, and messages in real time.
+            Name your harness to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
           <div class="agent-type-select-row">
@@ -97,14 +112,14 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
             <div style="flex: 1;">
               <label class="modal-card__field-label" for="agent-name-input">
-                Agent name
+                Harness name
               </label>
               <input
                 ref={(el) => requestAnimationFrame(() => el.focus())}
                 id="agent-name-input"
                 class="modal-card__input modal-card__input--lg"
                 type="text"
-                placeholder="e.g. My Cool Agent"
+                placeholder="e.g. My Cool Harness"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
                 disabled={creating()}

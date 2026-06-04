@@ -1,8 +1,10 @@
-import { createSignal, For, Show, onCleanup, type Component } from 'solid-js';
+import { createSignal, For, Show, onCleanup, type Component, type JSX } from 'solid-js';
 
 interface SelectOption {
   label: string;
   value: string;
+  /** Optional JSX to render instead of the plain text label in the dropdown. */
+  render?: () => JSX.Element;
 }
 
 interface SelectProps {
@@ -19,9 +21,14 @@ const Select: Component<SelectProps> = (props) => {
   const [open, setOpen] = createSignal(false);
   let ref: HTMLDivElement | undefined;
 
-  const selectedLabel = () => {
+  const selectedLabel = (): string => {
     const opt = props.options.find((o) => o.value === props.value);
     return opt?.label ?? props.placeholder ?? 'Select...';
+  };
+
+  const selectedRender = (): JSX.Element | undefined => {
+    const opt = props.options.find((o) => o.value === props.value);
+    return opt?.render?.();
   };
 
   const handleClickOutside = (e: MouseEvent) => {
@@ -57,7 +64,9 @@ const Select: Component<SelectProps> = (props) => {
         aria-expanded={open()}
         aria-label={props.label ?? selectedLabel()}
       >
-        <span class="custom-select__value">{props.displayValue ?? selectedLabel()}</span>
+        <span class="custom-select__value">
+          {props.displayValue ?? selectedRender() ?? selectedLabel()}
+        </span>
         <svg
           class="custom-select__chevron"
           width="12"
@@ -88,7 +97,7 @@ const Select: Component<SelectProps> = (props) => {
                 role="option"
                 aria-selected={props.value === opt.value}
               >
-                {opt.label}
+                {opt.render ? opt.render() : opt.label}
               </button>
             )}
           </For>

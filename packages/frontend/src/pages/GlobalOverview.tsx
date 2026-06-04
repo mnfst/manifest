@@ -4,12 +4,15 @@ import {
   createResource,
   createSignal,
   createMemo,
+  createEffect,
+  on,
   For,
   Show,
   onCleanup,
   type Component,
 } from 'solid-js';
 import { fetchJson } from '../services/api/core.js';
+import AddAgentModal from '../components/AddAgentModal.jsx';
 import { getAgents, getCustomProviders } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import { customProviderLogo } from '../components/ProviderIcon.jsx';
@@ -422,168 +425,224 @@ const GlobalOverview: Component = () => {
   const hasNoAgents = () => agents() !== undefined && agentList().length === 0;
   const hasNoProviders = () => providers() !== undefined && providerList().length === 0;
 
+  // Auto-open the Create Agent modal for first-time users (once per session)
+  const ONBOARDING_DISMISSED_KEY = 'overview_onboarding_dismissed';
+  const [addAgentOpen, setAddAgentOpen] = createSignal(false);
+  const dismissAddAgent = () => {
+    setAddAgentOpen(false);
+    try {
+      sessionStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  };
+  createEffect(
+    on(
+      () => hasNoAgents(),
+      (empty) => {
+        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+          setAddAgentOpen(true);
+        }
+      },
+      { defer: true },
+    ),
+  );
+
   return (
     <div class="container--lg">
       <Title>Overview | Manifest</Title>
 
-      {/* Onboarding banners */}
-      <Show when={hasNoAgents() && hasNoProviders()}>
-        <div class="waiting-banner" style="margin-bottom: 24px;">
-          <i class="bxd bx-rocket" />
-          <p>Welcome to Manifest. Start by connecting your first agent.</p>
-          <a
-            href="/agents?add=true"
-            class="btn btn--primary btn--sm"
-            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
-          >
-            Create agent
-          </a>
-        </div>
-      </Show>
-      <Show when={!hasNoAgents() && hasNoProviders()}>
-        <div class="waiting-banner" style="margin-bottom: 24px;">
-          <i class="bxd bx-plug" />
-          <p>Connect a provider to start routing your agents' LLM calls.</p>
-          <a
-            href="/providers/subscriptions?add=true"
-            class="btn btn--primary btn--sm"
-            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
-          >
-            Add subscription
-          </a>
-        </div>
-      </Show>
-      <Show when={hasNoAgents() && !hasNoProviders()}>
-        <div class="waiting-banner" style="margin-bottom: 24px;">
-          <i class="bxd bx-bot" />
-          <p>You have providers connected. Create an agent to start routing.</p>
-          <a
-            href="/agents?add=true"
-            class="btn btn--primary btn--sm"
-            style="text-decoration: none; margin-left: auto; flex-shrink: 0;"
-          >
-            Create agent
-          </a>
-        </div>
-      </Show>
+      {/* Add Agent Modal */}
+      <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
 
       {/* ── 1. Page Header ──────────────────────────────────────────── */}
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
           <h1 class="page-header__title">Overview</h1>
-          <p class="page-header__subtitle">All your agents and providers</p>
+          <p class="page-header__subtitle">All your harnesses and providers</p>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
-          <Show when={allAgents().length > 1}>
-            <div class="agent-filter-select" ref={agentFilterRef}>
-              <button
-                class="agent-filter-select__trigger"
-                onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                type="button"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
+        <Show when={!hasNoAgents() || !hasNoProviders()}>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
+            <Show when={allAgents().length > 1}>
+              <div class="agent-filter-select" ref={agentFilterRef}>
+                <button
+                  class="agent-filter-select__trigger"
+                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                  type="button"
                 >
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-                {(() => {
-                  const label = groupBy() === 'provider' ? 'providers' : 'agents';
-                  return selectedAgentCount() === allAgents().length
-                    ? `All ${label} (${allAgents().length})`
-                    : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
-                })()}
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              <Show when={agentFilterOpen()}>
-                <div class="agent-filter-select__dropdown">
-                  <div class="agent-filter-select__actions">
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedAgentCount() === allAgents().length}
-                      onClick={() => {
-                        setSelectedAgents(new Set(allAgents()));
-                        try {
-                          sessionStorage.setItem(storageKey, JSON.stringify([...allAgents()]));
-                        } catch {
-                          /* ignore */
-                        }
-                      }}
-                    >
-                      Select all
-                    </button>
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedAgentCount() === 0}
-                      onClick={() => {
-                        setSelectedAgents(new Set<string>());
-                        try {
-                          sessionStorage.setItem(storageKey, JSON.stringify([]));
-                        } catch {
-                          /* ignore */
-                        }
-                      }}
-                    >
-                      Unselect all
-                    </button>
-                  </div>
-                  <For each={allAgents()}>
-                    {(agent) => {
-                      const isOn = () => effectiveSelected().has(agent);
-                      return (
-                        <button
-                          class="agent-filter-select__item"
-                          onClick={() => toggleAgent(agent)}
-                          type="button"
-                        >
-                          <span
-                            class="agent-filter-select__swatch"
-                            style={{ background: agentColorMap()[agent] }}
-                          />
-                          <span class="agent-filter-select__name">{agent}</span>
-                          <span
-                            class="agent-filter-select__toggle"
-                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                  </svg>
+                  {(() => {
+                    const label = groupBy() === 'provider' ? 'providers' : 'harnesses';
+                    return selectedAgentCount() === allAgents().length
+                      ? `All ${label} (${allAgents().length})`
+                      : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
+                  })()}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                <Show when={agentFilterOpen()}>
+                  <div class="agent-filter-select__dropdown">
+                    <div class="agent-filter-select__actions">
+                      <button
+                        class="agent-filter-select__action-btn"
+                        type="button"
+                        disabled={selectedAgentCount() === allAgents().length}
+                        onClick={() => {
+                          setSelectedAgents(new Set(allAgents()));
+                          try {
+                            sessionStorage.setItem(storageKey, JSON.stringify([...allAgents()]));
+                          } catch {
+                            /* ignore */
+                          }
+                        }}
+                      >
+                        Select all
+                      </button>
+                      <button
+                        class="agent-filter-select__action-btn"
+                        type="button"
+                        disabled={selectedAgentCount() === 0}
+                        onClick={() => {
+                          setSelectedAgents(new Set<string>());
+                          try {
+                            sessionStorage.setItem(storageKey, JSON.stringify([]));
+                          } catch {
+                            /* ignore */
+                          }
+                        }}
+                      >
+                        Unselect all
+                      </button>
+                    </div>
+                    <For each={allAgents()}>
+                      {(agent) => {
+                        const isOn = () => effectiveSelected().has(agent);
+                        return (
+                          <button
+                            class="agent-filter-select__item"
+                            onClick={() => toggleAgent(agent)}
+                            type="button"
                           >
-                            <span class="agent-filter-select__toggle-thumb" />
-                          </span>
-                        </button>
-                      );
-                    }}
-                  </For>
-                </div>
-              </Show>
-            </div>
-          </Show>
-          <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
-        </div>
+                            <span
+                              class="agent-filter-select__swatch"
+                              style={{ background: agentColorMap()[agent] }}
+                            />
+                            <span class="agent-filter-select__name">{agent}</span>
+                            <span
+                              class="agent-filter-select__toggle"
+                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                            >
+                              <span class="agent-filter-select__toggle-thumb" />
+                            </span>
+                          </button>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
+              </div>
+            </Show>
+            <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
+          </div>
+        </Show>
       </div>
 
+      {/* Onboarding empty state: replaces all dashboard content */}
+      <Show when={hasNoAgents() && hasNoProviders()}>
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="color: hsl(var(--muted-foreground)); margin-bottom: 4px;"
+            aria-hidden="true"
+          >
+            <path d="M4 2H2v19c0 .55.45 1 1 1h19v-2H4z" />
+            <path d="M11 18c.55 0 1-.45 1-1V6c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1zm-1-2H8v-2h2zm0-9v5H8V7zm9 11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1zm-1-2h-2v-6h2zM16 4h2v4h-2z" />
+          </svg>
+          <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+            No activity yet
+          </div>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+            Set up your harness and connect at least one provider. Once your harness sends requests,
+            data will appear here.
+          </div>
+          <button class="btn btn--primary btn--sm" onClick={() => setAddAgentOpen(true)}>
+            Set up harness
+          </button>
+        </div>
+      </Show>
+
+      <Show when={!hasNoAgents() && hasNoProviders()}>
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="color: hsl(var(--muted-foreground)); margin-bottom: 4px;"
+            aria-hidden="true"
+          >
+            <path d="M4 2H2v19c0 .55.45 1 1 1h19v-2H4z" />
+            <path d="M11 18c.55 0 1-.45 1-1V6c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1zm-1-2H8v-2h2zm0-9v5H8V7zm9 11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1zm-1-2h-2v-6h2zM16 4h2v4h-2z" />
+          </svg>
+          <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+            No providers connected
+          </div>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+            Connect a model provider to start routing your harnesses' LLM calls.
+          </div>
+          <A
+            href="/providers/subscriptions?add=true"
+            class="btn btn--primary btn--sm"
+            style="text-decoration: none;"
+          >
+            Connect provider
+          </A>
+        </div>
+      </Show>
+
+      {/* Dashboard content: hidden when fully empty */}
       <Show
-        when={overview() !== undefined && agents() !== undefined && providers() !== undefined}
-        fallback={<GlobalOverviewSkeleton />}
+        when={
+          !hasNoAgents() &&
+          !hasNoProviders() &&
+          overview() !== undefined &&
+          agents() !== undefined &&
+          providers() !== undefined
+        }
+        fallback={
+          <Show when={!hasNoAgents() && !hasNoProviders()}>
+            <GlobalOverviewSkeleton />
+          </Show>
+        }
       >
         {/* ── 2. Chart Card ───────────────────────────────────────────── */}
         <div style="margin-bottom: 24px;">
@@ -827,7 +886,7 @@ const GlobalOverview: Component = () => {
               </div>
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <span class="overview-stat-card__label">Agents</span>
+                  <span class="overview-stat-card__label">Harnesses</span>
                   <A
                     href="/agents?add=true"
                     class="btn btn--outline btn--sm"
@@ -899,7 +958,7 @@ const GlobalOverview: Component = () => {
                 <tr>
                   <th>Date</th>
                   <th>Status</th>
-                  <th>Agent</th>
+                  <th>Harness</th>
                   <th>Model</th>
                   <th>Message</th>
                   <th style="text-align: right;">Cost</th>
@@ -1162,7 +1221,7 @@ const GlobalOverview: Component = () => {
 
         {/* ── 7. Agents (full width) ─────────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
-          <div class="panel__title">Agents</div>
+          <div class="panel__title">Harnesses</div>
           <div
             class="scroll-panel__body"
             onScroll={(e) => {
@@ -1174,7 +1233,7 @@ const GlobalOverview: Component = () => {
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Agent</th>
+                  <th>Harness</th>
                   <th>Usage (30d)</th>
                   <th style="text-align: right;">Messages</th>
                 </tr>
@@ -1229,7 +1288,7 @@ const GlobalOverview: Component = () => {
                       colspan="4"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
-                      No agents yet
+                      No harnesses yet
                     </td>
                   </tr>
                 </Show>

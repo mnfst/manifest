@@ -166,7 +166,7 @@ const AgentProviders: Component = () => {
   return (
     <div>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
-        Enable the global provider connections this agent may use. Turning a provider off removes
+        Enable the global provider connections this harness may use. Turning a provider off removes
         routing assignments that depend on its models.
       </p>
 

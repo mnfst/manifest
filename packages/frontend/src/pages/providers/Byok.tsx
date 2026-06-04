@@ -514,10 +514,19 @@ const Byok: Component = () => {
           customProviders={customProvidersList() ?? []}
           providerDeepLink={providerDeepLink()}
           initialTab="api_key"
-          onUpdate={() => {
+          onUpdate={async () => {
+            const before = (modalProviders() ?? []).map((p) => p.id);
+            await refetchModalProviders();
             refetch();
-            refetchModalProviders();
             refetchCustomProviders();
+            const updated = modalProviders() ?? [];
+            const newConn = updated.find((p) => p.is_active && !before.includes(p.id));
+            if (newConn && newConn.auth_type !== 'api_key') {
+              setShowModal(false);
+              const target =
+                newConn.auth_type === 'local' ? '/providers/local' : '/providers/subscriptions';
+              navigate(`${target}?add=true`, { replace: true });
+            }
           }}
           onClose={handleModalClose}
         />

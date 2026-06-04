@@ -19,6 +19,7 @@ import Pagination from '../components/Pagination.jsx';
 import RecordedMessageModal from '../components/RecordedMessageModal.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
+import AddAgentModal from '../components/AddAgentModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
@@ -36,6 +37,10 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
+import { getProviders, type RoutingProvider } from '../services/api/routing.js';
+import { fetchJson } from '../services/api/core.js';
+import { providerIcon } from '../components/ProviderIcon.jsx';
+import { authBadgeFor } from '../components/AuthBadge.jsx';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
@@ -82,7 +87,7 @@ const MessageLog: Component = () => {
     },
   );
   const agentFilterOptions = createMemo(() => [
-    { label: 'All agents', value: '' },
+    { label: 'All harnesses', value: '' },
     ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
@@ -94,6 +99,7 @@ const MessageLog: Component = () => {
   onMount(() => window.addEventListener('sidebar-navigate', closeDr));
   onCleanup(() => window.removeEventListener('sidebar-navigate', closeDr));
   const [setupOpen, setSetupOpen] = createSignal(false);
+  const [addAgentOpen, setAddAgentOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
@@ -162,7 +168,24 @@ const MessageLog: Component = () => {
     (name) => listHeaderTiers(decodeURIComponent(name)),
   );
 
-  const hasProviders = () => routingStatus()?.enabled === true;
+  const [agentProviders] = createResource(
+    () => params.agentName,
+    (name) => getProviders(decodeURIComponent(name)).catch(() => [] as RoutingProvider[]),
+  );
+
+  const [globalProviders] = createResource(
+    () => true,
+    async () => {
+      try {
+        const res = (await fetchJson('/providers')) as { providers: Array<{ provider: string }> };
+        return res?.providers ?? [];
+      } catch {
+        return [];
+      }
+    },
+  );
+
+  const hasProviders = () => (globalProviders() ?? []).length > 0;
 
   /** Map custom:<uuid> → provider display name */
   const customProviderName = (model: string): string | undefined => {
@@ -299,13 +322,48 @@ const MessageLog: Component = () => {
     return prov?.name ?? id;
   };
 
-  const providerOptions = createMemo(() => [
-    { label: 'All providers', value: '' },
-    ...(data()?.providers ?? []).map((id) => ({
-      label: providerDisplayName(id),
-      value: id,
-    })),
-  ]);
+  /** Build enriched provider connection options with logo + auth badge + name + label */
+  const providerOptions = createMemo(() => {
+    const providerIds = data()?.providers ?? [];
+    const connections = agentProviders() ?? [];
+
+    // Build a map from provider ID → first connection (for auth type display)
+    const connectionByProvider = new Map<string, RoutingProvider>();
+    for (const conn of connections) {
+      if (!connectionByProvider.has(conn.provider)) {
+        connectionByProvider.set(conn.provider, conn);
+      }
+    }
+
+    const options: Array<{ label: string; value: string; render?: () => any }> = [
+      { label: 'All provider connections', value: '' },
+    ];
+
+    for (const id of providerIds) {
+      const name = providerDisplayName(id);
+      const conn = connectionByProvider.get(id);
+
+      options.push({
+        label: name,
+        value: id,
+        render: () => (
+          <span style="display: inline-flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; flex-shrink: 0; position: relative; color: hsl(var(--foreground));">
+              {providerIcon(id, 14)}
+              {conn ? authBadgeFor(conn.auth_type, 8) : null}
+            </span>
+            <span>{name}</span>
+            {conn?.label && conn.label !== 'Default' && (
+              <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                {conn.label}
+              </span>
+            )}
+          </span>
+        ),
+      });
+    }
+    return options;
+  });
 
   const scrollToFallbackSuccess = (model: string) => {
     const items = data()?.items;
@@ -328,13 +386,16 @@ const MessageLog: Component = () => {
         name="description"
         content={`Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`}
       />
-      <div class="page-header">
+      <div
+        class="page-header"
+        style={showEmptyState() ? 'border-bottom: none; padding-bottom: 0;' : undefined}
+      >
         <div>
           <h1>Messages</h1>
           <span class="breadcrumb">Full log of every LLM call. Filter by provider or cost.</span>
         </div>
-        <div class="header-controls">
-          <Show when={!showEmptyState()}>
+        <Show when={!showEmptyState()}>
+          <div class="header-controls">
             <Select
               value={agentFilter()}
               onChange={setAgentFilter}
@@ -369,13 +430,8 @@ const MessageLog: Component = () => {
                 onInput={(e) => debouncedSetCostMax(e.currentTarget.value)}
               />
             </div>
-          </Show>
-          <Show when={showEmptyState() && !setupCompleted()}>
-            <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-              Set up agent
-            </button>
-          </Show>
-        </div>
+          </div>
+        </Show>
       </div>
 
       <Show
@@ -447,54 +503,58 @@ const MessageLog: Component = () => {
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
-            <Show
-              when={setupCompleted()}
-              fallback={
-                <div class="empty-state">
-                  <div class="empty-state__title">No messages yet</div>
-                  <p>Set up your agent and send a message. Every LLM call shows up here.</p>
-                  <button
-                    class="btn btn--primary btn--sm"
-                    style="margin-top: var(--gap-md);"
-                    onClick={() => setSetupOpen(true)}
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                style="color: hsl(var(--muted-foreground)); margin-bottom: 4px;"
+                aria-hidden="true"
+              >
+                <path d="M20 3H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h3v2c0 .36.19.69.51.87a1 1 0 0 0 1-.01L13.27 19h6.72c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2Zm0 14h-7c-.18 0-.36.05-.51.14L9 19.23V18c0-.55-.45-1-1-1H4V5h16z" />
+                <path d="M6 9h3v2H6zm5 0h7v2h-7zm4 4h3v2h-3zm-9 0h7v2H6z" />
+              </svg>
+              <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+                No messages yet
+              </div>
+              <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+                <Show
+                  when={agentList()?.length}
+                  fallback="Set up your harness and connect a provider. Every LLM call shows up here."
+                >
+                  <Show
+                    when={hasProviders()}
+                    fallback="Connect a model provider to start routing your harness' LLM calls."
                   >
-                    Set up agent
+                    Every request sent through your harness will be recorded here.
+                  </Show>
+                </Show>
+              </div>
+              <Show
+                when={agentList()?.length}
+                fallback={
+                  <button class="btn btn--primary btn--sm" onClick={() => setAddAgentOpen(true)}>
+                    Set up harness
                   </button>
-                  <div class="empty-state__img-wrapper">
-                    <img
-                      src="/example-messages.svg"
-                      alt="Example message log showing LLM call history"
-                      class="empty-state__img"
-                      loading="lazy"
-                    />
-                  </div>
-                </div>
-              }
-            >
-              <div class="empty-state">
-                <div class="empty-state__title">No messages yet</div>
-                <p>Connect a provider to start routing LLM calls.</p>
-                <button
-                  class="btn btn--primary btn--sm"
-                  style="margin-top: var(--gap-md);"
-                  onClick={() =>
-                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
-                      state: { openProviders: true },
-                    })
+                }
+              >
+                <Show
+                  when={hasProviders()}
+                  fallback={
+                    <button
+                      class="btn btn--primary btn--sm"
+                      onClick={() => navigate('/providers/subscriptions?add=true')}
+                    >
+                      Connect provider
+                    </button>
                   }
                 >
-                  Connect provider
-                </button>
-                <div class="empty-state__img-wrapper">
-                  <img
-                    src="/example-messages.svg"
-                    alt="Example message log showing LLM call history"
-                    class="empty-state__img"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
-            </Show>
+                  {/* No CTA needed — harness + providers are set up, just waiting for first request */}
+                </Show>
+              </Show>
+            </div>
           </Show>
           <Show when={isFilteredEmpty()}>
             <div class="panel">
@@ -562,6 +622,8 @@ const MessageLog: Component = () => {
           </Show>
         </Show>
       </Show>
+
+      <AddAgentModal open={addAgentOpen()} onClose={() => setAddAgentOpen(false)} />
 
       <SetupModal
         open={setupOpen()}

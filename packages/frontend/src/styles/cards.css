@@ -86,7 +86,6 @@
   box-shadow: var(--card-shadow);
   animation: fadeInUp 300ms ease-out both;
   position: relative;
-  z-index: 10;
 }
 
 .chart-card__header {

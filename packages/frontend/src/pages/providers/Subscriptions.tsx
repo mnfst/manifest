@@ -478,9 +478,17 @@ const Subscriptions: Component = () => {
           providers={modalProviders() ?? []}
           providerDeepLink={providerDeepLink()}
           initialTab="subscription"
-          onUpdate={() => {
+          onUpdate={async () => {
+            const before = (modalProviders() ?? []).map((p) => p.id);
+            await refetchModalProviders();
             refetch();
-            refetchModalProviders();
+            const updated = modalProviders() ?? [];
+            const newConn = updated.find((p) => p.is_active && !before.includes(p.id));
+            if (newConn && newConn.auth_type !== 'subscription') {
+              setShowModal(false);
+              const target = newConn.auth_type === 'local' ? '/providers/local' : '/providers/byok';
+              navigate(`${target}?add=true`, { replace: true });
+            }
           }}
           onClose={handleModalClose}
         />

@@ -102,7 +102,7 @@ const Register: Component = () => {
       <Title>Sign Up - Manifest</Title>
       <Meta
         name="description"
-        content="Create a Manifest account to start monitoring your AI agents."
+        content="Create a Manifest account to start monitoring your AI harnesses."
       />
       <Show
         when={emailSent()}
@@ -110,7 +110,7 @@ const Register: Component = () => {
           <>
             <div class="auth-header">
               <h1 class="auth-header__title">Create an account</h1>
-              <p class="auth-header__subtitle">Monitor your AI agents' costs and usage</p>
+              <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
             </div>
 
             <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />

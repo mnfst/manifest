@@ -32,6 +32,7 @@ import {
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
 import { getProviders as getAgentProviders } from '../../services/api/routing.js';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
+import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import ActionMenu from '../../components/ActionMenu.jsx';
 import Select from '../../components/Select.jsx';
@@ -100,7 +101,7 @@ interface AnalyticsResponse {
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
 
-  const [detail] = createResource(
+  const [detail, { refetch: refetchDetail }] = createResource(
     () => params.connectionId,
     (id) => getConnectionDetail(id) as Promise<DetailResponse>,
   );
@@ -390,6 +391,7 @@ const ConnectionDetail: Component = () => {
   const [showDisconnectModal, setShowDisconnectModal] = createSignal(false);
   const [disconnecting, setDisconnecting] = createSignal(false);
   const [showManageModal, setShowManageModal] = createSignal(false);
+  const [showProviderModal, setShowProviderModal] = createSignal(false);
   const [labelInput, setLabelInput] = createSignal('');
   const [savingLabel, setSavingLabel] = createSignal(false);
   const [agents] = createResource(async () => {
@@ -415,7 +417,7 @@ const ConnectionDetail: Component = () => {
 
   const agentOptions = () => {
     const list = chartAgents()?.agents ?? [];
-    return [{ label: 'All agents', value: '' }, ...list.map((a) => ({ label: a, value: a }))];
+    return [{ label: 'All harnesses', value: '' }, ...list.map((a) => ({ label: a, value: a }))];
   };
 
   return (
@@ -550,8 +552,8 @@ const ConnectionDetail: Component = () => {
                           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                         </svg>
                         {selectedAgentCount() === allAgents().length
-                          ? `All agents (${allAgents().length})`
-                          : `${selectedAgentCount()} of ${allAgents().length} agents`}
+                          ? `All harnesses (${allAgents().length})`
+                          : `${selectedAgentCount()} of ${allAgents().length} harnesses`}
                         <svg
                           width="10"
                           height="10"
@@ -637,9 +639,14 @@ const ConnectionDetail: Component = () => {
                       { label: 'Last 30 days', value: '30d' },
                     ]}
                   />
-                  <button class="btn btn--outline btn--sm" onClick={() => setShowManageModal(true)}>
-                    Manage
-                  </button>
+                  <Show when={c.is_active}>
+                    <button
+                      class="btn btn--outline btn--sm"
+                      onClick={() => setShowProviderModal(true)}
+                    >
+                      Manage
+                    </button>
+                  </Show>
                 </div>
               </div>
 
@@ -810,12 +817,12 @@ const ConnectionDetail: Component = () => {
 
               {/* Agents (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 0;">
-                <div class="panel__title">Agents</div>
+                <div class="panel__title">Harnesses</div>
                 <Show
                   when={detail()!.agents.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No agents have used this provider yet.
+                      No harnesses have used this provider yet.
                     </div>
                   }
                 >
@@ -830,7 +837,7 @@ const ConnectionDetail: Component = () => {
                     <table class="data-table">
                       <thead>
                         <tr>
-                          <th>Agent</th>
+                          <th>Harness</th>
                           <th>Tokens (30d)</th>
                           <th>% of total</th>
                           <Show when={isByok()}>
@@ -1048,6 +1055,7 @@ const ConnectionDetail: Component = () => {
                         class="btn btn--primary btn--sm"
                         disabled={disconnecting()}
                         onClick={async () => {
+                          const target = backLink();
                           setDisconnecting(true);
                           try {
                             await disconnectProvider(
@@ -1057,13 +1065,15 @@ const ConnectionDetail: Component = () => {
                               c.label,
                             );
                             toast.success(`${providerDisplayName()} disconnected`);
-                            navigate(backLink());
                           } catch {
                             // toast from fetchMutate
-                          } finally {
-                            setDisconnecting(false);
-                            setShowDisconnectModal(false);
                           }
+                          setShowDisconnectModal(false);
+                          setShowProviderModal(false);
+                          setDisconnecting(false);
+                          // Use location.href to guarantee navigation even if
+                          // SolidJS router state is stale after the API call.
+                          window.location.href = target;
                         }}
                       >
                         {disconnecting() ? <span class="spinner" /> : 'Disconnect'}
@@ -1071,6 +1081,28 @@ const ConnectionDetail: Component = () => {
                     </div>
                   </div>
                 </div>
+              </Show>
+
+              {/* Provider management modal (change key, refresh models, etc.) */}
+              <Show when={showProviderModal() && firstAgentName()}>
+                <ProviderSelectModal
+                  agentName={firstAgentName()}
+                  providers={modalProviders() ?? []}
+                  customProviders={customProviderData() ? [customProviderData()] : []}
+                  providerDeepLink={{
+                    providerId: c.provider,
+                    authType: c.auth_type as 'subscription' | 'api_key' | 'local',
+                    closeOnBack: true,
+                  }}
+                  onUpdate={async () => {
+                    refetchDetail();
+                    refetchModalProviders();
+                  }}
+                  onClose={() => {
+                    setShowProviderModal(false);
+                    refetchDetail();
+                  }}
+                />
               </Show>
             </>
           );
