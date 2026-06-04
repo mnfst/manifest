@@ -10,7 +10,7 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     (queryRunner as { query: jest.Mock }).query.mockClear();
   });
 
-  it('creates provider access, relabels safely, keeps agent_id, and swaps the index', async () => {
+  it('creates provider access, relabels colliding connections, keeps agent_id, and swaps the index', async () => {
     await migration.up(queryRunner);
     expect(
       queries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS "agent_provider_access"')),
@@ -24,7 +24,14 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" DROP NOT NULL'))).toBe(true);
     const relabel = queries.find((q) => q.includes('ROW_NUMBER() OVER'));
     expect(relabel).toBeDefined();
-    expect(relabel).toContain('PARTITION BY "user_id", "provider", "auth_type", LOWER("label")');
+    expect(relabel).toContain('WITH colliding_labels AS');
+    expect(relabel).toContain('HAVING COUNT(*) > 1');
+    expect(relabel).toContain('LEFT JOIN "agents" a ON a."id" = up."agent_id"');
+    expect(relabel).toContain('NULLIF(TRIM(a."display_name"), \'\')');
+    expect(relabel).toContain('NULLIF(TRIM(a."name"), \'\')');
+    expect(relabel).toContain('WHEN LOWER("label") = \'default\' THEN "agent_label"');
+    expect(relabel).toContain('ELSE "label" || \' - \' || "agent_label"');
+    expect(relabel).toContain('ranked."proposed_label" || \' [\' || ranked."id" || \']\'');
     expect(relabel).not.toContain('"api_key_encrypted"');
     expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "agent_id"'))).toBe(false);
     expect(
