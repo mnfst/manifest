@@ -217,11 +217,11 @@ export class AnthropicOauthService {
     }
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('anthropic', userId, agentId, keyLabel),
+        key: oauthRefreshKey('anthropic', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'anthropic', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'anthropic', keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r),
         persist: (refreshed) =>

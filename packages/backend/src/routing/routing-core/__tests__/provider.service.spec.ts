@@ -491,9 +491,9 @@ describe('ProviderService — route-only cleanup paths', () => {
   describe('removeProvider — removeKeyByLabel', () => {
     it('throws NotFoundException when no keys match the (provider, auth_type)', async () => {
       providerRepo.find.mockResolvedValue([]);
-      await expect(svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'default')).rejects.toThrow(
-        'Provider not found',
-      );
+      await expect(
+        svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'default'),
+      ).rejects.toThrow('Provider not found');
     });
 
     it('throws NotFoundException when no key carries the requested label', async () => {
@@ -507,9 +507,9 @@ describe('ProviderService — route-only cleanup paths', () => {
           is_active: true,
         } as unknown as UserProvider,
       ]);
-      await expect(svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'secondary')).rejects.toThrow(
-        'Provider key not found',
-      );
+      await expect(
+        svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'secondary'),
+      ).rejects.toThrow('Provider key not found');
     });
   });
 
@@ -945,27 +945,29 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
       providerRepo as unknown as Repository<UserProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
       makeRepo() as unknown as Repository<SpecificityAssignment>,
+      { createQueryBuilder: jest.fn() } as unknown as Repository<Agent>,
       { recalculate: jest.fn() } as unknown as TierAutoAssignService,
       { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
       {
         getProviders: jest.fn(),
         setProviders: jest.fn(),
         invalidateAgent: jest.fn(),
+        invalidateUser: jest.fn(),
       } as unknown as RoutingCacheService,
     );
   });
 
-  it('returns the decrypted raw credential, scanning subscription rows for the agent/provider', async () => {
+  it('returns the decrypted raw credential, scanning subscription rows for the user/provider', async () => {
     const raw = JSON.stringify({ t: 'access', r: 'refresh', e: 123 });
     providerRepo.find.mockResolvedValue([
       { label: 'Work', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
     ]);
 
-    const out = await svc.getFreshSubscriptionCredential('agent-1', 'openai', 'Work');
+    const out = await svc.getFreshSubscriptionCredential('user-1', 'openai', 'Work');
 
     expect(out).toBe(raw);
     expect(providerRepo.find).toHaveBeenCalledWith({
-      where: { agent_id: 'agent-1', provider: 'openai', auth_type: 'subscription' },
+      where: { user_id: 'user-1', provider: 'openai', auth_type: 'subscription' },
     });
   });
 
@@ -977,7 +979,7 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
     ]);
 
     // Stored row is "work"; the pinned route asks for "WORK".
-    const out = await svc.getFreshSubscriptionCredential('agent-1', 'openai', 'WORK');
+    const out = await svc.getFreshSubscriptionCredential('user-1', 'openai', 'WORK');
 
     expect(out).toBe(raw);
   });
@@ -988,30 +990,30 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
       { label: 'Default', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
     ]);
 
-    expect(await svc.getFreshSubscriptionCredential('agent-1', 'anthropic')).toBe(raw);
+    expect(await svc.getFreshSubscriptionCredential('user-1', 'anthropic')).toBe(raw);
   });
 
   it('returns null when no row matches the label', async () => {
     providerRepo.find.mockResolvedValue([
       { label: 'Something else', api_key_encrypted: encrypt('x', getEncryptionSecret()) },
     ]);
-    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
   });
 
   it('returns null when there are no subscription rows', async () => {
     providerRepo.find.mockResolvedValue([]);
-    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
   });
 
   it('returns null when the matched row has no stored credential', async () => {
     providerRepo.find.mockResolvedValue([{ label: 'Default', api_key_encrypted: null }]);
-    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
   });
 
   it('returns null when the stored credential cannot be decrypted', async () => {
     providerRepo.find.mockResolvedValue([
       { label: 'Default', api_key_encrypted: 'not-a-valid-ciphertext' },
     ]);
-    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
   });
 });

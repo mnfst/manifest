@@ -183,11 +183,11 @@ export class XaiOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('xai', userId, agentId, keyLabel),
+        key: oauthRefreshKey('xai', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'xai', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'xai', keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r),
         persist: (refreshed) =>

@@ -33,7 +33,7 @@ function makeParams(overrides: Partial<CoordinatedRefreshParams<TestBlob>> = {})
   const persist = (overrides.persist as jest.Mock) ?? jest.fn().mockResolvedValue(undefined);
   const readFreshRaw = (overrides.readFreshRaw as jest.Mock) ?? jest.fn().mockResolvedValue(null);
   const params: CoordinatedRefreshParams<TestBlob> = {
-    key: overrides.key ?? 'openai:user-1:agent-1:Default',
+    key: overrides.key ?? 'openai:user-1:Default',
     logger,
     callerBlob: overrides.callerBlob ?? expired(),
     readFreshRaw,
@@ -45,12 +45,12 @@ function makeParams(overrides: Partial<CoordinatedRefreshParams<TestBlob>> = {})
 }
 
 describe('oauthRefreshKey', () => {
-  it('namespaces by provider/user/agent and defaults the label', () => {
-    expect(oauthRefreshKey('openai', 'u', 'a')).toBe('openai:u:a:Default');
+  it('namespaces by provider/user and defaults the label', () => {
+    expect(oauthRefreshKey('openai', 'u')).toBe('openai:u:Default');
   });
 
   it('uses an explicit label when provided', () => {
-    expect(oauthRefreshKey('openai', 'u', 'a', 'Work')).toBe('openai:u:a:Work');
+    expect(oauthRefreshKey('openai', 'u', 'Work')).toBe('openai:u:Work');
   });
 });
 
