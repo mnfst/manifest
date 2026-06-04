@@ -186,6 +186,37 @@ describe('routing API client (additional coverage)', () => {
     expect((init as RequestInit).method).toBe('POST');
   });
 
+  it('getAgentProviderAccess GETs the agent access endpoint', async () => {
+    const fetchMock = setupFetch({ enabled: ['up-1'] });
+    const out = await routing.getAgentProviderAccess('demo agent');
+    expect(out).toEqual({ enabled: ['up-1'] });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/agents/demo%20agent/provider-access');
+  });
+
+  it('getAgentProviderDisableImpact GETs the impact endpoint', async () => {
+    const fetchMock = setupFetch({ affected_tiers: [] });
+    await routing.getAgentProviderDisableImpact('demo', 'up-1');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1/impact');
+  });
+
+  it('enableAgentProviderAccess PUTs the provider access row', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await routing.enableAgentProviderAccess('demo', 'up-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1');
+    expect((init as RequestInit).method).toBe('PUT');
+  });
+
+  it('disableAgentProviderAccess DELETEs the provider access row', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await routing.disableAgentProviderAccess('demo', 'up-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1');
+    expect((init as RequestInit).method).toBe('DELETE');
+  });
+
   describe('custom providers cache', () => {
     it('caches the result and returns the same promise on subsequent calls', async () => {
       const fetchMock = setupFetch([{ id: 'cp-1' }]);

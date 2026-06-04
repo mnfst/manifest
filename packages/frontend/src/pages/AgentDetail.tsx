@@ -6,7 +6,7 @@ import { agentPath } from '../services/routing.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 
 /**
- * Agent detail layout with horizontal tabs: Routing, Settings.
+ * Agent detail layout with horizontal tabs: Routing, Providers, Settings.
  * Wraps child route content.
  */
 const AgentDetail: ParentComponent = (props) => {
@@ -67,6 +67,15 @@ const AgentDetail: ParentComponent = (props) => {
           classList={{ 'panel__tab--active': isActive('/routing') }}
         >
           Routing
+        </A>
+        <A
+          href={path('/providers')}
+          role="tab"
+          aria-selected={isActive('/providers')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/providers') }}
+        >
+          Providers
         </A>
         <A
           href={path('/guardrails')}
