@@ -80,6 +80,26 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  xiaomi: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Xiaomi MiMo Token Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your MiMo Token Plan API key',
+    subscriptionTokenPrefix: 'tp-',
+    knownModels: Object.freeze([
+      'mimo-v2.5-pro',
+      'mimo-v2-pro',
+      'mimo-v2.5',
+      'mimo-v2-omni',
+      'mimo-v2-flash',
+    ]),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1048576,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   qwen: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'Qwen Token Plan',

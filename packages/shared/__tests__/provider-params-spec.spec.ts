@@ -163,7 +163,7 @@ describe('provider-params-spec', () => {
       expect(
         getProviderParamSpecs(catalog, 'opencode-go', 'subscription', 'opencode-go/kimi-k2.6'),
       ).toEqual([]);
-      // mimo-v2.5 infers no provider at all.
+      // Xiaomi is not in this params catalog.
       expect(
         getProviderParamSpecs(catalog, 'opencode-go', 'subscription', 'opencode-go/mimo-v2.5'),
       ).toEqual([]);

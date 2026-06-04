@@ -92,6 +92,50 @@ describe('resolveForwardEndpoint', () => {
     expect(out.customEndpoint).toBeUndefined();
   });
 
+  it('builds the Xiaomi Token Plan region endpoint and strips the xiaomi/ prefix', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'xiaomi',
+      authType: 'subscription',
+      model: 'xiaomi/mimo-v2.5-pro',
+      providerRegion: 'ams',
+    });
+    expect(out.forwardModel).toBe('mimo-v2.5-pro');
+    expect(out.customEndpoint?.baseUrl).toBe('https://token-plan-ams.xiaomimimo.com');
+  });
+
+  it('builds the Xiaomi Token Plan endpoint for provider aliases', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'mimo',
+      authType: 'subscription',
+      model: 'mimo/mimo-v2.5-pro',
+      providerRegion: 'sgp',
+    });
+    expect(out.forwardModel).toBe('mimo-v2.5-pro');
+    expect(out.customEndpoint?.baseUrl).toBe('https://token-plan-sgp.xiaomimimo.com');
+  });
+
+  it('strips the xiaomi-mimo/ model prefix variant', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'xiaomi-mimo',
+      authType: 'subscription',
+      model: 'xiaomi-mimo/mimo-v2.5-pro',
+      providerRegion: 'cn',
+    });
+    expect(out.forwardModel).toBe('mimo-v2.5-pro');
+    expect(out.customEndpoint?.baseUrl).toBe('https://token-plan-cn.xiaomimimo.com');
+  });
+
+  it('sets no Xiaomi override for an unknown persisted region', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'xiaomi',
+      authType: 'subscription',
+      model: 'xiaomi/mimo-v2.5-pro',
+      providerRegion: null,
+    });
+    expect(out.forwardModel).toBe('mimo-v2.5-pro');
+    expect(out.customEndpoint).toBeUndefined();
+  });
+
   it('builds the qwen region endpoint for a resolved region', () => {
     const out = resolveForwardEndpoint({
       provider: 'qwen',

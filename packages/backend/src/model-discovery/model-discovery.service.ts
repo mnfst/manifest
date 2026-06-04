@@ -14,6 +14,11 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
+import {
+  getXiaomiTokenPlanBaseUrl,
+  isXiaomiProviderId,
+  isXiaomiTokenPlanRegion,
+} from '../routing/xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
@@ -138,6 +143,13 @@ export class ModelDiscoveryService {
       provider.region === 'cn'
     ) {
       endpointOverride = getZaiCodingPlanBaseUrl('cn');
+    }
+    if (
+      isXiaomiProviderId(provider.provider) &&
+      provider.auth_type === 'subscription' &&
+      isXiaomiTokenPlanRegion(provider.region)
+    ) {
+      endpointOverride = getXiaomiTokenPlanBaseUrl(provider.region);
     }
 
     let raw: DiscoveredModel[];

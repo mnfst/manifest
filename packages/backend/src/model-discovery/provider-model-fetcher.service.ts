@@ -10,6 +10,10 @@ import {
 } from '../common/constants/subscription-clients';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
+import {
+  getXiaomiTokenPlanBaseUrl,
+  normalizeXiaomiTokenPlanBaseUrl,
+} from '../routing/xiaomi-region';
 import { getZaiCodingPlanBaseUrl, normalizeZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
 import {
@@ -26,6 +30,8 @@ const BYTEPLUS_CODING_MODELS_URL = 'https://ark.ap-southeast.bytepluses.com/api/
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 const COMMAND_CODE_MODELS_URL = 'https://api.commandcode.ai/provider/v1/models';
+const XIAOMI_MIMO_MODELS_URL = 'https://api.xiaomimimo.com/v1/models';
+const XIAOMI_TOKEN_PLAN_MODELS_URL = `${getXiaomiTokenPlanBaseUrl()}/v1/models`;
 const QWEN_TOKEN_PLAN_MODELS_URL =
   'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models';
 const QWEN_TOKEN_PLAN_CONTEXT_WINDOW = 991000;
@@ -132,6 +138,23 @@ const parseQwenTokenPlan = createModelParser<OpenAIModelEntry>({
   outputPricePerToken: 0,
 });
 
+const XIAOMI_MIMO_CONTEXT_WINDOWS = new Map<string, number>([
+  ['mimo-v2.5-pro', 1048576],
+  ['mimo-v2-pro', 1048576],
+  ['mimo-v2.5', 1048576],
+  ['mimo-v2-omni', 262144],
+  ['mimo-v2-flash', 262144],
+]);
+
+const parseXiaomiMimo = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.startsWith('mimo-v'),
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => id,
+  contextWindow: (entry) => XIAOMI_MIMO_CONTEXT_WINDOWS.get(entry.id) ?? DEFAULT_CONTEXT_WINDOW,
+  capabilityCode: true,
+});
+
 /* ── OpenAI-specific structural filters (not non-chat) ── */
 
 /** Date-suffixed snapshots returned by OpenAI (e.g. gpt-4o-mini-2024-07-18). */
@@ -201,6 +224,8 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:flux|stable-diffusion|image|embedding|rerank|speech|audio|whisper|tts|upscaler|controlnet)/i,
   nvidia:
     /(?:flux|cosmos|detector|gliner|calibration|embed|retriever|parse|tts|translate|safety|guard|reward|nvclip|vila|neva)/i,
+  xiaomi: /(?:asr|tts)/i,
+  'xiaomi-subscription': /(?:asr|tts)/i,
   'qwen-subscription': /(?:^qwen-image-|^wan.*image)/i,
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
@@ -567,6 +592,16 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     }),
     parse: parseAnthropic,
   },
+  xiaomi: {
+    endpoint: XIAOMI_MIMO_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseXiaomiMimo,
+  },
+  'xiaomi-subscription': {
+    endpoint: XIAOMI_TOKEN_PLAN_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseXiaomiMimo,
+  },
   qwen: {
     endpoint: `${getQwenCompatibleBaseUrl('beijing')}/v1/models`,
     buildHeaders: bearerHeaders,
@@ -666,6 +701,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'xiaomi' && authType === 'subscription') {
+      configKey = 'xiaomi-subscription';
     } else if (configKey === 'moonshot' && authType === 'subscription') {
       // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
       // rather than a subscription-scoped /models endpoint.
@@ -715,6 +752,13 @@ export class ProviderModelFetcherService {
         url = `${zaiBaseUrl}/models`;
       } else {
         this.logger.warn('Ignoring invalid Z.ai subscription endpoint override');
+      }
+    } else if (endpointOverride && configKey === 'xiaomi-subscription') {
+      const xiaomiBaseUrl = normalizeXiaomiTokenPlanBaseUrl(endpointOverride);
+      if (xiaomiBaseUrl) {
+        url = `${xiaomiBaseUrl}/v1/models`;
+      } else {
+        this.logger.warn('Ignoring invalid Xiaomi MiMo Token Plan endpoint override');
       }
     }
 
