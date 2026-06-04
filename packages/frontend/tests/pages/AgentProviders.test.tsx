@@ -25,7 +25,8 @@ vi.mock('../../src/services/api.js', () => ({
 }));
 
 vi.mock('../../src/components/ProviderIcon.jsx', () => ({
-  providerIcon: (provider: string) => <span data-provider-icon={provider} />,
+  providerIcon: (provider: string) =>
+    provider.startsWith('custom:') ? null : <span data-provider-icon={provider} />,
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -71,6 +72,20 @@ const providersResponse = {
         },
       ],
     },
+    {
+      provider: 'custom:cp-1',
+      auth_type: 'api_key',
+      connection_count: 1,
+      total_models: 3,
+      connections: [
+        {
+          id: 'up-custom',
+          label: 'Custom Key',
+          cached_model_count: 0,
+          is_active: true,
+        },
+      ],
+    },
   ],
 };
 
@@ -82,7 +97,7 @@ describe('AgentProviders', () => {
     apiMocks.getAgentProviderDisableImpact.mockResolvedValue({ affected_tiers: [] });
     apiMocks.enableAgentProviderAccess.mockResolvedValue({ ok: true });
     apiMocks.disableAgentProviderAccess.mockResolvedValue({ ok: true });
-    apiMocks.getCustomProviders.mockResolvedValue([]);
+    apiMocks.getCustomProviders.mockResolvedValue([{ id: 'cp-1', name: 'Custom Provider' }]);
   });
 
   it('renders provider connections and marks enabled access rows on', async () => {
@@ -91,13 +106,14 @@ describe('AgentProviders', () => {
     await waitFor(() => {
       expect(screen.getByText('OpenAI')).toBeDefined();
       expect(screen.getByText('Anthropic')).toBeDefined();
+      expect(screen.getByText('Custom Provider')).toBeDefined();
     });
 
     const enabledSwitch = screen.getByLabelText('Disable OpenAI Default');
     const disabledSwitch = screen.getByLabelText('Enable Anthropic Work');
     expect(enabledSwitch.classList.contains('routing-switch--on')).toBe(true);
     expect(disabledSwitch.classList.contains('routing-switch--on')).toBe(false);
-    expect(screen.getByText('API Key')).toBeDefined();
+    expect(screen.getAllByText('API Key')).toHaveLength(2);
     expect(screen.getByText('Subscription')).toBeDefined();
   });
 
@@ -139,6 +155,39 @@ describe('AgentProviders', () => {
 
     await waitFor(() => {
       expect(apiMocks.disableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
+    });
+  });
+
+  it('supports keyboard dismissal and confirmation in the disable modal', async () => {
+    render(() => <AgentProviders />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Disable OpenAI Default')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByLabelText('Disable OpenAI Default'));
+    await waitFor(() => expect(screen.getByText('Disable provider')).toBeDefined());
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByText('Disable provider')).toBeNull());
+
+    fireEvent.click(screen.getByLabelText('Disable OpenAI Default'));
+    await waitFor(() => expect(screen.getByText('Disable provider')).toBeDefined());
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(apiMocks.disableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
+    });
+  });
+
+  it('falls back to empty state when provider access requests fail', async () => {
+    apiMocks.fetchJson.mockRejectedValue(new Error('providers failed'));
+    apiMocks.getAgentProviderAccess.mockRejectedValue(new Error('access failed'));
+    apiMocks.getCustomProviders.mockRejectedValue(new Error('custom providers failed'));
+
+    render(() => <AgentProviders />);
+
+    await waitFor(() => {
+      expect(screen.getByText('No providers connected')).toBeDefined();
     });
   });
 

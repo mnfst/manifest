@@ -19,11 +19,8 @@ import {
   getGlobalPerAgentMessageTimeseries,
   getGlobalPerProviderTimeseries,
   getGlobalPerProviderMessageTimeseries,
-  getGlobalPerModelTimeseries,
-  getGlobalPerModelMessageTimeseries,
   getGlobalPerAgentCostTimeseries,
   getGlobalPerProviderCostTimeseries,
-  getGlobalPerModelCostTimeseries,
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -203,7 +200,7 @@ const GlobalOverview: Component = () => {
   );
 
   // Custom providers for name resolution
-  const firstAgent = () => agentList()[0]?.agent_name ?? '';
+  const firstAgent = () => ((agents() ?? []) as AgentRow[])[0]?.agent_name ?? '';
   const [customProviderData] = createResource(
     () => firstAgent(),
     (name) => (name ? getCustomProviders().catch(() => []) : Promise.resolve([])),
@@ -218,13 +215,11 @@ const GlobalOverview: Component = () => {
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
   const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
     if (group === 'provider') return getGlobalPerProviderTimeseries(range) as Promise<TSResult>;
-    if (group === 'model') return getGlobalPerModelTimeseries(range) as Promise<TSResult>;
     return getGlobalPerAgentTimeseries(range) as Promise<TSResult>;
   };
   const msgFetcher = (range: string, group: string): Promise<TSResult> => {
     if (group === 'provider')
       return getGlobalPerProviderMessageTimeseries(range) as Promise<TSResult>;
-    if (group === 'model') return getGlobalPerModelMessageTimeseries(range) as Promise<TSResult>;
     return getGlobalPerAgentMessageTimeseries(range) as Promise<TSResult>;
   };
 
@@ -240,7 +235,6 @@ const GlobalOverview: Component = () => {
 
   const costFetcher = (range: string, group: string): Promise<TSResult> => {
     if (group === 'provider') return getGlobalPerProviderCostTimeseries(range) as Promise<TSResult>;
-    if (group === 'model') return getGlobalPerModelCostTimeseries(range) as Promise<TSResult>;
     return getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>;
   };
 
@@ -502,12 +496,7 @@ const GlobalOverview: Component = () => {
                   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                 </svg>
                 {(() => {
-                  const label =
-                    groupBy() === 'provider'
-                      ? 'providers'
-                      : groupBy() === 'model'
-                        ? 'models'
-                        : 'agents';
+                  const label = groupBy() === 'provider' ? 'providers' : 'agents';
                   return selectedAgentCount() === allAgents().length
                     ? `All ${label} (${allAgents().length})`
                     : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
