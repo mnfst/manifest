@@ -10,13 +10,23 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     (queryRunner as { query: jest.Mock }).query.mockClear();
   });
 
-  it('relabels on the index tuple (not the encrypted key), drops agent_id, swaps the index', async () => {
+  it('creates provider access, relabels safely, keeps agent_id, and swaps the index', async () => {
     await migration.up(queryRunner);
+    expect(
+      queries.some((q) => q.includes('CREATE TABLE IF NOT EXISTS "agent_provider_access"')),
+    ).toBe(true);
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('INSERT INTO "agent_provider_access"') && q.includes('FROM "user_providers"'),
+      ),
+    ).toBe(true);
+    expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" DROP NOT NULL'))).toBe(true);
     const relabel = queries.find((q) => q.includes('ROW_NUMBER() OVER'));
     expect(relabel).toBeDefined();
     expect(relabel).toContain('PARTITION BY "user_id", "provider", "auth_type", LOWER("label")');
     expect(relabel).not.toContain('"api_key_encrypted"');
-    expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "agent_id"'))).toBe(true);
+    expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "agent_id"'))).toBe(false);
     expect(
       queries.some(
         (q) =>
@@ -26,10 +36,9 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     ).toBe(true);
   });
 
-  it('never deletes a provider row and never touches agent_provider_access', async () => {
+  it('never deletes a provider row', async () => {
     await migration.up(queryRunner);
     expect(queries.some((q) => /DELETE\s+FROM\s+"user_providers"/i.test(q))).toBe(false);
-    expect(queries.some((q) => q.includes('agent_provider_access'))).toBe(false);
   });
 
   it('relabels BEFORE creating the unique index', async () => {
@@ -42,9 +51,9 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(createIdx).toBeGreaterThan(relabelIdx);
   });
 
-  it('down re-adds agent_id and restores the agent-scoped index', async () => {
+  it('down restores agent_id strictness, the agent-scoped index, and drops access', async () => {
     await migration.down(queryRunner);
-    expect(queries.some((q) => q.includes('ADD COLUMN IF NOT EXISTS "agent_id"'))).toBe(true);
+    expect(queries.some((q) => q.includes('SET "agent_id" = sub.agent_id'))).toBe(true);
     expect(
       queries.some(
         (q) =>
@@ -52,5 +61,9 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
           q.includes('"agent_id"'),
       ),
     ).toBe(true);
+    expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" SET NOT NULL'))).toBe(true);
+    expect(queries.some((q) => q.includes('DROP TABLE IF EXISTS "agent_provider_access"'))).toBe(
+      true,
+    );
   });
 });

@@ -9,9 +9,13 @@ import {
   Post,
   Put,
   Query,
+  Optional,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { TierService } from './routing-core/tier.service';
@@ -40,6 +44,9 @@ export class ProviderController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly tierService: TierService,
     private readonly pricingSync: PricingSyncService,
+    @Optional()
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
   ) {}
 
   @Get(':agentName/status')
@@ -70,7 +77,7 @@ export class ProviderController {
 
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.providerService.getProviders(user.id);
     return providers.map((p) => ({
       id: p.id,
@@ -134,6 +141,15 @@ export class ProviderController {
       body.region,
       body.label,
     );
+    if (this.accessRepo) {
+      await this.accessRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AgentProviderAccess)
+        .values({ agent_id: agent.id, user_provider_id: result.id })
+        .orIgnore()
+        .execute();
+    }
 
     // Discover models and recalculate tiers before returning so the
     // frontend sees updated data immediately (typically ~1-3s).

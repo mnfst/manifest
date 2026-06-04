@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../entities/user-provider.entity';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
@@ -58,6 +59,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(CopilotTokenService)
     private readonly copilotTokenService: CopilotTokenService | null,
+    @Optional()
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -309,10 +313,11 @@ export class ModelDiscoveryService {
     }
   }
 
-  async getModelsForAgent(userId: string, _agentId?: string): Promise<DiscoveredModel[]> {
-    const providers = await this.providerRepo.find({
+  async getModelsForAgent(userId: string, agentId?: string): Promise<DiscoveredModel[]> {
+    const allProviders = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },
     });
+    const providers = await this.filterProvidersForAgent(allProviders, agentId);
 
     const models: DiscoveredModel[] = [];
     const seen = new Map<string, number>();
@@ -345,15 +350,16 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Custom providers are user-global, so they always load for the user
-    // regardless of agentId. This also fixes getModelForAgent (which calls
-    // with no agentId) silently dropping custom models.
+    // With an agent context, only custom providers attached through their
+    // backing user_provider row are visible. User-wide lookups keep all custom
+    // providers for global provider pages and background refreshes.
     const customProviders: CustomProvider[] = await this.customProviderRepo.find({
       where: { user_id: userId },
     });
     for (const cp of customProviders) {
       if (!Array.isArray(cp.models)) continue;
       const cpKey = customProviderKey(cp.id);
+      if (agentId && !customAuthTypes.has(cpKey)) continue;
       for (const m of cp.models) {
         const modelKey = customModelKey(cp.id, m.model_name);
         if (seen.has(modelKey)) continue;
@@ -384,8 +390,23 @@ export class ModelDiscoveryService {
     return models;
   }
 
-  async getModelForAgent(userId: string, modelName: string): Promise<DiscoveredModel | undefined> {
-    const all = await this.getModelsForAgent(userId);
+  private async filterProvidersForAgent(
+    providers: UserProvider[],
+    agentId?: string,
+  ): Promise<UserProvider[]> {
+    if (!agentId || !this.accessRepo) return providers;
+    const rows = await this.accessRepo.find({ where: { agent_id: agentId } });
+    if (rows.length === 0) return [];
+    const enabledIds = new Set(rows.map((r) => r.user_provider_id));
+    return providers.filter((p) => enabledIds.has(p.id));
+  }
+
+  async getModelForAgent(
+    userId: string,
+    modelName: string,
+    agentId?: string,
+  ): Promise<DiscoveredModel | undefined> {
+    const all = await this.getModelsForAgent(userId, agentId);
     const matches = all.filter((m) => m.id === modelName);
     // Provider-less lookups are legacy fallbacks. Once multiple providers can
     // expose the same model ID, only a single matching route is safe to infer.

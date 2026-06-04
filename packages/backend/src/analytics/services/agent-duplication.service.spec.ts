@@ -54,6 +54,7 @@ describe('AgentDuplicationService', () => {
       const apiKeyRepo = makeRepoMock('AgentApiKey');
       const providerRepo = makeRepoMock('UserProvider');
       const customProviderRepo = makeRepoMock('CustomProvider');
+      const providerAccessRepo = makeRepoMock('AgentProviderAccess');
       const tierRepo = makeRepoMock('TierAssignment');
       const specRepo = makeRepoMock('SpecificityAssignment');
       const modelParamsRepo = makeRepoMock('AgentModelParams');
@@ -68,6 +69,8 @@ describe('AgentDuplicationService', () => {
               return providerRepo;
             case 'CustomProvider':
               return customProviderRepo;
+            case 'AgentProviderAccess':
+              return providerAccessRepo;
             case 'TierAssignment':
               return tierRepo;
             case 'SpecificityAssignment':
@@ -236,6 +239,7 @@ describe('AgentDuplicationService', () => {
             models_fetched_at: null,
           },
         ],
+        AgentProviderAccess: [{ agent_id: 'src-1', user_provider_id: 'up1' }],
         CustomProvider: [
           {
             id: 'cp1',
@@ -310,7 +314,7 @@ describe('AgentDuplicationService', () => {
       expect(result.agentName).toBe('source-copy');
       expect(result.apiKey).toMatch(/^mnfst_/);
       expect(result.copied).toEqual({
-        providers: 0,
+        providers: 1,
         tierAssignments: 1,
         specificityAssignments: 1,
         modelParams: 2,
@@ -330,6 +334,9 @@ describe('AgentDuplicationService', () => {
 
       // Providers are now user-scoped; they are not duplicated per agent.
       expect(insertedRows['UserProvider']).toBeUndefined();
+      expect(insertedRows['AgentProviderAccess']).toEqual([
+        { agent_id: agentRow['id'], user_provider_id: 'up1' },
+      ]);
 
       // Custom providers are user-global and shared by the duplicate, so they
       // are never cloned.

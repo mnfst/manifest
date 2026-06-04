@@ -691,8 +691,15 @@ describe('ModelDiscoveryService', () => {
       expect(result).toHaveLength(0);
     });
 
-    it('includes user-global custom provider models regardless of agentId', async () => {
-      providerRepo.find.mockResolvedValue([]);
+    it('includes custom provider models for an agent when the backing provider is attached', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          id: 'up-custom',
+          provider: 'custom:cp-test',
+          auth_type: 'api_key',
+          cached_models: [],
+        }),
+      ]);
       const cp = makeCustomProvider({
         id: 'cp-test',
         user_id: 'user-1',
