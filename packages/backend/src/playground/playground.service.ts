@@ -7,7 +7,8 @@ import type { AuthType, PlaygroundStreamEvent } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderClient } from '../routing/proxy/provider-client';
-import { buildCustomEndpoint } from '../routing/proxy/provider-endpoints';
+import { buildCustomEndpoint, buildEndpointOverride } from '../routing/proxy/provider-endpoints';
+import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { CustomProviderService } from '../routing/custom-provider/custom-provider.service';
 import {
   isRefreshableOAuthCredential,
@@ -69,6 +70,10 @@ export class PlaygroundService {
     let rawApiKey: string;
     let providerKeyLabel: string | undefined;
     let providerResource: string | undefined;
+    // MiniMax OAuth tokens carry the chosen region in the blob's resource_url.
+    // The proxy turns it into a base-URL override; keep that here so Playground
+    // subscription requests hit the right region endpoint.
+    let oauthResourceUrl: string | undefined;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
       const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
@@ -123,6 +128,10 @@ export class PlaygroundService {
             providerKeyLabel,
           )) ?? rawApiKey;
       }
+      oauthResourceUrl = authType === 'subscription' ? resolved.resourceUrl : undefined;
+      // Gemini OAuth stores the CodeAssist project id (not a URL) in the same
+      // field; it is forwarded as providerResource. MiniMax's resource URL is
+      // applied as a base-URL override below, not here.
       providerResource =
         authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
           ? resolved.resourceUrl
@@ -150,6 +159,20 @@ export class PlaygroundService {
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
         forwardModel = CustomProviderService.rawModelName(dto.model);
+      }
+    } else if (
+      authType === 'subscription' &&
+      dto.provider.toLowerCase() === 'minimax' &&
+      oauthResourceUrl
+    ) {
+      // Route MiniMax subscription requests through the region base URL carried
+      // in the OAuth resource_url, matching the proxy. Without this the request
+      // hits the default region endpoint.
+      const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(oauthResourceUrl);
+      if (minimaxBaseUrl) {
+        customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+      } else {
+        this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
       }
     }
 

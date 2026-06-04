@@ -313,6 +313,74 @@ describe('PlaygroundService.runStream', () => {
     expect(call.model).toBe('meta-llama/Llama-3.1-8B');
   });
 
+  it('routes MiniMax subscription requests through the region base URL from the OAuth resource_url', async () => {
+    const { service, mocks } = buildService();
+    mocks.minimaxOauth.unwrapToken.mockResolvedValue({
+      t: 'mm-access',
+      r: 'mm-refresh',
+      e: Date.now() + 60_000,
+      u: 'https://api.minimaxi.com/anthropic',
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', 'data: [DONE]\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      USER_ID,
+      makeDto({ provider: 'minimax', authType: 'subscription', model: 'minimax/abab' }),
+      asRes(res),
+    );
+
+    const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
+    expect(call.apiKey).toBe('mm-access');
+    expect(call.customEndpoint).toBeDefined();
+    expect((call.customEndpoint as { baseUrl?: string }).baseUrl).toContain('api.minimaxi.com');
+  });
+
+  it('ignores an invalid MiniMax subscription resource URL instead of building an endpoint', async () => {
+    const { service, mocks } = buildService();
+    mocks.minimaxOauth.unwrapToken.mockResolvedValue({
+      t: 'mm-access',
+      r: 'mm-refresh',
+      e: Date.now() + 60_000,
+      u: 'https://evil.example/anthropic',
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', 'data: [DONE]\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      USER_ID,
+      makeDto({ provider: 'minimax', authType: 'subscription', model: 'minimax/abab' }),
+      asRes(res),
+    );
+
+    const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
+    expect(call.customEndpoint).toBeUndefined();
+  });
+
+  it('returns 404 when a subscription OAuth blob can no longer be unwrapped', async () => {
+    const { service, mocks } = buildService();
+    // Stored value is a real OAuth blob, but unwrap fails (e.g. invalidated) —
+    // resolveApiKey returns a null apiKey, which must surface as a 404.
+    mocks.providerKeyService.getProviderKeys.mockResolvedValue([
+      { ...DEFAULT_PROVIDER_KEY, apiKey: JSON.stringify({ t: 'a', r: 'b', e: 123 }) },
+    ]);
+    mocks.openaiOauth.unwrapToken.mockResolvedValue(null);
+    const res = mockRes();
+
+    await service.runStream(
+      USER_ID,
+      makeDto({ provider: 'openai', authType: 'subscription' }),
+      asRes(res),
+    );
+
+    expect(res._status).toBe(404);
+    expect(mocks.providerClient.forward).not.toHaveBeenCalled();
+  });
+
   it('defaults all token counts to 0 when the stream reports no usage block', async () => {
     const { service, mocks } = buildService();
     mocks.providerClient.forward.mockResolvedValue(
