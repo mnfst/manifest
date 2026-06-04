@@ -38,7 +38,11 @@ const MAX_CACHE_SIZE = 10_000;
 export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(LimitCheckService.name);
   private readonly rulesCache = new Map<string, CacheEntry<BlockRule[]>>();
-  private readonly consumptionCache = new Map<string, CacheEntry<number>>();
+  // Consumption is cached per-user (outer key) so an ingest event — which only
+  // carries the userId of the agent that just wrote a message — can evict just
+  // that user's buckets instead of nuking every tenant's cached consumption.
+  // The inner key keeps the tenant/agent/metric/period granularity.
+  private readonly consumptionCache = new Map<string, Map<string, CacheEntry<number>>>();
   private ingestSub?: Subscription;
 
   constructor(
@@ -51,8 +55,10 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit(): void {
-    this.ingestSub = this.ingestBus.all().subscribe(() => {
-      this.consumptionCache.clear();
+    this.ingestSub = this.ingestBus.all().subscribe((event) => {
+      // Surgical eviction: only the writing user's consumption is now stale.
+      // Other tenants' cached entries keep serving from cache for the TTL.
+      this.consumptionCache.delete(event.userId);
     });
   }
 
@@ -67,6 +73,7 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
     for (const rule of rules) {
       const { periodStart, periodEnd } = computePeriodBoundaries(rule.period);
       const actual = await this.getCachedConsumption(
+        rule.user_id,
         tenantId,
         agentName,
         rule.metric_type,
@@ -95,10 +102,14 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   invalidateCache(tenantId: string, agentName: string): void {
     const key = `${tenantId}:${agentName}`;
     this.rulesCache.delete(key);
-    for (const k of this.consumptionCache.keys()) {
-      if (k.startsWith(key + ':')) {
-        this.consumptionCache.delete(k);
+    // Mutations arrive with tenant_id + agent_name (not userId), so sweep every
+    // user bucket for inner entries scoped to this tenant/agent.
+    const innerPrefix = key + ':';
+    for (const [userId, inner] of this.consumptionCache) {
+      for (const innerKey of inner.keys()) {
+        if (innerKey.startsWith(innerPrefix)) inner.delete(innerKey);
       }
+      if (inner.size === 0) this.consumptionCache.delete(userId);
     }
   }
 
@@ -160,19 +171,20 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async getCachedConsumption(
+    userId: string,
     tenantId: string,
     agentName: string,
     metricType: 'tokens' | 'cost',
     periodStart: string,
     periodEnd: string,
   ): Promise<number> {
-    const key = `${tenantId}:${agentName}:${metricType}:${periodStart}`;
+    const innerKey = `${tenantId}:${agentName}:${metricType}:${periodStart}`;
     const now = Date.now();
-    const cached = this.consumptionCache.get(key);
+    const cached = this.consumptionCache.get(userId)?.get(innerKey);
     if (cached && cached.expiresAt > now) return cached.data;
 
-    this.evictExpired(this.consumptionCache, now);
-    this.evictOldestIfFull(this.consumptionCache);
+    this.evictExpiredConsumption(now);
+    this.evictOldestConsumptionIfFull();
     const actual = await this.rulesService.getConsumption(
       tenantId,
       agentName,
@@ -180,7 +192,12 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
       periodStart,
       periodEnd,
     );
-    this.consumptionCache.set(key, { data: actual, expiresAt: now + CACHE_TTL_MS });
+    let bucket = this.consumptionCache.get(userId);
+    if (!bucket) {
+      bucket = new Map<string, CacheEntry<number>>();
+      this.consumptionCache.set(userId, bucket);
+    }
+    bucket.set(innerKey, { data: actual, expiresAt: now + CACHE_TTL_MS });
     return actual;
   }
 
@@ -195,5 +212,29 @@ export class LimitCheckService implements OnModuleInit, OnModuleDestroy {
       const firstKey = cache.keys().next().value;
       if (firstKey) cache.delete(firstKey);
     }
+  }
+
+  private evictExpiredConsumption(now: number): void {
+    for (const [userId, inner] of this.consumptionCache) {
+      this.evictExpired(inner, now);
+      if (inner.size === 0) this.consumptionCache.delete(userId);
+    }
+  }
+
+  private evictOldestConsumptionIfFull(): void {
+    let total = 0;
+    for (const inner of this.consumptionCache.values()) total += inner.size;
+    if (total < MAX_CACHE_SIZE) return;
+
+    // total >= MAX_CACHE_SIZE guarantees the first bucket exists and is
+    // non-empty (empty buckets are dropped eagerly elsewhere). Evict its oldest
+    // inner entry, removing the bucket if that was its last entry.
+    const [userId, inner] = this.consumptionCache.entries().next().value as [
+      string,
+      Map<string, CacheEntry<number>>,
+    ];
+    const firstInnerKey = inner.keys().next().value as string;
+    inner.delete(firstInnerKey);
+    if (inner.size === 0) this.consumptionCache.delete(userId);
   }
 }

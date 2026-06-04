@@ -34,8 +34,8 @@ import {
   ProxyFallbackService,
   FailedFallback,
   normalizeProviderModel,
-  resolveApiKey,
 } from './proxy-fallback.service';
+import { isRefreshableOAuthCredential, resolveApiKey } from './oauth-credentials';
 import {
   ProxyApiMode,
   ProxyRequestOptions,
@@ -230,18 +230,13 @@ export class ProxyService {
     // (today: DeepSeek's `thinking` toggle) in the expanded message detail.
     // Re-derived for fallback successes against the actual fallback
     // provider so the persisted snapshot matches what was sent on that row.
-    const primaryModelParams = await this.modelParamsService.get(
-      agentId,
-      scopeKey,
-      route.provider,
-      route.authType,
-      primaryModel,
-    );
-    const primarySpecs = await this.providerParamSpecs.getSpecs(
-      route.provider,
-      route.authType,
-      primaryModel,
-    );
+    // Independent reads — the params row and the provider spec list don't
+    // depend on each other, so fetch them concurrently to shave a round-trip
+    // off the cold path before forwarding.
+    const [primaryModelParams, primarySpecs] = await Promise.all([
+      this.modelParamsService.get(agentId, scopeKey, route.provider, route.authType, primaryModel),
+      this.providerParamSpecs.getSpecs(route.provider, route.authType, primaryModel),
+    ]);
     const primaryRequestParams = snapshotRequestParams({
       body: routingBody as Record<string, unknown>,
       modelParams: primaryModelParams,
@@ -456,6 +451,16 @@ export class ProxyService {
     );
     const unwrappedApiKey = unwrapped.apiKey;
     if (unwrappedApiKey === null) return null;
+    let rawApiKey = apiKey;
+    if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
+      rawApiKey =
+        (await this.providerKeyService.getProviderApiKey(
+          agentId,
+          resolved.provider,
+          resolved.auth_type,
+          resolved.provider_key_label,
+        )) ?? apiKey;
+    }
     const providerRegion = await this.providerKeyService.getProviderRegion(
       agentId,
       resolved.provider,
@@ -464,7 +469,7 @@ export class ProxyService {
     );
     return {
       apiKey: unwrappedApiKey,
-      rawApiKey: apiKey,
+      rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
       providerRegion,
     };
@@ -552,19 +557,22 @@ export class ProxyService {
     if (success) {
       // Re-snapshot for the fallback's actual provider — its model-scoped
       // params row (if any) is what was actually applied. Different model
-      // → different lookup → different snapshot, matching the wire.
-      const fallbackModelParams = success.authType
-        ? await this.modelParamsService.get(
-            args.paramMergeContext.agentId,
-            args.paramMergeContext.scopeKey,
-            success.provider,
-            success.authType,
-            success.model,
-          )
-        : null;
-      const fallbackSpecs = success.authType
-        ? await this.providerParamSpecs.getSpecs(success.provider, success.authType, success.model)
-        : [];
+      // → different lookup → different snapshot, matching the wire. The two
+      // lookups are independent, so resolve them together.
+      const [fallbackModelParams, fallbackSpecs] = await Promise.all([
+        success.authType
+          ? this.modelParamsService.get(
+              args.paramMergeContext.agentId,
+              args.paramMergeContext.scopeKey,
+              success.provider,
+              success.authType,
+              success.model,
+            )
+          : null,
+        success.authType
+          ? this.providerParamSpecs.getSpecs(success.provider, success.authType, success.model)
+          : [],
+      ]);
       const fallbackRequestParams = snapshotRequestParams({
         body: body as Record<string, unknown>,
         modelParams: fallbackModelParams,
@@ -600,24 +608,24 @@ export class ProxyService {
     // the primary-provider snapshot for the row. Look up the primary's
     // model-params one more time so the snapshot reflects what was sent
     // before the chain failed.
-    const primaryModelParams =
+    const [primaryModelParams, exhaustedSpecs] = await Promise.all([
       primaryProvider && primaryAuth && resolved.route
-        ? await this.modelParamsService.get(
+        ? this.modelParamsService.get(
             args.paramMergeContext.agentId,
             args.paramMergeContext.scopeKey,
             primaryProvider,
             primaryAuth as 'api_key' | 'subscription' | 'local',
             primaryModel,
           )
-        : null;
-    const exhaustedSpecs =
+        : null,
       primaryProvider && primaryAuth && resolved.route
-        ? await this.providerParamSpecs.getSpecs(
+        ? this.providerParamSpecs.getSpecs(
             primaryProvider,
             primaryAuth as 'api_key' | 'subscription' | 'local',
             primaryModel,
           )
-        : [];
+        : [],
+    ]);
     const exhaustedRequestParams = snapshotRequestParams({
       body: body as Record<string, unknown>,
       modelParams: primaryModelParams,

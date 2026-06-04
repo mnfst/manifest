@@ -7,6 +7,7 @@ import type { SpecificityAssignment } from '../../../entities/specificity-assign
 import type { HeaderTier } from '../../../entities/header-tier.entity';
 import type { TierService } from '../../routing-core/tier.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
+import type { RoutingCacheService } from '../../routing-core/routing-cache.service';
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
@@ -54,11 +55,12 @@ describe('ResolveService', () => {
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
   let discoveryService: jest.Mocked<
-    Pick<ModelDiscoveryService, 'getModelForAgent' | 'getModelsForAgent'>
+    Pick<ModelDiscoveryService, 'getModelForAgent' | 'getModelsForAgent' | 'invalidate'>
   >;
   let penaltyService: jest.Mocked<Pick<SpecificityPenaltyService, 'getPenaltiesForAgent'>>;
   let headerTierService: jest.Mocked<Pick<HeaderTierService, 'list'>>;
   let agentRepo: { findOne: jest.Mock };
+  let routingCache: { addInvalidationListener: jest.Mock };
   let svc: ResolveService;
 
   beforeEach(() => {
@@ -78,12 +80,14 @@ describe('ResolveService', () => {
     discoveryService = {
       getModelForAgent: jest.fn().mockResolvedValue(null),
       getModelsForAgent: jest.fn().mockResolvedValue([]),
+      invalidate: jest.fn(),
     };
     penaltyService = { getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()) };
     headerTierService = { list: jest.fn().mockResolvedValue([]) };
     agentRepo = {
       findOne: jest.fn().mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: true }),
     };
+    routingCache = { addInvalidationListener: jest.fn() };
 
     // Defaults — each test overrides as needed.
     mockedScore.mockReturnValue({
@@ -104,10 +108,24 @@ describe('ResolveService', () => {
       penaltyService as unknown as SpecificityPenaltyService,
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
+      routingCache as unknown as RoutingCacheService,
     );
   });
 
   const messages = [{ role: 'user' as const, content: 'hello' }];
+
+  describe('discovery cache invalidation bridge', () => {
+    it('registers a routing-cache listener that invalidates the discovery cache', () => {
+      expect(routingCache.addInvalidationListener).toHaveBeenCalledTimes(1);
+      const listener = routingCache.addInvalidationListener.mock.calls[0][0] as (
+        agentId: string,
+      ) => void;
+
+      listener('agent-42');
+
+      expect(discoveryService.invalidate).toHaveBeenCalledWith('agent-42');
+    });
+  });
 
   describe('resolve — header tier match', () => {
     it('returns the header-tier route when the rule matches', async () => {

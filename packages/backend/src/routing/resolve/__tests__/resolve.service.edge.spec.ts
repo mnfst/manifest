@@ -7,6 +7,7 @@ import type { SpecificityAssignment } from '../../../entities/specificity-assign
 import type { HeaderTier } from '../../../entities/header-tier.entity';
 import type { TierService } from '../../routing-core/tier.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
+import type { RoutingCacheService } from '../../routing-core/routing-cache.service';
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
@@ -129,6 +130,7 @@ describe('ResolveService — edge cases', () => {
       penaltyService as unknown as SpecificityPenaltyService,
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
+      { addInvalidationListener: jest.fn() } as unknown as RoutingCacheService,
     );
   });
 
