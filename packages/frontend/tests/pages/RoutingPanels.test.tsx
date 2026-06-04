@@ -160,9 +160,8 @@ describe('RoutingFooter', () => {
 });
 
 describe('RoutingLoadingSkeleton', () => {
-  it('renders four skeleton cards', () => {
+  it('renders skeleton rows', () => {
     const { container } = render(() => <RoutingLoadingSkeleton />);
-    expect(container.querySelectorAll('.routing-card').length).toBe(4);
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
   });
 });

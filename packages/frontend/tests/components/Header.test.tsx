@@ -296,10 +296,10 @@ describe("Header - breadcrumb", () => {
     expect(logoLink.getAttribute("href")).toBe("/");
   });
 
-  it("shows Workspace breadcrumb when agent is active", () => {
+  it("shows Agents breadcrumb when agent is active", () => {
     mockAgentName = "my-agent";
     render(() => <Header />);
-    expect(screen.getByText("Workspace")).toBeDefined();
+    expect(screen.getByText("Agents")).toBeDefined();
   });
 });
 

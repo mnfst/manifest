@@ -1123,15 +1123,17 @@ describe('ProxyFallbackService', () => {
         'user-1',
         'Anthropic',
         new Set(['subscription']),
+        'agent-1',
       );
       // getProviderApiKey should use the alternate auth type. The 4th arg is
       // the optional providerKeyLabel — undefined when the fallback entry
-      // has no `||<label>` suffix.
+      // has no `||<label>` suffix; the 5th scopes global providers to an agent.
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
         'user-1',
         'Anthropic',
         'api_key',
         undefined,
+        'agent-1',
       );
     });
 
@@ -1170,6 +1172,7 @@ describe('ProxyFallbackService', () => {
         'Google',
         'api_key',
         'Work',
+        'agent-1',
       );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({ model: 'gemini-2.5-flash' }),
@@ -1213,22 +1216,25 @@ describe('ProxyFallbackService', () => {
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getAuthType).not.toHaveBeenCalled();
       expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'openai',
         'subscription',
+        'agent-1',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'openai',
         'subscription',
         'Work',
+        'agent-1',
       );
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
       expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'openai',
         'subscription',
         'Work',
+        'agent-1',
       );
     });
 
@@ -1336,22 +1342,25 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'OpenAI',
         'subscription',
+        'agent-1',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'OpenAI',
         'subscription',
         'Work',
+        'agent-1',
       );
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
       expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'OpenAI',
         'subscription',
         'Work',
+        'agent-1',
       );
     });
 
@@ -1380,7 +1389,12 @@ describe('ProxyFallbackService', () => {
       );
 
       // OpenAI is a different provider, so no exclusion set should be passed
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('user-1', 'OpenAI', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
+        'user-1',
+        'OpenAI',
+        undefined,
+        'agent-1',
+      );
     });
 
     it('accumulates failed auth types across same-provider fallbacks', async () => {
@@ -1422,6 +1436,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         'Anthropic',
         new Set(['subscription']),
+        'agent-1',
       );
       // Second call: exclusion now also contains 'api_key' (from first fallback failure)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
@@ -1429,6 +1444,7 @@ describe('ProxyFallbackService', () => {
         'user-1',
         'Anthropic',
         new Set(['subscription', 'api_key']),
+        'agent-1',
       );
     });
 
@@ -1493,7 +1509,11 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(result.success!.provider).toBe('openrouter');
-      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('user-1', 'anthropic');
+      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith(
+        'user-1',
+        'anthropic',
+        'agent-1',
+      );
     });
   });
 

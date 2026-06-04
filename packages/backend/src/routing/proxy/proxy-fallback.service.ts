@@ -233,9 +233,10 @@ export class ProxyFallbackService {
       }
       if (!providerKeyLabel && authType === 'subscription') {
         providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          agentId,
+          userId,
           provider,
           authType,
+          agentId,
         );
       }
 
@@ -278,10 +279,11 @@ export class ProxyFallbackService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agentId,
+            userId,
             provider,
             authType,
             providerKeyLabel,
+            agentId,
           )) ?? apiKey;
       }
       const providerRegion = await this.providerKeyService.getProviderRegion(

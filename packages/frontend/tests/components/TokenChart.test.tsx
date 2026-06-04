@@ -246,14 +246,14 @@ describe("TokenChart", () => {
       expect(capturedOpts.series).toHaveLength(3);
     });
 
-    it("should assign the input series label as 'Sent to AI'", () => {
+    it("should assign the input series label as 'Input tokens'", () => {
       renderAndBuild();
-      expect(capturedOpts.series[1].label).toBe("Sent to AI");
+      expect(capturedOpts.series[1].label).toBe("Input tokens");
     });
 
-    it("should assign the output series label as 'Received from AI'", () => {
+    it("should assign the output series label as 'Output tokens'", () => {
       renderAndBuild();
-      expect(capturedOpts.series[2].label).toBe("Received from AI");
+      expect(capturedOpts.series[2].label).toBe("Output tokens");
     });
 
     it("should assign input series to scale y (left axis)", () => {

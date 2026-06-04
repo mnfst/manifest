@@ -1197,7 +1197,7 @@ describe('Routing page', () => {
     await waitFor(() => {
       expect(screen.getByTestId('modal-trigger-open-provider')).toBeDefined();
     });
-    fireEvent.click(screen.getByText('Connect providers'));
+    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
     // After opening, showProviderModal accessor reports true.
     await waitFor(() => {
       expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(true);
