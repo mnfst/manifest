@@ -92,12 +92,12 @@ export function normalizeOpenAiReasoningDelta(
   const reasoning = firstStringAtPaths(delta, format.outputStreamDeltaPaths);
   if (!reasoning) return null;
 
-  const existingClientValue = getPath(delta, format.clientStreamDeltaPath);
+  const existingClientValue = getClientStreamDelta(delta, format.clientStreamDeltaPath);
   if (typeof existingClientValue === 'string' && existingClientValue.length > 0) {
     return { text: reasoning, normalized: false };
   }
 
-  const normalized = setPath(delta, format.clientStreamDeltaPath, reasoning);
+  const normalized = setClientStreamDelta(delta, format.clientStreamDeltaPath, reasoning);
   return { text: reasoning, normalized };
 }
 
@@ -121,28 +121,19 @@ function getPath(obj: Record<string, unknown>, path: string): unknown {
   return current;
 }
 
-function setPath(obj: Record<string, unknown>, path: string, value: string): boolean {
-  const segments = safePathSegments(path);
-  if (!segments) return false;
-
-  let current = obj;
-  for (let i = 0; i < segments.length - 1; i++) {
-    const segment = segments[i];
-    const next = current[segment];
-    if (!next || typeof next !== 'object' || Array.isArray(next)) {
-      const replacement: Record<string, unknown> = {};
-      current[segment] = replacement;
-      current = replacement;
-    } else {
-      current = next as Record<string, unknown>;
-    }
-  }
-  current[segments[segments.length - 1]] = value;
-  return true;
-}
-
 function safePathSegments(path: string): string[] | null {
   const segments = path.split('.');
   if (segments.some((segment) => !segment || UNSAFE_PATH_SEGMENTS.has(segment))) return null;
   return segments;
+}
+
+function getClientStreamDelta(obj: Record<string, unknown>, path: string): unknown {
+  if (path !== 'reasoning_content') return undefined;
+  return obj.reasoning_content;
+}
+
+function setClientStreamDelta(obj: Record<string, unknown>, path: string, value: string): boolean {
+  if (path !== 'reasoning_content') return false;
+  obj.reasoning_content = value;
+  return true;
 }
