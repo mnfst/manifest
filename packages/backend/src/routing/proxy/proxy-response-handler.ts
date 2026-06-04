@@ -32,7 +32,7 @@ import {
   extractThinkingBlocksFromMessagesResponse,
   type ExtractedThinkingBlocks,
 } from './anthropic-adapter';
-import { supportsReasoningContent } from './provider-client-converters';
+import { getOpenAiReasoningStreamFormat, supportsReasoningContent } from './reasoning-format';
 import type { CallerAttribution } from './caller-classifier';
 import type { CaptureSink } from './recording-capture';
 import { sanitizeResponseHeaders } from './recording-capture';
@@ -379,14 +379,18 @@ export async function handleStreamResponse(
       onClient,
     );
   }
-  if (supportsReasoningContent(meta.provider, meta.model)) {
+  const reasoningStreamFormat = getOpenAiReasoningStreamFormat(meta.provider, meta.model);
+  if (reasoningStreamFormat) {
     const onReasoningContent =
       reasoningCache && sessionKey
         ? (firstToolCallId: string, content: string) => {
             reasoningCache.store(sessionKey, firstToolCallId, content);
           }
         : undefined;
-    const transformer = providerClient.createReasoningContentStreamTransformer(onReasoningContent);
+    const transformer = providerClient.createReasoningContentStreamTransformer(
+      onReasoningContent,
+      reasoningStreamFormat,
+    );
     return pipeStream(
       forward.response.body!,
       res,

@@ -2,7 +2,7 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
-import { supportsReasoningContent } from './provider-client-converters';
+import { supportsReasoningContent } from './reasoning-format';
 
 interface CachedReasoningContent {
   content: string;

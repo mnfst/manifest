@@ -19,6 +19,11 @@ import {
   transformResponsesStreamChunk,
   collectChatGptSseResponse,
 } from './chatgpt-adapter';
+import {
+  normalizeOpenAiReasoningDelta,
+  type OpenAiReasoningStreamFormat,
+  supportsReasoningContent,
+} from './reasoning-format';
 
 /** Convert a ChatGPT Responses API response to OpenAI format. */
 export function convertChatGptResponse(
@@ -126,52 +131,6 @@ function usesOpenAiMaxCompletionTokens(endpointKey: string, bareModel: string): 
   );
 }
 
-/**
- * Endpoints that tolerate `reasoning_content` for at least one model family.
- * Restricting model-family matching to this set prevents false positives on
- * strict OpenAI-compatible hosts that happen to serve a reasoning-derived
- * community slug and would reject the unknown message field.
- */
-const REASONING_CONTENT_AWARE_ENDPOINTS = new Set(['openrouter', 'opencode-go', 'custom']);
-
-const OPENCODE_GO_REASONING_MODEL_FAMILY_RE =
-  /^(?:deepseek|kimi|glm|qwen|minimax|mimo)(?:[-_.\d]|$)/i;
-
-/**
- * Some reasoning APIs reject follow-up turns that don't echo back the previous
- * assistant's `reasoning_content`. Preserve it for:
- *  - the native `deepseek` and `moonshot` endpoints (always)
- *  - OpenCode Go's known reasoning model families
- *  - aggregator/proxy endpoints whose `deepseek-*` slugs forward to a DeepSeek
- *    engine, or whose `moonshotai/*` slugs forward to Kimi
- *    (OpenRouter `deepseek/*` / `moonshotai/*` and DeepSeek custom providers).
- * Strict OpenAI-compatible endpoints (Mistral, native OpenAI, etc.) keep
- * stripping the field even if a community fine-tune slug contains "deepseek".
- */
-export function supportsReasoningContent(endpointKey: string, model: string): boolean {
-  const normalizedEndpoint = endpointKey.toLowerCase();
-  const key = normalizedEndpoint.startsWith('custom:') ? 'custom' : normalizedEndpoint;
-  if (key === 'deepseek') return true;
-  if (key === 'moonshot') return true;
-  if (!REASONING_CONTENT_AWARE_ENDPOINTS.has(key)) return false;
-  // Bare model id after stripping any vendor/aggregator prefix:
-  //   "deepseek/r1"             → "r1"            — OpenRouter, not deepseek-family
-  //   "openrouter" + "deepseek/deepseek-r1" → "deepseek-r1" ✓
-  //   "opencode-go/kimi-k2.6" → "kimi-k2.6" ✓
-  //   "custom:<uuid>/deepseek-reasoner" → "deepseek-reasoner" ✓
-  // (proxy-fallback.service strips "custom:<uuid>/" before forward, so in
-  // practice the custom path passes the already-bare model — both shapes
-  // are handled.)
-  const bare = model.toLowerCase().split('/').pop() ?? '';
-  if (key === 'opencode-go') {
-    return OPENCODE_GO_REASONING_MODEL_FAMILY_RE.test(bare);
-  }
-  if (key === 'openrouter' && model.toLowerCase().startsWith('moonshotai/')) {
-    return true;
-  }
-  return bare.includes('deepseek');
-}
-
 export type ReasoningContentCallback = (firstToolCallId: string, content: string) => void;
 
 /**
@@ -180,6 +139,10 @@ export type ReasoningContentCallback = (firstToolCallId: string, content: string
  */
 export function createReasoningContentStreamTransformer(
   onReasoningContent?: ReasoningContentCallback,
+  format: OpenAiReasoningStreamFormat = {
+    outputStreamDeltaPaths: ['reasoning_content'],
+    clientStreamDeltaPath: 'reasoning_content',
+  },
 ): (chunk: string) => string | null {
   let accumulatedReasoning = '';
   let firstToolCallId: string | null = null;
@@ -198,14 +161,17 @@ export function createReasoningContentStreamTransformer(
   };
 
   return (chunk: string): string | null => {
+    let outChunk = chunk;
     try {
       const parsed = JSON.parse(chunk) as Record<string, unknown>;
       const choice = (parsed.choices as Array<Record<string, unknown>> | undefined)?.[0];
       const delta = choice?.delta as Record<string, unknown> | undefined;
 
       if (delta) {
-        if (typeof delta.reasoning_content === 'string') {
-          accumulatedReasoning += delta.reasoning_content;
+        const reasoning = normalizeOpenAiReasoningDelta(delta, format);
+        if (reasoning) {
+          accumulatedReasoning += reasoning.text;
+          if (reasoning.normalized) outChunk = JSON.stringify(parsed);
           storeIfReady();
         }
         const toolCalls = delta.tool_calls as Array<Record<string, unknown>> | undefined;
@@ -225,7 +191,7 @@ export function createReasoningContentStreamTransformer(
       // Pass malformed/non-JSON chunks through unchanged.
     }
 
-    return `data: ${chunk}\n\n`;
+    return `data: ${outChunk}\n\n`;
   };
 }
 
