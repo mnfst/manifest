@@ -52,6 +52,7 @@ describe('MessageDetailsService', () => {
     routing_tier: 'standard',
     routing_reason: null,
     auth_type: 'api_key',
+    provider_key_label: null,
     skill_name: null,
     fallback_from_model: null,
     fallback_index: null,
@@ -63,6 +64,9 @@ describe('MessageDetailsService', () => {
     request_headers: null,
     request_params: null,
     caller_attribution: null,
+    header_tier_id: null,
+    header_tier_name: null,
+    header_tier_color: null,
     recorded: false,
     specificity_category: null,
     specificity_miscategorized: false,
@@ -210,9 +214,31 @@ describe('MessageDetailsService', () => {
     expect(result.agent_logs[0].severity).toBe('info');
   });
 
+  it('scopes related agent logs by tenant and agent from the owned message', async () => {
+    await service.getDetails('msg-1', 'u1');
+
+    expect(logQb.where).toHaveBeenCalledWith('al.trace_id = :traceId', { traceId: 'trace-abc' });
+    expect(logQb.andWhere).toHaveBeenCalledWith('al.tenant_id = :logTenantId', {
+      logTenantId: 't1',
+    });
+    expect(logQb.andWhere).toHaveBeenCalledWith('al.agent_id = :logAgentId', {
+      logAgentId: 'a1',
+    });
+  });
+
   it('does not query agent logs when trace_id is null', async () => {
     const msgNoTrace = { ...baseMessage, trace_id: null };
     msgQb.getOne.mockResolvedValue(msgNoTrace);
+
+    const result = await service.getDetails('msg-1', 'u1');
+
+    expect(result.agent_logs).toEqual([]);
+    expect(logQb.where).not.toHaveBeenCalled();
+  });
+
+  it('does not query agent logs without a tenant or agent scope', async () => {
+    const msgWithoutLogScope = { ...baseMessage, tenant_id: null, agent_id: null };
+    msgQb.getOne.mockResolvedValue(msgWithoutLogScope);
 
     const result = await service.getDetails('msg-1', 'u1');
 
@@ -243,6 +269,7 @@ describe('MessageDetailsService', () => {
       routing_tier: 'standard',
       routing_reason: null,
       auth_type: 'api_key',
+      provider_key_label: null,
       skill_name: null,
       fallback_from_model: null,
       fallback_index: null,
@@ -253,6 +280,9 @@ describe('MessageDetailsService', () => {
       request_headers: null,
       request_params: null,
       caller_attribution: null,
+      header_tier_id: null,
+      header_tier_name: null,
+      header_tier_color: null,
       recorded: false,
       specificity_category: null,
       specificity_miscategorized: false,
