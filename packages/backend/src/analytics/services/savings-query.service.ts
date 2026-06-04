@@ -204,14 +204,6 @@ export class SavingsQueryService {
 
     qb.setParameters({ fbInput, fbOutput });
 
-    const row = await qb.getRawOne();
-
-    const totalSaved = Number(row?.total_saved ?? 0);
-    const baselineCost = Number(row?.baseline_cost ?? 0);
-    const actualCost = Number(row?.actual_cost ?? 0);
-    const requestCount = Number(row?.request_count ?? 0);
-    const savingsPct = baselineCost > 0 ? Math.round((totalSaved / baselineCost) * 100) : 0;
-
     const prevQb = this.messageRepo.createQueryBuilder('at');
     addTenantFilter(prevQb, userId, agentName, tenantId);
     prevQb.andWhere('at.timestamp >= :prevCutoff AND at.timestamp < :cutoff', {
@@ -224,7 +216,16 @@ export class SavingsQueryService {
       'prev_saved',
     );
     prevQb.setParameters({ fbInput, fbOutput });
-    const prevRow = await prevQb.getRawOne();
+
+    // The current-window and previous-window aggregates are independent, so
+    // issue both round-trips concurrently instead of serially.
+    const [row, prevRow] = await Promise.all([qb.getRawOne(), prevQb.getRawOne()]);
+
+    const totalSaved = Number(row?.total_saved ?? 0);
+    const baselineCost = Number(row?.baseline_cost ?? 0);
+    const actualCost = Number(row?.actual_cost ?? 0);
+    const requestCount = Number(row?.request_count ?? 0);
+    const savingsPct = baselineCost > 0 ? Math.round((totalSaved / baselineCost) * 100) : 0;
     const prevSaved = Number(prevRow?.prev_saved ?? 0);
 
     return {
@@ -293,14 +294,6 @@ export class SavingsQueryService {
 
     qb.setParameters({ inputPrice, outputPrice });
 
-    const row = await qb.getRawOne();
-
-    const totalSaved = Number(row?.total_saved ?? 0);
-    const baselineCost = Number(row?.baseline_cost ?? 0);
-    const actualCost = Number(row?.actual_cost ?? 0);
-    const requestCount = Number(row?.request_count ?? 0);
-    const savingsPct = baselineCost > 0 ? Math.round((totalSaved / baselineCost) * 100) : 0;
-
     const prevQb = this.messageRepo.createQueryBuilder('at');
     addTenantFilter(prevQb, userId, agentName, tenantId);
     prevQb.andWhere('at.timestamp >= :prevCutoff AND at.timestamp < :cutoff', {
@@ -316,7 +309,15 @@ export class SavingsQueryService {
       'prev_saved',
     );
     prevQb.setParameters({ inputPrice, outputPrice });
-    const prevRow = await prevQb.getRawOne();
+
+    // Current- and previous-window aggregates are independent — run in parallel.
+    const [row, prevRow] = await Promise.all([qb.getRawOne(), prevQb.getRawOne()]);
+
+    const totalSaved = Number(row?.total_saved ?? 0);
+    const baselineCost = Number(row?.baseline_cost ?? 0);
+    const actualCost = Number(row?.actual_cost ?? 0);
+    const requestCount = Number(row?.request_count ?? 0);
+    const savingsPct = baselineCost > 0 ? Math.round((totalSaved / baselineCost) * 100) : 0;
     const prevSaved = Math.max(0, Number(prevRow?.prev_saved ?? 0));
 
     return {

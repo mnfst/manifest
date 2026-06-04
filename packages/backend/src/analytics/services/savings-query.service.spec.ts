@@ -153,6 +153,39 @@ describe('SavingsQueryService', () => {
       expect(result.total_saved).toBe(0);
       expect(result.savings_pct).toBe(0);
     });
+
+    it('issues both the current and previous window queries and computes the trend', async () => {
+      const qb = mockQb([
+        {
+          request_count: 4,
+          actual_cost: '1',
+          baseline_cost: '5',
+          total_saved: '4',
+          saved_api_key: '3',
+          saved_subscription: '1',
+          saved_local: '0',
+        },
+      ]);
+      const prevQb = mockQb([{ prev_saved: '2' }]);
+      messageCreateQb.mockReturnValueOnce(qb).mockReturnValueOnce(prevQb);
+
+      const result = await service.getSavings('30d', 'user-1', 'bot-1');
+
+      // Both windows were queried — the parallelization must not drop a call.
+      expect(qb.getRawOne).toHaveBeenCalledTimes(1);
+      expect(prevQb.getRawOne).toHaveBeenCalledTimes(1);
+      // Result is unchanged vs the prior sequential implementation.
+      expect(result.total_saved).toBe(4);
+      expect(result.baseline_cost).toBe(5);
+      expect(result.savings_pct).toBe(80);
+      expect(result.savings_by_auth_type).toEqual({
+        api_key: 3,
+        subscription: 1,
+        local: 0,
+      });
+      // trend_pct = (4 - 2) / 2 * 100 = 100
+      expect(result.trend_pct).toBe(100);
+    });
   });
 
   describe('getSavings (override)', () => {
@@ -175,6 +208,48 @@ describe('SavingsQueryService', () => {
       const result = await service.getSavings('30d', 'user-1', 'bot-1', 'tenant-1', 'nonexistent');
 
       expect(result.total_saved).toBe(0);
+    });
+
+    it('issues both window queries in parallel for a resolved override baseline', async () => {
+      agentFindOne.mockResolvedValue({ id: 'a1', name: 'bot-1' });
+      providerFind.mockResolvedValue([
+        {
+          is_active: true,
+          cached_models: JSON.stringify([
+            {
+              id: 'gpt-4o',
+              displayName: 'GPT-4o',
+              provider: 'openai',
+              inputPricePerToken: 0.005,
+              outputPricePerToken: 0.015,
+            },
+          ]),
+        },
+      ]);
+      const qb = mockQb([
+        {
+          request_count: 2,
+          actual_cost: '1',
+          baseline_cost: '3',
+          total_saved: '2',
+          saved_api_key: '2',
+          saved_subscription: '0',
+          saved_local: '0',
+        },
+      ]);
+      const prevQb = mockQb([{ prev_saved: '1' }]);
+      messageCreateQb.mockReturnValueOnce(qb).mockReturnValueOnce(prevQb);
+
+      const result = await service.getSavings('30d', 'user-1', 'bot-1', 'tenant-1', 'gpt-4o');
+
+      expect(qb.getRawOne).toHaveBeenCalledTimes(1);
+      expect(prevQb.getRawOne).toHaveBeenCalledTimes(1);
+      expect(result.is_auto).toBe(false);
+      expect(result.baseline_model!.id).toBe('gpt-4o');
+      expect(result.total_saved).toBe(2);
+      expect(result.savings_pct).toBe(67); // round(2/3 * 100)
+      // trend_pct = (2 - 1) / 1 * 100 = 100
+      expect(result.trend_pct).toBe(100);
     });
   });
 

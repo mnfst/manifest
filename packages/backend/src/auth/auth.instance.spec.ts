@@ -371,9 +371,11 @@ describe('auth.instance', () => {
 
       loadModule();
 
-      expect(Pool).toHaveBeenCalledWith({
-        connectionString: 'postgresql://test:test@db:5432/testdb',
-      });
+      expect(Pool).toHaveBeenCalledWith(
+        expect.objectContaining({
+          connectionString: 'postgresql://test:test@db:5432/testdb',
+        }),
+      );
     });
 
     it('falls back to default DATABASE_URL when not set', () => {
@@ -383,9 +385,33 @@ describe('auth.instance', () => {
 
       loadModule();
 
-      expect(Pool).toHaveBeenCalledWith({
-        connectionString: 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
-      });
+      expect(Pool).toHaveBeenCalledWith(
+        expect.objectContaining({
+          connectionString: 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
+        }),
+      );
+    });
+
+    it('caps the pool size and reaps idle connections by default', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Pool } = require('pg') as { Pool: jest.Mock };
+      delete process.env['AUTH_DB_POOL_MAX'];
+
+      loadModule();
+
+      expect(Pool).toHaveBeenCalledWith(
+        expect.objectContaining({ max: 10, idleTimeoutMillis: 30000 }),
+      );
+    });
+
+    it('reads AUTH_DB_POOL_MAX from env', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Pool } = require('pg') as { Pool: jest.Mock };
+      process.env['AUTH_DB_POOL_MAX'] = '25';
+
+      loadModule();
+
+      expect(Pool).toHaveBeenCalledWith(expect.objectContaining({ max: 25 }));
     });
   });
 

@@ -36,9 +36,27 @@ function isQwenProvider(providerId: string): boolean {
   return lower === 'qwen' || lower === 'alibaba';
 }
 
+/** 2-minute TTL for the per-agent discovered-model list, matching RoutingCacheService. */
+const MODELS_CACHE_TTL_MS = 120_000;
+
+interface ModelsCacheEntry {
+  data: DiscoveredModel[];
+  expiresAt: number;
+}
+
 @Injectable()
 export class ModelDiscoveryService {
   private readonly logger = new Logger(ModelDiscoveryService.name);
+
+  // Per-agent cache for getModelsForAgent(). This is the hottest uncached DB
+  // hit on the routing decision path (every override/specificity request calls
+  // it via isModelAvailable / getModelForAgent). The cache lives here rather
+  // than in RoutingCacheService to avoid a module-level circular dependency:
+  // RoutingCoreModule already imports ModelDiscoveryModule, so the reverse edge
+  // would form a cycle. Invalidation is driven by the discovery write path
+  // (below) and by ResolveService bridging RoutingCacheService.invalidateAgent
+  // to invalidate() — see ResolveService for the wiring.
+  private readonly modelsCache = new Map<string, ModelsCacheEntry>();
 
   constructor(
     @InjectRepository(UserProvider)
@@ -230,6 +248,9 @@ export class ModelDiscoveryService {
     provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
     await this.providerRepo.save(provider);
+    // The agent's effective model list just changed on disk — drop the cache
+    // so getModelsForAgent() reassembles it on the next read.
+    this.invalidate(provider.agent_id);
 
     this.logger.log(
       `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
@@ -309,7 +330,38 @@ export class ModelDiscoveryService {
     }
   }
 
+  /**
+   * Cached view of an agent's discovered models (2-minute TTL). Returns the
+   * cached list when warm, otherwise runs the full DB-backed assembly and
+   * caches the result. Invalidated on any provider mutation (see invalidate()).
+   */
   async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
+    const cached = this.modelsCache.get(agentId);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+    if (cached) this.modelsCache.delete(agentId);
+
+    const models = await this.fetchModelsForAgent(agentId);
+    const now = Date.now();
+    // Sweep expired entries on populate so the cache can't grow unbounded as
+    // agents come and go (entries are otherwise only dropped on miss/invalidate).
+    for (const [key, entry] of this.modelsCache) {
+      if (entry.expiresAt <= now) this.modelsCache.delete(key);
+    }
+    this.modelsCache.set(agentId, { data: models, expiresAt: now + MODELS_CACHE_TTL_MS });
+    return models;
+  }
+
+  /**
+   * Drop the cached model list for an agent. Called whenever the agent's
+   * provider set or cached_models change so callers never see a stale list.
+   */
+  invalidate(agentId: string): void {
+    this.modelsCache.delete(agentId);
+  }
+
+  private async fetchModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
     const providers = await this.providerRepo.find({
       where: { agent_id: agentId, is_active: true },
     });

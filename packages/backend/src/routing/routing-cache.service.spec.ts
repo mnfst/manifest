@@ -290,4 +290,33 @@ describe('RoutingCacheService', () => {
       expect(service.getSpecificity('agent-1')).toEqual(assignments);
     });
   });
+
+  describe('invalidation listeners', () => {
+    it('fires registered listeners with the agentId on invalidateAgent', () => {
+      const listener = jest.fn();
+      service.addInvalidationListener(listener);
+
+      service.invalidateAgent('agent-1');
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('fires every registered listener', () => {
+      const a = jest.fn();
+      const b = jest.fn();
+      service.addInvalidationListener(a);
+      service.addInvalidationListener(b);
+
+      service.invalidateAgent('agent-2');
+
+      expect(a).toHaveBeenCalledWith('agent-2');
+      expect(b).toHaveBeenCalledWith('agent-2');
+    });
+
+    it('does not fire listeners when none are registered', () => {
+      // Pure smoke check that invalidateAgent stays a no-op-safe path.
+      expect(() => service.invalidateAgent('agent-3')).not.toThrow();
+    });
+  });
 });

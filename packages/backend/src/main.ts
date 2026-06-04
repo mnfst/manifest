@@ -13,9 +13,11 @@ import {
   buildFrameSrc,
   createCorsOriginHandler,
 } from './cors-csp-config';
+import { shouldCompress } from './routing/proxy/compression-filter';
 
 export async function bootstrap() {
   const logger = new Logger('Bootstrap');
+
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
     logger: new ConsoleLogger({ prefix: 'Manifest' }),
@@ -66,7 +68,10 @@ export async function bootstrap() {
     }),
   );
 
-  app.use(compression());
+  // Exclude SSE (`text/event-stream`) from compression: gzip buffering holds
+  // tokens and wrecks streaming time-to-first-token. All other responses use
+  // the package's default content-type filter.
+  app.use(compression({ filter: shouldCompress }));
 
   // CORS is enabled only in dev so the Vite frontend on :3000, the local
   // Wingman build at `WINGMAN_PORT`, and the hosted Wingman SPA can hit
