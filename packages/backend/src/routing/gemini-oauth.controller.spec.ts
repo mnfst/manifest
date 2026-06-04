@@ -246,7 +246,7 @@ describe('GeminiOauthController', () => {
     it('exchanges code and returns ok', async () => {
       const result = await controller.callback('auth-code', 'state-123', { id: 'user-1' } as never);
 
-      expect(oauthService.exchangeCode).toHaveBeenCalledWith('state-123', 'auth-code');
+      expect(oauthService.exchangeCode).toHaveBeenCalledWith('state-123', 'auth-code', 'user-1');
       expect(result).toEqual({ ok: true });
     });
 

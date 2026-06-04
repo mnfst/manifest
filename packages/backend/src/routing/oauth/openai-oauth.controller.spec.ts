@@ -243,7 +243,7 @@ describe('OpenaiOauthController', () => {
       const { ctrl, oauth } = build();
       (oauth.exchangeCode as jest.Mock).mockResolvedValue(undefined);
       await expect(ctrl.callback('auth-code', 'state-1', user)).resolves.toEqual({ ok: true });
-      expect(oauth.exchangeCode).toHaveBeenCalledWith('state-1', 'auth-code');
+      expect(oauth.exchangeCode).toHaveBeenCalledWith('state-1', 'auth-code', 'user-1');
     });
 
     it('wraps service errors in a 400 carrying the original message', async () => {
