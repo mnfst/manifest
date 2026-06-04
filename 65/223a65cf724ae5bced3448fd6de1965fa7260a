@@ -1,0 +1,32 @@
+packages/backend/test/helpers.ts
+  s_492c4473e887cf::t_112ba9c105e757 40,82
+packages/backend/test/smoke-test.e2e-spec.ts
+  s_492c4473e887cf::t_c96c3aa89bd5ef 81-91,103,130,150-152,159,162-166,171-184,200,206-225,231
+packages/backend/test/custom-providers.url-validation.e2e-spec.ts
+  s_492c4473e887cf::t_05055e7742a0d6 29,31,35,51,65,77,95,110,144,164,174,186,206,224,232,245,261
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_492c4473e887cf::t_b11546932d5c9a 101-105
+  s_492c4473e887cf::t_8f0f77384ff083 215-217,260-262
+packages/backend/test/custom-providers.e2e-spec.ts
+  s_492c4473e887cf::t_99570ebe4d3e62 20-34,71,123,360,390-396,402
+packages/backend/test/multi-key-providers.e2e-spec.ts
+  s_492c4473e887cf::t_d634dd3c6fdc34 13,15-16,53-70
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_492c4473e887cf::t_8f0f77384ff083 77-82,112,161-163,209-211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "65223a65cf724ae5bced3448fd6de1965fa7260a",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
