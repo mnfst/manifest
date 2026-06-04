@@ -336,6 +336,9 @@ describe('PlaygroundService.runStream', () => {
     expect(call.apiKey).toBe('mm-access');
     expect(call.customEndpoint).toBeDefined();
     expect((call.customEndpoint as { baseUrl?: string }).baseUrl).toContain('api.minimaxi.com');
+    // Custom endpoint forwards the model verbatim, so the `minimax/` prefix
+    // must be stripped or the subscription endpoint 404s.
+    expect(call.model).toBe('abab');
   });
 
   it('ignores an invalid MiniMax subscription resource URL instead of building an endpoint', async () => {

@@ -171,6 +171,12 @@ export class PlaygroundService {
       const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(oauthResourceUrl);
       if (minimaxBaseUrl) {
         customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
+        // Routing through a custom endpoint forwards the model id verbatim, so
+        // strip the `minimax/` vendor prefix the subscription endpoint rejects
+        // (matches the proxy).
+        if (forwardModel.toLowerCase().startsWith('minimax/')) {
+          forwardModel = forwardModel.substring('minimax/'.length);
+        }
       } else {
         this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
       }
