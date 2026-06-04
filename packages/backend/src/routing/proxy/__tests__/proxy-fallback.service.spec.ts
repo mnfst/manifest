@@ -1,9 +1,6 @@
 import { Repository } from 'typeorm';
-import {
-  ProxyFallbackService,
-  normalizeProviderModel,
-  resolveApiKey,
-} from '../proxy-fallback.service';
+import { ProxyFallbackService, normalizeProviderModel } from '../proxy-fallback.service';
+import { resolveApiKey } from '../oauth-credentials';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
@@ -59,6 +56,7 @@ describe('ProxyFallbackService', () => {
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn(),
+      getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),
@@ -1175,6 +1173,185 @@ describe('ProxyFallbackService', () => {
       );
       expect(providerClient.forward).toHaveBeenCalledWith(
         expect.objectContaining({ model: 'gemini-2.5-flash' }),
+      );
+    });
+
+    it('uses the selected default key label for unpinned structured subscription fallbacks', async () => {
+      const rawBlob = JSON.stringify({
+        t: 'cached-access',
+        r: 'refresh-token',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-5.3-codex'],
+        body,
+        false,
+        'sess-1',
+        'claude-sonnet-4',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [{ provider: 'openai', authType: 'subscription', model: 'gpt-5.3-codex' }],
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getAuthType).not.toHaveBeenCalled();
+      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+      );
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+        'Work',
+      );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
+      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
+        'agent-1',
+        'openai',
+        'subscription',
+        'Work',
+      );
+    });
+
+    it('uses the latest stored OAuth blob for fallback retries after preflight refresh', async () => {
+      const staleBlob = JSON.stringify({
+        t: 'stale-access',
+        r: 'stale-refresh',
+        e: Date.now() - 10 * 60 * 1000,
+      });
+      const refreshedBlob = JSON.stringify({
+        t: 'fresh-access',
+        r: 'rotated-refresh',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      providerKeyService.getProviderApiKey
+        .mockResolvedValueOnce(staleBlob)
+        .mockResolvedValueOnce(refreshedBlob);
+      openaiOauth.unwrapToken
+        .mockResolvedValueOnce('fresh-access')
+        .mockResolvedValueOnce('recovered-access');
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: new Response('unauthorized', { status: 401 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        })
+        .mockResolvedValueOnce({
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        });
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-5.3-codex'],
+        body,
+        false,
+        'sess-1',
+        'claude-sonnet-4',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [
+          {
+            provider: 'openai',
+            authType: 'subscription',
+            model: 'gpt-5.3-codex',
+            keyLabel: 'Work',
+          },
+        ],
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledTimes(2);
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+      expect(providerClient.forward.mock.calls[0][0].apiKey).toBe('fresh-access');
+      expect(providerClient.forward.mock.calls[1][0].apiKey).toBe('recovered-access');
+
+      const forcedRefreshBlob = JSON.parse(openaiOauth.unwrapToken.mock.calls[1][0] as string) as {
+        e: number;
+        r: string;
+        t: string;
+      };
+      expect(forcedRefreshBlob).toMatchObject({
+        e: 0,
+        r: 'rotated-refresh',
+        t: 'fresh-access',
+      });
+      expect(openaiOauth.unwrapToken.mock.calls[1][3]).toBe('Work');
+    });
+
+    it('uses the selected default subscription key label when refreshing legacy fallbacks', async () => {
+      const rawBlob = JSON.stringify({
+        t: 'cached-access',
+        r: 'refresh-token',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      providerKeyService.getAuthType.mockResolvedValue('subscription');
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
+      pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      const result = await service.tryFallbacks(
+        'agent-1',
+        'user-1',
+        ['gpt-5.3-codex'],
+        body,
+        false,
+        'sess-1',
+        'claude-sonnet-4',
+      );
+
+      expect(result.success).not.toBeNull();
+      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        'subscription',
+      );
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        'subscription',
+        'Work',
+      );
+      expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
+      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
+        'agent-1',
+        'OpenAI',
+        'subscription',
+        'Work',
       );
     });
 

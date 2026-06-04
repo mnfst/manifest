@@ -3,9 +3,11 @@ import {
   createResource,
   createSignal,
   For,
+  lazy,
   on,
   onCleanup,
   Show,
+  Suspense,
   type Component,
 } from 'solid-js';
 import { useParams, useSearchParams } from '@solidjs/router';
@@ -41,7 +43,16 @@ import RequestHeadersPopover, {
 } from '../components/playground/RequestHeadersPopover.jsx';
 import { CodeIcon } from '../components/playground/icons.jsx';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
-import ProviderSelectModal from '../components/ProviderSelectModal.jsx';
+
+// The provider-select modal is a ~130 kB chunk gated behind a `<Show>`. Lazy
+// it out of the Playground route bundle so it only loads when opened.
+const ProviderSelectModal = lazy(() => import('../components/ProviderSelectModal.jsx'));
+
+// Route-scoped styles (kept out of the global theme bundle). routing.css is
+// needed here because the shared ModelPickerModal / ProviderSelectModal use
+// its `routing-modal__*` and capability-badge classes.
+import '../styles/playground.css';
+import '../styles/routing.css';
 
 const REQUEST_HEADERS_STORAGE_KEY = 'manifest.playground.requestHeaders';
 
@@ -623,16 +634,18 @@ const Playground: Component = () => {
       </Show>
 
       <Show when={showProviderModal()}>
-        <ProviderSelectModal
-          agentName={agentName()}
-          providers={providers() ?? []}
-          customProviders={customProviders() ?? []}
-          onClose={() => {
-            setShowProviderModal(false);
-            refetchAllProviders();
-          }}
-          onUpdate={refetchAllProviders}
-        />
+        <Suspense fallback={null}>
+          <ProviderSelectModal
+            agentName={agentName()}
+            providers={providers() ?? []}
+            customProviders={customProviders() ?? []}
+            onClose={() => {
+              setShowProviderModal(false);
+              refetchAllProviders();
+            }}
+            onUpdate={refetchAllProviders}
+          />
+        </Suspense>
       </Show>
     </div>
   );

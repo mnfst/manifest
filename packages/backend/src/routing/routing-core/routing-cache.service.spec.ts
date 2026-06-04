@@ -129,6 +129,35 @@ describe('RoutingCacheService', () => {
     });
   });
 
+  describe('invalidation listeners', () => {
+    it('fires each registered listener with the agentId on invalidateAgent', () => {
+      const a = jest.fn();
+      const b = jest.fn();
+      svc.addInvalidationListener(a);
+      svc.addInvalidationListener(b);
+
+      svc.invalidateAgent('agent-x');
+
+      expect(a).toHaveBeenCalledWith('agent-x');
+      expect(b).toHaveBeenCalledWith('agent-x');
+    });
+
+    it('isolates listener failures so one throw neither propagates nor skips others', () => {
+      const throwing = jest.fn(() => {
+        throw new Error('listener boom');
+      });
+      const after = jest.fn();
+      svc.addInvalidationListener(throwing);
+      svc.addInvalidationListener(after);
+      svc.setTiers('agent-y', [tier('t1')]);
+
+      expect(() => svc.invalidateAgent('agent-y')).not.toThrow();
+      expect(throwing).toHaveBeenCalledWith('agent-y');
+      expect(after).toHaveBeenCalledWith('agent-y');
+      expect(svc.getTiers('agent-y')).toBeNull();
+    });
+  });
+
   describe('model params cache', () => {
     it('returns null until set, returns cached rows after, and the granular invalidate clears just the model-params slot', () => {
       expect(svc.getModelParams('a')).toBeNull();

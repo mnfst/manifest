@@ -43,6 +43,9 @@ import '../styles/overview.css';
 // The recorded-message drawer/modal styles. Only the Messages log mounts
 // RecordedMessageModal, so this CSS stays out of the global theme bundle.
 import '../styles/recording.css';
+// The filtered-empty state here reuses .model-filter__empty classes, so this
+// route imports model-filter.css directly (also imported by ModelPrices).
+import '../styles/model-filter.css';
 
 interface MessagesData {
   items: MessageRow[];

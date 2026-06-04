@@ -250,11 +250,13 @@ describe('RoutingModals', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the dropdown picker when dropdownTier is set', () => {
-    const { queryByTestId } = render(() => (
+  it('renders the dropdown picker when dropdownTier is set', async () => {
+    // ModelPickerModal is lazy-loaded behind <Suspense>, so the picker mounts
+    // on a microtask — await it instead of asserting synchronously.
+    const { findByTestId } = render(() => (
       <RoutingModals {...makeProps({ dropdownTier: () => 'simple' })} />
     ));
-    expect(queryByTestId('picker-simple')).not.toBeNull();
+    expect(await findByTestId('picker-simple')).not.toBeNull();
   });
 
   it('requires stream-capable models for stream-mode tier pickers', () => {
@@ -398,11 +400,12 @@ describe('RoutingModals', () => {
     expect(queryByTestId('provider-select-modal')).toBeNull();
   });
 
-  it('renders ProviderSelectModal when showProviderModal is true', () => {
-    const { queryByTestId } = render(() => (
+  it('renders ProviderSelectModal when showProviderModal is true', async () => {
+    // ProviderSelectModal is lazy-loaded behind <Suspense>; await its mount.
+    const { findByTestId } = render(() => (
       <RoutingModals {...makeProps({ showProviderModal: () => true })} />
     ));
-    expect(queryByTestId('provider-select-modal')).not.toBeNull();
+    expect(await findByTestId('provider-select-modal')).not.toBeNull();
   });
 
   it("renders the instruction modal in the open state when instructionModal returns 'enable'", () => {

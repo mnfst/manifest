@@ -311,6 +311,8 @@ const OAuthDetailView: Component<Props> = (props) => {
                   </p>
                   <video
                     src="/images/oauth-callback-example.mp4"
+                    poster="/images/oauth-callback-example.png"
+                    preload="none"
                     autoplay
                     loop
                     muted

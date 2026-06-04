@@ -12,17 +12,24 @@
 @import './wizard.css';
 @import './notifications.css';
 @import './limits.css';
-@import './routing.css';
-@import './playground.css';
 @import './tooltip.css';
 @import './toast.css';
-@import './model-filter.css';
 @import './version-indicator.css';
 @import './skeleton.css';
 @import './agent-type-select.css';
 @import './feedback.css';
 @import './recording.css';
 @import './provider-list.css';
+
+/*
+ * Route-scoped stylesheets are intentionally NOT imported here. They are
+ * imported from the page/component that actually renders their classes, so
+ * they ship in that route's chunk instead of the render-blocking global
+ * bundle (mirrors MessageLog's overview.css/recording.css pattern):
+ *   - routing.css  → Routing.tsx + Playground.tsx (shared model/provider modals)
+ *   - playground.css → Playground.tsx
+ *   - model-filter.css → MessageLog.tsx + ModelPricesFilterBar.tsx
+ */
 
 /* ── shadcn/ui design tokens — Light (default) ───── */
 @layer base {

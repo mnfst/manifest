@@ -353,6 +353,50 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
+    it('passes the latest stored OAuth blob after preflight refresh rotates tokens', async () => {
+      const staleBlob = JSON.stringify({
+        t: 'stale-access',
+        r: 'stale-refresh',
+        e: Date.now() - 10 * 60 * 1000,
+      });
+      const refreshedBlob = JSON.stringify({
+        t: 'fresh-access',
+        r: 'rotated-refresh',
+        e: Date.now() + 10 * 60 * 1000,
+      });
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: { ...route('openai', 'subscription', 'gpt-5.3-codex'), keyLabel: 'Work' },
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.getProviderApiKey
+        .mockResolvedValueOnce(staleBlob)
+        .mockResolvedValueOnce(refreshedBlob);
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: true,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'subscription',
+          apiKey: 'fresh-access',
+          rawApiKey: refreshedBlob,
+          providerKeyLabel: 'Work',
+        }),
+      );
+    });
+
     it('records the specificity category when the route originates from specificity', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
