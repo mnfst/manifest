@@ -7,6 +7,7 @@ import type { Repository } from 'typeorm';
 import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
+import { encrypt, getEncryptionSecret } from '../../../common/utils/crypto.util';
 
 const route = (
   provider: string,
@@ -678,5 +679,95 @@ describe('ProviderService — route-only cleanup paths', () => {
       const label = await svc.nextOAuthLabel('agent-1', 'openai');
       expect(label).toBe('Key 3');
     });
+  });
+});
+
+describe('ProviderService — getFreshSubscriptionCredential', () => {
+  const PREV_KEY = process.env.MANIFEST_ENCRYPTION_KEY;
+  let providerRepo: ReturnType<typeof makeRepo>;
+  let svc: ProviderService;
+
+  beforeAll(() => {
+    process.env.MANIFEST_ENCRYPTION_KEY = 'unit-test-encryption-key-1234567890';
+  });
+  afterAll(() => {
+    if (PREV_KEY === undefined) delete process.env.MANIFEST_ENCRYPTION_KEY;
+    else process.env.MANIFEST_ENCRYPTION_KEY = PREV_KEY;
+  });
+
+  beforeEach(() => {
+    providerRepo = makeRepo();
+    svc = new ProviderService(
+      providerRepo as unknown as Repository<UserProvider>,
+      makeRepo() as unknown as Repository<TierAssignment>,
+      makeRepo() as unknown as Repository<SpecificityAssignment>,
+      { recalculate: jest.fn() } as unknown as TierAutoAssignService,
+      { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
+      {
+        getProviders: jest.fn(),
+        setProviders: jest.fn(),
+        invalidateAgent: jest.fn(),
+      } as unknown as RoutingCacheService,
+    );
+  });
+
+  it('returns the decrypted raw credential, scanning subscription rows for the agent/provider', async () => {
+    const raw = JSON.stringify({ t: 'access', r: 'refresh', e: 123 });
+    providerRepo.find.mockResolvedValue([
+      { label: 'Work', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
+    ]);
+
+    const out = await svc.getFreshSubscriptionCredential('agent-1', 'openai', 'Work');
+
+    expect(out).toBe(raw);
+    expect(providerRepo.find).toHaveBeenCalledWith({
+      where: { agent_id: 'agent-1', provider: 'openai', auth_type: 'subscription' },
+    });
+  });
+
+  it('matches the label case-insensitively', async () => {
+    const raw = JSON.stringify({ t: 'a', r: 'r', e: 1 });
+    providerRepo.find.mockResolvedValue([
+      { label: 'Other', api_key_encrypted: encrypt('nope', getEncryptionSecret()) },
+      { label: 'work', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
+    ]);
+
+    // Stored row is "work"; the pinned route asks for "WORK".
+    const out = await svc.getFreshSubscriptionCredential('agent-1', 'openai', 'WORK');
+
+    expect(out).toBe(raw);
+  });
+
+  it('defaults the label to Default when none is provided', async () => {
+    const raw = JSON.stringify({ t: 'a', r: 'r', e: 1 });
+    providerRepo.find.mockResolvedValue([
+      { label: 'Default', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
+    ]);
+
+    expect(await svc.getFreshSubscriptionCredential('agent-1', 'anthropic')).toBe(raw);
+  });
+
+  it('returns null when no row matches the label', async () => {
+    providerRepo.find.mockResolvedValue([
+      { label: 'Something else', api_key_encrypted: encrypt('x', getEncryptionSecret()) },
+    ]);
+    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+  });
+
+  it('returns null when there are no subscription rows', async () => {
+    providerRepo.find.mockResolvedValue([]);
+    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+  });
+
+  it('returns null when the matched row has no stored credential', async () => {
+    providerRepo.find.mockResolvedValue([{ label: 'Default', api_key_encrypted: null }]);
+    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
+  });
+
+  it('returns null when the stored credential cannot be decrypted', async () => {
+    providerRepo.find.mockResolvedValue([
+      { label: 'Default', api_key_encrypted: 'not-a-valid-ciphertext' },
+    ]);
+    expect(await svc.getFreshSubscriptionCredential('agent-1', 'openai')).toBeNull();
   });
 });

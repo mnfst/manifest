@@ -57,6 +57,36 @@ export class ProviderService {
     return providers;
   }
 
+  /**
+   * Read the freshest persisted subscription credential straight from the DB,
+   * decrypted, bypassing the routing cache. The OAuth refresh coordinator uses
+   * this so a lazy token refresh never rotates based on a stale cached blob
+   * (see issue #2012). Returns the decrypted raw stored value, or null when
+   * there is no row / no stored credential / it cannot be decrypted.
+   */
+  async getFreshSubscriptionCredential(
+    agentId: string,
+    provider: string,
+    label?: string,
+  ): Promise<string | null> {
+    // Match the label case-insensitively, consistent with the rest of the
+    // label handling and the unique index on (agent_id, provider, auth_type,
+    // LOWER(label)). A pinned route may carry a different casing than the
+    // stored row; a case-sensitive lookup would miss it and refresh from the
+    // stale caller blob instead of the freshest DB row.
+    const wantedLabel = (label ?? DEFAULT_LABEL).toLowerCase();
+    const rows = await this.providerRepo.find({
+      where: { agent_id: agentId, provider, auth_type: 'subscription' },
+    });
+    const row = rows.find((r) => r.label.toLowerCase() === wantedLabel);
+    if (!row?.api_key_encrypted) return null;
+    try {
+      return decrypt(row.api_key_encrypted, getEncryptionSecret());
+    } catch {
+      return null;
+    }
+  }
+
   async upsertProvider(
     agentId: string,
     userId: string,

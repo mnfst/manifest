@@ -12,3 +12,12 @@ export {
 } from './oauth-pending-flow.store';
 export { PendingStore, type PendingEntry } from './pending-store';
 export { oauthDoneHtml } from './callback-page';
+export {
+  coordinateOAuthRefresh,
+  oauthRefreshKey,
+  __resetOAuthRefreshCoordinator,
+  REFRESH_EXPIRY_SKEW_MS,
+  PERSIST_MAX_ATTEMPTS,
+  type RefreshableBlob,
+  type CoordinatedRefreshParams,
+} from './oauth-refresh-coordinator';
