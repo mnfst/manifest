@@ -25,6 +25,8 @@ export interface PricingEntry {
   provider: string;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
+  cache_read_price_per_token?: number | null;
+  cache_write_price_per_token?: number | null;
   display_name: string | null;
   /** True if confirmed via provider-native API, false if unverified, undefined if no data. */
   validated?: boolean;
@@ -200,6 +202,8 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           provider: registryEntry.displayName,
           input_price_per_token: model.inputPricePerToken,
           output_price_per_token: model.outputPricePerToken,
+          cache_read_price_per_token: model.cacheReadPricePerToken ?? null,
+          cache_write_price_per_token: model.cacheWritePricePerToken ?? null,
           display_name: model.name || null,
           validated: this.resolveValidatedForModelsDev(providerId, model.id),
           source: 'models.dev',

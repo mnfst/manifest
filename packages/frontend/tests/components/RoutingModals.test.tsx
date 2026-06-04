@@ -9,11 +9,15 @@ vi.mock('../../src/components/ModelPickerModal.js', () => ({
   default: (props: Record<string, unknown>) => {
     pickerCalls.push({
       tierId: props.tierId,
+      agentName: props.agentName,
       modelsCount: (props.models as { length: number } | undefined)?.length ?? 0,
       modelsList: ((props.models as { model_name: string }[] | undefined) ?? []).map(
         (m) => `${m.model_name}:${(m as { auth_type?: string }).auth_type ?? ''}`,
       ),
       tiersCount: (props.tiers as { length: number } | undefined)?.length ?? 0,
+      customProvidersCount: (props.customProviders as { length: number } | undefined)?.length ?? 0,
+      connectedProvidersCount:
+        (props.connectedProviders as { length: number } | undefined)?.length ?? 0,
       requiredCapability: props.requiredCapability,
       providerRefreshed: props.onProviderRefreshed,
     });
@@ -246,11 +250,13 @@ describe('RoutingModals', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the dropdown picker when dropdownTier is set', () => {
-    const { queryByTestId } = render(() => (
+  it('renders the dropdown picker when dropdownTier is set', async () => {
+    // ModelPickerModal is lazy-loaded behind <Suspense>, so the picker mounts
+    // on a microtask — await it instead of asserting synchronously.
+    const { findByTestId } = render(() => (
       <RoutingModals {...makeProps({ dropdownTier: () => 'simple' })} />
     ));
-    expect(queryByTestId('picker-simple')).not.toBeNull();
+    expect(await findByTestId('picker-simple')).not.toBeNull();
   });
 
   it('requires stream-capable models for stream-mode tier pickers', () => {
@@ -394,11 +400,12 @@ describe('RoutingModals', () => {
     expect(queryByTestId('provider-select-modal')).toBeNull();
   });
 
-  it('renders ProviderSelectModal when showProviderModal is true', () => {
-    const { queryByTestId } = render(() => (
+  it('renders ProviderSelectModal when showProviderModal is true', async () => {
+    // ProviderSelectModal is lazy-loaded behind <Suspense>; await its mount.
+    const { findByTestId } = render(() => (
       <RoutingModals {...makeProps({ showProviderModal: () => true })} />
     ));
-    expect(queryByTestId('provider-select-modal')).not.toBeNull();
+    expect(await findByTestId('provider-select-modal')).not.toBeNull();
   });
 
   it("renders the instruction modal in the open state when instructionModal returns 'enable'", () => {
@@ -682,6 +689,38 @@ describe('RoutingModals', () => {
         'api_key',
         'Personal',
       );
+    });
+
+    it('does nothing if a stale fallback selection has no available keys left', () => {
+      const tierWithEveryKeyUsed: TierAssignment = {
+        ...tiers[0]!,
+        override_route: {
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-4o',
+          keyLabel: 'Work',
+        },
+        fallback_routes: [
+          { provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Personal' },
+        ],
+      };
+      const onAddFallback = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            fallbackPickerTier: () => 'simple',
+            tiers: () => [tierWithEveryKeyUsed],
+            getTier: (id: string) => [tierWithEveryKeyUsed].find((t) => t.tier === id),
+            connectedProviders: () => multiKeyProviders,
+            onAddFallback,
+          })}
+        />
+      ));
+
+      fireEvent.click(getByTestId('picker-simple'));
+
+      expect(onAddFallback).not.toHaveBeenCalled();
+      expect(queryByTestId('key-picker-modal')).toBeNull();
     });
 
     it('closes the picker without calling onOverride when the user cancels', () => {

@@ -296,6 +296,45 @@ describe('ProviderKeyForm', () => {
       expect(onBack).toHaveBeenCalled();
       expect(onUpdate).toHaveBeenCalled();
     });
+
+    it('sends the selected Z.ai subscription endpoint region on connect', async () => {
+      const def = makeProviderDef({
+        id: 'zai',
+        name: 'Z.ai',
+        supportsSubscription: true,
+        subscriptionAuthMode: 'token',
+        subscriptionCredentialKind: 'api-key',
+        subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
+        subscriptionEndpointRegions: [
+          { value: 'global', label: 'Outside China (api.z.ai)' },
+          { value: 'cn', label: 'China Mainland (open.bigmodel.cn)' },
+        ],
+      });
+      const { container } = mount({
+        provDef: def,
+        provId: 'zai',
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        keyInput: 'zai-sub-key',
+      });
+
+      const endpoint = container.querySelector('#zai-subscription-endpoint') as HTMLSelectElement;
+      expect(endpoint.value).toBe('global');
+      expect(screen.getByLabelText('Region')).toBe(endpoint);
+      fireEvent.change(endpoint, { target: { value: 'cn' } });
+
+      const connectBtn = container.querySelector('.provider-detail__action') as HTMLButtonElement;
+      fireEvent.click(connectBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'zai',
+        apiKey: 'zai-sub-key',
+        authType: 'subscription',
+        region: 'cn',
+      });
+    });
   });
 
   describe('handleUpdateKey toast labels', () => {
@@ -365,6 +404,94 @@ describe('ProviderKeyForm', () => {
       // Even though isSubMode() is true, isApiKeyCredential() short-circuits
       // the "token" label and we use "key".
       expect(toastSuccess).toHaveBeenCalledWith('Ollama Cloud key updated');
+    });
+
+    it('preserves the saved Z.ai endpoint region when updating a subscription key', async () => {
+      const def = makeProviderDef({
+        id: 'zai',
+        name: 'Z.ai',
+        supportsSubscription: true,
+        subscriptionCredentialKind: 'api-key',
+        subscriptionEndpointRegions: [
+          { value: 'global', label: 'Outside China (api.z.ai)' },
+          { value: 'cn', label: 'China Mainland (open.bigmodel.cn)' },
+        ],
+      });
+      const { container } = mount({
+        provDef: def,
+        provId: 'zai',
+        connected: true,
+        editing: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        keyInput: 'zai-new-key',
+        providers: [
+          makeProvider({
+            provider: 'zai',
+            auth_type: 'subscription',
+            region: 'cn',
+          }),
+        ],
+      });
+
+      const endpoint = container.querySelector(
+        '#zai-subscription-endpoint-edit',
+      ) as HTMLSelectElement;
+      expect(endpoint.value).toBe('cn');
+
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'zai',
+        apiKey: 'zai-new-key',
+        authType: 'subscription',
+        region: 'cn',
+      });
+    });
+
+    it('omits Z.ai endpoint region on update when provider chain data is unavailable', async () => {
+      const def = makeProviderDef({
+        id: 'zai',
+        name: 'Z.ai',
+        supportsSubscription: true,
+        subscriptionCredentialKind: 'api-key',
+        subscriptionEndpointRegions: [
+          { value: 'global', label: 'Outside China (api.z.ai)' },
+          { value: 'cn', label: 'China Mainland (open.bigmodel.cn)' },
+        ],
+      });
+      const { container } = mount({
+        provDef: def,
+        provId: 'zai',
+        connected: true,
+        editing: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        keyInput: 'zai-new-key',
+      });
+
+      const endpoint = container.querySelector(
+        '#zai-subscription-endpoint-edit',
+      ) as HTMLSelectElement;
+      expect(endpoint.value).toBe('global');
+
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'zai',
+        apiKey: 'zai-new-key',
+        authType: 'subscription',
+      });
     });
   });
 
@@ -837,6 +964,62 @@ describe('ProviderKeyForm', () => {
       });
     });
 
+    it('list-mode AddAnotherKey includes the selected Z.ai subscription endpoint region', async () => {
+      const def = makeProviderDef({
+        id: 'zai',
+        name: 'Z.ai',
+        supportsSubscription: true,
+        subscriptionCredentialKind: 'api-key',
+        subscriptionEndpointRegions: [
+          { value: 'global', label: 'Outside China (api.z.ai)' },
+          { value: 'cn', label: 'China Mainland (open.bigmodel.cn)' },
+        ],
+      });
+      const { container, getByText } = mount({
+        provDef: def,
+        provId: 'zai',
+        connected: true,
+        isSubMode: true,
+        selectedAuthType: 'subscription',
+        addKeyOpen: true,
+        providers: [
+          makeProvider({
+            id: 'z1',
+            provider: 'zai',
+            auth_type: 'subscription',
+            label: 'Personal',
+            priority: 0,
+            region: 'global',
+          }),
+          makeProvider({
+            id: 'z2',
+            provider: 'zai',
+            auth_type: 'subscription',
+            label: 'Work',
+            priority: 1,
+            region: 'cn',
+          }),
+        ],
+      });
+
+      const endpoint = container.querySelector('#add-key-endpoint') as HTMLSelectElement;
+      expect(screen.getByLabelText('Region')).toBe(endpoint);
+      fireEvent.change(endpoint, { target: { value: 'cn' } });
+      const tokenInput = container.querySelector('#add-key-value') as HTMLInputElement;
+      fireEvent.input(tokenInput, { target: { value: 'zai-third-key' } });
+      fireEvent.click(getByText('Add key'));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'zai',
+        apiKey: 'zai-third-key',
+        authType: 'subscription',
+        label: 'Key 3',
+        region: 'cn',
+      });
+    });
+
     it('handleAddKey returns false when connectProvider rejects', async () => {
       connectProviderMock.mockRejectedValueOnce(new Error('bad'));
       const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
@@ -884,6 +1067,7 @@ describe('ProviderKeyForm', () => {
           placeholder="sk-..."
           whereToGetUrl={() => undefined}
           credentialNoun={() => 'API key'}
+          credentialOwnerName={() => 'OpenAI'}
           existingLabels={() => ['Default']}
           isSubscription={overrides.isSubscription}
         />

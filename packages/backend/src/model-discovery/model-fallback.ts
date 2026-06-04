@@ -1,4 +1,4 @@
-import { DiscoveredModel } from './model-fetcher';
+import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import {
   OPENROUTER_PREFIX_TO_PROVIDER,
   PROVIDER_BY_ID_OR_ALIAS,
@@ -10,7 +10,6 @@ import {
 } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
 import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
-import type { ModelsDevSyncService } from '../database/models-dev-sync.service';
 
 interface PricingLookup {
   lookupPricing(key: string): {
@@ -149,6 +148,8 @@ export function buildModelsDevFallback(
       outputPricePerToken: number | null;
       reasoning?: boolean;
       toolCall?: boolean;
+      inputModalities?: DiscoveredModel['inputModalities'];
+      outputModalities?: DiscoveredModel['outputModalities'];
     }[];
   } | null,
   providerId: string,
@@ -159,11 +160,13 @@ export function buildModelsDevFallback(
     id: e.id,
     displayName: e.name || e.id,
     provider: providerId,
-    contextWindow: e.contextWindow ?? 128000,
+    contextWindow: e.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
     inputPricePerToken: e.inputPricePerToken,
     outputPricePerToken: e.outputPricePerToken,
     capabilityReasoning: e.reasoning ?? false,
     capabilityCode: e.toolCall ?? false,
+    ...(e.inputModalities ? { inputModalities: e.inputModalities } : {}),
+    ...(e.outputModalities ? { outputModalities: e.outputModalities } : {}),
     qualityScore: 3,
   }));
 }
@@ -203,7 +206,7 @@ export function buildFallbackModels(
       id: modelId,
       displayName: entry.displayName || modelId,
       provider: providerId,
-      contextWindow: entry.contextWindow ?? 128000,
+      contextWindow: entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
       inputPricePerToken: entry.input,
       outputPricePerToken: entry.output,
       capabilityReasoning: false,
@@ -249,7 +252,7 @@ export function buildSubscriptionFallbackModels(
       if (seen.has(modelId)) continue;
       seen.add(modelId);
 
-      let contextWindow = entry.contextWindow ?? 128000;
+      let contextWindow = entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
       if (capabilities?.maxContextWindow && contextWindow > capabilities.maxContextWindow) {
         contextWindow = capabilities.maxContextWindow;
       }

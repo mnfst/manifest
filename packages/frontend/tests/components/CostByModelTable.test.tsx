@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import CostByModelTable from '../../src/components/CostByModelTable';
 
@@ -74,6 +74,7 @@ describe('CostByModelTable', () => {
   });
 
   it('renders a custom-provider letter badge when no logo is registered', () => {
+    const customProviderName = vi.fn(() => 'My Provider');
     const { container } = render(() => (
       <CostByModelTable
         rows={[
@@ -82,7 +83,7 @@ describe('CostByModelTable', () => {
             auth_type: null,
           }),
         ]}
-        customProviderName={() => 'My Provider'}
+        customProviderName={customProviderName}
       />
     ));
     const letterBadge = container.querySelector('.provider-card__logo-letter');
@@ -90,6 +91,8 @@ describe('CostByModelTable', () => {
     expect(letterBadge?.textContent).toBe('M');
     // Full cell text should include the namespaced custom model name.
     expect(container.textContent).toContain('custom:My Provider/gpt-custom');
+    // The component must call customProviderName with the row's model name.
+    expect(customProviderName).toHaveBeenCalledWith('custom:abc123/gpt-custom');
   });
 
   it('falls back to the stripped custom prefix when the provider name lookup returns nothing', () => {
@@ -140,5 +143,125 @@ describe('CostByModelTable', () => {
     ));
     const providerSpan = container.querySelector('tbody tr td span[title]');
     expect(providerSpan?.getAttribute('title')).toContain('Anthropic');
+  });
+
+  describe('boundary values', () => {
+    function shareCellOf(container: HTMLElement) {
+      return container.querySelector('tbody tr td:nth-child(3)');
+    }
+
+    function costCellOf(container: HTMLElement) {
+      return container.querySelector('tbody tr td:nth-child(4)');
+    }
+
+    function barWidthStyle(container: HTMLElement): string {
+      // Cell structure: <td><div flex><div bar-bg><div bar-fill/></div><span/></div></td>
+      // The bar fill is the deepest div, three levels below the cell.
+      const inner = container.querySelector(
+        'tbody tr td:nth-child(3) > div > div > div',
+      );
+      return inner?.getAttribute('style') ?? '';
+    }
+
+    it('handles share_pct = 0', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ share_pct: 0 })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      expect(barWidthStyle(container)).toContain('width: 0%');
+      expect(shareCellOf(container)?.textContent).toContain('0%');
+    });
+
+    it('handles share_pct = -1 without crashing', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ share_pct: -1 })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      // The text label uses Math.round, so "-1%" is shown verbatim.
+      expect(shareCellOf(container)?.textContent).toContain('-1%');
+      // jsdom filters invalid CSS values (width cannot be negative), so the
+      // width declaration is dropped from the parsed style. We only assert
+      // the component rendered without throwing.
+      expect(container.querySelector('tbody tr')).not.toBeNull();
+    });
+
+    it('handles share_pct > 100 without crashing', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ share_pct: 150 })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      expect(shareCellOf(container)?.textContent).toContain('150%');
+      // Width over 100% is allowed by the browser (will overflow the parent),
+      // but we just verify the value made it into the style untouched.
+      expect(barWidthStyle(container)).toContain('width: 150%');
+    });
+
+    it('handles share_pct = NaN without crashing', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ share_pct: NaN })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      // Math.round(NaN) is NaN — rendered as "NaN%". The component must
+      // remain renderable; we only care that no exception was thrown.
+      expect(shareCellOf(container)?.textContent).toContain('NaN%');
+      // The width style contains "NaN%" which is invalid CSS, but Solid
+      // still attaches the attribute. Ensure the row exists.
+      expect(container.querySelector('tbody tr')).not.toBeNull();
+    });
+
+    it('handles estimated_cost = -0.50 (returns null → em-dash)', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ estimated_cost: -0.5 })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      const cell = costCellOf(container);
+      expect(cell?.textContent?.trim()).toBe('—');
+      // No tooltip should be attached for invalid / negative costs.
+      expect(cell?.getAttribute('title')).toBeNull();
+    });
+
+    it('handles estimated_cost = NaN without crashing', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ estimated_cost: NaN })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      const cell = costCellOf(container);
+      // formatCost(NaN) currently falls through the comparisons and prints
+      // "$NaN". The contract under test is that the component does not
+      // throw and renders SOMETHING (em-dash OR the NaN-safe fallback).
+      const text = cell?.textContent?.trim() ?? '';
+      expect(text === '—' || text === '$NaN').toBe(true);
+      // The sub-penny tooltip path requires cost > 0 — NaN > 0 is false,
+      // so no tooltip should be set.
+      expect(cell?.getAttribute('title')).toBeNull();
+    });
+
+    it('handles estimated_cost = Infinity without crashing', () => {
+      const { container } = render(() => (
+        <CostByModelTable
+          rows={[row({ estimated_cost: Infinity })]}
+          customProviderName={() => undefined}
+        />
+      ));
+      const cell = costCellOf(container);
+      const text = cell?.textContent?.trim() ?? '';
+      // formatCost(Infinity) → "$Infinity". Em-dash is also acceptable if
+      // the helper is hardened later. Either way, no crash.
+      expect(text === '—' || text === '$Infinity').toBe(true);
+      // Infinity > 0 && Infinity < 0.01 is false, so no sub-penny tooltip.
+      expect(cell?.getAttribute('title')).toBeNull();
+    });
   });
 });

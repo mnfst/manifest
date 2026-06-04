@@ -1,5 +1,5 @@
 import { TrieMatch } from './keyword-trie';
-import { ScorerTool } from './types';
+import { ScorerTool, extractToolName } from './types';
 import { SpecificityCategory, SPECIFICITY_CATEGORIES } from 'manifest-shared';
 import { ACTIVATION_THRESHOLDS, weightFor } from './specificity-weights';
 import { computeSignalBoosts } from './specificity-signals';
@@ -196,13 +196,6 @@ function applyToolHeuristics(tools: ScorerTool[], scores: Map<SpecificityCategor
       }
     }
   }
-}
-
-function extractToolName(tool: ScorerTool): string | null {
-  if (typeof tool.name === 'string') return tool.name;
-  const fn = tool.function as { name?: string } | undefined;
-  if (fn && typeof fn.name === 'string') return fn.name;
-  return null;
 }
 
 function isValidCategory(value: string): value is SpecificityCategory {

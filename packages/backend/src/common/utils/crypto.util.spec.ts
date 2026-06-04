@@ -54,6 +54,23 @@ describe('encrypt / decrypt', () => {
     expect(decrypt(ciphertext, secret)).toBe(plaintext);
   });
 
+  it('round-trips empty plaintext', () => {
+    // AES-GCM must accept zero-length messages — cipher.update('', 'utf8') and
+    // cipher.final() should produce a valid (empty) ciphertext + auth tag that
+    // round-trips cleanly. Regression guard for any future refactor that
+    // mishandles empty input (e.g. short-circuiting before final()).
+    const ciphertext = encrypt('', secret);
+    // Even an empty plaintext must produce the 4-part envelope.
+    expect(ciphertext.split(':').length).toBe(4);
+    expect(decrypt(ciphertext, secret)).toBe('');
+  });
+
+  it('round-trips unicode and multi-byte plaintext', () => {
+    const plaintext = 'café — 日本語 — 🚀';
+    const ciphertext = encrypt(plaintext, secret);
+    expect(decrypt(ciphertext, secret)).toBe(plaintext);
+  });
+
   it('produces different ciphertext each call (random salt/iv)', () => {
     const plaintext = 'deterministic?';
     const a = encrypt(plaintext, secret);
@@ -71,6 +88,12 @@ describe('encrypt / decrypt', () => {
     // Flip a character in the encrypted portion
     parts[3] = 'AAAA' + parts[3].slice(4);
     expect(() => decrypt(parts.join(':'), secret)).toThrow();
+  });
+
+  it('decrypt throws when the wrong secret is used', () => {
+    const ciphertext = encrypt('payload', secret);
+    const wrongSecret = 'different-secret-also-long-enough-for-scrypt';
+    expect(() => decrypt(ciphertext, wrongSecret)).toThrow();
   });
 });
 
@@ -95,6 +118,12 @@ describe('isEncrypted', () => {
   });
 
   it('returns false when Buffer.from throws (catch branch)', () => {
+    // The catch branch in isEncrypted only fires if Buffer.from itself throws.
+    // We stub it to throw on any base64 decode call, then assert (a) the
+    // function still returns false (i.e. the catch is actually entered) and
+    // (b) our mock was invoked with the 'base64' encoding — without (b), a
+    // refactor that stopped calling Buffer.from would pass silently and leave
+    // the catch branch uncovered.
     const originalFrom = Buffer.from.bind(Buffer);
     const mockFrom = jest.fn().mockImplementation((value: unknown, encoding?: string) => {
       if (encoding === 'base64') throw new Error('mocked');
@@ -104,8 +133,20 @@ describe('isEncrypted', () => {
 
     try {
       expect(isEncrypted('a:b:c:d')).toBe(false);
+      // Confirm the catch branch was actually exercised — at least one
+      // base64 decode attempt must have happened before the throw.
+      const base64Calls = mockFrom.mock.calls.filter((args) => args[1] === 'base64');
+      expect(base64Calls.length).toBeGreaterThan(0);
     } finally {
       Buffer.from = originalFrom as unknown as typeof Buffer.from;
     }
+  });
+
+  it('returns false when a part round-trips to a different base64 string', () => {
+    // Buffer.from('AB', 'base64').toString('base64') === 'AA==' (re-encoded
+    // form), so a non-canonical base64 part that does not round-trip cleanly
+    // must be rejected as not-encrypted. This guards the
+    // `buf.toString('base64') !== part` branch inside isEncrypted.
+    expect(isEncrypted('AB:AB:AB:AB')).toBe(false);
   });
 });

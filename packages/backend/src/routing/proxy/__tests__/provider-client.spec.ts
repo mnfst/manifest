@@ -1038,6 +1038,26 @@ describe('ProviderClient', () => {
       },
     );
 
+    it('preserves reasoning and text params when converting Copilot Codex requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'copilot',
+        apiKey: 'tid=abc',
+        model: 'gpt-5.2-codex',
+        body: {
+          messages: [{ role: 'user', content: 'Hello' }],
+          reasoning: { effort: 'high', summary: 'concise' },
+          text: { verbosity: 'low' },
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'high', summary: 'concise' });
+      expect(sentBody.text).toEqual({ verbosity: 'low' });
+    });
+
     it('leaves non-Codex Copilot models on /chat/completions', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -1155,7 +1175,7 @@ describe('ProviderClient', () => {
       });
 
       const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toBe('https://open.bigmodel.cn/api/coding/paas/v4/chat/completions');
+      expect(url).toBe('https://api.z.ai/api/coding/paas/v4/chat/completions');
 
       const headers = mockFetch.mock.calls[0][1].headers;
       expect(headers['Authorization']).toBe('Bearer zai-sub-key');
@@ -1175,6 +1195,134 @@ describe('ProviderClient', () => {
 
       const url = mockFetch.mock.calls[0][0] as string;
       expect(url).toBe('https://api.z.ai/api/paas/v4/chat/completions');
+    });
+  });
+
+  describe('Kimi Coding Plan subscription provider', () => {
+    it('routes Moonshot subscription auth to Kimi Code Anthropic endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'moonshot',
+        apiKey: 'kimi-code-key',
+        model: 'kimi-for-coding',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.kimi.com/coding/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'kimi-code-key',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('kimi-for-coding');
+      expect(sentBody.stream).toBeUndefined();
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
+    });
+
+    it('keeps standard Moonshot API-key auth on the Moonshot OpenAI endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'sk-moon',
+        model: 'kimi-k2',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.moonshot.ai/v1/chat/completions');
+    });
+  });
+
+  describe('Qwen Token Plan subscription provider', () => {
+    it('routes Qwen subscription auth to the Token Plan chat endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.6-plus',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer sk-sp-token-plan-key',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.6-plus');
+    });
+
+    it('routes qwen3.7-max through the Token Plan Responses endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.7-max',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/responses',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.7-max');
+      expect(sentBody.input).toBeDefined();
+      expect(sentBody.messages).toBeUndefined();
+      expect(result.isChatGpt).toBe(true);
+    });
+
+    it('routes inbound Responses API requests through the Token Plan Responses endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.7-max',
+        body: {
+          input: [{ role: 'user', content: 'Hello' }],
+          stream: false,
+        },
+        chatBody: { messages: [{ role: 'user', content: 'Hello' }], stream: false },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/responses',
+        expect.any(Object),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('qwen3.7-max');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(result.isResponses).toBe(true);
     });
   });
 
@@ -1444,6 +1592,152 @@ describe('ProviderClient', () => {
       expect(url).toBe('https://opencode.ai/zen/go/v1/chat/completions');
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('kimi-k2.5');
+    });
+  });
+
+  describe('OpenCode Zen provider', () => {
+    it.each([
+      ['claude-opus-4-7', 'claude-opus-4-7'],
+      ['gpt-5.5', 'gpt-5.5'],
+      ['qwen3.6-plus', 'qwen3.6-plus'],
+    ])(
+      'routes %s through the unified /v1/chat/completions endpoint with Bearer auth',
+      async (modelName, expectedSentModel) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+        const result = await client.forward({
+          provider: 'opencode-zen',
+          apiKey: 'oz-token',
+          model: `opencode-zen/${modelName}`,
+          body,
+          stream: false,
+        });
+
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://opencode.ai/zen/v1/chat/completions',
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: 'Bearer oz-token',
+              'Content-Type': 'application/json',
+            }),
+          }),
+        );
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.model).toBe(expectedSentModel);
+        expect(result.isAnthropic).toBe(false);
+        expect(result.isChatGpt).toBe(false);
+        expect(result.isGoogle).toBe(false);
+      },
+    );
+
+    it('routes gemini-* models to the dedicated generateContent endpoint with x-goog-api-key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'opencode-zen',
+        apiKey: 'oz-token',
+        model: 'opencode-zen/gemini-3-flash',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/v1/models/gemini-3-flash:generateContent',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-goog-api-key': 'oz-token',
+          }),
+        }),
+      );
+      expect(result.isGoogle).toBe(true);
+    });
+  });
+
+  describe('Command Code provider', () => {
+    it('routes non-Claude models through the Provider API chat completions endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'commandcode',
+        apiKey: 'user_test',
+        model: 'commandcode/deepseek/deepseek-v4-flash',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.commandcode.ai/provider/v1/chat/completions',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer user_test',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('deepseek/deepseek-v4-flash');
+      expect(result.isAnthropic).toBe(false);
+      expect(result.isChatGpt).toBe(false);
+      expect(result.isGoogle).toBe(false);
+    });
+
+    it('routes Claude models through the Provider API messages endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'commandcode',
+        apiKey: 'user_test',
+        model: 'commandcode/claude-sonnet-4-6',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.commandcode.ai/provider/v1/messages',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-api-key': 'user_test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('claude-sonnet-4-6');
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
+    });
+  });
+
+  describe('BytePlus provider', () => {
+    it('routes subscription traffic through the ModelArk Coding Plan messages endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'byteplus',
+        apiKey: 'bp-token',
+        model: 'ark-code-latest',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://ark.ap-southeast.bytepluses.com/api/coding/v1/messages',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer bp-token',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('ark-code-latest');
+      expect(sentBody.system).toBeUndefined();
+      expect(result.isAnthropic).toBe(true);
     });
   });
 
@@ -1994,6 +2288,21 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.model).toBe('nvidia/nemotron-3-super-120b-a12b');
+    });
+
+    it('preserves Fireworks account model names', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'fireworks',
+        apiKey: 'fw-test',
+        model: 'accounts/fireworks/models/deepseek-v3p1',
+        body,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('accounts/fireworks/models/deepseek-v3p1');
     });
   });
 
@@ -2601,7 +2910,9 @@ describe('ProviderClient', () => {
       ['xai', 'grok-3'],
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
+      ['commandcode', 'commandcode/deepseek/deepseek-v4-flash'],
       ['opencode-go', 'claude-sonnet-4'],
+      ['opencode-zen', 'qwen3.6-plus'],
     ])(
       'injects stream_options.include_usage for %s streaming requests',
       async (provider, model) => {
@@ -2625,6 +2936,21 @@ describe('ProviderClient', () => {
         provider: 'zai',
         apiKey: 'sk-zai-sub',
         model: 'glm-4.6',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Qwen Token Plan streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'qwen',
+        apiKey: 'sk-sp-token-plan-key',
+        model: 'qwen3.6-plus',
         body: { messages: [{ role: 'user', content: 'Hello' }] },
         stream: true,
         authType: 'subscription',

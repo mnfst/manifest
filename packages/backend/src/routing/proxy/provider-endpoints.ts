@@ -8,6 +8,7 @@ import {
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
+import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { buildKiroHeaders, KIRO_BASE_URL, KIRO_CHAT_TARGET } from './kiro-adapter';
 
 export interface ProviderEndpoint {
@@ -45,6 +46,12 @@ export interface ProviderEndpoint {
    * the OAuth blob's `u` field. Only valid alongside `format: 'google'`.
    */
   codeAssistEnvelope?: boolean;
+  /**
+   * Subscription routes using the Anthropic wire format usually need the
+   * Claude-agent identity prompt. Disable it for API-key based third-party
+   * endpoints that only reuse the Anthropic protocol shape.
+   */
+  skipSubscriptionIdentity?: boolean;
 }
 
 const openaiStreamUsage = { streamUsageReporting: 'openai_stream_options' as const };
@@ -76,10 +83,9 @@ const anthropicBearerHeaders = (apiKey: string): Record<string, string> => ({
   'anthropic-version': '2023-06-01',
 });
 
-// OpenCode Go's /v1/messages endpoint follows the native Anthropic protocol
-// and authenticates via the `x-api-key` header, not `Authorization: Bearer`.
-// Sending a Bearer token yields a "Missing API key" 401 from the upstream.
-const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => ({
+// Some Anthropic-compatible /v1/messages endpoints authenticate via the
+// `x-api-key` header, not `Authorization: Bearer`.
+const anthropicApiKeyHeaders = (apiKey: string): Record<string, string> => ({
   'x-api-key': apiKey,
   'Content-Type': 'application/json',
   'anthropic-version': '2023-06-01',
@@ -92,11 +98,17 @@ const opencodeGoAnthropicHeaders = (apiKey: string): Record<string, string> => (
  * endpoint to accept requests, but may break if OpenAI changes validation.
  */
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
+const BYTEPLUS_CODING_BASE = 'https://ark.ap-southeast.bytepluses.com/api/coding';
+const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
+const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
-const ZAI_SUBSCRIPTION_BASE = 'https://open.bigmodel.cn/api/coding/paas/v4';
+const QWEN_TOKEN_PLAN_BASE = 'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode';
+const ZAI_SUBSCRIPTION_BASE = getZaiCodingPlanBaseUrl('global');
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
+const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
+const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -138,6 +150,40 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
+  },
+  byteplus: {
+    baseUrl: BYTEPLUS_CODING_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v3/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'byteplus-anthropic': {
+    baseUrl: BYTEPLUS_CODING_BASE,
+    buildHeaders: anthropicBearerHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
+  },
+  commandcode: {
+    baseUrl: COMMAND_CODE_PROVIDER_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'commandcode-anthropic': {
+    baseUrl: COMMAND_CODE_PROVIDER_BASE,
+    buildHeaders: anthropicApiKeyHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
+  },
+  fireworks: {
+    baseUrl: FIREWORKS_INFERENCE_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
   },
   groq: {
     baseUrl: 'https://api.groq.com/openai',
@@ -193,6 +239,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  'moonshot-subscription': {
+    baseUrl: KIMI_CODING_SUBSCRIPTION_BASE,
+    buildHeaders: anthropicApiKeyHeaders,
+    buildPath: () => '/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
+  },
   nvidia: {
     baseUrl: NVIDIA_NIM_BASE,
     buildHeaders: openaiHeaders,
@@ -206,6 +259,19 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
+  },
+  'qwen-subscription': {
+    baseUrl: QWEN_TOKEN_PLAN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'qwen-subscription-responses': {
+    baseUrl: QWEN_TOKEN_PLAN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/responses',
+    format: 'chatgpt',
   },
   zai: {
     baseUrl: 'https://api.z.ai',
@@ -318,9 +384,41 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   'opencode-go-anthropic': {
     baseUrl: OPENCODE_GO_BASE,
-    buildHeaders: opencodeGoAnthropicHeaders,
+    buildHeaders: anthropicApiKeyHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
+  },
+  // OpenCode Zen's /v1/chat/completions is a unified OpenAI-compatible
+  // endpoint that handles Claude, GPT, and the long tail of OpenAI-compatible
+  // models (Qwen, GLM, Kimi, MiniMax, …) on a single Bearer-auth route.
+  //
+  // Gemini models on Zen are currently broken upstream — Zen forwards our
+  // `Authorization: Bearer` header to Vertex AI verbatim, which rejects the
+  // request with OVERLOADED_CREDENTIALS because Zen also attaches its own
+  // GCP credentials. This is a Zen-side gateway bug; switching to `x-api-key`
+  // only makes Zen reject with "Missing API key" before the request even
+  // reaches GCP. There is no client-side workaround until Zen stops
+  // tunneling our auth header through.
+  'opencode-zen': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  // TODO(opencode-zen): collapse this back into the single `opencode-zen`
+  // entry once Zen's gateway stops tunneling the client Authorization header
+  // through to Vertex AI on /v1/chat/completions. The unified path already
+  // works for Claude, GPT, and the OpenAI-compatible long tail; Gemini is
+  // the only family that still needs the Google-native combo today.
+  'opencode-zen-google': {
+    baseUrl: OPENCODE_ZEN_BASE,
+    buildHeaders: (apiKey: string) => ({
+      'x-goog-api-key': apiKey,
+      'Content-Type': 'application/json',
+    }),
+    buildPath: (model: string) => `/v1/models/${model}:generateContent`,
+    format: 'google',
   },
 };
 

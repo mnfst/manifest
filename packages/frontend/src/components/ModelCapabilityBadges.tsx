@@ -1,5 +1,5 @@
 import { For, Show, type Component } from 'solid-js';
-import type { ModelCapability } from '../services/api.js';
+import type { ModelCapability, ModelModality } from '../services/api.js';
 
 interface Props {
   capabilities?: readonly ModelCapability[];
@@ -17,7 +17,7 @@ export const CAPABILITY_LABELS: Record<ModelCapability, string> = {
 };
 
 export const CAPABILITY_ICONS: Record<ModelCapability, string> = {
-  text: '',
+  text: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v16c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2zm2 0v16h12V4zm2 4h8v2H8zm0 4h8v2H8zm0 4h5v2H8z"/></svg>',
   video:
     '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M18 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4.33L22 17V7l-4 3.33zm-2 12H4V6h12z"/></svg>',
   image:
@@ -31,6 +31,16 @@ export const CAPABILITY_ICONS: Record<ModelCapability, string> = {
 };
 
 const DISPLAY_ORDER: readonly ModelCapability[] = ['stream', 'tools', 'image', 'audio', 'video'];
+const MODALITY_ORDER: readonly ModelModality[] = ['text', 'image', 'audio', 'video'];
+const unknownIcon =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M11 16h2v2h-2z"/><path d="M16.71 2.29A1 1 0 0 0 16 2H8c-.27 0-.52.11-.71.29l-5 5A1 1 0 0 0 2 8v8c0 .27.11.52.29.71l5 5c.19.19.44.29.71.29h8c.27 0 .52-.11.71-.29l5-5A1 1 0 0 0 22 16V8c0-.27-.11-.52-.29-.71zM20 15.58l-4.41 4.41H8.42l-4.41-4.41V8.41L8.42 4h7.17L20 8.41z"/><path d="M13.27 6.25c-2.08-.75-4.47.35-5.21 2.41l1.88.68c.18-.5.56-.9 1.07-1.13s1.08-.26 1.58-.08a2.01 2.01 0 0 1 1.32 1.86c0 1.04-1.66 1.86-2.24 2.07-.4.14-.67.52-.67.94v1h2v-.34c1.04-.51 2.91-1.69 2.91-3.68a4.015 4.015 0 0 0-2.64-3.73"/></svg>';
+
+interface ModalityProps {
+  modalities?: readonly ModelModality[];
+  compact?: boolean;
+  iconOnly?: boolean;
+  direction: 'input' | 'output';
+}
 
 const ModelCapabilityBadges: Component<Props> = (props) => {
   const hasMetadata = () => (props.capabilities?.length ?? 0) > 0;
@@ -45,9 +55,6 @@ const ModelCapabilityBadges: Component<Props> = (props) => {
       .map((capability) => CAPABILITY_LABELS[capability])
       .join(', ')}`;
   };
-
-  const unknownIcon =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M11 16h2v2h-2z"/><path d="M16.71 2.29A1 1 0 0 0 16 2H8c-.27 0-.52.11-.71.29l-5 5A1 1 0 0 0 2 8v8c0 .27.11.52.29.71l5 5c.19.19.44.29.71.29h8c.27 0 .52-.11.71-.29l5-5A1 1 0 0 0 22 16V8c0-.27-.11-.52-.29-.71zM20 15.58l-4.41 4.41H8.42l-4.41-4.41V8.41L8.42 4h7.17L20 8.41z"/><path d="M13.27 6.25c-2.08-.75-4.47.35-5.21 2.41l1.88.68c.18-.5.56-.9 1.07-1.13s1.08-.26 1.58-.08a2.01 2.01 0 0 1 1.32 1.86c0 1.04-1.66 1.86-2.24 2.07-.4.14-.67.52-.67.94v1h2v-.34c1.04-.51 2.91-1.69 2.91-3.68a4.015 4.015 0 0 0-2.64-3.73"/></svg>';
 
   return (
     <Show
@@ -90,6 +97,61 @@ const ModelCapabilityBadges: Component<Props> = (props) => {
                 />
               )}
               <Show when={!props.iconOnly}>{CAPABILITY_LABELS[capability]}</Show>
+            </span>
+          )}
+        </For>
+      </span>
+    </Show>
+  );
+};
+
+export const ModelModalityBadges: Component<ModalityProps> = (props) => {
+  const supported = () => {
+    const set = new Set(props.modalities ?? []);
+    return MODALITY_ORDER.filter((modality) => set.has(modality));
+  };
+  const directionLabel = () => (props.direction === 'input' ? 'Input' : 'Output');
+  const summary = () => {
+    if (supported().length === 0) return `${directionLabel()} modalities unknown`;
+    return `${directionLabel()}: ${supported()
+      .map((modality) => CAPABILITY_LABELS[modality])
+      .join(', ')}`;
+  };
+  const tooltip = (modality: ModelModality) => CAPABILITY_LABELS[modality];
+
+  return (
+    <Show
+      when={supported().length > 0}
+      fallback={
+        <span
+          class="model-capability-badges model-modality-badges"
+          classList={{ 'model-capability-badges--compact': !!props.compact }}
+          aria-label={summary()}
+        >
+          <span
+            class="model-capability-badge model-capability-badge--icon-only model-capability-badge--unknown"
+            data-tooltip={`${directionLabel()} modalities unknown`}
+          >
+            <span class="model-capability-badge__icon" innerHTML={unknownIcon} />
+          </span>
+        </span>
+      }
+    >
+      <span
+        class="model-capability-badges model-modality-badges"
+        classList={{ 'model-capability-badges--compact': !!props.compact }}
+        aria-label={summary()}
+      >
+        <For each={supported()}>
+          {(modality) => (
+            <span
+              class="model-capability-badge model-modality-badge"
+              classList={{ 'model-capability-badge--icon-only': !!props.iconOnly }}
+              title={props.iconOnly ? undefined : tooltip(modality)}
+              data-tooltip={tooltip(modality)}
+            >
+              <span class="model-capability-badge__icon" innerHTML={CAPABILITY_ICONS[modality]} />
+              <Show when={!props.iconOnly}>{CAPABILITY_LABELS[modality]}</Show>
             </span>
           )}
         </For>

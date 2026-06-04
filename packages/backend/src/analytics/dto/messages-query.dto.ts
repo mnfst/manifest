@@ -37,6 +37,7 @@ export class MessagesQueryDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(0)
   @Max(999999)
   @Type(() => Number)
   cost_max?: number;

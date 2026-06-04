@@ -74,6 +74,7 @@ const OAuthDetailView: Component<Props> = (props) => {
 
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
   const isXaiProvider = () => props.provId === 'xai';
+  const isOpenAiProvider = () => props.provId === 'openai';
   const callbackPlaceholder = () =>
     isXaiProvider()
       ? 'Paste the xAI authorization code or callback URL'
@@ -300,21 +301,25 @@ const OAuthDetailView: Component<Props> = (props) => {
                   A login window has opened. If it does not close automatically after sign-in, paste
                   the callback URL below.
                 </p>
-                <p class="provider-detail__hint" style="margin-top: 8px;">
-                  Copy the full URL from the{' '}
-                  <span style="color: hsl(var(--foreground)); font-weight: 500;">
-                    popup's address bar
-                  </span>{' '}
-                  and paste it below:
-                </p>
-                <video
-                  src="/images/oauth-callback-example.mp4"
-                  autoplay
-                  loop
-                  muted
-                  playsinline
-                  style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
-                />
+                <Show when={isOpenAiProvider()}>
+                  <p class="provider-detail__hint" style="margin-top: 8px;">
+                    Copy the full URL from the{' '}
+                    <span style="color: hsl(var(--foreground)); font-weight: 500;">
+                      popup's address bar
+                    </span>{' '}
+                    and paste it below:
+                  </p>
+                  <video
+                    src="/images/oauth-callback-example.mp4"
+                    poster="/images/oauth-callback-example.png"
+                    preload="none"
+                    autoplay
+                    loop
+                    muted
+                    playsinline
+                    style="width: 100%; border-radius: var(--radius); border: 1px solid hsl(var(--border)); margin-top: 12px;"
+                  />
+                </Show>
               </>
             }
           >

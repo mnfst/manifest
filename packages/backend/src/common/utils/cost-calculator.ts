@@ -3,6 +3,8 @@ import { PricingEntry } from '../../model-prices/model-pricing-cache.service';
 export interface CostInput {
   inputTokens: number;
   outputTokens: number;
+  cacheReadTokens?: number;
+  cacheCreationTokens?: number;
   model: string | null | undefined;
   pricing: PricingEntry | undefined;
   /**
@@ -47,9 +49,31 @@ export function computeTokenCost(input: CostInput): number | null {
     return null;
   }
 
+  const inputPrice = Number(pricing.input_price_per_token);
+  const outputPrice = Number(pricing.output_price_per_token);
+  const cacheReadTokens = Math.min(input.inputTokens, Math.max(0, input.cacheReadTokens ?? 0));
+  const cacheCreationTokens = Math.min(
+    input.inputTokens - cacheReadTokens,
+    Math.max(0, input.cacheCreationTokens ?? 0),
+  );
+  const uncachedInputTokens = Math.max(
+    0,
+    input.inputTokens - cacheReadTokens - cacheCreationTokens,
+  );
+  const cacheReadPrice =
+    pricing.cache_read_price_per_token != null
+      ? Number(pricing.cache_read_price_per_token)
+      : inputPrice;
+  const cacheWritePrice =
+    pricing.cache_write_price_per_token != null
+      ? Number(pricing.cache_write_price_per_token)
+      : inputPrice;
+
   const cost =
-    input.inputTokens * Number(pricing.input_price_per_token) +
-    input.outputTokens * Number(pricing.output_price_per_token);
+    uncachedInputTokens * inputPrice +
+    cacheReadTokens * cacheReadPrice +
+    cacheCreationTokens * cacheWritePrice +
+    input.outputTokens * outputPrice;
 
   return cost < 0 ? null : cost;
 }

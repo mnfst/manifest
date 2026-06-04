@@ -71,6 +71,45 @@ describe('ProviderParamSpecService', () => {
     } as unknown as Response);
   }
 
+  const reasoningEffortParam = {
+    path: 'reasoning.effort',
+    type: 'enum',
+    label: 'Reasoning effort',
+    description: 'Controls reasoning effort.',
+    group: 'reasoning',
+    default: 'medium',
+    values: ['low', 'medium', 'high'],
+  };
+
+  const temperatureParam = {
+    path: 'temperature',
+    type: 'number',
+    label: 'Temperature',
+    description: 'Controls randomness.',
+    group: 'sampling',
+    default: 1,
+    range: { min: 0, max: 2, step: 0.1 },
+  };
+
+  function mockProviderlessParams(
+    responses: Record<string, readonly Record<string, unknown>[]>,
+  ): void {
+    fetchSpy.mockImplementation(async (url: string | URL) => {
+      const text = String(url);
+      for (const [slug, params] of Object.entries(responses)) {
+        if (text === `https://modelparams.dev/api/v1/params/${slug}.json`) {
+          return {
+            ok: true,
+            status: 200,
+            headers: { get: () => null },
+            json: async () => ({ model: slug, params }),
+          } as unknown as Response;
+        }
+      }
+      return { ok: false, status: 404, headers: { get: () => null } } as unknown as Response;
+    });
+  }
+
   it('seeds from the bundled snapshot before the remote catalog loads', async () => {
     const service = new ProviderParamSpecService();
 
@@ -111,6 +150,32 @@ describe('ProviderParamSpecService', () => {
     expect(service.getLastFetchedAt()).toBeInstanceOf(Date);
   });
 
+  it('uses the providerless model endpoint before provider/auth catalog matches', async () => {
+    mockRemoteCatalog();
+    const service = new ProviderParamSpecService();
+    await service.refreshCache();
+    fetchSpy.mockClear();
+    mockProviderlessParams({
+      'gpt-test': [reasoningEffortParam],
+    });
+
+    const specs = await service.getSpecs('openai', 'api_key', 'gpt-test');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://modelparams.dev/api/v1/params/gpt-test.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(specs).toEqual([
+      expect.objectContaining({
+        provider: 'openai',
+        authType: 'api_key',
+        model: 'gpt-test',
+        path: 'reasoning.effort',
+      }),
+    ]);
+    expect(specs.map((spec) => spec.path)).not.toContain('temperature');
+  });
+
   it('lists model identities without param details', async () => {
     mockRemoteCatalog();
     const service = new ProviderParamSpecService();
@@ -120,6 +185,144 @@ describe('ProviderParamSpecService', () => {
       { provider: 'anthropic', authType: 'api_key', model: 'claude-sonnet-4-6' },
       { provider: 'openai', authType: 'api_key', model: 'gpt-test' },
     ]);
+  });
+
+  it('loads providerless subscription specs for prefixed Copilot models', async () => {
+    mockProviderlessParams({
+      'gpt-5.5-subscription': [reasoningEffortParam],
+    });
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('copilot', 'subscription', 'copilot/gpt-5.5');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://modelparams.dev/api/v1/params/gpt-5.5-subscription.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(specs).toEqual([
+      expect.objectContaining({
+        provider: 'copilot',
+        authType: 'subscription',
+        model: 'copilot/gpt-5.5',
+        path: 'reasoning.effort',
+      }),
+    ]);
+  });
+
+  it('normalizes Copilot Claude dotted minor versions before providerless lookup', async () => {
+    mockProviderlessParams({
+      'claude-sonnet-4-6-subscription': [reasoningEffortParam],
+    });
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('copilot', 'subscription', 'copilot/claude-sonnet-4.6');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://modelparams.dev/api/v1/params/claude-sonnet-4-6-subscription.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchSpy).not.toHaveBeenCalledWith(
+      'https://modelparams.dev/api/v1/params/claude-sonnet-4.6-subscription.json',
+      expect.anything(),
+    );
+    expect(specs.map((spec) => spec.path)).toEqual(['reasoning.effort']);
+  });
+
+  it('falls back to the providerless API-key slug for subscription routes', async () => {
+    mockProviderlessParams({
+      'gpt-4o-mini': [temperatureParam],
+    });
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('copilot', 'subscription', 'copilot/gpt-4o-mini');
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://modelparams.dev/api/v1/params/gpt-4o-mini-subscription.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://modelparams.dev/api/v1/params/gpt-4o-mini.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(specs).toEqual([
+      expect.objectContaining({
+        provider: 'copilot',
+        authType: 'subscription',
+        model: 'copilot/gpt-4o-mini',
+        path: 'temperature',
+      }),
+    ]);
+  });
+
+  it('caches providerless hits by slug', async () => {
+    mockProviderlessParams({
+      'gpt-5.5-subscription': [reasoningEffortParam],
+    });
+    const service = new ProviderParamSpecService();
+
+    await service.getSpecs('copilot', 'subscription', 'copilot/gpt-5.5');
+    await service.getSpecs('copilot', 'subscription', 'copilot/gpt-5.5');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('caches providerless misses briefly without refetching immediately', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: { get: () => 'application/json' },
+      json: async () => ({ model: 'missing-model', params: [] }),
+    } as unknown as Response);
+    const service = new ProviderParamSpecService();
+
+    await service.getSpecs('openai', 'api_key', 'missing-model');
+    await service.getSpecs('openai', 'api_key', 'missing-model');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not cache transient providerless failures', async () => {
+    fetchSpy
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        headers: { get: () => null },
+      } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: { get: () => 'application/json' },
+        json: async () => ({ model: 'gpt-retry', params: [reasoningEffortParam] }),
+      } as unknown as Response);
+    const service = new ProviderParamSpecService();
+
+    await expect(service.getSpecs('openai', 'api_key', 'gpt-retry')).resolves.toEqual([]);
+    await expect(service.getSpecs('openai', 'api_key', 'gpt-retry')).resolves.toEqual([
+      expect.objectContaining({ path: 'reasoning.effort' }),
+    ]);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('bounds providerless cache entries', async () => {
+    fetchSpy.mockImplementation(async (url: string | URL) => {
+      const slug = String(url).match(/\/params\/(.+)\.json$/)?.[1] ?? 'unknown';
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => 'application/json' },
+        json: async () => ({ model: decodeURIComponent(slug), params: [temperatureParam] }),
+      } as unknown as Response;
+    });
+    const service = new ProviderParamSpecService();
+
+    for (let i = 0; i < 257; i += 1) {
+      await service.getSpecs('openai', 'api_key', `gpt-cache-${i}`);
+    }
+    await service.getSpecs('openai', 'api_key', 'gpt-cache-0');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(258);
   });
 
   it('canonicalizes provider aliases when listing model identities', async () => {

@@ -17,6 +17,29 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       supportsBatching: false,
     }),
   }),
+  byteplus: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'ModelArk Coding Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your ModelArk Coding Plan API key',
+    knownModels: Object.freeze([
+      'ark-code-latest',
+      'bytedance-seed-code',
+      'glm-5.1',
+      'glm-4.7',
+      'deepseek-v3.2',
+      'deepseek-v4-flash',
+      'deepseek-v4-pro',
+      'kimi-k2.5',
+      'gpt-oss-120b',
+    ]),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 256000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
   openai: Object.freeze({
     supportsSubscription: true as const,
     subscriptionLabel: 'ChatGPT Plus/Pro/Team',
@@ -53,6 +76,31 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  qwen: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Qwen Token Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Qwen Token Plan API key',
+    subscriptionTokenPrefix: 'sk-sp-',
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 991000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  moonshot: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Kimi Coding Plan',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+    knownModels: Object.freeze(['kimi-for-coding']),
+    knownModelsMatch: 'exact' as const,
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 262144,
       supportsPromptCaching: false,
       supportsBatching: false,
     }),
@@ -179,6 +227,18 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     ]),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    }),
+  }),
+  commandcode: Object.freeze({
+    supportsSubscription: true as const,
+    subscriptionLabel: 'Command Code subscription',
+    subscriptionAuthMode: 'token' as const,
+    subscriptionKeyPlaceholder: 'Paste your Command Code API key',
+    // Model list is fetched dynamically from Command Code's public Provider API catalog.
+    subscriptionCapabilities: Object.freeze({
+      maxContextWindow: 1000000,
       supportsPromptCaching: false,
       supportsBatching: false,
     }),

@@ -6,7 +6,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
-import { DiscoveredModel } from './model-fetcher';
+import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
@@ -14,6 +14,7 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
+import { getZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
@@ -35,9 +36,27 @@ function isQwenProvider(providerId: string): boolean {
   return lower === 'qwen' || lower === 'alibaba';
 }
 
+/** 2-minute TTL for the per-agent discovered-model list, matching RoutingCacheService. */
+const MODELS_CACHE_TTL_MS = 120_000;
+
+interface ModelsCacheEntry {
+  data: DiscoveredModel[];
+  expiresAt: number;
+}
+
 @Injectable()
 export class ModelDiscoveryService {
   private readonly logger = new Logger(ModelDiscoveryService.name);
+
+  // Per-agent cache for getModelsForAgent(). This is the hottest uncached DB
+  // hit on the routing decision path (every override/specificity request calls
+  // it via isModelAvailable / getModelForAgent). The cache lives here rather
+  // than in RoutingCacheService to avoid a module-level circular dependency:
+  // RoutingCoreModule already imports ModelDiscoveryModule, so the reverse edge
+  // would form a cycle. Invalidation is driven by the discovery write path
+  // (below) and by ResolveService bridging RoutingCacheService.invalidateAgent
+  // to invalidate() — see ResolveService for the wiring.
+  private readonly modelsCache = new Map<string, ModelsCacheEntry>();
 
   constructor(
     @InjectRepository(UserProvider)
@@ -112,6 +131,13 @@ export class ModelDiscoveryService {
     }
     if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
       endpointOverride = getQwenCompatibleBaseUrl(provider.region);
+    }
+    if (
+      provider.provider.toLowerCase() === 'zai' &&
+      provider.auth_type === 'subscription' &&
+      provider.region === 'cn'
+    ) {
+      endpointOverride = getZaiCodingPlanBaseUrl('cn');
     }
 
     let raw: DiscoveredModel[];
@@ -222,6 +248,9 @@ export class ModelDiscoveryService {
     provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
     await this.providerRepo.save(provider);
+    // The agent's effective model list just changed on disk — drop the cache
+    // so getModelsForAgent() reassembles it on the next read.
+    this.invalidate(provider.agent_id);
 
     this.logger.log(
       `Discovered ${filtered.length} models for provider ${provider.provider} (user ${provider.user_id})`,
@@ -301,7 +330,39 @@ export class ModelDiscoveryService {
     }
   }
 
+  /**
+   * Cached view of an agent's discovered models (2-minute TTL). Returns the
+   * cached list when warm, otherwise runs the full DB-backed assembly and
+   * caches the result. Invalidated on any provider mutation (see invalidate()).
+   */
   async getModelsForAgent(userId: string, agentId?: string): Promise<DiscoveredModel[]> {
+    const cacheKey = agentId ?? userId;
+    const cached = this.modelsCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+    if (cached) this.modelsCache.delete(cacheKey);
+
+    const models = await this.fetchModelsForAgent(userId, agentId);
+    const now = Date.now();
+    // Sweep expired entries on populate so the cache can't grow unbounded as
+    // agents come and go (entries are otherwise only dropped on miss/invalidate).
+    for (const [key, entry] of this.modelsCache) {
+      if (entry.expiresAt <= now) this.modelsCache.delete(key);
+    }
+    this.modelsCache.set(cacheKey, { data: models, expiresAt: now + MODELS_CACHE_TTL_MS });
+    return models;
+  }
+
+  /**
+   * Drop the cached model list for an agent. Called whenever the agent's
+   * provider set or cached_models change so callers never see a stale list.
+   */
+  invalidate(agentId: string): void {
+    this.modelsCache.delete(agentId);
+  }
+
+  private async fetchModelsForAgent(userId: string, agentId?: string): Promise<DiscoveredModel[]> {
     const providers = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },
     });
@@ -315,14 +376,16 @@ export class ModelDiscoveryService {
       if (!Array.isArray(rawCached)) continue;
       const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
       const providerAuthType: AuthType = p.auth_type;
+      const providerId = p.provider.toLowerCase();
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
-        // Deduplicate by model ID + auth type so subscription and API key
-        // versions of the same model are kept as independent entries.
-        const dedupeKey = `${m.id}::${effectiveAuthType}`;
+        // Deduplicate by the routable tuple, not just model ID. Multiple
+        // providers can expose the same native model name, and the picker must
+        // keep each provider-specific route selectable.
+        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
         if (!seen.has(dedupeKey)) {
           seen.set(dedupeKey, models.length);
-          models.push({ ...m, authType: effectiveAuthType });
+          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
         }
       }
     }
@@ -361,7 +424,7 @@ export class ModelDiscoveryService {
           displayName: m.model_name,
           provider: cpKey,
           authType: customAuthTypes.get(cpKey) ?? 'api_key',
-          contextWindow: m.context_window ?? 128000,
+          contextWindow: m.context_window ?? DEFAULT_CONTEXT_WINDOW,
           inputPricePerToken: inputPerToken,
           outputPricePerToken: outputPerToken,
           capabilityReasoning: false,
@@ -376,7 +439,10 @@ export class ModelDiscoveryService {
 
   async getModelForAgent(userId: string, modelName: string): Promise<DiscoveredModel | undefined> {
     const all = await this.getModelsForAgent(userId);
-    return all.find((m) => m.id === modelName);
+    const matches = all.filter((m) => m.id === modelName);
+    // Provider-less lookups are legacy fallbacks. Once multiple providers can
+    // expose the same model ID, only a single matching route is safe to infer.
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
@@ -429,6 +495,8 @@ export class ModelDiscoveryService {
           displayName: mdEntry.name || model.displayName,
           capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
           capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+          ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+          ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
           capabilities: mergeModelCapabilities(
             model.capabilities,
             mdEntry.capabilities,
@@ -477,6 +545,8 @@ export class ModelDiscoveryService {
       ...model,
       capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
       capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
+      ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
+      ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
       capabilities: mergeModelCapabilities(
         model.capabilities,
         mdEntry.capabilities,

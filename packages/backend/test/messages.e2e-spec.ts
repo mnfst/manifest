@@ -94,7 +94,7 @@ describe('GET /api/v1/messages', () => {
     expect(res.body.items.length).toBeLessThanOrEqual(1);
   });
 
-  it('supports cursor-based pagination', async () => {
+  it('supports cursor-based pagination without page overlap', async () => {
     const res1 = await request(app.getHttpServer())
       .get('/api/v1/messages?range=24h&limit=1')
       .set('x-api-key', TEST_API_KEY)
@@ -108,6 +108,11 @@ describe('GET /api/v1/messages', () => {
 
       expect(res2.body.items.length).toBeGreaterThan(0);
       expect(res2.body.items[0].id).not.toBe(res1.body.items[0].id);
+
+      // Pages must not overlap: ids across page1 ∪ page2 should be unique.
+      const ids1 = res1.body.items.map((it: { id: string }) => it.id);
+      const ids2 = res2.body.items.map((it: { id: string }) => it.id);
+      expect(new Set([...ids1, ...ids2]).size).toBe(ids1.length + ids2.length);
     }
   });
 
@@ -177,7 +182,7 @@ describe('PATCH /api/v1/messages/:id/feedback', () => {
     messageId = res.body.items[0].id;
   });
 
-  it('sets like feedback', async () => {
+  it('sets like feedback and persists it to the database row', async () => {
     await request(app.getHttpServer())
       .patch(`/api/v1/messages/${messageId}/feedback`)
       .set('x-api-key', TEST_API_KEY)
@@ -192,6 +197,20 @@ describe('PATCH /api/v1/messages/:id/feedback', () => {
     expect(details.body.message.feedback_rating).toBe('like');
     expect(details.body.message.feedback_tags).toBeNull();
     expect(details.body.message.feedback_details).toBeNull();
+
+    // Verify persistence by reading the row directly instead of trusting the
+    // controller projection — guards against an ORM .update() being silently
+    // dropped or projected from cache.
+    const ds = app.get(DataSource);
+    const dbRow = await ds.query(
+      `SELECT feedback_rating, feedback_tags, feedback_details
+         FROM agent_messages WHERE id = $1`,
+      [messageId],
+    );
+    expect(dbRow).toHaveLength(1);
+    expect(dbRow[0].feedback_rating).toBe('like');
+    expect(dbRow[0].feedback_tags).toBeNull();
+    expect(dbRow[0].feedback_details).toBeNull();
   });
 
   it('sets dislike feedback with tags and details', async () => {

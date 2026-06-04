@@ -1,8 +1,11 @@
-import { createResource, createSignal, Show, type Component } from 'solid-js';
+import { createResource, createSignal, lazy, Show, Suspense, type Component } from 'solid-js';
 import type { ProviderParamSpec } from 'manifest-shared';
 import type { AuthType, RequestParamDefaults } from '../services/api.js';
 import { getModelParamSpecs } from '../services/api/model-params.js';
-import ModelParamsDialog from './ModelParamsDialog.jsx';
+
+// Only mounted while the parameters dialog is open. Lazy-load it so the
+// Routing route doesn't ship the dialog up front.
+const ModelParamsDialog = lazy(() => import('./ModelParamsDialog.jsx'));
 
 interface Props {
   agentName: string;
@@ -108,18 +111,20 @@ const ModelParamsAffordance: Component<Props> = (props) => {
         </svg>
       </button>
       <Show when={dialogOpen() && props.provider && props.authType}>
-        <ModelParamsDialog
-          open={dialogOpen()}
-          slotLabel={props.slotLabel}
-          current={current()}
-          specs={specs() ?? []}
-          loading={specs.loading}
-          requestParamsUrl={requestUrl()}
-          onSave={(next) =>
-            props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
-          }
-          onClose={() => setDialogOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <ModelParamsDialog
+            open={dialogOpen()}
+            slotLabel={props.slotLabel}
+            current={current()}
+            specs={specs() ?? []}
+            loading={specs.loading}
+            requestParamsUrl={requestUrl()}
+            onSave={(next) =>
+              props.setParams(props.scope, props.provider!, props.authType!, props.model, next)
+            }
+            onClose={() => setDialogOpen(false)}
+          />
+        </Suspense>
       </Show>
     </Show>
   );

@@ -31,11 +31,18 @@ function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
+  const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
-    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
+    svc: {
+      upsertProvider,
+      recalculateTiers,
+      nextOAuthLabel,
+      getFreshSubscriptionCredential,
+    } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
     nextOAuthLabel,
+    getFreshSubscriptionCredential,
   };
 }
 
@@ -311,9 +318,10 @@ describe('MinimaxOauthService', () => {
       fetchMock.mockResolvedValueOnce(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expired_in: 3600 }),
       );
-      const out = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      const out = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
       expect(out?.t).toBe('new');
       expect(provider.upsertProvider).toHaveBeenCalled();
+      expect(provider.upsertProvider.mock.calls[0][6]).toBe('Work');
     });
 
     it('returns the original blob (not null) when refresh fails', async () => {
@@ -321,6 +329,35 @@ describe('MinimaxOauthService', () => {
       fetchMock.mockRejectedValueOnce(new Error('network'));
       const out = await svc.unwrapToken(JSON.stringify(blob), 'a', 'u');
       expect(out).toEqual(blob);
+    });
+
+    it('returns the fresher persisted blob without refreshing when one already exists', async () => {
+      const stale = { t: 'old', r: 'rf', e: Date.now() - 1_000 };
+      const fresh = { t: 'fresh', r: 'rf2', e: Date.now() + 10 * 60 * 1000 };
+      provider.getFreshSubscriptionCredential.mockResolvedValueOnce(JSON.stringify(fresh));
+      const out = await svc.unwrapToken(JSON.stringify(stale), 'agent-1', 'user-1', 'Work');
+      expect(out).toEqual(fresh);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('ignores an unparseable persisted credential and refreshes from the caller blob', async () => {
+      const stale = { t: 'old', r: 'rf', e: Date.now() - 1_000 };
+      provider.getFreshSubscriptionCredential.mockResolvedValueOnce('not-json{');
+      fetchMock.mockResolvedValueOnce(
+        mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expired_in: 3600 }),
+      );
+      const out = await svc.unwrapToken(JSON.stringify(stale), 'agent-1', 'user-1');
+      expect(out?.t).toBe('new');
+    });
+
+    it('ignores a persisted value that is valid JSON but not a token blob', async () => {
+      const stale = { t: 'old', r: 'rf', e: Date.now() - 1_000 };
+      provider.getFreshSubscriptionCredential.mockResolvedValueOnce(JSON.stringify({ nope: true }));
+      fetchMock.mockResolvedValueOnce(
+        mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expired_in: 3600 }),
+      );
+      const out = await svc.unwrapToken(JSON.stringify(stale), 'agent-1', 'user-1');
+      expect(out?.t).toBe('new');
     });
   });
 });

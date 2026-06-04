@@ -76,6 +76,19 @@ export function sqlCastInterval(paramName: string): string {
 }
 
 /**
+ * Format a Date as a Postgres-friendly timestamp string
+ * (`YYYY-MM-DD HH:MM:SS` — space-separated, no timezone suffix).
+ *
+ * Used for notification-log / notification-rule writes and alert-period
+ * boundaries. This emits UTC and is space-separated, intentionally distinct
+ * from {@link sqlNow} / {@link computeCutoff}, which emit local-time,
+ * `T`-separated strings for the analytics range cutoffs.
+ */
+export function toSqlTimestamp(d: Date = new Date()): string {
+  return d.toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+}
+
+/**
  * Format a Date as a local-time ISO-8601 string without timezone suffix.
  * Matches the format PostgreSQL stores for `timestamp without time zone`
  * when the pg driver serialises JS Dates in the Node process's local TZ.

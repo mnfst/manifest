@@ -1,5 +1,5 @@
 import type { SpecificityCategory } from 'manifest-shared';
-import { ScorerTool } from './types';
+import { ScorerTool, extractToolName } from './types';
 
 /**
  * Heuristic signals that sit alongside keyword matches. These fire off
@@ -96,11 +96,4 @@ export function computeSignalBoosts(text: string, tools?: ScorerTool[]): SignalB
   }
 
   return { boosts };
-}
-
-function extractToolName(tool: ScorerTool): string | null {
-  if (typeof tool.name === 'string') return tool.name;
-  const fn = tool.function as { name?: string } | undefined;
-  if (fn && typeof fn.name === 'string') return fn.name;
-  return null;
 }

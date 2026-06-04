@@ -5,9 +5,11 @@ import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
+  coordinateOAuthRefresh,
   generatePkce,
   generateState,
   oauthDoneHtml,
+  oauthRefreshKey,
   parseOAuthTokenBlob,
   PendingStore,
   serializeOAuthTokenBlob,
@@ -170,21 +172,38 @@ export class XaiOauthService {
     };
   }
 
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) return null;
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
-      const refreshed = await this.refreshAccessToken(blob.r);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        'xai',
-        serializeOAuthTokenBlob(refreshed),
-        'subscription',
-      );
-      this.logger.log(`xAI OAuth token refreshed for agent=${agentId}`);
-      return refreshed.t;
+      const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
+        key: oauthRefreshKey('xai', userId, agentId, keyLabel),
+        logger: this.logger,
+        callerBlob: blob,
+        readFreshRaw: () =>
+          this.providerService.getFreshSubscriptionCredential(agentId, 'xai', keyLabel),
+        parse: parseOAuthTokenBlob,
+        refresh: (current) => this.refreshAccessToken(current.r),
+        persist: (refreshed) =>
+          this.providerService
+            .upsertProvider(
+              agentId,
+              userId,
+              'xai',
+              serializeOAuthTokenBlob(refreshed),
+              'subscription',
+              undefined,
+              keyLabel,
+            )
+            .then(() => undefined),
+      });
+      return resolved.t;
     } catch (err) {
       this.logger.error(`Failed to refresh xAI token for agent=${agentId}: ${err}`);
       return null;

@@ -8,6 +8,7 @@ import {
   sqlSanitizeCost,
   timestampDefault,
   timestampType,
+  toSqlTimestamp,
 } from './postgres-sql';
 
 describe('postgres-sql', () => {
@@ -93,6 +94,23 @@ describe('postgres-sql', () => {
 
     it('sqlCastInterval wraps a named parameter in CAST(... AS interval)', () => {
       expect(sqlCastInterval('since')).toBe('CAST(:since AS interval)');
+    });
+  });
+
+  describe('toSqlTimestamp', () => {
+    it('formats a Date as a space-separated string without T or Z (19 chars)', () => {
+      const out = toSqlTimestamp(new Date('2026-04-20T12:34:56.789Z'));
+      expect(out).toBe('2026-04-20 12:34:56');
+      expect(out).not.toContain('T');
+      expect(out).not.toContain('Z');
+      expect(out).toHaveLength(19);
+    });
+
+    it('defaults to the current time when no Date is given', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-01-02T03:04:05.000Z').getTime());
+      expect(toSqlTimestamp()).toBe('2026-01-02 03:04:05');
+      jest.useRealTimers();
     });
   });
 });

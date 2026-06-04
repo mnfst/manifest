@@ -111,6 +111,9 @@ import { EnableRecordMessagesForAll1789300000000 } from './migrations/1789300000
 import { AddRoutingOutputControls1789300000000 } from './migrations/1789300000000-AddRoutingOutputControls';
 import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/1790000000000-AddAgentApiKeyPrefixActiveIndex';
 import { AddReasoningContentCache1790100000000 } from './migrations/1790100000000-AddReasoningContentCache';
+import { AddDedupCompositeIndex1790200000000 } from './migrations/1790200000000-AddDedupCompositeIndex';
+import { AddErrorsPartialIndex1790300000000 } from './migrations/1790300000000-AddErrorsPartialIndex';
+import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1790400000000-DropRedundantAgentApiKeyPrefixIndex';
 import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
 import { AddProviderRateLimits1791100000000 } from './migrations/1791100000000-AddProviderRateLimits';
 
@@ -225,6 +228,9 @@ const migrations = [
   AddRoutingOutputControls1789300000000,
   AddAgentApiKeyPrefixActiveIndex1790000000000,
   AddReasoningContentCache1790100000000,
+  AddDedupCompositeIndex1790200000000,
+  AddErrorsPartialIndex1790300000000,
+  DropRedundantAgentApiKeyPrefixIndex1790400000000,
   LiftProvidersToUserLevel1791000000000,
   AddProviderRateLimits1791100000000,
 ];
@@ -250,7 +256,10 @@ const migrations = [
         migrations,
         logging: false,
         extra: {
-          max: config.get<number>('app.dbPoolMax') ?? 50,
+          // app.config.ts always resolves dbPoolMax (default 20), so there is no
+          // undefined case to fall back from — keep that file the single source
+          // of truth for the pool size.
+          max: config.get<number>('app.dbPoolMax'),
           idleTimeoutMillis: 30000,
           // statement_timeout / idle_in_transaction_session_timeout were tried
           // here (#1745) and via the `options` connection string (#1749), but

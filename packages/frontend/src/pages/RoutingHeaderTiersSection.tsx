@@ -1,7 +1,19 @@
-import { createResource, createSignal, For, Show, type Accessor, type Component } from 'solid-js';
+import {
+  createResource,
+  createSignal,
+  For,
+  lazy,
+  Show,
+  Suspense,
+  type Accessor,
+  type Component,
+} from 'solid-js';
 import HeaderTierCard from '../components/HeaderTierCard.js';
-import HeaderTierModal from '../components/HeaderTierModal.js';
 import HeaderTierSnippetModal from '../components/HeaderTierSnippetModal.js';
+
+// The create/edit header-tier modal only mounts behind a `<Show>` (click).
+// Lazy-load it so the Routing route's custom-tiers section stays lean.
+const HeaderTierModal = lazy(() => import('../components/HeaderTierModal.js'));
 import {
   listHeaderTiers,
   deleteHeaderTier,
@@ -101,9 +113,10 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     model: string,
     provider: string,
     authType?: AuthType,
+    providerKeyLabel?: string,
   ): Promise<void> => {
     try {
-      await overrideHeaderTier(props.agentName(), id, model, provider, authType);
+      await overrideHeaderTier(props.agentName(), id, model, provider, authType, providerKeyLabel);
       await refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update tier');
@@ -201,7 +214,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 models={props.models()}
                 customProviders={props.customProviders()}
                 connectedProviders={props.connectedProviders()}
-                onOverride={(m, p, a) => handleOverride(tier.id, m, p, a)}
+                onOverride={(m, p, a, label) => handleOverride(tier.id, m, p, a, label)}
                 onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
                   applyFallbackUpdate(tier.id, updatedRoutes)
                 }
@@ -323,20 +336,22 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
       {/* ── Create / Edit modal ────────────────────────── */}
       <Show when={modalTier()} keyed>
         {(state) => (
-          <HeaderTierModal
-            agentName={props.agentName()}
-            existingTiers={tiers()}
-            editing={state === 'new' ? undefined : state}
-            models={props.models()}
-            onClose={() => setModalTier(null)}
-            onSaved={(saved) => {
-              const wasCreate = state === 'new';
-              setModalTier(null);
-              refetch();
-              if (wasCreate) setSnippetTier(saved);
-            }}
-            onDelete={state !== 'new' ? handleDeleteFromEdit : undefined}
-          />
+          <Suspense fallback={null}>
+            <HeaderTierModal
+              agentName={props.agentName()}
+              existingTiers={tiers()}
+              editing={state === 'new' ? undefined : state}
+              models={props.models()}
+              onClose={() => setModalTier(null)}
+              onSaved={(saved) => {
+                const wasCreate = state === 'new';
+                setModalTier(null);
+                refetch();
+                if (wasCreate) setSnippetTier(saved);
+              }}
+              onDelete={state !== 'new' ? handleDeleteFromEdit : undefined}
+            />
+          </Suspense>
         )}
       </Show>
 

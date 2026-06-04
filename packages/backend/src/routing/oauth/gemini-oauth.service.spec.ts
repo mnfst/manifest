@@ -31,15 +31,23 @@ function createProviderService(): {
   upsertProvider: jest.Mock;
   recalculateTiers: jest.Mock;
   nextOAuthLabel: jest.Mock;
+  getFreshSubscriptionCredential: jest.Mock;
 } {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
+  const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
-    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
+    svc: {
+      upsertProvider,
+      recalculateTiers,
+      nextOAuthLabel,
+      getFreshSubscriptionCredential,
+    } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
     nextOAuthLabel,
+    getFreshSubscriptionCredential,
   };
 }
 
@@ -333,6 +341,8 @@ describe('GeminiOauthService', () => {
         'gemini',
         expect.stringContaining('"u":"proj-abc"'),
         'subscription',
+        undefined,
+        undefined,
       );
     });
 
@@ -341,7 +351,7 @@ describe('GeminiOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
-      const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+      const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
       expect(token).toBe('new');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
@@ -349,6 +359,8 @@ describe('GeminiOauthService', () => {
         'gemini',
         expect.stringContaining('"t":"new"'),
         'subscription',
+        undefined,
+        'Work',
       );
     });
 

@@ -2,6 +2,9 @@ import { createSignal, createMemo, For, Show, onCleanup, type Component } from '
 import { getModelDisplayName } from '../services/model-display.js';
 import { resolveProviderId } from '../services/routing-utils.js';
 import { providerIcon } from './ProviderIcon.jsx';
+// This component owns the .model-filter__* classes; importing here keeps the
+// stylesheet in the chunk that renders it instead of the global theme bundle.
+import '../styles/model-filter.css';
 
 interface ModelPricesFilterBarProps {
   allModels: string[];

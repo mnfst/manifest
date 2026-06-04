@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
+import { coordinateOAuthRefresh, oauthRefreshKey } from './core';
 import {
   KIRO_CLIENT_NAME,
   KIRO_CLIENT_TYPE,
@@ -216,21 +217,38 @@ export class KiroOauthService {
     return { status: 'success' };
   }
 
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseKiroOAuthTokenBlob(rawValue);
     if (!blob) return null;
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
-      const refreshed = await this.refreshAccessToken(blob);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        'kiro',
-        serializeKiroOAuthTokenBlob(refreshed),
-        'subscription',
-      );
-      this.logger.log(`Kiro OAuth token refreshed for agent=${agentId}`);
-      return refreshed.t;
+      const resolved = await coordinateOAuthRefresh<KiroOAuthTokenBlob>({
+        key: oauthRefreshKey('kiro', userId, agentId, keyLabel),
+        logger: this.logger,
+        callerBlob: blob,
+        readFreshRaw: () =>
+          this.providerService.getFreshSubscriptionCredential(agentId, 'kiro', keyLabel),
+        parse: parseKiroOAuthTokenBlob,
+        refresh: (current) => this.refreshAccessToken(current),
+        persist: (refreshed) =>
+          this.providerService
+            .upsertProvider(
+              agentId,
+              userId,
+              'kiro',
+              serializeKiroOAuthTokenBlob(refreshed),
+              'subscription',
+              undefined,
+              keyLabel,
+            )
+            .then(() => undefined),
+      });
+      return resolved.t;
     } catch (err) {
       this.logger.error(`Failed to refresh Kiro OAuth token for agent=${agentId}: ${err}`);
       return Date.now() < blob.e ? blob.t : null;

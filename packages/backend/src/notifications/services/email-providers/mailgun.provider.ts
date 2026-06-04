@@ -1,7 +1,7 @@
 import { EmailProvider, EmailProviderConfig, SendEmailOptions } from './email-provider.interface';
+import { DOMAIN_RE } from '../email-provider-validation';
 
 const MAILGUN_BASE = 'https://api.mailgun.net';
-const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
 
 const logger = {
   warn: (msg: string) => console.warn(`[Mailgun] ${msg}`),

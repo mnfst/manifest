@@ -10,6 +10,7 @@ import {
   isProviderParamPath,
   normalizeProviderParamProviderId,
   providerParamValueIsValid,
+  underlyingGatewayModel,
   type AuthType,
   type JsonValue,
   type ModelCapability,
@@ -24,7 +25,14 @@ import {
 import { MPS_CATALOG_SNAPSHOT } from './mps-catalog-snapshot';
 
 const MODEL_PARAMETERS_API = 'https://modelparams.dev/api/v1/models.json';
+const MODEL_PARAMETERS_BY_MODEL_API = 'https://modelparams.dev/api/v1/params';
 const FETCH_TIMEOUT_MS = 10000;
+const BY_MODEL_FETCH_TIMEOUT_MS = 1500;
+const BY_MODEL_CACHE_MAX_ENTRIES = 256;
+const BY_MODEL_MISS_CACHE_TTL_MS = 5 * 60 * 1000;
+const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
+const SHORT_CLAUDE_MODEL_RE = /^claude-(opus|sonnet|haiku)-/i;
+const DOTTED_CLAUDE_MINOR_RE = /-(\d+)\.(\d{1,2})(?=$|-\d{8}$)/g;
 const MODEL_PARAM_TYPES: readonly ModelParamType[] = [
   'boolean',
   'enum',
@@ -47,6 +55,16 @@ interface ModelParametersApiResponse {
   models?: unknown;
 }
 
+interface ModelParametersByModelApiResponse {
+  model?: unknown;
+  params?: unknown;
+}
+
+interface ProviderlessModelParamsCacheEntry {
+  params: readonly ModelParamDefinition[] | null;
+  expiresAt: number | null;
+}
+
 @Injectable()
 export class ProviderParamSpecService implements OnModuleInit {
   private readonly logger = new Logger(ProviderParamSpecService.name);
@@ -56,6 +74,7 @@ export class ProviderParamSpecService implements OnModuleInit {
   private specs: ProviderParamSpecCatalog = freezeCatalog(
     parseModelParametersCatalog(MPS_CATALOG_SNAPSHOT) ?? [],
   );
+  private readonly byModelParams = new Map<string, ProviderlessModelParamsCacheEntry>();
   private lastFetchedAt: Date | null = null;
   private etag: string | null = null;
 
@@ -86,6 +105,7 @@ export class ProviderParamSpecService implements OnModuleInit {
     }
 
     this.specs = freezeCatalog(catalog);
+    this.byModelParams.clear();
     // Adopt the ETag only now that the body parsed cleanly, so a malformed-but-new
     // 200 can't suppress a future re-fetch under the same ETag.
     if (etag) this.etag = etag;
@@ -119,6 +139,8 @@ export class ProviderParamSpecService implements OnModuleInit {
     authType: AuthType | undefined,
     model: string | undefined,
   ): Promise<readonly ProviderParamSpec[]> {
+    const providerlessSpecs = await this.getProviderlessSpecs(providerId, authType, model);
+    if (providerlessSpecs.length > 0) return providerlessSpecs;
     return getProviderParamSpecs(this.specs, providerId, authType, model);
   }
 
@@ -168,6 +190,131 @@ export class ProviderParamSpecService implements OnModuleInit {
       clearTimeout(timeout);
     }
   }
+
+  private async getProviderlessSpecs(
+    providerId: string | undefined,
+    authType: AuthType | undefined,
+    model: string | undefined,
+  ): Promise<readonly ProviderParamSpec[]> {
+    if (!providerId || !authType || !model || authType === 'local') return [];
+
+    const provider = normalizeProviderParamProviderId(providerId);
+    const slugs = providerlessModelParamSlugs(provider, authType, model);
+    for (const slug of slugs) {
+      const params = await this.fetchProviderlessModelParams(slug);
+      if (!params || params.length === 0) continue;
+      return params
+        .map((param) => ({ provider, authType, model, ...param }))
+        .sort(compareProviderParamSpecs);
+    }
+    return [];
+  }
+
+  private async fetchProviderlessModelParams(
+    slug: string,
+  ): Promise<readonly ModelParamDefinition[] | null> {
+    const cached = this.byModelParams.get(slug);
+    if (cached) {
+      if (cached.expiresAt === null || cached.expiresAt > Date.now()) return cached.params;
+      this.byModelParams.delete(slug);
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), BY_MODEL_FETCH_TIMEOUT_MS);
+    try {
+      const url = `${MODEL_PARAMETERS_BY_MODEL_API}/${encodeURIComponent(slug)}.json`;
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) {
+        return null;
+      }
+
+      const contentType = res.headers.get('content-type') ?? '';
+      if (contentType && !contentType.toLowerCase().includes('application/json')) {
+        this.cacheProviderlessModelParams(slug, null, true);
+        return null;
+      }
+      const params = parseProviderlessModelParams((await res.json()) as unknown);
+      this.cacheProviderlessModelParams(slug, params, params === null);
+      return params;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  private cacheProviderlessModelParams(
+    slug: string,
+    params: readonly ModelParamDefinition[] | null,
+    expires: boolean,
+  ): void {
+    this.byModelParams.delete(slug);
+    this.byModelParams.set(slug, {
+      params,
+      expiresAt: expires ? Date.now() + BY_MODEL_MISS_CACHE_TTL_MS : null,
+    });
+
+    while (this.byModelParams.size > BY_MODEL_CACHE_MAX_ENTRIES) {
+      const oldest = this.byModelParams.keys().next().value;
+      if (oldest === undefined) break;
+      this.byModelParams.delete(oldest);
+    }
+  }
+}
+
+function providerlessModelParamSlugs(
+  providerId: string,
+  authType: AuthType,
+  model: string,
+): readonly string[] {
+  const out: string[] = [];
+  for (const base of providerlessModelBaseCandidates(providerId, model)) {
+    for (const variant of providerlessModelSlugVariants(base)) {
+      if (authType === 'subscription' && !variant.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) {
+        pushUnique(out, `${variant}${SUBSCRIPTION_MODEL_SUFFIX}`);
+      }
+      pushUnique(out, variant);
+    }
+  }
+  return out;
+}
+
+function providerlessModelBaseCandidates(providerId: string, model: string): readonly string[] {
+  const out: string[] = [];
+  const add = (candidate: string | null | undefined): void => {
+    if (!candidate) return;
+    if (candidate.includes('/')) {
+      const last = candidate.slice(candidate.lastIndexOf('/') + 1);
+      pushUnique(out, last);
+      return;
+    }
+    pushUnique(out, candidate);
+  };
+
+  add(underlyingGatewayModel(model));
+  const normalizedProvider = providerId.toLowerCase();
+  if (model.toLowerCase().startsWith(`${normalizedProvider}/`)) {
+    add(model.slice(normalizedProvider.length + 1));
+  }
+  add(model);
+  return out;
+}
+
+function providerlessModelSlugVariants(model: string): readonly string[] {
+  const out: string[] = [];
+  const normalizedClaude = normalizeClaudeProviderlessSlug(model);
+  pushUnique(out, normalizedClaude);
+  pushUnique(out, model);
+  return out;
+}
+
+function normalizeClaudeProviderlessSlug(model: string): string {
+  if (!SHORT_CLAUDE_MODEL_RE.test(model)) return model;
+  return model.replace(DOTTED_CLAUDE_MINOR_RE, '-$1-$2');
+}
+
+function pushUnique(values: string[], value: string): void {
+  if (value && !values.includes(value)) values.push(value);
 }
 
 function freezeCatalog(catalog: ProviderParamSpecCatalog): ProviderParamSpecCatalog {
@@ -196,6 +343,18 @@ function parseModelParametersCatalog(raw: unknown): ProviderParamSpecCatalog | n
     if (entry) catalog.push(entry);
   }
   return catalog.length > 0 ? catalog : null;
+}
+
+function parseProviderlessModelParams(raw: unknown): readonly ModelParamDefinition[] | null {
+  if (!isRecord(raw)) return null;
+  const response = raw as ModelParametersByModelApiResponse;
+  if (!isNonEmptyString(response.model)) return null;
+  if (!Array.isArray(response.params)) return null;
+
+  const params = response.params
+    .map(parseModelParamDefinition)
+    .filter((param): param is ModelParamDefinition => param !== null);
+  return params.length > 0 ? Object.freeze(params.sort(compareProviderParamSpecs)) : null;
 }
 
 function parseProviderModelParamSpec(raw: unknown): ProviderModelParamSpec | null {

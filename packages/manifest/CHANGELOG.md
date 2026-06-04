@@ -1,5 +1,58 @@
 # manifest
 
+## 6.9.2
+
+### Patch Changes
+
+- 2d7541b: Resolve model parameter specs through the providerless modelparams.dev by-model endpoint so gateway routes such as GitHub Copilot can expose the underlying model's thinking and reasoning controls.
+- 5006434: Speed up the dashboard and lower proxy overhead: unbuffered SSE streaming, smaller render-blocking CSS, lazy-loaded modals, cached per-agent model lookups, and new indexes for hot queries.
+- aad3033: Fix native `/v1/responses` forwarding so typed non-message input items such as `reasoning` and `item_reference` are preserved without a `role`, preventing ChatGPT subscription Codex backend 400 errors on multi-turn Codex requests.
+
+## 6.9.1
+
+### Patch Changes
+
+- e2ec0a6: Add BytePlus ModelArk Coding Plan as a subscription provider.
+- 90e7af5: Add Command Code subscription routing with dynamic model discovery and OpenAI/Anthropic Provider API forwarding.
+- c78f6fb: Persist refreshed OAuth subscription tokens to the same provider account label that supplied the token.
+- 4884967: Add Qwen Token Plan as a subscription option for the Alibaba Cloud provider.
+- 6cdd23d: Add a Z.ai GLM Coding Plan endpoint selector for outside-China and China Mainland subscription routing.
+
+## 6.9.0
+
+### Minor Changes
+
+- 50e7ecd: Add OpenCode Zen as an API-key provider. OpenCode Zen exposes an OpenAI-compatible `/v1/models` catalog and `/v1/chat/completions` proxy endpoint, plus a native Anthropic `/v1/messages` endpoint for Claude models. Manifest now discovers Zen models on connect and routes Claude requests through `/v1/messages` (with `x-api-key` auth) and everything else through `/v1/chat/completions` (with Bearer auth).
+
+### Patch Changes
+
+- 0eff607: Keep same-name models from different providers available in the routing model picker.
+- d950469: Add Fireworks AI as an official API-key routing provider.
+- d439884: Add Kimi Coding Plan subscription routing for Moonshot/Kimi with the `kimi-for-coding` model.
+- 31383c5: Refresh OAuth subscription credentials once when the upstream rejects a stored access token.
+
+## 6.8.3
+
+### Patch Changes
+
+- 65bca08: Fix token-cost calculation for providers that report cache-read prompt tokens. Manifest now uses models.dev cache-read/cache-write prices when available, so cached DeepSeek input tokens are billed at the cache-hit rate instead of the full input-token rate.
+- 08f9c6f: Fix `/v1/responses` streaming to emit the full OpenAI Responses API event lifecycle when bridging a Chat Completions upstream. The converter now opens a message item and content part (`response.output_item.added` / `response.content_part.added`) before the text deltas and closes them (`response.output_text.done` / `response.content_part.done` / `response.output_item.done`) with a populated `response.completed`, instead of emitting bare `output_text.delta` + `response.completed{output:[]}`. Strict Responses API clients (Pi, OpenClaw-style) previously dropped the deltas and rendered empty assistant messages.
+
+## 6.8.2
+
+### Patch Changes
+
+- c86ab75: Record cumulative Anthropic streamed input and cache token counts when they are reported on `message_delta` events.
+- 191170c: fix(charts): pad bar chart x-scale by half a bin so the last bar is fully visible (#1756)
+- 3471514: Speed up the dashboard's first load. Heavy code now loads on demand instead of up front: the syntax highlighter is a slim 6-language build, charts load per tab, and the markdown renderer loads when the first message renders. Dev-only tooling no longer ships in production bundles.
+- 26f3458: Limit the OAuth callback-URL tutorial video on the provider sign-in screen to OpenAI. Other OAuth providers (Gemini, etc.) no longer show the OpenAI-specific video.
+- 72a398b: Separate model selector capabilities from input and output modality columns.
+- d3b742f: Fix OpenCode Go reasoning-tier routing by sending qwen3.7 models through the provider's Anthropic-compatible endpoint, keeping Mimo on the OpenAI-compatible endpoint, and hardening streamed reasoning_content caching for tool-call continuations.
+- 1a4063d: Replace the Routing page's empty pricing catalog panel with a concise warning toast that avoids naming implementation-specific upstream pricing sources.
+- 259951e: Parse provider SSE streams with a spec-compliant parser so keepalive comments remain comments instead of being forwarded as data payloads.
+- 3434f64: Close an SSRF hole where a custom provider URL written as an IPv4-mapped IPv6 literal (for example `https://[::ffff:169.254.169.254]`) slipped past the guard and could reach cloud metadata or private hosts. The carrier-grade NAT range (100.64.0.0/10, used by managed Kubernetes and Tailscale) is now blocked too. Separately, MiniMax, Kiro, and Copilot OAuth errors no longer echo refresh tokens or client secrets into logs.
+- 690de8d: Request exact token usage for every supported OpenAI-compatible streamed provider by moving `stream_options.include_usage` behind endpoint capability metadata, including Kilo and NVIDIA NIM.
+
 ## 6.8.1
 
 ### Patch Changes

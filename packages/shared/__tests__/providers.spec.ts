@@ -66,6 +66,32 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     }
   });
 
+  it('resolves Fireworks AI aliases to the canonical provider entry', () => {
+    for (const name of ['fireworks', 'fireworks-ai', 'fireworks ai']) {
+      expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(name))?.id).toBe('fireworks');
+    }
+  });
+
+  it('resolves Command Code aliases to the canonical provider entry', () => {
+    for (const name of ['commandcode', 'command-code', 'Command Code', 'cmd']) {
+      const normalized = normalizeProviderName(name);
+      const entry =
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+      expect(entry?.id).toBe('commandcode');
+    }
+  });
+
+  it('resolves BytePlus ModelArk aliases to the canonical provider entry', () => {
+    for (const name of ['byteplus', 'byteplus-plan', 'BytePlus Plan', 'ModelArk']) {
+      const normalized = normalizeProviderName(name);
+      const entry =
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+      expect(entry?.id).toBe('byteplus');
+    }
+  });
+
   it('returns undefined for unknown names', () => {
     expect(SHARED_PROVIDER_BY_ID_OR_ALIAS.get('unknownprovider')).toBeUndefined();
   });
@@ -93,6 +119,28 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     const nvidia = SHARED_PROVIDER_BY_ID.get('nvidia');
     expect(nvidia).toBeDefined();
     expect(nvidia!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('fireworks has no openRouter prefixes (native serverless /models is authoritative)', () => {
+    const fireworks = SHARED_PROVIDER_BY_ID.get('fireworks');
+    expect(fireworks).toBeDefined();
+    expect(fireworks!.openRouterPrefixes).toEqual([]);
+  });
+
+  it('commandcode has no openRouter prefixes (native Provider API /models is authoritative)', () => {
+    const commandcode = SHARED_PROVIDER_BY_ID.get('commandcode');
+    expect(commandcode).toBeDefined();
+    expect(commandcode!.displayName).toBe('Command Code');
+    expect(commandcode!.openRouterPrefixes).toEqual([]);
+    expect(commandcode!.keyPrefix).toBe('user_');
+  });
+
+  it('byteplus has no OpenRouter prefixes (native Coding Plan /models is authoritative)', () => {
+    const byteplus = SHARED_PROVIDER_BY_ID.get('byteplus');
+    expect(byteplus).toBeDefined();
+    expect(byteplus!.displayName).toBe('BytePlus');
+    expect(byteplus!.openRouterPrefixes).toEqual([]);
+    expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
   });
 });
 

@@ -5,6 +5,7 @@ import {
   type AvailableModel,
   type CustomProviderData,
   type ModelCapability,
+  type ModelModality,
   type RoutingProvider,
   type TierAssignment,
 } from '../services/api.js';
@@ -16,6 +17,7 @@ import { toast } from '../services/toast-store.js';
 import ModelCapabilityBadges, {
   CAPABILITY_ICONS,
   CAPABILITY_LABELS,
+  ModelModalityBadges,
 } from './ModelCapabilityBadges.js';
 
 interface Props {
@@ -51,6 +53,10 @@ const isFreeModel = (m: AvailableModel): boolean =>
   m.output_price_per_token != null &&
   Number(m.input_price_per_token) === 0 &&
   Number(m.output_price_per_token) === 0;
+
+const ACTION_CAPABILITIES: readonly ModelCapability[] = ['stream', 'tools'];
+const MODALITY_ORDER: readonly ModelModality[] = ['text', 'image', 'audio', 'video'];
+const DEFAULT_MODALITIES: readonly ModelModality[] = ['text'];
 
 const unavailableCapabilityLabel = (capability: ModelCapability): string => {
   if (capability === 'stream') return 'Stream unavailable';
@@ -94,14 +100,13 @@ const ModelPickerModal: Component<Props> = (props) => {
 
   const isCapabilityRequired = (cap: ModelCapability) => requiredCapabilities().has(cap);
 
-  /** Capabilities that exist on at least one model in the current tab, including stream. */
+  /** Action capabilities that exist on at least one model in the current tab. */
   const availableCapabilities = (): ModelCapability[] => {
-    const capOrder: ModelCapability[] = ['stream', 'tools', 'image', 'audio', 'video'];
     const found = new Set<ModelCapability>();
     for (const m of props.models) {
       for (const c of m.capabilities ?? []) found.add(c);
     }
-    return capOrder.filter((c) => found.has(c));
+    return ACTION_CAPABILITIES.filter((c) => found.has(c));
   };
 
   const handleRefreshGroup = async (provId: string, displayName: string) => {
@@ -305,6 +310,23 @@ const ModelPickerModal: Component<Props> = (props) => {
       ? null
       : unavailableCapabilityLabel(required);
   };
+  const actionCapabilitiesFor = (model: AvailableModel): readonly ModelCapability[] => {
+    return ACTION_CAPABILITIES.filter((capability) =>
+      (model.capabilities ?? []).includes(capability),
+    );
+  };
+  const inputModalitiesFor = (model: AvailableModel): readonly ModelModality[] => {
+    if (model.input_modalities && model.input_modalities.length > 0) return model.input_modalities;
+    const caps = new Set(model.capabilities ?? []);
+    const modalities = MODALITY_ORDER.filter(
+      (modality) => modality === 'text' || caps.has(modality),
+    );
+    return modalities.length > 0 ? modalities : DEFAULT_MODALITIES;
+  };
+  const outputModalitiesFor = (model: AvailableModel): readonly ModelModality[] =>
+    model.output_modalities && model.output_modalities.length > 0
+      ? model.output_modalities
+      : DEFAULT_MODALITIES;
 
   // Resolve the routing-tier label for the subtitle. Callers outside the
   // routing context (e.g. the Playground) pass a non-tier id, so there is no
@@ -323,8 +345,7 @@ const ModelPickerModal: Component<Props> = (props) => {
       }}
     >
       <div
-        class="modal-card"
-        style="max-width: 600px; padding: 0; display: flex; flex-direction: column; max-height: 80vh;"
+        class="modal-card routing-modal__card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="model-picker-title"
@@ -506,6 +527,15 @@ const ModelPickerModal: Component<Props> = (props) => {
         </div>
 
         <div class="routing-modal__list">
+          <Show when={groupedModels().length > 0}>
+            <div class="routing-modal__table-head" aria-hidden="true">
+              <span>Model</span>
+              <span>Capabilities</span>
+              <span>Input</span>
+              <span>Output</span>
+              <span>Price</span>
+            </div>
+          </Show>
           <For each={groupedModels()}>
             {(group) => (
               <div class="routing-modal__group">
@@ -592,32 +622,66 @@ const ModelPickerModal: Component<Props> = (props) => {
                               {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                             </Show>
                           </span>
-                          <ModelCapabilityBadges
-                            capabilities={model.pricing.capabilities}
+                        </span>
+                        <span class="routing-modal__model-cell">
+                          <span class="routing-modal__model-cell-label">Capabilities</span>
+                          <Show
+                            when={actionCapabilitiesFor(model.pricing).length > 0}
+                            fallback={
+                              <span
+                                class="model-capability-badges model-capability-badges--compact"
+                                aria-label="No stream or tools"
+                              />
+                            }
+                          >
+                            <ModelCapabilityBadges
+                              capabilities={actionCapabilitiesFor(model.pricing)}
+                              compact
+                              iconOnly
+                            />
+                          </Show>
+                        </span>
+                        <span class="routing-modal__model-cell">
+                          <span class="routing-modal__model-cell-label">Input</span>
+                          <ModelModalityBadges
+                            modalities={inputModalitiesFor(model.pricing)}
+                            direction="input"
                             compact
                             iconOnly
                           />
                         </span>
-                        <Show
-                          when={isPaid()}
-                          fallback={
-                            <span class="routing-modal__model-price">
-                              {isLocal()
-                                ? 'Runs on your machine'
-                                : (formatPerRequestCost(model.pricing.cost_per_request) ??
-                                  'Included in subscription')}
-                            </span>
-                          }
-                        >
-                          <Show when={model.pricing}>
-                            {(p) => (
+                        <span class="routing-modal__model-cell">
+                          <span class="routing-modal__model-cell-label">Output</span>
+                          <ModelModalityBadges
+                            modalities={outputModalitiesFor(model.pricing)}
+                            direction="output"
+                            compact
+                            iconOnly
+                          />
+                        </span>
+                        <span class="routing-modal__model-cell routing-modal__model-cell--price">
+                          <span class="routing-modal__model-cell-label">Price</span>
+                          <Show
+                            when={isPaid()}
+                            fallback={
                               <span class="routing-modal__model-price">
-                                {pricePerM(p().input_price_per_token)} in ·{' '}
-                                {pricePerM(p().output_price_per_token)} out
+                                {isLocal()
+                                  ? 'Runs on your machine'
+                                  : (formatPerRequestCost(model.pricing.cost_per_request) ??
+                                    'Included in subscription')}
                               </span>
-                            )}
+                            }
+                          >
+                            <Show when={model.pricing}>
+                              {(p) => (
+                                <span class="routing-modal__model-price">
+                                  {pricePerM(p().input_price_per_token)} in ·{' '}
+                                  {pricePerM(p().output_price_per_token)} out
+                                </span>
+                              )}
+                            </Show>
                           </Show>
-                        </Show>
+                        </span>
                       </button>
                     );
                   }}

@@ -17,6 +17,8 @@ import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import {
+  coordinateOAuthRefresh,
+  oauthRefreshKey,
   generatePkce,
   generateState,
   oauthDoneHtml,
@@ -240,7 +242,12 @@ export abstract class RedirectPkceOauthBaseService {
   }
 
   /** Parse an OAuth blob and return a valid access token, refreshing if expired. */
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) return null;
     // Access token + expiry are required to use the token at all. Refresh
@@ -249,21 +256,41 @@ export abstract class RedirectPkceOauthBaseService {
     // still produce a usable short-lived access token.
     if (Date.now() < blob.e - 60_000) return blob.t;
     if (!blob.r) return null;
+    return this.refreshAndPersistToken(blob, agentId, userId, keyLabel);
+  }
+
+  private async refreshAndPersistToken(
+    blob: OAuthTokenBlob,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
+    const providerId = this.oauthConfig.providerId;
     try {
-      const refreshed = await this.refreshAccessToken(blob.r, blob.u);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        this.oauthConfig.providerId,
-        serializeOAuthTokenBlob(refreshed),
-        'subscription',
-      );
-      this.logger.log(`${this.oauthConfig.providerId} OAuth token refreshed for agent=${agentId}`);
-      return refreshed.t;
+      const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
+        key: oauthRefreshKey(providerId, userId, agentId, keyLabel),
+        logger: this.logger,
+        callerBlob: blob,
+        readFreshRaw: () =>
+          this.providerService.getFreshSubscriptionCredential(agentId, providerId, keyLabel),
+        parse: parseOAuthTokenBlob,
+        refresh: (current) => this.refreshAccessToken(current.r, current.u),
+        persist: (refreshed) =>
+          this.providerService
+            .upsertProvider(
+              agentId,
+              userId,
+              providerId,
+              serializeOAuthTokenBlob(refreshed),
+              'subscription',
+              undefined,
+              keyLabel,
+            )
+            .then(() => undefined),
+      });
+      return resolved.t;
     } catch (err) {
-      this.logger.error(
-        `Failed to refresh ${this.oauthConfig.providerId} token for agent=${agentId}: ${err}`,
-      );
+      this.logger.error(`Failed to refresh ${providerId} token for agent=${agentId}: ${err}`);
       return null;
     }
   }

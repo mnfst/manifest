@@ -3,7 +3,9 @@ import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
+  coordinateOAuthRefresh,
   generatePkce,
+  oauthRefreshKey,
   OAuthPendingFlowStore,
   parseOAuthTokenBlob,
   serializeOAuthTokenBlob,
@@ -196,7 +198,12 @@ export class AnthropicOauthService {
    *   - Plain string (from the legacy `claude setup-token` paste flow) —
    *     returned as-is, since those tokens have no refresh counterpart.
    */
-  async unwrapToken(rawValue: string, agentId: string, userId: string): Promise<string | null> {
+  async unwrapToken(
+    rawValue: string,
+    agentId: string,
+    userId: string,
+    keyLabel?: string,
+  ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
     if (!blob) {
       // Legacy setup-token paste — keep working until the user reconnects.
@@ -209,16 +216,28 @@ export class AnthropicOauthService {
       return blob.t;
     }
     try {
-      const refreshed = await this.refreshAccessToken(blob.r);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        'anthropic',
-        serializeOAuthTokenBlob(refreshed),
-        'subscription',
-      );
-      this.logger.log(`Anthropic OAuth token refreshed for agent=${agentId}`);
-      return refreshed.t;
+      const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
+        key: oauthRefreshKey('anthropic', userId, agentId, keyLabel),
+        logger: this.logger,
+        callerBlob: blob,
+        readFreshRaw: () =>
+          this.providerService.getFreshSubscriptionCredential(agentId, 'anthropic', keyLabel),
+        parse: parseOAuthTokenBlob,
+        refresh: (current) => this.refreshAccessToken(current.r),
+        persist: (refreshed) =>
+          this.providerService
+            .upsertProvider(
+              agentId,
+              userId,
+              'anthropic',
+              serializeOAuthTokenBlob(refreshed),
+              'subscription',
+              undefined,
+              keyLabel,
+            )
+            .then(() => undefined),
+      });
+      return resolved.t;
     } catch (err) {
       this.logger.error(`Failed to refresh Anthropic token for agent=${agentId}: ${err}`);
       return null;

@@ -6,7 +6,13 @@
  * DiscoveredModel objects cached in user_providers.cached_models.
  */
 
-import type { AuthType, ModelCapability } from 'manifest-shared';
+import type { AuthType, ModelCapability, ModelModality } from 'manifest-shared';
+
+/**
+ * Default context-window size assumed when a provider's API or the pricing
+ * cache does not report one. Single source of truth for model discovery.
+ */
+export const DEFAULT_CONTEXT_WINDOW = 128000;
 
 export interface DiscoveredModel {
   id: string;
@@ -18,6 +24,8 @@ export interface DiscoveredModel {
   capabilityReasoning: boolean;
   capabilityCode: boolean;
   capabilities?: readonly ModelCapability[];
+  inputModalities?: readonly ModelModality[];
+  outputModalities?: readonly ModelModality[];
   qualityScore: number;
   authType?: AuthType;
 }

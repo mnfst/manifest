@@ -67,7 +67,10 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('openai')).toBe('openai');
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
     expect(resolveEndpointKey('google')).toBe('google');
+    expect(resolveEndpointKey('byteplus')).toBe('byteplus');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
+    expect(resolveEndpointKey('commandcode')).toBe('commandcode');
+    expect(resolveEndpointKey('fireworks')).toBe('fireworks');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
@@ -86,6 +89,22 @@ describe('resolveEndpointKey', () => {
 
   it('resolves alias z.ai to zai', () => {
     expect(resolveEndpointKey('z.ai')).toBe('zai');
+  });
+
+  it('resolves Fireworks AI aliases to fireworks', () => {
+    expect(resolveEndpointKey('fireworks-ai')).toBe('fireworks');
+    expect(resolveEndpointKey('fireworks ai')).toBe('fireworks');
+  });
+
+  it('resolves Command Code aliases to commandcode', () => {
+    expect(resolveEndpointKey('command-code')).toBe('commandcode');
+    expect(resolveEndpointKey('Command Code')).toBe('commandcode');
+    expect(resolveEndpointKey('cmd')).toBe('commandcode');
+  });
+
+  it('resolves BytePlus ModelArk aliases to byteplus', () => {
+    expect(resolveEndpointKey('byteplus-plan')).toBe('byteplus');
+    expect(resolveEndpointKey('ModelArk')).toBe('byteplus');
   });
 
   it('resolves qwen and alibaba to qwen', () => {
@@ -110,13 +129,22 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
+    expect(known).toContain('byteplus');
+    expect(known).toContain('byteplus-anthropic');
+    expect(known).toContain('commandcode');
+    expect(known).toContain('commandcode-anthropic');
+    expect(known).toContain('fireworks');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
     expect(known).toContain('ollama');
     expect(known).toContain('ollama-cloud');
+    expect(known).toContain('qwen-subscription');
+    expect(known).toContain('qwen-subscription-responses');
     expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
+    expect(known).toContain('opencode-zen');
+    expect(known).toContain('opencode-zen-google');
   });
 
   it('resolves ollama-cloud to ollama-cloud', () => {
@@ -128,6 +156,12 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('opencode-go')).toBe('opencode-go');
     expect(resolveEndpointKey('OpenCode-Go')).toBe('opencode-go');
     expect(resolveEndpointKey('opencodego')).toBe('opencode-go');
+  });
+
+  it('resolves opencode-zen and its opencodezen alias', () => {
+    expect(resolveEndpointKey('opencode-zen')).toBe('opencode-zen');
+    expect(resolveEndpointKey('OpenCode-Zen')).toBe('opencode-zen');
+    expect(resolveEndpointKey('opencodezen')).toBe('opencode-zen');
   });
 
   it('resolves kilo and its aliases', () => {
@@ -192,6 +226,42 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.buildHeaders('kilo-token')).toEqual({
       Authorization: 'Bearer kilo-token',
       'Content-Type': 'application/json',
+    });
+  });
+
+  it('fireworks uses the Fireworks OpenAI-compatible inference endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['fireworks'];
+    expect(ep.baseUrl).toBe('https://api.fireworks.ai/inference');
+    expect(ep.format).toBe('openai');
+    expect(ep.streamUsageReporting).toBeUndefined();
+    expect(ep.buildPath('accounts/fireworks/models/deepseek-v3p1')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('fw_test_key')).toEqual({
+      Authorization: 'Bearer fw_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('byteplus uses the ModelArk Coding Plan OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['byteplus'];
+    expect(ep.baseUrl).toBe('https://ark.ap-southeast.bytepluses.com/api/coding');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('ark-code-latest')).toBe('/v3/chat/completions');
+    expect(ep.buildHeaders('bp-token')).toEqual({
+      Authorization: 'Bearer bp-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('byteplus-anthropic uses the ModelArk Coding Plan Anthropic-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['byteplus-anthropic'];
+    expect(ep.baseUrl).toBe('https://ark.ap-southeast.bytepluses.com/api/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('ark-code-latest')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+    expect(ep.buildHeaders('bp-token')).toEqual({
+      Authorization: 'Bearer bp-token',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
     });
   });
 
@@ -333,6 +403,24 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('moonshot-subscription uses Kimi Coding Plan Anthropic-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['moonshot-subscription'];
+    expect(ep.baseUrl).toBe('https://api.kimi.com/coding');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('kimi-for-coding')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+  });
+
+  it('moonshot-subscription uses Kimi Code API key headers', () => {
+    const headers = PROVIDER_ENDPOINTS['moonshot-subscription'].buildHeaders('kimi-code-key');
+    expect(headers).toEqual({
+      'x-api-key': 'kimi-code-key',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
+    expect(headers.Authorization).toBeUndefined();
+  });
+
   it('ollama-cloud points at ollama.com with OpenAI format', () => {
     const ep = PROVIDER_ENDPOINTS['ollama-cloud'];
     expect(ep.baseUrl).toBe('https://ollama.com');
@@ -362,7 +450,7 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai-subscription uses Coding Plan base URL', () => {
     const ep = PROVIDER_ENDPOINTS['zai-subscription'];
-    expect(ep.baseUrl).toBe('https://open.bigmodel.cn/api/coding/paas/v4');
+    expect(ep.baseUrl).toBe('https://api.z.ai/api/coding/paas/v4');
   });
 
   it('zai-subscription builds /chat/completions path', () => {
@@ -414,9 +502,78 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBeUndefined();
   });
 
+  it('opencode-zen uses OpenCode Zen base URL with OpenAI format', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-zen'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('qwen3.6-plus')).toBe('/v1/chat/completions');
+  });
+
+  it('opencode-zen uses Bearer auth headers', () => {
+    const headers = PROVIDER_ENDPOINTS['opencode-zen'].buildHeaders('oz-token');
+    expect(headers).toEqual({
+      Authorization: 'Bearer oz-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('opencode-zen-google uses Google generateContent path with x-goog-api-key auth', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-zen-google'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen');
+    expect(ep.format).toBe('google');
+    expect(ep.buildPath('gemini-3-flash')).toBe('/v1/models/gemini-3-flash:generateContent');
+    expect(ep.buildHeaders('oz-token')).toEqual({
+      'x-goog-api-key': 'oz-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('commandcode uses the Command Code Provider API chat endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['commandcode'];
+    expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('deepseek/deepseek-v4-flash')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('user_test')).toEqual({
+      Authorization: 'Bearer user_test',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('qwen-subscription uses the Token Plan OpenAI-compatible chat endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['qwen-subscription'];
+    expect(ep.baseUrl).toBe('https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('qwen3.6-plus')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('sk-sp-test')).toEqual({
+      Authorization: 'Bearer sk-sp-test',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('commandcode-anthropic uses the Command Code Provider API messages endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['commandcode-anthropic'];
+    expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
+    expect(ep.format).toBe('anthropic');
+    expect(ep.buildPath('claude-sonnet-4-6')).toBe('/v1/messages');
+    expect(ep.skipSubscriptionIdentity).toBe(true);
+    expect(ep.buildHeaders('user_test')).toEqual({
+      'x-api-key': 'user_test',
+      'Content-Type': 'application/json',
+      'anthropic-version': '2023-06-01',
+    });
+  });
+
+  it('qwen-subscription-responses uses the Token Plan Responses endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['qwen-subscription-responses'];
+    expect(ep.baseUrl).toBe('https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('qwen3.7-max')).toBe('/v1/responses');
+  });
+
   it('marks OpenAI-compatible streaming endpoints that support usage chunks', () => {
     const endpointKeys = [
       'openai',
+      'byteplus',
       'deepseek',
       'groq',
       'kilo',
@@ -426,13 +583,16 @@ describe('PROVIDER_ENDPOINTS', () => {
       'moonshot',
       'nvidia',
       'qwen',
+      'qwen-subscription',
       'zai',
       'zai-subscription',
       'copilot',
       'openrouter',
       'ollama',
       'ollama-cloud',
+      'commandcode',
       'opencode-go',
+      'opencode-zen',
     ];
 
     for (const key of endpointKeys) {
@@ -450,8 +610,12 @@ describe('PROVIDER_ENDPOINTS', () => {
       'openai-responses',
       'xai-responses',
       'copilot-responses',
+      'commandcode-anthropic',
+      'byteplus-anthropic',
       'minimax-subscription',
+      'qwen-subscription-responses',
       'opencode-go-anthropic',
+      'opencode-zen-google',
     ];
 
     for (const key of endpointKeys) {
@@ -487,6 +651,14 @@ describe('resolveSubscriptionEndpointKey', () => {
 
   it('returns minimax-subscription for minimax', () => {
     expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns byteplus-anthropic for byteplus', () => {
+    expect(resolveSubscriptionEndpointKey('byteplus')).toBe('byteplus-anthropic');
+  });
+
+  it('returns moonshot-subscription for moonshot', () => {
+    expect(resolveSubscriptionEndpointKey('moonshot')).toBe('moonshot-subscription');
   });
 
   it('returns undefined for providers with no subscription override', () => {

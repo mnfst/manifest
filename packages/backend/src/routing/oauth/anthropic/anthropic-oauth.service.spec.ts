@@ -27,11 +27,18 @@ function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
+  const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
-    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
+    svc: {
+      upsertProvider,
+      recalculateTiers,
+      nextOAuthLabel,
+      getFreshSubscriptionCredential,
+    } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
     nextOAuthLabel,
+    getFreshSubscriptionCredential,
   };
 }
 
@@ -390,7 +397,7 @@ describe('AnthropicOauthService', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
-      const token = await svc.unwrapToken(blob, 'agent-1', 'user-1');
+      const token = await svc.unwrapToken(blob, 'agent-1', 'user-1', 'Work');
       expect(token).toBe('new');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
@@ -398,6 +405,8 @@ describe('AnthropicOauthService', () => {
         'anthropic',
         expect.stringContaining('"t":"new"'),
         'subscription',
+        undefined,
+        'Work',
       );
     });
 

@@ -9,8 +9,19 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderClient } from '../routing/proxy/provider-client';
 import { buildCustomEndpoint } from '../routing/proxy/provider-endpoints';
 import { CustomProviderService } from '../routing/custom-provider/custom-provider.service';
+import {
+  isRefreshableOAuthCredential,
+  refreshRejectedOAuthCredential,
+  resolveApiKey,
+} from '../routing/proxy/oauth-credentials';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
 import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import { OpenaiOauthService } from '../routing/oauth/openai-oauth.service';
+import { MinimaxOauthService } from '../routing/oauth/minimax-oauth.service';
+import { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
+import { GeminiOauthService } from '../routing/oauth/gemini-oauth.service';
+import { KiroOauthService } from '../routing/oauth/kiro-oauth.service';
+import { XaiOauthService } from '../routing/oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeTokenCost } from '../common/utils/cost-calculator';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
@@ -30,6 +41,12 @@ export class PlaygroundService {
     private readonly resolveAgent: ResolveAgentService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly providerClient: ProviderClient,
+    private readonly openaiOauth: OpenaiOauthService,
+    private readonly minimaxOauth: MinimaxOauthService,
+    private readonly anthropicOauth: AnthropicOauthService,
+    private readonly geminiOauth: GeminiOauthService,
+    private readonly kiroOauth: KiroOauthService,
+    private readonly xaiOauth: XaiOauthService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly eventBus: IngestEventBusService,
     private readonly history: PlaygroundHistoryService,
@@ -49,6 +66,9 @@ export class PlaygroundService {
     let agent: { id: string; tenant_id: string; name: string };
     let authType: AuthType;
     let apiKey: string;
+    let rawApiKey: string;
+    let providerKeyLabel: string | undefined;
+    let providerResource: string | undefined;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
       const hasProvider = await this.providerKeyService.hasActiveProvider(userId, dto.provider);
@@ -60,15 +80,52 @@ export class PlaygroundService {
         );
       }
       authType = dto.authType ?? (await this.providerKeyService.getAuthType(userId, dto.provider));
-      const key = await this.providerKeyService.getProviderApiKey(userId, dto.provider, authType);
-      if (key === null) {
+      const keys = await this.providerKeyService.getProviderKeys(userId, dto.provider, authType);
+      const key = keys[0];
+      if (!key || key.apiKey === null) {
         return this.sendPreStreamError(
           res,
           404,
           `No usable API key found for provider "${dto.provider}"`,
         );
       }
-      apiKey = key;
+      rawApiKey = key.apiKey;
+      providerKeyLabel = key.label;
+      const resolved = await resolveApiKey(
+        dto.provider,
+        rawApiKey,
+        authType,
+        agent.id,
+        userId,
+        this.openaiOauth,
+        this.minimaxOauth,
+        this.anthropicOauth,
+        this.geminiOauth,
+        this.kiroOauth,
+        this.xaiOauth,
+        providerKeyLabel,
+      );
+      if (resolved.apiKey === null) {
+        return this.sendPreStreamError(
+          res,
+          404,
+          `No usable API key found for provider "${dto.provider}"`,
+        );
+      }
+      apiKey = resolved.apiKey;
+      if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
+        rawApiKey =
+          (await this.providerKeyService.getProviderApiKey(
+            agent.id,
+            dto.provider,
+            authType,
+            providerKeyLabel,
+          )) ?? rawApiKey;
+      }
+      providerResource =
+        authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
+          ? resolved.resourceUrl
+          : undefined;
     } catch (err) {
       const status = err instanceof HttpException ? err.getStatus() : 500;
       const message = err instanceof Error ? err.message : String(err);
@@ -98,7 +155,7 @@ export class PlaygroundService {
     const startedAt = Date.now();
     let forward;
     try {
-      forward = await this.providerClient.forward({
+      const forwardOptions = {
         provider: dto.provider,
         apiKey,
         model: forwardModel,
@@ -108,7 +165,41 @@ export class PlaygroundService {
         extraHeaders,
         customEndpoint,
         signal: abort.signal,
-      });
+        providerResource,
+      };
+      forward = await this.providerClient.forward(forwardOptions);
+      if (forward.response.status === 401 && authType === 'subscription') {
+        const refreshed = await refreshRejectedOAuthCredential(
+          dto.provider,
+          rawApiKey,
+          agent.id,
+          userId,
+          providerKeyLabel,
+          {
+            openaiOauth: this.openaiOauth,
+            minimaxOauth: this.minimaxOauth,
+            anthropicOauth: this.anthropicOauth,
+            geminiOauth: this.geminiOauth,
+            kiroOauth: this.kiroOauth,
+            xaiOauth: this.xaiOauth,
+          },
+        );
+        if (refreshed?.apiKey && refreshed.apiKey !== apiKey) {
+          this.logger.log(
+            `OAuth token rejected upstream in Playground; refreshed provider=${dto.provider} agent=${agent.id}`,
+          );
+          apiKey = refreshed.apiKey;
+          providerResource =
+            authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
+              ? (refreshed.resourceUrl ?? providerResource)
+              : providerResource;
+          forward = await this.providerClient.forward({
+            ...forwardOptions,
+            apiKey,
+            providerResource,
+          });
+        }
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return this.sendPreStreamError(res, 502, `Provider request failed: ${message}`);
@@ -176,6 +267,8 @@ export class PlaygroundService {
       const cost = computeTokenCost({
         inputTokens,
         outputTokens,
+        cacheReadTokens,
+        cacheCreationTokens,
         model: dto.model,
         pricing: this.pricingCache.getByModel(dto.model),
         isSubscription: authType === 'subscription',

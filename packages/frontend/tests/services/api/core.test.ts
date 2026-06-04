@@ -137,6 +137,21 @@ describe('core api helpers', () => {
 
       await expect(fetchJson('/anything')).rejects.toThrow(/API error: 503/);
     });
+
+    it('re-throws when fetch() throws a network error', async () => {
+      const fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(fetchJson('/anything')).rejects.toThrow('Network error');
+    });
+
+    it('re-throws when fetch() throws DOMException (AbortError)', async () => {
+      const abortError = new DOMException('The operation was aborted', 'AbortError');
+      const fetchMock = vi.fn().mockRejectedValue(abortError);
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(fetchJson('/anything')).rejects.toThrow('The operation was aborted');
+    });
   });
 
   describe('parseErrorMessage', () => {
@@ -191,6 +206,25 @@ describe('core api helpers', () => {
 
       await expect(fetchMutate('/something', { method: 'POST' })).rejects.toThrow('bad');
       expect(mockToastError).toHaveBeenCalledWith('bad');
+    });
+
+    it('re-throws when fetch() throws a network error', async () => {
+      const fetchMock = vi.fn().mockRejectedValue(new Error('Network error'));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(fetchMutate('/something', { method: 'POST' })).rejects.toThrow('Network error');
+      expect(mockToastError).not.toHaveBeenCalled();
+    });
+
+    it('re-throws when fetch() throws DOMException (AbortError)', async () => {
+      const abortError = new DOMException('The operation was aborted', 'AbortError');
+      const fetchMock = vi.fn().mockRejectedValue(abortError);
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(fetchMutate('/something', { method: 'POST' })).rejects.toThrow(
+        'The operation was aborted',
+      );
+      expect(mockToastError).not.toHaveBeenCalled();
     });
   });
 });

@@ -28,11 +28,18 @@ function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue('X Account');
+  const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
-    svc: { upsertProvider, recalculateTiers, nextOAuthLabel } as unknown as ProviderService,
+    svc: {
+      upsertProvider,
+      recalculateTiers,
+      nextOAuthLabel,
+      getFreshSubscriptionCredential,
+    } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
     nextOAuthLabel,
+    getFreshSubscriptionCredential,
   };
 }
 
@@ -168,7 +175,7 @@ describe('XaiOauthService', () => {
       }),
     );
 
-    const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1');
+    const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
 
     expect(token).toBe('new-access');
     expect(fetchMock).toHaveBeenCalledWith(
@@ -181,6 +188,8 @@ describe('XaiOauthService', () => {
       'xai',
       expect.stringContaining('"t":"new-access"'),
       'subscription',
+      undefined,
+      'Work',
     );
   });
 

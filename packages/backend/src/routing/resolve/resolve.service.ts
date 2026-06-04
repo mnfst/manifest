@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import type { IncomingHttpHeaders } from 'http';
 import { TierService } from '../routing-core/tier.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
+import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
 import { HeaderTierService } from '../header-tiers/header-tier.service';
@@ -54,7 +55,16 @@ export class ResolveService {
     private readonly headerTierService: HeaderTierService,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-  ) {}
+    private readonly routingCache: RoutingCacheService,
+  ) {
+    // Bridge the central routing-cache invalidation to the discovered-model
+    // cache. Every provider mutation already calls routingCache.invalidateAgent;
+    // forwarding it here keeps ModelDiscoveryService's per-agent model cache
+    // fresh without a cross-module dependency (which would cycle).
+    this.routingCache.addInvalidationListener((agentId) =>
+      this.discoveryService.invalidate(agentId),
+    );
+  }
 
   async resolve(
     agentId: string,

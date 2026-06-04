@@ -1,4 +1,4 @@
-import { KeywordTrie } from '../keyword-trie';
+import { KeywordTrie, isWordCharCode } from '../keyword-trie';
 
 describe('KeywordTrie', () => {
   it('builds from empty config with size 0', () => {
@@ -152,5 +152,101 @@ describe('KeywordTrie', () => {
     }
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(500);
+  });
+
+  it('does NOT match keyword beyond MAX_SCAN_LENGTH (100k char boundary)', () => {
+    const trie = new KeywordTrie([{ name: 'test', keywords: ['target'] }]);
+    // 'target' starts at position 100,500 — entirely past the 100,000 truncation point.
+    const text = ''.padEnd(100500, 'x') + 'target' + 'y'.repeat(400);
+    expect(text.length).toBe(100906);
+    const matches = trie.scan(text);
+    expect(matches).toEqual([]);
+  });
+
+  it('matches keyword that fits entirely within MAX_SCAN_LENGTH boundary', () => {
+    const trie = new KeywordTrie([{ name: 'test', keywords: ['target'] }]);
+    // 'target' (6 chars) starts at position 99,994 — last char lands at index 99,999.
+    // Preceded by a space (non-word char) so the word-boundary check passes.
+    // afterIdx = 100,000 === len, so the trailing word-char check is skipped → match.
+    const text = 'x'.repeat(99993) + ' ' + 'target' + 'y'.repeat(100);
+    expect(text.length).toBe(100100);
+    const matches = trie.scan(text);
+    expect(matches).toHaveLength(1);
+    expect(matches[0].keyword).toBe('target');
+    expect(matches[0].position).toBe(99994);
+  });
+
+  it('does NOT match keyword spanning MAX_SCAN_LENGTH boundary', () => {
+    const trie = new KeywordTrie([{ name: 'test', keywords: ['target'] }]);
+    // 'target' straddles position 99,997..100,002 — last 3 chars are past the cap so
+    // the inner loop exits before reaching a terminal node.
+    const text = 'x'.repeat(99996) + ' ' + 'target' + 'y'.repeat(100);
+    expect(text.length).toBe(100103);
+    const matches = trie.scan(text);
+    expect(matches).toEqual([]);
+  });
+
+  describe('isWordCharCode', () => {
+    it('returns true for digits 0-9 (codes 48-57)', () => {
+      for (let code = 48; code <= 57; code++) {
+        expect(isWordCharCode(code)).toBe(true);
+      }
+    });
+
+    it('returns true for uppercase A-Z (codes 65-90)', () => {
+      for (let code = 65; code <= 90; code++) {
+        expect(isWordCharCode(code)).toBe(true);
+      }
+    });
+
+    it('returns true for lowercase a-z (codes 97-122)', () => {
+      for (let code = 97; code <= 122; code++) {
+        expect(isWordCharCode(code)).toBe(true);
+      }
+    });
+
+    it('returns true for underscore (code 95)', () => {
+      expect(isWordCharCode(95)).toBe(true);
+      expect(isWordCharCode('_'.charCodeAt(0))).toBe(true);
+    });
+
+    it('returns false for space (32) and hyphen (45)', () => {
+      expect(isWordCharCode(32)).toBe(false);
+      expect(isWordCharCode(45)).toBe(false);
+      expect(isWordCharCode(' '.charCodeAt(0))).toBe(false);
+      expect(isWordCharCode('-'.charCodeAt(0))).toBe(false);
+    });
+
+    it('returns false at boundaries just outside digit range (47 and 58)', () => {
+      // 47 = '/', 58 = ':' — one below '0' and one above '9'.
+      expect(isWordCharCode(47)).toBe(false);
+      expect(isWordCharCode(58)).toBe(false);
+    });
+
+    it('returns false at boundaries just outside uppercase range (64 and 91)', () => {
+      // 64 = '@', 91 = '[' — one below 'A' and one above 'Z'.
+      expect(isWordCharCode(64)).toBe(false);
+      expect(isWordCharCode(91)).toBe(false);
+    });
+
+    it('returns false at boundaries just outside lowercase range (96 and 123)', () => {
+      // 96 = '`', 123 = '{' — one below 'a' and one above 'z'.
+      expect(isWordCharCode(96)).toBe(false);
+      expect(isWordCharCode(123)).toBe(false);
+    });
+
+    it('returns false for code 94 (just below underscore)', () => {
+      // 94 = '^' — verifies the underscore check is exact, not a range.
+      expect(isWordCharCode(94)).toBe(false);
+    });
+
+    it('returns false for common punctuation and whitespace', () => {
+      expect(isWordCharCode('.'.charCodeAt(0))).toBe(false);
+      expect(isWordCharCode(','.charCodeAt(0))).toBe(false);
+      expect(isWordCharCode('!'.charCodeAt(0))).toBe(false);
+      expect(isWordCharCode('?'.charCodeAt(0))).toBe(false);
+      expect(isWordCharCode('\t'.charCodeAt(0))).toBe(false);
+      expect(isWordCharCode('\n'.charCodeAt(0))).toBe(false);
+    });
   });
 });

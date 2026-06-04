@@ -1,8 +1,12 @@
-import { Show, createSignal, type Accessor, type Component } from 'solid-js';
-import ModelPickerModal from './ModelPickerModal.js';
-import ProviderSelectModal from './ProviderSelectModal.js';
+import { Show, Suspense, createSignal, lazy, type Accessor, type Component } from 'solid-js';
 import RoutingInstructionModal from './RoutingInstructionModal.js';
 import KeyPickerModal from './KeyPickerModal.js';
+
+// These modals only mount behind a `<Show>` (dropdown open / provider modal
+// open). Lazy-load them so the heavy model picker and the ~130 kB
+// provider-select chunk stay out of the Routing route's initial bundle.
+const ModelPickerModal = lazy(() => import('./ModelPickerModal.js'));
+const ProviderSelectModal = lazy(() => import('./ProviderSelectModal.js'));
 import { PROVIDERS } from '../services/providers.js';
 import type {
   TierAssignment,
@@ -15,7 +19,11 @@ import type {
   ResponseMode,
 } from '../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../services/routing-params.js';
-import { usedKeyLabelsForModelInTier } from '../services/routing-utils.js';
+import {
+  activeRouteKeys,
+  availableRouteKeysForModel,
+  routeKeySelectionForModel,
+} from '../services/routing-utils.js';
 
 interface RoutingModalsProps {
   agentName: () => string;
@@ -71,30 +79,6 @@ interface PendingOverride {
   isFallback?: boolean;
 }
 
-/**
- * All active credential rows for a (provider, auth_type) tuple, sorted by
- * priority. Used to decide whether to show the "Which key?" picker. Local
- * providers (Ollama) don't carry keys, so they're excluded — the chain
- * concept doesn't apply.
- */
-function activeKeysFor(
-  providers: RoutingProvider[],
-  providerId: string,
-  authType: AuthType,
-): RoutingProvider[] {
-  if (authType === 'local') return [];
-  return providers
-    .filter(
-      (p) =>
-        p.provider.toLowerCase() === providerId.toLowerCase() &&
-        p.auth_type === authType &&
-        p.is_active &&
-        p.has_api_key,
-    )
-    .slice()
-    .sort((a, b) => a.priority - b.priority);
-}
-
 function providerDisplayName(providerId: string, customProviders: CustomProviderData[]): string {
   if (providerId.startsWith('custom:')) {
     const id = providerId.slice('custom:'.length);
@@ -124,13 +108,20 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
     authType?: AuthType,
   ) => {
     const effectiveAuth = authType ?? 'api_key';
-    const keys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
-    if (keys.length <= 1) {
+    const selection = routeKeySelectionForModel({
+      providers: props.connectedProviders(),
+      tier: props.getTier(tierId),
+      modelName,
+      providerId,
+      authType: effectiveAuth,
+      slot: 'primary',
+    });
+    if (!selection.needsChoice) {
       props.onOverride(tierId, modelName, providerId, authType);
       return;
     }
     // 2+ keys → ask the user which one before persisting.
-    setPendingOverride({ tierId, modelName, providerId, authType, keys });
+    setPendingOverride({ tierId, modelName, providerId, authType, keys: selection.keys });
   };
 
   const resolvePending = (label: string | null) => {
@@ -151,22 +142,24 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
     <>
       <Show when={props.dropdownTier()}>
         {(tierId) => (
-          <ModelPickerModal
-            tierId={tierId()}
-            agentName={props.agentName()}
-            models={props.models()}
-            tiers={props.tiers()}
-            customProviders={props.customProviders()}
-            connectedProviders={props.connectedProviders()}
-            requiredCapability={requiredCapabilityForTier(tierId())}
-            onSelect={handleSelect}
-            onClose={props.onDropdownClose}
-            onConnectProviders={() => {
-              props.onDropdownClose();
-              props.onOpenProviderModal();
-            }}
-            onProviderRefreshed={props.onProviderUpdate}
-          />
+          <Suspense fallback={null}>
+            <ModelPickerModal
+              tierId={tierId()}
+              agentName={props.agentName()}
+              models={props.models()}
+              tiers={props.tiers()}
+              customProviders={props.customProviders()}
+              connectedProviders={props.connectedProviders()}
+              requiredCapability={requiredCapabilityForTier(tierId())}
+              onSelect={handleSelect}
+              onClose={props.onDropdownClose}
+              onConnectProviders={() => {
+                props.onDropdownClose();
+                props.onOpenProviderModal();
+              }}
+              onProviderRefreshed={props.onProviderUpdate}
+            />
+          </Suspense>
         )}
       </Show>
 
@@ -177,56 +170,38 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               .filter((a) => a.is_active)
               .map((a) => ({ ...a, tier: a.category }));
           return (
-            <ModelPickerModal
-              tierId={category()}
-              agentName={props.agentName()}
-              models={props.models()}
-              tiers={specificityTiers()}
-              customProviders={props.customProviders()}
-              connectedProviders={props.connectedProviders()}
-              requiredCapability={requiredCapabilityForSpecificity(category())}
-              onSelect={(_, model, provider, authType) =>
-                props.onSpecificityOverride?.(category(), model, provider, authType)
-              }
-              onClose={() => props.onSpecificityDropdownClose?.()}
-              onConnectProviders={() => {
-                props.onSpecificityDropdownClose?.();
-                props.onOpenProviderModal();
-              }}
-              onProviderRefreshed={props.onProviderUpdate}
-            />
+            <Suspense fallback={null}>
+              <ModelPickerModal
+                tierId={category()}
+                agentName={props.agentName()}
+                models={props.models()}
+                tiers={specificityTiers()}
+                customProviders={props.customProviders()}
+                connectedProviders={props.connectedProviders()}
+                requiredCapability={requiredCapabilityForSpecificity(category())}
+                onSelect={(_, model, provider, authType) =>
+                  props.onSpecificityOverride?.(category(), model, provider, authType)
+                }
+                onClose={() => props.onSpecificityDropdownClose?.()}
+                onConnectProviders={() => {
+                  props.onSpecificityDropdownClose?.();
+                  props.onOpenProviderModal();
+                }}
+                onProviderRefreshed={props.onProviderUpdate}
+              />
+            </Suspense>
           );
         }}
       </Show>
 
       <Show when={props.fallbackPickerTier()}>
         {(tierId) => {
-          const usedKeysForModel = (
-            modelName: string,
-            providerId?: string,
-            authType?: AuthType,
-          ) => {
-            // The default key (priority 0) is implicitly used when the primary has no pin
-            let defaultLabel: string | undefined;
-            if (providerId) {
-              const effectiveAuth = authType ?? 'api_key';
-              const keys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
-              defaultLabel = keys[0]?.label;
-            }
-            return usedKeyLabelsForModelInTier(
-              props.getTier(tierId()),
-              modelName,
-              undefined,
-              defaultLabel,
-            );
-          };
-
           const filteredModels = () => {
             return props.models().filter((m) => {
               // Find how many keys exist for this model's provider
               const providerId = m.provider;
               const authType = m.auth_type ?? 'api_key';
-              const keys = activeKeysFor(props.connectedProviders(), providerId, authType);
+              const keys = activeRouteKeys(props.connectedProviders(), providerId, authType);
               if (keys.length <= 1) {
                 // Single-key model: hide if already used as primary or fallback
                 // (matched on the full route tuple — same model on a different
@@ -250,8 +225,15 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 );
               }
               // Multi-key model: hide only if ALL keys are already used
-              const used = usedKeysForModel(m.model_name, providerId, authType);
-              return used.size < keys.length;
+              return (
+                availableRouteKeysForModel(
+                  props.connectedProviders(),
+                  props.getTier(tierId()),
+                  m.model_name,
+                  providerId,
+                  authType,
+                ).length > 0
+              );
             });
           };
 
@@ -262,24 +244,29 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
             authType?: AuthType,
           ) => {
             const effectiveAuth = authType ?? 'api_key';
-            const allKeys = activeKeysFor(props.connectedProviders(), providerId, effectiveAuth);
+            const allKeys = activeRouteKeys(props.connectedProviders(), providerId, effectiveAuth);
             if (allKeys.length <= 1) {
               // Single-key (or no-key) provider: add fallback without key selection
               props.onFallbackPickerClose();
               props.onAddFallback(tid, modelName, providerId, authType);
               return;
             }
-            // Filter out keys already used for this model
-            const used = usedKeysForModel(modelName, providerId, authType);
-            const availableKeys = allKeys.filter((k) => !used.has(k.label.toLowerCase()));
-            if (availableKeys.length === 0) {
+            const selection = routeKeySelectionForModel({
+              providers: props.connectedProviders(),
+              tier: props.getTier(tierId()),
+              modelName,
+              providerId,
+              authType: effectiveAuth,
+              slot: 'fallback',
+            });
+            if (selection.exhausted) {
               // All keys exhausted — shouldn't happen since filteredModels hides it
               return;
             }
-            if (availableKeys.length === 1) {
+            if (selection.autoLabel) {
               // Only one key left — auto-select it, close picker for fresh data
               props.onFallbackPickerClose();
-              props.onAddFallback(tid, modelName, providerId, authType, availableKeys[0]!.label);
+              props.onAddFallback(tid, modelName, providerId, authType, selection.autoLabel);
               return;
             }
             // 2+ keys available → ask which one
@@ -288,27 +275,29 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
               modelName,
               providerId,
               authType,
-              keys: availableKeys,
+              keys: selection.keys,
               isFallback: true,
             });
           };
           return (
-            <ModelPickerModal
-              tierId={tierId()}
-              agentName={props.agentName()}
-              models={filteredModels()}
-              tiers={props.tiers()}
-              customProviders={props.customProviders()}
-              connectedProviders={props.connectedProviders()}
-              requiredCapability={requiredCapabilityForTier(tierId())}
-              onSelect={handleFallbackSelect}
-              onClose={props.onFallbackPickerClose}
-              onConnectProviders={() => {
-                props.onFallbackPickerClose();
-                props.onOpenProviderModal();
-              }}
-              onProviderRefreshed={props.onProviderUpdate}
-            />
+            <Suspense fallback={null}>
+              <ModelPickerModal
+                tierId={tierId()}
+                agentName={props.agentName()}
+                models={filteredModels()}
+                tiers={props.tiers()}
+                customProviders={props.customProviders()}
+                connectedProviders={props.connectedProviders()}
+                requiredCapability={requiredCapabilityForTier(tierId())}
+                onSelect={handleFallbackSelect}
+                onClose={props.onFallbackPickerClose}
+                onConnectProviders={() => {
+                  props.onFallbackPickerClose();
+                  props.onOpenProviderModal();
+                }}
+                onProviderRefreshed={props.onProviderUpdate}
+              />
+            </Suspense>
           );
         }}
       </Show>
@@ -326,15 +315,17 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
       </Show>
 
       <Show when={props.showProviderModal()}>
-        <ProviderSelectModal
-          agentName={props.agentName()}
-          providers={props.connectedProviders()}
-          customProviders={props.customProviders()}
-          customProviderPrefill={props.customProviderPrefill}
-          providerDeepLink={props.providerDeepLink}
-          onClose={props.onProviderModalClose}
-          onUpdate={props.onProviderUpdate}
-        />
+        <Suspense fallback={null}>
+          <ProviderSelectModal
+            agentName={props.agentName()}
+            providers={props.connectedProviders()}
+            customProviders={props.customProviders()}
+            customProviderPrefill={props.customProviderPrefill}
+            providerDeepLink={props.providerDeepLink}
+            onClose={props.onProviderModalClose}
+            onUpdate={props.onProviderUpdate}
+          />
+        </Suspense>
       </Show>
 
       <RoutingInstructionModal

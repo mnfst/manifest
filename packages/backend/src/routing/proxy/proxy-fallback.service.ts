@@ -21,6 +21,29 @@ export interface ParamMergeContext {
   scopeKey: string;
 }
 
+interface ForwardProviderOptions {
+  provider: string;
+  apiKey: string;
+  model: string;
+  body: Record<string, unknown>;
+  chatBody?: Record<string, unknown>;
+  stream: boolean;
+  sessionKey: string;
+  signal?: AbortSignal;
+  authType?: string;
+  rawApiKey?: string;
+  providerKeyLabel?: string;
+  agentId?: string;
+  userId?: string;
+  resourceUrl?: string;
+  providerRegion?: string | null;
+  apiMode?: ProxyApiMode;
+  signatureLookup?: SignatureLookup;
+  thinkingLookup?: ThinkingBlockLookup;
+  reasoningContentLookup?: ReasoningContentLookup;
+  paramMergeContext?: ParamMergeContext;
+}
+
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
@@ -28,7 +51,6 @@ import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
 import { GeminiOauthService } from '../oauth/gemini-oauth.service';
-import { parseOAuthTokenBlob } from '../oauth/core';
 import { KiroOauthService } from '../oauth/kiro-oauth.service';
 import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
@@ -47,6 +69,7 @@ import { inferProviderFromModelName } from '../../common/utils/provider-aliases'
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
+import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
   isTransportError,
@@ -55,6 +78,11 @@ import {
 } from './proxy-transport';
 import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
+import {
+  isRefreshableOAuthCredential,
+  refreshRejectedOAuthCredential,
+  resolveApiKey,
+} from './oauth-credentials';
 
 export interface FailedFallback {
   model: string;
@@ -169,10 +197,10 @@ export class ProxyFallbackService {
       let authType: AuthType;
       // Pinned key label: prefer the structured route's keyLabel. Each
       // fallback can be pinned to a specific provider key (e.g. "Work" vs
-      // "Personal" Anthropic Console). When no route is supplied (legacy
-      // string-only inputs), the pin is undefined and we fall back to the
-      // priority-0 default key inside getProviderApiKey().
-      const providerKeyLabel = route?.keyLabel ?? undefined;
+      // "Personal" Anthropic Console). When no label is supplied for a
+      // subscription fallback, resolve the priority-0 key's label so OAuth
+      // refresh persistence updates the same key getProviderApiKey selected.
+      let providerKeyLabel = route?.keyLabel ?? undefined;
 
       if (route) {
         provider = route.provider;
@@ -202,6 +230,13 @@ export class ProxyFallbackService {
           excludeAuth,
         )) as AuthType;
       }
+      if (!providerKeyLabel && authType === 'subscription') {
+        providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
+          agentId,
+          provider,
+          authType,
+        );
+      }
 
       const model = normalizeProviderModel(provider, requestedModel);
       const apiKey = await this.providerKeyService.getProviderApiKey(
@@ -229,7 +264,24 @@ export class ProxyFallbackService {
         this.geminiOauth,
         this.kiroOauth,
         this.xaiOauth,
+        providerKeyLabel,
       );
+      if (resolvedCredentials.apiKey === null) {
+        this.logger.debug(
+          `Fallback ${i}: skipping model=${model} provider=${provider} (OAuth token unavailable)`,
+        );
+        continue;
+      }
+      let rawApiKey = apiKey;
+      if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
+        rawApiKey =
+          (await this.providerKeyService.getProviderApiKey(
+            agentId,
+            provider,
+            authType,
+            providerKeyLabel,
+          )) ?? apiKey;
+      }
       const providerRegion = await this.providerKeyService.getProviderRegion(
         userId,
         provider,
@@ -250,6 +302,10 @@ export class ProxyFallbackService {
         stream,
         sessionKey,
         signal,
+        agentId,
+        userId,
+        rawApiKey,
+        providerKeyLabel,
         authType,
         apiMode,
         resourceUrl: resolvedCredentials.resourceUrl,
@@ -287,26 +343,10 @@ export class ProxyFallbackService {
     return { success: null, failures };
   }
 
-  async tryForwardToProvider(opts: {
-    provider: string;
-    apiKey: string;
-    model: string;
-    body: Record<string, unknown>;
-    chatBody?: Record<string, unknown>;
-    stream: boolean;
-    sessionKey: string;
-    signal?: AbortSignal;
-    authType?: string;
-    resourceUrl?: string;
-    providerRegion?: string | null;
-    apiMode?: ProxyApiMode;
-    signatureLookup?: SignatureLookup;
-    thinkingLookup?: ThinkingBlockLookup;
-    reasoningContentLookup?: ReasoningContentLookup;
-    paramMergeContext?: ParamMergeContext;
-  }): Promise<ForwardResult> {
+  async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
     try {
-      return await this.forwardToProvider(opts);
+      const forward = await this.forwardToProvider(opts);
+      return await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
     } catch (error) {
       if (opts.signal?.aborted) throw error;
       if (!isTransportError(error)) throw error;
@@ -326,24 +366,48 @@ export class ProxyFallbackService {
     }
   }
 
-  private async forwardToProvider(opts: {
-    provider: string;
-    apiKey: string;
-    model: string;
-    body: Record<string, unknown>;
-    chatBody?: Record<string, unknown>;
-    stream: boolean;
-    sessionKey: string;
-    signal?: AbortSignal;
-    authType?: string;
-    resourceUrl?: string;
-    providerRegion?: string | null;
-    apiMode?: ProxyApiMode;
-    signatureLookup?: SignatureLookup;
-    thinkingLookup?: ThinkingBlockLookup;
-    reasoningContentLookup?: ReasoningContentLookup;
-    paramMergeContext?: ParamMergeContext;
-  }): Promise<ForwardResult> {
+  private async retryOAuthSubscriptionAfterRejectedToken(
+    opts: ForwardProviderOptions,
+    forward: ForwardResult,
+  ): Promise<ForwardResult> {
+    if (
+      opts.authType !== 'subscription' ||
+      forward.response.status !== 401 ||
+      !opts.rawApiKey ||
+      !opts.agentId ||
+      !opts.userId
+    ) {
+      return forward;
+    }
+
+    const refreshed = await refreshRejectedOAuthCredential(
+      opts.provider,
+      opts.rawApiKey,
+      opts.agentId,
+      opts.userId,
+      opts.providerKeyLabel,
+      {
+        openaiOauth: this.openaiOauth,
+        minimaxOauth: this.minimaxOauth,
+        anthropicOauth: this.anthropicOauth,
+        geminiOauth: this.geminiOauth,
+        kiroOauth: this.kiroOauth,
+        xaiOauth: this.xaiOauth,
+      },
+    );
+    if (!refreshed?.apiKey || refreshed.apiKey === opts.apiKey) return forward;
+
+    this.logger.log(
+      `OAuth token rejected upstream; refreshed provider=${opts.provider} agent=${opts.agentId}`,
+    );
+    return this.forwardToProvider({
+      ...opts,
+      apiKey: refreshed.apiKey,
+      resourceUrl: refreshed.resourceUrl ?? opts.resourceUrl,
+    });
+  }
+
+  private async forwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
     const {
       provider,
       stream,
@@ -407,6 +471,14 @@ export class ProxyFallbackService {
     ) {
       forwardModel = forwardModel.substring('minimax/'.length);
     }
+    if (provider.toLowerCase() === 'zai' && authType === 'subscription') {
+      const lowerModel = forwardModel.toLowerCase();
+      if (lowerModel.startsWith('z-ai/')) {
+        forwardModel = forwardModel.substring('z-ai/'.length);
+      } else if (lowerModel.startsWith('zai/')) {
+        forwardModel = forwardModel.substring('zai/'.length);
+      }
+    }
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
@@ -437,6 +509,12 @@ export class ProxyFallbackService {
         const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
         customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
       }
+    } else if (
+      authType === 'subscription' &&
+      provider.toLowerCase() === 'zai' &&
+      providerRegion === 'cn'
+    ) {
+      customEndpoint = buildEndpointOverride(getZaiCodingPlanBaseUrl('cn'), 'zai-subscription');
     }
 
     const reasoningEndpointKey =
@@ -488,58 +566,6 @@ export class ProxyFallbackService {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Shared helpers (used by both ProxyService and ProxyFallbackService)
-// ---------------------------------------------------------------------------
-
 export function normalizeProviderModel(provider: string, model: string): string {
   return provider.toLowerCase() === 'anthropic' ? normalizeAnthropicShortModelId(model) : model;
-}
-
-export async function resolveApiKey(
-  provider: string,
-  apiKey: string,
-  authType: string | undefined,
-  agentId: string,
-  userId: string,
-  openaiOauth: OpenaiOauthService,
-  minimaxOauth: MinimaxOauthService,
-  anthropicOauth: AnthropicOauthService,
-  geminiOauth: GeminiOauthService,
-  kiroOauth: KiroOauthService,
-  xaiOauth: XaiOauthService,
-): Promise<{ apiKey: string; resourceUrl?: string }> {
-  if (authType === 'subscription') {
-    const lower = provider.toLowerCase();
-    if (lower === 'openai') {
-      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return { apiKey: unwrapped };
-    }
-    if (lower === 'minimax') {
-      const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
-    }
-    if (lower === 'anthropic') {
-      const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return { apiKey: unwrapped };
-    }
-    if (lower === 'gemini') {
-      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) {
-        // The CodeAssist project id was stored in `blob.u` by enrichBlob.
-        // Read it from the input blob (refreshes preserve the field).
-        const projectId = parseOAuthTokenBlob(apiKey)?.u;
-        return { apiKey: unwrapped, resourceUrl: projectId };
-      }
-    }
-    if (lower === 'kiro') {
-      const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return { apiKey: unwrapped };
-    }
-    if (lower === 'xai') {
-      const unwrapped = await xaiOauth.unwrapToken(apiKey, agentId, userId);
-      if (unwrapped) return { apiKey: unwrapped };
-    }
-  }
-  return { apiKey };
 }

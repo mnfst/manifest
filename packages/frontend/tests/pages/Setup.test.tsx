@@ -52,6 +52,19 @@ describe('Setup page', () => {
     return result;
   }
 
+  function fillValidForm(password = 'secretpassword', confirm = password) {
+    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
+    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
+      target: { value: 'founder@example.com' },
+    });
+    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
+      target: { value: password },
+    });
+    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
+      target: { value: confirm },
+    });
+  }
+
   it('redirects to /login when setup is already complete', async () => {
     mockCheckNeedsSetup.mockResolvedValue(false);
     render(() => <Setup />);
@@ -71,16 +84,7 @@ describe('Setup page', () => {
 
   it('shows an error when passwords do not match', async () => {
     const { container } = await renderSetup();
-    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
-    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'founder@example.com' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
-      target: { value: 'secretpassword' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
-      target: { value: 'different' },
-    });
+    fillValidForm('secretpassword', 'different');
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -91,16 +95,7 @@ describe('Setup page', () => {
 
   it('calls createFirstAdmin with form values on valid submit', async () => {
     const { container } = await renderSetup();
-    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
-    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'founder@example.com' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
-      target: { value: 'secretpassword' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
-      target: { value: 'secretpassword' },
-    });
+    fillValidForm();
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -114,16 +109,7 @@ describe('Setup page', () => {
 
   it('auto-signs-in after successful setup', async () => {
     const { container } = await renderSetup();
-    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
-    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'founder@example.com' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
-      target: { value: 'secretpassword' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
-      target: { value: 'secretpassword' },
-    });
+    fillValidForm();
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -137,16 +123,7 @@ describe('Setup page', () => {
   it('surfaces server errors from createFirstAdmin', async () => {
     mockCreateFirstAdmin.mockRejectedValue(new Error('already exists'));
     const { container } = await renderSetup();
-    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
-    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'founder@example.com' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
-      target: { value: 'secretpassword' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
-      target: { value: 'secretpassword' },
-    });
+    fillValidForm();
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -157,16 +134,7 @@ describe('Setup page', () => {
   it('falls back to /login if auto-sign-in fails after setup', async () => {
     mockSignInEmail.mockResolvedValue({ error: { message: 'session failed' } });
     const { container } = await renderSetup();
-    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
-    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'founder@example.com' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
-      target: { value: 'secretpassword' },
-    });
-    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
-      target: { value: 'secretpassword' },
-    });
+    fillValidForm();
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
@@ -193,5 +161,114 @@ describe('Setup page', () => {
       expect(screen.queryByText('Password must be at least 8 characters')).toBeDefined();
     });
     expect(mockCreateFirstAdmin).not.toHaveBeenCalled();
+  });
+
+  it('rejects zero-length password with the length error', async () => {
+    const { container } = await renderSetup();
+    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
+    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
+      target: { value: 'founder@example.com' },
+    });
+    const passwordInput = screen.getByPlaceholderText('At least 8 characters') as HTMLInputElement;
+    const confirmInput = screen.getByPlaceholderText('Re-enter password') as HTMLInputElement;
+    // Bypass native required + minLength so handleSubmit's length check is exercised
+    passwordInput.removeAttribute('required');
+    passwordInput.removeAttribute('minLength');
+    confirmInput.removeAttribute('required');
+    confirmInput.removeAttribute('minLength');
+    fireEvent.input(passwordInput, { target: { value: '' } });
+    fireEvent.input(confirmInput, { target: { value: '' } });
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Password must be at least 8 characters')).toBeDefined();
+    });
+    expect(mockCreateFirstAdmin).not.toHaveBeenCalled();
+  });
+
+  it('accepts password at the 8-character boundary', async () => {
+    const { container } = await renderSetup();
+    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
+    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
+      target: { value: 'founder@example.com' },
+    });
+    // Exactly 8 chars — must satisfy length >= 8 branch
+    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
+      target: { value: '12345678' },
+    });
+    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
+      target: { value: '12345678' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(mockCreateFirstAdmin).toHaveBeenCalledWith({
+        email: 'founder@example.com',
+        name: 'Founder',
+        password: '12345678',
+      });
+    });
+    // No length error should have been displayed
+    expect(screen.queryByText('Password must be at least 8 characters')).toBeNull();
+  });
+
+  it('passes password containing control characters through to createFirstAdmin verbatim', async () => {
+    const { container } = await renderSetup();
+    fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: 'Founder' } });
+    fireEvent.input(screen.getByPlaceholderText('you@example.com'), {
+      target: { value: 'founder@example.com' },
+    });
+    // 8 visible chars + a NUL byte and a control char. The client doesn't sanitize —
+    // it forwards verbatim so the server can apply its own policy.
+    const weird = 'abcdefgh ';
+    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
+      target: { value: weird },
+    });
+    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
+      target: { value: weird },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(mockCreateFirstAdmin).toHaveBeenCalledWith({
+        email: 'founder@example.com',
+        name: 'Founder',
+        password: weird,
+      });
+    });
+  });
+
+  it('forwards empty email + name to createFirstAdmin when native required is bypassed', async () => {
+    // Simulate the server-side validation path: required attributes can be stripped
+    // (e.g. via DevTools) so the client must still call createFirstAdmin and let the
+    // backend reject empty email/name. The component itself only validates passwords.
+    mockCreateFirstAdmin.mockRejectedValue(new Error('Email is required'));
+    const { container } = await renderSetup();
+    const nameInput = screen.getByPlaceholderText('Your name') as HTMLInputElement;
+    const emailInput = screen.getByPlaceholderText('you@example.com') as HTMLInputElement;
+    nameInput.removeAttribute('required');
+    emailInput.removeAttribute('required');
+    // Leave name + email empty; only password is filled.
+    fireEvent.input(screen.getByPlaceholderText('At least 8 characters'), {
+      target: { value: 'secretpassword' },
+    });
+    fireEvent.input(screen.getByPlaceholderText('Re-enter password'), {
+      target: { value: 'secretpassword' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(mockCreateFirstAdmin).toHaveBeenCalledWith({
+        email: '',
+        name: '',
+        password: 'secretpassword',
+      });
+    });
+    // The server error must surface to the user
+    await waitFor(() => {
+      expect(screen.queryByText('Email is required')).toBeDefined();
+    });
+    // And auto-signin must not be attempted when creation failed
+    expect(mockSignInEmail).not.toHaveBeenCalled();
   });
 });
