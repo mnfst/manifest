@@ -1,0 +1,35 @@
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_4adf886f4f23e9::t_6da6e7a356f8ec 98-101,118-121
+  s_4adf886f4f23e9::t_d443b478a2602c 30,35-36
+  s_4adf886f4f23e9::t_41b289d3741044 1-29,31-34,37-97,102-117,122-128
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_4adf886f4f23e9::t_6da6e7a356f8ec 7-11
+  s_4adf886f4f23e9::t_216fff61dfde80 1-6,12-135
+packages/backend/src/playground/playground.service.ts
+  s_4adf886f4f23e9::t_cb58418344ec00 72-74,76
+  s_4adf886f4f23e9::t_37df4476db9880 10
+  s_4adf886f4f23e9::t_4ea9b4794befcc 100
+  s_4adf886f4f23e9::t_e86b4cf6ccd92a 150-167
+.changeset/shared-forward-endpoint-resolver.md
+  s_4adf886f4f23e9::t_6da6e7a356f8ec 1-5
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_4adf886f4f23e9::t_fadccd63a5bba3 59
+  s_4adf886f4f23e9::t_2d7c04a2cad734 50
+  s_4adf886f4f23e9::t_a941e5e679c3f1 444-460
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "34febf8e1bbbca6dff4e618518a2147b1862bbe2",
+  "prompts": {},
+  "sessions": {
+    "s_4adf886f4f23e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fe84aa03-0e45-475a-b5ff-91eec36e22b1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
