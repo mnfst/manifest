@@ -1,0 +1,57 @@
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_492c4473e887cf::t_e9a8b7af192a6f 89,265
+packages/backend/src/routing/provider.controller.ts
+  s_492c4473e887cf::t_355e3479e64c3a 14-15,18,48
+  s_492c4473e887cf::t_1f1a55e73af41e 12,47,49,144-152
+packages/backend/src/database/database.module.ts
+  s_492c4473e887cf::t_8a8e8fd71388f2 27,141
+packages/backend/src/routing/agent-provider-access.controller.ts
+  s_492c4473e887cf::t_355e3479e64c3a 1-152
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_492c4473e887cf::t_b640ce697ff9ae 57,72-73,242,317,337-339
+packages/backend/src/routing/routing.module.ts
+  s_492c4473e887cf::t_8a8e8fd71388f2 19,23,31-38,58
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_492c4473e887cf::t_427f354376d52b 8,59-60,68,133-148,226
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.spec.ts
+  s_492c4473e887cf::t_8a8e8fd71388f2 13,15,18-24,29,39,54,56,64-67
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_492c4473e887cf::t_e9a8b7af192a6f 404-409
+  s_492c4473e887cf::t_355e3479e64c3a 6,62-64,316-317,320,353-355,362,393-401
+packages/backend/src/model-discovery/model-discovery.module.ts
+  s_492c4473e887cf::t_1f1a55e73af41e 13-16
+  s_492c4473e887cf::t_8a8e8fd71388f2 4
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_492c4473e887cf::t_e9a8b7af192a6f 454,479
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.ts
+  s_492c4473e887cf::t_8a8e8fd71388f2 7-34,38-39,56,59,67-76,82-84
+packages/backend/src/routing/routing-core/routing-core.module.ts
+  s_492c4473e887cf::t_8a8e8fd71388f2 4,29
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_492c4473e887cf::t_b640ce697ff9ae 694-702
+packages/backend/src/entities/agent-provider-access.entity.ts
+  s_492c4473e887cf::t_8a8e8fd71388f2 1-10
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_492c4473e887cf::t_e9a8b7af192a6f 206,215-216,218-219,224,290,307,340-341,348,363-367,373,383-387,390,394
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_492c4473e887cf::t_1f1a55e73af41e 1,30
+  s_492c4473e887cf::t_355e3479e64c3a 6,31-32,45,51-52,66,68,77,79,92,95-98,120,122-125,134,136,145-153,186,194-196,205-206,273,275,290-295,312-321
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_492c4473e887cf::t_e9a8b7af192a6f 212,216,227,237,271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "326b2365c66891f8dccdcfe42137f1227b156b6c",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
