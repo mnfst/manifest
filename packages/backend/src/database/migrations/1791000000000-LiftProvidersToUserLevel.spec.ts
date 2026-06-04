@@ -22,7 +22,7 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
       ),
     ).toBe(true);
     expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" DROP NOT NULL'))).toBe(true);
-    const relabel = queries.find((q) => q.includes('ROW_NUMBER() OVER'));
+    const relabel = queries.find((q) => q.includes('WITH colliding_labels AS'));
     expect(relabel).toBeDefined();
     expect(relabel).toContain('WITH colliding_labels AS');
     expect(relabel).toContain('HAVING COUNT(*) > 1');
@@ -31,7 +31,12 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(relabel).toContain('NULLIF(TRIM(a."name"), \'\')');
     expect(relabel).toContain('WHEN LOWER("label") = \'default\' THEN "agent_label"');
     expect(relabel).toContain('ELSE "label" || \' - \' || "agent_label"');
+    expect(relabel).toContain('generate_series(0, 1000)');
+    expect(relabel).toContain('candidate_reserved_labels AS');
     expect(relabel).toContain('ranked."proposed_label" || \' [\' || ranked."id" || \']\'');
+    expect(relabel).toContain(
+      "ranked.\"proposed_label\" || ' [' || ranked.\"id\" || '-' || suffix.n || ']'",
+    );
     expect(relabel).not.toContain('"api_key_encrypted"');
     expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "agent_id"'))).toBe(false);
     expect(
@@ -48,13 +53,18 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(queries.some((q) => /DELETE\s+FROM\s+"user_providers"/i.test(q))).toBe(false);
   });
 
-  it('relabels BEFORE creating the unique index', async () => {
+  it('drops the old index before relabeling, then creates the new unique index', async () => {
     await migration.up(queryRunner);
-    const relabelIdx = queries.findIndex((q) => q.includes('ROW_NUMBER() OVER'));
+    const dropOldIdx = queries.findIndex((q) =>
+      q.includes('DROP INDEX IF EXISTS "IDX_user_providers_agent_provider_auth_label"'),
+    );
+    const relabelIdx = queries.findIndex((q) => q.includes('WITH colliding_labels AS'));
     const createIdx = queries.findIndex((q) =>
       q.includes('CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"'),
     );
+    expect(dropOldIdx).toBeGreaterThan(-1);
     expect(relabelIdx).toBeGreaterThan(-1);
+    expect(relabelIdx).toBeGreaterThan(dropOldIdx);
     expect(createIdx).toBeGreaterThan(relabelIdx);
   });
 
