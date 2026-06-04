@@ -1,0 +1,19 @@
+packages/backend/src/playground/playground.service.spec.ts
+  s_492c4473e887cf::t_fc49d1853772b0 7-12,23-29,144-158,164,173-178,194-195,203-208,225-230,374,427,446-447,471-476,483-596
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "b523b346c35d03ba682c0d010a9f920e0787d267",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
