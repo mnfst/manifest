@@ -31,6 +31,8 @@ describe('ProviderModelFetcherService', () => {
       'xai',
       'minimax',
       'minimax-subscription',
+      'xiaomi',
+      'xiaomi-subscription',
       'qwen',
       'zai',
       'zai-subscription',
@@ -726,6 +728,81 @@ describe('ProviderModelFetcherService', () => {
       'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models',
       expect.objectContaining({
         headers: { Authorization: 'Bearer sk-sp-token-plan-key' },
+      }),
+    );
+  });
+
+  /* ── Xiaomi MiMo Token Plan subscription routing ── */
+
+  it('should fetch Xiaomi MiMo API-key models and filter media-only models', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'mimo-v2.5-pro' },
+          { id: 'mimo-v2.5' },
+          { id: 'mimo-v2.5-asr-preview' },
+          { id: 'mimo-v2.5-tts-preview' },
+          { id: 'not-mimo-chat' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('xiaomi', 'sk-mimo-test');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://api.xiaomimimo.com/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-mimo-test' },
+      }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['mimo-v2.5-pro', 'mimo-v2.5']);
+    expect(result[0]).toMatchObject({
+      provider: 'xiaomi',
+      contextWindow: 1048576,
+      inputPricePerToken: 0,
+      outputPricePerToken: 0,
+      capabilityCode: true,
+    });
+  });
+
+  it('should route Xiaomi subscription discovery to the default Token Plan models endpoint', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'mimo-v2.5-pro' }, { id: 'mimo-v2-flash' }],
+      }),
+    });
+
+    const result = await service.fetch('xiaomi', 'tp-mimo-token', 'subscription');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://token-plan-cn.xiaomimimo.com/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer tp-mimo-token' },
+      }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['mimo-v2.5-pro', 'mimo-v2-flash']);
+    expect(result[1].contextWindow).toBe(262144);
+  });
+
+  it('should apply endpoint override for Xiaomi MiMo Token Plan subscription discovery', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    await service.fetch(
+      'xiaomi',
+      'tp-mimo-token',
+      'subscription',
+      'https://token-plan-ams.xiaomimimo.com',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://token-plan-ams.xiaomimimo.com/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer tp-mimo-token' },
       }),
     );
   });

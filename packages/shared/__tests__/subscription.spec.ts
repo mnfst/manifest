@@ -16,6 +16,7 @@ describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
         'byteplus',
         'openai',
         'minimax',
+        'xiaomi',
         'qwen',
         'moonshot',
         'copilot',
@@ -91,6 +92,25 @@ describe('getSubscriptionProviderConfig', () => {
     expect(config).toMatchObject({
       subscriptionAuthMode: 'device_code',
     });
+  });
+
+  it('returns config for Xiaomi MiMo Token Plan', () => {
+    const config = getSubscriptionProviderConfig('xiaomi');
+    expect(config).toMatchObject({
+      supportsSubscription: true,
+      subscriptionLabel: 'Xiaomi MiMo Token Plan',
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'Paste your MiMo Token Plan API key',
+      subscriptionTokenPrefix: 'tp-',
+      knownModelsMatch: 'exact',
+    });
+    expect(config?.knownModels).toEqual([
+      'mimo-v2.5-pro',
+      'mimo-v2-pro',
+      'mimo-v2.5',
+      'mimo-v2-omni',
+      'mimo-v2-flash',
+    ]);
   });
 
   it('returns config for Qwen Token Plan', () => {
@@ -237,6 +257,7 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('byteplus')).toBe(true);
     expect(supportsSubscriptionProvider('openai')).toBe(true);
     expect(supportsSubscriptionProvider('minimax')).toBe(true);
+    expect(supportsSubscriptionProvider('xiaomi')).toBe(true);
     expect(supportsSubscriptionProvider('qwen')).toBe(true);
     expect(supportsSubscriptionProvider('moonshot')).toBe(true);
     expect(supportsSubscriptionProvider('copilot')).toBe(true);
@@ -284,6 +305,17 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('MiniMax-M2.7');
     expect(models).toContain('MiniMax-M2.7-highspeed');
     expect(models).toContain('MiniMax-M2.5');
+  });
+
+  it('returns known models for Xiaomi MiMo Token Plan', () => {
+    const models = getSubscriptionKnownModels('xiaomi');
+    expect(models).toEqual([
+      'mimo-v2.5-pro',
+      'mimo-v2-pro',
+      'mimo-v2.5',
+      'mimo-v2-omni',
+      'mimo-v2-flash',
+    ]);
   });
 
   it('returns null known models for Qwen Token Plan (relies on live /v1/models discovery)', () => {
@@ -352,6 +384,10 @@ describe('getSubscriptionKnownModelsMatch', () => {
 
   it('returns exact for moonshot Kimi Coding Plan', () => {
     expect(getSubscriptionKnownModelsMatch('moonshot')).toBe('exact');
+  });
+
+  it('returns exact for Xiaomi MiMo Token Plan', () => {
+    expect(getSubscriptionKnownModelsMatch('xiaomi')).toBe('exact');
   });
 
   it('returns prefix for Qwen Token Plan (no hardcoded known-model matching)', () => {
@@ -428,6 +464,15 @@ describe('getSubscriptionCapabilities', () => {
     const caps = getSubscriptionCapabilities('qwen');
     expect(caps).toMatchObject({
       maxContextWindow: 991000,
+      supportsPromptCaching: false,
+      supportsBatching: false,
+    });
+  });
+
+  it('returns capabilities for Xiaomi MiMo Token Plan', () => {
+    const caps = getSubscriptionCapabilities('xiaomi');
+    expect(caps).toMatchObject({
+      maxContextWindow: 1048576,
       supportsPromptCaching: false,
       supportsBatching: false,
     });

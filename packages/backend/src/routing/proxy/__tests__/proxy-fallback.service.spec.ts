@@ -911,6 +911,61 @@ describe('ProxyFallbackService', () => {
         }),
       );
     });
+
+    it('routes Xiaomi MiMo Token Plan region=ams to the Europe endpoint', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        model: 'mimo-v2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'ams',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customEndpoint: expect.objectContaining({
+            baseUrl: 'https://token-plan-ams.xiaomimimo.com',
+            format: 'openai',
+          }),
+        }),
+      );
+    });
+
+    it('strips Xiaomi vendor prefixes on Token Plan subscription routes before endpoint overrides', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        model: 'xiaomi/mimo-v2.5-pro',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        providerRegion: 'ams',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          model: 'mimo-v2.5-pro',
+        }),
+      );
+    });
   });
 
   describe('tryFallbacks', () => {

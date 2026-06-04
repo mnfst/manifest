@@ -196,6 +196,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-...',
   },
   {
+    id: 'xiaomi',
+    displayName: 'Xiaomi MiMo',
+    aliases: ['mimo', 'xiaomi-mimo', 'xiaomi mimo'],
+    openRouterPrefixes: ['xiaomi'],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#FF6900',
+    keyPrefix: 'sk-',
+    minKeyLength: 10,
+    keyPlaceholder: 'sk-...',
+  },
+  {
     id: 'mistral',
     displayName: 'Mistral',
     aliases: [],

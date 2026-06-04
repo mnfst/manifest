@@ -69,6 +69,11 @@ import { inferProviderFromModelName } from '../../common/utils/provider-aliases'
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
+import {
+  getXiaomiTokenPlanBaseUrl,
+  isXiaomiProviderId,
+  isXiaomiTokenPlanRegion,
+} from '../xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
@@ -479,6 +484,13 @@ export class ProxyFallbackService {
         forwardModel = forwardModel.substring('zai/'.length);
       }
     }
+    if (
+      isXiaomiProviderId(provider) &&
+      authType === 'subscription' &&
+      forwardModel.toLowerCase().startsWith('xiaomi/')
+    ) {
+      forwardModel = forwardModel.substring('xiaomi/'.length);
+    }
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
@@ -515,6 +527,15 @@ export class ProxyFallbackService {
       providerRegion === 'cn'
     ) {
       customEndpoint = buildEndpointOverride(getZaiCodingPlanBaseUrl('cn'), 'zai-subscription');
+    } else if (
+      authType === 'subscription' &&
+      isXiaomiProviderId(provider) &&
+      isXiaomiTokenPlanRegion(providerRegion)
+    ) {
+      customEndpoint = buildEndpointOverride(
+        getXiaomiTokenPlanBaseUrl(providerRegion),
+        'xiaomi-subscription',
+      );
     }
 
     const reasoningEndpointKey =

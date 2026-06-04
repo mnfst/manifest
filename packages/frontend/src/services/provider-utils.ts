@@ -34,10 +34,12 @@ const SUBSCRIPTION_PREFIXES: Record<string, string> = {
   anthropic: 'sk-ant-oat',
   minimax: 'sk-cp-',
   qwen: 'sk-sp-',
+  xiaomi: 'tp-',
 };
 
 const SUBSCRIPTION_MIN_LENGTHS: Record<string, number> = {
   qwen: 30,
+  xiaomi: 10,
 };
 
 /** Prefixes that identify API keys — reject these in subscription mode. */

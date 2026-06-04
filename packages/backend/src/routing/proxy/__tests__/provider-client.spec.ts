@@ -138,6 +138,30 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('builds correct URL for xiaomi', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'xiaomi',
+        apiKey: 'sk-mimo-test',
+        model: 'mimo-v2.5-pro',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.xiaomimimo.com/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer sk-mimo-test',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mimo-v2.5-pro');
+    });
+
     it('routes public Responses API requests for xAI to /v1/responses', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -1323,6 +1347,34 @@ describe('ProviderClient', () => {
         { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
       ]);
       expect(result.isResponses).toBe(true);
+    });
+  });
+
+  describe('Xiaomi MiMo Token Plan subscription provider', () => {
+    it('routes Xiaomi subscription auth to the Token Plan chat endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        model: 'mimo-v2.5-pro',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://token-plan-cn.xiaomimimo.com/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer tp-mimo-token',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mimo-v2.5-pro');
     });
   });
 
@@ -2907,6 +2959,7 @@ describe('ProviderClient', () => {
       ['minimax', 'MiniMax-M2'],
       ['nvidia', 'nvidia/nemotron-3-super-120b-a12b'],
       ['qwen', 'qwen-max'],
+      ['xiaomi', 'mimo-v2.5-pro'],
       ['xai', 'grok-3'],
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
@@ -2951,6 +3004,21 @@ describe('ProviderClient', () => {
         provider: 'qwen',
         apiKey: 'sk-sp-token-plan-key',
         model: 'qwen3.6-plus',
+        body: { messages: [{ role: 'user', content: 'Hello' }] },
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
+    });
+
+    it('injects stream_options.include_usage for Xiaomi MiMo Token Plan streaming requests', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      await client.forward({
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        model: 'mimo-v2.5-pro',
         body: { messages: [{ role: 'user', content: 'Hello' }] },
         stream: true,
         authType: 'subscription',

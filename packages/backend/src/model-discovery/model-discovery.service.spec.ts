@@ -1489,6 +1489,27 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('zai', 'zai-sub-key', 'subscription', undefined);
     });
 
+    it('routes Xiaomi MiMo Token Plan subscription discovery to the selected region host', async () => {
+      mockDecrypt.mockReturnValue('tp-mimo-token');
+      fetcher.fetch.mockResolvedValue([]);
+
+      await service.discoverModels(
+        makeProvider({
+          provider: 'xiaomi',
+          auth_type: 'subscription',
+          api_key_encrypted: 'encrypted',
+          region: 'ams',
+        }),
+      );
+
+      expect(fetcher.fetch).toHaveBeenCalledWith(
+        'xiaomi',
+        'tp-mimo-token',
+        'subscription',
+        'https://token-plan-ams.xiaomimimo.com',
+      );
+    });
+
     it('should fall back to subscription fallback when OpenAI token fetch returns empty', async () => {
       const blob = JSON.stringify({ t: 'expired-token', r: 'refresh', e: Date.now() - 1000 });
       mockDecrypt.mockReturnValue(blob);

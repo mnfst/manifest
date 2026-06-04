@@ -125,6 +125,23 @@ describe('validateApiKey', () => {
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates Xiaomi MiMo API key prefix and length', () => {
+    const xiaomi = getProvider('xiaomi')!;
+    expect(validateApiKey(xiaomi, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(xiaomi, 'wrong-prefix-key')).toEqual({
+      valid: false,
+      error: 'Xiaomi MiMo keys start with "sk-"',
+    });
+    expect(validateApiKey(xiaomi, 'sk-short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 10 characters)',
+    });
+    expect(validateApiKey(xiaomi, 'sk-mimo-valid')).toEqual({ valid: true });
+  });
+
   it('validates NVIDIA NIM key length without enforcing an undocumented prefix', () => {
     const nvidia = getProvider('nvidia')!;
     expect(nvidia.keyPlaceholder).toBe('nvapi-...');
@@ -249,6 +266,21 @@ describe('validateSubscriptionKey', () => {
     expect(validateSubscriptionKey(qwen, 'sk-sp-1234')).toEqual({
       valid: false,
       error: 'Token is too short (minimum 30 characters)',
+    });
+  });
+
+  it('rejects a regular Xiaomi MiMo API key in Token Plan subscription mode', () => {
+    const xiaomi = getProvider('xiaomi')!;
+    expect(validateSubscriptionKey(xiaomi, 'sk-mimo-valid')).toEqual({
+      valid: false,
+      error: 'Xiaomi MiMo subscription tokens start with "tp-"',
+    });
+  });
+
+  it('accepts a valid Xiaomi MiMo Token Plan key', () => {
+    const xiaomi = getProvider('xiaomi')!;
+    expect(validateSubscriptionKey(xiaomi, 'tp-mimo-valid')).toEqual({
+      valid: true,
     });
   });
 
@@ -449,6 +481,22 @@ describe('PROVIDERS', () => {
     expect(qwen.subscriptionOnly).toBeUndefined();
   });
 
+  it('Xiaomi MiMo supports Token Plan subscription with selectable token hosts', () => {
+    const xiaomi = PROVIDERS.find((p) => p.id === 'xiaomi')!;
+    expect(xiaomi.supportsSubscription).toBe(true);
+    expect(xiaomi.subscriptionLabel).toBe('Xiaomi MiMo Token Plan');
+    expect(xiaomi.subscriptionAuthMode).toBe('token');
+    expect(xiaomi.subscriptionKeyPlaceholder).toBe('Paste your MiMo Token Plan API key');
+    expect(xiaomi.subscriptionCredentialKind).toBe('api-key');
+    expect(xiaomi.subscriptionCredentialName).toBe('MiMo Token Plan');
+    expect(xiaomi.subscriptionEndpointRegions).toEqual([
+      { value: 'cn', label: 'China (token-plan-cn)' },
+      { value: 'sgp', label: 'Singapore (token-plan-sgp)' },
+      { value: 'ams', label: 'Europe (token-plan-ams)' },
+    ]);
+    expect(xiaomi.subscriptionOnly).toBeUndefined();
+  });
+
   it('Moonshot supports Kimi Coding Plan subscription with token flow', () => {
     const moonshot = PROVIDERS.find((p) => p.id === 'moonshot')!;
     expect(moonshot.supportsSubscription).toBe(true);
@@ -508,6 +556,13 @@ describe('PROVIDERS', () => {
 
   it('provides a subscription-key URL for Qwen Token Plan', () => {
     expect(getSubscriptionProviderKeyUrl('qwen')).toBe('https://home.qwencloud.com/api-keys');
+  });
+
+  it('provides API-key and subscription-key URLs for Xiaomi MiMo', () => {
+    expect(getRoutingProviderApiKeyUrl('xiaomi')).toBe('https://platform.xiaomimimo.com/console');
+    expect(getSubscriptionProviderKeyUrl('xiaomi')).toBe(
+      'https://platform.xiaomimimo.com/token-plan',
+    );
   });
 
   it('provides an API-key URL for Kilo', () => {

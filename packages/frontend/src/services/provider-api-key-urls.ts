@@ -16,6 +16,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   'opencode-zen': 'https://opencode.ai/auth',
   openrouter: 'https://openrouter.ai/keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
+  xiaomi: 'https://platform.xiaomimimo.com/console',
   xai: 'https://docs.x.ai/docs/api-reference',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
@@ -36,6 +37,7 @@ export const SUBSCRIPTION_PROVIDER_KEY_URLS: Record<string, string> = {
   moonshot: 'https://www.kimi.com/code/console',
   'ollama-cloud': 'https://ollama.com/settings/keys',
   kiro: 'https://app.kiro.dev',
+  xiaomi: 'https://platform.xiaomimimo.com/token-plan',
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
 

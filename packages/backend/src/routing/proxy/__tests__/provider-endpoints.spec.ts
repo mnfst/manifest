@@ -75,6 +75,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('ollama')).toBe('ollama');
     expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
+    expect(resolveEndpointKey('xiaomi')).toBe('xiaomi');
   });
 
   it('is case-insensitive', () => {
@@ -105,6 +106,12 @@ describe('resolveEndpointKey', () => {
   it('resolves BytePlus ModelArk aliases to byteplus', () => {
     expect(resolveEndpointKey('byteplus-plan')).toBe('byteplus');
     expect(resolveEndpointKey('ModelArk')).toBe('byteplus');
+  });
+
+  it('resolves Xiaomi MiMo aliases to xiaomi', () => {
+    expect(resolveEndpointKey('mimo')).toBe('xiaomi');
+    expect(resolveEndpointKey('xiaomi-mimo')).toBe('xiaomi');
+    expect(resolveEndpointKey('Xiaomi MiMo')).toBe('xiaomi');
   });
 
   it('resolves qwen and alibaba to qwen', () => {
@@ -140,6 +147,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('ollama-cloud');
     expect(known).toContain('qwen-subscription');
     expect(known).toContain('qwen-subscription-responses');
+    expect(known).toContain('xiaomi');
+    expect(known).toContain('xiaomi-subscription');
     expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
@@ -285,6 +294,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(ep.baseUrl).toBe('https://dashscope.aliyuncs.com/compatible-mode');
     expect(ep.buildPath('qwen3-235b-a22b')).toBe('/v1/chat/completions');
     expect(ep.format).toBe('openai');
+  });
+
+  it('xiaomi uses the MiMo OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['xiaomi'];
+    expect(ep.baseUrl).toBe('https://api.xiaomimimo.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('mimo-v2.5-pro')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('sk-mimo-test')).toEqual({
+      Authorization: 'Bearer sk-mimo-test',
+      'Content-Type': 'application/json',
+    });
   });
 
   it('anthropic uses x-api-key for api_key auth', () => {
@@ -550,6 +570,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('xiaomi-subscription uses the MiMo Token Plan OpenAI-compatible chat endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['xiaomi-subscription'];
+    expect(ep.baseUrl).toBe('https://token-plan-cn.xiaomimimo.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('mimo-v2.5-pro')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('tp-mimo-token')).toEqual({
+      Authorization: 'Bearer tp-mimo-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('commandcode-anthropic uses the Command Code Provider API messages endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['commandcode-anthropic'];
     expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
@@ -580,10 +611,12 @@ describe('PROVIDER_ENDPOINTS', () => {
       'mistral',
       'xai',
       'minimax',
+      'xiaomi',
       'moonshot',
       'nvidia',
       'qwen',
       'qwen-subscription',
+      'xiaomi-subscription',
       'zai',
       'zai-subscription',
       'copilot',
@@ -651,6 +684,10 @@ describe('resolveSubscriptionEndpointKey', () => {
 
   it('returns minimax-subscription for minimax', () => {
     expect(resolveSubscriptionEndpointKey('minimax')).toBe('minimax-subscription');
+  });
+
+  it('returns xiaomi-subscription for xiaomi', () => {
+    expect(resolveSubscriptionEndpointKey('xiaomi')).toBe('xiaomi-subscription');
   });
 
   it('returns byteplus-anthropic for byteplus', () => {
