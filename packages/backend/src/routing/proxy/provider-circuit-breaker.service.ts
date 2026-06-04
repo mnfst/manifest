@@ -88,8 +88,12 @@ export class ProviderCircuitBreakerService {
       return true;
     }
 
-    // half_open: only the single in-flight probe is allowed through.
-    return entry.probeInFlight;
+    // half_open: admit exactly one probe and claim the slot, so concurrent
+    // requests (e.g. after an aborted probe cleared the flag) are blocked
+    // rather than all becoming probes.
+    if (entry.probeInFlight) return true;
+    entry.probeInFlight = true;
+    return false;
   }
 
   /** Record an attempt's HTTP status (>= 500 counts as a failure). */

@@ -138,14 +138,15 @@ describe('ProviderCircuitBreakerService', () => {
       expect(cb.isOpen(KEY)).toBe(true);
     });
 
-    it('abortProbe releases a stuck probe so the next request can re-probe', () => {
+    it('abortProbe releases a stuck probe but still admits exactly one re-probe', () => {
       const cb = buildBreaker();
       tripOpen(cb);
       jest.advanceTimersByTime(CIRCUIT_BREAKER_DEFAULTS.cooldownMs);
       cb.isOpen(KEY); // probe in flight
       expect(cb.isOpen(KEY)).toBe(true); // blocked
       cb.abortProbe(KEY);
-      expect(cb.isOpen(KEY)).toBe(false); // re-probe allowed
+      expect(cb.isOpen(KEY)).toBe(false); // re-probe admitted (claims the slot)
+      expect(cb.isOpen(KEY)).toBe(true); // concurrent request blocked — exactly one
     });
 
     it('abortProbe is a no-op when there is no half-open probe', () => {

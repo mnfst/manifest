@@ -302,5 +302,14 @@ describe('proxy-transport', () => {
       expect(isRetriableConnectionError(reset)).toBe(true);
       expect(isTransportError(reset)).toBe(true);
     });
+
+    it('rejects a retriable-looking message that is not a transport error', () => {
+      // "connection reset" matches the retriable pattern, but without a
+      // transport code isTransportError rejects it — so it stays outside the
+      // subset and is NOT retried (would otherwise be rethrown raw, not 503).
+      const err = new Error('connection reset');
+      expect(isTransportError(err)).toBe(false);
+      expect(isRetriableConnectionError(err)).toBe(false);
+    });
   });
 });

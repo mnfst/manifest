@@ -91,7 +91,7 @@ export function isRetriableConnectionError(error: unknown): boolean {
   ]
     .filter((value): value is string => Boolean(value))
     .join(' ');
-  return RETRIABLE_CONNECTION_PATTERN.test(detail);
+  return isTransportError(error) && RETRIABLE_CONNECTION_PATTERN.test(detail);
 }
 
 // ---------------------------------------------------------------------------
