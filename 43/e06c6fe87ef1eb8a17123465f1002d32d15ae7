@@ -1,0 +1,82 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_5fd1ba74594e12::t_d767e4b6502f46 17-21,147-152
+packages/frontend/tests/services/providers.test.ts
+  s_5fd1ba74594e12::t_4b9da3e14daf39 128-144,272-286,484-499,561-565
+docs/providers/subscription-based-providers.md
+  s_5fd1ba74594e12::t_315f103c0d3d04 3,17,62-64
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_5fd1ba74594e12::t_8303f40b5a623a 78,111-116,150-151,299-309,573-583,614,619,689-690
+packages/backend/src/routing/model.controller.spec.ts
+  s_5fd1ba74594e12::t_e393b1afbb9ced 395,403-408
+packages/shared/__tests__/providers.spec.ts
+  s_5fd1ba74594e12::t_2015ac1f3e724e 95-104,155-162
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_5fd1ba74594e12::t_dfc564a11bd67f 141-164,1353-1380,2962,3012-3021
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_5fd1ba74594e12::t_18233cf6898bb2 34-35,735-805
+packages/shared/src/subscription/configs.ts
+  s_5fd1ba74594e12::t_7bf2a4d95f78c7 83-102
+packages/shared/__tests__/subscription.spec.ts
+  s_5fd1ba74594e12::t_2015ac1f3e724e 19,97-115,260,310-320,389-392,472-475
+packages/backend/src/routing/provider.controller.spec.ts
+  s_5fd1ba74594e12::t_a7b6353d13d40c 421-462,545
+packages/shared/__tests__/provider-inference.spec.ts
+  s_5fd1ba74594e12::t_2015ac1f3e724e 39-40,117-123
+  s_5fd1ba74594e12::t_16b05b3120242a 125,127
+packages/shared/src/provider-inference.ts
+  s_5fd1ba74594e12::t_4aa97d16ef70a9 15
+README.md
+  s_5fd1ba74594e12::t_315f103c0d3d04 65-79
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_5fd1ba74594e12::t_4b9da3e14daf39 24
+packages/shared/src/providers.ts
+  s_5fd1ba74594e12::t_7bf2a4d95f78c7 199-209
+.changeset/xiaomi-mimo-provider.md
+  s_5fd1ba74594e12::t_e0a02c39180009 1-5
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_5fd1ba74594e12::t_7340d145266107 1492-1512
+packages/backend/src/common/utils/provider-inference.spec.ts
+  s_5fd1ba74594e12::t_2015ac1f3e724e 60-63
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_5fd1ba74594e12::t_d767e4b6502f46 13-16,33-34,131-149,219-220,586-595,695-696,747-752
+packages/frontend/src/services/provider-utils.ts
+  s_5fd1ba74594e12::t_4aa97d16ef70a9 37,42
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_5fd1ba74594e12::t_79ce1b03ba6e85 914-968
+packages/backend/src/routing/xiaomi-region.ts
+  s_5fd1ba74594e12::t_7bf2a4d95f78c7 1-34
+packages/backend/src/routing/provider.controller.ts
+  s_5fd1ba74594e12::t_d767e4b6502f46 32,102-103,115-120,127
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_5fd1ba74594e12::t_5f9417aca7a26d 487-493,530-538
+  s_5fd1ba74594e12::t_d767e4b6502f46 72-76
+packages/frontend/src/services/providers.ts
+  s_5fd1ba74594e12::t_4aa97d16ef70a9 238-253
+  s_5fd1ba74594e12::t_22478bf69f9042 409
+packages/shared/__tests__/provider-params-spec.spec.ts
+  s_5fd1ba74594e12::t_dd5fb8f6cba08a 166
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_5fd1ba74594e12::t_7bf2a4d95f78c7 19
+packages/frontend/src/components/ProviderIcon.tsx
+  s_5fd1ba74594e12::t_e0f5dc20758c16 335-346
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_5fd1ba74594e12::t_4aa97d16ef70a9 19,40
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_5fd1ba74594e12::t_7bf2a4d95f78c7 11,106-107,238-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "43e06c6fe87ef1eb8a17123465f1002d32d15ae7",
+  "prompts": {},
+  "sessions": {
+    "s_5fd1ba74594e12": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e9247-0b46-70c0-9df7-cc781a9e67ae",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
