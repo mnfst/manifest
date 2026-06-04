@@ -3,6 +3,7 @@ import { ProviderService } from '../provider.service';
 import { UserProvider } from '../../../entities/user-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
+import { HeaderTier } from '../../../entities/header-tier.entity';
 import type { Repository } from 'typeorm';
 import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
@@ -25,6 +26,7 @@ const makeRepo = () => ({
   insert: jest.fn().mockResolvedValue(undefined),
   save: jest.fn().mockImplementation(async (rows) => rows),
   delete: jest.fn().mockResolvedValue(undefined),
+  remove: jest.fn().mockResolvedValue(undefined),
   update: jest.fn().mockResolvedValue(undefined),
   manager: { transaction: jest.fn() },
 });
@@ -33,6 +35,7 @@ describe('ProviderService — route-only cleanup paths', () => {
   let providerRepo: ReturnType<typeof makeRepo>;
   let tierRepo: ReturnType<typeof makeRepo>;
   let specRepo: ReturnType<typeof makeRepo>;
+  let headerTierRepo: ReturnType<typeof makeRepo>;
   let autoAssign: jest.Mocked<Pick<TierAutoAssignService, 'recalculate'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
   let routingCache: {
@@ -46,6 +49,7 @@ describe('ProviderService — route-only cleanup paths', () => {
     providerRepo = makeRepo();
     tierRepo = makeRepo();
     specRepo = makeRepo();
+    headerTierRepo = makeRepo();
     autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
     routingCache = {
@@ -58,6 +62,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo as unknown as Repository<UserProvider>,
       tierRepo as unknown as Repository<TierAssignment>,
       specRepo as unknown as Repository<SpecificityAssignment>,
+      headerTierRepo as unknown as Repository<HeaderTier>,
       autoAssign as unknown as TierAutoAssignService,
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
@@ -390,8 +395,129 @@ describe('ProviderService — route-only cleanup paths', () => {
           fallback_routes: null,
         }),
       );
+      expect(headerTierRepo.update).toHaveBeenCalledWith(
+        { agent_id: 'agent-1' },
+        expect.objectContaining({ override_route: null, fallback_routes: null }),
+      );
       expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+  });
+
+  describe('header-tier cleanup on disconnect / rename', () => {
+    const headerPin = (keyLabel: string | null) => ({
+      provider: 'openai',
+      authType: 'subscription' as const,
+      model: 'openai/gpt-5',
+      keyLabel,
+    });
+
+    it('relabels header-tier key pins to null when one of several keys is disconnected', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'target',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          label: 'Key 2',
+          is_active: true,
+        },
+        {
+          id: 'other',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          label: 'Default',
+          is_active: true,
+        },
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          override_route: headerPin('Key 2'),
+          fallback_routes: [headerPin('Key 2'), headerPin('Default')],
+        } as unknown as HeaderTier,
+        // Non-matching tier (different pinned label) must be left untouched.
+        {
+          id: 'h2',
+          override_route: headerPin('Default'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
+      ]);
+
+      await svc.removeProvider('agent-1', 'openai', 'subscription', 'Key 2');
+
+      expect(headerTierRepo.save).toHaveBeenCalledTimes(1);
+      const saved = headerTierRepo.save.mock.calls[0][0] as HeaderTier[];
+      expect(saved).toHaveLength(1);
+      expect(saved[0].id).toBe('h1');
+      expect(saved[0].override_route?.keyLabel).toBeNull();
+      expect(saved[0].fallback_routes?.[0].keyLabel).toBeNull();
+      expect(saved[0].fallback_routes?.[1].keyLabel).toBe('Default');
+    });
+
+    it('rewrites header-tier key pins to the new label on rename', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'target',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'subscription',
+          label: 'Key 2',
+          is_active: true,
+        },
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          override_route: headerPin('Key 2'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
+      ]);
+
+      await svc.renameKey('agent-1', 'openai', 'subscription', 'Key 2', 'Renamed');
+
+      const saved = headerTierRepo.save.mock.calls[0][0] as HeaderTier[];
+      expect(saved[0].override_route?.keyLabel).toBe('Renamed');
+    });
+
+    it('clears header-tier routes belonging to a fully disconnected provider', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+      });
+      providerRepo.find.mockResolvedValue([]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          override_route: route('OpenAI', 'gpt-4o'),
+          fallback_routes: [route('openai', 'gpt-4o-mini'), route('anthropic', 'claude')],
+        } as unknown as HeaderTier,
+        // Belongs to another provider — must survive.
+        {
+          id: 'h2',
+          override_route: route('anthropic', 'claude'),
+          fallback_routes: null,
+        } as unknown as HeaderTier,
+      ]);
+
+      await svc.removeProvider('agent-1', 'openai');
+
+      expect(headerTierRepo.save).toHaveBeenCalledTimes(1);
+      const saved = headerTierRepo.save.mock.calls[0][0] as HeaderTier[];
+      expect(saved).toHaveLength(1);
+      expect(saved[0].id).toBe('h1');
+      expect(saved[0].override_route).toBeNull();
+      expect(saved[0].fallback_routes).toEqual([route('anthropic', 'claude')]);
     });
   });
 
@@ -701,6 +827,7 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
       providerRepo as unknown as Repository<UserProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
       makeRepo() as unknown as Repository<SpecificityAssignment>,
+      makeRepo() as unknown as Repository<HeaderTier>,
       { recalculate: jest.fn() } as unknown as TierAutoAssignService,
       { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
       {
