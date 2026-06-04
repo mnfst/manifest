@@ -57,6 +57,34 @@ export class ProviderService {
     return providers;
   }
 
+  /**
+   * Read the freshest persisted subscription credential straight from the DB,
+   * decrypted, bypassing the routing cache. The OAuth refresh coordinator uses
+   * this so a lazy token refresh never rotates based on a stale cached blob
+   * (see issue #2012). Returns the decrypted raw stored value, or null when
+   * there is no row / no stored credential / it cannot be decrypted.
+   */
+  async getFreshSubscriptionCredential(
+    agentId: string,
+    provider: string,
+    label?: string,
+  ): Promise<string | null> {
+    const row = await this.providerRepo.findOne({
+      where: {
+        agent_id: agentId,
+        provider,
+        auth_type: 'subscription',
+        label: label ?? DEFAULT_LABEL,
+      },
+    });
+    if (!row?.api_key_encrypted) return null;
+    try {
+      return decrypt(row.api_key_encrypted, getEncryptionSecret());
+    } catch {
+      return null;
+    }
+  }
+
   async upsertProvider(
     agentId: string,
     userId: string,

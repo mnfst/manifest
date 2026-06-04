@@ -17,6 +17,8 @@ import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import {
+  coordinateOAuthRefresh,
+  oauthRefreshKey,
   generatePkce,
   generateState,
   oauthDoneHtml,
@@ -263,23 +265,32 @@ export abstract class RedirectPkceOauthBaseService {
     userId: string,
     keyLabel?: string,
   ): Promise<string | null> {
+    const providerId = this.oauthConfig.providerId;
     try {
-      const refreshed = await this.refreshAccessToken(blob.r, blob.u);
-      await this.providerService.upsertProvider(
-        agentId,
-        userId,
-        this.oauthConfig.providerId,
-        serializeOAuthTokenBlob(refreshed),
-        'subscription',
-        undefined,
-        keyLabel,
-      );
-      this.logger.log(`${this.oauthConfig.providerId} OAuth token refreshed for agent=${agentId}`);
-      return refreshed.t;
+      const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
+        key: oauthRefreshKey(providerId, userId, agentId, keyLabel),
+        logger: this.logger,
+        callerBlob: blob,
+        readFreshRaw: () =>
+          this.providerService.getFreshSubscriptionCredential(agentId, providerId, keyLabel),
+        parse: parseOAuthTokenBlob,
+        refresh: (current) => this.refreshAccessToken(current.r, current.u),
+        persist: (refreshed) =>
+          this.providerService
+            .upsertProvider(
+              agentId,
+              userId,
+              providerId,
+              serializeOAuthTokenBlob(refreshed),
+              'subscription',
+              undefined,
+              keyLabel,
+            )
+            .then(() => undefined),
+      });
+      return resolved.t;
     } catch (err) {
-      this.logger.error(
-        `Failed to refresh ${this.oauthConfig.providerId} token for agent=${agentId}: ${err}`,
-      );
+      this.logger.error(`Failed to refresh ${providerId} token for agent=${agentId}: ${err}`);
       return null;
     }
   }
