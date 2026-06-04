@@ -13,6 +13,7 @@ import Sparkline from '../../components/Sparkline.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
 import type { RoutingProvider } from '../../services/api/routing.js';
 import '../../styles/charts.css';
+import '../../styles/routing.css';
 
 interface Connection {
   id: string;
