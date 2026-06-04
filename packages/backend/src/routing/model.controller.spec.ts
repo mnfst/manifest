@@ -91,8 +91,6 @@ describe('ModelController', () => {
       mockProviderParamSpecs as unknown as ProviderParamSpecService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
-      { find: jest.fn().mockResolvedValue([]) } as never,
-      { findByIds: jest.fn().mockResolvedValue([]) } as never,
     );
   });
 

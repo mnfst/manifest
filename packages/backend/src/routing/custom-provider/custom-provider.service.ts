@@ -22,7 +22,6 @@ import {
 } from '../../entities/custom-provider.entity';
 import { ProviderService } from '../routing-core/provider.service';
 import { RoutingCacheService } from '../routing-core/routing-cache.service';
-import { TierAutoAssignService } from '../routing-core/tier-auto-assign.service';
 import { CreateCustomProviderDto, UpdateCustomProviderDto } from '../dto/custom-provider.dto';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
@@ -73,7 +72,6 @@ export class CustomProviderService {
     private readonly repo: Repository<CustomProvider>,
     private readonly providerService: ProviderService,
     private readonly routingCache: RoutingCacheService,
-    private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
     @Optional()
     @Inject(ModelsDevSyncService)
@@ -132,17 +130,17 @@ export class CustomProviderService {
   // string the rewrite path can only ever produce a non-null string, so
   // downstream call sites don't need defensive `?? model` fallbacks.
   async canonicalizeAgentMessageKeys(
-    agentId: string,
+    userId: string,
     provider: string | null | undefined,
     model: string,
   ): Promise<{ provider: string | null; model: string }>;
   async canonicalizeAgentMessageKeys(
-    agentId: string,
+    userId: string,
     provider: string | null | undefined,
     model: string | null | undefined,
   ): Promise<{ provider: string | null; model: string | null }>;
   async canonicalizeAgentMessageKeys(
-    agentId: string,
+    userId: string,
     provider: string | null | undefined,
     model: string | null | undefined,
   ): Promise<{ provider: string | null; model: string | null }> {
@@ -161,7 +159,7 @@ export class CustomProviderService {
       : (modelMatch?.[1] ?? null);
     if (!cpId) return { provider: provider ?? null, model: model ?? null };
 
-    const rows = await this.list(agentId);
+    const rows = await this.list(userId);
     const row = rows.find((r) => r.id === cpId);
     if (!row) return { provider: provider ?? null, model: model ?? null };
 
@@ -176,25 +174,23 @@ export class CustomProviderService {
     return { provider: rewrittenProvider, model: rewrittenModel };
   }
 
-  async list(agentId: string): Promise<CustomProvider[]> {
-    const cached = this.routingCache.getCustomProviders(agentId);
+  async list(userId: string): Promise<CustomProvider[]> {
+    const cached = this.routingCache.getCustomProviders(userId);
     if (cached) return cached;
 
-    const result = await this.repo.find({ where: { agent_id: agentId } });
-    this.routingCache.setCustomProviders(agentId, result);
+    const result = await this.repo.find({ where: { user_id: userId } });
+    this.routingCache.setCustomProviders(userId, result);
     return result;
   }
 
-  async create(
-    agentId: string,
-    userId: string,
-    dto: CreateCustomProviderDto,
-  ): Promise<CustomProvider> {
-    const existing = await this.repo.findOne({
-      where: { agent_id: agentId, name: dto.name },
-    });
+  async create(userId: string, dto: CreateCustomProviderDto): Promise<CustomProvider> {
+    // Use case-insensitive comparison to match the DB unique index on
+    // (user_id, LOWER(name)) — an exact findOne would miss "My Provider"
+    // vs "my provider" and fall through to a raw constraint 500.
+    const allForUser = await this.repo.find({ where: { user_id: userId } });
+    const existing = allForUser.find((r) => r.name.toLowerCase() === dto.name.toLowerCase());
     if (existing) {
-      throw new ConflictException(`Custom provider "${dto.name}" already exists for this agent`);
+      throw new ConflictException(`Custom provider "${dto.name}" already exists`);
     }
 
     try {
@@ -208,7 +204,6 @@ export class CustomProviderService {
 
     const cp = Object.assign(new CustomProvider(), {
       id,
-      agent_id: agentId,
       user_id: userId,
       name: dto.name,
       base_url: dto.base_url,
@@ -218,12 +213,14 @@ export class CustomProviderService {
     });
     await this.repo.insert(cp);
 
-    // Create UserProvider + trigger tier recalculation. When the display
-    // name resolves to Ollama / LM Studio we tag the row `'local'` so
-    // routed messages carry the grey-house badge and the row shows up
-    // under the Local tab.
+    // Create UserProvider + trigger tier recalculation across every owned
+    // agent (custom providers are user-global). When the display name
+    // resolves to Ollama / LM Studio we tag the row `'local'` so routed
+    // messages carry the grey-house badge and the row shows up under the
+    // Local tab. A null agentId tells the provider service the change is
+    // user-global rather than tied to one agent.
     await this.providerService.upsertProvider(
-      agentId,
+      null,
       userId,
       provKey,
       dto.apiKey,
@@ -238,24 +235,23 @@ export class CustomProviderService {
     return cp;
   }
 
-  async update(
-    agentId: string,
-    id: string,
-    userId: string,
-    dto: UpdateCustomProviderDto,
-  ): Promise<CustomProvider> {
-    const cp = await this.repo.findOne({ where: { id, agent_id: agentId } });
+  async update(id: string, userId: string, dto: UpdateCustomProviderDto): Promise<CustomProvider> {
+    const cp = await this.repo.findOne({ where: { id, user_id: userId } });
     if (!cp) {
       throw new NotFoundException('Custom provider not found');
     }
 
     const previousName = cp.name;
     if (dto.name !== undefined && dto.name !== cp.name) {
-      const dup = await this.repo.findOne({
-        where: { agent_id: agentId, name: dto.name },
-      });
+      // Use case-insensitive comparison to match the DB unique index on
+      // (user_id, LOWER(name)) so "My Provider" → "my provider" returns
+      // a ConflictException instead of hitting a raw DB constraint 500.
+      const allForUser = await this.repo.find({ where: { user_id: userId } });
+      const dup = allForUser.find(
+        (r) => r.id !== id && r.name.toLowerCase() === dto.name!.toLowerCase(),
+      );
       if (dup) {
-        throw new ConflictException(`Custom provider "${dto.name}" already exists for this agent`);
+        throw new ConflictException(`Custom provider "${dto.name}" already exists`);
       }
       cp.name = dto.name;
     }
@@ -277,6 +273,17 @@ export class CustomProviderService {
       cp.models = this.enrichCustomProviderModels(cp.name, dto.models);
     }
 
+    // Persist the updated state first so tier recalculation (below) operates
+    // against the new model list, not the stale one.
+    await this.repo.save(cp);
+    this.routingCache.invalidateUser(userId);
+
+    // Reload pricing cache when the model list changes so the tier
+    // auto-assigner (called below) can score models with fresh prices.
+    if (dto.models !== undefined) {
+      await this.pricingCache.reload();
+    }
+
     // Retag auth_type when the name changes categories (freeform ↔ canonical
     // local). This path fires even without an apiKey update because renaming
     // "LM Studio" to "My Home Server" should move the row off the Local tab,
@@ -291,7 +298,7 @@ export class CustomProviderService {
     // row accordingly.
     if ('apiKey' in dto) {
       await this.providerService.upsertProvider(
-        agentId,
+        null,
         userId,
         CustomProviderService.providerKey(id),
         dto.apiKey,
@@ -301,43 +308,36 @@ export class CustomProviderService {
       // Rename-only path: flip auth_type in place so the row keeps its
       // stored api_key_encrypted and tier overrides stay intact. Going
       // through upsertProvider would insert a second row since the unique
-      // index is keyed on (agent_id, provider, auth_type).
+      // index is keyed on (user_id, provider, auth_type).
       await this.providerService.retagAuthType(
-        agentId,
+        null,
         userId,
         CustomProviderService.providerKey(id),
         nextAuthType,
       );
     }
 
-    // Recalculate tiers when models changed (even without API key change)
+    // Recalculate tiers across all owned agents when models changed (even
+    // without API key change). The upsert/retag paths already recalc.
     if (dto.models !== undefined && !('apiKey' in dto) && !nameCategoryChanged) {
-      await this.autoAssign.recalculate(agentId, userId);
-    }
-
-    await this.repo.save(cp);
-    this.routingCache.invalidateAgent(agentId);
-
-    // Reload pricing cache when the model list changes so new prices (or
-    // edits to existing ones) are used for subsequent cost computations.
-    if (dto.models !== undefined) {
-      await this.pricingCache.reload();
+      await this.providerService.recalculateTiersForUser(userId);
     }
 
     return cp;
   }
 
-  async remove(agentId: string, userId: string, id: string): Promise<void> {
-    const cp = await this.repo.findOne({ where: { id, agent_id: agentId } });
+  async remove(userId: string, id: string): Promise<void> {
+    const cp = await this.repo.findOne({ where: { id, user_id: userId } });
     if (!cp) {
       throw new NotFoundException('Custom provider not found');
     }
 
     const provKey = CustomProviderService.providerKey(id);
 
-    // Remove UserProvider + tier overrides
+    // Remove the user-global UserProvider + tier overrides across all agents.
+    // A null agentId tells the provider service the removal is user-global.
     try {
-      await this.providerService.removeProvider(agentId, userId, provKey);
+      await this.providerService.removeProvider(null, userId, provKey);
     } catch {
       // Provider may not exist if creation partially failed
     }

@@ -213,7 +213,7 @@ export class ResolveService {
 
     // Guard against orphaned overrides (a model removed after the tier was
     // configured). Mirrors the same check in resolveSpecificity().
-    if (!(await this.providerKeyService.isModelAvailable(userId, overrideRoute.model))) {
+    if (!(await this.providerKeyService.isModelAvailable(userId, overrideRoute.model, agentId))) {
       this.logger.warn(
         `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
           `for agent=${agentId}; falling through to existing routing`,
@@ -222,14 +222,16 @@ export class ResolveService {
     }
 
     const provider =
-      overrideRoute.provider || (await this.resolveProviderForModel(userId, overrideRoute.model));
+      overrideRoute.provider ||
+      (await this.resolveProviderForModel(agentId, userId, overrideRoute.model));
     const authType: AuthType =
-      overrideRoute.authType ?? (await this.providerKeyService.getAuthType(userId, provider ?? ''));
+      overrideRoute.authType ??
+      (await this.providerKeyService.getAuthType(userId, provider ?? '', undefined, agentId));
     const baseRoute: ModelRoute | null =
       provider && authType
         ? { provider, authType, model: overrideRoute.model, keyLabel: overrideRoute.keyLabel }
         : null;
-    const route = baseRoute ? await this.enrichRouteKeyLabel(userId, baseRoute) : null;
+    const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, userId, baseRoute) : null;
 
     const outputModality = outputModalityFor(match);
     const responseMode = responseModeFor(match);
@@ -295,7 +297,7 @@ export class ResolveService {
       // override (e.g. a deleted custom provider) returns null so resolve()
       // falls through to tier-based routing instead of pinning every matching
       // request to a dead provider (#1603).
-      if (!(await this.providerKeyService.isModelAvailable(userId, overrideRoute.model))) {
+      if (!(await this.providerKeyService.isModelAvailable(userId, overrideRoute.model, agentId))) {
         this.logger.warn(
           `Specificity override ${overrideRoute.model} is unavailable ` +
             `for agent=${agentId}; falling through to tier routing`,
@@ -312,7 +314,7 @@ export class ResolveService {
     const outputModality = outputModalityFor(assignment);
     const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
-    const enrichedRoute = await this.enrichRouteKeyLabel(userId, route);
+    const enrichedRoute = await this.enrichRouteKeyLabel(agentId, userId, route);
     const effectiveRoutes = effectiveRoutesForResponseMode(
       responseMode,
       enrichedRoute,
@@ -345,15 +347,15 @@ export class ResolveService {
   ): Promise<ModelRoute | null> {
     const override = readOverrideRoute(assignment);
     if (override) {
-      if (await this.providerKeyService.isModelAvailable(userId, override.model)) {
-        return this.enrichRouteKeyLabel(userId, override);
+      if (await this.providerKeyService.isModelAvailable(userId, override.model, agentId)) {
+        return this.enrichRouteKeyLabel(agentId, userId, override);
       }
       this.logger.warn(
         `Override ${override.model} unavailable for agent=${agentId} — falling back to auto`,
       );
     }
     return assignment.auto_assigned_route
-      ? this.enrichRouteKeyLabel(userId, assignment.auto_assigned_route)
+      ? this.enrichRouteKeyLabel(agentId, userId, assignment.auto_assigned_route)
       : null;
   }
 
@@ -368,12 +370,17 @@ export class ResolveService {
    * legacy field), so this can't accidentally use the override's authType
    * for an auto-assigned model picked under a different auth mode.
    */
-  private async enrichRouteKeyLabel(userId: string, route: ModelRoute): Promise<ModelRoute> {
+  private async enrichRouteKeyLabel(
+    agentId: string,
+    userId: string,
+    route: ModelRoute,
+  ): Promise<ModelRoute> {
     if (route.keyLabel) return route;
     const label = await this.providerKeyService.getDefaultKeyLabel(
       userId,
       route.provider,
       route.authType,
+      agentId,
     );
     return label ? { ...route, keyLabel: label } : route;
   }
@@ -383,14 +390,18 @@ export class ResolveService {
    * (e.g. legacy header-tier rows where override_route was backfilled with
    * just the model). Used as a fallback only.
    */
-  private async resolveProviderForModel(userId: string, model: string): Promise<string | null> {
+  private async resolveProviderForModel(
+    agentId: string,
+    userId: string,
+    model: string,
+  ): Promise<string | null> {
     // 1. Slash prefix on the model name when that provider is connected.
     const prefix = inferProviderFromModelName(model);
-    if (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix))) {
+    if (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix, agentId))) {
       return prefix;
     }
     // 2. Discovered models cache.
-    const discovered = await this.discoveryService.getModelForAgent(userId, model);
+    const discovered = await this.discoveryService.getModelForAgent(userId, model, agentId);
     if (discovered) return discovered.provider;
     // 3. Pricing cache (excluding the OpenRouter aggregator).
     const pricing = this.pricingCache.getByModel(model);

@@ -13,7 +13,6 @@ import { checkLocalLlmHost } from '../services/setup-status.js';
 import { providerIcon } from './ProviderIcon.js';
 
 interface Props {
-  agentName: string;
   provider: ProviderDef;
   /** When set, the view opens in edit mode for an existing custom provider. */
   editData?: CustomProviderData;
@@ -62,7 +61,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
     async ({ url }): Promise<ProbeState> => {
       const wasConnected = hasSeeded();
       try {
-        const { models } = await probeCustomProvider(props.agentName, url);
+        const { models } = await probeCustomProvider(url);
         const names = models.map((m) => m.model_name);
         setSelected((prev) => {
           if (!hasSeeded()) {
@@ -102,7 +101,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
     setConnecting(true);
     try {
       if (props.editData) {
-        await updateCustomProvider(props.agentName, props.editData.id, {
+        await updateCustomProvider(props.editData.id, {
           models: picked.map((name) => ({
             model_name: name,
             input_price_per_million_tokens: 0,
@@ -113,7 +112,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
           `${props.provider.name} updated (${picked.length} model${picked.length === 1 ? '' : 's'})`,
         );
       } else {
-        await createCustomProvider(props.agentName, {
+        await createCustomProvider({
           name: props.provider.name,
           base_url: state.baseUrl,
           models: picked.map((name) => ({
@@ -138,7 +137,7 @@ const LocalServerDetailView: Component<Props> = (props) => {
     if (!props.editData) return;
     setDeleting(true);
     try {
-      await deleteCustomProvider(props.agentName, props.editData.id);
+      await deleteCustomProvider(props.editData.id);
       toast.success(`${props.provider.name} disconnected`);
       props.onConnected();
     } catch (err) {

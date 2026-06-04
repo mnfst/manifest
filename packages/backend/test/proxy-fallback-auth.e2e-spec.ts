@@ -98,6 +98,12 @@ beforeAll(async () => {
       ]),
     ],
   );
+  await ds.query(
+    `INSERT INTO agent_provider_access (agent_id, user_provider_id)
+     VALUES ($1,$2),($1,$3)
+     ON CONFLICT DO NOTHING`,
+    [TEST_AGENT_ID, 'up-anthropic', 'up-openai-sub'],
+  );
 
   // Wire the default tier with the bug scenario: api_key primary -> subscription fallback.
   // Tiers are created lazily on first `getTiers()` call, so INSERT (not UPDATE)
@@ -206,7 +212,9 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
 
     // The seeder + auto-assign warm the routing cache before the test's DB
     // writes, so flush it now or the resolver keeps using the stale tier.
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     await request(app.getHttpServer())
       .post('/v1/chat/completions')
@@ -249,7 +257,9 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
 
     // The seeder + auto-assign warm the routing cache before the test's DB
     // writes, so flush it now or the resolver keeps using the stale tier.
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     const res = await request(app.getHttpServer())
       .post('/v1/chat/completions')

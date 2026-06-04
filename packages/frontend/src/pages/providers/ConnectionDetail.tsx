@@ -120,7 +120,7 @@ const ConnectionDetail: Component = () => {
     async (p) => {
       if (!p) return null;
       try {
-        const list = await fetchCustomProviders(p.agentName);
+        const list = await fetchCustomProviders();
         return (list as any[])?.find((cp: any) => cp.id === p.providerId) ?? null;
       } catch {
         return null;

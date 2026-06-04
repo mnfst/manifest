@@ -74,6 +74,11 @@ describe("Sidebar top-level links", () => {
     expect(screen.getByText("Messages")).toBeDefined();
   });
 
+  it("renders Agents link", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Agents")).toBeDefined();
+  });
+
   it("Overview href is /overview", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/overview"]')).not.toBeNull();
@@ -82,6 +87,11 @@ describe("Sidebar top-level links", () => {
   it("Messages href is /messages", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/messages"]')).not.toBeNull();
+  });
+
+  it("Agents href is /agents", () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.querySelector('a[href="/agents"]')).not.toBeNull();
   });
 });
 
@@ -126,15 +136,15 @@ describe("Sidebar PROVIDERS section", () => {
   });
 });
 
-describe("Sidebar AGENTS section", () => {
+describe("Sidebar navigation shell", () => {
   beforeAll(() => {
     mockPathname = "/overview";
     mockAgentName = "test-agent";
   });
 
-  it("renders AGENTS section label", () => {
+  it("does not render the legacy AGENTS section label", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("AGENTS")).toBeDefined();
+    expect(screen.queryByText("AGENTS")).toBeNull();
   });
 
   it("has nav element with correct aria-label", () => {
@@ -169,9 +179,9 @@ describe("Sidebar workspace title", () => {
     mockPathname = "/overview";
   });
 
-  it("renders workspace title based on user name", () => {
+  it("does not render the legacy workspace title", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Test's workspace")).toBeDefined();
+    expect(screen.queryByText("Test's workspace")).toBeNull();
   });
 });
 
@@ -232,6 +242,20 @@ describe("Sidebar active states", () => {
     expect(link?.getAttribute("aria-current")).toBe("page");
   });
 
+  it("marks Agents link as active on /agents", () => {
+    mockPathname = "/agents";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/agents"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Agents link as active on agent detail pages", () => {
+    mockPathname = "/agents/test-agent";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/agents"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
   it("does not mark Overview as active on /messages", () => {
     mockPathname = "/messages";
     const { container } = render(() => <Sidebar />);
@@ -240,35 +264,26 @@ describe("Sidebar active states", () => {
   });
 });
 
-describe("Sidebar agents collapse", () => {
+describe("Sidebar legacy agents controls", () => {
   beforeAll(() => {
     mockPathname = "/overview";
     mockAgentName = "test-agent";
   });
 
-  it("shows collapse button for AGENTS section", () => {
+  it("does not show collapse button for a removed AGENTS section", () => {
     const { container } = render(() => <Sidebar />);
     const caretBtn = container.querySelector("button.sidebar__section-caret");
-    expect(caretBtn).not.toBeNull();
+    expect(caretBtn).toBeNull();
   });
 
-  it("toggles agents list when caret is clicked", async () => {
+  it("does not render legacy agent links", () => {
     const { container } = render(() => <Sidebar />);
-    const caretBtn = container.querySelector(
-      "button.sidebar__section-caret",
-    ) as HTMLButtonElement;
-
-    // Initially expanded
-    expect(caretBtn.getAttribute("aria-expanded")).toBe("true");
-
-    await fireEvent.click(caretBtn);
-
-    expect(caretBtn.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector('a[href="/agents/test-agent"]')).toBeNull();
   });
 
-  it("shows add agent button", () => {
+  it("does not show add agent button in the sidebar", () => {
     const { container } = render(() => <Sidebar />);
     const addBtn = container.querySelector("button.sidebar__section-add");
-    expect(addBtn).not.toBeNull();
+    expect(addBtn).toBeNull();
   });
 });

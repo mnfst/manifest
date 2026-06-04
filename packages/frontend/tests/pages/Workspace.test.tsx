@@ -5,6 +5,7 @@ const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [{}, vi.fn()],
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -133,9 +134,9 @@ describe("Workspace", () => {
     mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent", display_name: "new-agent" }, apiKey: "test-key" });
   });
 
-  it("renders My Agents heading", async () => {
+  it("renders Agents heading", async () => {
     render(() => <Workspace />);
-    expect(screen.getByText("My Agents")).toBeDefined();
+    expect(screen.getByText("Agents")).toBeDefined();
   });
 
   it("renders Connect Agent button", () => {

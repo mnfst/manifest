@@ -17,9 +17,24 @@ describe('Custom Providers (e2e)', () => {
 
   let createdId: string;
 
+  async function enableCustomProviderForAgent(providerId: string): Promise<void> {
+    const providers = await request(app.getHttpServer())
+      .get(`/api/v1/routing/${agentName}/providers`)
+      .set(headers)
+      .expect(200);
+    const row = providers.body.find(
+      (p: { id: string; provider: string }) => p.provider === `custom:${providerId}`,
+    );
+    expect(row).toBeDefined();
+    await request(app.getHttpServer())
+      .put(`/api/v1/agents/${agentName}/provider-access/${row.id}`)
+      .set(headers)
+      .expect(200);
+  }
+
   it('GET /custom-providers returns empty array initially', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/api/v1/routing/${agentName}/custom-providers`)
+      .get(`/api/v1/custom-providers`)
       .set(headers)
       .expect(200);
 
@@ -28,7 +43,7 @@ describe('Custom Providers (e2e)', () => {
 
   it('POST /custom-providers creates a custom provider', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Groq',
@@ -53,11 +68,12 @@ describe('Custom Providers (e2e)', () => {
     expect(res.body.models).toHaveLength(2);
     expect(res.body.id).toBeDefined();
     createdId = res.body.id;
+    await enableCustomProviderForAgent(createdId);
   });
 
   it('GET /custom-providers lists the created provider', async () => {
     const res = await request(app.getHttpServer())
-      .get(`/api/v1/routing/${agentName}/custom-providers`)
+      .get(`/api/v1/custom-providers`)
       .set(headers)
       .expect(200);
 
@@ -85,7 +101,7 @@ describe('Custom Providers (e2e)', () => {
 
   it('PUT /custom-providers/:id updates name and base_url', async () => {
     const res = await request(app.getHttpServer())
-      .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+      .put(`/api/v1/custom-providers/${createdId}`)
       .set(headers)
       .send({
         name: 'Groq Updated',
@@ -101,12 +117,10 @@ describe('Custom Providers (e2e)', () => {
 
   it('PUT /custom-providers/:id updates models', async () => {
     const res = await request(app.getHttpServer())
-      .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+      .put(`/api/v1/custom-providers/${createdId}`)
       .set(headers)
       .send({
-        models: [
-          { model_name: 'new-model', input_price_per_million_tokens: 1.0 },
-        ],
+        models: [{ model_name: 'new-model', input_price_per_million_tokens: 1.0 }],
       })
       .expect(200);
 
@@ -116,7 +130,7 @@ describe('Custom Providers (e2e)', () => {
 
   it('PUT /custom-providers/:id returns 404 for unknown id', async () => {
     await request(app.getHttpServer())
-      .put(`/api/v1/routing/${agentName}/custom-providers/nonexistent-id`)
+      .put(`/api/v1/custom-providers/nonexistent-id`)
       .set(headers)
       .send({ name: 'X' })
       .expect(404);
@@ -125,7 +139,7 @@ describe('Custom Providers (e2e)', () => {
   it('PUT /custom-providers/:id rejects duplicate name', async () => {
     // Create a second provider
     const res2 = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Other Provider',
@@ -136,14 +150,14 @@ describe('Custom Providers (e2e)', () => {
 
     // Try to rename it to the same name as the first provider
     await request(app.getHttpServer())
-      .put(`/api/v1/routing/${agentName}/custom-providers/${res2.body.id}`)
+      .put(`/api/v1/custom-providers/${res2.body.id}`)
       .set(headers)
       .send({ name: 'Groq Updated' })
       .expect(409);
 
     // Cleanup the second provider
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${res2.body.id}`)
+      .delete(`/api/v1/custom-providers/${res2.body.id}`)
       .set(headers)
       .expect(200);
   });
@@ -164,7 +178,7 @@ describe('Custom Providers (e2e)', () => {
   // Restore original models for subsequent tests
   it('PUT /custom-providers/:id restores original models', async () => {
     await request(app.getHttpServer())
-      .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+      .put(`/api/v1/custom-providers/${createdId}`)
       .set(headers)
       .send({
         name: 'Groq',
@@ -183,7 +197,7 @@ describe('Custom Providers (e2e)', () => {
 
   it('POST /custom-providers rejects duplicate name', async () => {
     await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Groq',
@@ -196,7 +210,7 @@ describe('Custom Providers (e2e)', () => {
   it('POST /custom-providers validates input', async () => {
     // Missing name
     await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         base_url: 'https://api.example.com/v1',
@@ -206,7 +220,7 @@ describe('Custom Providers (e2e)', () => {
 
     // Empty models
     await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Test',
@@ -218,13 +232,13 @@ describe('Custom Providers (e2e)', () => {
 
   it('DELETE /custom-providers/:id removes the provider', async () => {
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+      .delete(`/api/v1/custom-providers/${createdId}`)
       .set(headers)
       .expect(200);
 
     // Verify it's gone
     const res = await request(app.getHttpServer())
-      .get(`/api/v1/routing/${agentName}/custom-providers`)
+      .get(`/api/v1/custom-providers`)
       .set(headers)
       .expect(200);
 
@@ -245,14 +259,14 @@ describe('Custom Providers (e2e)', () => {
 
   it('DELETE /custom-providers/:id returns 404 for unknown id', async () => {
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/nonexistent-id`)
+      .delete(`/api/v1/custom-providers/nonexistent-id`)
       .set(headers)
       .expect(404);
   });
 
   it('POST /custom-providers persists api_kind="anthropic" when requested', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Azure Claude',
@@ -266,21 +280,21 @@ describe('Custom Providers (e2e)', () => {
     expect(res.body.api_kind).toBe('anthropic');
 
     const list = await request(app.getHttpServer())
-      .get(`/api/v1/routing/${agentName}/custom-providers`)
+      .get(`/api/v1/custom-providers`)
       .set(headers)
       .expect(200);
     const created = list.body.find((p: { name: string }) => p.name === 'Azure Claude');
     expect(created.api_kind).toBe('anthropic');
 
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .delete(`/api/v1/custom-providers/${res.body.id}`)
       .set(headers)
       .expect(200);
   });
 
   it('POST /custom-providers defaults api_kind to "openai" when omitted', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'No Kind',
@@ -290,14 +304,14 @@ describe('Custom Providers (e2e)', () => {
       .expect(201);
     expect(res.body.api_kind).toBe('openai');
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .delete(`/api/v1/custom-providers/${res.body.id}`)
       .set(headers)
       .expect(200);
   });
 
   it('POST /custom-providers rejects unknown api_kind', async () => {
     await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Bogus',
@@ -310,7 +324,7 @@ describe('Custom Providers (e2e)', () => {
 
   it('POST /custom-providers works without API key (local provider)', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Local OpenAI-compatible',
@@ -324,14 +338,14 @@ describe('Custom Providers (e2e)', () => {
 
     // Cleanup
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .delete(`/api/v1/custom-providers/${res.body.id}`)
       .set(headers)
       .expect(200);
   });
 
   it('stores null prices for models without pricing info', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'No Prices',
@@ -343,6 +357,7 @@ describe('Custom Providers (e2e)', () => {
     // Verify models in response don't have default 0 prices
     expect(res.body.models[0].input_price_per_million_tokens).toBeUndefined();
     expect(res.body.models[0].output_price_per_million_tokens).toBeUndefined();
+    await enableCustomProviderForAgent(res.body.id);
 
     // Verify available-models returns null prices
     const modelsRes = await request(app.getHttpServer())
@@ -360,28 +375,31 @@ describe('Custom Providers (e2e)', () => {
 
     // Cleanup
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .delete(`/api/v1/custom-providers/${res.body.id}`)
       .set(headers)
       .expect(200);
   });
 
   it('stores explicit 0 prices as 0 (not null)', async () => {
     const res = await request(app.getHttpServer())
-      .post(`/api/v1/routing/${agentName}/custom-providers`)
+      .post(`/api/v1/custom-providers`)
       .set(headers)
       .send({
         name: 'Free Provider',
         base_url: 'http://localhost:9001/v1',
-        models: [{
-          model_name: 'free-model',
-          input_price_per_million_tokens: 0,
-          output_price_per_million_tokens: 0,
-        }],
+        models: [
+          {
+            model_name: 'free-model',
+            input_price_per_million_tokens: 0,
+            output_price_per_million_tokens: 0,
+          },
+        ],
       })
       .expect(201);
 
     expect(res.body.models[0].input_price_per_million_tokens).toBe(0);
     expect(res.body.models[0].output_price_per_million_tokens).toBe(0);
+    await enableCustomProviderForAgent(res.body.id);
 
     // Verify available-models returns 0 prices (not null)
     const modelsRes = await request(app.getHttpServer())
@@ -398,7 +416,7 @@ describe('Custom Providers (e2e)', () => {
 
     // Cleanup
     await request(app.getHttpServer())
-      .delete(`/api/v1/routing/${agentName}/custom-providers/${res.body.id}`)
+      .delete(`/api/v1/custom-providers/${res.body.id}`)
       .set(headers)
       .expect(200);
   });

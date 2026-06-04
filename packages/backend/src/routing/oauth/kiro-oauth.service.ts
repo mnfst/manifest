@@ -228,11 +228,11 @@ export class KiroOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const resolved = await coordinateOAuthRefresh<KiroOAuthTokenBlob>({
-        key: oauthRefreshKey('kiro', userId, agentId, keyLabel),
+        key: oauthRefreshKey('kiro', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'kiro', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'kiro', keyLabel),
         parse: parseKiroOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current),
         persist: (refreshed) =>

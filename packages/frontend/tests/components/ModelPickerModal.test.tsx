@@ -1159,7 +1159,7 @@ describe('ModelPickerModal', () => {
     expect(container.querySelector('[aria-label="Output: Text"]')).toBeTruthy();
   });
 
-  it('clicks the Local tab when local + api_key models are both present', () => {
+  it('clicks the Local tab when local + api_key are both connected', () => {
     const localAndApi: RoutingProvider[] = [
       ...apiKeyOnly,
       {

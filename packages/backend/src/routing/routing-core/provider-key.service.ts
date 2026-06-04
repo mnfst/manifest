@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../../entities/user-provider.entity';
+import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -26,6 +27,9 @@ export class ProviderKeyService {
     private readonly discoveryService: ModelDiscoveryService,
     private readonly routingCache: RoutingCacheService,
     private readonly providerService: ProviderService,
+    @Optional()
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
   ) {}
 
   /**
@@ -38,10 +42,13 @@ export class ProviderKeyService {
     userId: string,
     provider: string,
     authType?: AuthType,
+    agentId?: string,
   ): Promise<CachedProviderKey[]> {
     if (provider.toLowerCase() === 'ollama') {
       return [{ id: 'ollama', label: 'Default', priority: 0, apiKey: '', region: null }];
     }
+
+    if (agentId) return this.resolveProviderKeys(userId, provider, authType, agentId);
 
     const cached = this.routingCache.getProviderKeys(userId, provider, authType);
     if (cached !== undefined) return cached;
@@ -56,8 +63,9 @@ export class ProviderKeyService {
     userId: string,
     provider: string,
     authType?: AuthType,
+    agentId?: string,
   ): Promise<string | undefined> {
-    const keys = await this.getProviderKeys(userId, provider, authType);
+    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
     return keys[0]?.label;
   }
 
@@ -66,8 +74,9 @@ export class ProviderKeyService {
     provider: string,
     authType?: AuthType,
     label?: string,
+    agentId?: string,
   ): Promise<string | null> {
-    const keys = await this.getProviderKeys(userId, provider, authType);
+    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -80,9 +89,13 @@ export class ProviderKeyService {
     userId: string,
     provider: string,
     excludeAuthTypes?: Set<string>,
+    agentId?: string,
   ): Promise<AuthType> {
     const names = expandProviderNames([provider]);
-    const records = await this.providerService.getProviders(userId);
+    const records = await this.filterProvidersForAgent(
+      await this.providerService.getProviders(userId),
+      agentId,
+    );
     let matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
     // When the caller knows certain auth types already failed (e.g. during
     // fallback retries), filter them out so the alternate type is preferred.
@@ -104,9 +117,12 @@ export class ProviderKeyService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
-  async hasActiveProvider(userId: string, provider: string): Promise<boolean> {
+  async hasActiveProvider(userId: string, provider: string, agentId?: string): Promise<boolean> {
     const names = expandProviderNames([provider]);
-    const records = await this.providerService.getProviders(userId);
+    const records = await this.filterProvidersForAgent(
+      await this.providerService.getProviders(userId),
+      agentId,
+    );
     return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
   }
 
@@ -115,8 +131,9 @@ export class ProviderKeyService {
     provider: string,
     authType?: AuthType,
     label?: string,
+    agentId?: string,
   ): Promise<string | null> {
-    const keys = await this.getProviderKeys(userId, provider, authType);
+    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -125,8 +142,15 @@ export class ProviderKeyService {
     return keys[0].region;
   }
 
-  async findProviderForModel(userId: string, model: string): Promise<string | undefined> {
-    const providers = await this.providerService.getProviders(userId);
+  async findProviderForModel(
+    userId: string,
+    model: string,
+    agentId?: string,
+  ): Promise<string | undefined> {
+    const providers = await this.filterProvidersForAgent(
+      await this.providerService.getProviders(userId),
+      agentId,
+    );
     for (const p of providers) {
       if (!p.cached_models) continue;
       if (p.cached_models.some((m) => m.id === model)) return p.provider;
@@ -159,6 +183,7 @@ export class ProviderKeyService {
     userId: string,
     provider: string,
     preferredAuthType?: AuthType,
+    agentId?: string,
   ): Promise<CachedProviderKey[]> {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
@@ -166,7 +191,9 @@ export class ProviderKeyService {
         where: { user_id: userId, provider, is_active: true },
         order: { priority: 'ASC' },
       });
-      return records.flatMap((record) => this.decryptOne(record));
+      return (await this.filterProvidersForAgent(records, agentId)).flatMap((record) =>
+        this.decryptOne(record),
+      );
     }
 
     const names = expandProviderNames([provider]);
@@ -175,7 +202,8 @@ export class ProviderKeyService {
       order: { priority: 'ASC' },
     });
 
-    const matches = records.filter(
+    const scopedRecords = await this.filterProvidersForAgent(records, agentId);
+    const matches = scopedRecords.filter(
       (r) => isManifestUsableProvider(r) && names.has(r.provider.toLowerCase()),
     );
     if (matches.length === 0) return [];
@@ -242,9 +270,9 @@ export class ProviderKeyService {
     }
   }
 
-  async isModelAvailable(userId: string, model: string): Promise<boolean> {
+  async isModelAvailable(userId: string, model: string, agentId?: string): Promise<boolean> {
     // Check discovered models first
-    const discovered = await this.discoveryService.getModelForAgent(userId, model);
+    const discovered = await this.discoveryService.getModelForAgent(userId, model, agentId);
     if (discovered) return true;
 
     const pricing = this.pricingCache.getByModel(model);
@@ -259,9 +287,12 @@ export class ProviderKeyService {
     }
 
     const records = (
-      await this.providerRepo.find({
-        where: { user_id: userId, is_active: true },
-      })
+      await this.filterProvidersForAgent(
+        await this.providerRepo.find({
+          where: { user_id: userId, is_active: true },
+        }),
+        agentId,
+      )
     ).filter(isManifestUsableProvider);
     if (pricing) {
       const names = expandProviderNames([pricing.provider]);
@@ -277,5 +308,16 @@ export class ProviderKeyService {
       if (records.find((r) => prefixNames.has(r.provider.toLowerCase()))) return true;
     }
     return false;
+  }
+
+  private async filterProvidersForAgent(
+    providers: UserProvider[],
+    agentId?: string,
+  ): Promise<UserProvider[]> {
+    if (!agentId || !this.accessRepo) return providers;
+    const rows = await this.accessRepo.find({ where: { agent_id: agentId } });
+    if (rows.length === 0) return [];
+    const enabledIds = new Set(rows.map((r) => r.user_provider_id));
+    return providers.filter((p) => enabledIds.has(p.id));
   }
 }

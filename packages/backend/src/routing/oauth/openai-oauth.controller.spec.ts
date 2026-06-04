@@ -157,6 +157,7 @@ describe('OpenaiOauthController', () => {
       });
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         'openai',
         'subscription',
         undefined,
@@ -173,6 +174,7 @@ describe('OpenaiOauthController', () => {
       expect(oauth.revokeToken).toHaveBeenCalledWith('refresh-1');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         'openai',
         'subscription',
         undefined,
@@ -191,6 +193,7 @@ describe('OpenaiOauthController', () => {
       expect(oauth.revokeToken).not.toHaveBeenCalledWith('a1');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         'openai',
         'subscription',
         'work',

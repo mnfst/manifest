@@ -4,105 +4,212 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
   name = 'LiftProvidersToUserLevel1791000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1. Create the agent_provider_access junction table
+    // 1. Create the agent/provider attachment table before changing uniqueness.
     await queryRunner.query(`
-      CREATE TABLE "agent_provider_access" (
-        "agent_id" varchar NOT NULL,
-        "user_provider_id" varchar NOT NULL,
-        CONSTRAINT "PK_agent_provider_access"
-          PRIMARY KEY ("agent_id", "user_provider_id")
-      )
-    `);
+    CREATE TABLE IF NOT EXISTS "agent_provider_access" (
+      "agent_id" varchar NOT NULL,
+      "user_provider_id" varchar NOT NULL,
+      CONSTRAINT "PK_agent_provider_access"
+        PRIMARY KEY ("agent_id", "user_provider_id")
+    )
+  `);
     await queryRunner.query(
-      `CREATE INDEX "IDX_agent_provider_access_provider" ON "agent_provider_access" ("user_provider_id")`,
+      `CREATE INDEX IF NOT EXISTS "IDX_agent_provider_access_provider" ON "agent_provider_access" ("user_provider_id")`,
     );
 
-    // 2. Make agent_id nullable on user_providers (providers become user-scoped)
+    // 2. Backfill each old agent-scoped provider row as an explicit attachment.
+    await queryRunner.query(`
+    INSERT INTO "agent_provider_access" ("agent_id", "user_provider_id")
+    SELECT "agent_id", "id"
+    FROM "user_providers"
+    WHERE "agent_id" IS NOT NULL
+    ON CONFLICT DO NOTHING
+  `);
+
+    // 3. Allow new global provider rows. Keep the legacy column/value around
+    // for this PR; a later cleanup migration can drop it after the attachment
+    // model has shipped safely.
     await queryRunner.query(`ALTER TABLE "user_providers" ALTER COLUMN "agent_id" DROP NOT NULL`);
 
-    // 3. Populate agent_provider_access from existing data
-    //    Every existing row gets an access entry for its current agent
-    await queryRunner.query(`
-      INSERT INTO "agent_provider_access" ("agent_id", "user_provider_id")
-      SELECT "agent_id", "id"
-      FROM "user_providers"
-      WHERE "agent_id" IS NOT NULL
-    `);
-
-    // 4. Disambiguate rows that collide on the new user-scoped uniqueness key
-    //    (user_id, provider, auth_type, LOWER(label)) by RELABELING, never
-    //    deleting. The common pre-PR state is the same api key connected to N
-    //    agents: N rows, all label 'Default', different agent_id. They collide
-    //    on the new index. We CANNOT merge them safely — keys are AES-256-GCM
-    //    with a random IV (crypto.util.ts), so the same plaintext key has
-    //    different ciphertext on every row and pure SQL can't prove equality.
-    //    Deleting "duplicates" would silently drop a distinct key in the case
-    //    where two agents genuinely hold different keys under the same label.
-    //    Instead, keep the lowest-priority row's label and suffix every other
-    //    colliding row with its own (globally unique) id, so every key survives
-    //    and the unique index in step 6 holds. The agent_provider_access rows
-    //    inserted in step 3 already point each agent at its own row, so they
-    //    stay correct — no reassignment needed. Worst case is a few near-
-    //    identical entries the user can tidy up; no key is ever lost.
-    await queryRunner.query(`
-      WITH ranked AS (
-        SELECT
-          "id",
-          "label",
-          ROW_NUMBER() OVER (
-            PARTITION BY "user_id", "provider", "auth_type", LOWER("label")
-            ORDER BY "priority" ASC, "connected_at" ASC, "id" ASC
-          ) AS rn
-        FROM "user_providers"
-        WHERE "user_id" IS NOT NULL AND "label" IS NOT NULL
-      )
-      UPDATE "user_providers" up
-      SET "label" = ranked."label" || ' [' || ranked."id" || ']'
-      FROM ranked
-      WHERE up."id" = ranked."id" AND ranked.rn > 1
-    `);
-
-    // 5. Drop the old agent-scoped unique index
+    // 4. Drop the old agent-scoped unique index (it references agent_id).
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_agent_provider_auth_label"`);
 
-    // 6. Create the new user-scoped unique index
+    // 5. Disambiguate rows that collide on the new user-scoped uniqueness key
+    //    (user_id, provider, auth_type, LOWER(label)) by RELABELING, never
+    //    deleting. Keys are AES-256-GCM with a random IV so SQL can't prove two
+    //    rows hold the same plaintext key; deleting "duplicates" would silently
+    //    drop a distinct key. For old agent-scoped "Default" connections, use
+    //    the agent display name so the global connection keeps its source
+    //    context. Custom labels keep the user's label and append the source
+    //    agent name. If the generated label is still not unique, choose the
+    //    first row-id suffix that does not collide with pre-existing labels.
     await queryRunner.query(`
-      CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"
-      ON "user_providers" ("user_id", "provider", "auth_type", LOWER("label"))
-    `);
+    WITH colliding_labels AS (
+      SELECT "user_id", "provider", "auth_type", LOWER("label") AS "label_key"
+      FROM "user_providers"
+      WHERE "user_id" IS NOT NULL AND "label" IS NOT NULL
+      GROUP BY "user_id", "provider", "auth_type", LOWER("label")
+      HAVING COUNT(*) > 1
+    ),
+    agent_labels AS (
+      SELECT
+        up."id",
+        up."user_id",
+        up."provider",
+        up."auth_type",
+        up."label",
+        up."priority",
+        up."connected_at",
+        COALESCE(
+          NULLIF(TRIM(a."display_name"), ''),
+          NULLIF(TRIM(a."name"), ''),
+          up."agent_id",
+          up."id"
+        ) AS "agent_label"
+      FROM "user_providers" up
+      JOIN colliding_labels c
+        ON c."user_id" = up."user_id"
+        AND c."provider" = up."provider"
+        AND c."auth_type" IS NOT DISTINCT FROM up."auth_type"
+        AND c."label_key" = LOWER(up."label")
+      LEFT JOIN "agents" a ON a."id" = up."agent_id"
+    ),
+    proposed AS (
+      SELECT
+        "id",
+        "user_id",
+        "provider",
+        "auth_type",
+        "priority",
+        "connected_at",
+        CASE
+          WHEN LOWER("label") = 'default' THEN "agent_label"
+          ELSE "label" || ' - ' || "agent_label"
+        END AS "proposed_label"
+      FROM agent_labels
+    ),
+    ranked AS (
+      SELECT
+        p.*,
+        COUNT(*) OVER (
+          PARTITION BY p."user_id", p."provider", p."auth_type", LOWER(p."proposed_label")
+        ) AS "proposed_count",
+        EXISTS (
+          SELECT 1
+          FROM "user_providers" existing
+          WHERE existing."user_id" = p."user_id"
+            AND existing."provider" = p."provider"
+            AND existing."auth_type" IS NOT DISTINCT FROM p."auth_type"
+            AND LOWER(existing."label") = LOWER(p."proposed_label")
+            AND NOT EXISTS (
+              SELECT 1 FROM proposed p2 WHERE p2."id" = existing."id"
+            )
+        ) AS "collides_with_existing"
+      FROM proposed p
+    ),
+    candidate_reserved_labels AS (
+      SELECT
+        "id",
+        "user_id",
+        "provider",
+        "auth_type",
+        LOWER("proposed_label") AS "label_key"
+      FROM proposed
+      UNION ALL
+      SELECT
+        p."id",
+        p."user_id",
+        p."provider",
+        p."auth_type",
+        LOWER(
+          CASE
+            WHEN suffix.n = 1 THEN p."proposed_label" || ' [' || p."id" || ']'
+            ELSE p."proposed_label" || ' [' || p."id" || '-' || suffix.n || ']'
+          END
+        ) AS "label_key"
+      FROM proposed p
+      CROSS JOIN generate_series(1, 1000) AS suffix(n)
+    ),
+    resolved AS (
+      SELECT ranked."id", chosen."label"
+      FROM ranked
+      CROSS JOIN LATERAL (
+        SELECT CASE
+          WHEN suffix.n = 0 THEN ranked."proposed_label"
+          WHEN suffix.n = 1 THEN ranked."proposed_label" || ' [' || ranked."id" || ']'
+          ELSE ranked."proposed_label" || ' [' || ranked."id" || '-' || suffix.n || ']'
+        END AS "label"
+        FROM generate_series(0, 1000) AS suffix(n)
+        WHERE (
+          suffix.n > 0
+          OR (ranked."proposed_count" = 1 AND NOT ranked."collides_with_existing")
+        )
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "user_providers" existing
+          WHERE existing."user_id" = ranked."user_id"
+            AND existing."provider" = ranked."provider"
+            AND existing."auth_type" IS NOT DISTINCT FROM ranked."auth_type"
+            AND NOT EXISTS (
+              SELECT 1 FROM proposed p2 WHERE p2."id" = existing."id"
+            )
+            AND LOWER(existing."label") = LOWER(
+              CASE
+                WHEN suffix.n = 0 THEN ranked."proposed_label"
+                WHEN suffix.n = 1 THEN ranked."proposed_label" || ' [' || ranked."id" || ']'
+                ELSE ranked."proposed_label" || ' [' || ranked."id" || '-' || suffix.n || ']'
+              END
+            )
+        )
+        AND NOT EXISTS (
+          SELECT 1
+          FROM candidate_reserved_labels reserved
+          WHERE reserved."id" <> ranked."id"
+            AND reserved."user_id" = ranked."user_id"
+            AND reserved."provider" = ranked."provider"
+            AND reserved."auth_type" IS NOT DISTINCT FROM ranked."auth_type"
+            AND reserved."label_key" = LOWER(
+              CASE
+                WHEN suffix.n = 0 THEN ranked."proposed_label"
+                WHEN suffix.n = 1 THEN ranked."proposed_label" || ' [' || ranked."id" || ']'
+                ELSE ranked."proposed_label" || ' [' || ranked."id" || '-' || suffix.n || ']'
+              END
+            )
+        )
+        ORDER BY suffix.n
+        LIMIT 1
+      ) chosen
+    )
+    UPDATE "user_providers" up
+    SET "label" = resolved."label"
+    FROM resolved
+    WHERE up."id" = resolved."id"
+  `);
 
-    // 7. Clear agent_id on migrated rows (providers are now user-scoped)
-    await queryRunner.query(
-      `UPDATE "user_providers" SET "agent_id" = NULL WHERE "user_id" IS NOT NULL`,
-    );
+    // 6. Create the new user-scoped unique index.
+    await queryRunner.query(`
+    CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"
+    ON "user_providers" ("user_id", "provider", "auth_type", LOWER("label"))
+  `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Restore agent_id from access table (pick the first agent for each provider)
     await queryRunner.query(`
-      UPDATE "user_providers" up
-      SET "agent_id" = sub.agent_id
-      FROM (
-        SELECT DISTINCT ON ("user_provider_id") "user_provider_id", "agent_id"
-        FROM "agent_provider_access"
-        ORDER BY "user_provider_id", "agent_id"
-      ) sub
-      WHERE up."id" = sub."user_provider_id"
-    `);
-
-    // Drop the user-scoped unique index
+    UPDATE "user_providers" up
+    SET "agent_id" = sub.agent_id
+    FROM (
+      SELECT DISTINCT ON ("user_provider_id") "user_provider_id", "agent_id"
+      FROM "agent_provider_access"
+      ORDER BY "user_provider_id", "agent_id"
+    ) sub
+    WHERE up."id" = sub."user_provider_id" AND up."agent_id" IS NULL
+  `);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_user_provider_auth_label"`);
-
-    // Recreate the old agent-scoped unique index
     await queryRunner.query(`
-      CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth_label"
-      ON "user_providers" ("agent_id", "provider", "auth_type", LOWER("label"))
-    `);
-
-    // Make agent_id NOT NULL again
+    CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth_label"
+    ON "user_providers" ("agent_id", "provider", "auth_type", LOWER("label"))
+  `);
     await queryRunner.query(`ALTER TABLE "user_providers" ALTER COLUMN "agent_id" SET NOT NULL`);
-
-    // Drop the junction table
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_provider_access_provider"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "agent_provider_access"`);
   }

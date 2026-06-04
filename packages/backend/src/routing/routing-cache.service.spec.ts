@@ -212,12 +212,12 @@ describe('RoutingCacheService', () => {
 
       service.setTiers('agent-1', tiers);
       service.setProviders('user-1', providers);
-      service.setCustomProviders('agent-1', cps);
+      service.setCustomProviders('user-1', cps);
       service.setProviderKeys('user-1', 'openai', [providerKey('Default', 'sk-test')]);
 
       expect(service.getTiers('agent-1')).toEqual(tiers);
       expect(service.getProviders('user-1')).toEqual(providers);
-      expect(service.getCustomProviders('agent-1')).toEqual(cps);
+      expect(service.getCustomProviders('user-1')).toEqual(cps);
       expect(service.getProviderKeys('user-1', 'openai')?.[0].apiKey).toBe('sk-test');
 
       service.invalidateAgent('agent-1');
@@ -225,7 +225,7 @@ describe('RoutingCacheService', () => {
 
       expect(service.getTiers('agent-1')).toBeNull();
       expect(service.getProviders('user-1')).toBeNull();
-      expect(service.getCustomProviders('agent-1')).toBeNull();
+      expect(service.getCustomProviders('user-1')).toBeNull();
       expect(service.getProviderKeys('user-1', 'openai')).toBeUndefined();
     });
 

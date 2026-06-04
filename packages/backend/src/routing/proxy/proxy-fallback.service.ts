@@ -213,11 +213,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix))
+            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix, agentId))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(userId, requestedModel));
+            (await this.providerKeyService.findProviderForModel(userId, requestedModel, agentId));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -228,13 +228,15 @@ export class ProxyFallbackService {
           userId,
           provider,
           excludeAuth,
+          agentId,
         )) as AuthType;
       }
       if (!providerKeyLabel && authType === 'subscription') {
         providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          agentId,
+          userId,
           provider,
           authType,
+          agentId,
         );
       }
 
@@ -244,6 +246,7 @@ export class ProxyFallbackService {
         provider,
         authType,
         providerKeyLabel,
+        agentId,
       );
       if (apiKey === null) {
         this.logger.debug(
@@ -276,10 +279,11 @@ export class ProxyFallbackService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agentId,
+            userId,
             provider,
             authType,
             providerKeyLabel,
+            agentId,
           )) ?? apiKey;
       }
       const providerRegion = await this.providerKeyService.getProviderRegion(
@@ -287,6 +291,7 @@ export class ProxyFallbackService {
         provider,
         authType,
         providerKeyLabel,
+        agentId,
       );
 
       this.logger.log(
@@ -482,7 +487,9 @@ export class ProxyFallbackService {
 
     if (CustomProviderService.isCustom(provider)) {
       const cpId = CustomProviderService.extractId(provider);
-      const cp = await this.customProviderRepo.findOne({ where: { id: cpId } });
+      const cp = await this.customProviderRepo.findOne({
+        where: opts.userId ? { id: cpId, user_id: opts.userId } : { id: cpId },
+      });
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
         forwardModel = CustomProviderService.rawModelName(opts.model);

@@ -14,12 +14,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import {
-  createTestApp,
-  TEST_AGENT_ID,
-  TEST_OTLP_KEY,
-  TEST_USER_ID,
-} from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
@@ -79,6 +74,12 @@ beforeAll(async () => {
       ]),
     ],
   );
+  await ds.query(
+    `INSERT INTO agent_provider_access (agent_id, user_provider_id)
+     VALUES ($1,$2)
+     ON CONFLICT DO NOTHING`,
+    [TEST_AGENT_ID, 'up-anthropic-1871'],
+  );
 
   await ds.query(
     `INSERT INTO tier_assignments
@@ -108,11 +109,7 @@ beforeAll(async () => {
   originalFetch = global.fetch;
   global.fetch = (async (input, init) => {
     const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : input.url;
+      typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
     let hostname = '';
     try {
       hostname = new URL(url).hostname;
@@ -161,7 +158,9 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
   it('preserves cache_creation_input_tokens through the response AND the DB row', async () => {
     const ds = app.get(DataSource);
     await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     nextAnthropicUsage = {
       input_tokens: 7,
@@ -207,7 +206,9 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
   it('preserves cache_read_input_tokens through the response AND the DB row', async () => {
     const ds = app.get(DataSource);
     await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     nextAnthropicUsage = {
       input_tokens: 7,

@@ -6,7 +6,7 @@ import { agentPath } from '../services/routing.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 
 /**
- * Agent detail layout with horizontal tabs: Routing, Settings, Providers.
+ * Agent detail layout with horizontal tabs: Routing, Providers, Settings.
  * Wraps child route content.
  */
 const AgentDetail: ParentComponent = (props) => {

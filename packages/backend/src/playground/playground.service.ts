@@ -71,7 +71,11 @@ export class PlaygroundService {
     let providerResource: string | undefined;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
-      const hasProvider = await this.providerKeyService.hasActiveProvider(userId, dto.provider);
+      const hasProvider = await this.providerKeyService.hasActiveProvider(
+        userId,
+        dto.provider,
+        agent.id,
+      );
       if (!hasProvider) {
         return this.sendPreStreamError(
           res,
@@ -79,8 +83,15 @@ export class PlaygroundService {
           `Provider "${dto.provider}" is not connected for this agent`,
         );
       }
-      authType = dto.authType ?? (await this.providerKeyService.getAuthType(userId, dto.provider));
-      const keys = await this.providerKeyService.getProviderKeys(userId, dto.provider, authType);
+      authType =
+        dto.authType ??
+        (await this.providerKeyService.getAuthType(userId, dto.provider, undefined, agent.id));
+      const keys = await this.providerKeyService.getProviderKeys(
+        userId,
+        dto.provider,
+        authType,
+        agent.id,
+      );
       const key = keys[0];
       if (!key || key.apiKey === null) {
         return this.sendPreStreamError(
@@ -116,10 +127,11 @@ export class PlaygroundService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agent.id,
+            userId,
             dto.provider,
             authType,
             providerKeyLabel,
+            agent.id,
           )) ?? rawApiKey;
       }
       providerResource =
@@ -144,7 +156,7 @@ export class PlaygroundService {
     let forwardModel = dto.model;
     if (CustomProviderService.isCustom(dto.provider)) {
       const cp = await this.customProviderRepo.findOne({
-        where: { id: CustomProviderService.extractId(dto.provider) },
+        where: { id: CustomProviderService.extractId(dto.provider), user_id: userId },
       });
       if (cp) {
         customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');

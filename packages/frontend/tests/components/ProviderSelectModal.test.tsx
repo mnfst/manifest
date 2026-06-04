@@ -2367,7 +2367,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Delete'));
 
       await waitFor(() => {
-        expect(mockDeleteCustomProvider).toHaveBeenCalledWith('test-agent', 'cp-1');
+        expect(mockDeleteCustomProvider).toHaveBeenCalledWith('cp-1');
       });
       expect(onUpdate).toHaveBeenCalled();
       // Should navigate back to list view

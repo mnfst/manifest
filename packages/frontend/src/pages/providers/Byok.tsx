@@ -19,6 +19,7 @@ import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
 import '../../styles/charts.css';
+import '../../styles/routing.css';
 
 interface Connection {
   id: string;
@@ -69,7 +70,7 @@ const Byok: Component = () => {
   const firstAgentName = () => (agents() ?? [])[0]?.agent_name ?? '';
   const [customProvidersList, { refetch: refetchCustomProviders }] = createResource(
     () => firstAgentName(),
-    (name) => (name ? getCustomProviders(name) : Promise.resolve([])),
+    (name) => (name ? getCustomProviders() : Promise.resolve([])),
   );
   const customProviderName = (providerId: string) => {
     const id = providerId.replace('custom:', '');

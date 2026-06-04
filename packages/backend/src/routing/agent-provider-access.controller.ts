@@ -8,6 +8,7 @@ import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
+import { ProviderService } from './routing-core/provider.service';
 
 @Controller('api/v1/agents/:agentName/provider-access')
 export class AgentProviderAccessController {
@@ -22,6 +23,7 @@ export class AgentProviderAccessController {
     private readonly userProviderRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
+    private readonly providerService: ProviderService,
   ) {}
 
   private async resolveAgent(agentName: string, userId: string) {
@@ -35,13 +37,10 @@ export class AgentProviderAccessController {
   @Get()
   async listEnabled(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgent(agentName, user.id);
-    if (!agent) return { enabled: [], explicit: false };
+    if (!agent) return { enabled: [] };
 
     const rows = await this.accessRepo.find({ where: { agent_id: agent.id } });
-    return {
-      enabled: rows.map((r) => r.user_provider_id),
-      explicit: rows.length > 0,
-    };
+    return { enabled: rows.map((r) => r.user_provider_id) };
   }
 
   @Get(':userProviderId/impact')
@@ -67,7 +66,6 @@ export class AgentProviderAccessController {
     const affected: Array<{ tier: string; model: string; position: string }> = [];
 
     for (const tier of tiers) {
-      // Only report manually assigned routes (override_route), not auto-assigned ones
       if (tier.override_route && providerModels.has(tier.override_route.model)) {
         affected.push({ tier: tier.tier, model: tier.override_route.model, position: 'primary' });
       }
@@ -90,9 +88,6 @@ export class AgentProviderAccessController {
     const agent = await this.resolveAgent(agentName, user.id);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
-    // The provider must belong to the caller. Without this check a user could
-    // grant their agent access to another user's provider (there is no FK on
-    // the junction table to catch it).
     const provider = await this.userProviderRepo.findOne({
       where: { id: userProviderId, user_id: user.id },
     });
@@ -105,6 +100,7 @@ export class AgentProviderAccessController {
       .values({ agent_id: agent.id, user_provider_id: userProviderId })
       .orIgnore()
       .execute();
+    await this.providerService.recalculateTiers(agent.id, user.id);
 
     return { ok: true };
   }
@@ -118,7 +114,6 @@ export class AgentProviderAccessController {
     const agent = await this.resolveAgent(agentName, user.id);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
-    // Find and clean up tier assignments that use models from this provider
     const provider = await this.userProviderRepo.findOne({
       where: { id: userProviderId, user_id: user.id },
     });
@@ -131,12 +126,10 @@ export class AgentProviderAccessController {
         const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
         for (const tier of tiers) {
           let changed = false;
-          // Clear manual override if it uses a model from this provider
           if (tier.override_route && providerModels.has(tier.override_route.model)) {
             tier.override_route = null;
             changed = true;
           }
-          // Clear auto-assigned if it uses a model from this provider (will be recalculated)
           if (tier.auto_assigned_route && providerModels.has(tier.auto_assigned_route.model)) {
             tier.auto_assigned_route = null;
             changed = true;
@@ -152,26 +145,8 @@ export class AgentProviderAccessController {
       }
     }
 
-    // If no explicit entries exist yet, populate with all user providers first.
-    // This only runs on the very first disable for this agent.
-    const existing = await this.accessRepo.count({ where: { agent_id: agent.id } });
-    if (existing === 0) {
-      const allProviders = await this.userProviderRepo.find({
-        where: { user_id: user.id },
-      });
-      if (allProviders.length > 0) {
-        await this.accessRepo
-          .createQueryBuilder()
-          .insert()
-          .into(AgentProviderAccess)
-          .values(allProviders.map((p) => ({ agent_id: agent.id, user_provider_id: p.id })))
-          .orIgnore()
-          .execute();
-      }
-    }
-
-    // Remove the one being disabled
     await this.accessRepo.delete({ agent_id: agent.id, user_provider_id: userProviderId });
+    await this.providerService.recalculateTiers(agent.id, user.id);
     return { ok: true };
   }
 }

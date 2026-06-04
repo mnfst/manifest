@@ -99,7 +99,6 @@ describe('api/routing', () => {
   it('probeCustomProvider POSTs the base URL + optional key and returns the model list', async () => {
     mockOk({ models: [{ model_name: 'llama-3.1-8b' }, { model_name: 'qwen2.5-7b' }] });
     const out = await probeCustomProvider(
-      'demo-agent',
       'http://host.docker.internal:8000/v1',
       'sk-local',
     );
@@ -107,7 +106,7 @@ describe('api/routing', () => {
       models: [{ model_name: 'llama-3.1-8b' }, { model_name: 'qwen2.5-7b' }],
     });
     const [url, init] = mockFetch.mock.calls[0];
-    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers/probe');
+    expect(url).toBe('/api/v1/custom-providers/probe');
     expect(init.method).toBe('POST');
     expect(init.headers['Content-Type']).toBe('application/json');
     expect(JSON.parse(init.body)).toEqual({
@@ -118,7 +117,7 @@ describe('api/routing', () => {
 
   it('probeCustomProvider works without an apiKey', async () => {
     mockOk({ models: [] });
-    await probeCustomProvider('demo-agent', 'http://127.0.0.1:11434/v1');
+    await probeCustomProvider('http://127.0.0.1:11434/v1');
     const [, init] = mockFetch.mock.calls[0];
     const body = JSON.parse(init.body);
     expect(body.base_url).toBe('http://127.0.0.1:11434/v1');
@@ -130,7 +129,6 @@ describe('api/routing', () => {
       models: [{ model_name: 'openai/gpt-4o-mini', input_price_per_million_tokens: 0.15 }],
     });
     await probeCustomProvider(
-      'demo-agent',
       'https://api.kilo.ai/api/gateway',
       undefined,
       'openai',
@@ -146,24 +144,24 @@ describe('api/routing', () => {
 
   it('deleteCustomProvider DELETEs the custom provider by ID', async () => {
     mockOk({ ok: true });
-    const out = await deleteCustomProvider('demo-agent', 'cp-123');
+    const out = await deleteCustomProvider('cp-123');
     expect(out).toEqual({ ok: true });
     const [url, init] = mockFetch.mock.calls[0];
-    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers/cp-123');
+    expect(url).toBe('/api/v1/custom-providers/cp-123');
     expect(init.method).toBe('DELETE');
   });
 
   it('createCustomProvider POSTs with name, base_url, and models', async () => {
     const payload = { id: 'cp-new', name: 'My LLM', base_url: 'http://localhost:8080/v1', has_api_key: false, models: [], created_at: '2025-01-01' };
     mockOk(payload);
-    const out = await createCustomProvider('demo-agent', {
+    const out = await createCustomProvider({
       name: 'My LLM',
       base_url: 'http://localhost:8080/v1',
       models: [],
     });
     expect(out).toEqual(payload);
     const [url, init] = mockFetch.mock.calls[0];
-    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers');
+    expect(url).toBe('/api/v1/custom-providers');
     expect(init.method).toBe('POST');
     expect(JSON.parse(init.body)).toEqual({
       name: 'My LLM',
@@ -175,13 +173,13 @@ describe('api/routing', () => {
   it('updateCustomProvider PUTs updated fields for an existing provider', async () => {
     const payload = { id: 'cp-1', name: 'Updated', base_url: 'http://new:8080/v1', has_api_key: true, models: [], created_at: '2025-01-01' };
     mockOk(payload);
-    const out = await updateCustomProvider('demo-agent', 'cp-1', {
+    const out = await updateCustomProvider('cp-1', {
       name: 'Updated',
       base_url: 'http://new:8080/v1',
     });
     expect(out).toEqual(payload);
     const [url, init] = mockFetch.mock.calls[0];
-    expect(url).toBe('/api/v1/routing/demo-agent/custom-providers/cp-1');
+    expect(url).toBe('/api/v1/custom-providers/cp-1');
     expect(init.method).toBe('PUT');
     expect(init.headers['Content-Type']).toBe('application/json');
   });

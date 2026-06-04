@@ -268,11 +268,11 @@ export abstract class RedirectPkceOauthBaseService {
     const providerId = this.oauthConfig.providerId;
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey(providerId, userId, agentId, keyLabel),
+        key: oauthRefreshKey(providerId, userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, providerId, keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, providerId, keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
         persist: (refreshed) =>

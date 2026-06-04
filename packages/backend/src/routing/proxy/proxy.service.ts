@@ -446,6 +446,7 @@ export class ProxyService {
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
+      agentId,
     );
     if (apiKey === null) return null;
 
@@ -480,6 +481,7 @@ export class ProxyService {
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
+      agentId,
     );
     return {
       apiKey: unwrappedApiKey,

@@ -12,6 +12,7 @@ import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
 import '../../styles/charts.css';
+import '../../styles/routing.css';
 
 interface Connection {
   id: string;

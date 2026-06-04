@@ -86,8 +86,8 @@ render(
               <Route path="/" component={AgentOverview} />
               <Route path="/overview" component={AgentOverview} />
               <Route path="/routing" component={Routing} />
-              <Route path="/settings/*" component={Settings} />
               <Route path="/providers" component={AgentProviders} />
+              <Route path="/settings/*" component={Settings} />
               <Route path="/guardrails" component={Limits} />
             </Route>
 

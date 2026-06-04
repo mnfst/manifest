@@ -19,7 +19,6 @@ const BASE_URL_PLACEHOLDERS: Record<CustomProviderApiKind, string> = {
 };
 
 interface Props {
-  agentName: string;
   onCreated: () => void;
   onBack: () => void;
   initialData?: CustomProviderData;
@@ -95,7 +94,6 @@ const CustomProviderForm: Component<Props> = (props) => {
     setProbeError(null);
     try {
       const { models } = await probeCustomProvider(
-        props.agentName,
         url,
         apiKey().trim() || undefined,
         apiKind(),
@@ -154,7 +152,7 @@ const CustomProviderForm: Component<Props> = (props) => {
     setError(null);
     setBusy(true);
     try {
-      await createCustomProvider(props.agentName, {
+      await createCustomProvider({
         name: name().trim(),
         base_url: baseUrl().trim(),
         api_kind: apiKind(),
@@ -183,7 +181,7 @@ const CustomProviderForm: Component<Props> = (props) => {
 
     setBusy(true);
     try {
-      await updateCustomProvider(props.agentName, props.initialData!.id, data as never);
+      await updateCustomProvider(props.initialData!.id, data as never);
       toast.success(`${name().trim()} updated`);
       props.onCreated();
     } catch (e) {
@@ -196,7 +194,7 @@ const CustomProviderForm: Component<Props> = (props) => {
   const handleDelete = async () => {
     setBusy(true);
     try {
-      await deleteCustomProvider(props.agentName, props.initialData!.id);
+      await deleteCustomProvider(props.initialData!.id);
       toast.success(`${props.initialData!.name} removed`);
       props.onDeleted?.();
     } catch {

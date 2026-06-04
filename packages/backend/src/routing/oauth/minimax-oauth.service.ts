@@ -289,11 +289,11 @@ export class MinimaxOauthService {
     if (Date.now() < blob.e - 60_000) return blob;
     try {
       return await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('minimax', userId, agentId, keyLabel),
+        key: oauthRefreshKey('minimax', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'minimax', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'minimax', keyLabel),
         parse: parseMinimaxBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
         persist: (refreshed) =>

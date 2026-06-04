@@ -4,6 +4,7 @@ import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
+import { Agent } from '../../entities/agent.entity';
 import { HeaderTier } from '../../entities/header-tier.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from './tier-auto-assign.service';
@@ -35,6 +36,8 @@ export class ProviderService {
     private readonly tierRepo: Repository<TierAssignment>,
     @InjectRepository(SpecificityAssignment)
     private readonly specificityRepo: Repository<SpecificityAssignment>,
+    @InjectRepository(Agent)
+    private readonly agentRepo: Repository<Agent>,
     @InjectRepository(HeaderTier)
     private readonly headerTierRepo: Repository<HeaderTier>,
     private readonly autoAssign: TierAutoAssignService,
@@ -46,6 +49,19 @@ export class ProviderService {
   async recalculateTiers(agentId: string, userId: string): Promise<void> {
     await this.autoAssign.recalculate(agentId, userId);
     this.routingCache.invalidateAgent(agentId);
+  }
+
+  /**
+   * Recalculate tier assignments for every agent the user owns. Used when a
+   * user-global resource changes (e.g. a custom provider) without a single
+   * agent context — the change affects every agent's available model list, so
+   * each agent's auto-assigned routes must be refreshed.
+   */
+  async recalculateTiersForUser(userId: string): Promise<void> {
+    for (const agentId of await this.listOwnedAgentIds(userId)) {
+      await this.autoAssign.recalculate(agentId, userId);
+      this.routingCache.invalidateAgent(agentId);
+    }
   }
 
   async getProviders(userId: string): Promise<UserProvider[]> {
@@ -68,18 +84,18 @@ export class ProviderService {
    * there is no row / no stored credential / it cannot be decrypted.
    */
   async getFreshSubscriptionCredential(
-    agentId: string,
+    userId: string,
     provider: string,
     label?: string,
   ): Promise<string | null> {
     // Match the label case-insensitively, consistent with the rest of the
-    // label handling and the unique index on (agent_id, provider, auth_type,
+    // label handling and the unique index on (user_id, provider, auth_type,
     // LOWER(label)). A pinned route may carry a different casing than the
     // stored row; a case-sensitive lookup would miss it and refresh from the
     // stale caller blob instead of the freshest DB row.
     const wantedLabel = (label ?? DEFAULT_LABEL).toLowerCase();
     const rows = await this.providerRepo.find({
-      where: { agent_id: agentId, provider, auth_type: 'subscription' },
+      where: { user_id: userId, provider, auth_type: 'subscription' },
     });
     const row = rows.find((r) => r.label.toLowerCase() === wantedLabel);
     if (!row?.api_key_encrypted) return null;
@@ -91,7 +107,7 @@ export class ProviderService {
   }
 
   async upsertProvider(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     apiKey?: string,
@@ -149,7 +165,6 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: null,
       provider,
       auth_type: effectiveAuthType,
       label: DEFAULT_LABEL,
@@ -168,7 +183,7 @@ export class ProviderService {
   }
 
   private async upsertProviderWithLabel(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     apiKey: string | undefined,
@@ -231,7 +246,6 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: null,
       provider,
       auth_type: authType,
       label,
@@ -429,7 +443,6 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: null,
       provider,
       auth_type: 'subscription',
       label: DEFAULT_LABEL,
@@ -446,9 +459,15 @@ export class ProviderService {
     return { isNew: true };
   }
 
-  private async afterProviderChange(agentId: string, userId: string): Promise<void> {
-    await this.autoAssign.recalculate(agentId, userId);
-    this.routingCache.invalidateAgent(agentId);
+  private async afterProviderChange(agentId: string | null, userId: string): Promise<void> {
+    // A null agentId means the change is user-global (e.g. a custom provider)
+    // and has no single agent context — recalculate every owned agent instead.
+    if (agentId === null) {
+      await this.recalculateTiersForUser(userId);
+    } else {
+      await this.autoAssign.recalculate(agentId, userId);
+      this.routingCache.invalidateAgent(agentId);
+    }
     this.routingCache.invalidateUser(userId);
   }
 
@@ -460,7 +479,7 @@ export class ProviderService {
    * tier assignments for what is visually just a name change.
    */
   async retagAuthType(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     nextAuthType: AuthType,
@@ -475,7 +494,7 @@ export class ProviderService {
       const target = rows.find((r) => r.auth_type !== nextAuthType && r.is_active);
       if (!target) return false;
 
-      // Protect the unique index on (agent_id, provider, auth_type, LOWER(label)):
+      // Protect the unique index on (user_id, provider, auth_type, LOWER(label)):
       // if a row already exists for the destination auth_type with the same
       // label, the UPDATE would fail. Drop the stale destination row first.
       const collision = rows.find(
@@ -492,31 +511,33 @@ export class ProviderService {
     });
 
     if (invalidated) {
-      this.routingCache.invalidateAgent(agentId);
+      if (agentId !== null) this.routingCache.invalidateAgent(agentId);
       this.routingCache.invalidateUser(userId);
     }
   }
 
   async removeProvider(
-    agentId: string,
+    agentId: string | null,
     userId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
   ): Promise<{ notifications: string[] }> {
     if (label) {
-      return this.removeKeyByLabel(agentId, userId, provider, authType, label);
+      // Labeled key chains only exist for agent-scoped standard providers;
+      // user-global custom providers never pass a label, so agentId is set.
+      return this.removeKeyByLabel(agentId as string, userId, provider, authType, label);
     }
 
     // Legacy disconnect: deactivate every active key for the (provider,
     // [auth_type]) tuple. Falls back to findOne for compatibility with the
     // already-disconnected case so tier-cleanup still runs.
-    const where: Record<string, unknown> = { user_id: userId, provider, is_active: true };
+    const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider, is_active: true };
     if (authType) where.auth_type = authType;
     const activeRows = await this.providerRepo.find({ where });
 
     if (activeRows.length === 0) {
-      const fallbackWhere: Record<string, unknown> = { user_id: userId, provider };
+      const fallbackWhere: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
       if (authType) fallbackWhere.auth_type = authType;
       const any = await this.providerRepo.findOne({ where: fallbackWhere });
       if (!any) throw new NotFoundException('Provider not found');
@@ -536,17 +557,59 @@ export class ProviderService {
     if (hasOtherUsableAuthType && !authType) {
       // Provider is still available and the caller did not target a specific
       // auth type, so preserve existing route assignments.
-      this.routingCache.invalidateAgent(agentId);
+      if (agentId !== null) this.routingCache.invalidateAgent(agentId);
       this.routingCache.invalidateUser(userId);
       return { notifications: [] };
     }
 
+    // Providers are user-global: removing one affects the available model
+    // set for every agent the user owns, not just the agent in the request.
+    // Always fan out cleanup across all owned agents so sibling agents don't
+    // keep stale override_route / auto_assigned_route / fallback_routes
+    // pointing at the now-removed provider's models.
+    const targetAgentIds = await this.listOwnedAgentIds(userId);
+    const notifications: string[] = [];
+    for (const target of targetAgentIds) {
+      notifications.push(
+        ...(await this.cleanupAgentAfterRemoval(
+          target,
+          userId,
+          provider,
+          hasOtherUsableAuthType,
+          authType,
+        )),
+      );
+    }
+    this.routingCache.invalidateUser(userId);
+
+    return { notifications };
+  }
+
+  /** Resolve the ids of every non-deleted agent the user owns. */
+  private async listOwnedAgentIds(userId: string): Promise<string[]> {
+    const agents = await this.agentRepo
+      .createQueryBuilder('a')
+      .leftJoin('a.tenant', 't')
+      .where('t.name = :userId', { userId })
+      .andWhere('a.deleted_at IS NULL')
+      .select('a.id', 'id')
+      .getRawMany<{ id: string }>();
+    return agents.map((a) => a.id);
+  }
+
+  /** Clean tier references for one agent after a provider removal and surface notifications. */
+  private async cleanupAgentAfterRemoval(
+    agentId: string,
+    userId: string,
+    provider: string,
+    hasOtherUsableAuthType: boolean,
+    authType?: AuthType,
+  ): Promise<string[]> {
     const { invalidated } = await this.cleanupProviderReferences(agentId, [provider], {
       authType: hasOtherUsableAuthType ? authType : undefined,
     });
     await this.autoAssign.recalculate(agentId, userId);
     this.routingCache.invalidateAgent(agentId);
-    this.routingCache.invalidateUser(userId);
 
     const notifications: string[] = [];
     if (invalidated.length > 0) {
@@ -565,8 +628,7 @@ export class ProviderService {
         notifications.push(`${modelName} is no longer available. ${suffix}`);
       }
     }
-
-    return { notifications };
+    return notifications;
   }
 
   /**
@@ -581,7 +643,7 @@ export class ProviderService {
     authType: AuthType | undefined,
     label: string,
   ): Promise<{ notifications: string[] }> {
-    const where: Record<string, unknown> = { user_id: userId, provider };
+    const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
     if (authType) where.auth_type = authType;
     const matching = await this.providerRepo.find({ where });
     if (matching.length === 0) throw new NotFoundException('Provider not found');
@@ -717,6 +779,10 @@ export class ProviderService {
       if (!route) return false;
       if (options?.authType && route.authType !== options.authType) return false;
       if (providerNames.has(route.provider.toLowerCase())) return true;
+      // The route explicitly names a different provider. The same model can be
+      // served by multiple providers (e.g. claude via OpenRouter), so do NOT clear
+      // it based on model-name inference — that would delete a still-valid route.
+      if (route.provider) return false;
       return modelBelongs(route.model);
     };
 

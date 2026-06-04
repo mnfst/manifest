@@ -328,6 +328,47 @@ export function refreshProviderModels(agentName: string, provider: string, authT
   return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
 }
 
+/* -- Agent Provider Access -- */
+
+export interface AgentProviderAccess {
+  enabled: string[];
+}
+
+export interface AgentProviderDisableImpact {
+  affected_tiers: Array<{ tier: string; model: string; position: string }>;
+}
+
+function agentProviderAccessPath(agentName: string, suffix = ''): string {
+  const encodedAgent = encodeURIComponent(agentName);
+  return suffix
+    ? `/agents/${encodedAgent}/provider-access${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+    : `/agents/${encodedAgent}/provider-access`;
+}
+
+export function getAgentProviderAccess(agentName: string) {
+  return fetchJson<AgentProviderAccess>(agentProviderAccessPath(agentName));
+}
+
+export function getAgentProviderDisableImpact(agentName: string, userProviderId: string) {
+  return fetchJson<AgentProviderDisableImpact>(
+    agentProviderAccessPath(agentName, `${encodeURIComponent(userProviderId)}/impact`),
+  );
+}
+
+export function enableAgentProviderAccess(agentName: string, userProviderId: string) {
+  return fetchMutate<{ ok: boolean }>(
+    agentProviderAccessPath(agentName, encodeURIComponent(userProviderId)),
+    { method: 'PUT' },
+  );
+}
+
+export function disableAgentProviderAccess(agentName: string, userProviderId: string) {
+  return fetchMutate<{ ok: boolean }>(
+    agentProviderAccessPath(agentName, encodeURIComponent(userProviderId)),
+    { method: 'DELETE' },
+  );
+}
+
 /* -- Routing: Pricing cache health -- */
 
 export interface PricingHealth {
@@ -369,44 +410,35 @@ export interface CustomProviderData {
 }
 
 // Module-scoped cache so Overview / MessageLog / Routing don't each refetch
-// the same custom-providers list when mounting in sequence. Mutations below
-// (create/update/delete) invalidate the agent's entry; the routing 'routing'
-// SSE event invalidates them all.
-const customProvidersCache = new Map<string, Promise<CustomProviderData[]>>();
+// the same custom-providers list when mounting in sequence. Custom providers
+// are now user-scoped (not agent-scoped), so the cache holds a single entry.
+// Mutations below (create/update/delete) invalidate it; the 'routing' SSE
+// event also clears it.
+let customProvidersCache: Promise<CustomProviderData[]> | null = null;
 
-export function invalidateCustomProvidersCache(agentName?: string): void {
-  if (agentName === undefined) {
-    customProvidersCache.clear();
-    return;
-  }
-  customProvidersCache.delete(agentName);
+export function invalidateCustomProvidersCache(): void {
+  customProvidersCache = null;
 }
 
-export function getCustomProviders(agentName: string): Promise<CustomProviderData[]> {
-  const cached = customProvidersCache.get(agentName);
-  if (cached) return cached;
-  const promise = fetchJson<CustomProviderData[]>(routingPath(agentName, 'custom-providers')).catch(
-    (err) => {
-      customProvidersCache.delete(agentName);
-      throw err;
-    },
-  );
-  customProvidersCache.set(agentName, promise);
+export function getCustomProviders(): Promise<CustomProviderData[]> {
+  if (customProvidersCache) return customProvidersCache;
+  const promise = fetchJson<CustomProviderData[]>('/custom-providers').catch((err) => {
+    customProvidersCache = null;
+    throw err;
+  });
+  customProvidersCache = promise;
   return promise;
 }
 
-export function createCustomProvider(
-  agentName: string,
-  data: {
-    name: string;
-    base_url: string;
-    api_kind?: CustomProviderApiKind;
-    apiKey?: string;
-    models: CustomProviderModel[];
-  },
-) {
-  invalidateCustomProvidersCache(agentName);
-  return fetchMutate<CustomProviderData>(routingPath(agentName, 'custom-providers'), {
+export function createCustomProvider(data: {
+  name: string;
+  base_url: string;
+  api_kind?: CustomProviderApiKind;
+  apiKey?: string;
+  models: CustomProviderModel[];
+}) {
+  invalidateCustomProvidersCache();
+  return fetchMutate<CustomProviderData>('/custom-providers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -414,7 +446,6 @@ export function createCustomProvider(
 }
 
 export function updateCustomProvider(
-  agentName: string,
   id: string,
   data: {
     name?: string;
@@ -424,25 +455,21 @@ export function updateCustomProvider(
     models?: CustomProviderModel[];
   },
 ) {
-  invalidateCustomProvidersCache(agentName);
-  return fetchMutate<CustomProviderData>(
-    routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
-    {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    },
-  );
+  invalidateCustomProvidersCache();
+  return fetchMutate<CustomProviderData>(`/custom-providers/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 export async function probeCustomProvider(
-  agentName: string,
   base_url: string,
   apiKey?: string,
   api_kind?: CustomProviderApiKind,
   provider_name?: string,
 ) {
-  const res = await fetch(`${BASE_URL}${routingPath(agentName, 'custom-providers/probe')}`, {
+  const res = await fetch(`${BASE_URL}/custom-providers/probe`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -457,10 +484,9 @@ export async function probeCustomProvider(
   return JSON.parse(text) as { models: CustomProviderModel[] };
 }
 
-export function deleteCustomProvider(agentName: string, id: string) {
-  invalidateCustomProvidersCache(agentName);
-  return fetchMutate<{ ok: boolean }>(
-    routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
-    { method: 'DELETE' },
-  );
+export function deleteCustomProvider(id: string) {
+  invalidateCustomProvidersCache();
+  return fetchMutate<{ ok: boolean }>(`/custom-providers/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
 }

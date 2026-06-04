@@ -116,6 +116,7 @@ import { AddErrorsPartialIndex1790300000000 } from './migrations/1790300000000-A
 import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1790400000000-DropRedundantAgentApiKeyPrefixIndex';
 import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
 import { AddProviderRateLimits1791100000000 } from './migrations/1791100000000-AddProviderRateLimits';
+import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 
 const entities = [
   AgentMessage,
@@ -233,6 +234,7 @@ const migrations = [
   DropRedundantAgentApiKeyPrefixIndex1790400000000,
   LiftProvidersToUserLevel1791000000000,
   AddProviderRateLimits1791100000000,
+  LiftCustomProvidersToUserLevel1791200000000,
 ];
 
 @Module({
@@ -284,7 +286,6 @@ const migrations = [
       MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
-      AgentProviderAccess,
       ProviderRateLimit,
     ]),
     ModelPricesModule,

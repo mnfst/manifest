@@ -313,6 +313,38 @@ describe('PlaygroundService.runStream', () => {
     expect(call.model).toBe('meta-llama/Llama-3.1-8B');
   });
 
+  it('scopes custom provider lookup by userId so another user cannot access it', async () => {
+    const { service, mocks } = buildService();
+    // Simulate a repository that only returns a row when user_id matches the caller.
+    mocks.customProviderRepo.findOne.mockImplementation(async (opts: unknown) => {
+      const where = (opts as { where: { id: string; user_id: string } }).where;
+      if (where.user_id !== USER_ID) return null;
+      return {
+        id: 'abc',
+        user_id: USER_ID,
+        base_url: 'https://nebius.example/v1',
+        api_kind: 'openai',
+      };
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', 'data: [DONE]\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      USER_ID,
+      makeDto({ provider: 'custom:abc', model: 'custom:abc/llama' }),
+      asRes(res),
+    );
+
+    // The lookup must include user_id to prevent cross-user resolution
+    expect(mocks.customProviderRepo.findOne).toHaveBeenCalledWith({
+      where: { id: 'abc', user_id: USER_ID },
+    });
+    const call = mocks.providerClient.forward.mock.calls[0][0] as Record<string, unknown>;
+    expect(call.customEndpoint).toBeDefined();
+  });
+
   it('defaults all token counts to 0 when the stream reports no usage block', async () => {
     const { service, mocks } = buildService();
     mocks.providerClient.forward.mockResolvedValue(
@@ -436,7 +468,12 @@ describe('PlaygroundService.runStream', () => {
 
     await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
 
-    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(USER_ID, 'openai');
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(
+      USER_ID,
+      'openai',
+      undefined,
+      AGENT.id,
+    );
     // subscription auth → cost is 0, not null
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);
@@ -470,9 +507,10 @@ describe('PlaygroundService.runStream', () => {
     );
 
     expect(mocks.providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-      AGENT.id,
+      USER_ID,
       'openai',
       'subscription',
+      AGENT.id,
     );
     expect(mocks.openaiOauth.unwrapToken).toHaveBeenCalledWith(
       oauthBlob,

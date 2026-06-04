@@ -86,7 +86,7 @@ export class SpecificityService {
       explicit ??
       unambiguousRoute(
         model,
-        await this.discoveryService.getModelsForAgent(userId),
+        await this.discoveryService.getModelsForAgent(userId, agentId),
         providerKeyLabel,
       );
     if (!route) {
@@ -262,7 +262,7 @@ export class SpecificityService {
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(userId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

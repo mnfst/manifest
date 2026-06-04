@@ -1,11 +1,16 @@
 import { useParams } from '@solidjs/router';
 import { createResource, createSignal, For, Show, type Component } from 'solid-js';
-import { fetchJson, fetchMutate } from '../services/api/core.js';
-import { getCustomProviders } from '../services/api.js';
+import {
+  disableAgentProviderAccess,
+  enableAgentProviderAccess,
+  fetchJson,
+  getAgentProviderAccess,
+  getAgentProviderDisableImpact,
+  getCustomProviders,
+} from '../services/api.js';
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { customProviderColor } from '../services/formatters.js';
-import { toast } from '../services/toast-store.js';
 
 interface Connection {
   id: string;
@@ -49,16 +54,15 @@ const AgentProviders: Component = () => {
     () => agentName(),
     async (name) => {
       try {
-        const res = (await fetchJson(`/agents/${encodeURIComponent(name)}/provider-access`)) as {
-          enabled: string[];
-          explicit: boolean;
-        };
-        return { set: new Set(res.enabled), explicit: res.explicit };
+        const res = await getAgentProviderAccess(name);
+        return new Set(res.enabled);
       } catch {
-        return { set: new Set<string>(), explicit: false };
+        return new Set<string>();
       }
     },
   );
+
+  const [customProvidersList] = createResource(() => getCustomProviders().catch(() => []));
 
   const allConnections = () => {
     const list: Array<{
@@ -68,26 +72,24 @@ const AgentProviders: Component = () => {
       label: string;
       models: number;
     }> = [];
-    for (const p of providers() ?? []) {
-      for (const c of p.connections) {
-        if (!c.is_active) continue;
+
+    for (const provider of providers() ?? []) {
+      for (const connection of provider.connections) {
+        if (!connection.is_active) continue;
         list.push({
-          userProviderId: c.id,
-          provider: p.provider,
-          authType: p.auth_type,
-          label: c.label,
-          models: c.cached_model_count || p.total_models,
+          userProviderId: connection.id,
+          provider: provider.provider,
+          authType: provider.auth_type,
+          label: connection.label,
+          models: connection.cached_model_count || provider.total_models,
         });
       }
     }
+
     return list;
   };
 
-  const isEnabled = (id: string) => {
-    const a = access();
-    if (!a || !a.explicit) return true;
-    return a.set.has(id);
-  };
+  const isEnabled = (id: string) => access()?.has(id) ?? false;
 
   const [busy, setBusy] = createSignal<string | null>(null);
   const [confirmTarget, setConfirmTarget] = createSignal<{
@@ -101,10 +103,7 @@ const AgentProviders: Component = () => {
 
   const fetchImpact = async (userProviderId: string) => {
     try {
-      const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}/impact`;
-      const res = (await fetchJson(url)) as {
-        affected_tiers: Array<{ tier: string; model: string; position: string }>;
-      };
+      const res = await getAgentProviderDisableImpact(agentName(), userProviderId);
       return res.affected_tiers ?? [];
     } catch {
       return [];
@@ -114,11 +113,10 @@ const AgentProviders: Component = () => {
   const doDisable = async (userProviderId: string) => {
     setBusy(userProviderId);
     try {
-      const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}`;
-      await fetchMutate(url, { method: 'DELETE' });
+      await disableAgentProviderAccess(agentName(), userProviderId);
       refetchAccess();
     } catch {
-      // toast from fetchMutate
+      // fetchMutate surfaces the toast.
     } finally {
       setBusy(null);
       setConfirmTarget(null);
@@ -129,11 +127,10 @@ const AgentProviders: Component = () => {
   const doEnable = async (userProviderId: string) => {
     setBusy(userProviderId);
     try {
-      const url = `/agents/${encodeURIComponent(agentName())}/provider-access/${userProviderId}`;
-      await fetchMutate(url, { method: 'PUT' });
+      await enableAgentProviderAccess(agentName(), userProviderId);
       refetchAccess();
     } catch {
-      // toast from fetchMutate
+      // fetchMutate surfaces the toast.
     } finally {
       setBusy(null);
     }
@@ -153,18 +150,15 @@ const AgentProviders: Component = () => {
     }
   };
 
-  const provDef = (id: string) => PROVIDERS.find((p) => p.id === id);
-  const [customProvidersList] = createResource(
-    () => agentName(),
-    (name) => getCustomProviders(name).catch(() => []),
-  );
+  const provDef = (id: string) => PROVIDERS.find((provider) => provider.id === id);
+
   const resolveProviderName = (id: string) => {
     const known = provDef(id);
     if (known) return known.name;
     if (id.startsWith('custom:')) {
       const uuid = id.replace('custom:', '');
-      const cp = (customProvidersList() ?? []).find((c: any) => c.id === uuid);
-      if (cp) return (cp as any).name;
+      const custom = (customProvidersList() ?? []).find((provider) => provider.id === uuid);
+      if (custom) return custom.name;
     }
     return id;
   };
@@ -172,8 +166,8 @@ const AgentProviders: Component = () => {
   return (
     <div>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
-        All connected providers are enabled by default. Disable a provider to prevent this agent
-        from routing to it.
+        Enable the global provider connections this agent may use. Turning a provider off removes
+        routing assignments that depend on its models.
       </p>
 
       <Show
@@ -210,7 +204,6 @@ const AgentProviders: Component = () => {
             <tbody>
               <For each={allConnections()}>
                 {(conn) => {
-                  const prov = provDef(conn.provider);
                   const enabled = () => isEnabled(conn.userProviderId);
                   return (
                     <tr style={{ opacity: enabled() ? '1' : '0.5' }}>
@@ -259,12 +252,15 @@ const AgentProviders: Component = () => {
                         </span>
                       </td>
                       <td style="color: hsl(var(--muted-foreground));">{conn.label}</td>
-                      <td>{conn.models || '—'}</td>
+                      <td>{conn.models || '-'}</td>
                       <td style="text-align: right;">
                         <button
                           class="routing-switch"
                           classList={{ 'routing-switch--on': enabled() }}
                           disabled={busy() === conn.userProviderId}
+                          aria-label={`${enabled() ? 'Disable' : 'Enable'} ${resolveProviderName(
+                            conn.provider,
+                          )} ${conn.label}`}
                           onClick={() => handleToggle(conn)}
                         >
                           <span class="routing-switch__track">
@@ -281,16 +277,15 @@ const AgentProviders: Component = () => {
         </div>
       </Show>
 
-      {/* Confirmation modal for disabling */}
       <Show when={confirmTarget()}>
         <div
           class="modal-overlay"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setConfirmTarget(null);
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setConfirmTarget(null);
           }}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setConfirmTarget(null);
-            if (e.key === 'Enter') doDisable(confirmTarget()!.userProviderId);
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') setConfirmTarget(null);
+            if (event.key === 'Enter') doDisable(confirmTarget()!.userProviderId);
           }}
         >
           <div
@@ -298,13 +293,13 @@ const AgentProviders: Component = () => {
             style="max-width: 420px;"
             role="dialog"
             aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <h2 class="modal-card__title">Disable provider</h2>
             <p class="modal-card__desc">
               This agent will no longer be able to route requests through{' '}
               <strong style="color: hsl(var(--foreground));">
-                {provDef(confirmTarget()!.provider)?.name ?? confirmTarget()!.provider}
+                {resolveProviderName(confirmTarget()!.provider)}
               </strong>
               . You can re-enable it at any time.
             </p>
@@ -317,7 +312,7 @@ const AgentProviders: Component = () => {
                   {(item) => (
                     <div style="display: flex; justify-content: space-between; padding: 4px 0; color: hsl(var(--muted-foreground));">
                       <span>
-                        {item.tier} — {item.position}
+                        {item.tier} - {item.position}
                       </span>
                       <span style="font-family: monospace;">{item.model}</span>
                     </div>
