@@ -74,9 +74,11 @@ import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
   isTransportError,
+  isRetriableConnectionError,
   buildTransportErrorResponse,
   describeTransportError,
 } from './proxy-transport';
+import { ProviderCircuitBreakerService } from './provider-circuit-breaker.service';
 import type { SignatureLookup, ThinkingBlockLookup, ReasoningContentLookup } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
 
@@ -112,6 +114,7 @@ export class ProxyFallbackService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly circuitBreaker: ProviderCircuitBreakerService,
     private readonly reasoningCache?: ReasoningContentCache,
   ) {}
 
@@ -323,17 +326,35 @@ export class ProxyFallbackService {
   }
 
   async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
-    try {
-      const forward = await this.forwardToProvider(opts);
-      return await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
-    } catch (error) {
-      if (opts.signal?.aborted) throw error;
-      if (!isTransportError(error)) throw error;
+    const breakerKey = this.circuitBreakerKey(opts);
 
-      const failureResponse = buildTransportErrorResponse(error);
-      const message = describeTransportError(error);
+    // Fast-fail when this provider's breaker is open: skip the upstream call so
+    // the fallback chain proceeds immediately instead of paying the full connect
+    // timeout on a provider we already know is failing.
+    if (this.circuitBreaker.isOpen(breakerKey)) {
       this.logger.warn(
-        `Provider transport failure: provider=${opts.provider} model=${opts.model} status=${failureResponse.status} message=${message}`,
+        `Provider circuit open — fast-failing: provider=${opts.provider} model=${opts.model}`,
+      );
+      return this.buildCircuitOpenResponse(opts);
+    }
+
+    try {
+      const forward = await this.forwardWithStaleConnectionRetry(opts);
+      const result = await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
+      this.circuitBreaker.record(breakerKey, result.response.status);
+      return result;
+    } catch (error) {
+      // Client gave up or a non-transport (programming) error: neither is a
+      // provider-health signal, so don't score it — just release any probe.
+      if (opts.signal?.aborted || !isTransportError(error)) {
+        this.circuitBreaker.abortProbe(breakerKey);
+        throw error;
+      }
+
+      this.circuitBreaker.recordFailure(breakerKey);
+      const failureResponse = buildTransportErrorResponse(error);
+      this.logger.warn(
+        `Provider transport failure: provider=${opts.provider} model=${opts.model} status=${failureResponse.status} message=${describeTransportError(error)}`,
       );
 
       return {
@@ -343,6 +364,49 @@ export class ProxyFallbackService {
         isChatGpt: false,
       };
     }
+  }
+
+  /**
+   * One-shot retry for a dead reused keep-alive socket. When the upstream
+   * `fetch` fails with a connection-level error (the peer had already closed the
+   * pooled socket), the request never reached the provider, so a single retry on
+   * a fresh connection is safe and cannot double-submit. Any other error
+   * (timeout, refused, non-retriable) propagates unchanged.
+   */
+  private async forwardWithStaleConnectionRetry(
+    opts: ForwardProviderOptions,
+  ): Promise<ForwardResult> {
+    try {
+      return await this.forwardToProvider(opts);
+    } catch (error) {
+      if (opts.signal?.aborted || !isRetriableConnectionError(error)) throw error;
+      this.logger.warn(
+        `Stale-connection retry: provider=${opts.provider} model=${opts.model} (${describeTransportError(error)})`,
+      );
+      return this.forwardToProvider(opts);
+    }
+  }
+
+  private circuitBreakerKey(opts: ForwardProviderOptions): string {
+    return `${opts.provider.toLowerCase()}:${opts.authType ?? 'default'}`;
+  }
+
+  private buildCircuitOpenResponse(opts: ForwardProviderOptions): ForwardResult {
+    return {
+      response: new Response(
+        JSON.stringify({
+          error: { message: `Provider ${opts.provider} temporarily unavailable (circuit open)` },
+        }),
+        {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'content-type': 'application/json' },
+        },
+      ),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    };
   }
 
   private async retryOAuthSubscriptionAfterRejectedToken(

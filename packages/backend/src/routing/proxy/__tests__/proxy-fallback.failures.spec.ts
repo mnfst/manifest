@@ -14,6 +14,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { ProviderCircuitBreakerService } from '../provider-circuit-breaker.service';
 
 /**
  * Status-code-driven fallback chain behavior for tryFallbacks().
@@ -104,6 +105,7 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
         getSpecs: jest.fn().mockResolvedValue([]),
         list: jest.fn().mockResolvedValue([]),
       } as unknown as ProviderParamSpecService,
+      new ProviderCircuitBreakerService(),
     );
   });
 

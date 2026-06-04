@@ -2,4 +2,4 @@
 "manifest": patch
 ---
 
-Reuse upstream provider connections with a shared keep-alive HTTP pool, cutting time-to-first-token by skipping repeat DNS/TCP/TLS handshakes on busy or bursty traffic.
+Lower proxy latency and harden it against connection blips: reuse upstream provider connections with a shared keep-alive pool (skips repeat DNS/TCP/TLS handshakes), retry once on a dead reused socket before failing over, and fast-fail with a circuit breaker when a provider is repeatedly down.

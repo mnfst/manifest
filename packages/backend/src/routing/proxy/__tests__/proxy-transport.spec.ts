@@ -1,5 +1,6 @@
 import {
   isTransportError,
+  isRetriableConnectionError,
   isTimeoutError,
   buildTransportErrorResponse,
   describeTransportError,
@@ -261,6 +262,45 @@ describe('proxy-transport', () => {
 
       const body = (await response.json()) as { error: { message: string } };
       expect(body.error.message).toContain('Failed to parse URL');
+    });
+  });
+
+  describe('isRetriableConnectionError', () => {
+    const connError = (code: string, message = code): Error => {
+      const err = new Error(message);
+      (err as Error & { code?: string }).code = code;
+      return err;
+    };
+
+    it('returns true for a dead reused socket (ECONNRESET / socket hang up)', () => {
+      expect(isRetriableConnectionError(connError('ECONNRESET', 'socket hang up'))).toBe(true);
+    });
+
+    it('returns true for undici UND_ERR_SOCKET (other side closed) via cause', () => {
+      const err = new TypeError('fetch failed');
+      err.cause = connError('UND_ERR_SOCKET', 'other side closed');
+      expect(isRetriableConnectionError(err)).toBe(true);
+    });
+
+    it('returns false for timeouts (upstream was reached, may be mid-process)', () => {
+      const err = new Error('timeout');
+      err.name = 'TimeoutError';
+      expect(isRetriableConnectionError(err)).toBe(false);
+    });
+
+    it('returns false for connection-refused / DNS failures (provider down)', () => {
+      expect(isRetriableConnectionError(connError('ECONNREFUSED'))).toBe(false);
+      expect(isRetriableConnectionError(connError('ENOTFOUND'))).toBe(false);
+    });
+
+    it('returns false for the bare "fetch failed" wrapper (root cause unknown)', () => {
+      expect(isRetriableConnectionError(new TypeError('fetch failed'))).toBe(false);
+    });
+
+    it('is a strict subset of isTransportError', () => {
+      const reset = connError('ECONNRESET', 'socket hang up');
+      expect(isRetriableConnectionError(reset)).toBe(true);
+      expect(isTransportError(reset)).toBe(true);
     });
   });
 });

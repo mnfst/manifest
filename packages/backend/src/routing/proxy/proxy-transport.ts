@@ -14,6 +14,16 @@ const GENERIC_FETCH_ERROR_MESSAGE = 'fetch failed';
 const TRANSPORT_PATTERN =
   /(fetch failed|failed to parse url|network|timeout|econnrefused|econnreset|enotfound|ehostunreach|etimedout|und_err_)/i;
 
+// Narrow subset of transport failures that are SAFE to retry once on a fresh
+// connection: a reused keep-alive socket the peer had already closed, so the
+// request never reached the upstream (no response byte was produced) and a
+// retry cannot double-submit. Deliberately excludes timeouts (upstream was
+// reached, may be mid-process), connection-refused / DNS failures (provider
+// down — let the fallback chain handle it), and the generic "fetch failed"
+// wrapper (root cause unknown).
+const RETRIABLE_CONNECTION_PATTERN =
+  /(econnreset|und_err_socket|socket hang up|other side closed|connection reset)/i;
+
 // ---------------------------------------------------------------------------
 // Error property accessors
 // ---------------------------------------------------------------------------
@@ -63,6 +73,25 @@ export function isTransportError(error: unknown): boolean {
 
 export function isTimeoutError(error: unknown): boolean {
   return getErrorName(error) === 'TimeoutError';
+}
+
+/**
+ * True for connection-level failures that are safe to retry once on a fresh
+ * socket (the dead reused keep-alive socket case). Returns false for timeouts
+ * and any non-connection transport error. Always a strict subset of
+ * {@link isTransportError}.
+ */
+export function isRetriableConnectionError(error: unknown): boolean {
+  if (isTimeoutError(error)) return false;
+  const detail = [
+    getErrorMessage(error),
+    getErrorMessage(getErrorCause(error)),
+    getErrorCode(error),
+    getErrorCode(getErrorCause(error)),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(' ');
+  return RETRIABLE_CONNECTION_PATTERN.test(detail);
 }
 
 // ---------------------------------------------------------------------------

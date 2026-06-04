@@ -14,6 +14,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { ProviderCircuitBreakerService } from '../provider-circuit-breaker.service';
 
 /**
  * Locks the route-aware behavior of ProxyFallbackService.tryFallbacks:
@@ -118,6 +119,7 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
       pricingCache,
       modelParamsService,
       providerParamSpecs,
+      new ProviderCircuitBreakerService(),
     );
   });
 
