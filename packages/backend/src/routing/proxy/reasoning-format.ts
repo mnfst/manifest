@@ -37,6 +37,8 @@ const REASONING_CONTENT_AWARE_ENDPOINTS = new Set(['openrouter', 'opencode-go', 
 const OPENCODE_GO_REASONING_MODEL_FAMILY_RE =
   /^(?:deepseek|kimi|glm|qwen|minimax|mimo)(?:[-_.\d]|$)/i;
 
+const UNSAFE_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
+
 /**
  * Some reasoning APIs reject follow-up turns that don't echo back the previous
  * assistant's `reasoning_content`. Preserve it for:
@@ -95,8 +97,8 @@ export function normalizeOpenAiReasoningDelta(
     return { text: reasoning, normalized: false };
   }
 
-  setPath(delta, format.clientStreamDeltaPath, reasoning);
-  return { text: reasoning, normalized: true };
+  const normalized = setPath(delta, format.clientStreamDeltaPath, reasoning);
+  return { text: reasoning, normalized };
 }
 
 function firstStringAtPaths(obj: Record<string, unknown>, paths: readonly string[]): string | null {
@@ -108,16 +110,21 @@ function firstStringAtPaths(obj: Record<string, unknown>, paths: readonly string
 }
 
 function getPath(obj: Record<string, unknown>, path: string): unknown {
+  const segments = safePathSegments(path);
+  if (!segments) return undefined;
+
   let current: unknown = obj;
-  for (const segment of path.split('.')) {
+  for (const segment of segments) {
     if (!current || typeof current !== 'object' || Array.isArray(current)) return undefined;
     current = (current as Record<string, unknown>)[segment];
   }
   return current;
 }
 
-function setPath(obj: Record<string, unknown>, path: string, value: string): void {
-  const segments = path.split('.');
+function setPath(obj: Record<string, unknown>, path: string, value: string): boolean {
+  const segments = safePathSegments(path);
+  if (!segments) return false;
+
   let current = obj;
   for (let i = 0; i < segments.length - 1; i++) {
     const segment = segments[i];
@@ -131,4 +138,11 @@ function setPath(obj: Record<string, unknown>, path: string, value: string): voi
     }
   }
   current[segments[segments.length - 1]] = value;
+  return true;
+}
+
+function safePathSegments(path: string): string[] | null {
+  const segments = path.split('.');
+  if (segments.some((segment) => !segment || UNSAFE_PATH_SEGMENTS.has(segment))) return null;
+  return segments;
 }

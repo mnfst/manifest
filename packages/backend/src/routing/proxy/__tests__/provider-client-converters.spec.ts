@@ -990,6 +990,19 @@ describe('provider-client-converters', () => {
       expect(transform(input)).toBe(`data: ${input}\n\n`);
     });
 
+    it('does not assign unsafe reasoning client paths', () => {
+      const transform = createReasoningContentStreamTransformer(undefined, {
+        outputStreamDeltaPaths: ['reasoning_text'],
+        clientStreamDeltaPath: '__proto__.polluted' as 'reasoning_content',
+      });
+      const input = JSON.stringify({
+        choices: [{ delta: { reasoning_text: 'unsafe' }, finish_reason: null }],
+      });
+
+      expect(transform(input)).toBe(`data: ${input}\n\n`);
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    });
+
     it('accumulates reasoning_content and fires callback on tool-call finish', () => {
       const callback = jest.fn();
       const transform = createReasoningContentStreamTransformer(callback);
