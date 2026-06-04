@@ -40,6 +40,36 @@ describe('ProviderModelRegistryService', () => {
       expect(confirmed).not.toBeNull();
       expect(confirmed!.has('gpt-4o')).toBe(true);
     });
+
+    it('should store supported endpoint metadata for confirmed models', () => {
+      const service = new ProviderModelRegistryService(makeMockRepo() as never);
+      service.registerModels('copilot', [
+        {
+          id: 'copilot/gpt-5.5',
+          supportedEndpoints: ['/responses', 'ws:/responses'],
+        },
+      ]);
+
+      expect(service.getModelMetadata('copilot', 'copilot/gpt-5.5')).toEqual({
+        id: 'copilot/gpt-5.5',
+        supportedEndpoints: ['/responses', 'ws:/responses'],
+      });
+    });
+
+    it('should preserve existing metadata when later registering IDs only', () => {
+      const service = new ProviderModelRegistryService(makeMockRepo() as never);
+      service.registerModels('copilot', [
+        {
+          id: 'copilot/gpt-5.5',
+          supportedEndpoints: ['/responses'],
+        },
+      ]);
+      service.registerModels('copilot', ['copilot/gpt-5.5']);
+
+      expect(service.getModelMetadata('copilot', 'copilot/gpt-5.5')?.supportedEndpoints).toEqual([
+        '/responses',
+      ]);
+    });
   });
 
   describe('getConfirmedModels', () => {
@@ -84,6 +114,14 @@ describe('ProviderModelRegistryService', () => {
 
       expect(service.isModelConfirmed('openai', 'gpt-4o')).toBe(true);
     });
+
+    it('should return null metadata for unknown providers or models', () => {
+      const service = new ProviderModelRegistryService(makeMockRepo() as never);
+      service.registerModels('openai', ['gpt-4o']);
+
+      expect(service.getModelMetadata('openai', 'unknown')).toBeNull();
+      expect(service.getModelMetadata('unknown', 'gpt-4o')).toBeNull();
+    });
   });
 
   describe('onApplicationBootstrap', () => {
@@ -108,6 +146,29 @@ describe('ProviderModelRegistryService', () => {
       expect(service.isModelConfirmed('openai', 'gpt-4o')).toBe(true);
       expect(service.isModelConfirmed('openai', 'gpt-4-turbo')).toBe(true);
       expect(service.isModelConfirmed('anthropic', 'claude-opus-4-6')).toBe(true);
+    });
+
+    it('should load supported endpoint metadata from cached user_providers data', async () => {
+      const providers = [
+        {
+          provider: 'copilot',
+          cached_models: [
+            {
+              id: 'copilot/gpt-5.5',
+              displayName: 'gpt-5.5',
+              supportedEndpoints: ['/responses', 'ws:/responses'],
+            },
+          ],
+        },
+      ];
+      const service = new ProviderModelRegistryService(makeMockRepo(providers) as never);
+
+      await service.onApplicationBootstrap();
+
+      expect(service.getModelMetadata('copilot', 'copilot/gpt-5.5')).toEqual({
+        id: 'copilot/gpt-5.5',
+        supportedEndpoints: ['/responses', 'ws:/responses'],
+      });
     });
 
     it('should skip providers with non-array cached_models', async () => {

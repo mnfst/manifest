@@ -1873,7 +1873,11 @@ describe('ProviderModelFetcherService', () => {
         ok: true,
         json: async () => ({
           data: [
-            { id: 'claude-opus-4.6', object: 'model' },
+            {
+              id: 'claude-opus-4.6',
+              object: 'model',
+              supported_endpoints: ['/chat/completions', '/v1/messages'],
+            },
             { id: 'gpt-4o', object: 'model' },
           ],
         }),
@@ -1890,6 +1894,7 @@ describe('ProviderModelFetcherService', () => {
           inputPricePerToken: 0,
           outputPricePerToken: 0,
           qualityScore: 3,
+          supportedEndpoints: ['/chat/completions', '/v1/messages'],
         }),
       );
       expect(result[1].id).toBe('copilot/gpt-4o');

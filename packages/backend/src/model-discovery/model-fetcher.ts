@@ -26,6 +26,7 @@ export interface DiscoveredModel {
   capabilities?: readonly ModelCapability[];
   inputModalities?: readonly ModelModality[];
   outputModalities?: readonly ModelModality[];
+  supportedEndpoints?: readonly string[];
   qualityScore: number;
   authType?: AuthType;
 }
