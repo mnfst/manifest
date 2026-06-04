@@ -1,0 +1,19 @@
+packages/backend/src/routing/provider.controller.ts
+  s_492c4473e887cf::t_7932c5526ad191 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "df0becf86c00aed9c22826761e57e1bcb724ee57",
+  "prompts": {},
+  "sessions": {
+    "s_492c4473e887cf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91b0-14ef-7382-8783-f119a091c223",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
