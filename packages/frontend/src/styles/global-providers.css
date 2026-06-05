@@ -1,3 +1,6 @@
+@import './routing-modal.css';
+@import './routing-providers.css';
+
 .global-providers-page {
   display: flex;
   flex-direction: column;
