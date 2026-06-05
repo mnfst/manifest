@@ -1,0 +1,31 @@
+packages/frontend/src/layouts/TenantWorkspaceLayout.tsx
+  s_6fb27bb484ff37::t_54f95b1e3ffeb5 1-34
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_6fb27bb484ff37::t_350936713754c8 93,95-96,107,162,164-165,227,232,242,244-245
+packages/frontend/tests/components/App.test.tsx
+  s_6fb27bb484ff37::t_350936713754c8 120,125-127
+packages/frontend/src/App.tsx
+  s_6fb27bb484ff37::t_54f95b1e3ffeb5 39
+packages/frontend/tests/layouts/TenantWorkspaceLayout.test.tsx
+  s_6fb27bb484ff37::t_350936713754c8 1-44,46-58
+packages/frontend/src/styles/agents.css
+  s_6fb27bb484ff37::t_54f95b1e3ffeb5 2-70
+packages/frontend/src/index.tsx
+  s_6fb27bb484ff37::t_54f95b1e3ffeb5 7,62-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "585e6619d9de54b7710d740da847861df6194fbf",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
