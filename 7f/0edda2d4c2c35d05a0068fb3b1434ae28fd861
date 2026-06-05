@@ -1,0 +1,20 @@
+packages/backend/test/global-providers.e2e-spec.ts
+  s_feb7f7e060c1a0::t_2cd9a4998863ac 1-122,124-142
+  s_feb7f7e060c1a0::t_890393bc838426 123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "7f0edda2d4c2c35d05a0068fb3b1434ae28fd861",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
