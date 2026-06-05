@@ -117,7 +117,7 @@ export class CustomProviderController {
     @Param('id') id: string,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    await this.customProviderService.remove(agent.id, id);
+    await this.customProviderService.remove(agent.id, user.id, id);
     return { ok: true };
   }
 }

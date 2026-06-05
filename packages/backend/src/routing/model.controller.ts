@@ -57,8 +57,8 @@ export class ModelController {
   @Post(':agentName/refresh-models')
   async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.discoveryService.discoverAllForAgent(agent.id);
-    await this.providerService.recalculateTiers(agent.id);
+    await this.discoveryService.discoverAllForAgent(user.id);
+    await this.providerService.recalculateTiers(agent.id, user.id);
     return { ok: true };
   }
 
@@ -70,12 +70,12 @@ export class ModelController {
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const result = await this.discoveryService.refreshProvider(
-      agent.id,
+      user.id,
       params.provider,
       query.authType,
     );
     if (result.ok) {
-      await this.providerService.recalculateTiers(agent.id);
+      await this.providerService.recalculateTiers(agent.id, user.id);
     }
     return result;
   }
@@ -88,7 +88,7 @@ export class ModelController {
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const models = await this.discoveryService.getModelsForAgent(agent.id);
+    const models = await this.discoveryService.getModelsForAgent(user.id);
 
     // Build display name map for custom providers
     const customProviders = await this.customProviderService.list(agent.id);
