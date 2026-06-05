@@ -1,0 +1,104 @@
+packages/frontend/tests/pages/Playground.test.tsx
+  s_6fb27bb484ff37::t_e471e00384cd7c 7,9,18,20,40-41,45,77-80,95-98,123,239,282-285,379,381,384-394,398
+  s_6fb27bb484ff37::t_668560d4bb2a56 442-467
+packages/frontend/src/services/api/agents.ts
+  s_6fb27bb484ff37::t_5611c997825537 64,108
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_6fb27bb484ff37::t_f8a6cc2180ae47 154,162-212
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_6fb27bb484ff37::t_87293bcb237442 40,57-60,257-303
+packages/frontend/src/services/playground-store.ts
+  s_6fb27bb484ff37::t_1f9c4a1fd75354 66-67,130-133,224,492-497,500-501
+.changeset/global-provider-playground.md
+  s_6fb27bb484ff37::t_8aaaa9f26a6039 1-5
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_6fb27bb484ff37::t_a0523a44480398 3,54-64,90-104,133-152,159-164,180-194,264-279
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_6fb27bb484ff37::t_45c7433827bee7 15,31,70,132-134
+  s_6fb27bb484ff37::t_d7ba58d63604d0 21,38-42,107
+  s_6fb27bb484ff37::t_8ffb1b16545473 264-271,279-284,302-303
+  s_6fb27bb484ff37::t_4f397d325d337d 272-278,285-301
+  s_6fb27bb484ff37::t_4944a339d44c30 340-343,406-409,469-472,523-526,572-575,620-623,726-728
+packages/frontend/src/services/api/playground.ts
+  s_6fb27bb484ff37::t_b31ffd5b7d7bf2 28
+packages/backend/src/common/dto/create-agent.dto.ts
+  s_6fb27bb484ff37::t_15dd5bee28c945 9-11,34-39
+packages/backend/src/playground/playground.service.ts
+  s_6fb27bb484ff37::t_a035f5878d4fda 36-38,69,81-85,87-99,101-131
+  s_6fb27bb484ff37::t_4c65b953858d84 133-182
+  s_6fb27bb484ff37::t_7b08c76b65c663 229-233,237,251,282-295,308-321,352-361,363-379,398-403
+packages/frontend/src/styles/agents.css
+  s_6fb27bb484ff37::t_7b23ec57dcc88d 175-238
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_6fb27bb484ff37::t_e90accedee255f 22-23,27,30-31,59,63,68,72,79,83-84,87-92,98,102-103,105-111,114-116,120,122-127,133,135,140-148,151-155,158,160,163,165,169,172,176,179-180,184,188,192,195,198,200,202,205,213,216-217,221,224,228-229,231,233-235,238-244,246-247,252-253,255-256,261-262,264-265,270-271,273-275,277,283-284,286,292,294-295,299
+packages/backend/src/common/dto/create-agent.dto.spec.ts
+  s_6fb27bb484ff37::t_34449f37ae29b6 98-115
+packages/frontend/src/App.tsx
+  s_6fb27bb484ff37::t_62c82f1aa12a89 39-40
+packages/frontend/src/services/api/routing.ts
+  s_6fb27bb484ff37::t_5b74a44472a676 367-370
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_6fb27bb484ff37::t_6f3fee2deb5246 99-103,113,178-180
+  s_6fb27bb484ff37::t_db0d32ee1889e2 249-256
+packages/frontend/tests/services/api/agents.test.ts
+  s_6fb27bb484ff37::t_d99e66971b1115 157,163,166,174
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_6fb27bb484ff37::t_9c4f2d6aa59e4c 234-240
+packages/frontend/tests/services/playground-store.test.ts
+  s_6fb27bb484ff37::t_06acc306600d73 344-357
+packages/backend/src/routing/model.controller.spec.ts
+  s_6fb27bb484ff37::t_39a79e5a1d34bc 52,234-250
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_6fb27bb484ff37::t_01085b2ef0d192 26-27,31,34,36,40,45,49,56,60-61,64-69,75,79-80,83-85,90,94-95,97,102,106-107,110,112,116,118,122,124,128,130,135,137-138,142,144,148-149,151,155,159-160,162,165,169-170,172,176,182,184,188-190,195-197,205-206,212,216-217
+packages/frontend/src/index.tsx
+  s_6fb27bb484ff37::t_b5efa7e74f6ecc 75
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_6fb27bb484ff37::t_14d3a608a9da36 731-756
+packages/frontend/src/pages/Workspace.tsx
+  s_6fb27bb484ff37::t_20fb39205cff2c 3,16-17,54-75,113-122
+  s_6fb27bb484ff37::t_c381f16482b428 87,92
+  s_6fb27bb484ff37::t_3be6b3707ddb33 186-204,206-214
+  s_6fb27bb484ff37::t_2ba839ec8b4634 205
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_6fb27bb484ff37::t_1584eb28848358 440-443,445-446,493-520
+packages/backend/src/playground/dto/run-playground.dto.spec.ts
+  s_6fb27bb484ff37::t_05e425bc00849a 139-158
+packages/backend/src/playground/playground.service.spec.ts
+  s_6fb27bb484ff37::t_ca72d11f844e49 163,165,167,189-194,200,202,204,229-231,233-236
+  s_6fb27bb484ff37::t_0ee23e4bb80ae3 308-344
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_6fb27bb484ff37::t_56f113173592bc 74-140
+packages/frontend/src/components/Sidebar.tsx
+  s_6fb27bb484ff37::t_f467ee1fb4b0b8 53-60,109-115
+packages/frontend/src/pages/Playground.tsx
+  s_6fb27bb484ff37::t_4cdcdae3cc01da 13,18-19,132-133,135-146,148,153
+  s_6fb27bb484ff37::t_3ec92ce2b9ad4c 159,162,242,246,277-283,309,335,392,402,442-445
+  s_6fb27bb484ff37::t_ac2cb004629c30 462-468,485-487,490-491,499,555-556,628
+  s_6fb27bb484ff37::t_c6c46175f8de8f 475
+  s_6fb27bb484ff37::t_da4826baca56c6 483
+packages/frontend/tests/components/App.test.tsx
+  s_6fb27bb484ff37::t_47a4f4bbfde6ac 128-134
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_6fb27bb484ff37::t_9f260f7b4b55f0 9,37-38,87-90,94-102
+  s_6fb27bb484ff37::t_1c935e66f5f705 33,47,91-93,114
+packages/backend/src/playground/dto/run-playground.dto.ts
+  s_6fb27bb484ff37::t_b23afd5d8e0a54 74-77
+packages/backend/src/routing/model.controller.ts
+  s_6fb27bb484ff37::t_ce228e6015ac03 13,89-94,107-113,164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3ad98ab824dce1572063a287b0cddc4a77fc7698",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
