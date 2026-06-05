@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
+import { fireEvent, render, screen, waitFor, within } from '@solidjs/testing-library';
 
 const mockGetGlobalProviders = vi.fn();
 const mockConnectGlobalProvider = vi.fn();
@@ -153,6 +153,20 @@ describe('GlobalProviders', () => {
       }),
     );
     expect(toast.success).toHaveBeenCalledWith('OpenAI connected');
+  });
+
+  it('opens the selected provider setup form from the provider library', async () => {
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
+
+    const miniMaxCell = screen.getAllByText('MiniMax').find((element) => element.closest('tr'));
+    expect(miniMaxCell).toBeDefined();
+
+    const miniMaxRow = miniMaxCell!.closest('tr')!;
+    await fireEvent.click(within(miniMaxRow).getByRole('button', { name: 'Add API key' }));
+
+    expect((screen.getByLabelText('Provider') as HTMLSelectElement).value).toBe('minimax');
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Key')));
   });
 
   it('stops before connect when API-key validation fails', async () => {

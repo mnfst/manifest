@@ -33,6 +33,14 @@
 .global-provider-connect {
   padding: 0;
   overflow: visible;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.global-provider-connect--highlighted {
+  border-color: hsl(var(--primary) / 0.42);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
 }
 
 .global-provider-connect__header {

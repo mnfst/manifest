@@ -1,4 +1,12 @@
-import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
+import {
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+  type Component,
+} from 'solid-js';
 import { Meta, Title } from '@solidjs/meta';
 import {
   connectGlobalProvider,
@@ -127,7 +135,11 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
   const [region, setRegion] = createSignal<string | undefined>(undefined);
   const [saving, setSaving] = createSignal(false);
   const [busyId, setBusyId] = createSignal<string | null>(null);
+  const [formHighlighted, setFormHighlighted] = createSignal(false);
   let formSection: HTMLElement | undefined;
+  let labelInput: HTMLInputElement | undefined;
+  let credentialInput: HTMLInputElement | undefined;
+  let highlightTimer: ReturnType<typeof setTimeout> | undefined;
 
   const selectedProvider = createMemo(
     () => categoryProviders().find((p) => p.id === providerId()) ?? categoryProviders()[0],
@@ -170,8 +182,38 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
     resetForm();
   };
 
-  const scrollToForm = () => {
-    formSection?.scrollIntoView({ block: 'center' });
+  onCleanup(() => {
+    if (highlightTimer) {
+      clearTimeout(highlightTimer);
+    }
+  });
+
+  const highlightForm = () => {
+    if (highlightTimer) {
+      clearTimeout(highlightTimer);
+    }
+    setFormHighlighted(true);
+    highlightTimer = setTimeout(() => setFormHighlighted(false), 900);
+  };
+
+  const openProviderForm = (id?: string) => {
+    if (id) {
+      handleProviderChange(id);
+    }
+    formSection?.scrollIntoView?.({ block: 'center' });
+    highlightForm();
+    const focusFirstField = () => {
+      if (requiresCredential()) {
+        credentialInput?.focus();
+      } else {
+        labelInput?.focus();
+      }
+    };
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(focusFirstField);
+    } else {
+      setTimeout(focusFirstField, 0);
+    }
   };
 
   const handleConnect = async () => {
@@ -258,7 +300,7 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
             <h1 class="page-header__title">{config().title}</h1>
             <p class="page-header__subtitle">{config().description}</p>
           </div>
-          <button class="btn btn--primary btn--sm" onClick={scrollToForm}>
+          <button class="btn btn--primary btn--sm" onClick={() => openProviderForm()}>
             {config().addButton}
           </button>
         </header>
@@ -287,6 +329,7 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
         <section
           ref={formSection}
           class="panel global-provider-connect"
+          classList={{ 'global-provider-connect--highlighted': formHighlighted() }}
           aria-labelledby="add-global-provider-title"
         >
           <div class="global-provider-connect__header">
@@ -325,6 +368,7 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
             <label>
               Label
               <input
+                ref={labelInput}
                 value={label()}
                 placeholder="Default"
                 onInput={(e) => setLabel(e.currentTarget.value)}
@@ -335,6 +379,7 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
               <label class="global-provider-form__key">
                 {config().credentialLabel}
                 <input
+                  ref={credentialInput}
                   value={apiKey()}
                   placeholder={credentialPlaceholder(selectedProvider(), config().authType)}
                   onInput={(e) => setApiKey(e.currentTarget.value)}
@@ -527,8 +572,7 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
                             <button
                               class="btn btn--outline btn--sm"
                               onClick={() => {
-                                handleProviderChange(provider.id);
-                                scrollToForm();
+                                openProviderForm(provider.id);
                               }}
                               disabled={saving()}
                             >
