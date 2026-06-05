@@ -97,31 +97,35 @@ describe('RoutingCacheService', () => {
 
   describe('invalidateAgent', () => {
     it('clears every cache slot for the agent, including all per-provider key chains', () => {
+      // agentId 'a' and userId 'u-a' are separate keys in the new architecture.
+      // invalidateAgent clears agent-scoped caches (tiers, specificity, modelParams).
+      // invalidateUser clears user-scoped caches (providers, providerKeys, customProviders).
       svc.setTiers('a', [tier('t1')]);
-      svc.setProviders('a', [provider('p1')]);
-      svc.setCustomProviders('a', [customProvider('c1')]);
+      svc.setProviders('u-a', [provider('p1')]);
+      svc.setCustomProviders('u-a', [customProvider('c1')]);
       svc.setSpecificity('a', [specificity('s1')]);
       svc.setModelParams('a', [modelParams('mp1')]);
-      svc.setProviderKeys('a', 'openai', [providerKey('Default', 'k')]);
-      svc.setProviderKeys('a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
+      svc.setProviderKeys('u-a', 'openai', [providerKey('Default', 'k')]);
+      svc.setProviderKeys('u-a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
 
       // Unrelated agent entries should survive.
       svc.setTiers('b', [tier('t-b')]);
       const bKeys = [providerKey('Default', 'k-b')];
-      svc.setProviderKeys('b', 'openai', bKeys);
+      svc.setProviderKeys('u-b', 'openai', bKeys);
 
       svc.invalidateAgent('a');
+      svc.invalidateUser('u-a');
 
       expect(svc.getTiers('a')).toBeNull();
-      expect(svc.getProviders('a')).toBeNull();
-      expect(svc.getCustomProviders('a')).toBeNull();
+      expect(svc.getProviders('u-a')).toBeNull();
+      expect(svc.getCustomProviders('u-a')).toBeNull();
       expect(svc.getSpecificity('a')).toBeNull();
       expect(svc.getModelParams('a')).toBeNull();
-      expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
-      expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
+      expect(svc.getProviderKeys('u-a', 'openai')).toBeUndefined();
+      expect(svc.getProviderKeys('u-a', 'anthropic', 'subscription')).toBeUndefined();
 
       expect(svc.getTiers('b')).not.toBeNull();
-      expect(svc.getProviderKeys('b', 'openai')).toBe(bKeys);
+      expect(svc.getProviderKeys('u-b', 'openai')).toBe(bKeys);
     });
   });
 
