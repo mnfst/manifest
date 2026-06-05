@@ -578,6 +578,63 @@ describe('PublicStatsService', () => {
       expect(subModel).toBeDefined();
       expect(subModel!.total_tokens).toBe(2000);
       expect(subModel!.total_cost).toBe(0);
+
+      // The provider is also broken down by auth type so the public site can
+      // list it once per auth method.
+      expect(result[0].auth_types).toContainEqual({
+        auth_type: 'api_key',
+        total_tokens: 3000,
+        model_count: 1,
+      });
+      expect(result[0].auth_types).toContainEqual({
+        auth_type: 'subscription',
+        total_tokens: 2000,
+        model_count: 1,
+      });
+    });
+
+    it('breaks a provider down by auth type, counting null usage as api_key', async () => {
+      setupProviderQuery([
+        { model: 'gpt-4o', date: '2026-04-07', tokens: '500', auth_type: null, cost: null },
+        {
+          model: 'gpt-4o-mini',
+          date: '2026-04-07',
+          tokens: '300',
+          auth_type: 'api_key',
+          cost: null,
+        },
+        {
+          model: 'gpt-4o',
+          date: '2026-04-07',
+          tokens: '2000',
+          auth_type: 'subscription',
+          cost: null,
+        },
+      ]);
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
+
+      const result = await service.getProviderDailyTokens();
+
+      const apiKey = result[0].auth_types.find((a) => a.auth_type === 'api_key');
+      const sub = result[0].auth_types.find((a) => a.auth_type === 'subscription');
+      // gpt-4o (null → api_key) + gpt-4o-mini (api_key) collapse into one bucket.
+      expect(apiKey).toEqual({ auth_type: 'api_key', total_tokens: 800, model_count: 2 });
+      expect(sub).toEqual({ auth_type: 'subscription', total_tokens: 2000, model_count: 1 });
+      // Breakdown is sorted by token usage descending.
+      expect(result[0].auth_types[0].auth_type).toBe('subscription');
+    });
+
+    it('excludes zero-token models from auth_types model_count', async () => {
+      setupProviderQuery([
+        { model: 'gpt-4o', date: '2026-04-07', tokens: null, auth_type: 'api_key', cost: null },
+      ]);
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenAI' }));
+
+      const result = await service.getProviderDailyTokens();
+
+      expect(result[0].auth_types).toEqual([
+        { auth_type: 'api_key', total_tokens: 0, model_count: 0 },
+      ]);
     });
 
     it('returns null total_cost when all costs are null', async () => {
