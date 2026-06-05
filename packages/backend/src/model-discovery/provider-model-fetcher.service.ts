@@ -10,6 +10,10 @@ import {
 } from '../common/constants/subscription-clients';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
+import {
+  getXiaomiTokenPlanBaseUrl,
+  normalizeXiaomiTokenPlanBaseUrl,
+} from '../routing/xiaomi-region';
 import { getZaiCodingPlanBaseUrl, normalizeZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { OpencodeGoCatalogService } from './opencode-go-catalog.service';
 import {
@@ -26,6 +30,8 @@ const BYTEPLUS_CODING_MODELS_URL = 'https://ark.ap-southeast.bytepluses.com/api/
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 const COMMAND_CODE_MODELS_URL = 'https://api.commandcode.ai/provider/v1/models';
+const XIAOMI_MIMO_MODELS_URL = 'https://api.xiaomimimo.com/v1/models';
+const XIAOMI_TOKEN_PLAN_MODELS_URL = `${getXiaomiTokenPlanBaseUrl()}/v1/models`;
 const QWEN_TOKEN_PLAN_MODELS_URL =
   'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models';
 const QWEN_TOKEN_PLAN_CONTEXT_WINDOW = 991000;
@@ -45,6 +51,7 @@ interface ModelParserConfig<T> {
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
   capabilityCode?: boolean | ((entry: T) => boolean);
+  supportedEndpoints?: (entry: T) => readonly string[] | undefined;
   qualityScore?: number;
 }
 
@@ -60,6 +67,7 @@ function createModelParser<T>(
         const entry = m as T;
         const id = config.getId(entry);
         const ctxVal = config.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+        const supportedEndpoints = config.supportedEndpoints?.(entry);
         return {
           id,
           displayName: config.getDisplayName(entry, id),
@@ -72,10 +80,17 @@ function createModelParser<T>(
             typeof config.capabilityCode === 'function'
               ? config.capabilityCode(entry)
               : (config.capabilityCode ?? false),
+          ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
           qualityScore: config.qualityScore ?? 3,
         };
       });
   };
+}
+
+function getStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const strings = value.filter((entry): entry is string => typeof entry === 'string');
+  return strings.length > 0 ? strings : undefined;
 }
 
 /* ── Shared OpenAI-compatible parser ── */
@@ -84,6 +99,7 @@ interface OpenAIModelEntry {
   id: string;
   object?: string;
   owned_by?: string;
+  supported_endpoints?: unknown;
 }
 
 interface CommandCodeModelEntry extends OpenAIModelEntry {
@@ -120,6 +136,23 @@ const parseQwenTokenPlan = createModelParser<OpenAIModelEntry>({
   contextWindow: QWEN_TOKEN_PLAN_CONTEXT_WINDOW,
   inputPricePerToken: 0,
   outputPricePerToken: 0,
+});
+
+const XIAOMI_MIMO_CONTEXT_WINDOWS = new Map<string, number>([
+  ['mimo-v2.5-pro', 1048576],
+  ['mimo-v2-pro', 1048576],
+  ['mimo-v2.5', 1048576],
+  ['mimo-v2-omni', 262144],
+  ['mimo-v2-flash', 262144],
+]);
+
+const parseXiaomiMimo = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && entry.id.startsWith('mimo-v'),
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => id,
+  contextWindow: (entry) => XIAOMI_MIMO_CONTEXT_WINDOWS.get(entry.id) ?? DEFAULT_CONTEXT_WINDOW,
+  capabilityCode: true,
 });
 
 /* ── OpenAI-specific structural filters (not non-chat) ── */
@@ -191,6 +224,8 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
     /(?:flux|stable-diffusion|image|embedding|rerank|speech|audio|whisper|tts|upscaler|controlnet)/i,
   nvidia:
     /(?:flux|cosmos|detector|gliner|calibration|embed|retriever|parse|tts|translate|safety|guard|reward|nvclip|vila|neva)/i,
+  xiaomi: /(?:asr|tts)/i,
+  'xiaomi-subscription': /(?:asr|tts)/i,
   'qwen-subscription': /(?:^qwen-image-|^wan.*image)/i,
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
@@ -459,6 +494,7 @@ const parseCopilot = createModelParser<OpenAIModelEntry>({
   getDisplayName: (entry) => entry.id,
   inputPricePerToken: 0,
   outputPricePerToken: 0,
+  supportedEndpoints: (entry) => getStringArray(entry.supported_endpoints),
 });
 
 /* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */
@@ -555,6 +591,16 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
       'anthropic-version': '2023-06-01',
     }),
     parse: parseAnthropic,
+  },
+  xiaomi: {
+    endpoint: XIAOMI_MIMO_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseXiaomiMimo,
+  },
+  'xiaomi-subscription': {
+    endpoint: XIAOMI_TOKEN_PLAN_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseXiaomiMimo,
   },
   qwen: {
     endpoint: `${getQwenCompatibleBaseUrl('beijing')}/v1/models`,
@@ -655,6 +701,8 @@ export class ProviderModelFetcherService {
       configKey = 'openai-subscription';
     } else if (configKey === 'minimax' && authType === 'subscription') {
       configKey = 'minimax-subscription';
+    } else if (configKey === 'xiaomi' && authType === 'subscription') {
+      configKey = 'xiaomi-subscription';
     } else if (configKey === 'moonshot' && authType === 'subscription') {
       // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
       // rather than a subscription-scoped /models endpoint.
@@ -704,6 +752,13 @@ export class ProviderModelFetcherService {
         url = `${zaiBaseUrl}/models`;
       } else {
         this.logger.warn('Ignoring invalid Z.ai subscription endpoint override');
+      }
+    } else if (endpointOverride && configKey === 'xiaomi-subscription') {
+      const xiaomiBaseUrl = normalizeXiaomiTokenPlanBaseUrl(endpointOverride);
+      if (xiaomiBaseUrl) {
+        url = `${xiaomiBaseUrl}/v1/models`;
+      } else {
+        this.logger.warn('Ignoring invalid Xiaomi MiMo Token Plan endpoint override');
       }
     }
 

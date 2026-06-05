@@ -235,6 +235,22 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     },
     models: [],
   },
+  xiaomi: {
+    initial: 'Mi',
+    subtitle: 'MiMo V2.5 Pro, V2.5, Flash',
+    supportsSubscription: true,
+    subscriptionLabel: 'Xiaomi MiMo Token Plan',
+    subscriptionAuthMode: 'token',
+    subscriptionCredentialKind: 'api-key',
+    subscriptionCredentialName: 'MiMo Token Plan',
+    subscriptionKeyPlaceholder: 'Paste your MiMo Token Plan API key',
+    subscriptionEndpointRegions: [
+      { value: 'cn', label: 'China (token-plan-cn)' },
+      { value: 'sgp', label: 'Singapore (token-plan-sgp)' },
+      { value: 'ams', label: 'Europe (token-plan-ams)' },
+    ],
+    models: [],
+  },
   mistral: {
     initial: 'M',
     subtitle: 'Mistral Large, Codestral, Pixtral',
@@ -390,6 +406,7 @@ const PROVIDER_ORDER = [
   'opencode-zen',
   'openrouter',
   'xai',
+  'xiaomi',
   'zai',
 ];
 

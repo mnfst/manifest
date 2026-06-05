@@ -57,6 +57,10 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('MiniMax-M2.5')).toBe('minimax');
   });
 
+  it('returns "xiaomi" for mimo-v prefix', () => {
+    expect(inferProviderFromModel('mimo-v2.5-pro')).toBe('xiaomi');
+  });
+
   it('returns "zai" for glm- prefix', () => {
     expect(inferProviderFromModel('glm-5')).toBe('zai');
   });

@@ -21,6 +21,7 @@ const KNOWN_PROVIDERS = [
   'ollama',
   'ollama-cloud',
   'minimax',
+  'xiaomi',
   'zai',
   'opencode-go',
   'opencode-zen',

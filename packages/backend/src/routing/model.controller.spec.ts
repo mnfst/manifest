@@ -392,7 +392,7 @@ describe('ModelController', () => {
     it('falls back to the gateway provider when the underlying id is unknown', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([
         makeDiscovered({
-          id: 'opencode-go/mimo-v25',
+          id: 'opencode-go/unknown-route-model',
           provider: 'opencode-go',
           authType: 'subscription',
         }),
@@ -400,9 +400,12 @@ describe('ModelController', () => {
 
       await controller.getAvailableModels(mockUser, mockAgentName);
 
-      // `mimo-v25` matches no known provider, so the lookup keeps the gateway
-      // provider rather than passing `undefined`.
-      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('opencode-go', 'mimo-v25');
+      // Unknown underlying ids keep the gateway provider rather than passing
+      // `undefined`.
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith(
+        'opencode-go',
+        'unknown-route-model',
+      );
     });
 
     it('should use null for display_name when displayName is empty', async () => {

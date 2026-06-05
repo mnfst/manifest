@@ -8,6 +8,7 @@ import {
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
+import { getXiaomiTokenPlanBaseUrl } from '../xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { buildKiroHeaders, KIRO_BASE_URL, KIRO_CHAT_TARGET } from './kiro-adapter';
 
@@ -102,6 +103,8 @@ const BYTEPLUS_CODING_BASE = 'https://ark.ap-southeast.bytepluses.com/api/coding
 const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic';
+const XIAOMI_MIMO_BASE = 'https://api.xiaomimimo.com';
+const XIAOMI_TOKEN_PLAN_BASE = getXiaomiTokenPlanBaseUrl();
 const QWEN_TOKEN_PLAN_BASE = 'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode';
 const ZAI_SUBSCRIPTION_BASE = getZaiCodingPlanBaseUrl('global');
 const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go';
@@ -231,6 +234,20 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: anthropicBearerHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
+  },
+  xiaomi: {
+    baseUrl: XIAOMI_MIMO_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  'xiaomi-subscription': {
+    baseUrl: XIAOMI_TOKEN_PLAN_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
   },
   moonshot: {
     baseUrl: 'https://api.moonshot.ai',

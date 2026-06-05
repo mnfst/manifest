@@ -15,6 +15,11 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
+import {
+  getXiaomiTokenPlanBaseUrl,
+  isXiaomiProviderId,
+  isXiaomiTokenPlanRegion,
+} from '../routing/xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
@@ -143,6 +148,13 @@ export class ModelDiscoveryService {
     ) {
       endpointOverride = getZaiCodingPlanBaseUrl('cn');
     }
+    if (
+      isXiaomiProviderId(provider.provider) &&
+      provider.auth_type === 'subscription' &&
+      isXiaomiTokenPlanRegion(provider.region)
+    ) {
+      endpointOverride = getXiaomiTokenPlanBaseUrl(provider.region);
+    }
 
     let raw: DiscoveredModel[];
 
@@ -164,10 +176,7 @@ export class ModelDiscoveryService {
 
       // Register confirmed model IDs from native API for future fallback filtering
       if (raw.length > 0 && this.modelRegistry) {
-        this.modelRegistry.registerModels(
-          provider.provider,
-          raw.map((m) => m.id),
-        );
+        this.modelRegistry.registerModels(provider.provider, raw);
       }
 
       // Subscription providers whose `/models` endpoint either does not

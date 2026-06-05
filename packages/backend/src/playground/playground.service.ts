@@ -7,7 +7,7 @@ import type { AuthType, PlaygroundStreamEvent } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderClient } from '../routing/proxy/provider-client';
-import { buildCustomEndpoint } from '../routing/proxy/provider-endpoints';
+import { resolveForwardEndpoint } from '../routing/proxy/forward-endpoint-resolver';
 import { CustomProviderService } from '../routing/custom-provider/custom-provider.service';
 import {
   isRefreshableOAuthCredential,
@@ -69,6 +69,11 @@ export class PlaygroundService {
     let rawApiKey: string;
     let providerKeyLabel: string | undefined;
     let providerResource: string | undefined;
+    // Region/resource inputs for the shared endpoint resolver, so Playground
+    // forwarding (region overrides + vendor-prefix stripping) stays in lock-step
+    // with the proxy for minimax/qwen/zai/copilot/custom.
+    let oauthResourceUrl: string | undefined;
+    let providerRegion: string | null | undefined;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
       const hasProvider = await this.providerKeyService.hasActiveProvider(
@@ -102,6 +107,7 @@ export class PlaygroundService {
       }
       rawApiKey = key.apiKey;
       providerKeyLabel = key.label;
+      providerRegion = key.region;
       const resolved = await resolveApiKey(
         dto.provider,
         rawApiKey,
@@ -134,6 +140,10 @@ export class PlaygroundService {
             agent.id,
           )) ?? rawApiKey;
       }
+      oauthResourceUrl = authType === 'subscription' ? resolved.resourceUrl : undefined;
+      // Gemini OAuth stores the CodeAssist project id (not a URL) in the same
+      // field; it is forwarded as providerResource. MiniMax's resource URL is
+      // applied as a base-URL override below, not here.
       providerResource =
         authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
           ? resolved.resourceUrl
@@ -148,21 +158,25 @@ export class PlaygroundService {
     const abort = new AbortController();
     res.on('close', () => abort.abort());
 
-    // Custom providers carry their endpoint (base URL + API kind) on the
-    // CustomProvider row, not in the static registry — resolve it the same
-    // way the proxy does, otherwise ProviderClient has no endpoint to forward
-    // to and crashes on `endpoint.format`.
-    let customEndpoint: ReturnType<typeof buildCustomEndpoint> | undefined;
-    let forwardModel = dto.model;
-    if (CustomProviderService.isCustom(dto.provider)) {
-      const cp = await this.customProviderRepo.findOne({
-        where: { id: CustomProviderService.extractId(dto.provider), user_id: userId },
-      });
-      if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
-        forwardModel = CustomProviderService.rawModelName(dto.model);
-      }
-    }
+    // Resolve the upstream endpoint + forwarded model id through the SAME helper
+    // the proxy uses, so region overrides (minimax/qwen/zai) and vendor-prefix
+    // stripping (copilot/minimax/zai/custom) match. Custom providers store their
+    // endpoint on a DB row, fetched here and passed in — scoped by user_id to
+    // prevent cross-user resolution.
+    const customProvider = CustomProviderService.isCustom(dto.provider)
+      ? await this.customProviderRepo.findOne({
+          where: { id: CustomProviderService.extractId(dto.provider), user_id: userId },
+        })
+      : null;
+    const { customEndpoint, forwardModel } = resolveForwardEndpoint({
+      provider: dto.provider,
+      authType,
+      model: dto.model,
+      providerRegion,
+      resourceUrl: oauthResourceUrl,
+      customProvider,
+      logger: this.logger,
+    });
 
     const startedAt = Date.now();
     let forward;

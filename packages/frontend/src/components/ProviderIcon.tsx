@@ -332,6 +332,18 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Xiaomi MiMo ─────────────────────────────── */
+    case 'xiaomi':
+      return (
+        <svg style={s} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="24" height="24" rx="5.5" fill="#FF6900" />
+          <path
+            fill="#fff"
+            d="M5.5 7.1h5.2c2.1 0 3.3 1.2 3.3 3.3v6.5h-2.2v-6.2c0-1.1-.5-1.6-1.6-1.6H9.4v7.8H7.2V9.1H5.5v7.8H3.3V9.3c0-1.4.8-2.2 2.2-2.2Zm11.2 0h2.2v9.8h-2.2V7.1Zm3.4 0h.6v2.2h-.6V7.1Z"
+          />
+        </svg>
+      );
+
     /* ── NVIDIA NIM ──────────────────────────────── */
     case 'nvidia':
       return (

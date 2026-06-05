@@ -418,6 +418,48 @@ describe('ProviderController', () => {
       ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
     });
 
+    it('should accept region=ams for Xiaomi MiMo Token Plan subscription', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: {
+          id: 'p1',
+          provider: 'xiaomi',
+          is_active: true,
+          auth_type: 'subscription',
+          region: 'ams',
+        },
+        isNew: true,
+      });
+
+      const result = await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'xiaomi',
+        apiKey: 'tp-mimo-token',
+        authType: 'subscription',
+        region: 'ams',
+      });
+
+      expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+        'xiaomi',
+        'tp-mimo-token',
+        'subscription',
+        'ams',
+        undefined,
+      );
+      expect(result.region).toBe('ams');
+    });
+
+    it('should reject invalid Xiaomi MiMo Token Plan subscription region', async () => {
+      await expect(
+        controller.upsertProvider(mockUser, mockAgentName, {
+          provider: 'xiaomi',
+          apiKey: 'tp-mimo-token',
+          authType: 'subscription',
+          region: 'global',
+        }),
+      ).rejects.toThrow('Xiaomi MiMo Token Plan region must be one of: cn, sgp, ams');
+    });
+
     it('should accept region=cn for Z.ai subscription', async () => {
       mockProviderService.upsertProvider.mockResolvedValue({
         provider: {
@@ -500,7 +542,7 @@ describe('ProviderController', () => {
           region: 'cn',
         }),
       ).rejects.toThrow(
-        'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, and Z.ai subscriptions',
+        'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, Xiaomi MiMo Token Plan, and Z.ai subscriptions',
       );
     });
   });

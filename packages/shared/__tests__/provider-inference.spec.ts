@@ -36,6 +36,8 @@ describe('inferProviderFromModel', () => {
     ['kimi-k2', 'moonshot'],
     ['moonshot-v1', 'moonshot'],
     ['MiniMax-M2.5', 'minimax'],
+    ['mimo-v2.5-pro', 'xiaomi'],
+    ['mimo-v2-flash', 'xiaomi'],
     ['glm-4', 'zai'],
     ['qwen2.5-coder', 'qwen'],
     ['qwq-32b', 'qwen'],
@@ -112,10 +114,17 @@ describe('resolveUnderlyingModelIdentity', () => {
     });
   });
 
+  it('resolves MiMo gateway models to Xiaomi', () => {
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/mimo-v2.5')).toEqual({
+      provider: 'xiaomi',
+      model: 'mimo-v2.5',
+    });
+  });
+
   it('returns an undefined provider when the underlying id matches no known provider', () => {
-    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/mimo-v25')).toEqual({
+    expect(resolveUnderlyingModelIdentity('opencode-go', 'opencode-go/big-pickle')).toEqual({
       provider: undefined,
-      model: 'mimo-v25',
+      model: 'big-pickle',
     });
     expect(resolveUnderlyingModelIdentity('opencode-zen', 'opencode-zen/big-pickle')).toEqual({
       provider: undefined,

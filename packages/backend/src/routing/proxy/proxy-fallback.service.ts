@@ -47,6 +47,7 @@ interface ForwardProviderOptions {
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
+import { resolveForwardEndpoint } from './forward-endpoint-resolver';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../oauth/anthropic/anthropic-oauth.service';
@@ -55,21 +56,12 @@ import { KiroOauthService } from '../oauth/kiro-oauth.service';
 import { XaiOauthService } from '../oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ProviderClient, ForwardResult } from './provider-client';
-import {
-  buildCustomEndpoint,
-  buildEndpointOverride,
-  ProviderEndpoint,
-  resolveEndpointKey,
-} from './provider-endpoints';
+import { resolveEndpointKey } from './provider-endpoints';
 import { CopilotTokenService } from './copilot-token.service';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { buildProviderExtraHeaders } from './provider-hooks';
 import { shouldTriggerFallback } from './fallback-status-codes';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
-import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
-import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
-import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
-import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { normalizeAnthropicShortModelId } from '../../common/utils/anthropic-model-id';
 import {
   isTransportError,
@@ -454,75 +446,25 @@ export class ProxyFallbackService {
       effectiveKey = await this.copilotToken.getCopilotToken(opts.apiKey);
     }
 
-    let customEndpoint: ProviderEndpoint | undefined;
-    let forwardModel = opts.model;
-
-    // Strip the "copilot/" prefix -- the Copilot API expects bare model names
-    if (provider.toLowerCase() === 'copilot' && forwardModel.startsWith('copilot/')) {
-      forwardModel = forwardModel.substring('copilot/'.length);
-    }
-
-    // Strip the "minimax/" prefix for MiniMax subscription routes. Vendor-
-    // prefixed model IDs can come in from OpenRouter pricing fallbacks
-    // (e.g. `minimax/MiniMax-M2.7`), and when we set a custom endpoint below
-    // for the CN region the request would otherwise reach MiniMax with the
-    // prefix intact and 404. The provider-endpoint resolver normally strips
-    // it for `minimax-subscription`, but a `customEndpoint` short-circuits
-    // that and ProviderClient.stripModelPrefix leaves `custom` keys alone.
-    if (
-      provider.toLowerCase() === 'minimax' &&
-      authType === 'subscription' &&
-      forwardModel.toLowerCase().startsWith('minimax/')
-    ) {
-      forwardModel = forwardModel.substring('minimax/'.length);
-    }
-    if (provider.toLowerCase() === 'zai' && authType === 'subscription') {
-      const lowerModel = forwardModel.toLowerCase();
-      if (lowerModel.startsWith('z-ai/')) {
-        forwardModel = forwardModel.substring('z-ai/'.length);
-      } else if (lowerModel.startsWith('zai/')) {
-        forwardModel = forwardModel.substring('zai/'.length);
-      }
-    }
-
-    if (CustomProviderService.isCustom(provider)) {
-      const cpId = CustomProviderService.extractId(provider);
-      const cp = await this.customProviderRepo.findOne({
-        where: opts.userId ? { id: cpId, user_id: opts.userId } : { id: cpId },
-      });
-      if (cp) {
-        customEndpoint = buildCustomEndpoint(cp.base_url, cp.api_kind ?? 'openai');
-        forwardModel = CustomProviderService.rawModelName(opts.model);
-      }
-    } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
-      customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
-    } else if (authType === 'subscription' && provider.toLowerCase() === 'minimax') {
-      // OAuth-issued tokens carry the chosen region inside the JSON blob's
-      // resource_url (resourceUrl). Pasted Coding Plan tokens (`sk-cp-`)
-      // don't — for those we read the persisted region column. We only
-      // build a custom endpoint when the region is CN; global already
-      // matches the built-in `minimax-subscription` endpoint base URL, and
-      // overriding it would shift the route through the `custom` endpoint
-      // key, which preserves vendor-prefixed model IDs that this provider
-      // would otherwise strip and reject.
-      if (resourceUrl) {
-        const minimaxBaseUrl = normalizeMinimaxSubscriptionBaseUrl(resourceUrl);
-        if (minimaxBaseUrl) {
-          customEndpoint = buildEndpointOverride(minimaxBaseUrl, 'minimax-subscription');
-        } else {
-          this.logger.warn('Ignoring invalid MiniMax subscription resource URL');
-        }
-      } else if (providerRegion === 'cn') {
-        const regionBaseUrl = `${MINIMAX_BASE_URLS.cn}/anthropic`;
-        customEndpoint = buildEndpointOverride(regionBaseUrl, 'minimax-subscription');
-      }
-    } else if (
-      authType === 'subscription' &&
-      provider.toLowerCase() === 'zai' &&
-      providerRegion === 'cn'
-    ) {
-      customEndpoint = buildEndpointOverride(getZaiCodingPlanBaseUrl('cn'), 'zai-subscription');
-    }
+    // Custom providers store their endpoint on a DB row; fetch it so the shared
+    // resolver can build the override. Scoped by user_id to prevent cross-user
+    // resolution. (Kept in the caller to keep the resolver synchronous + DB-free.)
+    const customProvider = CustomProviderService.isCustom(provider)
+      ? await this.customProviderRepo.findOne({
+          where: opts.userId
+            ? { id: CustomProviderService.extractId(provider), user_id: opts.userId }
+            : { id: CustomProviderService.extractId(provider) },
+        })
+      : null;
+    const { customEndpoint, forwardModel } = resolveForwardEndpoint({
+      provider,
+      authType,
+      model: opts.model,
+      providerRegion,
+      resourceUrl,
+      customProvider,
+      logger: this.logger,
+    });
 
     const reasoningEndpointKey =
       customEndpoint && customEndpoint.format !== 'openai'

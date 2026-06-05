@@ -1,6 +1,6 @@
 # Subscription-based providers
 
-Reuse a paid plan you already have: ChatGPT Plus, Claude Max, GitHub Copilot, ModelArk Coding Plan, Command Code, Qwen Token Plan, Kimi Coding Plan, GLM Coding Plan, Google sign-in, MiniMax Coding Plan, Kiro, Grok, Ollama Cloud, or OpenCode Go.
+Reuse a paid plan you already have: ChatGPT Plus, Claude Max, GitHub Copilot, ModelArk Coding Plan, Command Code, Qwen Token Plan, Xiaomi MiMo Token Plan, Kimi Coding Plan, GLM Coding Plan, Google sign-in, MiniMax Coding Plan, Kiro, Grok, Ollama Cloud, or OpenCode Go.
 
 If you already pay for one of the plans below, Manifest can route through that subscription instead of an API key. Auth is browser OAuth, device code, or a subscription token depending on the provider.
 
@@ -14,6 +14,7 @@ If you already pay for one of the plans below, Manifest can route through that s
 | [BytePlus](https://www.byteplus.com/en/activity/codingplan) | ModelArk Coding Plan        | Subscription token   | Fixed ModelArk Coding Plan model list                |
 | [Command Code](https://commandcode.ai/studio)               | Command Code subscription   | Subscription token   | Dynamic Provider API catalog                         |
 | [Qwen](https://home.qwencloud.com/api-keys)                 | Qwen Token Plan             | Subscription token   | Dynamic Token Plan catalog                           |
+| [Xiaomi MiMo](https://platform.xiaomimimo.com)              | MiMo Token Plan             | Subscription token   | Fixed MiMo Token Plan model list                     |
 | [Moonshot](https://www.kimi.com/code/console)               | Kimi Coding Plan            | Subscription token   | `kimi-for-coding`                                    |
 | [Z.ai](https://z.ai)                                        | GLM Coding Plan             | Subscription token   | Fixed GLM Coding Plan model list                     |
 | [Google](https://ai.google.dev)                             | Sign in with Google         | OAuth (browser)      | Fixed Gemini CodeAssist model list                   |
@@ -57,6 +58,10 @@ Paste a Command Code API key from Command Code Studio. Command Code is subscript
 ### Qwen
 
 Paste a Qwen Token Plan API key. Token Plan keys use the `sk-sp-` prefix. Manifest discovers available models from Qwen's Token Plan endpoint and can route both chat-completions and responses-style requests where supported.
+
+### Xiaomi MiMo
+
+Paste a MiMo Token Plan API key. Token Plan keys use the `tp-` prefix. Manifest routes through MiMo's OpenAI-compatible Token Plan endpoint and lets self-hosted setups choose the China, Singapore, or Europe token-plan host.
 
 ### Moonshot
 

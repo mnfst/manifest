@@ -914,6 +914,118 @@ describe('ProviderService — route-only cleanup paths', () => {
     });
   });
 
+  describe('upsertProvider — Xiaomi MiMo Token Plan region', () => {
+    let originalSecret: string | undefined;
+    beforeAll(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+    afterAll(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('persists region=ams on a new Xiaomi subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'xiaomi',
+        'tp-mimo-token',
+        'subscription',
+        'ams',
+      );
+
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'xiaomi',
+          auth_type: 'subscription',
+          region: 'ams',
+        }),
+      );
+    });
+
+    it('updates region on an existing Xiaomi subscription row', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'xiaomi',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'cn',
+        is_active: true,
+      });
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'xiaomi',
+        'tp-mimo-new-token',
+        'subscription',
+        'sgp',
+      );
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'sgp',
+        }),
+      );
+    });
+
+    it('preserves existing Xiaomi subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'xiaomi',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'ams',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'xiaomi', 'tp-mimo-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          region: 'ams',
+        }),
+      );
+    });
+
+    it('preserves existing Xiaomi alias subscription region when caller omits it', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'mimo',
+        auth_type: 'subscription',
+        label: 'Default',
+        region: 'ams',
+        is_active: true,
+      });
+
+      await svc.upsertProvider('agent-1', 'user-1', 'mimo', 'tp-mimo-rotated', 'subscription');
+
+      expect(providerRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'mimo',
+          region: 'ams',
+        }),
+      );
+    });
+
+    it('rejects unsupported Xiaomi subscription region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        svc.upsertProvider('agent-1', 'user-1', 'xiaomi', 'tp-mimo-token', 'subscription', 'eu'),
+      ).rejects.toThrow('Xiaomi MiMo Token Plan region must be one of: cn, sgp, ams');
+    });
+  });
+
   describe('nextOAuthLabel', () => {
     it('returns undefined when no subscription rows exist', async () => {
       providerRepo.find.mockResolvedValue([]);

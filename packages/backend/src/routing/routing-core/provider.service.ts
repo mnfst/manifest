@@ -18,8 +18,10 @@ import {
 import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
-import { isMinimaxRegion } from '../oauth/minimax-oauth-helpers';
-import { isZaiCodingPlanRegion, isZaiProviderId } from '../zai-region';
+import {
+  getSubscriptionEndpointRegionConfig,
+  SubscriptionEndpointRegionConfig,
+} from '../subscription-region';
 
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
@@ -347,29 +349,13 @@ export class ProviderService {
   ): Promise<string | null> {
     const lower = provider.toLowerCase();
 
-    // MiniMax subscription stores region so the proxy can route pasted-token
-    // (sk-cp-) connections to the right base URL. OAuth-issued tokens already
-    // encode the region in the resource_url blob field, but the paste path
-    // has no blob — without this column the proxy falls back to global and
-    // CN tokens 401 against the wrong host.
-    if (lower === 'minimax' && authType === 'subscription') {
-      if (requestedRegion === undefined) {
-        return isMinimaxRegion(existing?.region ?? undefined) ? (existing!.region as string) : null;
-      }
-      if (!isMinimaxRegion(requestedRegion)) {
-        throw new BadRequestException('MiniMax subscription region must be one of: global, cn');
-      }
-      return requestedRegion;
-    }
-
-    if (isZaiProviderId(lower) && authType === 'subscription') {
-      if (requestedRegion === undefined) {
-        return isZaiCodingPlanRegion(existing?.region) ? existing.region : null;
-      }
-      if (!isZaiCodingPlanRegion(requestedRegion)) {
-        throw new BadRequestException('Z.ai subscription region must be one of: global, cn');
-      }
-      return requestedRegion;
+    const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(lower, authType);
+    if (subscriptionRegionConfig) {
+      return this.resolveSubscriptionEndpointRegion(
+        subscriptionRegionConfig,
+        requestedRegion,
+        existing,
+      );
     }
 
     const isQwenProvider = lower === 'qwen' || lower === 'alibaba';
@@ -394,6 +380,23 @@ export class ProviderService {
     }
 
     return this.detectQwenRegionOrThrow(keyToProbe);
+  }
+
+  private resolveSubscriptionEndpointRegion(
+    config: SubscriptionEndpointRegionConfig,
+    requestedRegion: string | undefined,
+    existing: UserProvider | null,
+  ): string | null {
+    if (requestedRegion === undefined) {
+      const existingRegion = existing?.region;
+      return typeof existingRegion === 'string' && config.isRegion(existingRegion)
+        ? existingRegion
+        : null;
+    }
+    if (!config.isRegion(requestedRegion)) {
+      throw new BadRequestException(config.validationMessage);
+    }
+    return requestedRegion;
   }
 
   private async getQwenDetectionKey(
