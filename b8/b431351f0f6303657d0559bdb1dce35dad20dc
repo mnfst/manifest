@@ -1,0 +1,25 @@
+packages/backend/src/database/migrations/1791000000000-LiftAgentProvidersToGlobal.spec.ts
+  s_feb7f7e060c1a0::t_8985b2d7e34757 97-104
+  s_feb7f7e060c1a0::t_32aee8b2554300 1-96,105-194,197-225
+packages/backend/src/database/migrations/1791000000000-LiftAgentProvidersToGlobal.ts
+  s_feb7f7e060c1a0::t_48f457a256ef9c 1-184
+packages/backend/src/database/database.module.ts
+  s_feb7f7e060c1a0::t_21ffe26d318c7f 229
+  s_feb7f7e060c1a0::t_f659e5d9ca0e44 115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "b8b431351f0f6303657d0559bdb1dce35dad20dc",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
