@@ -32,17 +32,6 @@ interface CategoryConfig {
 
 const providerName = (id: string): string => PROVIDERS.find((p) => p.id === id)?.name ?? id;
 
-const supportsGlobalSubscription = (provider: ProviderDef): boolean => {
-  if (!provider.supportsSubscription) return false;
-  if (provider.deviceLogin) return false;
-  if (provider.subscriptionTokenAlternative) return true;
-  return (
-    provider.subscriptionAuthMode !== 'popup_oauth' &&
-    provider.subscriptionAuthMode !== 'popup_paste' &&
-    provider.subscriptionAuthMode !== 'device_code'
-  );
-};
-
 const CATEGORY_CONFIG: Record<GlobalProviderCategory, CategoryConfig> = {
   subscription: {
     authType: 'subscription',
@@ -53,7 +42,7 @@ const CATEGORY_CONFIG: Record<GlobalProviderCategory, CategoryConfig> = {
     connectedTitle: 'My Subscriptions',
     supportedTitle: 'Supported subscriptions',
     emptyTitle: 'No subscriptions connected',
-    providerFilter: supportsGlobalSubscription,
+    providerFilter: (provider) => Boolean(provider.supportsSubscription),
   },
   api_key: {
     authType: 'api_key',

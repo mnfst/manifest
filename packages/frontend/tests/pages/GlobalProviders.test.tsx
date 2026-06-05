@@ -49,6 +49,9 @@ vi.mock('../../src/services/providers.js', () => ({
       keyPrefix: 'sk-',
       minKeyLength: 3,
       keyPlaceholder: 'sk-test',
+      supportsSubscription: true,
+      subscriptionLabel: 'ChatGPT Plus/Pro/Team',
+      subscriptionAuthMode: 'popup_oauth',
     },
     {
       id: 'minimax',
@@ -243,6 +246,13 @@ describe('GlobalProviders', () => {
         region: 'global',
       }),
     );
+  });
+
+  it('keeps OpenAI visible in global subscriptions', async () => {
+    render(() => <GlobalProviderSubscriptions />);
+    await screen.findByText('Supported subscriptions');
+
+    expect(providerLibraryRow('OpenAI')).toBeDefined();
   });
 
   it('stops before connect when subscription credential validation fails', async () => {

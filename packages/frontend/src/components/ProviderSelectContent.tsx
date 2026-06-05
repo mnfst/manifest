@@ -1,6 +1,6 @@
 import { createSignal, onMount, Show, type Component } from 'solid-js';
 import { normalizeProviderName } from 'manifest-shared';
-import { PROVIDERS, type ProviderDef } from '../services/providers.js';
+import { PROVIDERS } from '../services/providers.js';
 import {
   connectGlobalProvider,
   connectProvider,
@@ -36,17 +36,6 @@ export interface ProviderSelectContentProps {
 }
 
 const noop = () => {};
-
-const supportsGlobalSubscription = (provider: ProviderDef): boolean => {
-  if (!provider.supportsSubscription) return false;
-  if (provider.deviceLogin) return false;
-  if (provider.subscriptionTokenAlternative) return true;
-  return (
-    provider.subscriptionAuthMode !== 'popup_oauth' &&
-    provider.subscriptionAuthMode !== 'popup_paste' &&
-    provider.subscriptionAuthMode !== 'device_code'
-  );
-};
 
 const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => {
   const showHeader = () => props.showHeader !== false;
@@ -85,10 +74,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
   const [addKeyIntent, setAddKeyIntent] = createSignal(deepLink?.addKey === true);
-  const subscriptionProviders = () =>
-    PROVIDERS.filter((p) =>
-      isGlobalScope() ? supportsGlobalSubscription(p) : p.supportsSubscription,
-    );
+  const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
   const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
   const visibleCustomProviders = () => (isGlobalScope() ? [] : (props.customProviders ?? []));
