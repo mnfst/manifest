@@ -1,0 +1,55 @@
+packages/frontend/tests/pages/providers/Subscriptions.test.tsx
+  s_feb7f7e060c1a0::t_78791d7749316c 393-452
+  s_feb7f7e060c1a0::t_cf2a2d6a848173 146,151-155
+  s_feb7f7e060c1a0::t_c1f650ae82fe6f 149-150
+  s_feb7f7e060c1a0::t_e275e9b878f119 171,192,194
+  s_feb7f7e060c1a0::t_45acf9b7976d41 172,176-180,184,189,191,193
+  s_feb7f7e060c1a0::t_9832660ed37cf5 384,386
+  s_feb7f7e060c1a0::t_85b3c07cb5a985 1-145,147-148,156-170,173-175,181-183,185-188,190,195-383,385,387-392,453
+packages/frontend/tests/pages/providers/Local.test.tsx
+  s_feb7f7e060c1a0::t_5e9eefb3b795af 382-443
+  s_feb7f7e060c1a0::t_3205a9323f67e5 157-161,165-170,173,178,181-182
+  s_feb7f7e060c1a0::t_64431c9e3a3d0f 138-139
+  s_feb7f7e060c1a0::t_8949de1efe1889 135,140-144
+  s_feb7f7e060c1a0::t_6124e5fcdba26c 308,310
+  s_feb7f7e060c1a0::t_86048d9d0535fa 1-134,136-137,145-156,162-164,171-172,174-177,179-180,183-307,309,311-381,464
+  s_feb7f7e060c1a0::t_21d91e41f8f95d 444-463
+packages/frontend/tests/pages/providers/Byok-addtrue.test.tsx
+  s_feb7f7e060c1a0::t_de8361f38814b2 1-71
+packages/frontend/tests/pages/providers/Byok.test.tsx
+  s_feb7f7e060c1a0::t_70adf3ab029b45 442-459,480
+  s_feb7f7e060c1a0::t_ea1a753a74aeb3 154,159-160
+  s_feb7f7e060c1a0::t_51d618fde0df64 157-158
+  s_feb7f7e060c1a0::t_3f7b3a6633213a 1-153,155-156,161-174,177-179,185-187,189-192,194,199-368,370,372-376
+  s_feb7f7e060c1a0::t_9dab22d8561353 175-176,180-184,188,196,198
+  s_feb7f7e060c1a0::t_db6dcdb940a6ae 193,195,197
+  s_feb7f7e060c1a0::t_e8e484cd2e1e6c 460-479
+  s_feb7f7e060c1a0::t_211458cf46c32b 377-441
+  s_feb7f7e060c1a0::t_21fe75dd9c26a1 369,371
+packages/frontend/src/pages/providers/Subscriptions.tsx
+  s_feb7f7e060c1a0::t_45fa173009a520 1-92,94-408
+  s_feb7f7e060c1a0::t_29d0e68ed1ea86 93
+packages/frontend/tests/pages/providers/Local-addtrue.test.tsx
+  s_feb7f7e060c1a0::t_3e7d2b6b3e9c06 1-70
+packages/frontend/src/pages/providers/Byok.tsx
+  s_feb7f7e060c1a0::t_be3e40d1a1cb6a 1-86,88-403
+  s_feb7f7e060c1a0::t_c94090e0bd8964 87
+packages/frontend/src/pages/providers/Local.tsx
+  s_feb7f7e060c1a0::t_7ab76f04d75302 1-389
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "3f59ee44f1513d4dd9a60bde925ae567de76f3af",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
