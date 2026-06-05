@@ -78,6 +78,7 @@ describe('ResolveController', () => {
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         body.messages,
         body.tools,
         body.tool_choice,
@@ -96,6 +97,7 @@ describe('ResolveController', () => {
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         body.messages,
         undefined,
         undefined,
@@ -118,6 +120,7 @@ describe('ResolveController', () => {
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-from-context',
+        'user-1',
         body.messages,
         undefined,
         undefined,

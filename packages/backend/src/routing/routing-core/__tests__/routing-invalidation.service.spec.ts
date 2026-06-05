@@ -48,6 +48,7 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
+        user_id: 'user-1',
         tier: 'standard',
         override_route: route('openai', 'gpt-4o'),
         fallback_routes: null,
@@ -59,7 +60,7 @@ describe('RoutingInvalidationService', () => {
     const saved = tierRepo.save.mock.calls[0][0];
     expect(saved[0].override_route).toBeNull();
     expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+    expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
   });
 
   it('filters fallback_routes when some entries are removed', async () => {
