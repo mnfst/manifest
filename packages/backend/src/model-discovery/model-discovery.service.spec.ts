@@ -168,6 +168,19 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).not.toHaveBeenCalled();
     });
 
+    it('keeps the previously cached models when discovery returns zero', async () => {
+      // 0 filtered models but a non-empty cached_models list → keep what we had
+      // and do not overwrite the row (regression guard for transient API blips).
+      fetcher.fetch.mockResolvedValue([]);
+      const previous = [makeModel({ id: 'kept-model' })];
+      const provider = makeProvider({ cached_models: previous });
+
+      const result = await service.discoverModels(provider);
+
+      expect(result).toEqual(previous);
+      expect(providerRepo.save).not.toHaveBeenCalled();
+    });
+
     it('should pass empty string as key when no encrypted key', async () => {
       const provider = makeProvider({ api_key_encrypted: null });
       fetcher.fetch.mockResolvedValue([]);
@@ -732,6 +745,34 @@ describe('ModelDiscoveryService', () => {
         where: { user_id: 'user-1' },
       });
       expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('skips custom providers whose models field is not an array', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const cp = makeCustomProvider({ id: 'cp-bad', user_id: 'user-1' });
+      // models is not an array — the merge loop must `continue` past it.
+      (cp as { models: unknown }).models = null;
+      customProviderRepo.find.mockResolvedValue([cp]);
+
+      const result = await service.getModelsForAgent('user-1');
+      expect(result).toHaveLength(0);
+    });
+
+    it('deduplicates the same custom-provider model id across repeated entries', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      const cp = makeCustomProvider({
+        id: 'cp-dup',
+        user_id: 'user-1',
+        models: [
+          { model_name: 'dup-model', context_window: 1000 },
+          // Same model_name a second time — the `seen` guard must skip it.
+          { model_name: 'dup-model', context_window: 1000 },
+        ],
+      });
+      customProviderRepo.find.mockResolvedValue([cp]);
+
+      const result = await service.getModelsForAgent('user-1');
+      expect(result.filter((m) => m.id === 'custom:cp-dup/dup-model')).toHaveLength(1);
     });
   });
 
