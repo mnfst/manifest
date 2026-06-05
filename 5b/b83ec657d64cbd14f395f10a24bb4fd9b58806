@@ -1,0 +1,23 @@
+docs/superpowers/specs/2026-06-05-global-provider-connections-design.md
+  s_feb7f7e060c1a0::t_b9a176ed0cec49 116-119
+  s_feb7f7e060c1a0::t_c42e6ec6287f04 54-56,58-62,64
+  s_feb7f7e060c1a0::t_56eb6ad5369319 93-98
+  s_feb7f7e060c1a0::t_b37499e4bca464 68-78,80-81,83-84,86-89
+  s_feb7f7e060c1a0::t_13603dfb9cba18 106-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "5bb83ec657d64cbd14f395f10a24bb4fd9b58806",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
