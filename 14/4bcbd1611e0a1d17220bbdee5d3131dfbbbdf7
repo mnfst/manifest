@@ -1,0 +1,35 @@
+packages/backend/src/routing/resolve/__tests__/resolve.controller.spec.ts
+  s_feb7f7e060c1a0::t_40898fed0804f1 81,100,123
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_feb7f7e060c1a0::t_0420904554e168 125
+  s_feb7f7e060c1a0::t_adabdd6329aae1 6,39-40,48,56-64,72,79,98,117,126-128,137,142-143,152,165,176,190,201,215,226,252,279,308,321,325-388,391,403,408,416-418,432-434,440,443,458,506,538,555,570,586,592,622,627-628,636,977-1082,1104,1112,1117,1123,1127,1139,1150,1157,1162,1167,1174
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_feb7f7e060c1a0::t_40898fed0804f1 155,180,188,196,233,245,261,272
+packages/backend/src/routing/routing-core/__tests__/routing-invalidation.service.spec.ts
+  s_feb7f7e060c1a0::t_40898fed0804f1 51,63
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_feb7f7e060c1a0::t_40898fed0804f1 664-726,1178,1184,1186,1224,1271,1276,1283,1394,1399,1406,1477,1484
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_feb7f7e060c1a0::t_40898fed0804f1 146,170,199,228,256,284,325,366,391,418,444,470,490,518,534,559,574,592,616,634,653,672,694,716,738,761,780,794,803,820,840,857,872
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_feb7f7e060c1a0::t_40898fed0804f1 194-195,199-228,449,464,483,503,518,533,566,671
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_feb7f7e060c1a0::t_81e2436ee16c3e 1286-1289
+  s_feb7f7e060c1a0::t_19ebb937641aab 1142,1174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "144bcbd1611e0a1d17220bbdee5d3131dfbbbdf7",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
