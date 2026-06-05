@@ -30,6 +30,7 @@ const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
 const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
+const GlobalProviders = lazyReload(() => import('./pages/GlobalProviders.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -70,6 +71,7 @@ render(
 
             <Route path="/help" component={Help} />
           </Route>
+          <Route path="/providers" component={GlobalProviders} />
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
         </Route>

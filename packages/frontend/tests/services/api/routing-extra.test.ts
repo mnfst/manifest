@@ -42,6 +42,13 @@ describe('routing API client (additional coverage)', () => {
     expect(url).toContain('/api/v1/routing/demo/providers');
   });
 
+  it('getGlobalProviders GETs the tenant providers list', async () => {
+    const fetchMock = setupFetch([{ id: 'p1' }]);
+    await routing.getGlobalProviders();
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/providers');
+  });
+
   it('connectProvider POSTs the new provider record', async () => {
     const fetchMock = setupFetch({
       id: 'p1',
@@ -79,6 +86,59 @@ describe('routing API client (additional coverage)', () => {
     await routing.disconnectProvider('demo', 'openai', 'subscription');
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('authType=subscription');
+  });
+
+  it('connectGlobalProvider POSTs to the tenant providers endpoint', async () => {
+    const fetchMock = setupFetch({ id: 'p1', provider: 'openai' });
+    await routing.connectGlobalProvider({
+      provider: 'openai',
+      authType: 'api_key',
+      apiKey: 'sk-1',
+      label: 'Work',
+    });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/providers');
+    expect((init as RequestInit).method).toBe('POST');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      provider: 'openai',
+      authType: 'api_key',
+      apiKey: 'sk-1',
+      label: 'Work',
+    });
+  });
+
+  it('disconnectGlobalProvider DELETEs with authType and label query params', async () => {
+    const fetchMock = setupFetch({ ok: true, notifications: [] });
+    await routing.disconnectGlobalProvider('openai', 'api_key', 'Work');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/providers/openai');
+    expect(url).toContain('authType=api_key');
+    expect(url).toContain('label=Work');
+    expect((init as RequestInit).method).toBe('DELETE');
+  });
+
+  it('renameGlobalProviderKey PATCHes the global key route', async () => {
+    const fetchMock = setupFetch({ id: 'p1', label: 'Work', priority: 0 });
+    await routing.renameGlobalProviderKey('openai', 'Default', 'Work', 'api_key');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/providers/openai/keys/Default');
+    expect((init as RequestInit).method).toBe('PATCH');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      newLabel: 'Work',
+      authType: 'api_key',
+    });
+  });
+
+  it('reorderGlobalProviderKeys PUTs ordered labels', async () => {
+    const fetchMock = setupFetch([{ id: 'p1', label: 'Work', priority: 0 }]);
+    await routing.reorderGlobalProviderKeys('openai', ['Work'], 'api_key');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/providers/openai/keys/order');
+    expect((init as RequestInit).method).toBe('PUT');
+    expect(JSON.parse((init as RequestInit).body as string)).toEqual({
+      labels: ['Work'],
+      authType: 'api_key',
+    });
   });
 
   it('copilotDeviceCode POSTs to the device-code endpoint', async () => {
@@ -183,6 +243,15 @@ describe('routing API client (additional coverage)', () => {
     await routing.refreshPricing();
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/routing/pricing/refresh');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('refreshGlobalProviderModels POSTs the tenant provider refresh endpoint', async () => {
+    const fetchMock = setupFetch({ ok: true, model_count: 1, last_fetched_at: null, error: null });
+    await routing.refreshGlobalProviderModels('openai', 'api_key');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/providers/openai/refresh-models');
+    expect(url).toContain('authType=api_key');
     expect((init as RequestInit).method).toBe('POST');
   });
 

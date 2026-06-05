@@ -1,15 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { ProviderService } from './routing-core/provider.service';
@@ -27,8 +16,7 @@ import {
   RenameProviderKeyDto,
   ReorderProviderKeysDto,
 } from './dto/routing.dto';
-import { isQwenRegion } from './qwen-region';
-import { getSubscriptionEndpointRegionConfig } from './subscription-region';
+import { assertProviderRegionSupported } from './provider-region-validation';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -94,28 +82,7 @@ export class ProviderController {
     @Body() body: ConnectProviderDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const lowerProvider = body.provider.toLowerCase();
-    const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
-    const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(
-      lowerProvider,
-      body.authType,
-    );
-
-    if (body.region !== undefined) {
-      if (isQwenProvider) {
-        if (!isQwenRegion(body.region)) {
-          throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
-        }
-      } else if (subscriptionRegionConfig) {
-        if (!subscriptionRegionConfig.isRegion(body.region)) {
-          throw new BadRequestException(subscriptionRegionConfig.validationMessage);
-        }
-      } else {
-        throw new BadRequestException(
-          'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, Xiaomi MiMo Token Plan, and Z.ai subscriptions',
-        );
-      }
-    }
+    assertProviderRegionSupported(body.provider, body.authType, body.region);
 
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {

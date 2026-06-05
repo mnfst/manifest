@@ -1,92 +1,102 @@
-import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
-import { fireEvent, render, screen } from "@solidjs/testing-library";
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@solidjs/testing-library';
 
-let mockAgentName: string | null = "test-agent";
-let mockPathname = "/agents/test-agent";
-vi.mock("@solidjs/router", () => ({
+let mockAgentName: string | null = 'test-agent';
+let mockPathname = '/agents/test-agent';
+vi.mock('@solidjs/router', () => ({
   A: (props: any) => {
     // Access classList to trigger coverage of classList expressions
     const cl = props.classList;
-    const classes = [props.class || ""];
+    const classes = [props.class || ''];
     if (cl) {
       for (const [key, val] of Object.entries(cl)) {
         if (val) classes.push(key);
       }
     }
-    return <a href={props.href} class={classes.join(" ").trim()} aria-current={props["aria-current"]}>{props.children}</a>;
+    return (
+      <a href={props.href} class={classes.join(' ').trim()} aria-current={props['aria-current']}>
+        {props.children}
+      </a>
+    );
   },
   useLocation: () => ({ pathname: mockPathname }),
 }));
 
-vi.mock("../../src/services/routing.js", () => ({
+vi.mock('../../src/services/routing.js', () => ({
   useAgentName: () => () => mockAgentName,
-  agentPath: (name: string, sub: string) => name ? `/agents/${name}${sub}` : "/",
+  agentPath: (name: string, sub: string) => (name ? `/agents/${name}${sub}` : '/'),
 }));
 
-import Sidebar from "../../src/components/Sidebar";
+import Sidebar from '../../src/components/Sidebar';
 
-describe("Sidebar with agent", () => {
+describe('Sidebar with agent', () => {
   beforeAll(() => {
-    mockAgentName = "test-agent";
-    mockPathname = "/agents/test-agent";
+    mockAgentName = 'test-agent';
+    mockPathname = '/agents/test-agent';
   });
 
-  it("renders MONITORING section", () => {
+  it('renders MONITORING section', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("MONITORING")).toBeDefined();
+    expect(screen.getByText('MONITORING')).toBeDefined();
   });
 
-  it("renders Overview link", () => {
+  it('renders Overview link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Overview")).toBeDefined();
+    expect(screen.getByText('Overview')).toBeDefined();
   });
 
-  it("renders Messages link", () => {
+  it('renders Messages link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Messages")).toBeDefined();
+    expect(screen.getByText('Messages')).toBeDefined();
   });
 
-  it("renders MANAGE section", () => {
+  it('renders MANAGE section', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("MANAGE")).toBeDefined();
+    expect(screen.getByText('MANAGE')).toBeDefined();
   });
 
-  it("renders Settings link", () => {
+  it('renders Settings link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.getByText('Settings')).toBeDefined();
   });
 
-  it("renders Limits link", () => {
+  it('renders Limits link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Limits")).toBeDefined();
+    expect(screen.getByText('Limits')).toBeDefined();
   });
 
-  it("renders RESOURCES section", () => {
+  it('renders RESOURCES section', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("RESOURCES")).toBeDefined();
+    expect(screen.getByText('RESOURCES')).toBeDefined();
   });
 
-  it("renders Help link", () => {
+  it('renders Help link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Help")).toBeDefined();
+    expect(screen.getByText('Help')).toBeDefined();
   });
 
-  it("renders Model Prices link", () => {
+  it('renders Model Prices link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Model Prices")).toBeDefined();
+    expect(screen.getByText('Model Prices')).toBeDefined();
   });
 
-  it("renders Feedback section", () => {
+  it('renders Feedback section', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Feedback")).toBeDefined();
+    expect(screen.getByText('Feedback')).toBeDefined();
   });
 
-  it("renders Routing link", () => {
+  it('renders Routing link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Routing")).toBeDefined();
+    expect(screen.getByText('Routing')).toBeDefined();
   });
 
-  it("has correct link hrefs for agent routes", () => {
+  it('renders tenant Providers link', () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText('TENANT')).toBeDefined();
+    expect(screen.getByText('Providers')).toBeDefined();
+  });
+
+  it('has correct link hrefs for agent routes', () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/messages"]')).not.toBeNull();
@@ -94,133 +104,147 @@ describe("Sidebar with agent", () => {
     expect(container.querySelector('a[href="/agents/test-agent/limits"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/help"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/providers"]')).not.toBeNull();
   });
 
-  it("marks current page link as active", () => {
+  it('marks current page link as active', () => {
     const { container } = render(() => <Sidebar />);
     const overviewLink = container.querySelector('a[href="/agents/test-agent"]');
-    expect(overviewLink?.getAttribute("aria-current")).toBe("page");
+    expect(overviewLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it("has nav element with aria-label", () => {
+  it('has nav element with aria-label', () => {
     const { container } = render(() => <Sidebar />);
-    const nav = container.querySelector("nav.sidebar");
+    const nav = container.querySelector('nav.sidebar');
     expect(nav).not.toBeNull();
-    expect(nav?.getAttribute("aria-label")).toBe("Agent navigation");
+    expect(nav?.getAttribute('aria-label')).toBe('Agent navigation');
   });
 
-  it("applies the mobile open class", () => {
+  it('applies the mobile open class', () => {
     const { container } = render(() => <Sidebar mobileOpen />);
-    const nav = container.querySelector("nav.sidebar");
-    expect(nav?.classList.contains("sidebar--mobile-open")).toBe(true);
+    const nav = container.querySelector('nav.sidebar');
+    expect(nav?.classList.contains('sidebar--mobile-open')).toBe(true);
   });
 
-  it("calls onNavigate when a sidebar link is clicked", async () => {
+  it('calls onNavigate when a sidebar link is clicked', async () => {
     const onNavigate = vi.fn();
     const { container } = render(() => <Sidebar onNavigate={onNavigate} />);
-    const link = container.querySelector("a.sidebar__link");
+    const link = container.querySelector('a.sidebar__link');
 
     expect(link).not.toBeNull();
-    link!.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    link!.addEventListener('click', (event) => event.preventDefault(), { once: true });
 
     await fireEvent.click(link!);
 
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it("shows feedback hint text", () => {
+  it('shows feedback hint text', () => {
     const { container } = render(() => <Sidebar />);
-    expect(container.textContent).toContain("Share ideas or report bugs");
+    expect(container.textContent).toContain('Share ideas or report bugs');
   });
 
-  it("feedback link is external with correct attributes", () => {
+  it('feedback link is external with correct attributes', () => {
     const { container } = render(() => <Sidebar />);
-    const feedbackLink = container.querySelector("a.sidebar__feedback") as HTMLAnchorElement;
+    const feedbackLink = container.querySelector('a.sidebar__feedback') as HTMLAnchorElement;
     expect(feedbackLink).not.toBeNull();
-    expect(feedbackLink.target).toBe("_blank");
-    expect(feedbackLink.rel).toContain("noopener");
+    expect(feedbackLink.target).toBe('_blank');
+    expect(feedbackLink.rel).toContain('noopener');
   });
 });
 
-describe("Sidebar without agent", () => {
+describe('Sidebar without agent', () => {
   beforeAll(() => {
     mockAgentName = null;
-    mockPathname = "/";
+    mockPathname = '/';
   });
 
-  it("renders Agents link when no agent selected", () => {
+  it('renders Agents link when no agent selected', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Agents")).toBeDefined();
+    expect(screen.getByText('Agents')).toBeDefined();
   });
 
-  it("does not render MONITORING section when no agent", () => {
-    const { container } = render(() => <Sidebar />);
-    expect(container.textContent).not.toContain("MONITORING");
+  it('renders Providers link when no agent selected', () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText('Providers')).toBeDefined();
   });
 
-  it("does not render agent navigation links when no agent", () => {
+  it('does not render MONITORING section when no agent', () => {
     const { container } = render(() => <Sidebar />);
-    expect(container.textContent).not.toContain("Overview");
-    expect(container.textContent).not.toContain("Messages");
+    expect(container.textContent).not.toContain('MONITORING');
+  });
+
+  it('does not render agent navigation links when no agent', () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.textContent).not.toContain('Overview');
+    expect(container.textContent).not.toContain('Messages');
   });
 });
 
-describe("Sidebar active states for sub-paths", () => {
+describe('Sidebar active states for sub-paths', () => {
   beforeAll(() => {
-    mockAgentName = "test-agent";
+    mockAgentName = 'test-agent';
   });
 
-  it("marks routing link as active on routing path", () => {
-    mockPathname = "/agents/test-agent/routing";
+  it('marks routing link as active on routing path', () => {
+    mockPathname = '/agents/test-agent/routing';
     const { container } = render(() => <Sidebar />);
     const routingLink = container.querySelector('a[href="/agents/test-agent/routing"]');
-    expect(routingLink?.getAttribute("aria-current")).toBe("page");
+    expect(routingLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it("marks limits link as active on limits path", () => {
-    mockPathname = "/agents/test-agent/limits";
+  it('marks limits link as active on limits path', () => {
+    mockPathname = '/agents/test-agent/limits';
     const { container } = render(() => <Sidebar />);
     const limitsLink = container.querySelector('a[href="/agents/test-agent/limits"]');
-    expect(limitsLink?.getAttribute("aria-current")).toBe("page");
+    expect(limitsLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it("marks settings link as active on settings path", () => {
-    mockPathname = "/agents/test-agent/settings";
+  it('marks settings link as active on settings path', () => {
+    mockPathname = '/agents/test-agent/settings';
     const { container } = render(() => <Sidebar />);
     const settingsLink = container.querySelector('a[href="/agents/test-agent/settings"]');
-    expect(settingsLink?.getAttribute("aria-current")).toBe("page");
+    expect(settingsLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it("marks model-prices link as active on model-prices path", () => {
-    mockPathname = "/agents/test-agent/model-prices";
+  it('marks model-prices link as active on model-prices path', () => {
+    mockPathname = '/agents/test-agent/model-prices';
     const { container } = render(() => <Sidebar />);
     const pricesLink = container.querySelector('a[href="/agents/test-agent/model-prices"]');
-    expect(pricesLink?.getAttribute("aria-current")).toBe("page");
+    expect(pricesLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it("marks help link as active on help path", () => {
-    mockPathname = "/agents/test-agent/help";
+  it('marks help link as active on help path', () => {
+    mockPathname = '/agents/test-agent/help';
     const { container } = render(() => <Sidebar />);
     const helpLink = container.querySelector('a[href="/agents/test-agent/help"]');
-    expect(helpLink?.getAttribute("aria-current")).toBe("page");
+    expect(helpLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it("marks messages link as active on messages path", () => {
-    mockPathname = "/agents/test-agent/messages";
+  it('marks messages link as active on messages path', () => {
+    mockPathname = '/agents/test-agent/messages';
     const { container } = render(() => <Sidebar />);
     const messagesLink = container.querySelector('a[href="/agents/test-agent/messages"]');
-    expect(messagesLink?.getAttribute("aria-current")).toBe("page");
+    expect(messagesLink?.getAttribute('aria-current')).toBe('page');
+  });
+
+  it('marks providers link as active on tenant provider path', () => {
+    mockAgentName = null;
+    mockPathname = '/providers';
+    const { container } = render(() => <Sidebar />);
+    const providersLink = container.querySelector('a[href="/providers"]');
+    expect(providersLink?.getAttribute('aria-current')).toBe('page');
   });
 });
 
-describe("Sidebar with no agent selected", () => {
+describe('Sidebar with no agent selected', () => {
   beforeAll(() => {
     mockAgentName = null;
-    mockPathname = "/";
+    mockPathname = '/';
   });
 
-  it("shows Agents link when no agent is selected", () => {
+  it('shows Agents link when no agent is selected', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Agents")).toBeDefined();
+    expect(screen.getByText('Agents')).toBeDefined();
   });
 });

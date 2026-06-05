@@ -53,6 +53,10 @@ export function getProviders(agentName: string) {
   return fetchJson<RoutingProvider[]>(routingPath(agentName, 'providers'));
 }
 
+export function getGlobalProviders() {
+  return fetchJson<RoutingProvider[]>('/providers');
+}
+
 export function connectProvider(
   agentName: string,
   data: {
@@ -78,6 +82,20 @@ export function connectProvider(
   });
 }
 
+export function connectGlobalProvider(data: {
+  provider: string;
+  apiKey?: string;
+  authType?: AuthType;
+  label?: string;
+  region?: string;
+}) {
+  return fetchMutate<RoutingProvider>('/providers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
 export function disconnectProvider(
   agentName: string,
   provider: string,
@@ -85,6 +103,16 @@ export function disconnectProvider(
   label?: string,
 ) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}`);
+  const params = new URLSearchParams();
+  if (authType) params.set('authType', authType);
+  if (label) params.set('label', label);
+  const qs = params.toString();
+  const path = qs ? `${base}?${qs}` : base;
+  return fetchMutate<{ ok: boolean; notifications: string[] }>(path, { method: 'DELETE' });
+}
+
+export function disconnectGlobalProvider(provider: string, authType?: AuthType, label?: string) {
+  const base = `/providers/${encodeURIComponent(provider)}`;
   const params = new URLSearchParams();
   if (authType) params.set('authType', authType);
   if (label) params.set('label', label);
@@ -113,6 +141,22 @@ export function renameProviderKey(
   );
 }
 
+export function renameGlobalProviderKey(
+  provider: string,
+  currentLabel: string,
+  newLabel: string,
+  authType?: AuthType,
+) {
+  return fetchMutate<{ id: string; label: string; priority: number }>(
+    `/providers/${encodeURIComponent(provider)}/keys/${encodeURIComponent(currentLabel)}`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newLabel, ...(authType && { authType }) }),
+    },
+  );
+}
+
 export function reorderProviderKeys(
   agentName: string,
   provider: string,
@@ -121,6 +165,17 @@ export function reorderProviderKeys(
 ) {
   return fetchMutate<Array<{ id: string; label: string; priority: number }>>(
     routingPath(agentName, `providers/${encodeURIComponent(provider)}/keys/order`),
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ labels, ...(authType && { authType }) }),
+    },
+  );
+}
+
+export function reorderGlobalProviderKeys(provider: string, labels: string[], authType?: AuthType) {
+  return fetchMutate<Array<{ id: string; label: string; priority: number }>>(
+    `/providers/${encodeURIComponent(provider)}/keys/order`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -324,6 +379,12 @@ export interface ProviderRefreshResult {
 
 export function refreshProviderModels(agentName: string, provider: string, authType?: AuthType) {
   const base = routingPath(agentName, `providers/${encodeURIComponent(provider)}/refresh-models`);
+  const path = authType ? `${base}?authType=${authType}` : base;
+  return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
+}
+
+export function refreshGlobalProviderModels(provider: string, authType?: AuthType) {
+  const base = `/providers/${encodeURIComponent(provider)}/refresh-models`;
   const path = authType ? `${base}?authType=${authType}` : base;
   return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
 }

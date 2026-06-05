@@ -46,6 +46,7 @@ describe('ProviderService — route-only cleanup paths', () => {
   let svc: ProviderService;
 
   beforeEach(() => {
+    process.env.MANIFEST_ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long';
     providerRepo = makeRepo();
     tierRepo = makeRepo();
     specRepo = makeRepo();
@@ -67,6 +68,89 @@ describe('ProviderService — route-only cleanup paths', () => {
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
     );
+  });
+
+  describe('global provider scope', () => {
+    it('creates global providers with null agent_id and no tier recalculation', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const result = await svc.upsertGlobalProvider('user-1', 'openai', 'sk-test', 'api_key');
+
+      expect(result.isNew).toBe(true);
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: 'user-1',
+          agent_id: null,
+          provider: 'openai',
+          auth_type: 'api_key',
+          key_prefix: 'sk-test',
+        }),
+      );
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
+    });
+
+    it('lists only usable global provider rows for the current user', async () => {
+      providerRepo.find.mockResolvedValue([
+        { id: 'p1', user_id: 'user-1', agent_id: null, provider: 'openai', auth_type: 'api_key' },
+        {
+          id: 'p2',
+          user_id: 'user-1',
+          agent_id: null,
+          provider: 'unknown-sub',
+          auth_type: 'subscription',
+        },
+      ]);
+
+      const result = await svc.getGlobalProviders('user-1');
+
+      expect(providerRepo.find).toHaveBeenCalledWith({
+        where: expect.objectContaining({ user_id: 'user-1' }),
+      });
+      expect(result.map((row) => row.id)).toEqual(['p1']);
+    });
+
+    it('renames a global key without relabeling agent route overrides', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          user_id: 'user-1',
+          agent_id: null,
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+        },
+      ]);
+
+      const result = await svc.renameGlobalKey('user-1', 'openai', 'api_key', 'Default', 'Work');
+
+      expect(result.label).toBe('Work');
+      expect(providerRepo.save).toHaveBeenCalledWith(expect.objectContaining({ label: 'Work' }));
+      expect(tierRepo.find).not.toHaveBeenCalled();
+      expect(specRepo.find).not.toHaveBeenCalled();
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
+    });
+
+    it('disconnects global providers without touching agent routing state', async () => {
+      const row = {
+        id: 'p1',
+        user_id: 'user-1',
+        agent_id: null,
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+      };
+      providerRepo.find.mockResolvedValue([row]);
+
+      await svc.removeGlobalProvider('user-1', 'openai', 'api_key');
+
+      expect(row.is_active).toBe(false);
+      expect(providerRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({ is_active: false }),
+      ]);
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      expect(tierRepo.find).not.toHaveBeenCalled();
+    });
   });
 
   describe('removeProvider — cleanupProviderReferences', () => {
