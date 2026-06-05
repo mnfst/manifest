@@ -1,0 +1,20 @@
+packages/backend/src/routing/routing-core/__tests__/tier-auto-assign.service.spec.ts
+  s_feb7f7e060c1a0::t_f95d2d6063349a 50-51
+  s_feb7f7e060c1a0::t_b258999165dedb 49,72,97,129,153,163,179,189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "16abb98d131572a0af687ea30c0f3559b99f786b",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
