@@ -61,6 +61,7 @@ export interface CreateAgentParams {
   name: string;
   agent_category?: string;
   agent_platform?: string;
+  global_provider_ids?: string[];
 }
 
 export interface DuplicateAgentPreview {
@@ -104,6 +105,7 @@ export function createAgent(params: CreateAgentParams) {
       agent_platform: string | null;
     };
     apiKey: string;
+    copied?: { globalProviders: number };
   }>('/agents', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

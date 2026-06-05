@@ -158,6 +158,58 @@ describe('ProviderService — route-only cleanup paths', () => {
       ).rejects.toThrow('authType is required');
       expect(providerRepo.find).not.toHaveBeenCalled();
     });
+
+    it('copies selected global providers into an agent and recalculates once', async () => {
+      const txRepo = {
+        find: jest
+          .fn()
+          .mockResolvedValueOnce([
+            {
+              id: 'global-1',
+              user_id: 'user-1',
+              agent_id: null,
+              provider: 'openai',
+              auth_type: 'api_key',
+              label: 'Work',
+              priority: 0,
+              api_key_encrypted: 'enc',
+              key_prefix: 'sk-test',
+              region: null,
+              is_active: true,
+              cached_models: [{ id: 'gpt-4o-mini' }],
+              models_fetched_at: '2026-01-01T00:00:00.000Z',
+            },
+          ])
+          .mockResolvedValueOnce([]),
+        insert: jest.fn().mockResolvedValue(undefined),
+      };
+      providerRepo.manager.transaction.mockImplementation(async (callback) =>
+        callback({ getRepository: () => txRepo } as never),
+      );
+
+      const copied = await svc.copyGlobalProvidersToAgent('user-1', 'agent-1', ['global-1']);
+
+      expect(copied).toBe(1);
+      expect(txRepo.find).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          where: expect.objectContaining({ id: expect.any(Object), user_id: 'user-1' }),
+        }),
+      );
+      expect(txRepo.insert).toHaveBeenCalledWith([
+        expect.objectContaining({
+          user_id: 'user-1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Work',
+          key_prefix: 'sk-test',
+          cached_models: [{ id: 'gpt-4o-mini' }],
+        }),
+      ]);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
   });
 
   describe('removeProvider — cleanupProviderReferences', () => {

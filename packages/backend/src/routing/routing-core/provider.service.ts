@@ -71,6 +71,73 @@ export class ProviderService {
     return providers.filter(isManifestUsableProvider);
   }
 
+  async copyGlobalProvidersToAgent(
+    userId: string,
+    agentId: string,
+    providerIds: string[],
+  ): Promise<number> {
+    const ids = Array.from(new Set(providerIds.map((id) => id.trim()).filter(Boolean)));
+    if (ids.length === 0) return 0;
+
+    const copied = await this.providerRepo.manager.transaction(async (manager) => {
+      const txRepo = manager.getRepository(UserProvider);
+      const globals = (
+        await txRepo.find({
+          where: {
+            id: In(ids),
+            user_id: userId,
+            agent_id: IsNull(),
+            is_active: true,
+          },
+          order: { priority: 'ASC' },
+        })
+      ).filter(isManifestUsableProvider);
+
+      if (globals.length === 0) return 0;
+
+      const existingRows = await txRepo.find({ where: { agent_id: agentId } });
+      const existingKeys = new Set(
+        existingRows.map(
+          (row) => `${row.provider.toLowerCase()}::${row.auth_type}::${row.label.toLowerCase()}`,
+        ),
+      );
+      const now = new Date().toISOString();
+      const records = globals
+        .filter((row) => {
+          const key = `${row.provider.toLowerCase()}::${row.auth_type}::${row.label.toLowerCase()}`;
+          if (existingKeys.has(key)) return false;
+          existingKeys.add(key);
+          return true;
+        })
+        .map((row) =>
+          Object.assign(new UserProvider(), {
+            id: randomUUID(),
+            user_id: userId,
+            agent_id: agentId,
+            provider: row.provider,
+            auth_type: row.auth_type,
+            label: row.label,
+            priority: row.priority,
+            api_key_encrypted: row.api_key_encrypted,
+            key_prefix: row.key_prefix,
+            region: row.region,
+            is_active: true,
+            connected_at: now,
+            updated_at: now,
+            cached_models: row.cached_models,
+            models_fetched_at: row.models_fetched_at,
+          }),
+        );
+
+      if (records.length === 0) return 0;
+      await txRepo.insert(records);
+      return records.length;
+    });
+
+    if (copied > 0) await this.afterScopedProviderChange({ type: 'agent', agentId });
+    return copied;
+  }
+
   private scopeWhere(
     scope: ProviderScope,
     extra?: FindOptionsWhere<UserProvider>,

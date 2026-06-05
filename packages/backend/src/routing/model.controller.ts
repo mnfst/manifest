@@ -10,6 +10,7 @@ import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import type { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { resolveUnderlyingModelIdentity } from 'manifest-shared';
 import {
   inputModalitiesFromCapabilities,
@@ -85,6 +86,12 @@ export class ModelController {
     return this.ollamaSync.sync();
   }
 
+  @Get('available-models')
+  async getGlobalAvailableModels(@CurrentUser() user: AuthUser) {
+    const models = await this.discoveryService.getModelsForGlobalProviders(user.id);
+    return this.serializeAvailableModels(models);
+  }
+
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
@@ -97,6 +104,13 @@ export class ModelController {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
     }
 
+    return this.serializeAvailableModels(models, cpNameMap);
+  }
+
+  private serializeAvailableModels(
+    models: DiscoveredModel[],
+    customProviderNames = new Map<string, string>(),
+  ) {
     return Promise.all(
       models.map(async (m) => {
         const isCustom = CustomProviderService.isCustom(m.provider);
@@ -147,7 +161,7 @@ export class ModelController {
           quality_score: m.qualityScore,
           display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
           ...(isCustom && {
-            provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
+            provider_display_name: customProviderNames.get(m.provider) ?? m.provider,
           }),
         };
       }),

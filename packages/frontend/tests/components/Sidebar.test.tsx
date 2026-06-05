@@ -96,6 +96,11 @@ describe('Sidebar with agent', () => {
     expect(screen.getByText('Providers')).toBeDefined();
   });
 
+  it('renders tenant Playground link alongside the agent playground', () => {
+    render(() => <Sidebar />);
+    expect(screen.getAllByText('Playground')).toHaveLength(2);
+  });
+
   it('has correct link hrefs for agent routes', () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/agents/test-agent"]')).not.toBeNull();
@@ -105,6 +110,7 @@ describe('Sidebar with agent', () => {
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/help"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/playground"]')).not.toBeNull();
   });
 
   it('marks current page link as active', () => {
@@ -167,6 +173,11 @@ describe('Sidebar without agent', () => {
   it('renders Providers link when no agent selected', () => {
     render(() => <Sidebar />);
     expect(screen.getByText('Providers')).toBeDefined();
+  });
+
+  it('renders Playground link when no agent selected', () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText('Playground')).toBeDefined();
   });
 
   it('does not render MONITORING section when no agent', () => {
@@ -234,6 +245,14 @@ describe('Sidebar active states for sub-paths', () => {
     const { container } = render(() => <Sidebar />);
     const providersLink = container.querySelector('a[href="/providers"]');
     expect(providersLink?.getAttribute('aria-current')).toBe('page');
+  });
+
+  it('marks playground link as active on tenant playground path', () => {
+    mockAgentName = null;
+    mockPathname = '/playground';
+    const { container } = render(() => <Sidebar />);
+    const playgroundLink = container.querySelector('a[href="/playground"]');
+    expect(playgroundLink?.getAttribute('aria-current')).toBe('page');
   });
 });
 

@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   Inject,
+  Logger,
   Param,
   Patch,
   Post,
@@ -29,9 +30,12 @@ import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants'
 import { slugify } from '../../common/utils/slugify';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
 
 @Controller('api/v1')
 export class AgentsController {
+  private readonly logger = new Logger(AgentsController.name);
+
   constructor(
     private readonly timeseries: TimeseriesQueriesService,
     private readonly lifecycle: AgentLifecycleService,
@@ -40,6 +44,7 @@ export class AgentsController {
     private readonly tenantCache: TenantCacheService,
     private readonly eventBus: IngestEventBusService,
     private readonly recordingCache: AgentRecordingCacheService,
+    private readonly providerService: ProviderService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -79,6 +84,22 @@ export class AgentsController {
       }
       throw error;
     }
+    let copiedGlobalProviders = 0;
+    if (body.global_provider_ids?.length) {
+      try {
+        copiedGlobalProviders = await this.providerService.copyGlobalProvidersToAgent(
+          user.id,
+          result.agentId,
+          body.global_provider_ids,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Failed to copy global providers into new agent ${result.agentId}: ${
+            error instanceof Error ? error.message : error
+          }`,
+        );
+      }
+    }
     await this.cacheManager.del(this.agentListCacheKey(user.id));
     this.eventBus.emit(user.id, 'agent');
     return {
@@ -90,6 +111,7 @@ export class AgentsController {
         agent_platform: body.agent_platform ?? null,
       },
       apiKey: result.apiKey,
+      copied: { globalProviders: copiedGlobalProviders },
     };
   }
 

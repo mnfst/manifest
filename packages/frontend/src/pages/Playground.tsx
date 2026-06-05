@@ -10,11 +10,13 @@ import {
   Suspense,
   type Component,
 } from 'solid-js';
-import { useParams, useSearchParams } from '@solidjs/router';
+import { useNavigate, useParams, useSearchParams } from '@solidjs/router';
 import { Meta, Title } from '@solidjs/meta';
 import type { AuthType, PlaygroundHistoryRunSummary } from '../services/api.js';
 import {
   getAvailableModels,
+  getGlobalAvailableModels,
+  getGlobalProviders,
   getPlaygroundRun,
   getCustomProviders,
   getProviders,
@@ -127,26 +129,37 @@ function findWinners(columns: readonly ColumnData[]): {
 }
 
 const Playground: Component = () => {
-  const params = useParams<{ agentName: string }>();
+  const params = useParams<{ agentName?: string }>();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams<{ run?: string }>();
-  const agentName = () => decodeURIComponent(params.agentName);
+  const isGlobalPlayground = () => !params.agentName;
+  const playgroundScope = () => (isGlobalPlayground() ? 'global' : 'agent');
+  const agentName = () =>
+    isGlobalPlayground() ? 'global' : decodeURIComponent(params.agentName ?? '');
+  const resourceScope = () => ({ scope: playgroundScope(), agentName: agentName() });
 
-  const [available, { refetch: refetchAvailable }] = createResource(agentName, getAvailableModels);
-  const [providers, { refetch: refetchProviders }] = createResource(agentName, getProviders);
+  const [available, { refetch: refetchAvailable }] = createResource(resourceScope, (source) =>
+    source.scope === 'global' ? getGlobalAvailableModels() : getAvailableModels(source.agentName),
+  );
+  const [providers, { refetch: refetchProviders }] = createResource(resourceScope, (source) =>
+    source.scope === 'global' ? getGlobalProviders() : getProviders(source.agentName),
+  );
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
-    agentName,
-    getCustomProviders,
+    resourceScope,
+    (source) =>
+      source.scope === 'global' ? Promise.resolve([]) : getCustomProviders(source.agentName),
   );
 
-  const store = getOrCreatePlaygroundStore(agentName());
+  const store = getOrCreatePlaygroundStore(agentName(), playgroundScope());
   const [pickerForColumn, setPickerForColumn] = createSignal<string | null>(null);
   const [showAddPicker, setShowAddPicker] = createSignal(false);
   const [announcement, setAnnouncement] = createSignal('');
   const [promptHeight, setPromptHeight] = createSignal(0);
   const [historyOpen, setHistoryOpen] = createSignal(
-    localStorage.getItem('manifest.playground.recentOpen') !== 'false',
+    !isGlobalPlayground() && localStorage.getItem('manifest.playground.recentOpen') !== 'false',
   );
   const toggleRecent = () => {
+    if (isGlobalPlayground()) return;
     const next = !historyOpen();
     setHistoryOpen(next);
     localStorage.setItem('manifest.playground.recentOpen', String(next));
@@ -226,10 +239,11 @@ const Playground: Component = () => {
     if (store.columns.length > 0 && !store.isAnyRunning() && !completedResults()) {
       setCompletedResults([...store.columns]);
     }
+    if (isGlobalPlayground()) return;
     if (store.columns.length > 0) return;
     const runId = searchParams.run || sessionStorage.getItem('manifest.playground.lastRun');
     if (runId && !activeRunId()) {
-      getPlaygroundRun(runId, params.agentName)
+      getPlaygroundRun(runId, agentName())
         .then((detail) => {
           store.loadHistoryRun(detail);
           setCompletedResults([...store.columns]);
@@ -260,6 +274,13 @@ const Playground: Component = () => {
     const runId = store.runAll({ requestHeaders: toHeaderRecord(headerEntries()) });
     if (!runId) return;
 
+    if (isGlobalPlayground()) {
+      setActiveRunId(null);
+      setLiveRunId(runId);
+      setViewingHistory(null);
+      return;
+    }
+
     // Add to history immediately so user sees the running playground
     setHistoryRuns((prev) => [
       {
@@ -285,6 +306,7 @@ const Playground: Component = () => {
   };
 
   const refreshHistory = async () => {
+    if (isGlobalPlayground()) return;
     setHistoryLoading(true);
     try {
       setHistoryRuns(await listPlaygroundRuns(agentName()));
@@ -310,6 +332,7 @@ const Playground: Component = () => {
           setLiveRunId(null);
           // Snapshot completed results so the summary table survives column removals
           setCompletedResults([...store.columns]);
+          if (isGlobalPlayground()) return;
           void refreshHistory().then(() => {
             // If user isn't viewing a past run, auto-select the latest
             if (!viewingHistory()) {
@@ -366,6 +389,7 @@ const Playground: Component = () => {
   };
 
   const handlePickHistory = async (runId: string) => {
+    if (isGlobalPlayground()) return;
     // If clicking on the live (currently running) run, just show live columns
     if (runId === liveRunId()) {
       setViewingHistory(null);
@@ -375,7 +399,7 @@ const Playground: Component = () => {
       return;
     }
     try {
-      const detail = await getPlaygroundRun(runId, params.agentName);
+      const detail = await getPlaygroundRun(runId, agentName());
       const toReadOnlyCols = (): import('../services/playground-store.js').PlaygroundColumn[] =>
         detail.columns.map((c, i) => ({
           id: `hist-${i}`,
@@ -415,6 +439,10 @@ const Playground: Component = () => {
   };
 
   createEffect(() => {
+    if (isGlobalPlayground()) {
+      setRightSidebar(null);
+      return;
+    }
     setRightSidebar(
       <PlaygroundRecentSidebar
         open={historyOpen()}
@@ -431,13 +459,20 @@ const Playground: Component = () => {
   onCleanup(() => setRightSidebar(null));
 
   const hasConnectedProviders = () => (providers() ?? []).some((p) => p.is_active);
+  const openProviders = () => {
+    if (isGlobalPlayground()) {
+      navigate('/providers');
+      return;
+    }
+    setShowProviderModal(true);
+  };
   // Compute winners from whatever set is actually rendered — when a history
   // run is open its columns drive the badges, not the live store.
   const winners = () => findWinners(viewingHistory() ?? store.columns);
 
   return (
     <div class="playground" style={{ 'padding-bottom': `${promptHeight() + 48}px` }}>
-      <Title>Playground · Manifest</Title>
+      <Title>{isGlobalPlayground() ? 'Global Playground' : 'Playground'} · Manifest</Title>
       <Meta
         name="description"
         content="Compare models side by side for cost, speed, and quality."
@@ -445,17 +480,15 @@ const Playground: Component = () => {
 
       <header class="page-header">
         <div>
-          <h1>Playground</h1>
+          <h1>{isGlobalPlayground() ? 'Global Playground' : 'Playground'}</h1>
           <p class="page-header__sub">
-            Send one prompt to multiple models and compare cost, speed, and quality.
+            {isGlobalPlayground()
+              ? 'Test models from tenant provider connections before copying them into agents.'
+              : 'Send one prompt to multiple models and compare cost, speed, and quality.'}
           </p>
         </div>
-        <button
-          type="button"
-          class="btn btn--primary btn--sm"
-          onClick={() => setShowProviderModal(true)}
-        >
-          Connect providers
+        <button type="button" class="btn btn--primary btn--sm" onClick={openProviders}>
+          {isGlobalPlayground() ? 'Manage providers' : 'Connect providers'}
         </button>
       </header>
 
@@ -463,7 +496,7 @@ const Playground: Component = () => {
         when={(available() && providers() && hasConnectedProviders()) || viewingHistory()}
         fallback={
           <Show when={available() && providers()}>
-            <PlaygroundEmptyState onConnect={() => setShowProviderModal(true)} />
+            <PlaygroundEmptyState onConnect={openProviders} />
           </Show>
         }
       >
@@ -519,12 +552,8 @@ const Playground: Component = () => {
             <div class="playground-prompt-wrapper">
               <div class="playground-prompt playground-prompt--info">
                 <span class="playground-prompt__info-text">Connect a provider to get started</span>
-                <button
-                  type="button"
-                  class="btn btn--primary btn--sm"
-                  onClick={() => setShowProviderModal(true)}
-                >
-                  Connect provider
+                <button type="button" class="btn btn--primary btn--sm" onClick={openProviders}>
+                  {isGlobalPlayground() ? 'Manage providers' : 'Connect provider'}
                 </button>
               </div>
             </div>
@@ -596,7 +625,7 @@ const Playground: Component = () => {
         />
       </Show>
 
-      <Show when={showProviderModal()}>
+      <Show when={showProviderModal() && !isGlobalPlayground()}>
         <Suspense fallback={null}>
           <ProviderSelectModal
             agentName={agentName()}

@@ -160,8 +160,11 @@ interface Mocks {
   resolveAgent: { resolve: jest.Mock };
   providerKeyService: {
     hasActiveProvider: jest.Mock;
+    hasActiveGlobalProvider: jest.Mock;
     getAuthType: jest.Mock;
+    getGlobalAuthType: jest.Mock;
     getProviderKeys: jest.Mock;
+    getGlobalProviderKeys: jest.Mock;
     getProviderApiKey: jest.Mock;
   };
   providerClient: {
@@ -183,15 +186,22 @@ interface Mocks {
   customProviderRepo: { findOne: jest.Mock };
 }
 
-function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService; mocks: Mocks } {
-  const full: Mocks = {
+type MockOverrides = Omit<Partial<Mocks>, 'providerKeyService'> & {
+  providerKeyService?: Partial<Mocks['providerKeyService']>;
+};
+
+function buildService(mocks: MockOverrides = {}): { service: PlaygroundService; mocks: Mocks } {
+  const defaults: Mocks = {
     resolveAgent: {
       resolve: jest.fn().mockResolvedValue(AGENT),
     },
     providerKeyService: {
       hasActiveProvider: jest.fn().mockResolvedValue(true),
+      hasActiveGlobalProvider: jest.fn().mockResolvedValue(true),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
+      getGlobalAuthType: jest.fn().mockResolvedValue('api_key'),
       getProviderKeys: jest.fn().mockResolvedValue([DEFAULT_PROVIDER_KEY]),
+      getGlobalProviderKeys: jest.fn().mockResolvedValue([DEFAULT_PROVIDER_KEY]),
       getProviderApiKey: jest.fn().mockResolvedValue(DEFAULT_PROVIDER_KEY.apiKey),
     },
     providerClient: {
@@ -216,7 +226,14 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     history: { saveColumn: jest.fn().mockResolvedValue('col-1') },
     messageRepo: { insert: jest.fn().mockResolvedValue(undefined) },
     customProviderRepo: { findOne: jest.fn().mockResolvedValue(null) },
+  };
+  const full: Mocks = {
+    ...defaults,
     ...mocks,
+    providerKeyService: {
+      ...defaults.providerKeyService,
+      ...mocks.providerKeyService,
+    },
   };
   const service = new PlaygroundService(
     full.resolveAgent as unknown as ResolveAgentService,
@@ -286,6 +303,43 @@ describe('PlaygroundService.runStream', () => {
       status: 'success',
       content: 'hello',
     });
+  });
+
+  it('streams global provider runs without resolving an agent or writing history', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerKeyService.getGlobalProviderKeys.mockResolvedValue([
+      { ...DEFAULT_PROVIDER_KEY, apiKey: 'sk-global' },
+    ]);
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream([
+        'data: {"choices":[{"delta":{"content":"global"}}]}\n\n',
+        'data: {"usage":{"prompt_tokens":3,"completion_tokens":2}}\n\n',
+        'data: [DONE]\n\n',
+      ]),
+    );
+    const res = mockRes();
+
+    await service.runStream(USER_ID, makeDto({ agentName: 'global', scope: 'global' }), asRes(res));
+
+    expect(mocks.resolveAgent.resolve).not.toHaveBeenCalled();
+    expect(mocks.providerKeyService.hasActiveGlobalProvider).toHaveBeenCalledWith(
+      USER_ID,
+      'openai',
+    );
+    expect(mocks.providerKeyService.getGlobalProviderKeys).toHaveBeenCalledWith(
+      USER_ID,
+      'openai',
+      'api_key',
+    );
+    expect(mocks.providerClient.forward).toHaveBeenCalledWith(
+      expect.objectContaining({ apiKey: 'sk-global', provider: 'openai' }),
+    );
+    const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
+    expect(done.columnId).toBeNull();
+    expect(done.content).toBe('global');
+    expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
+    expect(mocks.history.saveColumn).not.toHaveBeenCalled();
+    expect(mocks.eventBus.emit).not.toHaveBeenCalled();
   });
 
   it('resolves a custom provider endpoint and forwards the raw (unprefixed) model name', async () => {

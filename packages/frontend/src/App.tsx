@@ -36,7 +36,8 @@ const AppInner: ParentComponent = (props) => {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
   const isAgentMode = () => location.pathname.startsWith('/agents/');
-  const isTenantMode = () => location.pathname === '/providers';
+  const isTenantMode = () =>
+    location.pathname === '/providers' || location.pathname === '/playground';
   const showSidebar = () => isAgentMode() || isTenantMode();
   const { content: rightSidebar } = useRightSidebar();
 

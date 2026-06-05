@@ -34,9 +34,16 @@ describe('agents API client', () => {
   });
 
   it('getAgentInfo unwraps the { agent } envelope', async () => {
-    const fetchMock = setupFetch({ agent: { agent_name: 'a', display_name: 'A', agent_category: null, agent_platform: null } });
+    const fetchMock = setupFetch({
+      agent: { agent_name: 'a', display_name: 'A', agent_category: null, agent_platform: null },
+    });
     const out = await agents.getAgentInfo('a');
-    expect(out).toEqual({ agent_name: 'a', display_name: 'A', agent_category: null, agent_platform: null });
+    expect(out).toEqual({
+      agent_name: 'a',
+      display_name: 'A',
+      agent_category: null,
+      agent_platform: null,
+    });
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/agents/a');
   });
@@ -121,7 +128,13 @@ describe('agents API client', () => {
     const fetchMock = setupFetch({
       agent: { id: '1', name: 'demo-copy', display_name: 'Demo Copy' },
       apiKey: 'mnfst_new',
-      copied: { providers: 0, customProviders: 0, tierAssignments: 0, specificityAssignments: 0, modelParams: 0 },
+      copied: {
+        providers: 0,
+        customProviders: 0,
+        tierAssignments: 0,
+        specificityAssignments: 0,
+        modelParams: 0,
+      },
     });
     const out = await agents.duplicateAgent('demo', 'demo-copy');
     expect(out.agent.name).toBe('demo-copy');
@@ -141,13 +154,16 @@ describe('agents API client', () => {
         agent_platform: 'openclaw',
       },
       apiKey: 'mnfst_xxx',
+      copied: { globalProviders: 1 },
     });
     const out = await agents.createAgent({
       name: 'new-agent',
       agent_category: 'coding',
       agent_platform: 'openclaw',
+      global_provider_ids: ['provider-1'],
     });
     expect(out.agent.name).toBe('new-agent');
+    expect(out.copied?.globalProviders).toBe(1);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/agents');
     expect((init as RequestInit).method).toBe('POST');
@@ -155,6 +171,7 @@ describe('agents API client', () => {
       name: 'new-agent',
       agent_category: 'coding',
       agent_platform: 'openclaw',
+      global_provider_ids: ['provider-1'],
     });
   });
 });

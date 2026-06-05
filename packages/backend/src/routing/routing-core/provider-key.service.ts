@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
@@ -51,6 +51,17 @@ export class ProviderKeyService {
     return result;
   }
 
+  async getGlobalProviderKeys(
+    userId: string,
+    provider: string,
+    authType?: AuthType,
+  ): Promise<CachedProviderKey[]> {
+    if (provider.toLowerCase() === 'ollama') {
+      return [{ id: 'ollama', label: 'Default', priority: 0, apiKey: '', region: null }];
+    }
+    return this.resolveGlobalProviderKeys(userId, provider, authType);
+  }
+
   /** Returns the label of the first (default) key for the given provider+authType. */
   async getDefaultKeyLabel(
     agentId: string,
@@ -68,6 +79,21 @@ export class ProviderKeyService {
     label?: string,
   ): Promise<string | null> {
     const keys = await this.getProviderKeys(agentId, provider, authType);
+    if (keys.length === 0) return null;
+    if (label) {
+      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
+      if (match) return match.apiKey;
+    }
+    return keys[0].apiKey;
+  }
+
+  async getGlobalProviderApiKey(
+    userId: string,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+  ): Promise<string | null> {
+    const keys = await this.getGlobalProviderKeys(userId, provider, authType);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -104,9 +130,35 @@ export class ProviderKeyService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
+  async getGlobalAuthType(
+    userId: string,
+    provider: string,
+    excludeAuthTypes?: Set<string>,
+  ): Promise<AuthType> {
+    const names = expandProviderNames([provider]);
+    const records = await this.providerService.getGlobalProviders(userId);
+    let matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
+    if (excludeAuthTypes && excludeAuthTypes.size > 0) {
+      const filtered = matches.filter((r) => !excludeAuthTypes.has(r.auth_type));
+      if (filtered.length > 0) matches = filtered;
+    }
+    const localMatch = matches.find((r) => r.auth_type === 'local');
+    if (localMatch) return 'local';
+    const subMatch = matches.find((r) => r.auth_type === 'subscription' && r.api_key_encrypted);
+    if (subMatch) return 'subscription';
+    const withKey = matches.find((r) => r.api_key_encrypted);
+    return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
+  }
+
   async hasActiveProvider(agentId: string, provider: string): Promise<boolean> {
     const names = expandProviderNames([provider]);
     const records = await this.providerService.getProviders(agentId);
+    return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
+  }
+
+  async hasActiveGlobalProvider(userId: string, provider: string): Promise<boolean> {
+    const names = expandProviderNames([provider]);
+    const records = await this.providerService.getGlobalProviders(userId);
     return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
   }
 
@@ -117,6 +169,21 @@ export class ProviderKeyService {
     label?: string,
   ): Promise<string | null> {
     const keys = await this.getProviderKeys(agentId, provider, authType);
+    if (keys.length === 0) return null;
+    if (label) {
+      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
+      if (match) return match.region;
+    }
+    return keys[0].region;
+  }
+
+  async getGlobalProviderRegion(
+    userId: string,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+  ): Promise<string | null> {
+    const keys = await this.getGlobalProviderKeys(userId, provider, authType);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -182,6 +249,34 @@ export class ProviderKeyService {
 
     // When a caller explicitly requests an auth type, do not fall through
     // to a different auth type record.
+    const candidates = preferredAuthType
+      ? matches.filter((m) => m.auth_type === preferredAuthType)
+      : [...matches].sort((a, b) => {
+          const aPref = a.auth_type === 'api_key' ? 0 : 1;
+          const bPref = b.auth_type === 'api_key' ? 0 : 1;
+          if (aPref !== bPref) return aPref - bPref;
+          return a.priority - b.priority;
+        });
+
+    return candidates.flatMap((record) => this.decryptOne(record));
+  }
+
+  private async resolveGlobalProviderKeys(
+    userId: string,
+    provider: string,
+    preferredAuthType?: AuthType,
+  ): Promise<CachedProviderKey[]> {
+    const names = expandProviderNames([provider]);
+    const records = await this.providerRepo.find({
+      where: { user_id: userId, agent_id: IsNull(), is_active: true },
+      order: { priority: 'ASC' },
+    });
+
+    const matches = records.filter(
+      (r) => isManifestUsableProvider(r) && names.has(r.provider.toLowerCase()),
+    );
+    if (matches.length === 0) return [];
+
     const candidates = preferredAuthType
       ? matches.filter((m) => m.auth_type === preferredAuthType)
       : [...matches].sort((a, b) => {

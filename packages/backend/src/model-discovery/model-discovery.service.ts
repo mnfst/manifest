@@ -437,28 +437,13 @@ export class ModelDiscoveryService {
       where: { agent_id: agentId, is_active: true },
     });
 
-    const models: DiscoveredModel[] = [];
-    const seen = new Map<string, number>();
-
-    for (const p of providers) {
-      if (p.provider.startsWith('custom:')) continue;
-      const rawCached = p.cached_models;
-      if (!Array.isArray(rawCached)) continue;
-      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
-      const providerAuthType: AuthType = p.auth_type;
-      const providerId = p.provider.toLowerCase();
-      for (const m of cached) {
-        const effectiveAuthType = m.authType ?? providerAuthType;
-        // Deduplicate by the routable tuple, not just model ID. Multiple
-        // providers can expose the same native model name, and the picker must
-        // keep each provider-specific route selectable.
-        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
-        if (!seen.has(dedupeKey)) {
-          seen.set(dedupeKey, models.length);
-          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
-        }
-      }
-    }
+    const models = this.collectCachedProviderModels(providers);
+    const seen = new Map(
+      models.map((model, index) => [
+        `${model.provider}::${model.authType ?? 'api_key'}::${model.id}`,
+        index,
+      ]),
+    );
 
     // Build auth_type lookup for custom providers from their user_providers rows
     const customAuthTypes = new Map<string, AuthType>();
@@ -499,6 +484,40 @@ export class ModelDiscoveryService {
           capabilityCode: false,
           qualityScore: 2,
         });
+      }
+    }
+
+    return models;
+  }
+
+  async getModelsForGlobalProviders(userId: string): Promise<DiscoveredModel[]> {
+    const providers = await this.providerRepo.find({
+      where: { user_id: userId, agent_id: IsNull(), is_active: true },
+    });
+    return this.collectCachedProviderModels(providers);
+  }
+
+  private collectCachedProviderModels(providers: UserProvider[]): DiscoveredModel[] {
+    const models: DiscoveredModel[] = [];
+    const seen = new Map<string, number>();
+
+    for (const p of providers) {
+      if (p.provider.startsWith('custom:')) continue;
+      const rawCached = p.cached_models;
+      if (!Array.isArray(rawCached)) continue;
+      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
+      const providerAuthType: AuthType = p.auth_type;
+      const providerId = p.provider.toLowerCase();
+      for (const m of cached) {
+        const effectiveAuthType = m.authType ?? providerAuthType;
+        // Deduplicate by the routable tuple, not just model ID. Multiple
+        // providers can expose the same native model name, and the picker must
+        // keep each provider-specific route selectable.
+        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
+        if (!seen.has(dedupeKey)) {
+          seen.set(dedupeKey, models.length);
+          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
+        }
       }
     }
 

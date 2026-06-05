@@ -72,6 +72,7 @@ render(
             <Route path="/help" component={Help} />
           </Route>
           <Route path="/providers" component={GlobalProviders} />
+          <Route path="/playground" component={Playground} />
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
         </Route>

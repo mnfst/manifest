@@ -364,6 +364,10 @@ export function getAvailableModels(agentName: string) {
   return fetchJson<AvailableModel[]>(routingPath(agentName, 'available-models'));
 }
 
+export function getGlobalAvailableModels() {
+  return fetchJson<AvailableModel[]>('/routing/available-models');
+}
+
 export function refreshModels(agentName: string) {
   return fetchMutate<{ ok: boolean }>(routingPath(agentName, 'refresh-models'), {
     method: 'POST',

@@ -231,6 +231,13 @@ describe('routing API client (additional coverage)', () => {
     expect(url).toContain('/api/v1/routing/demo/available-models');
   });
 
+  it('getGlobalAvailableModels GETs tenant available models', async () => {
+    const fetchMock = setupFetch([]);
+    await routing.getGlobalAvailableModels();
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/routing/available-models');
+  });
+
   it('getPricingHealth GETs the pricing-health endpoint', async () => {
     const fetchMock = setupFetch({ model_count: 100, last_fetched_at: '2025-01-01' });
     await routing.getPricingHealth();

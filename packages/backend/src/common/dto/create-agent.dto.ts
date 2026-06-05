@@ -6,6 +6,9 @@ import {
   Matches,
   IsOptional,
   IsIn,
+  IsArray,
+  ArrayMaxSize,
+  IsUUID,
 } from 'class-validator';
 import { AGENT_CATEGORIES, AGENT_PLATFORMS } from 'manifest-shared';
 
@@ -28,4 +31,10 @@ export class CreateAgentDto {
   @IsString()
   @IsIn([...AGENT_PLATFORMS])
   agent_platform?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(25)
+  @IsUUID('4', { each: true })
+  global_provider_ids?: string[];
 }

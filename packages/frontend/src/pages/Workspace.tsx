@@ -1,5 +1,6 @@
 import {
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   Show,
@@ -12,7 +13,8 @@ import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import AgentTypeSelect from '../components/AgentTypeSelect.jsx';
 import DuplicateAgentModal from '../components/DuplicateAgentModal.jsx';
-import { getAgents, createAgent, deleteAgent } from '../services/api.js';
+import { getAgents, createAgent, deleteAgent, getGlobalProviders } from '../services/api.js';
+import type { RoutingProvider } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber } from '../services/formatters.js';
@@ -49,6 +51,28 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     PLATFORMS_BY_CATEGORY['personal'][0] ?? null,
   );
   const [creating, setCreating] = createSignal(false);
+  const [selectedGlobalProviders, setSelectedGlobalProviders] = createSignal<Set<string>>(
+    new Set(),
+  );
+  const [globalProviders] = createResource(
+    () => props.open,
+    (open) => (open ? getGlobalProviders() : Promise.resolve([] as RoutingProvider[])),
+  );
+  const copyableGlobalProviders = createMemo(() =>
+    (globalProviders() ?? [])
+      .filter((provider) => provider.is_active)
+      .sort((a, b) => {
+        const providerName = a.provider.localeCompare(b.provider);
+        if (providerName !== 0) return providerName;
+        return a.label.localeCompare(b.label);
+      }),
+  );
+
+  createEffect(() => {
+    if (!props.open) return;
+    const ids = copyableGlobalProviders().map((provider) => provider.id);
+    setSelectedGlobalProviders(new Set(ids));
+  });
 
   const handleCategoryChange = (c: AgentCategory) => {
     setCategory(c);
@@ -60,10 +84,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     if (!agentName) return;
     setCreating(true);
     try {
+      const providerIds = Array.from(selectedGlobalProviders());
       const result = await createAgent({
         name: agentName,
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
+        ...(providerIds.length > 0 ? { global_provider_ids: providerIds } : {}),
       });
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
@@ -84,6 +110,16 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setName('');
     setCategory('personal');
     setPlatform(PLATFORMS_BY_CATEGORY['personal'][0] ?? null);
+    setSelectedGlobalProviders(new Set(copyableGlobalProviders().map((provider) => provider.id)));
+  };
+
+  const toggleGlobalProvider = (id: string) => {
+    setSelectedGlobalProviders((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -146,6 +182,35 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
               />
             </div>
           </div>
+
+          <Show when={copyableGlobalProviders().length > 0}>
+            <div class="agent-global-providers">
+              <div class="agent-global-providers__header">
+                <span class="modal-card__field-label">Global providers</span>
+                <span>{selectedGlobalProviders().size} selected</span>
+              </div>
+              <div class="agent-global-providers__list">
+                <For each={copyableGlobalProviders()}>
+                  {(provider) => (
+                    <label class="agent-global-provider-row">
+                      <input
+                        type="checkbox"
+                        checked={selectedGlobalProviders().has(provider.id)}
+                        disabled={creating()}
+                        onChange={() => toggleGlobalProvider(provider.id)}
+                      />
+                      <span class="agent-global-provider-row__main">
+                        <span class="agent-global-provider-row__name">{provider.provider}</span>
+                        <span class="agent-global-provider-row__meta">
+                          {provider.label} - {provider.auth_type}
+                        </span>
+                      </span>
+                    </label>
+                  )}
+                </For>
+              </div>
+            </div>
+          </Show>
 
           <div class="modal-card__footer">
             <button

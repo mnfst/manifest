@@ -125,6 +125,15 @@ describe('App with tenant provider path', () => {
     expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
     expect(container.querySelector('.app-body--with-sidebar')).not.toBeNull();
   });
+
+  it('shows sidebar on /playground', () => {
+    routerState.pathname = '/playground';
+
+    const { container } = render(() => <App />);
+
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector('.app-body--with-sidebar')).not.toBeNull();
+  });
 });
 
 describe('App structure', () => {
