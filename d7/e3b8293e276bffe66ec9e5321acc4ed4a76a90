@@ -1,0 +1,48 @@
+packages/frontend/src/services/api/agents.ts
+  s_6fb27bb484ff37::t_2a0fc7ace6bc38 64
+packages/backend/src/common/dto/create-agent.dto.ts
+  s_6fb27bb484ff37::t_b10d3aa20a38a7 9-12,35-41
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_6fb27bb484ff37::t_bb478aea52ab96 74-75,77,79,81-141
+  s_6fb27bb484ff37::t_296e54bbb1988b 76,78
+packages/frontend/src/pages/Workspace.tsx
+  s_6fb27bb484ff37::t_bb02be083d1c91 51-60,101
+  s_6fb27bb484ff37::t_8140ee9a20a238 247
+  s_6fb27bb484ff37::t_957af7683662b0 3,16-22,69-84,91-100,102-113,119,124,209-230,232-246,248-255
+  s_6fb27bb484ff37::t_299523ce5cdcad 145
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_6fb27bb484ff37::t_3a6986168e9db9 32,41,68-69,86
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_6fb27bb484ff37::t_abefa4bdb0e812 22-23,27,30-31,59,63,68,72,79,83-84,87-92,98,102-103,105-111,114-116,120,122-127,133,135,140-148,151-155,158,160,163,165,169,172,176,179-180,184,188,192,195,198,200,202,205,213,216-217,221,224,228-229,231,233-235,238-244,246-247,251-252,254,256-258,260,263,268-269,272-273
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_6fb27bb484ff37::t_c61c6d4526efb9 15,30-31,65-66,108-112
+  s_6fb27bb484ff37::t_2dcd7119f152f6 269-273,295,321,325-328,335-338
+  s_6fb27bb484ff37::t_5c52d770d0782f 293-294,296,369-375,436-442,493-499,545-551,596-602,705-710
+packages/backend/src/common/dto/create-agent.dto.spec.ts
+  s_6fb27bb484ff37::t_16bbfad932beab 98-127
+packages/frontend/tests/services/api/agents.test.ts
+  s_6fb27bb484ff37::t_298051e75a63f3 162,172
+packages/frontend/src/styles/agent-type-select.css
+  s_6fb27bb484ff37::t_3ed0493811e1e5 157-253
+  s_6fb27bb484ff37::t_9ad2845c2c5b20 298-301
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_6fb27bb484ff37::t_86ff7bee227746 113-169,171-174
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_6fb27bb484ff37::t_14d0c8e6896dbf 26-27,31,34,36,40,45,49,56,60-61,64-69,75,79-80,83-85,90,94-95,97,102,106-107,110,112,116,118,122,124,128,130,135,137-138,142,144,148-149,151,155,159-160,162,165,169-170,172,176,182,184,188-190,195-197,205-206,212,216-217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "d7e3b8293e276bffe66ec9e5321acc4ed4a76a90",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
