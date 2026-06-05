@@ -57,7 +57,7 @@ describe('ProviderSelectContent — providerDeepLink', () => {
     expect(screen.getByText('Anthropic')).toBeDefined();
   });
 
-  it('navigates back to the list view when back is clicked', async () => {
+  it('navigates back to the list view when close is clicked in detail view', async () => {
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
@@ -70,10 +70,10 @@ describe('ProviderSelectContent — providerDeepLink', () => {
     // Should start in detail view
     expect(container.querySelector('.provider-modal__view--from-right')).not.toBeNull();
 
-    // Click the back button
-    const backBtn = container.querySelector('.modal-back-btn');
-    expect(backBtn).not.toBeNull();
-    fireEvent.click(backBtn!);
+    // The detail view header now has a Close button that goes back to the list
+    const closeBtn = screen.getByLabelText('Close');
+    expect(closeBtn).not.toBeNull();
+    fireEvent.click(closeBtn);
 
     // Should now show the list view
     await waitFor(() => {
@@ -119,5 +119,103 @@ describe('ProviderSelectContent — providerDeepLink', () => {
       />
     ));
     expect(screen.getByText('Google')).toBeDefined();
+  });
+
+  describe('new deeplink fields', () => {
+    it('initialTab defaults the active tab to api_key', () => {
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          initialTab="api_key"
+          onUpdate={onUpdate}
+          onClose={vi.fn()}
+        />
+      ));
+      const activeTab = container.querySelector('.panel__tab--active');
+      expect(activeTab).not.toBeNull();
+      expect(activeTab!.textContent).toContain('API Keys');
+    });
+
+    it('initialTab subscription keeps the default subscription tab active', () => {
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          initialTab="subscription"
+          onUpdate={onUpdate}
+          onClose={vi.fn()}
+        />
+      ));
+      const activeTab = container.querySelector('.panel__tab--active');
+      expect(activeTab).not.toBeNull();
+      expect(activeTab!.textContent).toContain('Subscription');
+    });
+
+    it('deepLink.authType forces the detail view to open with the specified auth type (subscription)', async () => {
+      // openai supports both api_key and subscription; with authType='subscription'
+      // the detail view should open in subscription mode showing the OAuth button
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          providerDeepLink={{ providerId: 'openai', authType: 'subscription' }}
+          onUpdate={onUpdate}
+          onClose={vi.fn()}
+        />
+      ));
+      // The detail view for OpenAI subscription shows the OAuth login button
+      await waitFor(() => {
+        expect(screen.getByText('Log in with OpenAI')).toBeDefined();
+      });
+      // Confirm the detail view is visible
+      expect(container.querySelector('.provider-modal__view--from-right')).not.toBeNull();
+    });
+
+    it('closeOnBack — close button in detail view calls onClose instead of going to list', async () => {
+      const onClose = vi.fn();
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          providerDeepLink={{ providerId: 'anthropic', closeOnBack: true }}
+          onUpdate={onUpdate}
+          onClose={onClose}
+        />
+      ));
+      // Should start in detail view
+      expect(container.querySelector('.provider-modal__view--from-right')).not.toBeNull();
+
+      // Click close — with closeOnBack it should call onClose, not go back to list
+      fireEvent.click(screen.getByLabelText('Close'));
+
+      await waitFor(() => {
+        expect(onClose).toHaveBeenCalled();
+      });
+      // List view should NOT have appeared (closeOnBack = close modal, not navigate)
+    });
+
+    it('closeOnBack=false (absent) — close button goes back to list view', async () => {
+      const onClose = vi.fn();
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          providerDeepLink={{ providerId: 'gemini' }}
+          onUpdate={onUpdate}
+          onClose={onClose}
+        />
+      ));
+      // Should start in detail view
+      expect(container.querySelector('.provider-modal__view--from-right')).not.toBeNull();
+
+      fireEvent.click(screen.getByLabelText('Close'));
+
+      // Should return to list, not call onClose
+      await waitFor(() => {
+        expect(screen.getByText('Connect providers')).toBeDefined();
+      });
+      expect(onClose).not.toHaveBeenCalled();
+    });
   });
 });

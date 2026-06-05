@@ -343,7 +343,7 @@ describe('ProviderSelectModal', () => {
       expect(link.getAttribute('target')).toBe('_blank');
     });
 
-    it('returns to list view when back button is clicked', async () => {
+    it('returns to list view when close button is clicked in detail view', async () => {
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -356,7 +356,8 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('OpenAI'));
       expect(screen.getByLabelText('OpenAI API key')).toBeDefined();
 
-      fireEvent.click(screen.getByLabelText('Back to providers'));
+      // In the detail view the header has a Close button that calls onBack (go-back-to-list)
+      fireEvent.click(screen.getByLabelText('Close'));
       expect(screen.queryByLabelText('OpenAI API key')).toBeNull();
       // List view is back
       expect(screen.getByText('Done')).toBeDefined();
@@ -2372,6 +2373,51 @@ describe('ProviderSelectModal', () => {
       expect(onUpdate).toHaveBeenCalled();
       // Should navigate back to list view
       expect(screen.getByText('Done')).toBeDefined();
+    });
+  });
+
+  describe('initialTab prop', () => {
+    it('defaults to subscription tab when initialTab is absent', () => {
+      const { container } = render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      const activeTab = container.querySelector('.panel__tab--active');
+      expect(activeTab).not.toBeNull();
+      expect(activeTab!.textContent).toContain('Subscription');
+    });
+
+    it('starts on api_key tab when initialTab="api_key"', () => {
+      const { container } = render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          initialTab="api_key"
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      const activeTab = container.querySelector('.panel__tab--active');
+      expect(activeTab).not.toBeNull();
+      expect(activeTab!.textContent).toContain('API Keys');
+    });
+
+    it('shows API key providers directly when initialTab="api_key"', () => {
+      render(() => (
+        <ProviderSelectModal
+          providers={[]}
+          initialTab="api_key"
+          onClose={onClose}
+          onUpdate={onUpdate}
+          agentName="test-agent"
+        />
+      ));
+      // OpenAI is only on the API Keys tab
+      expect(screen.getByText('OpenAI')).toBeDefined();
     });
   });
 });
