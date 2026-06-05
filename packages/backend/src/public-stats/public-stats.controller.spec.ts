@@ -202,6 +202,7 @@ describe('PublicStatsController', () => {
             ],
           },
         ],
+        auth_types: [{ auth_type: 'api_key', total_tokens: 1100000, model_count: 1 }],
       },
     ];
 
@@ -212,6 +213,9 @@ describe('PublicStatsController', () => {
 
       expect(result.providers).toHaveLength(1);
       expect(result.providers[0].provider).toBe('OpenAI');
+      expect(result.providers[0].auth_types).toEqual([
+        { auth_type: 'api_key', total_tokens: 1100000, model_count: 1 },
+      ]);
       expect(result.cached_at).toBeDefined();
       expect(mockService.getProviderDailyTokens).toHaveBeenCalledTimes(1);
     });
