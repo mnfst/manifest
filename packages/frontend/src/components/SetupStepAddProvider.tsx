@@ -139,7 +139,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 aria-selected={activeAgent() === 'openclaw'}
               >
                 <img
-                  src="/icons/openclaw.png"
+                  src="/icons/openclaw.svg"
                   alt=""
                   class="panel__tab-icon"
                   width="16"
