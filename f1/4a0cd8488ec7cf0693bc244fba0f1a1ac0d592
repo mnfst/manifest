@@ -1,0 +1,42 @@
+packages/frontend/src/components/ProviderApiKeyTab.tsx
+  s_6fb27bb484ff37::t_e576b295053c24 34,39,142-160
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_6fb27bb484ff37::t_e8af1dc62e82dc 13,15,17,48,53-78,103-107,126-134,164,186,205,543
+packages/frontend/src/pages/providers/GlobalProviderCategory.tsx
+  s_6fb27bb484ff37::t_83f8d45795bb53 26,75,441,489
+  s_6fb27bb484ff37::t_684088360f5393 191
+  s_6fb27bb484ff37::t_7f8be1eff203e8 341-383,385-420,422-427,429-440,442-470,472-488,490-497,499-510
+  s_6fb27bb484ff37::t_33368a7b470402 1,14-15,103-105,127-129,132-135,138-145
+packages/frontend/src/services/routing-params.ts
+  s_6fb27bb484ff37::t_632de7bd875e66 20-22
+packages/frontend/tests/pages/GlobalProviders.test.tsx
+  s_6fb27bb484ff37::t_b2ae91d5297627 8,14,17,19,21-37,99-103,113-118,175-181,186,191,198-200,202-206,214-219,230-235,256-261,273-278
+  s_6fb27bb484ff37::t_c09c6b6061f0a2 343-348
+  s_6fb27bb484ff37::t_ebca0af58a7532 222,249-252,264
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_6fb27bb484ff37::t_3510ee1e377a7d 15,17,19,60,65-101,217,245,269,272,482,508,716,736-743,863
+packages/frontend/src/components/ProviderSelectModal.tsx
+  s_6fb27bb484ff37::t_a628ec46927402 12-13,42-43
+packages/frontend/src/styles/global-providers.css
+  s_6fb27bb484ff37::t_c3a3f0c7564bd0 131-152
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_6fb27bb484ff37::t_0c4d0c0356c09b 5,7,34-35,40-50,55,61,71,87-88,94-110,171,251,257,284,308,453,460,468,474-476,504,541,545
+  s_6fb27bb484ff37::t_478c799912488b 224
+  s_6fb27bb484ff37::t_2f0c28fba9da14 89-91,507,511
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "f14a0cd8488ec7cf0693bc244fba0f1a1ac0d592",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
