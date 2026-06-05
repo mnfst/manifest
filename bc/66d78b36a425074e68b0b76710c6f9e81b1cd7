@@ -1,0 +1,23 @@
+packages/frontend/tests/pages/GlobalProviders.test.tsx
+  s_6fb27bb484ff37::t_a4dd1ca6ee2235 52-54,251-255
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_6fb27bb484ff37::t_a8de849a778622 3,77
+packages/frontend/src/pages/providers/GlobalProviderCategory.tsx
+  s_6fb27bb484ff37::t_e1190e5da425b1 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "bc66d78b36a425074e68b0b76710c6f9e81b1cd7",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
