@@ -4,6 +4,7 @@ import { Router, Route } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
+import TenantWorkspaceLayout from './layouts/TenantWorkspaceLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
@@ -58,7 +59,10 @@ render(
       <ToastContainer />
       <Router>
         <Route path="/" component={App}>
-          <Route path="/" component={Workspace} />
+          <Route path="/" component={TenantWorkspaceLayout}>
+            <Route path="/" component={Workspace} />
+            <Route path="/providers" component={GlobalProviders} />
+          </Route>
           <Route path="/agents/:agentName" component={AgentGuard}>
             <Route path="/" component={Overview} />
             <Route path="/messages" component={MessageLog} />
@@ -71,7 +75,6 @@ render(
 
             <Route path="/help" component={Help} />
           </Route>
-          <Route path="/providers" component={GlobalProviders} />
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
         </Route>

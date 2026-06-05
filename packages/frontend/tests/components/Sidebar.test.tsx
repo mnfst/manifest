@@ -90,10 +90,10 @@ describe('Sidebar with agent', () => {
     expect(screen.getByText('Routing')).toBeDefined();
   });
 
-  it('renders tenant Providers link', () => {
+  it('does not render tenant Providers link', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText('TENANT')).toBeDefined();
-    expect(screen.getByText('Providers')).toBeDefined();
+    expect(screen.queryByText('TENANT')).toBeNull();
+    expect(screen.queryByText('Providers')).toBeNull();
   });
 
   it('has correct link hrefs for agent routes', () => {
@@ -104,7 +104,7 @@ describe('Sidebar with agent', () => {
     expect(container.querySelector('a[href="/agents/test-agent/limits"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/model-prices"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/test-agent/help"]')).not.toBeNull();
-    expect(container.querySelector('a[href="/providers"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/providers"]')).toBeNull();
   });
 
   it('marks current page link as active', () => {
@@ -159,14 +159,10 @@ describe('Sidebar without agent', () => {
     mockPathname = '/';
   });
 
-  it('renders Agents link when no agent selected', () => {
+  it('does not render workspace navigation when no agent selected', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText('Agents')).toBeDefined();
-  });
-
-  it('renders Providers link when no agent selected', () => {
-    render(() => <Sidebar />);
-    expect(screen.getByText('Providers')).toBeDefined();
+    expect(screen.queryByText('My Agents')).toBeNull();
+    expect(screen.queryByText('Providers')).toBeNull();
   });
 
   it('does not render MONITORING section when no agent', () => {
@@ -228,12 +224,12 @@ describe('Sidebar active states for sub-paths', () => {
     expect(messagesLink?.getAttribute('aria-current')).toBe('page');
   });
 
-  it('marks providers link as active on tenant provider path', () => {
+  it('does not render tenant navigation on tenant provider path', () => {
     mockAgentName = null;
     mockPathname = '/providers';
     const { container } = render(() => <Sidebar />);
     const providersLink = container.querySelector('a[href="/providers"]');
-    expect(providersLink?.getAttribute('aria-current')).toBe('page');
+    expect(providersLink).toBeNull();
   });
 });
 
@@ -243,8 +239,9 @@ describe('Sidebar with no agent selected', () => {
     mockPathname = '/';
   });
 
-  it('shows Agents link when no agent is selected', () => {
+  it('does not show agent route links when no agent is selected', () => {
     render(() => <Sidebar />);
-    expect(screen.getByText('Agents')).toBeDefined();
+    expect(screen.queryByText('Overview')).toBeNull();
+    expect(screen.queryByText('Routing')).toBeNull();
   });
 });

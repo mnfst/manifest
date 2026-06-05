@@ -117,13 +117,14 @@ describe('App with agent path', () => {
 });
 
 describe('App with tenant provider path', () => {
-  it('shows sidebar on /providers', () => {
+  it('does not use the agent sidebar on /providers', () => {
     routerState.pathname = '/providers';
 
     const { container } = render(() => <App />);
 
-    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
-    expect(container.querySelector('.app-body--with-sidebar')).not.toBeNull();
+    expect(container.querySelector('[data-testid="sidebar"]')).toBeNull();
+    expect(container.querySelector('.app-body--with-sidebar')).toBeNull();
+    expect(container.querySelector('.main-content--full')).not.toBeNull();
   });
 });
 
