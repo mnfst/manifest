@@ -1,0 +1,21 @@
+packages/backend/src/database/migrations/1790500000001-EnsureGlobalProviderAgentNullable.ts
+  s_6fb27bb484ff37::t_51c0719d1d9182 1-14
+packages/backend/src/database/migrations/1790500000001-EnsureGlobalProviderAgentNullable.spec.ts
+  s_6fb27bb484ff37::t_51c0719d1d9182 1-22,24-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "04ec6e04e239af56fff82f52fda60ead828af909",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
