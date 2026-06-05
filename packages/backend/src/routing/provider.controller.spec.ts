@@ -141,7 +141,7 @@ describe('ProviderController', () => {
 
       const result = await controller.getProviders(mockUser, mockAgentName);
 
-      expect(mockProviderService.getProviders).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.getProviders).toHaveBeenCalledWith('user-1');
       expect(result).toEqual([
         {
           id: 'p1',
@@ -309,7 +309,7 @@ describe('ProviderController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
     });
 
     it('should swallow discovery errors silently', async () => {
@@ -553,7 +553,10 @@ describe('ProviderController', () => {
     it('should return ok after deactivating all', async () => {
       const result = await controller.deactivateAllProviders(mockUser, mockAgentName);
 
-      expect(mockProviderService.deactivateAllProviders).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.deactivateAllProviders).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+      );
       expect(result).toEqual({ ok: true });
     });
   });
@@ -572,6 +575,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.removeProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'openai',
         undefined,
         undefined,
@@ -601,6 +605,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.removeProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         'subscription',
         undefined,
@@ -638,7 +643,7 @@ describe('ProviderController', () => {
       await controller.getStatus(mockUser, { agentName: 'my-agent' } as never);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-      expect(mockProviderService.getProviders).toHaveBeenCalledWith('agent-xyz');
+      expect(mockProviderService.getProviders).toHaveBeenCalledWith('user-1');
     });
 
     it('should propagate NotFoundException through upsertProvider', async () => {
@@ -687,6 +692,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.renameKey).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'openai',
         'api_key',
         'Personal',
@@ -718,6 +724,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.renameKey).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         'subscription',
         'Default',
@@ -741,6 +748,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.reorderKeys).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'openai',
         'api_key',
         ['Work', 'Personal'],

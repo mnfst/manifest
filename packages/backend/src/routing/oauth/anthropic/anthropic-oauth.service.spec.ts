@@ -229,7 +229,7 @@ describe('AnthropicOauthService', () => {
         undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
       await expect(svc.getPendingCount()).resolves.toBe(0);
     });
 
@@ -251,7 +251,7 @@ describe('AnthropicOauthService', () => {
 
       await svc.exchangeCode(`second-code#${state}`, undefined, 'agent-1', 'user-1');
 
-      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'anthropic');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
         'user-1',

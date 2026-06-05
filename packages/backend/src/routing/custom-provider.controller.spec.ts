@@ -234,7 +234,7 @@ describe('CustomProviderController', () => {
     it('removes custom provider and returns ok', async () => {
       const result = await controller.remove(mockUser, 'test-agent', 'cp-1');
 
-      expect(mockCustomProviderService.remove).toHaveBeenCalledWith('agent-001', 'cp-1');
+      expect(mockCustomProviderService.remove).toHaveBeenCalledWith('agent-001', 'user-1', 'cp-1');
       expect(result).toEqual({ ok: true });
     });
 

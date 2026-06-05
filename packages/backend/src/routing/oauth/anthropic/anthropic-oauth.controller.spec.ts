@@ -131,6 +131,7 @@ describe('AnthropicOauthController', () => {
       });
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         'anthropic',
         'subscription',
         undefined,
@@ -145,6 +146,7 @@ describe('AnthropicOauthController', () => {
       });
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         'anthropic',
         'subscription',
         'Key 2',
