@@ -51,6 +51,7 @@ const Byok: Component = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
   const [deepLinkProvider, setDeepLinkProvider] = createSignal<string | null>(null);
+  const [openCustomForm, setOpenCustomForm] = createSignal(false);
   const [viewMode, setViewMode] = createSignal<'list' | 'grid'>('list');
   const [data, { refetch }] = createResource(async () => {
     try {
@@ -143,13 +144,20 @@ const Byok: Component = () => {
     },
   );
   const openConnect = (provId?: string) => {
-    setDeepLinkProvider(provId ?? null);
+    if (provId === 'custom') {
+      setOpenCustomForm(true);
+      setDeepLinkProvider(null);
+    } else {
+      setOpenCustomForm(false);
+      setDeepLinkProvider(provId ?? null);
+    }
     refetchModalProviders();
     setShowModal(true);
   };
   const handleModalClose = () => {
     setShowModal(false);
     setDeepLinkProvider(null);
+    setOpenCustomForm(false);
     refetch();
     refetchCustomProviders();
   };
@@ -185,9 +193,28 @@ const Byok: Component = () => {
             Connect providers using your own API keys for pay-as-you-go usage.
           </p>
         </div>
-        <button class="btn btn--primary btn--sm" onClick={() => openConnect()}>
-          Add API key
-        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button
+            class="btn btn--outline btn--sm"
+            onClick={() => openConnect('custom')}
+            style="display: inline-flex; align-items: center; gap: 6px;"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M7 11h10c.37 0 .72-.21.89-.54s.14-.73-.08-1.04l-5-7c-.38-.53-1.25-.53-1.63 0l-5 7A.997.997 0 0 0 6.99 11Zm5-6.28L15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3 22h7c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1m1-7h5v5H4z" />
+            </svg>
+            Add custom provider
+          </button>
+          <button class="btn btn--primary btn--sm" onClick={() => openConnect()}>
+            Add API key
+          </button>
+        </div>
       </div>
 
       {(() => {
@@ -512,7 +539,8 @@ const Byok: Component = () => {
           agentName={firstAgentName()}
           providers={modalProviders() ?? []}
           customProviders={customProvidersList() ?? []}
-          providerDeepLink={providerDeepLink()}
+          customProviderPrefill={openCustomForm() ? { name: '', baseUrl: '' } : null}
+          providerDeepLink={openCustomForm() ? null : providerDeepLink()}
           initialTab="api_key"
           onUpdate={async () => {
             const before = (modalProviders() ?? []).map((p) => p.id);

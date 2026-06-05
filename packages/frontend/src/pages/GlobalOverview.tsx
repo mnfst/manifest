@@ -690,16 +690,24 @@ const GlobalOverview: Component = () => {
             );
           };
           const connList = (groups: ProviderGroup[], linkBase: string) => {
-            const items: Array<{ id: string; icon: string; name: string; label: string }> = [];
+            const items: Array<{
+              id: string;
+              icon: string;
+              name: string;
+              label: string;
+              isCustom: boolean;
+            }> = [];
             for (const g of groups) {
               for (const c of g.connections.slice(0, 5 - items.length)) {
                 const prov = PROVIDERS.find((p) => p.id === g.provider);
                 const customName = resolveCustomName(g.provider);
+                const isCustom = g.provider.startsWith('custom:');
                 items.push({
                   id: c.id,
                   icon: g.provider,
                   name: prov?.name ?? customName ?? g.provider,
                   label: c.label,
+                  isCustom,
                 });
                 if (items.length >= 5) break;
               }
@@ -734,7 +742,7 @@ const GlobalOverview: Component = () => {
                         href={`/providers/connections/${item.id}`}
                         style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                       >
-                        <span style="flex-shrink: 0;">
+                        <span style="flex-shrink: 0; display: flex; align-items: center;">
                           {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
                             <span
                               style={{
@@ -757,6 +765,11 @@ const GlobalOverview: Component = () => {
                         <span style="font-weight: 500; color: hsl(var(--foreground));">
                           {item.name}
                         </span>
+                        <Show when={item.isCustom}>
+                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                            custom
+                          </span>
+                        </Show>
                         <Show when={item.label !== 'Default'}>
                           <span>{item.label}</span>
                         </Show>
@@ -791,7 +804,7 @@ const GlobalOverview: Component = () => {
                         href={`/providers/connections/${item.id}`}
                         style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                       >
-                        <span style="flex-shrink: 0;">
+                        <span style="flex-shrink: 0; display: flex; align-items: center;">
                           {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
                             <span
                               style={{
@@ -814,6 +827,11 @@ const GlobalOverview: Component = () => {
                         <span style="font-weight: 500; color: hsl(var(--foreground));">
                           {item.name}
                         </span>
+                        <Show when={item.isCustom}>
+                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                            custom
+                          </span>
+                        </Show>
                         <Show when={item.label !== 'Default'}>
                           <span>{item.label}</span>
                         </Show>
@@ -848,7 +866,7 @@ const GlobalOverview: Component = () => {
                         href={`/providers/connections/${item.id}`}
                         style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                       >
-                        <span style="flex-shrink: 0;">
+                        <span style="flex-shrink: 0; display: flex; align-items: center;">
                           {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
                             <span
                               style={{
@@ -871,6 +889,11 @@ const GlobalOverview: Component = () => {
                         <span style="font-weight: 500; color: hsl(var(--foreground));">
                           {item.name}
                         </span>
+                        <Show when={item.isCustom}>
+                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                            custom
+                          </span>
+                        </Show>
                         <Show when={item.label !== 'Default'}>
                           <span>{item.label}</span>
                         </Show>
@@ -1152,10 +1175,50 @@ const GlobalOverview: Component = () => {
                       >
                         <td>
                           <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="flex-shrink: 0;">{providerIcon(group.provider, 20)}</span>
-                            <span style="font-weight: 500; color: hsl(var(--foreground));">
-                              {group.provider}
-                            </span>
+                            {(() => {
+                              const isCustom = group.provider.startsWith('custom:');
+                              const customName = isCustom
+                                ? resolveCustomName(group.provider)
+                                : null;
+                              const prov = PROVIDERS.find((p) => p.id === group.provider);
+                              const displayName = prov?.name ?? customName ?? group.provider;
+                              return (
+                                <>
+                                  <span style="flex-shrink: 0; display: flex; align-items: center;">
+                                    {providerIcon(group.provider, 20) ??
+                                      (isCustom
+                                        ? customProviderLogo(customName ?? '', 20)
+                                        : null) ??
+                                      (isCustom ? (
+                                        <span
+                                          style={{
+                                            display: 'inline-flex',
+                                            'align-items': 'center',
+                                            'justify-content': 'center',
+                                            width: '20px',
+                                            height: '20px',
+                                            'border-radius': '4px',
+                                            'font-size': '11px',
+                                            'font-weight': '600',
+                                            color: 'white',
+                                            background: customProviderColor(customName ?? ''),
+                                          }}
+                                        >
+                                          {(customName ?? displayName).charAt(0).toUpperCase()}
+                                        </span>
+                                      ) : null)}
+                                  </span>
+                                  <span style="font-weight: 500; color: hsl(var(--foreground));">
+                                    {displayName}
+                                  </span>
+                                  {isCustom && (
+                                    <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                                      custom
+                                    </span>
+                                  )}
+                                </>
+                              );
+                            })()}
                           </div>
                         </td>
                         <td>
@@ -1163,12 +1226,7 @@ const GlobalOverview: Component = () => {
                             style={{
                               'font-size': 'var(--font-size-xs)',
                               'font-weight': '500',
-                              color:
-                                group.auth_type === 'subscription'
-                                  ? '#1cc4bf'
-                                  : group.auth_type === 'local'
-                                    ? '#f72585'
-                                    : '#c8920a',
+                              color: 'hsl(var(--muted-foreground))',
                             }}
                           >
                             {authLabel(group.auth_type)}
