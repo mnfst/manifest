@@ -91,6 +91,8 @@ const GlobalProviders: Component = () => {
     const provider = selectedProvider();
     if (!provider) return;
     const key = apiKey().replace(/\s/g, '');
+    const selectedRegion =
+      endpointRegions().length > 0 ? (region() ?? endpointRegions()[0]?.value) : undefined;
     if (authType() === 'api_key' && !provider.noKeyRequired) {
       const result = validateApiKey(provider, key);
       if (!result.valid) {
@@ -113,7 +115,7 @@ const GlobalProviders: Component = () => {
         authType: authType(),
         ...(key ? { apiKey: key } : {}),
         ...(label().trim() ? { label: label().trim() } : {}),
-        ...(region() ? { region: region() } : {}),
+        ...(selectedRegion ? { region: selectedRegion } : {}),
       });
       toast.success(`${provider.name} connected`);
       resetForm();

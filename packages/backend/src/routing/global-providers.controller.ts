@@ -6,28 +6,13 @@ import { OllamaSyncService } from '../database/ollama-sync.service';
 import { ProviderService } from './routing-core/provider.service';
 import {
   ConnectProviderDto,
+  ProviderKeyParamDto,
   RemoveProviderQueryDto,
   RenameProviderKeyDto,
   ReorderProviderKeysDto,
 } from './dto/routing.dto';
 import { assertProviderRegionSupported } from './provider-region-validation';
-
-function serializeProvider(p: Awaited<ReturnType<ProviderService['getGlobalProviders']>>[number]) {
-  return {
-    id: p.id,
-    provider: p.provider,
-    auth_type: p.auth_type ?? 'api_key',
-    is_active: p.is_active,
-    has_api_key: !!p.api_key_encrypted,
-    key_prefix: p.key_prefix ?? null,
-    label: p.label,
-    priority: p.priority,
-    region: p.region ?? null,
-    connected_at: p.connected_at,
-    models_fetched_at: p.models_fetched_at ?? null,
-    cached_model_count: Array.isArray(p.cached_models) ? p.cached_models.length : 0,
-  };
-}
+import { serializeProviderConnection } from './provider-response';
 
 @Controller('api/v1/providers')
 export class GlobalProvidersController {
@@ -40,7 +25,7 @@ export class GlobalProvidersController {
   @Get()
   async list(@CurrentUser() user: AuthUser) {
     const providers = await this.providerService.getGlobalProviders(user.id);
-    return providers.map(serializeProvider);
+    return providers.map(serializeProviderConnection);
   }
 
   @Post()
@@ -66,21 +51,20 @@ export class GlobalProvidersController {
       // Global provider connection should survive a transient model fetch failure.
     }
 
-    return serializeProvider(provider);
+    return serializeProviderConnection(provider);
   }
 
   @Patch(':provider/keys/:label')
   async renameKey(
     @CurrentUser() user: AuthUser,
-    @Param('provider') provider: string,
-    @Param('label') label: string,
+    @Param() params: ProviderKeyParamDto,
     @Body() body: RenameProviderKeyDto,
   ) {
     const updated = await this.providerService.renameGlobalKey(
       user.id,
-      provider,
+      params.provider,
       body.authType ?? 'api_key',
-      label,
+      params.label,
       body.newLabel,
     );
     return {

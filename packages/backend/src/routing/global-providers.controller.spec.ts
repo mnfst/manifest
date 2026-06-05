@@ -111,7 +111,11 @@ describe('GlobalProvidersController', () => {
     });
     providerService.reorderGlobalKeys.mockResolvedValue([{ id: 'p1', label: 'Work', priority: 0 }]);
 
-    await controller.renameKey(user, 'openai', 'Default', { newLabel: 'Work' });
+    await controller.renameKey(
+      user,
+      { provider: 'openai', label: 'Default' },
+      { newLabel: 'Work' },
+    );
     await controller.reorderKeys(user, 'openai', { labels: ['Work'] });
     await controller.refreshProviderModels(user, 'openai', { authType: 'api_key' });
     const removed = await controller.remove(user, 'openai', { authType: 'api_key', label: 'Work' });

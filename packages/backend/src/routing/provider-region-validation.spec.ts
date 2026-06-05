@@ -10,6 +10,12 @@ describe('assertProviderRegionSupported', () => {
     expect(() => assertProviderRegionSupported('qwen', 'api_key', 'auto')).not.toThrow();
   });
 
+  it('rejects Qwen regions for non-API-key auth types', () => {
+    expect(() => assertProviderRegionSupported('qwen', 'subscription', 'auto')).toThrow(
+      BadRequestException,
+    );
+  });
+
   it('allows subscription endpoint regions from shared config', () => {
     expect(() => assertProviderRegionSupported('minimax', 'subscription', 'global')).not.toThrow();
   });

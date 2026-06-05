@@ -151,6 +151,13 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(autoAssign.recalculate).not.toHaveBeenCalled();
       expect(tierRepo.find).not.toHaveBeenCalled();
     });
+
+    it('requires authType when deleting a labeled global provider key', async () => {
+      await expect(
+        svc.removeGlobalProvider('user-1', 'openai', undefined, 'Default'),
+      ).rejects.toThrow('authType is required');
+      expect(providerRepo.find).not.toHaveBeenCalled();
+    });
   });
 
   describe('removeProvider — cleanupProviderReferences', () => {

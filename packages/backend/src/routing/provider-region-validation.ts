@@ -14,7 +14,7 @@ export function assertProviderRegionSupported(
   const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
   const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(lowerProvider, authType);
 
-  if (isQwenProvider) {
+  if (isQwenProvider && (authType === undefined || authType === 'api_key')) {
     if (!isQwenRegion(region)) {
       throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
     }

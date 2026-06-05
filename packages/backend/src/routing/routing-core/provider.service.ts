@@ -692,6 +692,9 @@ export class ProviderService {
     label?: string,
   ): Promise<{ notifications: string[] }> {
     if (label) {
+      if (!authType) {
+        throw new BadRequestException('authType is required when deleting a labeled provider key');
+      }
       return this.removeGlobalKeyByLabel(userId, provider, authType, label);
     }
 

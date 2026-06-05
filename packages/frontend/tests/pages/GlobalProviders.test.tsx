@@ -6,6 +6,8 @@ const mockConnectGlobalProvider = vi.fn();
 const mockDisconnectGlobalProvider = vi.fn();
 const mockRefreshGlobalProviderModels = vi.fn();
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+const validateApiKeyMock = vi.hoisted(() => vi.fn());
+const validateSubscriptionKeyMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
@@ -50,8 +52,8 @@ vi.mock('../../src/components/ProviderIcon.js', () => ({
 }));
 
 vi.mock('../../src/services/provider-utils.js', () => ({
-  validateApiKey: () => ({ valid: true }),
-  validateSubscriptionKey: () => ({ valid: true }),
+  validateApiKey: (...args: unknown[]) => validateApiKeyMock(...args),
+  validateSubscriptionKey: (...args: unknown[]) => validateSubscriptionKeyMock(...args),
 }));
 
 vi.mock('../../src/services/formatters.js', () => ({
@@ -93,6 +95,8 @@ describe('GlobalProviders', () => {
       error: null,
     });
     mockDisconnectGlobalProvider.mockResolvedValue({ ok: true, notifications: [] });
+    validateApiKeyMock.mockReturnValue({ valid: true });
+    validateSubscriptionKeyMock.mockReturnValue({ valid: true });
   });
 
   it('renders global provider rows', async () => {
@@ -103,6 +107,15 @@ describe('GlobalProviders', () => {
     expect(screen.getByText('Connections')).toBeDefined();
     expect(screen.getByText('1 active')).toBeDefined();
     expect(screen.getByText('2 models')).toBeDefined();
+  });
+
+  it('renders an empty state when no global providers exist', async () => {
+    mockGetGlobalProviders.mockResolvedValueOnce([]);
+    render(() => <GlobalProviders />);
+
+    await screen.findByText('No global providers yet');
+
+    expect(screen.getByText('0 active')).toBeDefined();
   });
 
   it('connects a global API-key provider', async () => {
@@ -124,6 +137,64 @@ describe('GlobalProviders', () => {
     expect(toast.success).toHaveBeenCalledWith('OpenAI connected');
   });
 
+  it('stops before connect when API-key validation fails', async () => {
+    validateApiKeyMock.mockReturnValueOnce({ valid: false, error: 'Bad key' });
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    expect(toast.error).toHaveBeenCalledWith('Bad key');
+    expect(mockConnectGlobalProvider).not.toHaveBeenCalled();
+  });
+
+  it('connects a subscription provider with the default region', async () => {
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'minimax' } });
+    await fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'subscription' } });
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-cp-new' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() =>
+      expect(mockConnectGlobalProvider).toHaveBeenCalledWith({
+        provider: 'minimax',
+        authType: 'subscription',
+        apiKey: 'sk-cp-new',
+        region: 'global',
+      }),
+    );
+  });
+
+  it('stops before connect when subscription credential validation fails', async () => {
+    validateSubscriptionKeyMock.mockReturnValueOnce({ valid: false });
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'minimax' } });
+    await fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'subscription' } });
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    expect(toast.error).toHaveBeenCalledWith('Invalid subscription credential');
+    expect(mockConnectGlobalProvider).not.toHaveBeenCalled();
+  });
+
+  it('clears saving state when connect rejects', async () => {
+    mockConnectGlobalProvider.mockRejectedValueOnce(new Error('network'));
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() =>
+      expect((screen.getByText('Connect') as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
   it('refreshes and disconnects a global provider row', async () => {
     render(() => <GlobalProviders />);
     await screen.findByText('OpenAI');
@@ -139,6 +210,41 @@ describe('GlobalProviders', () => {
     await fireEvent.click(screen.getByText('Disconnect'));
     await waitFor(() =>
       expect(mockDisconnectGlobalProvider).toHaveBeenCalledWith('openai', 'api_key', 'Default'),
+    );
+  });
+
+  it('shows a refresh error and clears the busy state', async () => {
+    mockRefreshGlobalProviderModels.mockResolvedValueOnce({
+      ok: false,
+      model_count: 0,
+      last_fetched_at: null,
+      error: 'Provider timed out',
+    });
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.click(screen.getByText('Refresh'));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Provider timed out'));
+    await waitFor(() =>
+      expect((screen.getByText('Refresh') as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
+  it('clears row busy state when refresh or disconnect rejects', async () => {
+    mockRefreshGlobalProviderModels.mockRejectedValueOnce(new Error('network'));
+    mockDisconnectGlobalProvider.mockRejectedValueOnce(new Error('network'));
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.click(screen.getByText('Refresh'));
+    await waitFor(() =>
+      expect((screen.getByText('Refresh') as HTMLButtonElement).disabled).toBe(false),
+    );
+
+    await fireEvent.click(screen.getByText('Disconnect'));
+    await waitFor(() =>
+      expect((screen.getByText('Disconnect') as HTMLButtonElement).disabled).toBe(false),
     );
   });
 });
