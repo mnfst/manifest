@@ -5,6 +5,9 @@ const TenantWorkspaceLayout: ParentComponent = (props) => {
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
+  const isProviderActive = (path: string) =>
+    location.pathname === path ||
+    (path === '/providers/subscriptions' && location.pathname === '/providers');
 
   return (
     <div class="tenant-workspace">
@@ -17,14 +20,33 @@ const TenantWorkspaceLayout: ParentComponent = (props) => {
         >
           My Agents
         </A>
-        <A
-          href="/providers"
-          class="tenant-workspace__link"
-          classList={{ active: isActive('/providers') }}
-          aria-current={isActive('/providers') ? 'page' : undefined}
-        >
-          Providers
-        </A>
+        <div class="tenant-workspace__section" aria-label="Providers">
+          <div class="tenant-workspace__section-title">Providers</div>
+          <A
+            href="/providers/subscriptions"
+            class="tenant-workspace__link tenant-workspace__link--nested"
+            classList={{ active: isProviderActive('/providers/subscriptions') }}
+            aria-current={isProviderActive('/providers/subscriptions') ? 'page' : undefined}
+          >
+            Subscriptions
+          </A>
+          <A
+            href="/providers/byok"
+            class="tenant-workspace__link tenant-workspace__link--nested"
+            classList={{ active: isActive('/providers/byok') }}
+            aria-current={isActive('/providers/byok') ? 'page' : undefined}
+          >
+            Bring Your Own Key
+          </A>
+          <A
+            href="/providers/local"
+            class="tenant-workspace__link tenant-workspace__link--nested"
+            classList={{ active: isActive('/providers/local') }}
+            aria-current={isActive('/providers/local') ? 'page' : undefined}
+          >
+            Local
+          </A>
+        </div>
       </nav>
       <div class="tenant-workspace__content">{props.children}</div>
     </div>

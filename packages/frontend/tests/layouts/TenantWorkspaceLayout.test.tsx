@@ -33,6 +33,9 @@ describe('TenantWorkspaceLayout', () => {
     expect(screen.getByRole('navigation', { name: 'Workspace navigation' })).toBeDefined();
     expect(screen.getByText('My Agents')).toBeDefined();
     expect(screen.getByText('Providers')).toBeDefined();
+    expect(screen.getByText('Subscriptions')).toBeDefined();
+    expect(screen.getByText('Bring Your Own Key')).toBeDefined();
+    expect(screen.getByText('Local')).toBeDefined();
     expect(screen.getByText('Workspace content')).toBeDefined();
   });
 
@@ -42,16 +45,25 @@ describe('TenantWorkspaceLayout', () => {
 
     expect(container.querySelector('a[href="/"]')?.getAttribute('aria-current')).toBe('page');
     expect(
-      container.querySelector('a[href="/providers"]')?.getAttribute('aria-current'),
+      container.querySelector('a[href="/providers/subscriptions"]')?.getAttribute('aria-current'),
     ).toBeNull();
   });
 
-  it('marks Providers active on the providers page', () => {
+  it('marks Subscriptions active on the providers index', () => {
     mockPathname = '/providers';
     const { container } = render(() => <TenantWorkspaceLayout />);
 
     expect(container.querySelector('a[href="/"]')?.getAttribute('aria-current')).toBeNull();
-    expect(container.querySelector('a[href="/providers"]')?.getAttribute('aria-current')).toBe(
+    expect(
+      container.querySelector('a[href="/providers/subscriptions"]')?.getAttribute('aria-current'),
+    ).toBe('page');
+  });
+
+  it('marks BYOK active on the BYOK page', () => {
+    mockPathname = '/providers/byok';
+    const { container } = render(() => <TenantWorkspaceLayout />);
+
+    expect(container.querySelector('a[href="/providers/byok"]')?.getAttribute('aria-current')).toBe(
       'page',
     );
   });

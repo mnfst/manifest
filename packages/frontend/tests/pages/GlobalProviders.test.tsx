@@ -44,6 +44,19 @@ vi.mock('../../src/services/providers.js', () => ({
       subscriptionKeyPlaceholder: 'sk-cp-test',
       subscriptionEndpointRegions: [{ value: 'global', label: 'Global' }],
     },
+    {
+      id: 'ollama',
+      name: 'Ollama',
+      color: '#333',
+      initial: 'O',
+      subtitle: '',
+      models: [],
+      keyPrefix: '',
+      minKeyLength: 0,
+      keyPlaceholder: '',
+      localOnly: true,
+      noKeyRequired: true,
+    },
   ],
 }));
 
@@ -67,7 +80,9 @@ vi.mock('@solidjs/meta', () => ({
   Meta: () => null,
 }));
 
-import GlobalProviders from '../../src/pages/GlobalProviders';
+import GlobalProviderByok from '../../src/pages/providers/Byok';
+import GlobalProviderLocal from '../../src/pages/providers/Local';
+import GlobalProviderSubscriptions from '../../src/pages/providers/Subscriptions';
 
 describe('GlobalProviders', () => {
   beforeEach(() => {
@@ -100,27 +115,30 @@ describe('GlobalProviders', () => {
   });
 
   it('renders global provider rows', async () => {
-    render(() => <GlobalProviders />);
+    render(() => <GlobalProviderByok />);
 
-    await screen.findByText('OpenAI');
+    await screen.findByText('My API Keys');
 
-    expect(screen.getByText('Connections')).toBeDefined();
-    expect(screen.getByText('1 active')).toBeDefined();
-    expect(screen.getByText('2 models')).toBeDefined();
+    expect(screen.getByText('Bring Your Own Key')).toBeDefined();
+    expect(screen.getByText('1 active / 1 total')).toBeDefined();
+    expect(screen.getByText('Default')).toBeDefined();
+    expect(screen.getByText('sk-test********')).toBeDefined();
+    expect(screen.getByText('Active')).toBeDefined();
+    expect(screen.getByText('Supported API key providers')).toBeDefined();
   });
 
   it('renders an empty state when no global providers exist', async () => {
     mockGetGlobalProviders.mockResolvedValueOnce([]);
-    render(() => <GlobalProviders />);
+    render(() => <GlobalProviderByok />);
 
-    await screen.findByText('No global providers yet');
+    await screen.findByText('No API keys connected');
 
-    expect(screen.getByText('0 active')).toBeDefined();
+    expect(screen.getByText('0 active / 0 total')).toBeDefined();
   });
 
   it('connects a global API-key provider', async () => {
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
 
     await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
     await fireEvent.input(screen.getByLabelText('Label'), { target: { value: 'Work' } });
@@ -139,8 +157,8 @@ describe('GlobalProviders', () => {
 
   it('stops before connect when API-key validation fails', async () => {
     validateApiKeyMock.mockReturnValueOnce({ valid: false, error: 'Bad key' });
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
 
     await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
     await fireEvent.click(screen.getByText('Connect'));
@@ -150,12 +168,10 @@ describe('GlobalProviders', () => {
   });
 
   it('connects a subscription provider with the default region', async () => {
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderSubscriptions />);
+    await screen.findByText('Subscriptions');
 
-    await fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'minimax' } });
-    await fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'subscription' } });
-    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-cp-new' } });
+    await fireEvent.input(screen.getByLabelText('Token'), { target: { value: 'sk-cp-new' } });
     await fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() =>
@@ -170,12 +186,10 @@ describe('GlobalProviders', () => {
 
   it('stops before connect when subscription credential validation fails', async () => {
     validateSubscriptionKeyMock.mockReturnValueOnce({ valid: false });
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderSubscriptions />);
+    await screen.findByText('Subscriptions');
 
-    await fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'minimax' } });
-    await fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'subscription' } });
-    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
+    await fireEvent.input(screen.getByLabelText('Token'), { target: { value: 'bad' } });
     await fireEvent.click(screen.getByText('Connect'));
 
     expect(toast.error).toHaveBeenCalledWith('Invalid subscription credential');
@@ -184,8 +198,8 @@ describe('GlobalProviders', () => {
 
   it('clears saving state when connect rejects', async () => {
     mockConnectGlobalProvider.mockRejectedValueOnce(new Error('network'));
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
 
     await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
     await fireEvent.click(screen.getByText('Connect'));
@@ -196,8 +210,8 @@ describe('GlobalProviders', () => {
   });
 
   it('refreshes and disconnects a global provider row', async () => {
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
 
     await fireEvent.click(screen.getByText('Refresh'));
     await waitFor(() =>
@@ -220,8 +234,8 @@ describe('GlobalProviders', () => {
       last_fetched_at: null,
       error: 'Provider timed out',
     });
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
 
     await fireEvent.click(screen.getByText('Refresh'));
 
@@ -234,8 +248,8 @@ describe('GlobalProviders', () => {
   it('clears row busy state when refresh or disconnect rejects', async () => {
     mockRefreshGlobalProviderModels.mockRejectedValueOnce(new Error('network'));
     mockDisconnectGlobalProvider.mockRejectedValueOnce(new Error('network'));
-    render(() => <GlobalProviders />);
-    await screen.findByText('OpenAI');
+    render(() => <GlobalProviderByok />);
+    await screen.findByText('My API Keys');
 
     await fireEvent.click(screen.getByText('Refresh'));
     await waitFor(() =>
@@ -245,6 +259,20 @@ describe('GlobalProviders', () => {
     await fireEvent.click(screen.getByText('Disconnect'));
     await waitFor(() =>
       expect((screen.getByText('Disconnect') as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
+  it('connects a local provider without a credential', async () => {
+    render(() => <GlobalProviderLocal />);
+    await screen.findByText('Local Providers');
+
+    await fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() =>
+      expect(mockConnectGlobalProvider).toHaveBeenCalledWith({
+        provider: 'ollama',
+        authType: 'local',
+      }),
     );
   });
 });

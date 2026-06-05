@@ -117,8 +117,8 @@ describe('App with agent path', () => {
 });
 
 describe('App with tenant provider path', () => {
-  it('does not use the agent sidebar on /providers', () => {
-    routerState.pathname = '/providers';
+  it('does not use the agent sidebar on tenant provider pages', () => {
+    routerState.pathname = '/providers/byok';
 
     const { container } = render(() => <App />);
 
