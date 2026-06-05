@@ -31,11 +31,12 @@ interface Props {
   onAddKey: (provId: string, authType: AuthType) => void;
   onOpenCustomForm: (prefill?: CustomProviderPrefill) => void;
   onEditCustom: (cp: CustomProviderData) => void;
+  allowCustomProviders?: boolean;
 }
 
 const ProviderApiKeyTab: Component<Props> = (props) => {
   const mergedProviders = (): ListItem[] => {
-    const customs = props.customProviders ?? [];
+    const customs = props.allowCustomProviders === false ? [] : (props.customProviders ?? []);
     // Custom rows that resolve to a canonical local-LLM id belong in the
     // Local tab now. Hide them here so there's no duplicate entry across
     // tabs, and so the API Keys tab is strictly about BYOK providers.
@@ -138,14 +139,25 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
             );
           }}
         </For>
-        <div class="provider-modal__add-custom">
-          <button class="provider-modal__add-custom-chip" onClick={() => props.onOpenCustomForm()}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M8.46 11h7.08a1.755 1.755 0 0 0 1.43-2.77l-3.54-4.96c-.66-.92-2.19-.92-2.85 0L7.04 8.23A1.755 1.755 0 0 0 8.47 11ZM12 4.72 15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3.75 22h5.5c.96 0 1.75-.79 1.75-1.75v-5.5c0-.96-.79-1.75-1.75-1.75h-5.5C2.79 13 2 13.79 2 14.75v5.5c0 .96.79 1.75 1.75 1.75M4 15h5v5H4z" />
-            </svg>
-            Add custom provider
-          </button>
-        </div>
+        <Show when={props.allowCustomProviders !== false}>
+          <div class="provider-modal__add-custom">
+            <button
+              class="provider-modal__add-custom-chip"
+              onClick={() => props.onOpenCustomForm()}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M8.46 11h7.08a1.755 1.755 0 0 0 1.43-2.77l-3.54-4.96c-.66-.92-2.19-.92-2.85 0L7.04 8.23A1.755 1.755 0 0 0 8.47 11ZM12 4.72 15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3.75 22h5.5c.96 0 1.75-.79 1.75-1.75v-5.5c0-.96-.79-1.75-1.75-1.75h-5.5C2.79 13 2 13.79 2 14.75v5.5c0 .96.79 1.75 1.75 1.75M4 15h5v5H4z" />
+              </svg>
+              Add custom provider
+            </button>
+          </div>
+        </Show>
       </div>
     </>
   );

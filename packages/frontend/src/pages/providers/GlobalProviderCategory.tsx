@@ -1,15 +1,6 @@
-import {
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  onCleanup,
-  Show,
-  type Component,
-} from 'solid-js';
+import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import { Meta, Title } from '@solidjs/meta';
 import {
-  connectGlobalProvider,
   disconnectGlobalProvider,
   getGlobalProviders,
   refreshGlobalProviderModels,
@@ -18,9 +9,10 @@ import {
 } from '../../services/api.js';
 import { PROVIDERS, type ProviderDef } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.js';
-import { validateApiKey, validateSubscriptionKey } from '../../services/provider-utils.js';
 import { formatTimeAgo } from '../../services/formatters.js';
 import { toast } from '../../services/toast-store.js';
+import ProviderSelectModal from '../../components/ProviderSelectModal.js';
+import type { ProviderDeepLink } from '../../services/routing-params.js';
 import '../../styles/global-providers.css';
 
 type GlobalProviderCategory = 'subscription' | 'api_key' | 'local';
@@ -30,13 +22,11 @@ interface CategoryConfig {
   title: string;
   documentTitle: string;
   description: string;
-  addTitle: string;
-  addDescription: string;
   addButton: string;
+  libraryButton?: string;
   connectedTitle: string;
   supportedTitle: string;
   emptyTitle: string;
-  credentialLabel: string;
   providerFilter: (provider: ProviderDef) => boolean;
 }
 
@@ -59,13 +49,10 @@ const CATEGORY_CONFIG: Record<GlobalProviderCategory, CategoryConfig> = {
     title: 'Subscriptions',
     documentTitle: 'Subscriptions - Manifest',
     description: 'Connect flat-rate subscriptions to route agents through your existing plans.',
-    addTitle: 'Add subscription',
-    addDescription: 'Save a tenant subscription credential that future agents can reuse.',
     addButton: 'Add subscription',
     connectedTitle: 'My Subscriptions',
     supportedTitle: 'Supported subscriptions',
     emptyTitle: 'No subscriptions connected',
-    credentialLabel: 'Token',
     providerFilter: supportsGlobalSubscription,
   },
   api_key: {
@@ -73,13 +60,10 @@ const CATEGORY_CONFIG: Record<GlobalProviderCategory, CategoryConfig> = {
     title: 'Bring Your Own Key',
     documentTitle: 'API Keys - Manifest',
     description: 'Connect providers using your own API keys for pay-as-you-go usage.',
-    addTitle: 'Add API key',
-    addDescription: 'Save a tenant API key that future agents can reuse.',
     addButton: 'Add API key',
     connectedTitle: 'My API Keys',
     supportedTitle: 'Supported API key providers',
     emptyTitle: 'No API keys connected',
-    credentialLabel: 'Key',
     providerFilter: (provider) => !provider.subscriptionOnly && !provider.localOnly,
   },
   local: {
@@ -87,13 +71,11 @@ const CATEGORY_CONFIG: Record<GlobalProviderCategory, CategoryConfig> = {
     title: 'Local Providers',
     documentTitle: 'Local Providers - Manifest',
     description: 'Connect to LLM servers running on your machine.',
-    addTitle: 'Add local provider',
-    addDescription: 'Save a tenant local provider connection that future agents can reuse.',
     addButton: 'Add local provider',
+    libraryButton: 'Connect',
     connectedTitle: 'My Local Providers',
     supportedTitle: 'Supported local providers',
     emptyTitle: 'No local providers connected',
-    credentialLabel: 'Key',
     providerFilter: (provider) => Boolean(provider.localOnly),
   },
 };
@@ -102,18 +84,6 @@ const authTypeLabel = (authType: AuthType): string => {
   if (authType === 'subscription') return 'Subscription';
   if (authType === 'local') return 'Local';
   return 'API key';
-};
-
-const credentialPlaceholder = (provider: ProviderDef | undefined, authType: AuthType): string => {
-  if (!provider) return authType === 'subscription' ? 'Paste subscription token' : 'Paste API key';
-  if (authType === 'subscription') {
-    return (
-      provider.subscriptionKeyPlaceholder ??
-      provider.subscriptionTokenAlternative?.placeholder ??
-      'Paste subscription token'
-    );
-  }
-  return provider.keyPlaceholder ?? 'Paste API key';
 };
 
 const modelCountForProvider = (provider: ProviderDef, rows: RoutingProvider[]): string => {
@@ -129,27 +99,10 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
   const config = () => CATEGORY_CONFIG[props.category];
   const [providers, { refetch }] = createResource(getGlobalProviders);
   const categoryProviders = createMemo(() => PROVIDERS.filter(config().providerFilter));
-  const [providerId, setProviderId] = createSignal(categoryProviders()[0]?.id ?? 'openai');
-  const [apiKey, setApiKey] = createSignal('');
-  const [label, setLabel] = createSignal('');
-  const [region, setRegion] = createSignal<string | undefined>(undefined);
-  const [saving, setSaving] = createSignal(false);
   const [busyId, setBusyId] = createSignal<string | null>(null);
-  const [formHighlighted, setFormHighlighted] = createSignal(false);
-  let formSection: HTMLElement | undefined;
-  let labelInput: HTMLInputElement | undefined;
-  let credentialInput: HTMLInputElement | undefined;
-  let highlightTimer: ReturnType<typeof setTimeout> | undefined;
-
-  const selectedProvider = createMemo(
-    () => categoryProviders().find((p) => p.id === providerId()) ?? categoryProviders()[0],
-  );
-  const endpointRegions = () =>
-    config().authType === 'subscription'
-      ? (selectedProvider()?.subscriptionEndpointRegions ?? [])
-      : [];
-  const requiresCredential = () =>
-    config().authType !== 'local' && !selectedProvider()?.noKeyRequired;
+  const [showModal, setShowModal] = createSignal(false);
+  const [deepLinkProvider, setDeepLinkProvider] = createSignal<string | null>(null);
+  const [viewMode, setViewMode] = createSignal<'list' | 'grid'>('list');
 
   const providerRows = createMemo(() =>
     (providers() ?? [])
@@ -171,91 +124,26 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
   const activeConnectionsFor = (id: string) =>
     activeRows().filter((row) => row.provider === id).length;
 
-  const resetForm = () => {
-    setApiKey('');
-    setLabel('');
-    setRegion(undefined);
+  const openConnect = (providerId?: string) => {
+    setDeepLinkProvider(providerId ?? null);
+    setShowModal(true);
   };
 
-  const handleProviderChange = (id: string) => {
-    setProviderId(id);
-    resetForm();
+  const handleModalClose = () => {
+    setShowModal(false);
+    setDeepLinkProvider(null);
+    refetch();
   };
 
-  onCleanup(() => {
-    if (highlightTimer) {
-      clearTimeout(highlightTimer);
-    }
-  });
-
-  const highlightForm = () => {
-    if (highlightTimer) {
-      clearTimeout(highlightTimer);
-    }
-    setFormHighlighted(true);
-    highlightTimer = setTimeout(() => setFormHighlighted(false), 900);
-  };
-
-  const openProviderForm = (id?: string) => {
-    if (id) {
-      handleProviderChange(id);
-    }
-    formSection?.scrollIntoView?.({ block: 'center' });
-    highlightForm();
-    const focusFirstField = () => {
-      if (requiresCredential()) {
-        credentialInput?.focus();
-      } else {
-        labelInput?.focus();
-      }
+  const providerDeepLink = (): ProviderDeepLink | null => {
+    const providerId = deepLinkProvider();
+    if (!providerId) return null;
+    return {
+      providerId,
+      authType: config().authType,
+      closeOnBack: true,
+      addKey: activeConnectionsFor(providerId) > 0,
     };
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(focusFirstField);
-    } else {
-      setTimeout(focusFirstField, 0);
-    }
-  };
-
-  const handleConnect = async () => {
-    const provider = selectedProvider();
-    if (!provider) return;
-    const key = apiKey().replace(/\s/g, '');
-    const selectedRegion =
-      endpointRegions().length > 0 ? (region() ?? endpointRegions()[0]?.value) : undefined;
-
-    if (config().authType === 'api_key' && !provider.noKeyRequired) {
-      const result = validateApiKey(provider, key);
-      if (!result.valid) {
-        toast.error(result.error ?? 'Invalid API key');
-        return;
-      }
-    }
-
-    if (config().authType === 'subscription') {
-      const result = validateSubscriptionKey(provider, key);
-      if (!result.valid) {
-        toast.error(result.error ?? 'Invalid subscription credential');
-        return;
-      }
-    }
-
-    setSaving(true);
-    try {
-      await connectGlobalProvider({
-        provider: provider.id,
-        authType: config().authType,
-        ...(key ? { apiKey: key } : {}),
-        ...(label().trim() ? { label: label().trim() } : {}),
-        ...(selectedRegion ? { region: selectedRegion } : {}),
-      });
-      toast.success(`${provider.name} connected`);
-      resetForm();
-      await refetch();
-    } catch {
-      // fetchMutate already shows the server error.
-    } finally {
-      setSaving(false);
-    }
   };
 
   const handleRefresh = async (row: RoutingProvider) => {
@@ -300,7 +188,7 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
             <h1 class="page-header__title">{config().title}</h1>
             <p class="page-header__subtitle">{config().description}</p>
           </div>
-          <button class="btn btn--primary btn--sm" onClick={() => openProviderForm()}>
+          <button class="btn btn--primary btn--sm" onClick={() => openConnect()}>
             {config().addButton}
           </button>
         </header>
@@ -325,73 +213,6 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
             </div>
           </div>
         </div>
-
-        <section
-          ref={formSection}
-          class="panel global-provider-connect"
-          classList={{ 'global-provider-connect--highlighted': formHighlighted() }}
-          aria-labelledby="add-global-provider-title"
-        >
-          <div class="global-provider-connect__header">
-            <div>
-              <h2 id="add-global-provider-title">{config().addTitle}</h2>
-              <p>{config().addDescription}</p>
-            </div>
-          </div>
-          <div class="global-provider-form">
-            <label>
-              Provider
-              <select
-                value={providerId()}
-                onChange={(e) => handleProviderChange(e.currentTarget.value)}
-                disabled={saving()}
-              >
-                <For each={categoryProviders()}>
-                  {(provider) => <option value={provider.id}>{provider.name}</option>}
-                </For>
-              </select>
-            </label>
-            <Show when={endpointRegions().length > 0}>
-              <label>
-                Region
-                <select
-                  value={region() ?? endpointRegions()[0]?.value}
-                  onChange={(e) => setRegion(e.currentTarget.value)}
-                  disabled={saving()}
-                >
-                  <For each={endpointRegions()}>
-                    {(option) => <option value={option.value}>{option.label}</option>}
-                  </For>
-                </select>
-              </label>
-            </Show>
-            <label>
-              Label
-              <input
-                ref={labelInput}
-                value={label()}
-                placeholder="Default"
-                onInput={(e) => setLabel(e.currentTarget.value)}
-                disabled={saving()}
-              />
-            </label>
-            <Show when={requiresCredential()}>
-              <label class="global-provider-form__key">
-                {config().credentialLabel}
-                <input
-                  ref={credentialInput}
-                  value={apiKey()}
-                  placeholder={credentialPlaceholder(selectedProvider(), config().authType)}
-                  onInput={(e) => setApiKey(e.currentTarget.value)}
-                  disabled={saving()}
-                />
-              </label>
-            </Show>
-            <button class="btn btn--primary btn--sm" onClick={handleConnect} disabled={saving()}>
-              {saving() ? <span class="spinner" /> : 'Connect'}
-            </button>
-          </div>
-        </section>
 
         <section aria-labelledby="global-provider-list-title">
           <div class="global-provider-section-heading">
@@ -517,77 +338,176 @@ const GlobalProviderCategoryPage: Component<{ category: GlobalProviderCategory }
         <section aria-labelledby="global-provider-library-title">
           <div class="global-provider-section-heading">
             <h2 id="global-provider-library-title">{config().supportedTitle}</h2>
+            <div class="panel__tabs" role="tablist" aria-label="Provider library view">
+              <button
+                role="tab"
+                aria-selected={viewMode() === 'list'}
+                class="panel__tab"
+                classList={{ 'panel__tab--active': viewMode() === 'list' }}
+                onClick={() => setViewMode('list')}
+                aria-label="List view"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M4 11h16v2H4zm0-5h16v2H4zm0 10h16v2H4z" />
+                </svg>
+              </button>
+              <button
+                role="tab"
+                aria-selected={viewMode() === 'grid'}
+                class="panel__tab"
+                classList={{ 'panel__tab--active': viewMode() === 'grid' }}
+                onClick={() => setViewMode('grid')}
+                aria-label="Grid view"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M3 3h4v4H3zm7 0h4v4h-4z" />
+                  <path d="M10 3h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4z" />
+                  <path d="M10 17h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4z" />
+                  <path d="M10 10h4v4h-4zm7 0h4v4h-4z" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <div class="panel global-provider-table-panel">
-            <table class="data-table global-provider-table global-provider-table--library">
-              <colgroup>
-                <col class="global-provider-table__provider" />
-                <col class="global-provider-table__models" />
-                <col class="global-provider-table__status" />
-                <col class="global-provider-table__actions" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Provider</th>
-                  <th>Models</th>
-                  <th>Status</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                <For each={categoryProviders()}>
-                  {(provider) => {
-                    const activeCount = () => activeConnectionsFor(provider.id);
-                    return (
-                      <tr>
-                        <td>
-                          <span class="global-provider-name">
-                            <span class="global-provider-name__icon">
-                              {providerIcon(provider.id, 20) ?? (
-                                <span
-                                  class="global-provider-logo-letter"
-                                  style={{ background: provider.color }}
-                                >
-                                  {provider.initial.toUpperCase()}
-                                </span>
-                              )}
+          <Show when={viewMode() === 'list'}>
+            <div class="panel global-provider-table-panel">
+              <table class="data-table global-provider-table global-provider-table--library">
+                <colgroup>
+                  <col class="global-provider-table__provider" />
+                  <col class="global-provider-table__models" />
+                  <col class="global-provider-table__status" />
+                  <col class="global-provider-table__actions" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Provider</th>
+                    <th>Models</th>
+                    <th>Status</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={categoryProviders()}>
+                    {(provider) => {
+                      const activeCount = () => activeConnectionsFor(provider.id);
+                      return (
+                        <tr>
+                          <td>
+                            <span class="global-provider-name">
+                              <span class="global-provider-name__icon">
+                                {providerIcon(provider.id, 20) ?? (
+                                  <span
+                                    class="global-provider-logo-letter"
+                                    style={{ background: provider.color }}
+                                  >
+                                    {provider.initial.toUpperCase()}
+                                  </span>
+                                )}
+                              </span>
+                              <span class="global-provider-name__text">{provider.name}</span>
                             </span>
-                            <span class="global-provider-name__text">{provider.name}</span>
-                          </span>
-                        </td>
-                        <td>{modelCountForProvider(provider, providerRows())}</td>
-                        <td>
-                          <Show
-                            when={activeCount() > 0}
-                            fallback={<span class="global-provider-muted">Not connected</span>}
-                          >
-                            <span class="global-provider-connected">
-                              {activeCount()} active{' '}
-                              {activeCount() === 1 ? 'connection' : 'connections'}
-                            </span>
-                          </Show>
-                        </td>
-                        <td>
-                          <span class="global-provider-actions">
-                            <button
-                              class="btn btn--outline btn--sm"
-                              onClick={() => {
-                                openProviderForm(provider.id);
-                              }}
-                              disabled={saving()}
+                          </td>
+                          <td>{modelCountForProvider(provider, providerRows())}</td>
+                          <td>
+                            <Show
+                              when={activeCount() > 0}
+                              fallback={<span class="global-provider-muted">Not connected</span>}
                             >
-                              {config().addButton}
-                            </button>
+                              <span class="global-provider-connected">
+                                {activeCount()} active{' '}
+                                {activeCount() === 1 ? 'connection' : 'connections'}
+                              </span>
+                            </Show>
+                          </td>
+                          <td>
+                            <span class="global-provider-actions">
+                              <button
+                                class="btn btn--outline btn--sm"
+                                onClick={() => openConnect(provider.id)}
+                              >
+                                {config().libraryButton ?? config().addButton}
+                              </button>
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    }}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+          </Show>
+          <Show when={viewMode() === 'grid'}>
+            <div class="global-provider-library-grid">
+              <For each={categoryProviders()}>
+                {(provider) => {
+                  const activeCount = () => activeConnectionsFor(provider.id);
+                  return (
+                    <div class="panel global-provider-library-card">
+                      <div class="global-provider-library-card__header">
+                        <span class="global-provider-name">
+                          <span class="global-provider-name__icon">
+                            {providerIcon(provider.id, 24) ?? (
+                              <span
+                                class="global-provider-logo-letter"
+                                style={{ background: provider.color }}
+                              >
+                                {provider.initial.toUpperCase()}
+                              </span>
+                            )}
                           </span>
-                        </td>
-                      </tr>
-                    );
-                  }}
-                </For>
-              </tbody>
-            </table>
-          </div>
+                          <span class="global-provider-name__text">{provider.name}</span>
+                        </span>
+                        <span class="global-provider-muted">
+                          {modelCountForProvider(provider, providerRows())} models
+                        </span>
+                      </div>
+                      <div class="global-provider-library-card__footer">
+                        <Show when={activeCount() > 0} fallback={<span />}>
+                          <span class="global-provider-connected">
+                            {activeCount()} active{' '}
+                            {activeCount() === 1 ? 'connection' : 'connections'}
+                          </span>
+                        </Show>
+                        <button
+                          class="btn btn--outline btn--sm"
+                          onClick={() => openConnect(provider.id)}
+                        >
+                          {config().libraryButton ?? config().addButton}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          </Show>
         </section>
+        <Show when={showModal()}>
+          <ProviderSelectModal
+            agentName=""
+            providers={providers() ?? []}
+            customProviders={[]}
+            providerDeepLink={providerDeepLink()}
+            initialTab={config().authType}
+            connectionScope="global"
+            onUpdate={() => refetch()}
+            onClose={handleModalClose}
+          />
+        </Show>
       </div>
     </>
   );

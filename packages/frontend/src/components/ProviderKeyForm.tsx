@@ -12,8 +12,11 @@ import {
 import type { ProviderDef } from '../services/providers.js';
 import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
 import {
+  connectGlobalProvider,
   connectProvider,
+  disconnectGlobalProvider,
   disconnectProvider,
+  renameGlobalProviderKey,
   renameProviderKey,
   revokeOpenaiOAuth,
   type AuthType,
@@ -54,9 +57,47 @@ export interface ProviderKeyFormProps {
   providers?: RoutingProvider[];
   addKeyOpen?: Accessor<boolean>;
   setAddKeyOpen?: Setter<boolean>;
+  connectionScope?: 'agent' | 'global';
   onBack: () => void;
   onUpdate: () => void;
 }
+
+const isGlobalScope = (scope?: 'agent' | 'global') => scope === 'global';
+
+const connectProviderInScope = (
+  props: Pick<ProviderKeyFormProps, 'agentName' | 'connectionScope'>,
+  data: { provider: string; apiKey?: string; authType?: AuthType; label?: string; region?: string },
+) => {
+  if (isGlobalScope(props.connectionScope)) return connectGlobalProvider(data);
+  return connectProvider(props.agentName, data);
+};
+
+const disconnectProviderInScope = (
+  props: Pick<
+    ProviderKeyFormProps,
+    'agentName' | 'connectionScope' | 'provId' | 'selectedAuthType'
+  >,
+  label?: string,
+) => {
+  if (isGlobalScope(props.connectionScope)) {
+    return disconnectGlobalProvider(props.provId, props.selectedAuthType(), label);
+  }
+  return disconnectProvider(props.agentName, props.provId, props.selectedAuthType(), label);
+};
+
+const renameProviderKeyInScope = (
+  scope: 'agent' | 'global' | undefined,
+  agentName: string,
+  provider: string,
+  currentLabel: string,
+  newLabel: string,
+  authType?: AuthType,
+) => {
+  if (isGlobalScope(scope)) {
+    return renameGlobalProviderKey(provider, currentLabel, newLabel, authType);
+  }
+  return renameProviderKey(agentName, provider, currentLabel, newLabel, authType);
+};
 
 const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
   const isPopupOAuth = () => props.provDef.subscriptionAuthMode === 'popup_oauth';
@@ -173,7 +214,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
 
     props.setBusy(true);
     try {
-      await connectProvider(props.agentName, {
+      await connectProviderInScope(props, {
         provider: props.provId,
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
@@ -201,7 +242,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
 
     props.setBusy(true);
     try {
-      await connectProvider(props.agentName, {
+      await connectProviderInScope(props, {
         provider: props.provId,
         apiKey: props.keyInput().replace(/\s/g, ''),
         authType: props.selectedAuthType(),
@@ -225,15 +266,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
       // OpenAI subscription OAuth needs an explicit revoke call. Skip for
       // labeled deletes inside list mode (those are api_key keys, never the
       // OAuth subscription token).
-      if (!label && shouldRevokeOpenaiOAuth()) {
+      if (!label && !isGlobalScope(props.connectionScope) && shouldRevokeOpenaiOAuth()) {
         await revokeOpenaiOAuth(props.agentName).catch(() => {});
       }
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-        label,
-      );
+      const result = await disconnectProviderInScope(props, label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -443,6 +479,7 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
           endpointRegionLabel={endpointRegionLabel}
           onUpdate={props.onUpdate}
           onDelete={(label) => handleDisconnect(label)}
+          connectionScope={props.connectionScope}
         />
       </Show>
     </>
@@ -468,7 +505,7 @@ async function handleAddKey(
   }
   props.setBusy(true);
   try {
-    await connectProvider(props.agentName, {
+    await connectProviderInScope(props, {
       provider: props.provId,
       apiKey: apiKey.replace(/\s/g, ''),
       authType: props.selectedAuthType(),
@@ -676,6 +713,7 @@ interface KeyChainViewProps {
   endpointRegionLabel: (value: string | null | undefined) => string | undefined;
   onUpdate: () => void;
   onDelete: (label: string) => void;
+  connectionScope?: 'agent' | 'global';
 }
 
 const KeyChainView: Component<KeyChainViewProps> = (props) => {
@@ -695,7 +733,14 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
     }
     props.setBusy(true);
     try {
-      await renameProviderKey(props.agentName, props.provId, k.label, newLabel, props.authType());
+      await renameProviderKeyInScope(
+        props.connectionScope,
+        props.agentName,
+        props.provId,
+        k.label,
+        newLabel,
+        props.authType(),
+      );
       toast.success(`Renamed to "${newLabel}"`);
       setRenamingId(null);
       props.onUpdate();
@@ -815,7 +860,7 @@ const KeyChainView: Component<KeyChainViewProps> = (props) => {
             }
             props.setBusy(true);
             try {
-              await connectProvider(props.agentName, {
+              await connectProviderInScope(props, {
                 provider: props.provId,
                 apiKey: apiKey.replace(/\s/g, ''),
                 authType: props.authType(),

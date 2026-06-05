@@ -128,6 +128,28 @@
   min-width: 640px;
 }
 
+.global-provider-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--gap-lg);
+}
+
+.global-provider-library-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 0;
+  padding: 16px;
+}
+
+.global-provider-library-card__header,
+.global-provider-library-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .global-provider-table__provider {
   width: 214px;
 }

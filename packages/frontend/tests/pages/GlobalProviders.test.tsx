@@ -5,15 +5,36 @@ const mockGetGlobalProviders = vi.fn();
 const mockConnectGlobalProvider = vi.fn();
 const mockDisconnectGlobalProvider = vi.fn();
 const mockRefreshGlobalProviderModels = vi.fn();
+const apiFallback = vi.hoisted(() => vi.fn().mockResolvedValue({}));
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 const validateApiKeyMock = vi.hoisted(() => vi.fn());
 const validateSubscriptionKeyMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../../src/services/api.js', () => ({
+  connectProvider: (...args: unknown[]) => apiFallback(...args),
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
   connectGlobalProvider: (...args: unknown[]) => mockConnectGlobalProvider(...args),
+  disconnectProvider: (...args: unknown[]) => apiFallback(...args),
   disconnectGlobalProvider: (...args: unknown[]) => mockDisconnectGlobalProvider(...args),
+  refreshProviderModels: (...args: unknown[]) => apiFallback(...args),
   refreshGlobalProviderModels: (...args: unknown[]) => mockRefreshGlobalProviderModels(...args),
+  renameProviderKey: (...args: unknown[]) => apiFallback(...args),
+  renameGlobalProviderKey: (...args: unknown[]) => apiFallback(...args),
+  reorderProviderKeys: (...args: unknown[]) => apiFallback(...args),
+  reorderGlobalProviderKeys: (...args: unknown[]) => apiFallback(...args),
+  revokeOpenaiOAuth: (...args: unknown[]) => apiFallback(...args),
+  createCustomProvider: (...args: unknown[]) => apiFallback(...args),
+  updateCustomProvider: (...args: unknown[]) => apiFallback(...args),
+  deleteCustomProvider: (...args: unknown[]) => apiFallback(...args),
+  probeCustomProvider: (...args: unknown[]) => apiFallback(...args),
+  getPopupOauthApi: (...args: unknown[]) => apiFallback(...args),
+  getDeviceCodeApi: (...args: unknown[]) => apiFallback(...args),
+  startAnthropicOAuth: (...args: unknown[]) => apiFallback(...args),
+  submitAnthropicOAuth: (...args: unknown[]) => apiFallback(...args),
+  revokeAnthropicOAuth: (...args: unknown[]) => apiFallback(...args),
+  getAnthropicOAuthPending: (...args: unknown[]) => apiFallback(...args),
+  copilotDeviceCode: (...args: unknown[]) => apiFallback(...args),
+  copilotPollToken: (...args: unknown[]) => apiFallback(...args),
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -75,6 +96,11 @@ vi.mock('../../src/services/formatters.js', () => ({
 
 vi.mock('../../src/services/toast-store.js', () => ({ toast }));
 
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: vi.fn().mockResolvedValue(true),
+  checkLocalLlmHost: vi.fn().mockResolvedValue('localhost'),
+}));
+
 vi.mock('@solidjs/meta', () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: () => null,
@@ -83,6 +109,12 @@ vi.mock('@solidjs/meta', () => ({
 import GlobalProviderByok from '../../src/pages/providers/Byok';
 import GlobalProviderLocal from '../../src/pages/providers/Local';
 import GlobalProviderSubscriptions from '../../src/pages/providers/Subscriptions';
+
+const providerLibraryRow = (providerName: string) => {
+  const cell = screen.getAllByText(providerName).find((element) => element.closest('tr'));
+  expect(cell).toBeDefined();
+  return cell!.closest('tr')!;
+};
 
 describe('GlobalProviders', () => {
   beforeEach(() => {
@@ -140,33 +172,38 @@ describe('GlobalProviders', () => {
     render(() => <GlobalProviderByok />);
     await screen.findByText('My API Keys');
 
-    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
-    await fireEvent.input(screen.getByLabelText('Label'), { target: { value: 'Work' } });
+    await fireEvent.click(
+      within(providerLibraryRow('MiniMax')).getByRole('button', { name: 'Add API key' }),
+    );
+
+    await fireEvent.input(await screen.findByLabelText('MiniMax API key'), {
+      target: { value: 'sk-new' },
+    });
     await fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() =>
       expect(mockConnectGlobalProvider).toHaveBeenCalledWith({
-        provider: 'openai',
+        provider: 'minimax',
         authType: 'api_key',
         apiKey: 'sk-new',
-        label: 'Work',
       }),
     );
-    expect(toast.success).toHaveBeenCalledWith('OpenAI connected');
+    expect(toast.success).toHaveBeenCalledWith('MiniMax connected');
   });
 
   it('opens the selected provider setup form from the provider library', async () => {
     render(() => <GlobalProviderByok />);
     await screen.findByText('My API Keys');
 
-    const miniMaxCell = screen.getAllByText('MiniMax').find((element) => element.closest('tr'));
-    expect(miniMaxCell).toBeDefined();
+    await fireEvent.click(
+      within(providerLibraryRow('MiniMax')).getByRole('button', { name: 'Add API key' }),
+    );
 
-    const miniMaxRow = miniMaxCell!.closest('tr')!;
-    await fireEvent.click(within(miniMaxRow).getByRole('button', { name: 'Add API key' }));
-
-    expect((screen.getByLabelText('Provider') as HTMLSelectElement).value).toBe('minimax');
-    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('Key')));
+    expect(await screen.findByRole('dialog')).toBeDefined();
+    expect(screen.getByText('Connect providers')).toBeDefined();
+    await waitFor(() =>
+      expect(document.activeElement).toBe(screen.getByLabelText('MiniMax API key')),
+    );
   });
 
   it('stops before connect when API-key validation fails', async () => {
@@ -174,10 +211,15 @@ describe('GlobalProviders', () => {
     render(() => <GlobalProviderByok />);
     await screen.findByText('My API Keys');
 
-    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
+    await fireEvent.click(
+      within(providerLibraryRow('MiniMax')).getByRole('button', { name: 'Add API key' }),
+    );
+    await fireEvent.input(await screen.findByLabelText('MiniMax API key'), {
+      target: { value: 'bad' },
+    });
     await fireEvent.click(screen.getByText('Connect'));
 
-    expect(toast.error).toHaveBeenCalledWith('Bad key');
+    expect(screen.getByText('Bad key')).toBeDefined();
     expect(mockConnectGlobalProvider).not.toHaveBeenCalled();
   });
 
@@ -185,7 +227,12 @@ describe('GlobalProviders', () => {
     render(() => <GlobalProviderSubscriptions />);
     await screen.findByText('Subscriptions');
 
-    await fireEvent.input(screen.getByLabelText('Token'), { target: { value: 'sk-cp-new' } });
+    await fireEvent.click(
+      within(providerLibraryRow('MiniMax')).getByRole('button', { name: 'Add subscription' }),
+    );
+    await fireEvent.input(await screen.findByLabelText('MiniMax setup token'), {
+      target: { value: 'sk-cp-new' },
+    });
     await fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() =>
@@ -199,14 +246,22 @@ describe('GlobalProviders', () => {
   });
 
   it('stops before connect when subscription credential validation fails', async () => {
-    validateSubscriptionKeyMock.mockReturnValueOnce({ valid: false });
+    validateSubscriptionKeyMock.mockReturnValueOnce({
+      valid: false,
+      error: 'Invalid subscription credential',
+    });
     render(() => <GlobalProviderSubscriptions />);
     await screen.findByText('Subscriptions');
 
-    await fireEvent.input(screen.getByLabelText('Token'), { target: { value: 'bad' } });
+    await fireEvent.click(
+      within(providerLibraryRow('MiniMax')).getByRole('button', { name: 'Add subscription' }),
+    );
+    await fireEvent.input(await screen.findByLabelText('MiniMax setup token'), {
+      target: { value: 'bad' },
+    });
     await fireEvent.click(screen.getByText('Connect'));
 
-    expect(toast.error).toHaveBeenCalledWith('Invalid subscription credential');
+    expect(screen.getByText('Invalid subscription credential')).toBeDefined();
     expect(mockConnectGlobalProvider).not.toHaveBeenCalled();
   });
 
@@ -215,7 +270,12 @@ describe('GlobalProviders', () => {
     render(() => <GlobalProviderByok />);
     await screen.findByText('My API Keys');
 
-    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
+    await fireEvent.click(
+      within(providerLibraryRow('MiniMax')).getByRole('button', { name: 'Add API key' }),
+    );
+    await fireEvent.input(await screen.findByLabelText('MiniMax API key'), {
+      target: { value: 'sk-new' },
+    });
     await fireEvent.click(screen.getByText('Connect'));
 
     await waitFor(() =>
@@ -280,7 +340,12 @@ describe('GlobalProviders', () => {
     render(() => <GlobalProviderLocal />);
     await screen.findByText('Local Providers');
 
-    await fireEvent.click(screen.getByText('Connect'));
+    await fireEvent.click(
+      within(providerLibraryRow('Ollama')).getByRole('button', { name: 'Connect' }),
+    );
+    await fireEvent.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Connect' }),
+    );
 
     await waitFor(() =>
       expect(mockConnectGlobalProvider).toHaveBeenCalledWith({

@@ -17,6 +17,9 @@
  */
 export interface ProviderDeepLink {
   providerId: string;
+  authType?: 'subscription' | 'api_key' | 'local';
+  closeOnBack?: boolean;
+  addKey?: boolean;
 }
 
 export interface CustomProviderPrefill {

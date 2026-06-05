@@ -2,7 +2,9 @@ import { createSignal, onMount, Show, type Component } from 'solid-js';
 import { normalizeProviderName } from 'manifest-shared';
 import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
+  connectGlobalProvider,
   connectProvider,
+  disconnectGlobalProvider,
   disconnectProvider,
   type AuthType,
   type CustomProviderData,
@@ -29,20 +31,34 @@ export interface ProviderSelectContentProps {
   onClose?: () => void;
   showHeader?: boolean;
   showFooter?: boolean;
+  initialTab?: 'subscription' | 'api_key' | 'local';
+  connectionScope?: 'agent' | 'global';
 }
 
 const noop = () => {};
+
+const supportsGlobalSubscription = (provider: ProviderDef): boolean => {
+  if (!provider.supportsSubscription) return false;
+  if (provider.deviceLogin) return false;
+  if (provider.subscriptionTokenAlternative) return true;
+  return (
+    provider.subscriptionAuthMode !== 'popup_oauth' &&
+    provider.subscriptionAuthMode !== 'popup_paste' &&
+    provider.subscriptionAuthMode !== 'device_code'
+  );
+};
 
 const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => {
   const showHeader = () => props.showHeader !== false;
   const showFooter = () => props.showFooter !== false;
   const closeHandler = () => props.onClose ?? noop;
+  const isGlobalScope = () => props.connectionScope === 'global';
 
   const deepLink = props.providerDeepLink;
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
-    'subscription',
+    props.initialTab ?? deepLink?.authType ?? 'subscription',
   );
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(async () => {
@@ -52,7 +68,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv ? deepLinkProv.id : null,
   );
   const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
-    deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
+    deepLink?.authType ?? (deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key'),
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
@@ -68,10 +84,30 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
-  const [addKeyIntent, setAddKeyIntent] = createSignal(false);
-  const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
+  const [addKeyIntent, setAddKeyIntent] = createSignal(deepLink?.addKey === true);
+  const subscriptionProviders = () =>
+    PROVIDERS.filter((p) =>
+      isGlobalScope() ? supportsGlobalSubscription(p) : p.supportsSubscription,
+    );
   const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
   const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
+  const visibleCustomProviders = () => (isGlobalScope() ? [] : (props.customProviders ?? []));
+
+  const connectCurrentProvider = (data: {
+    provider: string;
+    apiKey?: string;
+    authType?: AuthType;
+    label?: string;
+    region?: string;
+  }) => {
+    if (isGlobalScope()) return connectGlobalProvider(data);
+    return connectProvider(props.agentName, data);
+  };
+
+  const disconnectCurrentProvider = (provider: string, authType?: AuthType, label?: string) => {
+    if (isGlobalScope()) return disconnectGlobalProvider(provider, authType, label);
+    return disconnectProvider(props.agentName, provider, authType, label);
+  };
 
   const getProviderByAuth = (provId: string, authType: AuthType) =>
     props.providers.find((p) => p.provider === provId && p.auth_type === authType);
@@ -132,6 +168,8 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     resetToList();
   };
 
+  const detailBack = deepLink?.closeOnBack ? () => closeHandler()() : goBack;
+
   // Kept as an alias of goBack so callers that finish a flow (create /
   // delete / connect) don't have to know how back-nav works.
   const completeToList = () => {
@@ -183,7 +221,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     // dangling tier overrides as part of disconnect.
     setBusy(true);
     try {
-      const result = await disconnectProvider(props.agentName, providerKey, 'local');
+      const result = await disconnectCurrentProvider(providerKey, 'local');
       if (result?.notifications?.length) {
         for (const msg of result.notifications) toast.error(msg);
       }
@@ -210,13 +248,13 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setBusy(true);
     try {
       if (connected) {
-        const result = await disconnectProvider(props.agentName, provId, 'subscription');
+        const result = await disconnectCurrentProvider(provId, 'subscription');
         if (result?.notifications?.length) {
           for (const msg of result.notifications) toast.error(msg);
         }
         toast.success(`${provDef.name} subscription disconnected`);
       } else {
-        await connectProvider(props.agentName, {
+        await connectCurrentProvider({
           provider: provId,
           authType: 'subscription',
         });
@@ -243,7 +281,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
-            onBack={goBack}
+            onBack={detailBack}
             onOpenCustomForm={() => {
               setLocalServerProvider(null);
               openCustomForm();
@@ -267,7 +305,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
-            onBack={goBack}
+            onBack={detailBack}
             onDeleted={() => {
               completeToList();
               props.onUpdate();
@@ -412,13 +450,14 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <Show when={activeTab() === 'api_key'}>
             <ProviderApiKeyTab
               apiKeyProviders={apiKeyProviders()}
-              customProviders={props.customProviders ?? []}
+              customProviders={visibleCustomProviders()}
               isConnected={isConnected}
               isNoKeyConnected={isNoKeyConnected}
               onOpenDetail={openDetail}
               onAddKey={(provId, authType) => openDetail(provId, authType, true)}
               onOpenCustomForm={openCustomForm}
               onEditCustom={openEditCustom}
+              allowCustomProviders={!isGlobalScope()}
             />
           </Show>
 
@@ -426,13 +465,15 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
           <Show when={activeTab() === 'local' && isSelfHosted()}>
             <ProviderLocalTab
               localProviders={localProviders()}
-              customProviders={props.customProviders ?? []}
+              customProviders={visibleCustomProviders()}
               isConnected={isLocalConnected}
               onToggle={handleLocalToggle}
               busy={busy}
               onOpenDetail={openDetail}
               onEditCustom={openEditCustom}
-              onOpenLocalServer={openLocalServer}
+              onOpenLocalServer={(prov) =>
+                isGlobalScope() ? openDetail(prov.id, 'local') : openLocalServer(prov)
+              }
             />
           </Show>
 
@@ -460,14 +501,14 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             agentName={props.agentName}
             connected={isSubscriptionWithToken(selectedProvider()!)}
             activeKeys={getActiveProviderKeys(selectedProvider()!, 'subscription')}
-            onBack={goBack}
+            onBack={detailBack}
             onConnected={async () => {
               await props.onUpdate();
-              goBack();
+              detailBack();
             }}
             onUpdated={props.onUpdate}
             onDisconnected={() => {
-              goBack();
+              detailBack();
               props.onUpdate();
             }}
           />
@@ -497,10 +538,11 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             setEditing={setEditing}
             validationError={validationError}
             setValidationError={setValidationError}
-            onBack={goBack}
+            onBack={detailBack}
             onUpdate={props.onUpdate}
             onClose={closeHandler()}
             initialAddKey={addKeyIntent()}
+            connectionScope={props.connectionScope}
           />
         </div>
       </Show>
