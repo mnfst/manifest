@@ -1,6 +1,6 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-import { Router, Route } from '@solidjs/router';
+import { Router, Route, Navigate } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
@@ -30,6 +30,9 @@ const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
 const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
+const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.jsx'));
+const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
+const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -70,6 +73,10 @@ render(
 
             <Route path="/help" component={Help} />
           </Route>
+          <Route path="/providers/subscriptions" component={Subscriptions} />
+          <Route path="/providers/byok" component={Byok} />
+          <Route path="/providers/local" component={LocalProviders} />
+          <Route path="/providers" component={() => <Navigate href="/providers/subscriptions" />} />
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
         </Route>
