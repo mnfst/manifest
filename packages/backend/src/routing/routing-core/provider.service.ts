@@ -71,6 +71,74 @@ export class ProviderService {
     return providers.filter(isManifestUsableProvider);
   }
 
+  async assertGlobalProvidersSelectable(userId: string, providerIds: string[]): Promise<void> {
+    if (providerIds.length === 0) return;
+    const uniqueIds = [...new Set(providerIds)];
+    const rows = await this.findSelectableGlobalProviders(userId, providerIds);
+    if (rows.length !== uniqueIds.length) {
+      throw new BadRequestException(
+        'One or more selected global providers are no longer available',
+      );
+    }
+  }
+
+  async copyGlobalProvidersToAgent(
+    userId: string,
+    agentId: string,
+    providerIds: string[],
+  ): Promise<number> {
+    if (providerIds.length === 0) return 0;
+    const rows = await this.findSelectableGlobalProviders(userId, providerIds);
+    if (rows.length === 0) return 0;
+
+    const now = new Date().toISOString();
+    const copies = rows.map((row) =>
+      Object.assign(new UserProvider(), {
+        id: randomUUID(),
+        user_id: userId,
+        agent_id: agentId,
+        provider: row.provider,
+        api_key_encrypted: row.api_key_encrypted,
+        key_prefix: row.key_prefix,
+        auth_type: row.auth_type,
+        label: row.label,
+        priority: row.priority,
+        region: row.region,
+        is_active: true,
+        connected_at: now,
+        updated_at: now,
+        cached_models: row.cached_models,
+        models_fetched_at: row.models_fetched_at,
+      }),
+    );
+
+    await this.providerRepo.insert(copies);
+    await this.afterProviderInsert(agentId);
+    return copies.length;
+  }
+
+  private async findSelectableGlobalProviders(
+    userId: string,
+    providerIds: string[],
+  ): Promise<UserProvider[]> {
+    const uniqueIds = [...new Set(providerIds)];
+    if (uniqueIds.length === 0) return [];
+    const rows = await this.providerRepo.find({
+      where: {
+        id: In(uniqueIds),
+        user_id: userId,
+        agent_id: IsNull(),
+        is_active: true,
+      },
+    });
+    const usableRows = rows.filter(isManifestUsableProvider);
+    const byId = new Map(usableRows.map((row) => [row.id, row]));
+    return uniqueIds.flatMap((id) => {
+      const row = byId.get(id);
+      return row ? [row] : [];
+    });
+  }
+
   private scopeWhere(
     scope: ProviderScope,
     extra?: FindOptionsWhere<UserProvider>,

@@ -95,4 +95,34 @@ describe('CreateAgentDto', () => {
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
   });
+
+  it('accepts selected global provider IDs', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      global_provider_ids: ['11111111-1111-4111-8111-111111111111'],
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects malformed global provider IDs', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      global_provider_ids: ['not-a-uuid'],
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('rejects duplicate global provider IDs', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      global_provider_ids: [
+        '11111111-1111-4111-8111-111111111111',
+        '11111111-1111-4111-8111-111111111111',
+      ],
+    });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
 });

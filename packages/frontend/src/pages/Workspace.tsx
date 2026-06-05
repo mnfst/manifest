@@ -1,5 +1,6 @@
 import {
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   Show,
@@ -12,7 +13,13 @@ import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import AgentTypeSelect from '../components/AgentTypeSelect.jsx';
 import DuplicateAgentModal from '../components/DuplicateAgentModal.jsx';
-import { getAgents, createAgent, deleteAgent } from '../services/api.js';
+import {
+  getAgents,
+  createAgent,
+  deleteAgent,
+  getGlobalProviders,
+  type RoutingProvider,
+} from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { formatNumber } from '../services/formatters.js';
@@ -41,6 +48,16 @@ interface AgentsData {
   agents: Agent[];
 }
 
+const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
+  anthropic: 'Anthropic',
+  copilot: 'GitHub Copilot',
+  minimax: 'MiniMax',
+  openai: 'OpenAI',
+  qwen: 'Qwen',
+  xai: 'xAI',
+  zai: 'Z.ai',
+};
+
 const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
   const navigate = useNavigate();
   const [name, setName] = createSignal('');
@@ -49,10 +66,49 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     PLATFORMS_BY_CATEGORY['personal'][0] ?? null,
   );
   const [creating, setCreating] = createSignal(false);
+  const [selectedGlobalProviderIds, setSelectedGlobalProviderIds] = createSignal<Set<string>>(
+    new Set(),
+  );
+  const [globalProviders] = createResource(
+    () => props.open,
+    async (open) => (open ? getGlobalProviders() : []),
+  );
+
+  const copyableGlobalProviders = createMemo(() =>
+    (globalProviders() ?? []).filter(
+      (provider) =>
+        provider.is_active &&
+        (provider.has_api_key || provider.auth_type === 'local') &&
+        provider.id,
+    ),
+  );
 
   const handleCategoryChange = (c: AgentCategory) => {
     setCategory(c);
     setPlatform(PLATFORMS_BY_CATEGORY[c][0] ?? null);
+  };
+
+  const toggleGlobalProvider = (providerId: string, checked: boolean) => {
+    setSelectedGlobalProviderIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(providerId);
+      else next.delete(providerId);
+      return next;
+    });
+  };
+
+  const providerDisplayName = (provider: RoutingProvider) =>
+    PROVIDER_DISPLAY_NAMES[provider.provider] ??
+    provider.provider
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+
+  const providerAuthLabel = (provider: RoutingProvider) => {
+    if (provider.auth_type === 'subscription') return 'Subscription';
+    if (provider.auth_type === 'local') return 'Local';
+    return 'BYOK';
   };
 
   const handleCreate = async () => {
@@ -60,10 +116,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     if (!agentName) return;
     setCreating(true);
     try {
+      const globalProviderIds = Array.from(selectedGlobalProviderIds());
       const result = await createAgent({
         name: agentName,
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
+        ...(globalProviderIds.length > 0 ? { global_provider_ids: globalProviderIds } : {}),
       });
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
@@ -84,6 +142,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setName('');
     setCategory('personal');
     setPlatform(PLATFORMS_BY_CATEGORY['personal'][0] ?? null);
+    setSelectedGlobalProviderIds(new Set<string>());
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -145,6 +204,55 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 disabled={creating()}
               />
             </div>
+          </div>
+
+          <div class="global-provider-picker">
+            <div class="global-provider-picker__header">
+              <label class="modal-card__field-label">Global providers</label>
+              <span>{selectedGlobalProviderIds().size} selected</span>
+            </div>
+            <Show
+              when={!globalProviders.loading}
+              fallback={<p class="global-provider-picker__empty">Loading providers...</p>}
+            >
+              <Show
+                when={copyableGlobalProviders().length > 0}
+                fallback={
+                  <p class="global-provider-picker__empty">No global providers connected yet.</p>
+                }
+              >
+                <div class="global-provider-picker__list">
+                  <For each={copyableGlobalProviders()}>
+                    {(provider) => (
+                      <label
+                        class="global-provider-picker__option"
+                        classList={{
+                          'global-provider-picker__option--checked':
+                            selectedGlobalProviderIds().has(provider.id),
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedGlobalProviderIds().has(provider.id)}
+                          disabled={creating()}
+                          onChange={(event) =>
+                            toggleGlobalProvider(provider.id, event.currentTarget.checked)
+                          }
+                        />
+                        <span class="global-provider-picker__content">
+                          <span class="global-provider-picker__name">
+                            {providerDisplayName(provider)}
+                          </span>
+                          <span class="global-provider-picker__meta">
+                            {providerAuthLabel(provider)} - {provider.label}
+                          </span>
+                        </span>
+                      </label>
+                    )}
+                  </For>
+                </div>
+              </Show>
+            </Show>
           </div>
 
           <div class="modal-card__footer">

@@ -110,6 +110,68 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(result.map((row) => row.id)).toEqual(['p1']);
     });
 
+    it('copies selected global providers into a new agent scope', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          user_id: 'user-1',
+          agent_id: null,
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Work',
+          priority: 2,
+          api_key_encrypted: 'encrypted-key',
+          key_prefix: 'sk-test',
+          region: 'us',
+          is_active: true,
+          cached_models: [{ id: 'gpt-4o' }],
+          models_fetched_at: '2026-01-01T00:00:00.000Z',
+        },
+      ]);
+
+      const copied = await svc.copyGlobalProvidersToAgent('user-1', 'agent-1', [
+        '11111111-1111-4111-8111-111111111111',
+      ]);
+
+      expect(copied).toBe(1);
+      expect(providerRepo.insert).toHaveBeenCalledWith([
+        expect.objectContaining({
+          user_id: 'user-1',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Work',
+          priority: 2,
+          api_key_encrypted: 'encrypted-key',
+          key_prefix: 'sk-test',
+          region: 'us',
+          is_active: true,
+          cached_models: [{ id: 'gpt-4o' }],
+          models_fetched_at: '2026-01-01T00:00:00.000Z',
+        }),
+      ]);
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('rejects selected global providers that are missing or unusable', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          user_id: 'user-1',
+          agent_id: null,
+          provider: 'unknown-sub',
+          auth_type: 'subscription',
+          is_active: true,
+        },
+      ]);
+
+      await expect(
+        svc.assertGlobalProvidersSelectable('user-1', ['11111111-1111-4111-8111-111111111111']),
+      ).rejects.toThrow('One or more selected global providers are no longer available');
+      expect(providerRepo.insert).not.toHaveBeenCalled();
+    });
+
     it('renames a global key without relabeling agent route overrides', async () => {
       providerRepo.find.mockResolvedValue([
         {

@@ -154,6 +154,103 @@
   filter: invert(1);
 }
 
+.global-provider-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.global-provider-picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.global-provider-picker__header .modal-card__field-label {
+  margin: 0;
+}
+
+.global-provider-picker__header span {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.global-provider-picker__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.global-provider-picker__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.global-provider-picker__option:hover {
+  border-color: hsl(var(--foreground) / 0.3);
+  background: hsl(var(--muted) / 0.45);
+}
+
+.global-provider-picker__option--checked {
+  border-color: hsl(var(--ring));
+  background: hsl(var(--accent));
+}
+
+.global-provider-picker__option input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  flex: 0 0 auto;
+}
+
+.global-provider-picker__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.global-provider-picker__name,
+.global-provider-picker__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-provider-picker__name {
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.global-provider-picker__meta,
+.global-provider-picker__empty {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+}
+
+.global-provider-picker__empty {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+
 @media (max-width: 768px) {
   .agent-type-select-row {
     flex-direction: column;
@@ -197,5 +294,9 @@
 
   .agent-type-select__option {
     min-height: 40px;
+  }
+
+  .global-provider-picker__list {
+    grid-template-columns: 1fr;
   }
 }
