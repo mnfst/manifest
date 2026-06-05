@@ -196,7 +196,7 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-a',
-          agent_id: 'agent-a',
+          user_id: 'agent-a',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -205,7 +205,7 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-b',
-          agent_id: 'agent-b',
+          user_id: 'agent-b',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -218,27 +218,27 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       expect(resultA[0].id).not.toBe(resultB[0].id);
     });
 
-    it('scopes the custom provider repository query by agent_id', async () => {
+    it('scopes the custom provider repository query by user_id', async () => {
       providerRepo.find.mockResolvedValue([]);
       customProviderRepo.find.mockResolvedValue([]);
 
       await service.getModelsForAgent('agent-isolated');
 
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-isolated' },
+        where: { user_id: 'agent-isolated' },
       });
     });
   });
 
   describe('getModelForAgent — custom provider tenant isolation', () => {
-    it('returns undefined for a custom model id that belongs to a different agent', async () => {
+    it('returns undefined for a custom model id that belongs to a different user', async () => {
       providerRepo.find.mockResolvedValue([]);
       customProviderRepo.find.mockResolvedValue([]);
 
       const result = await service.getModelForAgent('agent-b', 'custom:cp-agent-a/exclusive-model');
       expect(result).toBeUndefined();
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-b' },
+        where: { user_id: 'agent-b' },
       });
     });
   });
