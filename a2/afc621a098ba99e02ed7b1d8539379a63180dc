@@ -1,0 +1,21 @@
+packages/backend/src/model-discovery/model-discovery.service.boundary.spec.ts
+  s_feb7f7e060c1a0::t_882b84f30fa2c2 199,208,221,228,234,241
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_feb7f7e060c1a0::t_882b84f30fa2c2 390,393,406,424,433,450,465,467,480,500,512,545,550,552,556,566,568-570,588,608,621,634,638,641,645,648-649,652,655-656,659,662-663,679,684,686-697,700-712,714-718,720-734,749-750,759-760,767,769,775-776,779-780,788,790,799,807,817-818,822,843,868,2090,2124,2152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "a2afc621a098ba99e02ed7b1d8539379a63180dc",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
