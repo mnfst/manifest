@@ -173,6 +173,7 @@ export class ProxyService {
 
     const resolved = await this.resolveRouting(
       agentId,
+      userId,
       routingBody,
       sessionKey,
       specificityOverride,
@@ -390,6 +391,7 @@ export class ProxyService {
 
   private async resolveRouting(
     agentId: string,
+    userId: string,
     body: ProxyRequestOptions['body'],
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
@@ -403,9 +405,10 @@ export class ProxyService {
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
     return isHeartbeat
-      ? this.resolveService.resolveForTier(agentId, 'simple')
+      ? this.resolveService.resolveForTier(agentId, userId, 'simple')
       : this.resolveService.resolve(
           agentId,
+          userId,
           scoringMessages,
           scoringTools,
           body.tool_choice,
@@ -428,7 +431,7 @@ export class ProxyService {
     providerRegion?: string | null;
   } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
-      agentId,
+      userId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
@@ -455,14 +458,14 @@ export class ProxyService {
     if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
       rawApiKey =
         (await this.providerKeyService.getProviderApiKey(
-          agentId,
+          userId,
           resolved.provider,
           resolved.auth_type,
           resolved.provider_key_label,
         )) ?? apiKey;
     }
     const providerRegion = await this.providerKeyService.getProviderRegion(
-      agentId,
+      userId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,

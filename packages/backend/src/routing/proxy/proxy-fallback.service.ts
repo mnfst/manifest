@@ -205,11 +205,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(agentId, prefix))
+            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(agentId, requestedModel));
+            (await this.providerKeyService.findProviderForModel(userId, requestedModel));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -217,14 +217,14 @@ export class ProxyFallbackService {
         }
         const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
         authType = (await this.providerKeyService.getAuthType(
-          agentId,
+          userId,
           provider,
           excludeAuth,
         )) as AuthType;
       }
       if (!providerKeyLabel && authType === 'subscription') {
         providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          agentId,
+          userId,
           provider,
           authType,
         );
@@ -232,7 +232,7 @@ export class ProxyFallbackService {
 
       const model = normalizeProviderModel(provider, requestedModel);
       const apiKey = await this.providerKeyService.getProviderApiKey(
-        agentId,
+        userId,
         provider,
         authType,
         providerKeyLabel,
@@ -268,14 +268,14 @@ export class ProxyFallbackService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agentId,
+            userId,
             provider,
             authType,
             providerKeyLabel,
           )) ?? apiKey;
       }
       const providerRegion = await this.providerKeyService.getProviderRegion(
-        agentId,
+        userId,
         provider,
         authType,
         providerKeyLabel,
@@ -442,11 +442,13 @@ export class ProxyFallbackService {
     }
 
     // Custom providers store their endpoint on a DB row; fetch it so the shared
-    // resolver can build the override. (Kept in the caller to keep the resolver
-    // synchronous + DB-free.)
+    // resolver can build the override. Scoped by user_id to prevent cross-user
+    // resolution. (Kept in the caller to keep the resolver synchronous + DB-free.)
     const customProvider = CustomProviderService.isCustom(provider)
       ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(provider) },
+          where: opts.userId
+            ? { id: CustomProviderService.extractId(provider), user_id: opts.userId }
+            : { id: CustomProviderService.extractId(provider) },
         })
       : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({
