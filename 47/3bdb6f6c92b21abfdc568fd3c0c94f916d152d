@@ -1,0 +1,49 @@
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.ts
+  s_feb7f7e060c1a0::t_1ef5852d35c615 26-27,59,81-84,86-87
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_feb7f7e060c1a0::t_ec203785a76dbb 38,46,49-50,56,60,65,70,80,85,107,109,114,119,128-129,137,142,147,152,159,166,174,245,247,263
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_feb7f7e060c1a0::t_e8fea655c6ac37 445-446,449-451
+  s_feb7f7e060c1a0::t_ee31548d2239ec 208,212,220,227,235,271,278
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_feb7f7e060c1a0::t_1ef5852d35c615 45,88-102,119,279,286,336,341
+packages/backend/src/routing/routing-core/tier-auto-assign.service.ts
+  s_feb7f7e060c1a0::t_356de7a57f434d 63-65
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_feb7f7e060c1a0::t_01f4bd33f009e8 7,41-42,51-52,56-70,73-74,77,89,94,100,112,142,163,183,188,197,220,231-233,235-236,238-244,264,270,280,294,300,306,339,437,442,461,465-474,484-489,496,500,516-519,523-524,530-532,538,543,556,563-564,568-610,614,634,644,649,665,670,672,676,678,700,702,704-705,707,739-745,748,971,976,1041,1044
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_feb7f7e060c1a0::t_77eaf0585f8a45 176
+  s_feb7f7e060c1a0::t_f2486f97149d61 461,468
+  s_feb7f7e060c1a0::t_527ce1d1801ce8 394,408,411
+  s_feb7f7e060c1a0::t_d3387916ca2fa0 434
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_feb7f7e060c1a0::t_ab286595915136 71,82,88,93,117,123,157,180,196,216,225-226,228,233,257,299,316,344,349-350,357,372-376,379,391-395,398,402
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_feb7f7e060c1a0::t_537007f0c40e99 379
+  s_feb7f7e060c1a0::t_4cb0b827866c21 252,260-263,266,271,273
+  s_feb7f7e060c1a0::t_a8de71a6b5011c 332
+  s_feb7f7e060c1a0::t_8db8134b11f8a5 287,296-297
+  s_feb7f7e060c1a0::t_b38cd7105e4f23 415-416,418
+  s_feb7f7e060c1a0::t_59be3388363fb5 453-458
+  s_feb7f7e060c1a0::t_ca4dc39b1069e8 360
+  s_feb7f7e060c1a0::t_d5ab81b80cdd19 348-353
+  s_feb7f7e060c1a0::t_53431c1dfdd266 381
+packages/backend/src/routing/routing-core/routing-invalidation.service.ts
+  s_feb7f7e060c1a0::t_1ef5852d35c615 36,60,69,71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "473bdb6f6c92b21abfdc568fd3c0c94f916d152d",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
