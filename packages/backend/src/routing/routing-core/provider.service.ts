@@ -27,6 +27,17 @@ const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
 
 type ProviderScope = { type: 'agent'; agentId: string } | { type: 'global'; userId: string };
+export type ProviderConnectionScope =
+  | { type: 'agent'; agentId: string; userId: string }
+  | { type: 'global'; userId: string };
+
+export interface DecryptedProviderKey {
+  id: string;
+  label: string;
+  priority: number;
+  apiKey: string | null;
+  region: string | null;
+}
 
 @Injectable()
 export class ProviderService {
@@ -157,6 +168,12 @@ export class ProviderService {
     return scope.type === 'agent' ? scope.agentId : null;
   }
 
+  private providerScopeFromConnection(scope: ProviderConnectionScope): ProviderScope {
+    return scope.type === 'agent'
+      ? { type: 'agent', agentId: scope.agentId }
+      : { type: 'global', userId: scope.userId };
+  }
+
   private async afterScopedProviderChange(scope: ProviderScope): Promise<void> {
     if (scope.type !== 'agent') return;
     await this.autoAssign.recalculate(scope.agentId);
@@ -224,6 +241,25 @@ export class ProviderService {
     return this.upsertProviderInScope(
       { type: 'global', userId },
       userId,
+      provider,
+      apiKey,
+      authType,
+      region,
+      label,
+    );
+  }
+
+  async upsertProviderForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+    apiKey?: string,
+    authType?: AuthType,
+    region?: string,
+    label?: string,
+  ): Promise<{ provider: UserProvider; isNew: boolean }> {
+    return this.upsertProviderInScope(
+      this.providerScopeFromConnection(scope),
+      scope.userId,
       provider,
       apiKey,
       authType,
@@ -788,6 +824,51 @@ export class ProviderService {
     return { notifications: [] };
   }
 
+  async removeProviderForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+  ): Promise<{ notifications: string[] }> {
+    if (scope.type === 'agent') {
+      return this.removeProvider(scope.agentId, provider, authType, label);
+    }
+    return this.removeGlobalProvider(scope.userId, provider, authType, label);
+  }
+
+  async getProviderKeysForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+    authType?: AuthType,
+  ): Promise<DecryptedProviderKey[]> {
+    const where = this.scopeWhere(this.providerScopeFromConnection(scope), {
+      provider,
+      is_active: true,
+    });
+    if (authType) where.auth_type = authType;
+    const rows = await this.providerRepo.find({ where, order: { priority: 'ASC' } });
+    return rows
+      .map((record) => {
+        if (!record.api_key_encrypted) {
+          return {
+            id: record.id,
+            label: record.label,
+            priority: record.priority,
+            apiKey: null,
+            region: record.region,
+          };
+        }
+        return {
+          id: record.id,
+          label: record.label,
+          priority: record.priority,
+          apiKey: this.decryptOrNull(record.api_key_encrypted),
+          region: record.region,
+        };
+      })
+      .filter((record) => record.apiKey !== null || authType === 'local');
+  }
+
   /**
    * Delete a single labeled key from a provider's chain. If it was the last
    * key for the (agent, provider, auth_type) tuple, falls through to the
@@ -1223,13 +1304,19 @@ export class ProviderService {
    * a "Default" row already exists, returns "Key 2", "Key 3", etc.
    */
   async nextOAuthLabel(agentId: string, provider: string): Promise<string | undefined> {
+    return this.nextOAuthLabelForConnection({ type: 'agent', agentId, userId: '' }, provider);
+  }
+
+  async nextOAuthLabelForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+  ): Promise<string | undefined> {
     const existing = await this.providerRepo.find({
-      where: {
-        agent_id: agentId,
+      where: this.scopeWhere(this.providerScopeFromConnection(scope), {
         provider,
         auth_type: 'subscription' as AuthType,
         is_active: true,
-      },
+      }),
     });
     if (existing.length === 0) return undefined;
     const lower = new Set(existing.map((r) => r.label.toLowerCase()));

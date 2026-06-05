@@ -14,6 +14,7 @@ import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { AnthropicOauthExchangeError, AnthropicOauthService } from './anthropic-oauth.service';
 import { optionalTrimmedStringQuery } from '../query-params';
+import { resolveOAuthConnectionScope } from '../oauth-scope';
 
 @Controller('api/v1/oauth/anthropic')
 export class AnthropicOauthController {
@@ -31,12 +32,16 @@ export class AnthropicOauthController {
    * the authorization code for the user to paste into the SPA.
    */
   @Post('authorize')
-  async authorize(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return this.oauthService.generateAuthorizationUrl(agent.id, user.id);
+  async authorize(
+    @Query('agentName') agentName: string | string[] | undefined,
+    @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
+  ) {
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
+    return this.oauthService.generateAuthorizationUrl(
+      scope.type === 'agent' ? scope.agentId : scope,
+      user.id,
+    );
   }
 
   /**
@@ -45,21 +50,23 @@ export class AnthropicOauthController {
    */
   @Post('exchange')
   async exchange(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @Body('code') code: string,
     @Body('state') state: string,
     @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
     if (!code) {
       throw new HttpException('code is required', HttpStatus.BAD_REQUEST);
     }
-    // Resolve the agent so unknown agents still 404 even if state is valid.
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
     try {
-      await this.oauthService.exchangeCode(code, state, agent.id, user.id);
+      await this.oauthService.exchangeCode(
+        code,
+        state,
+        scope.type === 'agent' ? scope.agentId : scope,
+        user.id,
+      );
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Token exchange failed';
@@ -77,32 +84,43 @@ export class AnthropicOauthController {
    * so the paste-code field can be re-rendered without restarting the dance.
    */
   @Get('pending')
-  async pending(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return (await this.oauthService.findPendingForAgent(agent.id, user.id)) ?? { state: null };
+  async pending(
+    @Query('agentName') agentName: string | string[] | undefined,
+    @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
+  ) {
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
+    const pending =
+      scope.type === 'agent'
+        ? await this.oauthService.findPendingForAgent(scope.agentId, user.id)
+        : await this.oauthService.findPendingForConnection(scope, user.id);
+    return pending ?? { state: null };
   }
 
   /** Disconnect the Anthropic subscription provider for an agent. */
   @Post('revoke')
   async revoke(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @Query('label') label: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const { notifications } = await this.providerService.removeProvider(
-      agent.id,
-      'anthropic',
-      'subscription',
-      keyLabel,
-    );
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
+    const { notifications } =
+      scope.type === 'agent'
+        ? await this.providerService.removeProvider(
+            scope.agentId,
+            'anthropic',
+            'subscription',
+            keyLabel,
+          )
+        : await this.providerService.removeProviderForConnection(
+            scope,
+            'anthropic',
+            'subscription',
+            keyLabel,
+          );
     return { ok: true, notifications };
   }
 }

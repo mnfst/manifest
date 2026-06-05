@@ -3,8 +3,10 @@ import { providerIcon } from './ProviderIcon.js';
 import {
   copilotDeviceCode,
   copilotPollToken,
+  disconnectGlobalProvider,
   disconnectProvider,
   type CopilotPollStatus,
+  type ProviderConnectionScope,
   type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -25,6 +27,7 @@ type Phase = 'idle' | 'loading' | 'awaiting' | 'success' | 'error';
 
 interface Props {
   agentName: string;
+  connectionScope?: ProviderConnectionScope;
   connected: boolean;
   activeKeys?: RoutingProvider[];
   onBack: () => void;
@@ -62,7 +65,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
     setError('');
     cancelled = false;
     try {
-      const result = await copilotDeviceCode(props.agentName);
+      const result = await copilotDeviceCode(props.agentName, props.connectionScope);
       setUserCode(result.user_code);
       setVerificationUri(result.verification_uri);
       setPhase('awaiting');
@@ -78,7 +81,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
     pollTimeout = setTimeout(async () => {
       if (cancelled) return;
       try {
-        const result = await copilotPollToken(props.agentName, code);
+        const result = await copilotPollToken(props.agentName, code, props.connectionScope);
         if (cancelled) return;
         const next = handlePollResult(result.status, delaySec);
         if (next > 0) schedulePoll(code, next, 0);
@@ -122,7 +125,10 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     setBusy(true);
     try {
-      const result = await disconnectProvider(props.agentName, 'copilot', 'subscription');
+      const result =
+        props.connectionScope === 'global'
+          ? await disconnectGlobalProvider('copilot', 'subscription')
+          : await disconnectProvider(props.agentName, 'copilot', 'subscription');
       if (result?.notifications?.length) {
         for (const msg of result.notifications) toast.error(msg);
       }
@@ -137,7 +143,10 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     setBusy(true);
     try {
-      const result = await disconnectProvider(props.agentName, 'copilot', 'subscription', label);
+      const result =
+        props.connectionScope === 'global'
+          ? await disconnectGlobalProvider('copilot', 'subscription', label)
+          : await disconnectProvider(props.agentName, 'copilot', 'subscription', label);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) toast.error(msg);
       }

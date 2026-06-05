@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'node:crypto';
-import { ProviderService } from '../routing-core/provider.service';
+import { ProviderService, type ProviderConnectionScope } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { coordinateOAuthRefresh, oauthRefreshKey } from './core';
@@ -29,8 +29,7 @@ interface PendingKiroOAuth {
   clientId: string;
   clientSecret: string;
   deviceCode: string;
-  agentId: string;
-  userId: string;
+  scope: ProviderConnectionScope;
   expiresAt: number;
   pollIntervalMs: number;
 }
@@ -80,6 +79,10 @@ const PENDING_TOKEN_ERRORS = new Set(['authorization_pending', 'slow_down']);
 // by 5 seconds. Persist the bumped interval so subsequent polls keep backing off.
 const SLOW_DOWN_BACKOFF_MS = 5000;
 
+function scopeLogLabel(scope: ProviderConnectionScope): string {
+  return scope.type === 'agent' ? `agent=${scope.agentId}` : `global user=${scope.userId}`;
+}
+
 @Injectable()
 export class KiroOauthService {
   private readonly logger = new Logger(KiroOauthService.name);
@@ -104,7 +107,14 @@ export class KiroOauthService {
       : KIRO_DEFAULT_SCOPES;
   }
 
-  async startAuthorization(agentId: string, userId: string): Promise<KiroOAuthStartResult> {
+  async startAuthorization(
+    scopeOrAgentId: ProviderConnectionScope | string,
+    userId: string,
+  ): Promise<KiroOAuthStartResult> {
+    const scope: ProviderConnectionScope =
+      typeof scopeOrAgentId === 'string'
+        ? { type: 'agent', agentId: scopeOrAgentId, userId }
+        : scopeOrAgentId;
     this.cleanupExpired();
     const baseUrl = getKiroOidcBaseUrl(this.region);
     const { clientId, clientSecret } = await this.registerClient(baseUrl);
@@ -117,8 +127,7 @@ export class KiroOauthService {
       clientId,
       clientSecret,
       deviceCode: device.deviceCode,
-      agentId,
-      userId,
+      scope,
       expiresAt,
       pollIntervalMs,
     });
@@ -140,7 +149,7 @@ export class KiroOauthService {
     if (!pending) {
       return { status: 'error', message: 'Kiro login expired. Start again.' };
     }
-    if (pending.userId !== userId) {
+    if (pending.scope.userId !== userId) {
       return { status: 'error', message: 'Kiro login session does not match the current user.' };
     }
     if (Date.now() >= pending.expiresAt) {
@@ -197,10 +206,9 @@ export class KiroOauthService {
       cs: pending.clientSecret,
       region: this.region,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'kiro');
-    const { provider: savedProvider } = await this.providerService.upsertProvider(
-      pending.agentId,
-      pending.userId,
+    const label = await this.providerService.nextOAuthLabelForConnection(pending.scope, 'kiro');
+    const { provider: savedProvider } = await this.providerService.upsertProviderForConnection(
+      pending.scope,
       'kiro',
       serializeKiroOAuthTokenBlob(blob),
       'subscription',
@@ -209,11 +217,13 @@ export class KiroOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      if (pending.scope.type === 'agent') {
+        await this.providerService.recalculateTiers(pending.scope.agentId);
+      }
     } catch (err) {
       this.logger.warn(`Model discovery after Kiro OAuth failed: ${err}`);
     }
-    this.logger.log(`Kiro OAuth token stored for agent=${pending.agentId}`);
+    this.logger.log(`Kiro OAuth token stored for ${scopeLogLabel(pending.scope)}`);
     return { status: 'success' };
   }
 

@@ -196,14 +196,26 @@ export interface DeviceCodeResponse {
 
 export type CopilotPollStatus = 'pending' | 'complete' | 'expired' | 'denied' | 'slow_down';
 
-export function copilotDeviceCode(agentName: string) {
-  return fetchMutate<DeviceCodeResponse>(routingPath(agentName, 'copilot/device-code'), {
+export function copilotDeviceCode(agentName: string, scope?: 'agent' | 'global') {
+  const path =
+    scope === 'global'
+      ? '/providers/copilot/device-code'
+      : routingPath(agentName, 'copilot/device-code');
+  return fetchMutate<DeviceCodeResponse>(path, {
     method: 'POST',
   });
 }
 
-export async function copilotPollToken(agentName: string, deviceCode: string) {
-  const res = await fetch(`/api/v1${routingPath(agentName, 'copilot/poll-token')}`, {
+export async function copilotPollToken(
+  agentName: string,
+  deviceCode: string,
+  scope?: 'agent' | 'global',
+) {
+  const path =
+    scope === 'global'
+      ? '/providers/copilot/poll-token'
+      : routingPath(agentName, 'copilot/poll-token');
+  const res = await fetch(`/api/v1${path}`, {
     credentials: 'include',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

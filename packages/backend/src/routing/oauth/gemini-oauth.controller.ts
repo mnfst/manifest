@@ -22,6 +22,7 @@ import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { optionalTrimmedStringQuery } from './query-params';
+import { resolveOAuthConnectionScope } from './oauth-scope';
 
 @Controller('api/v1/oauth/gemini')
 export class GeminiOauthController {
@@ -43,20 +44,22 @@ export class GeminiOauthController {
    */
   @Get('authorize')
   async authorize(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
     @Req() req: Request,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
     // Prefer the operator-configured BETTER_AUTH_URL so a forged Host header
     // cannot redirect the OAuth flow.
     const trustedBackendUrl = this.configService.get<string>('BETTER_AUTH_URL');
     const backendUrl = trustedBackendUrl || `${req.protocol}://${req.get('host')}`;
     try {
-      const url = await this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
+      const url = await this.oauthService.generateAuthorizationUrl(
+        scope.type === 'agent' ? scope.agentId : scope,
+        user.id,
+        backendUrl,
+      );
       return { url };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start OAuth callback server';
@@ -70,16 +73,17 @@ export class GeminiOauthController {
    */
   @Post('revoke')
   async revoke(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @Query('label') label: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(agent.id, 'gemini', 'subscription');
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
+    const keys =
+      scope.type === 'agent'
+        ? await this.providerKeyService.getProviderKeys(scope.agentId, 'gemini', 'subscription')
+        : await this.providerService.getProviderKeysForConnection(scope, 'gemini', 'subscription');
     const keysToRevoke = keyLabel
       ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
       : keys;
@@ -95,12 +99,20 @@ export class GeminiOauthController {
       }
     }
 
-    const { notifications } = await this.providerService.removeProvider(
-      agent.id,
-      'gemini',
-      'subscription',
-      keyLabel,
-    );
+    const { notifications } =
+      scope.type === 'agent'
+        ? await this.providerService.removeProvider(
+            scope.agentId,
+            'gemini',
+            'subscription',
+            keyLabel,
+          )
+        : await this.providerService.removeProviderForConnection(
+            scope,
+            'gemini',
+            'subscription',
+            keyLabel,
+          );
 
     return { ok: true, notifications };
   }

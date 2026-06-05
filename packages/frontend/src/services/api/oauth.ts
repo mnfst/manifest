@@ -1,6 +1,7 @@
 import { fetchJson, fetchMutate } from './core.js';
 
 export type MinimaxOAuthRegion = 'global' | 'cn';
+export type ProviderConnectionScope = 'agent' | 'global';
 
 export interface MinimaxOAuthStartResponse {
   flowId: string;
@@ -16,16 +17,23 @@ export interface MinimaxOAuthPollResponse {
   pollIntervalMs?: number;
 }
 
-export function getOpenaiOAuthUrl(agentName: string) {
-  return fetchJson<{ url: string }>(`/oauth/openai/authorize`, {
-    agentName,
-  });
+function scopedQuery(agentName: string, scope?: ProviderConnectionScope) {
+  return scope === 'global' ? { scope: 'global' } : { agentName };
 }
 
-export function getXaiOAuthUrl(agentName: string) {
-  return fetchJson<{ url: string }>(`/oauth/xai/authorize`, {
-    agentName,
-  });
+function scopedParams(agentName: string, scope?: ProviderConnectionScope) {
+  const params = new URLSearchParams();
+  if (scope === 'global') params.set('scope', 'global');
+  else params.set('agentName', agentName);
+  return params;
+}
+
+export function getOpenaiOAuthUrl(agentName: string, scope?: ProviderConnectionScope) {
+  return fetchJson<{ url: string }>(`/oauth/openai/authorize`, scopedQuery(agentName, scope));
+}
+
+export function getXaiOAuthUrl(agentName: string, scope?: ProviderConnectionScope) {
+  return fetchJson<{ url: string }>(`/oauth/xai/authorize`, scopedQuery(agentName, scope));
 }
 
 export function submitOpenaiOAuthCallback(code: string, state: string) {
@@ -44,8 +52,12 @@ export function submitXaiOAuthCallback(code: string, state: string) {
   });
 }
 
-export function revokeOpenaiOAuth(agentName: string, label?: string) {
-  const params = new URLSearchParams({ agentName });
+export function revokeOpenaiOAuth(
+  agentName: string,
+  label?: string,
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/openai/revoke?${params.toString()}`,
@@ -53,8 +65,8 @@ export function revokeOpenaiOAuth(agentName: string, label?: string) {
   );
 }
 
-export function revokeXaiOAuth(agentName: string, label?: string) {
-  const params = new URLSearchParams({ agentName });
+export function revokeXaiOAuth(agentName: string, label?: string, scope?: ProviderConnectionScope) {
+  const params = scopedParams(agentName, scope);
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/xai/revoke?${params.toString()}`,
@@ -62,11 +74,16 @@ export function revokeXaiOAuth(agentName: string, label?: string) {
   );
 }
 
-export function startMinimaxOAuth(agentName: string, region: MinimaxOAuthRegion = 'global') {
-  return fetchMutate<MinimaxOAuthStartResponse>(
-    `/oauth/minimax/start?agentName=${encodeURIComponent(agentName)}&region=${encodeURIComponent(region)}`,
-    { method: 'POST' },
-  );
+export function startMinimaxOAuth(
+  agentName: string,
+  region: MinimaxOAuthRegion = 'global',
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
+  params.set('region', region);
+  return fetchMutate<MinimaxOAuthStartResponse>(`/oauth/minimax/start?${params.toString()}`, {
+    method: 'POST',
+  });
 }
 
 export function pollMinimaxOAuth(flowId: string) {
@@ -75,8 +92,12 @@ export function pollMinimaxOAuth(flowId: string) {
   });
 }
 
-export function revokeMinimaxOAuth(agentName: string, label?: string) {
-  const params = new URLSearchParams({ agentName });
+export function revokeMinimaxOAuth(
+  agentName: string,
+  label?: string,
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/minimax/revoke?${params.toString()}`,
@@ -84,19 +105,23 @@ export function revokeMinimaxOAuth(agentName: string, label?: string) {
   );
 }
 
-export function startKiroOAuth(agentName: string) {
-  return fetchMutate<MinimaxOAuthStartResponse>(
-    `/oauth/kiro/start?agentName=${encodeURIComponent(agentName)}`,
-    { method: 'POST' },
-  );
+export function startKiroOAuth(agentName: string, scope?: ProviderConnectionScope) {
+  const params = scopedParams(agentName, scope);
+  return fetchMutate<MinimaxOAuthStartResponse>(`/oauth/kiro/start?${params.toString()}`, {
+    method: 'POST',
+  });
 }
 
 export function pollKiroOAuth(flowId: string) {
   return fetchJson<MinimaxOAuthPollResponse>(`/oauth/kiro/poll`, { flowId });
 }
 
-export function revokeKiroOAuth(agentName: string, label?: string) {
-  const params = new URLSearchParams({ agentName });
+export function revokeKiroOAuth(
+  agentName: string,
+  label?: string,
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/kiro/revoke?${params.toString()}`,
@@ -109,30 +134,41 @@ export interface AnthropicOAuthAuthorizeResponse {
   state: string;
 }
 
-export function startAnthropicOAuth(agentName: string) {
+export function startAnthropicOAuth(agentName: string, scope?: ProviderConnectionScope) {
+  const params = scopedParams(agentName, scope);
   return fetchMutate<AnthropicOAuthAuthorizeResponse>(
-    `/oauth/anthropic/authorize?agentName=${encodeURIComponent(agentName)}`,
+    `/oauth/anthropic/authorize?${params.toString()}`,
     { method: 'POST' },
   );
 }
 
-export function submitAnthropicOAuth(agentName: string, payload: string, state: string) {
-  return fetchMutate<{ ok: boolean }>(
-    `/oauth/anthropic/exchange?agentName=${encodeURIComponent(agentName)}`,
-    {
-      method: 'POST',
-      body: JSON.stringify({ code: payload, state }),
-      headers: { 'Content-Type': 'application/json' },
-    },
+export function submitAnthropicOAuth(
+  agentName: string,
+  payload: string,
+  state: string,
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
+  return fetchMutate<{ ok: boolean }>(`/oauth/anthropic/exchange?${params.toString()}`, {
+    method: 'POST',
+    body: JSON.stringify({ code: payload, state }),
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+export function getAnthropicOAuthPending(agentName: string, scope?: ProviderConnectionScope) {
+  return fetchJson<{ state: string | null }>(
+    `/oauth/anthropic/pending`,
+    scopedQuery(agentName, scope),
   );
 }
 
-export function getAnthropicOAuthPending(agentName: string) {
-  return fetchJson<{ state: string | null }>(`/oauth/anthropic/pending`, { agentName });
-}
-
-export function revokeAnthropicOAuth(agentName: string, label?: string) {
-  const params = new URLSearchParams({ agentName });
+export function revokeAnthropicOAuth(
+  agentName: string,
+  label?: string,
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/anthropic/revoke?${params.toString()}`,
@@ -140,10 +176,8 @@ export function revokeAnthropicOAuth(agentName: string, label?: string) {
   );
 }
 
-export function getGeminiOAuthUrl(agentName: string) {
-  return fetchJson<{ url: string }>(`/oauth/gemini/authorize`, {
-    agentName,
-  });
+export function getGeminiOAuthUrl(agentName: string, scope?: ProviderConnectionScope) {
+  return fetchJson<{ url: string }>(`/oauth/gemini/authorize`, scopedQuery(agentName, scope));
 }
 
 export function submitGeminiOAuthCallback(code: string, state: string) {
@@ -154,8 +188,12 @@ export function submitGeminiOAuthCallback(code: string, state: string) {
   });
 }
 
-export function revokeGeminiOAuth(agentName: string, label?: string) {
-  const params = new URLSearchParams({ agentName });
+export function revokeGeminiOAuth(
+  agentName: string,
+  label?: string,
+  scope?: ProviderConnectionScope,
+) {
+  const params = scopedParams(agentName, scope);
   if (label) params.set('label', label);
   return fetchMutate<{ ok: boolean; notifications?: string[] }>(
     `/oauth/gemini/revoke?${params.toString()}`,
@@ -168,9 +206,13 @@ export function revokeGeminiOAuth(agentName: string, label?: string) {
  * right getUrl/submitCallback/revoke triplet based on the provider id.
  */
 export interface PopupOauthApi {
-  getUrl: (agentName: string) => Promise<{ url: string }>;
+  getUrl: (agentName: string, scope?: ProviderConnectionScope) => Promise<{ url: string }>;
   submitCallback: (code: string, state: string) => Promise<{ ok: boolean }>;
-  revoke: (agentName: string, label?: string) => Promise<{ ok: boolean; notifications?: string[] }>;
+  revoke: (
+    agentName: string,
+    label?: string,
+    scope?: ProviderConnectionScope,
+  ) => Promise<{ ok: boolean; notifications?: string[] }>;
 }
 
 const POPUP_OAUTH_PROVIDERS: Record<string, PopupOauthApi> = {
@@ -206,21 +248,29 @@ export function getPopupOauthApi(providerId: string): PopupOauthApi {
  * region argument.
  */
 export interface DeviceCodeApi {
-  start: (agentName: string, region?: MinimaxOAuthRegion) => Promise<MinimaxOAuthStartResponse>;
+  start: (
+    agentName: string,
+    region?: MinimaxOAuthRegion,
+    scope?: ProviderConnectionScope,
+  ) => Promise<MinimaxOAuthStartResponse>;
   poll: (flowId: string) => Promise<MinimaxOAuthPollResponse>;
-  revoke: (agentName: string, label?: string) => Promise<{ ok: boolean; notifications?: string[] }>;
+  revoke: (
+    agentName: string,
+    label?: string,
+    scope?: ProviderConnectionScope,
+  ) => Promise<{ ok: boolean; notifications?: string[] }>;
   hasRegion: boolean;
 }
 
 const DEVICE_CODE_PROVIDERS: Record<string, DeviceCodeApi> = {
   minimax: {
-    start: (agentName, region) => startMinimaxOAuth(agentName, region ?? 'global'),
+    start: (agentName, region, scope) => startMinimaxOAuth(agentName, region ?? 'global', scope),
     poll: pollMinimaxOAuth,
     revoke: revokeMinimaxOAuth,
     hasRegion: true,
   },
   kiro: {
-    start: (agentName) => startKiroOAuth(agentName),
+    start: (agentName, _region, scope) => startKiroOAuth(agentName, scope),
     poll: pollKiroOAuth,
     revoke: revokeKiroOAuth,
     hasRegion: false,

@@ -485,6 +485,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
         <div class="provider-modal__view provider-modal__view--from-right">
           <CopilotDeviceLogin
             agentName={props.agentName}
+            connectionScope={props.connectionScope}
             connected={isSubscriptionWithToken(selectedProvider()!)}
             activeKeys={getActiveProviderKeys(selectedProvider()!, 'subscription')}
             onBack={detailBack}

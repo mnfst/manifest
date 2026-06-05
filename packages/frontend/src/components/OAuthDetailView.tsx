@@ -11,8 +11,10 @@ import {
 import type { ProviderDef } from '../services/providers.js';
 import {
   getPopupOauthApi,
+  renameGlobalProviderKey,
   renameProviderKey,
   type AuthType,
+  type ProviderConnectionScope,
   type RoutingProvider,
 } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
@@ -54,6 +56,7 @@ interface Props {
   addKeyOpen?: Accessor<boolean>;
   setAddKeyOpen?: Setter<boolean>;
   activeKeys?: Accessor<RoutingProvider[]>;
+  connectionScope?: ProviderConnectionScope;
 }
 
 const OAuthDetailView: Component<Props> = (props) => {
@@ -129,7 +132,7 @@ const OAuthDetailView: Component<Props> = (props) => {
     setPasteUrl('');
     setPasteError(null);
     try {
-      const { url } = await oauthApi().getUrl(props.agentName);
+      const { url } = await oauthApi().getUrl(props.agentName, props.connectionScope);
       try {
         setOauthState(new URL(url).searchParams.get('state'));
       } catch {
@@ -209,7 +212,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await oauthApi().revoke(props.agentName);
+      const result = await oauthApi().revoke(props.agentName, undefined, props.connectionScope);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -227,7 +230,7 @@ const OAuthDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await oauthApi().revoke(props.agentName, label);
+      const result = await oauthApi().revoke(props.agentName, label, props.connectionScope);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -254,13 +257,17 @@ const OAuthDetailView: Component<Props> = (props) => {
     }
     props.setBusy(true);
     try {
-      await renameProviderKey(
-        props.agentName,
-        props.provId,
-        k.label,
-        newLabel,
-        props.selectedAuthType(),
-      );
+      if (props.connectionScope === 'global') {
+        await renameGlobalProviderKey(props.provId, k.label, newLabel, props.selectedAuthType());
+      } else {
+        await renameProviderKey(
+          props.agentName,
+          props.provId,
+          k.label,
+          newLabel,
+          props.selectedAuthType(),
+        );
+      }
       toast.success(`Renamed to "${newLabel}"`);
       setRenamingId(null);
       props.onUpdate();

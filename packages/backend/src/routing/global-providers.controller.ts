@@ -3,8 +3,10 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.instance';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
+import { CopilotDeviceAuthService } from './oauth/copilot-device-auth.service';
 import { ProviderService } from './routing-core/provider.service';
 import {
+  CopilotPollDto,
   ConnectProviderDto,
   ProviderKeyParamDto,
   RemoveProviderQueryDto,
@@ -20,6 +22,7 @@ export class GlobalProvidersController {
     private readonly providerService: ProviderService,
     private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
+    private readonly copilotAuth?: CopilotDeviceAuthService,
   ) {}
 
   @Get()
@@ -91,6 +94,36 @@ export class GlobalProvidersController {
     return updated
       .sort((a, b) => a.priority - b.priority)
       .map((row) => ({ id: row.id, label: row.label, priority: row.priority }));
+  }
+
+  @Post('copilot/device-code')
+  async copilotDeviceCode() {
+    if (!this.copilotAuth) throw new Error('Copilot device auth is not configured');
+    return this.copilotAuth.requestDeviceCode();
+  }
+
+  @Post('copilot/poll-token')
+  async copilotPollToken(@CurrentUser() user: AuthUser, @Body() body: CopilotPollDto) {
+    if (!this.copilotAuth) throw new Error('Copilot device auth is not configured');
+    const result = await this.copilotAuth.pollForToken(body.deviceCode);
+    if (result.status === 'complete' && result.token) {
+      const scope = { type: 'global' as const, userId: user.id };
+      const label = await this.providerService.nextOAuthLabelForConnection(scope, 'copilot');
+      const { provider } = await this.providerService.upsertProviderForConnection(
+        scope,
+        'copilot',
+        result.token,
+        'subscription',
+        undefined,
+        label,
+      );
+      try {
+        await this.discoveryService.discoverModels(provider);
+      } catch {
+        // Discovery failure is non-fatal.
+      }
+    }
+    return { status: result.status };
   }
 
   @Post(':provider/refresh-models')

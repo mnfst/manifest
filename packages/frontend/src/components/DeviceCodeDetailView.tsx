@@ -10,11 +10,14 @@ import {
 } from 'solid-js';
 import type { ProviderDef } from '../services/providers.js';
 import {
+  connectGlobalProvider,
   connectProvider,
   getDeviceCodeApi,
+  renameGlobalProviderKey,
   renameProviderKey,
   type AuthType,
   type MinimaxOAuthRegion,
+  type ProviderConnectionScope,
   type RoutingProvider,
 } from '../services/api.js';
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
@@ -35,6 +38,7 @@ interface Props {
   addKeyOpen?: Accessor<boolean>;
   setAddKeyOpen?: Setter<boolean>;
   activeKeys?: Accessor<RoutingProvider[]>;
+  connectionScope?: ProviderConnectionScope;
 }
 
 const MAX_LABEL_LENGTH = 50;
@@ -64,6 +68,13 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const activeKeyLabels = () => (props.activeKeys?.() ?? []).map((k) => k.label);
   const showConnectFlow = () => !props.connected() || addingAccount();
   const showConnectedFlow = () => props.connected() && !addingAccount();
+  const connectAgent = (data: {
+    provider: string;
+    apiKey?: string;
+    authType?: AuthType;
+    label?: string;
+    region?: string;
+  }) => connectProvider(props.agentName, data);
 
   // When "Add another key" is clicked in the header, launch a new device code flow.
   createEffect(() => {
@@ -84,7 +95,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     props.setBusy(true);
     try {
       const label = addingAccount() ? suggestNextProviderKeyLabel(activeKeyLabels()) : undefined;
-      await connectProvider(props.agentName, {
+      const connect = props.connectionScope === 'global' ? connectGlobalProvider : connectAgent;
+      await connect({
         provider: props.provId,
         apiKey: trimmed,
         authType: 'subscription',
@@ -128,7 +140,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await api().revoke(props.agentName);
+      const result = await api().revoke(props.agentName, undefined, props.connectionScope);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -146,7 +158,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const handleDeleteKey = async (label: string) => {
     props.setBusy(true);
     try {
-      const result = await api().revoke(props.agentName, label);
+      const result = await api().revoke(props.agentName, label, props.connectionScope);
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -173,13 +185,17 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
     props.setBusy(true);
     try {
-      await renameProviderKey(
-        props.agentName,
-        props.provId,
-        k.label,
-        newLabel,
-        props.selectedAuthType(),
-      );
+      if (props.connectionScope === 'global') {
+        await renameGlobalProviderKey(props.provId, k.label, newLabel, props.selectedAuthType());
+      } else {
+        await renameProviderKey(
+          props.agentName,
+          props.provId,
+          k.label,
+          newLabel,
+          props.selectedAuthType(),
+        );
+      }
       toast.success(`Renamed to "${newLabel}"`);
       setRenamingId(null);
       props.onUpdate();
@@ -266,6 +282,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
       const nextFlow = await current.start(
         props.agentName,
         current.hasRegion ? selectedRegion() : undefined,
+        props.connectionScope,
       );
       if (isDisposed || flowGeneration !== activeFlowGeneration) {
         popup.close();

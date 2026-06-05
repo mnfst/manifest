@@ -428,6 +428,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}
           activeKeys={activeKeys}
+          connectionScope={props.connectionScope}
         />
       </Show>
 
@@ -447,6 +448,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}
           activeKeys={activeKeys}
+          connectionScope={props.connectionScope}
         />
       </Show>
 
@@ -466,6 +468,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}
           activeKeys={activeKeys}
+          connectionScope={props.connectionScope}
         />
       </Show>
 

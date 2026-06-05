@@ -30,7 +30,9 @@ describe('OAuthPendingFlowStore', () => {
     expect(query).toHaveBeenCalledTimes(3);
     expect(query.mock.calls[0][0]).toContain('DELETE FROM "oauth_pending_flows"');
     expect(query.mock.calls[0][1]).toEqual(['anthropic']);
-    expect(query.mock.calls[1][0]).toContain('AND "agent_id" = $2');
+    expect(query.mock.calls[1][0]).toContain(
+      'AND ("agent_id" = $2 OR ("agent_id" IS NULL AND $2::varchar IS NULL))',
+    );
     expect(query.mock.calls[1][1]).toEqual(['anthropic', 'agent-1', 'user-1']);
     expect(query.mock.calls[2][0]).toContain('INSERT INTO "oauth_pending_flows"');
     expect(query.mock.calls[2][1]).toEqual([
@@ -38,6 +40,27 @@ describe('OAuthPendingFlowStore', () => {
       's1',
       'v1',
       'agent-1',
+      'user-1',
+      new Date('2026-05-01T12:10:00Z'),
+    ]);
+  });
+
+  it('stores pending flows for global provider scope with null agent id', async () => {
+    const { store, query } = buildStore();
+    query.mockResolvedValue([]);
+
+    await store.create(
+      'anthropic',
+      { state: 's-global', verifier: 'v-global', agentId: null, userId: 'user-1' },
+      600_000,
+    );
+
+    expect(query.mock.calls[1][1]).toEqual(['anthropic', null, 'user-1']);
+    expect(query.mock.calls[2][1]).toEqual([
+      'anthropic',
+      's-global',
+      'v-global',
+      null,
       'user-1',
       new Date('2026-05-01T12:10:00Z'),
     ]);
@@ -105,6 +128,30 @@ describe('OAuthPendingFlowStore', () => {
     );
     expect(query.mock.calls[1][0]).toContain('AND "user_id" = $3');
     expect(query.mock.calls[1][1]).toEqual(['anthropic', 'agent-1', 'user-1']);
+  });
+
+  it('finds the latest unexpired global flow for a user', async () => {
+    const { store, query } = buildStore();
+    query.mockResolvedValueOnce([]);
+    query.mockResolvedValueOnce([
+      {
+        provider: 'anthropic',
+        state: 'global-state',
+        code_verifier: 'global-verifier',
+        agent_id: null,
+        user_id: 'user-1',
+        expires_at: '2026-05-01T12:10:00.000Z',
+      },
+    ]);
+
+    await expect(store.findLatestForAgent('anthropic', null, 'user-1')).resolves.toMatchObject({
+      provider: 'anthropic',
+      state: 'global-state',
+      verifier: 'global-verifier',
+      agentId: null,
+      userId: 'user-1',
+    });
+    expect(query.mock.calls[1][1]).toEqual(['anthropic', null, 'user-1']);
   });
 
   it('clears a flow by provider and state', async () => {

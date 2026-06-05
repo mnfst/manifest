@@ -13,7 +13,7 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
-import { ProviderService } from '../routing-core/provider.service';
+import { ProviderService, type ProviderConnectionScope } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import {
@@ -61,6 +61,10 @@ export interface RedirectPkceOauthConfig {
 
 const STATE_TTL_MS = 10 * 60 * 1000;
 
+function scopeLogLabel(scope: ProviderConnectionScope): string {
+  return scope.type === 'agent' ? `agent=${scope.agentId}` : `global user=${scope.userId}`;
+}
+
 interface OAuthTokenResponse {
   access_token: string;
   refresh_token?: string;
@@ -69,8 +73,7 @@ interface OAuthTokenResponse {
 
 interface RedirectPkcePendingOAuth {
   verifier: string;
-  agentId: string;
-  userId: string;
+  scope: ProviderConnectionScope;
   backendUrl: string;
   expiresAt: number;
 }
@@ -115,10 +118,14 @@ export abstract class RedirectPkceOauthBaseService {
   }
 
   async generateAuthorizationUrl(
-    agentId: string,
+    scopeOrAgentId: ProviderConnectionScope | string,
     userId: string,
     backendUrl?: string,
   ): Promise<string> {
+    const scope: ProviderConnectionScope =
+      typeof scopeOrAgentId === 'string'
+        ? { type: 'agent', agentId: scopeOrAgentId, userId }
+        : scopeOrAgentId;
     const state = generateState();
     const { verifier, challenge } = generatePkce();
     // Validate the redirect target now (at storage time) instead of trusting
@@ -127,8 +134,7 @@ export abstract class RedirectPkceOauthBaseService {
     const safeBackendUrl = backendUrl && this.isAllowedRedirectOrigin(backendUrl) ? backendUrl : '';
     this.pending.set(state, {
       verifier,
-      agentId,
-      userId,
+      scope,
       backendUrl: safeBackendUrl,
     });
     if (this.useCallbackServer) {
@@ -186,13 +192,12 @@ export abstract class RedirectPkceOauthBaseService {
     // exchange to discover their assigned project id. The result lives in
     // `blob.u` and is preserved across refreshes by `unwrapToken`.
     const blob = await this.enrichBlob(baseBlob);
-    const label = await this.providerService.nextOAuthLabel(
-      pending.agentId,
+    const label = await this.providerService.nextOAuthLabelForConnection(
+      pending.scope,
       this.oauthConfig.providerId,
     );
-    const { provider: savedProvider } = await this.providerService.upsertProvider(
-      pending.agentId,
-      pending.userId,
+    const { provider: savedProvider } = await this.providerService.upsertProviderForConnection(
+      pending.scope,
       this.oauthConfig.providerId,
       serializeOAuthTokenBlob(blob),
       'subscription',
@@ -201,12 +206,14 @@ export abstract class RedirectPkceOauthBaseService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      if (pending.scope.type === 'agent') {
+        await this.providerService.recalculateTiers(pending.scope.agentId);
+      }
     } catch (err) {
       this.logger.warn(`Model discovery after OAuth failed: ${err}`);
     }
     this.logger.log(
-      `${this.oauthConfig.providerId} OAuth token stored for agent=${pending.agentId}`,
+      `${this.oauthConfig.providerId} OAuth token stored for ${scopeLogLabel(pending.scope)}`,
     );
     this.shutdownCallbackServerIfIdle();
   }
