@@ -1,0 +1,74 @@
+packages/frontend/src/index.tsx
+  s_6fb27bb484ff37::t_6040ed8723da86 33,74
+.changeset/global-provider-connections.md
+  s_6fb27bb484ff37::t_e4f492b98581f0 1-5
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_6fb27bb484ff37::t_692004731ae11a 3,262,342-393
+packages/backend/src/routing/global-providers.controller.spec.ts
+  s_6fb27bb484ff37::t_80294e0b17c2fc 1-126,129-142
+packages/frontend/src/styles/global-providers.css
+  s_6fb27bb484ff37::t_8bb9860296fcd0 1-167
+packages/backend/src/routing/provider-region-validation.spec.ts
+  s_6fb27bb484ff37::t_80294e0b17c2fc 1-22
+packages/backend/src/database/migrations/1790500000000-AddGlobalProviderScope.ts
+  s_6fb27bb484ff37::t_1d3504592153f9 1-31
+packages/backend/src/routing/provider.controller.ts
+  s_6fb27bb484ff37::t_205a62eee20d20 1,19,85
+packages/frontend/src/components/Sidebar.tsx
+  s_6fb27bb484ff37::t_6040ed8723da86 44-52,91-99
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_6fb27bb484ff37::t_689ccae08072e5 49
+  s_6fb27bb484ff37::t_80294e0b17c2fc 73-148,150-155
+packages/backend/src/entities/user-provider.entity.ts
+  s_6fb27bb484ff37::t_1d3504592153f9 14-15
+packages/backend/src/routing/routing.module.ts
+  s_6fb27bb484ff37::t_0a22e2adb9bb4a 17,41
+packages/frontend/src/App.tsx
+  s_6fb27bb484ff37::t_6040ed8723da86 39-40
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_6fb27bb484ff37::t_f2879ca759ec38 94,97-99,107,229-230,232,234-235
+packages/frontend/tests/pages/GlobalProviders.test.tsx
+  s_6fb27bb484ff37::t_cc53c4d3c08b19 135,137
+  s_6fb27bb484ff37::t_e77dd08fd78190 1-7,9-134,138-144
+  s_6fb27bb484ff37::t_689ccae08072e5 8
+packages/frontend/tests/components/App.test.tsx
+  s_6fb27bb484ff37::t_cd16c705ecdecd 122-125,127-129
+packages/frontend/src/pages/GlobalProviders.tsx
+  s_6fb27bb484ff37::t_8bb9860296fcd0 1-22,24-25,27-38,40-133,135-290,292-327
+  s_6fb27bb484ff37::t_d10ffc01d636c2 291
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_6fb27bb484ff37::t_14cfe5b23bf789 45-51,91-143,249-254
+packages/frontend/src/services/api/routing.ts
+  s_6fb27bb484ff37::t_70895069d407e3 56-59,85-98,114-123,144-159,176-186,386-387
+packages/backend/src/database/migrations/1790500000000-AddGlobalProviderScope.spec.ts
+  s_6fb27bb484ff37::t_1d3504592153f9 1-38
+packages/backend/src/routing/provider-region-validation.ts
+  s_6fb27bb484ff37::t_1d3504592153f9 1-3,5-14,16-23,27-31,33-34
+  s_6fb27bb484ff37::t_0db64b06fe053c 4,15,24-26,32
+packages/backend/src/routing/global-providers.controller.ts
+  s_6fb27bb484ff37::t_0a22e2adb9bb4a 1-74,77-80,82,84-97,99-102,104-114,116-117,119-123,125-128,130-135
+  s_6fb27bb484ff37::t_929407787b9753 75-76,81,83,98,103,115,118,124,129
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_6fb27bb484ff37::t_e53a50351794d9 3
+  s_6fb27bb484ff37::t_9c9d988ceeab08 137-174,181,198-202,223,230,244,249,258,281,313,327
+  s_6fb27bb484ff37::t_ac40b2bbb72ea0 338-368,374,386-389,398-415,418,450
+  s_6fb27bb484ff37::t_94a078cab3bf3d 1080-1086,1089
+  s_6fb27bb484ff37::t_030a32b2c53417 67-97
+  s_6fb27bb484ff37::t_64ba600c6480fc 688-719,757-780
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "59cf11cd96d06b01fac73ae63e82fced3d7fceed",
+  "prompts": {},
+  "sessions": {
+    "s_6fb27bb484ff37": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e96c4-f119-7221-b42c-7e85de9a9089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
