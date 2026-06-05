@@ -190,7 +190,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       <div class="sidebar__spacer" />
 
-      <div class="sidebar__divider" />
       <a
         href="https://github.com/mnfst/manifest/discussions/new?category=feature-request"
         target="_blank"
