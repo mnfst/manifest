@@ -46,7 +46,9 @@ describe('TierAutoAssignService', () => {
       ]);
       tierRepo.find.mockResolvedValue([]);
 
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
+      // Tiers read the user's full global pool: userId only, no agentId arg.
+      expect(discoveryService.getModelsForAgent).toHaveBeenCalledWith('user-1');
       expect(tierRepo.insert).toHaveBeenCalledTimes(1);
       const inserted = tierRepo.insert.mock.calls[0][0];
       expect(inserted).toHaveLength(5);
@@ -67,7 +69,7 @@ describe('TierAutoAssignService', () => {
       ];
       tierRepo.find.mockResolvedValue(existing);
 
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       // existing row was saved in-place, missing slots inserted.
       expect(tierRepo.save).toHaveBeenCalledTimes(1);
       expect(tierRepo.insert).toHaveBeenCalledTimes(1);
@@ -92,7 +94,7 @@ describe('TierAutoAssignService', () => {
       ]);
       tierRepo.find.mockResolvedValue([]);
 
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as Array<{
         tier: string;
         auto_assigned_route: { model: string };
@@ -124,7 +126,7 @@ describe('TierAutoAssignService', () => {
       ]);
       tierRepo.find.mockResolvedValue([]);
 
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as Array<{
         tier: string;
         auto_assigned_route: { model: string };
@@ -148,7 +150,7 @@ describe('TierAutoAssignService', () => {
       ]);
       tierRepo.find.mockResolvedValue([]);
 
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as Array<{
         auto_assigned_route: { model: string };
       }>;
@@ -158,7 +160,7 @@ describe('TierAutoAssignService', () => {
     it('sets auto_assigned_route to null when no models are discovered', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([]);
       tierRepo.find.mockResolvedValue([]);
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as Array<{
         auto_assigned_route: unknown;
       }>;
@@ -174,7 +176,7 @@ describe('TierAutoAssignService', () => {
         { tier: 'reasoning', auto_assigned_route: null } as TierAssignment,
         { tier: 'default', auto_assigned_route: null } as TierAssignment,
       ]);
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       expect(tierRepo.insert).not.toHaveBeenCalled();
       expect(tierRepo.save).toHaveBeenCalledTimes(1);
     });
@@ -184,7 +186,7 @@ describe('TierAutoAssignService', () => {
         mkModel({ id: 'no-auth', authType: undefined }),
       ]);
       tierRepo.find.mockResolvedValue([]);
-      await svc.recalculate('agent-1');
+      await svc.recalculate('agent-1', 'user-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as Array<{
         auto_assigned_route: unknown;
       }>;
