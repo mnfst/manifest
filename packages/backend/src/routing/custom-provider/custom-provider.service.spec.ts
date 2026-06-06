@@ -131,7 +131,7 @@ describe('CustomProviderService', () => {
         agent_id: 'agent-1',
         name: 'llama.cpp',
       } as CustomProvider;
-      const { svc } = makeDeps({ cached: [row] });
+      const { svc, getCustomProviders } = makeDeps({ cached: [row] });
 
       const out = await svc.canonicalizeAgentMessageKeys(
         'agent-1',
@@ -139,6 +139,8 @@ describe('CustomProviderService', () => {
         'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
       );
       expect(out).toEqual({ provider: 'llamacpp', model: 'llamacpp/qwen2.5-0.5b-q4.gguf' });
+      // First arg is agentId — cache lookup must use the same key
+      expect(getCustomProviders).toHaveBeenCalledWith('agent-1');
     });
 
     it('passes through user-defined custom providers that do not match a tile-only canonical', async () => {
@@ -270,25 +272,24 @@ describe('CustomProviderService', () => {
     it('returns the cached result when present', async () => {
       const cached = [{ id: 'cp1' } as CustomProvider];
       const { svc, find, getCustomProviders, setCustomProviders } = makeDeps({ cached });
-      const result = await svc.list('user-1');
+      const result = await svc.list('agent-1');
       expect(result).toBe(cached);
       expect(find).not.toHaveBeenCalled();
-      // Cache lookup is user-keyed — a future agentId/userId swap would key it
-      // by the wrong id and silently return the wrong tenant's providers.
-      expect(getCustomProviders).toHaveBeenCalledWith('user-1');
+      // Cache lookup is agent-keyed
+      expect(getCustomProviders).toHaveBeenCalledWith('agent-1');
       expect(setCustomProviders).not.toHaveBeenCalled();
     });
 
-    it('falls back to the DB (by user_id) and populates the user-keyed cache on a miss', async () => {
+    it('falls back to the DB (by agent_id) and populates the agent-keyed cache on a miss', async () => {
       const rows = [{ id: 'cp1' } as CustomProvider];
       const { svc, find, setCustomProviders } = makeDeps({
         cached: null,
         findResult: rows,
       });
-      const result = await svc.list('user-1');
+      const result = await svc.list('agent-1');
       expect(result).toBe(rows);
-      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
-      expect(setCustomProviders).toHaveBeenCalledWith('user-1', rows);
+      expect(find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
+      expect(setCustomProviders).toHaveBeenCalledWith('agent-1', rows);
     });
   });
 
@@ -688,12 +689,17 @@ describe('CustomProviderService', () => {
       );
     });
 
-    it('deletes the row and attempts provider removal', async () => {
+    it('deletes the row, invalidates agent cache, and reloads pricing', async () => {
       const cp = { id: 'cp1', agent_id: 'agent-1' } as CustomProvider;
-      const { svc, removeProvider, remove, reloadPricing } = makeDeps({ findOneResults: [cp] });
+      const { svc, removeProvider, remove, reloadPricing, invalidateAgent } = makeDeps({
+        findOneResults: [cp],
+      });
       await svc.remove('agent-1', 'user-1', 'cp1');
       expect(removeProvider).toHaveBeenCalledWith('agent-1', 'user-1', 'custom:cp1');
       expect(remove).toHaveBeenCalledWith(cp);
+      // Cache invalidation must happen AFTER the row delete so a concurrent
+      // read can't re-cache the deleted row.
+      expect(invalidateAgent).toHaveBeenCalledWith('agent-1');
       // Stale pricing entries for this provider must be dropped from the
       // cache so getAll() stops returning them.
       expect(reloadPricing).toHaveBeenCalledTimes(1);

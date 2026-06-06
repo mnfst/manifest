@@ -73,12 +73,12 @@ export class RoutingCacheService {
     setWithEviction(this.providers, userId, data);
   }
 
-  getCustomProviders(userId: string): CustomProvider[] | null {
-    return getOrExpire(this.customProviders, userId) ?? null;
+  getCustomProviders(agentId: string): CustomProvider[] | null {
+    return getOrExpire(this.customProviders, agentId) ?? null;
   }
 
-  setCustomProviders(userId: string, data: CustomProvider[]): void {
-    setWithEviction(this.customProviders, userId, data);
+  setCustomProviders(agentId: string, data: CustomProvider[]): void {
+    setWithEviction(this.customProviders, agentId, data);
   }
 
   getProviderKeys(
@@ -138,6 +138,7 @@ export class RoutingCacheService {
 
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
+    this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
     this.modelParams.delete(agentId);
@@ -152,12 +153,11 @@ export class RoutingCacheService {
   }
 
   /**
-   * Invalidate user-level caches (providers, provider keys, and the now
-   * user-scoped custom providers).
+   * Invalidate user-level caches (providers and provider keys).
+   * Custom providers are agent-scoped — use invalidateAgent for those.
    */
   invalidateUser(userId: string): void {
     this.providers.delete(userId);
-    this.customProviders.delete(userId);
     const prefix = `${userId}:`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);

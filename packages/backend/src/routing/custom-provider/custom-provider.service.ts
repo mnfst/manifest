@@ -132,17 +132,17 @@ export class CustomProviderService {
   // string the rewrite path can only ever produce a non-null string, so
   // downstream call sites don't need defensive `?? model` fallbacks.
   async canonicalizeAgentMessageKeys(
-    userId: string,
+    agentId: string,
     provider: string | null | undefined,
     model: string,
   ): Promise<{ provider: string | null; model: string }>;
   async canonicalizeAgentMessageKeys(
-    userId: string,
+    agentId: string,
     provider: string | null | undefined,
     model: string | null | undefined,
   ): Promise<{ provider: string | null; model: string | null }>;
   async canonicalizeAgentMessageKeys(
-    userId: string,
+    agentId: string,
     provider: string | null | undefined,
     model: string | null | undefined,
   ): Promise<{ provider: string | null; model: string | null }> {
@@ -161,7 +161,7 @@ export class CustomProviderService {
       : (modelMatch?.[1] ?? null);
     if (!cpId) return { provider: provider ?? null, model: model ?? null };
 
-    const rows = await this.list(userId);
+    const rows = await this.list(agentId);
     const row = rows.find((r) => r.id === cpId);
     if (!row) return { provider: provider ?? null, model: model ?? null };
 
@@ -177,20 +177,16 @@ export class CustomProviderService {
   }
 
   /**
-   * List a user's custom providers. Reads by `user_id` and caches under the
-   * user-keyed routing cache so the user-level `invalidateUser(userId)` that
-   * the create/update/remove mutation paths trigger (via provider upserts)
-   * actually clears it. The custom_providers entity stays agent-scoped — this
-   * read is lifted to user scope to match the rest of the global-providers
-   * branch and to fix the cache-staleness where `invalidateAgent()` never
-   * dropped the (formerly agent-keyed) custom-provider cache.
+   * List an agent's custom providers. Reads by `agent_id` and caches under the
+   * agent-keyed routing cache so `invalidateAgent(agentId)` clears it on every
+   * provider mutation.
    */
-  async list(userId: string): Promise<CustomProvider[]> {
-    const cached = this.routingCache.getCustomProviders(userId);
+  async list(agentId: string): Promise<CustomProvider[]> {
+    const cached = this.routingCache.getCustomProviders(agentId);
     if (cached) return cached;
 
-    const result = await this.repo.find({ where: { user_id: userId } });
-    this.routingCache.setCustomProviders(userId, result);
+    const result = await this.repo.find({ where: { agent_id: agentId } });
+    this.routingCache.setCustomProviders(agentId, result);
     return result;
   }
 
@@ -325,12 +321,9 @@ export class CustomProviderService {
     }
 
     await this.repo.save(cp);
+    // The custom-provider list cache is agent-keyed (see list()), so
+    // invalidateAgent clears it on every update.
     this.routingCache.invalidateAgent(agentId);
-    // The custom-provider list cache is user-keyed (see list()), so drop it on
-    // every update — the models-only path above doesn't go through a provider
-    // mutation (which would have called invalidateUser), and invalidateAgent
-    // alone leaves the user-keyed list cache stale.
-    this.routingCache.invalidateUser(userId);
 
     // Reload pricing cache when the model list changes so new prices (or
     // edits to existing ones) are used for subsequent cost computations.
@@ -356,8 +349,12 @@ export class CustomProviderService {
       // Provider may not exist if creation partially failed
     }
 
-    // Delete CustomProvider row
+    // Delete CustomProvider row first so a concurrent read can't re-cache the
+    // deleted row (cache invalidation happens after the delete below).
     await this.repo.remove(cp);
+
+    // Invalidate the agent-keyed custom-provider cache AFTER the row is gone.
+    this.routingCache.invalidateAgent(agentId);
 
     // Drop stale pricing entries for this provider's models from the cache.
     await this.pricingCache.reload();

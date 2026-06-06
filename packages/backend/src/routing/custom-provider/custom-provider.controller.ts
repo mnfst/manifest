@@ -21,11 +21,9 @@ export class CustomProviderController {
 
   @Get(':agentName/custom-providers')
   async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    // Resolve for authz (must own the agent), but custom-provider and provider
-    // reads are now user-scoped.
-    await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const [providers, userProviders] = await Promise.all([
-      this.customProviderService.list(user.id),
+      this.customProviderService.list(agent.id),
       this.providerService.getProviders(user.id),
     ]);
     if (providers.length === 0) return [];

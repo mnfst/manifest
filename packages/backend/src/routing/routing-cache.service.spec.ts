@@ -107,7 +107,7 @@ describe('RoutingCacheService', () => {
       expect(service.getCustomProviders('agent-1')).toBeNull();
     });
 
-    it('returns cached data within TTL', () => {
+    it('returns cached data within TTL (keyed by agentId)', () => {
       const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
       service.setCustomProviders('agent-1', cps);
 
@@ -126,7 +126,7 @@ describe('RoutingCacheService', () => {
   });
 
   describe('setCustomProviders', () => {
-    it('stores data that can be retrieved', () => {
+    it('stores data that can be retrieved (keyed by agentId)', () => {
       const cps = [
         { id: 'cp-1', name: 'Groq' },
         { id: 'cp-2', name: 'Together' },
@@ -203,33 +203,37 @@ describe('RoutingCacheService', () => {
   });
 
   describe('invalidateAgent', () => {
-    it('clears tiers, providers, custom providers, and provider key chains for agent', () => {
-      // In the new architecture, providers and providerKeys are user-scoped.
-      // invalidateAgent clears agent-scoped caches; invalidateUser clears user-scoped caches.
+    it('clears tiers and agent-scoped custom providers on invalidateAgent; user-scoped caches cleared by invalidateUser', () => {
+      // providers and providerKeys are user-scoped; customProviders and tiers are agent-scoped.
       const tiers = [{ id: 'ta-1', tier: 'fast' }] as TierAssignment[];
       const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
       const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
 
       service.setTiers('agent-1', tiers);
       service.setProviders('user-1', providers);
-      service.setCustomProviders('user-1', cps);
+      service.setCustomProviders('agent-1', cps);
       service.setProviderKeys('user-1', 'openai', [providerKey('Default', 'sk-test')]);
 
       expect(service.getTiers('agent-1')).toEqual(tiers);
       expect(service.getProviders('user-1')).toEqual(providers);
-      expect(service.getCustomProviders('user-1')).toEqual(cps);
+      expect(service.getCustomProviders('agent-1')).toEqual(cps);
       expect(service.getProviderKeys('user-1', 'openai')?.[0].apiKey).toBe('sk-test');
 
       service.invalidateAgent('agent-1');
-      service.invalidateUser('user-1');
 
       expect(service.getTiers('agent-1')).toBeNull();
+      expect(service.getCustomProviders('agent-1')).toBeNull();
+      // user-scoped caches untouched by invalidateAgent
+      expect(service.getProviders('user-1')).toEqual(providers);
+      expect(service.getProviderKeys('user-1', 'openai')?.[0].apiKey).toBe('sk-test');
+
+      service.invalidateUser('user-1');
+
       expect(service.getProviders('user-1')).toBeNull();
-      expect(service.getCustomProviders('user-1')).toBeNull();
       expect(service.getProviderKeys('user-1', 'openai')).toBeUndefined();
     });
 
-    it('does not clear provider key chains for other agents', () => {
+    it('does not clear provider key chains for other users', () => {
       service.setProviderKeys('user-1', 'openai', [providerKey('Default', 'sk-1')]);
       service.setProviderKeys('user-2', 'openai', [providerKey('Default', 'sk-2')]);
 
@@ -237,6 +241,16 @@ describe('RoutingCacheService', () => {
 
       expect(service.getProviderKeys('user-1', 'openai')).toBeUndefined();
       expect(service.getProviderKeys('user-2', 'openai')?.[0].apiKey).toBe('sk-2');
+    });
+
+    it('does not clear the agent-scoped customProviders cache', () => {
+      const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
+      service.setCustomProviders('agent-1', cps);
+
+      service.invalidateUser('user-1');
+
+      // customProviders is agent-scoped — invalidateUser must not touch it
+      expect(service.getCustomProviders('agent-1')).toEqual(cps);
     });
 
     it('is a no-op for unknown agent', () => {

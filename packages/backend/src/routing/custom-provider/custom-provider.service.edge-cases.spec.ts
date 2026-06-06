@@ -95,7 +95,7 @@ describe('CustomProviderService edge cases', () => {
       });
 
       const result = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'agent-1',
         'custom:deleted-uuid',
         'custom:deleted-uuid/some-model',
       );
@@ -104,11 +104,11 @@ describe('CustomProviderService edge cases', () => {
         provider: 'custom:deleted-uuid',
         model: 'custom:deleted-uuid/some-model',
       });
-      // The cache miss path must actually hit the DB (by user_id, since the
-      // custom-provider list read is user-scoped) and repopulate the user-keyed
+      // The cache miss path must actually hit the DB (by agent_id, since
+      // custom-provider list is agent-scoped) and repopulate the agent-keyed
       // cache (with the empty result) so the next lookup is also cheap.
-      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
-      expect(setCustomProviders).toHaveBeenCalledWith('user-1', []);
+      expect(find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
+      expect(setCustomProviders).toHaveBeenCalledWith('agent-1', []);
     });
 
     it('passes through when cache miss + DB has unrelated providers (UUID still gone)', async () => {

@@ -65,6 +65,12 @@ describe('CustomProviderController', () => {
         NotFoundException,
       );
     });
+
+    it('calls customProviderService.list with the resolved agent id (agent-scoped)', async () => {
+      await controller.list(mockUser, { agentName: 'test-agent' } as never);
+      expect(mockCustomProviderService.list).toHaveBeenCalledWith('agent-001');
+      expect(mockCustomProviderService.list).not.toHaveBeenCalledWith('user-1');
+    });
   });
 
   /* ── list ── */
