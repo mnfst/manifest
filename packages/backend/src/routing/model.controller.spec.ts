@@ -46,6 +46,7 @@ describe('ModelController', () => {
     jest.clearAllMocks();
     mockProviderService = {
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      recalculateTiersForUser: jest.fn().mockResolvedValue(undefined),
     };
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
@@ -164,11 +165,13 @@ describe('ModelController', () => {
   /* ── refreshModels ── */
 
   describe('refreshModels', () => {
-    it('should call discoverAllForAgent and return ok', async () => {
+    it('should call discoverAllForAgent and recalculateTiersForUser and return ok', async () => {
       const result = await controller.refreshModels(mockUser, mockAgentName);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
       expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result).toEqual({ ok: true });
     });
   });
@@ -193,7 +196,8 @@ describe('ModelController', () => {
         'anthropic',
         undefined,
       );
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
+      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result).toEqual({
         ok: true,
         model_count: 7,
@@ -221,6 +225,7 @@ describe('ModelController', () => {
 
       const result = await controller.refreshProviderModels(mockUser, mockParams, {});
 
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result.ok).toBe(false);
       expect(result.error).toBe('Provider returned no models');
@@ -446,6 +451,9 @@ describe('ModelController', () => {
       expect(result).toHaveLength(1);
       expect(result[0].display_name).toBe('llama-3.1-70b');
       expect(result[0].provider_display_name).toBe('Groq');
+      // custom providers are now agent-scoped
+      expect(mockCustomProviderService.list).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockCustomProviderService.list).not.toHaveBeenCalledWith('user-1');
     });
 
     it('should fall back to provider key when custom provider name not in map', async () => {

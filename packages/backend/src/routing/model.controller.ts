@@ -58,7 +58,7 @@ export class ModelController {
   async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     await this.discoveryService.discoverAllForAgent(user.id);
-    await this.providerService.recalculateTiers(agent.id, user.id);
+    await this.providerService.recalculateTiersForUser(user.id);
     return { ok: true };
   }
 
@@ -75,7 +75,7 @@ export class ModelController {
       query.authType,
     );
     if (result.ok) {
-      await this.providerService.recalculateTiers(agent.id, user.id);
+      await this.providerService.recalculateTiersForUser(user.id);
     }
     return result;
   }
@@ -91,7 +91,7 @@ export class ModelController {
     const models = await this.discoveryService.getModelsForAgent(user.id);
 
     // Build display name map for custom providers
-    const customProviders = await this.customProviderService.list(user.id);
+    const customProviders = await this.customProviderService.list(agent.id);
     const cpNameMap = new Map<string, string>();
     for (const cp of customProviders) {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);
