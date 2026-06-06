@@ -142,7 +142,7 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 
     // Recalculate tier assignments with the seeded models
     const autoAssign = app.get(TierAutoAssignService);
-    await autoAssign.recalculate(TEST_AGENT_ID);
+    await autoAssign.recalculate(TEST_AGENT_ID, TEST_USER_ID);
   });
 
   it('routes "hi" → simple tier with cheapest model', async () => {
@@ -408,7 +408,7 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
       [openaiModels, TEST_AGENT_ID, 'openai'],
     );
-    await app.get(TierAutoAssignService).recalculate(TEST_AGENT_ID);
+    await app.get(TierAutoAssignService).recalculate(TEST_AGENT_ID, TEST_USER_ID);
 
     const res = await bearer(api().post('/api/v1/routing/resolve'))
       .send({ messages: [{ role: 'user', content: 'hi' }] })

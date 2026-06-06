@@ -49,10 +49,12 @@ function makeDeps(overrides: {
   const getCustomProviders = jest.fn().mockReturnValue(overrides.cached ?? null);
   const setCustomProviders = jest.fn();
   const invalidateAgent = jest.fn();
+  const invalidateUser = jest.fn();
   const routingCache = {
     getCustomProviders,
     setCustomProviders,
     invalidateAgent,
+    invalidateUser,
   } as unknown as RoutingCacheService;
 
   const recalculate = jest.fn().mockResolvedValue(undefined);
@@ -83,6 +85,7 @@ function makeDeps(overrides: {
     getCustomProviders,
     setCustomProviders,
     invalidateAgent,
+    invalidateUser,
     recalculate,
     reloadPricing,
   };
@@ -266,23 +269,26 @@ describe('CustomProviderService', () => {
   describe('list', () => {
     it('returns the cached result when present', async () => {
       const cached = [{ id: 'cp1' } as CustomProvider];
-      const { svc, find, setCustomProviders } = makeDeps({ cached });
-      const result = await svc.list('agent-1');
+      const { svc, find, getCustomProviders, setCustomProviders } = makeDeps({ cached });
+      const result = await svc.list('user-1');
       expect(result).toBe(cached);
       expect(find).not.toHaveBeenCalled();
+      // Cache lookup is user-keyed — a future agentId/userId swap would key it
+      // by the wrong id and silently return the wrong tenant's providers.
+      expect(getCustomProviders).toHaveBeenCalledWith('user-1');
       expect(setCustomProviders).not.toHaveBeenCalled();
     });
 
-    it('falls back to the DB and populates the cache on a miss', async () => {
+    it('falls back to the DB (by user_id) and populates the user-keyed cache on a miss', async () => {
       const rows = [{ id: 'cp1' } as CustomProvider];
       const { svc, find, setCustomProviders } = makeDeps({
         cached: null,
         findResult: rows,
       });
-      const result = await svc.list('agent-1');
+      const result = await svc.list('user-1');
       expect(result).toBe(rows);
-      expect(find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
-      expect(setCustomProviders).toHaveBeenCalledWith('agent-1', rows);
+      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
+      expect(setCustomProviders).toHaveBeenCalledWith('user-1', rows);
     });
   });
 

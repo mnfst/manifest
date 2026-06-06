@@ -150,7 +150,9 @@ describe('OverviewController', () => {
 
     expect(result.has_providers).toBe(true);
     expect(mockResolveAgent).toHaveBeenCalledWith('u1', 'bot-1');
-    expect(mockGetProviders).toHaveBeenCalledWith('agent-uuid-1');
+    // Provider reads are user-scoped — passing the agentId here would query
+    // user_providers by an agentId and silently return no providers.
+    expect(mockGetProviders).toHaveBeenCalledWith('u1');
   });
 
   it('returns has_providers false when no providers exist', async () => {
