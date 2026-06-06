@@ -1,6 +1,7 @@
 import { GlobalProvidersController } from './global-providers.controller';
 import { ProviderService } from './routing-core/provider.service';
 import type { AuthUser } from '../auth/auth.instance';
+import { serializeProviderConnection } from './provider-response';
 
 const mockUser = { id: 'user-42' } as AuthUser;
 
