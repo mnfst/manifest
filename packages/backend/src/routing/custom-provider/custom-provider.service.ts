@@ -132,17 +132,17 @@ export class CustomProviderService {
   // string the rewrite path can only ever produce a non-null string, so
   // downstream call sites don't need defensive `?? model` fallbacks.
   async canonicalizeAgentMessageKeys(
-    agentId: string,
+    userId: string,
     provider: string | null | undefined,
     model: string,
   ): Promise<{ provider: string | null; model: string }>;
   async canonicalizeAgentMessageKeys(
-    agentId: string,
+    userId: string,
     provider: string | null | undefined,
     model: string | null | undefined,
   ): Promise<{ provider: string | null; model: string | null }>;
   async canonicalizeAgentMessageKeys(
-    agentId: string,
+    userId: string,
     provider: string | null | undefined,
     model: string | null | undefined,
   ): Promise<{ provider: string | null; model: string | null }> {
@@ -161,7 +161,7 @@ export class CustomProviderService {
       : (modelMatch?.[1] ?? null);
     if (!cpId) return { provider: provider ?? null, model: model ?? null };
 
-    const rows = await this.list(agentId);
+    const rows = await this.listForUser(userId);
     const row = rows.find((r) => r.id === cpId);
     if (!row) return { provider: provider ?? null, model: model ?? null };
 
@@ -188,6 +188,13 @@ export class CustomProviderService {
     const result = await this.repo.find({ where: { agent_id: agentId } });
     this.routingCache.setCustomProviders(agentId, result);
     return result;
+  }
+
+  /** User-scoped read for paths that consume user-scoped model discovery
+   *  (message-key canonicalization, model display-name mapping). Custom-provider
+   *  CRUD stays agent-scoped; this read matches the user-global provider pool. */
+  async listForUser(userId: string): Promise<CustomProvider[]> {
+    return this.repo.find({ where: { user_id: userId } });
   }
 
   async create(

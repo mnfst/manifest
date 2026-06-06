@@ -31,7 +31,7 @@ describe('ProxyMessageRecorder', () => {
       canonicalizeAgentMessageKeys: jest
         .fn()
         .mockImplementation(
-          async (_agentId: string, provider: string | null, model: string | null) => ({
+          async (_userId: string, provider: string | null, model: string | null) => ({
             provider: provider ?? null,
             model: model ?? null,
           }),
@@ -1418,13 +1418,133 @@ describe('ProxyMessageRecorder', () => {
       }
     });
   });
+
+  describe('canonicalize scoping: all recording paths use ctx.userId (not ctx.agentId)', () => {
+    // These tests verify the fix for the user-scoped discovery / agent-scoped
+    // CRUD inconsistency: every call to canonicalizeAgentMessageKeys must pass
+    // ctx.userId so the lookup matches the user-global provider pool surfaced
+    // by model-discovery, not the narrower per-agent CRUD scope.
+
+    let canonicalizeMock: jest.Mock;
+
+    beforeEach(() => {
+      canonicalizeMock = jest
+        .fn()
+        .mockImplementation(
+          async (_userId: string, provider: string | null, model: string | null) => ({
+            provider: provider ?? null,
+            model: model ?? null,
+          }),
+        );
+      const scopedRepo = { insert: insertMock } as never;
+      const scopedPricingCache = {
+        getByModel: getByModelMock,
+      } as unknown as ModelPricingCacheService;
+      const scopedEventBus = { emit: emitMock } as unknown as IngestEventBusService;
+      const scopedCustomProviders = {
+        canonicalizeAgentMessageKeys: canonicalizeMock,
+      } as never;
+      const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
+      const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
+      const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
+      const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
+      const opencodeGoCatalog = {
+        getCostPerRequest: jest.fn().mockReturnValue(null),
+        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
+      } as never;
+      const recordingService = { save: jest.fn() } as never;
+      recorder.onModuleDestroy();
+      recorder = new ProxyMessageRecorder(
+        scopedRepo,
+        scopedPricingCache,
+        {} as ProxyMessageDedup,
+        scopedEventBus,
+        scopedCustomProviders,
+        providerService,
+        tierService,
+        specificityService,
+        headerTierService,
+        opencodeGoCatalog,
+        recordingService,
+      );
+    });
+
+    it('recordProviderError calls canonicalize with ctx.userId (not ctx.agentId)', async () => {
+      await recorder.recordProviderError(ctx, 500, 'err', {
+        provider: 'custom:cp-1',
+        model: 'custom:cp-1/m',
+      });
+      expect(canonicalizeMock).toHaveBeenCalledWith(ctx.userId, 'custom:cp-1', 'custom:cp-1/m');
+      expect(canonicalizeMock).not.toHaveBeenCalledWith(
+        ctx.agentId,
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('recordPrimaryFailure calls canonicalize with ctx.userId (not ctx.agentId)', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'standard',
+        'custom:cp-1/m',
+        'error',
+        new Date().toISOString(),
+        'api_key',
+        { provider: 'custom:cp-1' },
+      );
+      expect(canonicalizeMock).toHaveBeenCalledWith(ctx.userId, 'custom:cp-1', 'custom:cp-1/m');
+      expect(canonicalizeMock).not.toHaveBeenCalledWith(
+        ctx.agentId,
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('recordFailedFallbacks calls canonicalize with ctx.userId for both primaryModel and each failure', async () => {
+      const failures = [
+        {
+          model: 'custom:cp-1/f',
+          provider: 'custom:cp-1',
+          status: 500,
+          errorBody: 'err',
+          fallbackIndex: 0,
+        },
+      ];
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'custom:cp-2/primary', failures);
+      // Every canonicalize call must use ctx.userId
+      for (const call of canonicalizeMock.mock.calls) {
+        expect(call[0]).toBe(ctx.userId);
+      }
+      expect(canonicalizeMock).not.toHaveBeenCalledWith(
+        ctx.agentId,
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('recordFallbackSuccess calls canonicalize with ctx.userId (not ctx.agentId)', async () => {
+      await recorder.recordFallbackSuccess(ctx, 'custom:cp-1/m', 'standard', {
+        provider: 'custom:cp-1',
+        fallbackFromModel: 'custom:cp-2/prev',
+        usage: { prompt_tokens: 1, completion_tokens: 1 },
+      });
+      for (const call of canonicalizeMock.mock.calls) {
+        expect(call[0]).toBe(ctx.userId);
+      }
+      expect(canonicalizeMock).not.toHaveBeenCalledWith(
+        ctx.agentId,
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
 });
 
 describe('ProxyMessageRecorder with real CustomProviderService', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { CustomProviderService } = require('../../custom-provider/custom-provider.service');
 
-  function wire(customProviderRow: { id: string; name: string; agent_id: string }) {
+  function wire(customProviderRow: { id: string; name: string; user_id: string }) {
     const insertMock = jest.fn();
     const messageRepo = { insert: insertMock } as never;
     const pricingCache = {
@@ -1436,7 +1556,7 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
 
     const customProviderRepo = {
       find: jest.fn().mockResolvedValue([customProviderRow]),
-    } as never;
+    } as unknown as { find: jest.Mock };
     const providerService = {
       upsertProvider: jest.fn(),
       removeProvider: jest.fn(),
@@ -1478,14 +1598,14 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       mockOpencodeGoCatalog,
       mockRecordingService,
     );
-    return { recorder, insertMock };
+    return { recorder, insertMock, customProviderRepo };
   }
 
-  it('rewrites a llama.cpp row end-to-end: provider + model land canonical in the DB', async () => {
-    const { recorder, insertMock } = wire({
+  it('rewrites a llama.cpp row end-to-end via user_id: provider + model land canonical in the DB', async () => {
+    const { recorder, insertMock, customProviderRepo } = wire({
       id: 'cp-llamacpp',
       name: 'llama.cpp',
-      agent_id: 'agent-1',
+      user_id: 'user-1',
     });
     try {
       await recorder.recordProviderError(ctx, 500, 'upstream error', {
@@ -1499,16 +1619,18 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
         provider: 'llamacpp',
         model: 'llamacpp/qwen2.5-0.5b-q4.gguf',
       });
+      // listForUser queries by user_id — confirms user-scoped lookup, not agent-scoped
+      expect(customProviderRepo.find).toHaveBeenCalledWith({ where: { user_id: ctx.userId } });
     } finally {
       recorder.onModuleDestroy();
     }
   });
 
   it('leaves a user-defined custom provider unchanged (no tileOnly match)', async () => {
-    const { recorder, insertMock } = wire({
+    const { recorder, insertMock, customProviderRepo } = wire({
       id: 'cp-my-groq',
       name: 'My Groq',
-      agent_id: 'agent-1',
+      user_id: 'user-1',
     });
     try {
       await recorder.recordProviderError(ctx, 500, 'upstream error', {
@@ -1522,6 +1644,8 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
         provider: 'custom:cp-my-groq',
         model: 'custom:cp-my-groq/llama-3.1-70b',
       });
+      // Must still use user_id for lookup
+      expect(customProviderRepo.find).toHaveBeenCalledWith({ where: { user_id: ctx.userId } });
     } finally {
       recorder.onModuleDestroy();
     }

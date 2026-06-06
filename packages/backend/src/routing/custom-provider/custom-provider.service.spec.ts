@@ -128,31 +128,31 @@ describe('CustomProviderService', () => {
     it('rewrites provider + model when the custom provider is a tile-only canonical (llama.cpp)', async () => {
       const row = {
         id: 'cp-llamacpp',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'llama.cpp',
       } as CustomProvider;
-      const { svc, getCustomProviders } = makeDeps({ cached: [row] });
+      const { svc, find } = makeDeps({ findResult: [row] });
 
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'custom:cp-llamacpp',
         'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
       );
       expect(out).toEqual({ provider: 'llamacpp', model: 'llamacpp/qwen2.5-0.5b-q4.gguf' });
-      // First arg is agentId — cache lookup must use the same key
-      expect(getCustomProviders).toHaveBeenCalledWith('agent-1');
+      // First arg is userId — listForUser queries by user_id (not agent-keyed cache)
+      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
     });
 
     it('passes through user-defined custom providers that do not match a tile-only canonical', async () => {
       const row = {
         id: 'cp-mine',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'My Groq',
       } as CustomProvider;
-      const { svc } = makeDeps({ cached: [row] });
+      const { svc } = makeDeps({ findResult: [row] });
 
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'custom:cp-mine',
         'custom:cp-mine/llama-3.1-70b',
       );
@@ -160,9 +160,9 @@ describe('CustomProviderService', () => {
     });
 
     it('passes through cloud providers (no custom: prefix)', async () => {
-      const { svc } = makeDeps({ cached: [] });
+      const { svc } = makeDeps({ findResult: [] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'anthropic',
         'anthropic/claude-opus-4-6',
       );
@@ -172,12 +172,12 @@ describe('CustomProviderService', () => {
     it('rewrites a custom-prefixed model string even when provider is null (fallback_from_model)', async () => {
       const row = {
         id: 'cp-llamacpp',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'llama.cpp',
       } as CustomProvider;
-      const { svc } = makeDeps({ cached: [row] });
+      const { svc } = makeDeps({ findResult: [row] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         null,
         'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
       );
@@ -185,15 +185,15 @@ describe('CustomProviderService', () => {
     });
 
     it('returns nulls when both provider and model are empty', async () => {
-      const { svc } = makeDeps({ cached: [] });
-      const out = await svc.canonicalizeAgentMessageKeys('agent-1', null, null);
+      const { svc } = makeDeps({ findResult: [] });
+      const out = await svc.canonicalizeAgentMessageKeys('user-1', null, null);
       expect(out).toEqual({ provider: null, model: null });
     });
 
     it('returns provider unchanged when the referenced custom provider no longer exists', async () => {
-      const { svc } = makeDeps({ cached: [] });
+      const { svc } = makeDeps({ findResult: [] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'custom:deleted',
         'custom:deleted/foo',
       );
@@ -204,9 +204,9 @@ describe('CustomProviderService', () => {
       // fallback_from_model can carry a `custom:<uuid>/model` suffix after the
       // backing provider row was removed — the canonicalizer must pass it
       // through rather than silently dropping the reference.
-      const { svc } = makeDeps({ cached: [] });
+      const { svc } = makeDeps({ findResult: [] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         null,
         'custom:missing-uuid/my-model',
       );
@@ -220,12 +220,12 @@ describe('CustomProviderService', () => {
       // but the model must pass through untouched.
       const row = {
         id: 'cp-llamacpp',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'llama.cpp',
       } as CustomProvider;
-      const { svc } = makeDeps({ cached: [row] });
+      const { svc } = makeDeps({ findResult: [row] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'custom:cp-llamacpp',
         'anthropic/claude-opus-4-6',
       );
@@ -235,8 +235,8 @@ describe('CustomProviderService', () => {
     it('returns null model unchanged when the referenced provider row is missing', async () => {
       // Combines the "row not found" branch with a null model — the
       // canonicalizer must not invent a model string when none was supplied.
-      const { svc } = makeDeps({ cached: [] });
-      const out = await svc.canonicalizeAgentMessageKeys('agent-1', 'custom:deleted', null);
+      const { svc } = makeDeps({ findResult: [] });
+      const out = await svc.canonicalizeAgentMessageKeys('user-1', 'custom:deleted', null);
       expect(out).toEqual({ provider: 'custom:deleted', model: null });
     });
 
@@ -245,11 +245,11 @@ describe('CustomProviderService', () => {
       // must stay missing — no accidental "my-groq/null" strings in the DB.
       const row = {
         id: 'cp-mine',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'My Groq',
       } as CustomProvider;
-      const { svc } = makeDeps({ cached: [row] });
-      const out = await svc.canonicalizeAgentMessageKeys('agent-1', 'custom:cp-mine', null);
+      const { svc } = makeDeps({ findResult: [row] });
+      const out = await svc.canonicalizeAgentMessageKeys('user-1', 'custom:cp-mine', null);
       expect(out).toEqual({ provider: 'custom:cp-mine', model: null });
     });
 
@@ -259,11 +259,11 @@ describe('CustomProviderService', () => {
       // must remain null rather than accidentally adopting a canonical prefix.
       const row = {
         id: 'cp-llamacpp',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'llama.cpp',
       } as CustomProvider;
-      const { svc } = makeDeps({ cached: [row] });
-      const out = await svc.canonicalizeAgentMessageKeys('agent-1', 'custom:cp-llamacpp', null);
+      const { svc } = makeDeps({ findResult: [row] });
+      const out = await svc.canonicalizeAgentMessageKeys('user-1', 'custom:cp-llamacpp', null);
       expect(out).toEqual({ provider: 'llamacpp', model: null });
     });
   });
@@ -290,6 +290,39 @@ describe('CustomProviderService', () => {
       expect(result).toBe(rows);
       expect(find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
       expect(setCustomProviders).toHaveBeenCalledWith('agent-1', rows);
+    });
+  });
+
+  describe('listForUser', () => {
+    it('queries by user_id (not agent_id) and bypasses the agent-keyed cache', async () => {
+      const rows = [{ id: 'cp1', user_id: 'user-1' } as CustomProvider];
+      const { svc, find, getCustomProviders, setCustomProviders } = makeDeps({
+        findResult: rows,
+      });
+      const result = await svc.listForUser('user-1');
+      expect(result).toBe(rows);
+      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
+      // Must not touch the agent-keyed routing cache
+      expect(getCustomProviders).not.toHaveBeenCalled();
+      expect(setCustomProviders).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty array when no custom providers exist for the user', async () => {
+      const { svc, find } = makeDeps({ findResult: [] });
+      const result = await svc.listForUser('user-99');
+      expect(result).toEqual([]);
+      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-99' } });
+    });
+
+    it('returns providers from multiple agents belonging to the same user', async () => {
+      const rows = [
+        { id: 'cp-a1', user_id: 'user-1', agent_id: 'agent-1' } as CustomProvider,
+        { id: 'cp-a2', user_id: 'user-1', agent_id: 'agent-2' } as CustomProvider,
+      ];
+      const { svc, find } = makeDeps({ findResult: rows });
+      const result = await svc.listForUser('user-1');
+      expect(result).toHaveLength(2);
+      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
     });
   });
 

@@ -66,6 +66,7 @@ describe('ModelController', () => {
     };
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
+      listForUser: jest.fn().mockResolvedValue([]),
     };
     mockPricingSync = {
       getAll: jest.fn().mockReturnValue(new Map([['gpt-4o', {}]])),
@@ -444,16 +445,16 @@ describe('ModelController', () => {
           displayName: 'llama-3.1-70b',
         }),
       ]);
-      mockCustomProviderService.list.mockResolvedValue([{ id: 'cp-uuid', name: 'Groq' }]);
+      mockCustomProviderService.listForUser.mockResolvedValue([{ id: 'cp-uuid', name: 'Groq' }]);
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
       expect(result).toHaveLength(1);
       expect(result[0].display_name).toBe('llama-3.1-70b');
       expect(result[0].provider_display_name).toBe('Groq');
-      // custom providers are now agent-scoped
-      expect(mockCustomProviderService.list).toHaveBeenCalledWith(TEST_AGENT_ID);
-      expect(mockCustomProviderService.list).not.toHaveBeenCalledWith('user-1');
+      // display-name map is user-scoped (matches user-global model discovery pool)
+      expect(mockCustomProviderService.listForUser).toHaveBeenCalledWith('user-1');
+      expect(mockCustomProviderService.list).not.toHaveBeenCalled();
     });
 
     it('should fall back to provider key when custom provider name not in map', async () => {
@@ -464,7 +465,7 @@ describe('ModelController', () => {
           displayName: 'model-x',
         }),
       ]);
-      mockCustomProviderService.list.mockResolvedValue([]);
+      mockCustomProviderService.listForUser.mockResolvedValue([]);
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
