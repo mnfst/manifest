@@ -14,12 +14,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import {
-  createTestApp,
-  TEST_AGENT_ID,
-  TEST_OTLP_KEY,
-  TEST_TENANT_ID,
-} from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
@@ -58,7 +53,7 @@ beforeAll(async () => {
      VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
     [
       'up-anthropic-1871',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'anthropic',
       'api_key',
@@ -89,7 +84,7 @@ beforeAll(async () => {
        fallback_routes = EXCLUDED.fallback_routes`,
     [
       'tier-default-1871',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'default',
       JSON.stringify({ provider: 'anthropic', authType: 'api_key', model: MODEL }),
@@ -161,7 +156,9 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
   it('preserves cache_creation_input_tokens through the response AND the DB row', async () => {
     const ds = app.get(DataSource);
     await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     nextAnthropicUsage = {
       input_tokens: 7,
@@ -207,7 +204,9 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
   it('preserves cache_read_input_tokens through the response AND the DB row', async () => {
     const ds = app.get(DataSource);
     await ds.query(`DELETE FROM agent_messages WHERE agent_id = $1`, [TEST_AGENT_ID]);
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     nextAnthropicUsage = {
       input_tokens: 7,
