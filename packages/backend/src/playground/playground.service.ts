@@ -81,7 +81,7 @@ export class PlaygroundService {
         return this.sendPreStreamError(
           res,
           404,
-          `Provider "${dto.provider}" is not connected for this agent`,
+          `Provider "${dto.provider}" is not connected for this user`,
         );
       }
       authType = dto.authType ?? (await this.providerKeyService.getAuthType(userId, dto.provider));
