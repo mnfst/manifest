@@ -383,13 +383,87 @@ describe('ProviderDetailView', () => {
     });
   });
 
-  it('renders back button', () => {
+  it('renders close button that calls onClose', () => {
     const props = createTestProps();
     render(() => <ProviderDetailView {...props} />);
-    const btn = screen.getByLabelText('Back to providers');
+    // The header close button (×) calls onClose to dismiss the modal entirely
+    const btn = screen.getByLabelText('Close');
     expect(btn).toBeDefined();
     fireEvent.click(btn);
-    expect(props.onBack).toHaveBeenCalled();
+    expect(props.onClose).toHaveBeenCalled();
+    expect(props.onBack).not.toHaveBeenCalled();
+  });
+
+  describe('local auth type branch', () => {
+    it('shows Disconnect button when provider is connected via local auth_type', () => {
+      const localProviders: RoutingProvider[] = [
+        {
+          id: 'p-local',
+          provider: 'ollama',
+          auth_type: 'local',
+          is_active: true,
+          has_api_key: false,
+          connected_at: '2025-01-01',
+        },
+      ];
+      const [selectedAuthType] = createSignal<AuthType>('local');
+      const [busy, setBusy] = createSignal(false);
+      const [keyInput, setKeyInput] = createSignal('');
+      const [editing, setEditing] = createSignal(false);
+      const [validationError, setValidationError] = createSignal<string | null>(null);
+
+      render(() => (
+        <ProviderDetailView
+          provId="ollama"
+          agentName="test-agent"
+          providers={localProviders}
+          selectedAuthType={selectedAuthType as Accessor<AuthType>}
+          busy={busy}
+          setBusy={setBusy as Setter<boolean>}
+          keyInput={keyInput}
+          setKeyInput={setKeyInput as Setter<string>}
+          editing={editing}
+          setEditing={setEditing as Setter<boolean>}
+          validationError={validationError}
+          setValidationError={setValidationError as Setter<string | null>}
+          onBack={vi.fn()}
+          onUpdate={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      // isLocalMode() = true, isLocalConnected() = true → connected() = true → shows Disconnect
+      expect(screen.getByText('Disconnect')).toBeDefined();
+    });
+
+    it('shows Connect button when provider is NOT connected via local auth_type', () => {
+      const [selectedAuthType] = createSignal<AuthType>('local');
+      const [busy, setBusy] = createSignal(false);
+      const [keyInput, setKeyInput] = createSignal('');
+      const [editing, setEditing] = createSignal(false);
+      const [validationError, setValidationError] = createSignal<string | null>(null);
+
+      render(() => (
+        <ProviderDetailView
+          provId="ollama"
+          agentName="test-agent"
+          providers={[]}
+          selectedAuthType={selectedAuthType as Accessor<AuthType>}
+          busy={busy}
+          setBusy={setBusy as Setter<boolean>}
+          keyInput={keyInput}
+          setKeyInput={setKeyInput as Setter<string>}
+          editing={editing}
+          setEditing={setEditing as Setter<boolean>}
+          validationError={validationError}
+          setValidationError={setValidationError as Setter<string | null>}
+          onBack={vi.fn()}
+          onUpdate={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      // isLocalMode() = true, isLocalConnected() = false → connected() = false → shows Connect
+      expect(screen.getByText('Connect')).toBeDefined();
+    });
   });
 
   it('renders ProviderKeyForm for non-Ollama providers', () => {

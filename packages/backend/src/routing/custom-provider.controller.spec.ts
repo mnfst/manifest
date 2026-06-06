@@ -65,6 +65,12 @@ describe('CustomProviderController', () => {
         NotFoundException,
       );
     });
+
+    it('calls customProviderService.list with the resolved agent id (agent-scoped)', async () => {
+      await controller.list(mockUser, { agentName: 'test-agent' } as never);
+      expect(mockCustomProviderService.list).toHaveBeenCalledWith('agent-001');
+      expect(mockCustomProviderService.list).not.toHaveBeenCalledWith('user-1');
+    });
   });
 
   /* ── list ── */
@@ -234,7 +240,7 @@ describe('CustomProviderController', () => {
     it('removes custom provider and returns ok', async () => {
       const result = await controller.remove(mockUser, 'test-agent', 'cp-1');
 
-      expect(mockCustomProviderService.remove).toHaveBeenCalledWith('agent-001', 'cp-1');
+      expect(mockCustomProviderService.remove).toHaveBeenCalledWith('agent-001', 'user-1', 'cp-1');
       expect(result).toEqual({ ok: true });
     });
 

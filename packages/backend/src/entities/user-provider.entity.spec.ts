@@ -1,6 +1,14 @@
+import { getMetadataArgsStorage } from 'typeorm';
 import { UserProvider } from './user-provider.entity';
 
 describe('UserProvider entity', () => {
+  it('agent_id column is nullable', () => {
+    const col = getMetadataArgsStorage().columns.find(
+      (c) => c.target === UserProvider && c.propertyName === 'agent_id',
+    );
+    expect(col?.options.nullable).toBe(true);
+  });
+
   it('should instantiate with all fields assignable', () => {
     const entity = new UserProvider();
     entity.id = 'p1';

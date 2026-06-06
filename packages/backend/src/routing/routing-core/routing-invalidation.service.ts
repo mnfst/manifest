@@ -33,7 +33,7 @@ export class RoutingInvalidationService {
     // makes a full scan cheap and removes the scope-narrowing bug from the
     // earlier dual-write design.
     const allTiers = await this.tierRepo.find();
-    const agentIds = new Set<string>();
+    const agentIds = new Map<string, string>(); // agentId -> userId
     const tiersToSave: TierAssignment[] = [];
     let invalidatedCount = 0;
 
@@ -57,7 +57,7 @@ export class RoutingInvalidationService {
       if (mutated) {
         tier.updated_at = new Date().toISOString();
         tiersToSave.push(tier);
-        agentIds.add(tier.agent_id);
+        agentIds.set(tier.agent_id, tier.user_id);
       }
     }
 
@@ -66,9 +66,9 @@ export class RoutingInvalidationService {
     if (agentIds.size === 0) return;
 
     await Promise.all(
-      [...agentIds].map((agentId) => {
+      [...agentIds.entries()].map(([agentId, userId]) => {
         this.routingCache.invalidateAgent(agentId);
-        return this.autoAssign.recalculate(agentId);
+        return this.autoAssign.recalculate(agentId, userId);
       }),
     );
 

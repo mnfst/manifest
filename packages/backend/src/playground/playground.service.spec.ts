@@ -459,9 +459,10 @@ describe('PlaygroundService.runStream', () => {
   });
 
   it('sends a 404 JSON error (no stream) when the provider is not connected', async () => {
+    const hasActiveProvider = jest.fn().mockResolvedValue(false);
     const { service } = buildService({
       providerKeyService: {
-        hasActiveProvider: jest.fn().mockResolvedValue(false),
+        hasActiveProvider,
         getAuthType: jest.fn(),
         getProviderKeys: jest.fn(),
         getProviderApiKey: jest.fn(),
@@ -475,6 +476,9 @@ describe('PlaygroundService.runStream', () => {
     expect(res._json).toMatchObject({ statusCode: 404 });
     expect((res._json as { message: string }).message).toContain('not connected');
     expect(res.write).not.toHaveBeenCalled();
+    // The connectivity check is user-scoped — the first arg must be the userId,
+    // not the agentId, or it would query user_providers by the wrong id.
+    expect(hasActiveProvider).toHaveBeenCalledWith(USER_ID, 'openai');
   });
 
   it('sends a 404 JSON error when no usable API key is found', async () => {
@@ -507,7 +511,9 @@ describe('PlaygroundService.runStream', () => {
 
     await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
 
-    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(AGENT.id, 'openai');
+    // Auth-type lookup is user-scoped — passing AGENT.id would query
+    // user_providers by an agentId and resolve the wrong (or no) auth type.
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(USER_ID, 'openai');
     // subscription auth → cost is 0, not null
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);
@@ -540,8 +546,10 @@ describe('PlaygroundService.runStream', () => {
       asRes(res),
     );
 
+    // Provider-key reads are user-scoped (the first arg is the userId, not the
+    // agentId) — a swap here would silently return no keys.
     expect(mocks.providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-      AGENT.id,
+      USER_ID,
       'openai',
       'subscription',
     );

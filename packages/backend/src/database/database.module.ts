@@ -112,6 +112,7 @@ import { AddReasoningContentCache1790100000000 } from './migrations/179010000000
 import { AddDedupCompositeIndex1790200000000 } from './migrations/1790200000000-AddDedupCompositeIndex';
 import { AddErrorsPartialIndex1790300000000 } from './migrations/1790300000000-AddErrorsPartialIndex';
 import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1790400000000-DropRedundantAgentApiKeyPrefixIndex';
+import { LiftAgentProvidersToGlobal1791000000000 } from './migrations/1791000000000-LiftAgentProvidersToGlobal';
 
 const entities = [
   AgentMessage,
@@ -225,6 +226,7 @@ const migrations = [
   AddDedupCompositeIndex1790200000000,
   AddErrorsPartialIndex1790300000000,
   DropRedundantAgentApiKeyPrefixIndex1790400000000,
+  LiftAgentProvidersToGlobal1791000000000,
 ];
 
 @Module({

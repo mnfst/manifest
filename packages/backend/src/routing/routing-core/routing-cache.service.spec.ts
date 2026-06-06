@@ -97,31 +97,46 @@ describe('RoutingCacheService', () => {
 
   describe('invalidateAgent', () => {
     it('clears every cache slot for the agent, including all per-provider key chains', () => {
+      // agentId 'a' and userId 'u-a' are separate keys in the new architecture.
+      // invalidateAgent clears agent-scoped caches (tiers, specificity, modelParams, customProviders).
+      // invalidateUser clears user-scoped caches (providers, providerKeys).
       svc.setTiers('a', [tier('t1')]);
-      svc.setProviders('a', [provider('p1')]);
-      svc.setCustomProviders('a', [customProvider('c1')]);
+      svc.setProviders('u-a', [provider('p1')]);
+      svc.setCustomProviders('a', [customProvider('c1')]); // agent-keyed
       svc.setSpecificity('a', [specificity('s1')]);
       svc.setModelParams('a', [modelParams('mp1')]);
-      svc.setProviderKeys('a', 'openai', [providerKey('Default', 'k')]);
-      svc.setProviderKeys('a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
+      svc.setProviderKeys('u-a', 'openai', [providerKey('Default', 'k')]);
+      svc.setProviderKeys('u-a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
 
       // Unrelated agent entries should survive.
       svc.setTiers('b', [tier('t-b')]);
       const bKeys = [providerKey('Default', 'k-b')];
-      svc.setProviderKeys('b', 'openai', bKeys);
+      svc.setProviderKeys('u-b', 'openai', bKeys);
 
       svc.invalidateAgent('a');
+      svc.invalidateUser('u-a');
 
       expect(svc.getTiers('a')).toBeNull();
-      expect(svc.getProviders('a')).toBeNull();
-      expect(svc.getCustomProviders('a')).toBeNull();
+      expect(svc.getProviders('u-a')).toBeNull();
+      expect(svc.getCustomProviders('a')).toBeNull(); // cleared by invalidateAgent
       expect(svc.getSpecificity('a')).toBeNull();
       expect(svc.getModelParams('a')).toBeNull();
-      expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
-      expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
+      expect(svc.getProviderKeys('u-a', 'openai')).toBeUndefined();
+      expect(svc.getProviderKeys('u-a', 'anthropic', 'subscription')).toBeUndefined();
 
       expect(svc.getTiers('b')).not.toBeNull();
-      expect(svc.getProviderKeys('b', 'openai')).toBe(bKeys);
+      expect(svc.getProviderKeys('u-b', 'openai')).toBe(bKeys);
+    });
+
+    it('invalidateUser does NOT clear agent-scoped customProviders', () => {
+      // customProviders are keyed by agentId — invalidateUser must not touch them.
+      const c = [customProvider('c1')];
+      svc.setCustomProviders('agent-z', c);
+
+      svc.invalidateUser('user-z');
+
+      // Still present — only invalidateAgent('agent-z') would clear it.
+      expect(svc.getCustomProviders('agent-z')).toBe(c);
     });
   });
 

@@ -83,19 +83,17 @@ describe('CustomProviderService edge cases', () => {
   });
 
   describe('canonicalizeAgentMessageKeys with stale references', () => {
-    it('handles a true cache miss (cache null + DB empty) by falling through to passthrough', async () => {
-      // Distinct from `cached: []`: the cache itself returned no entry at all
-      // (e.g. just after `invalidateAgent`), so list() has to hit the DB.
-      // The DB also returns nothing — the provider was deleted from under
-      // a still-pending message. The canonicalizer must pass the keys
-      // through untouched rather than throw or invent canonical names.
-      const { svc, find, setCustomProviders } = makeDeps({
-        cached: null,
+    it('queries by user_id and falls through to passthrough when DB is empty', async () => {
+      // canonicalizeAgentMessageKeys now accepts userId and calls listForUser,
+      // which queries by user_id directly (no agent-keyed cache involved).
+      // When no rows are found the canonicalizer must pass the keys through
+      // untouched rather than throw or invent canonical names.
+      const { svc, find } = makeDeps({
         findResult: [],
       });
 
       const result = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'custom:deleted-uuid',
         'custom:deleted-uuid/some-model',
       );
@@ -104,28 +102,25 @@ describe('CustomProviderService edge cases', () => {
         provider: 'custom:deleted-uuid',
         model: 'custom:deleted-uuid/some-model',
       });
-      // The cache miss path must actually hit the DB and repopulate the
-      // cache (with the empty result) so the next lookup is also cheap.
-      expect(find).toHaveBeenCalledWith({ where: { agent_id: 'agent-1' } });
-      expect(setCustomProviders).toHaveBeenCalledWith('agent-1', []);
+      // listForUser queries by user_id — not agent_id, not the agent cache
+      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
     });
 
-    it('passes through when cache miss + DB has unrelated providers (UUID still gone)', async () => {
-      // Cache cold, DB has *other* custom providers for the agent but not
-      // the one being canonicalized. This is the realistic stale-pointer
-      // case after a delete + invalidateAgent.
+    it('passes through when DB has unrelated providers (UUID still gone)', async () => {
+      // DB has *other* custom providers for the user but not the one being
+      // canonicalized. The user-scoped lookup still finds no match for the
+      // referenced UUID, so keys pass through unchanged.
       const otherRow = {
         id: 'cp-still-here',
-        agent_id: 'agent-1',
+        user_id: 'user-1',
         name: 'llama.cpp',
       } as CustomProvider;
       const { svc } = makeDeps({
-        cached: null,
         findResult: [otherRow],
       });
 
       const result = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         'custom:deleted-uuid',
         'custom:deleted-uuid/foo',
       );
@@ -137,16 +132,15 @@ describe('CustomProviderService edge cases', () => {
       });
     });
 
-    it('passes through fallback_from_model when cache miss + DB empty (null provider)', async () => {
+    it('passes through fallback_from_model when DB empty (null provider)', async () => {
       // fallback_from_model branch (provider null, model carries custom:
-      // prefix) under a true cache miss. Same passthrough contract.
+      // prefix) with empty DB. Same passthrough contract.
       const { svc, find } = makeDeps({
-        cached: null,
         findResult: [],
       });
 
       const result = await svc.canonicalizeAgentMessageKeys(
-        'agent-1',
+        'user-1',
         null,
         'custom:evicted/legacy-model',
       );

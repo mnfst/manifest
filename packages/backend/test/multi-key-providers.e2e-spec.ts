@@ -10,8 +10,10 @@
  *    teardown semantics
  */
 import { INestApplication } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_AGENT_ID, TEST_API_KEY } from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_USER_ID } from './helpers';
+import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
 
 let app: INestApplication;
 
@@ -48,9 +50,17 @@ async function listActiveOpenAi() {
 
 describe('Multi-key per provider — HTTP', () => {
   beforeEach(async () => {
-    // Each test starts from a clean OpenAI provider state by deactivating
-    // anything left behind from a previous test (the test app shares the DB).
-    await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all')).expect(201);
+    // Each test starts from a clean OpenAI provider state. Providers are
+    // user-global now, so inactive same-key rows from earlier tests would be
+    // resurrected with their old labels if we only deactivated them.
+    const ds = app.get(DataSource);
+    await ds.query(`DELETE FROM user_providers WHERE user_id = $1 AND provider = $2`, [
+      TEST_USER_ID,
+      'openai',
+    ]);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
   });
 
   it('initial connect (no label) creates a row labeled "Default" with priority 0', async () => {

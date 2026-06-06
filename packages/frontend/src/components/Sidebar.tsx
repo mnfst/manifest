@@ -13,6 +13,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
   const path = (sub: string) => agentPath(getAgentName(), sub);
 
+  const isGlobalActive = (route: string) => location.pathname === route;
+
   const isActive = (sub: string) => {
     const p = path(sub);
     if (sub === '') return location.pathname === p;
@@ -42,6 +44,32 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Agents
         </A>
       </Show>
+
+      <div class="sidebar__section-label">PROVIDERS</div>
+      <A
+        href="/providers/subscriptions"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/subscriptions') }}
+        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
+      >
+        Subscriptions
+      </A>
+      <A
+        href="/providers/byok"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/byok') }}
+        aria-current={isGlobalActive('/providers/byok') ? 'page' : undefined}
+      >
+        BYOK
+      </A>
+      <A
+        href="/providers/local"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/local') }}
+        aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
+      >
+        Local
+      </A>
 
       <Show when={getAgentName()}>
         <div class="sidebar__section-label">MONITORING</div>

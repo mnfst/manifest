@@ -70,6 +70,11 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     return !!p && p.is_active && !!provDef.noKeyRequired;
   };
 
+  const isLocalConnected = (): boolean => {
+    const p = getProviderByAuth('local');
+    return !!p && p.is_active;
+  };
+
   const getKeyPrefixDisplay = (authType: AuthType): string => {
     const p = getProviderByAuth(authType);
     if (p?.key_prefix) return `${p.key_prefix}${'•'.repeat(8)}`;
@@ -87,14 +92,17 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     !!provDef.subscriptionCommand &&
     !provDef.subscriptionKeyPlaceholder &&
     !subscriptionAuthMode();
+  const isLocalMode = () => props.selectedAuthType() === 'local';
   const connected = () =>
-    isSubMode()
-      ? isCommandOnly()
-        ? isSubscriptionConnected()
-        : subscriptionAuthMode() === 'token'
-          ? isSubscriptionWithToken()
-          : isSubscriptionConnected()
-      : isConnectedApiKey() || isNoKeyConnected();
+    isLocalMode()
+      ? isLocalConnected()
+      : isSubMode()
+        ? isCommandOnly()
+          ? isSubscriptionConnected()
+          : subscriptionAuthMode() === 'token'
+            ? isSubscriptionWithToken()
+            : isSubscriptionConnected()
+        : isConnectedApiKey() || isNoKeyConnected();
   const isOllama = provDef.noKeyRequired;
 
   const [addKeyOpen, setAddKeyOpen] = createSignal(false);
@@ -190,25 +198,27 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
 
   return (
     <div class="provider-detail">
-      {/* Back arrow */}
-      <button class="modal-back-btn" onClick={props.onBack} aria-label="Back to providers">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M14.71 7.29a.996.996 0 0 0-1.41 0l-4 4a.996.996 0 0 0 0 1.41l4 4c.2.2.45.29.71.29s.51-.1.71-.29a.996.996 0 0 0 0-1.41L11.43 12l3.29-3.29a.996.996 0 0 0 0-1.41Z" />
-        </svg>
-      </button>
-
-      {/* Title */}
+      {/* Title + close button */}
       <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
           <div class="routing-modal__title">Connect providers</div>
         </div>
+        <button class="modal__close" onClick={props.onClose} aria-label="Close">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* Provider row */}

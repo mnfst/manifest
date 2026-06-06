@@ -207,7 +207,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       provider,
       model,
     );
@@ -276,13 +276,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       null,
       primaryModel,
     );
     const canonicalFailures = await Promise.all(
       failures.map((f) =>
-        this.customProviders.canonicalizeAgentMessageKeys(ctx.agentId, f.provider, f.model),
+        this.customProviders.canonicalizeAgentMessageKeys(ctx.userId, f.provider, f.model),
       ),
     );
     const rows: Partial<AgentMessage>[] = [];
@@ -351,7 +351,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       opts?.provider,
       model,
     );
@@ -416,15 +416,15 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
-    const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
+    const baseline = await this.computeBaseline(ctx.agentId, ctx.userId, inputTokens, outputTokens);
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       provider,
       model,
     );
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       null,
       fallbackFromModel,
     );
@@ -499,6 +499,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const baseline = await this.computeBaseline(
       ctx.agentId,
+      ctx.userId,
       usage.prompt_tokens,
       usage.completion_tokens,
     );
@@ -506,7 +507,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       provider,
       model,
     );
@@ -649,13 +650,14 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
   private async computeBaseline(
     agentId: string,
+    userId: string,
     inputTokens: number,
     outputTokens: number,
   ): Promise<{ modelId: string; cost: number } | null> {
     try {
       const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
-        this.providerService.getProviders(agentId),
-        this.tierService.getTiers(agentId),
+        this.providerService.getProviders(userId),
+        this.tierService.getTiers(agentId, userId),
         this.specificityService.getAssignments(agentId),
         this.headerTierService.list(agentId),
       ]);

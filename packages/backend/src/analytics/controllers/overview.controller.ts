@@ -63,8 +63,10 @@ export class OverviewController {
   private async hasActiveProviders(userId: string, agentName?: string): Promise<boolean> {
     if (!agentName) return false;
     try {
-      const agent = await this.resolveAgent.resolve(userId, agentName);
-      const providers = await this.providerService.getProviders(agent.id);
+      // Resolve still runs so an unknown/foreign agentName surfaces as "no
+      // providers" (throws → caught below), but provider reads are user-scoped.
+      await this.resolveAgent.resolve(userId, agentName);
+      const providers = await this.providerService.getProviders(userId);
       return providers.some((p) => p.is_active);
     } catch {
       return false;

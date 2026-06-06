@@ -153,7 +153,7 @@ describe('OpenaiOauthService', () => {
         undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
       // State is one-time-use.
       expect(svc.getPendingCount()).toBe(0);
     });

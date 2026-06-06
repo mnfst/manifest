@@ -661,6 +661,69 @@ describe('ProxyFallbackService', () => {
       });
     });
 
+    it('scopes custom provider lookup by userId when provided', async () => {
+      customProviderRepo.findOne.mockResolvedValue({
+        id: 'cp-1',
+        user_id: 'user-alice',
+        base_url: 'https://api.groq.com/openai/v1',
+      } as never);
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        userId: 'user-alice',
+      });
+
+      // findOne must be called with both id AND user_id to prevent cross-user resolution
+      expect(customProviderRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'cp-1', user_id: 'user-alice' },
+      });
+      expect(providerClient.forward).toHaveBeenCalled();
+    });
+
+    it('does not resolve a custom provider belonging to a different user', async () => {
+      // The repo mock returns null when the userId filter excludes another user's row.
+      customProviderRepo.findOne.mockImplementation(async (opts: unknown) => {
+        const where = (opts as { where: { id: string; user_id?: string } }).where;
+        if (where.user_id && where.user_id !== 'user-alice') return null;
+        return {
+          id: 'cp-1',
+          user_id: 'user-alice',
+          base_url: 'https://secret.example/v1',
+        } as never;
+      });
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        userId: 'user-bob', // different user — must not see alice's provider
+      });
+
+      // No customEndpoint means the repo returned null for user-bob's id/user_id combo
+      const callArg = providerClient.forward.mock.calls[0][0];
+      expect(callArg.customEndpoint).toBeUndefined();
+    });
+
     it('routes Anthropic-kind custom providers to /v1/messages with anthropic format', async () => {
       customProviderRepo.findOne.mockResolvedValue({
         id: 'cp-anth',
@@ -1112,15 +1175,15 @@ describe('ProxyFallbackService', () => {
       expect(result.success).not.toBeNull();
       // getAuthType should have been called with the exclusion set
       expect(providerKeyService.getAuthType).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'Anthropic',
         new Set(['subscription']),
       );
       // getProviderApiKey should use the alternate auth type. The 4th arg is
       // the optional providerKeyLabel — undefined when the fallback entry
-      // has no `||<label>` suffix.
+      // has no `||<label>` suffix; the 5th scopes global providers to an agent.
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'Anthropic',
         'api_key',
         undefined,
@@ -1158,7 +1221,7 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'Google',
         'api_key',
         'Work',
@@ -1205,19 +1268,19 @@ describe('ProxyFallbackService', () => {
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getAuthType).not.toHaveBeenCalled();
       expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'openai',
         'subscription',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'openai',
         'subscription',
         'Work',
       );
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
       expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'openai',
         'subscription',
         'Work',
@@ -1328,19 +1391,19 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'OpenAI',
         'subscription',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'OpenAI',
         'subscription',
         'Work',
       );
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'user-1', 'Work');
       expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
-        'agent-1',
+        'user-1',
         'OpenAI',
         'subscription',
         'Work',
@@ -1372,7 +1435,7 @@ describe('ProxyFallbackService', () => {
       );
 
       // OpenAI is a different provider, so no exclusion set should be passed
-      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('agent-1', 'OpenAI', undefined);
+      expect(providerKeyService.getAuthType).toHaveBeenCalledWith('user-1', 'OpenAI', undefined);
     });
 
     it('accumulates failed auth types across same-provider fallbacks', async () => {
@@ -1411,14 +1474,14 @@ describe('ProxyFallbackService', () => {
       // First call: exclusion contains 'subscription' (from primary)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
         1,
-        'agent-1',
+        'user-1',
         'Anthropic',
         new Set(['subscription']),
       );
       // Second call: exclusion now also contains 'api_key' (from first fallback failure)
       expect(providerKeyService.getAuthType).toHaveBeenNthCalledWith(
         2,
-        'agent-1',
+        'user-1',
         'Anthropic',
         new Set(['subscription', 'api_key']),
       );
@@ -1485,7 +1548,7 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(result.success!.provider).toBe('openrouter');
-      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('agent-1', 'anthropic');
+      expect(providerKeyService.hasActiveProvider).toHaveBeenCalledWith('user-1', 'anthropic');
     });
   });
 

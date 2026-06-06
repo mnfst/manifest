@@ -910,7 +910,7 @@ describe('ProxyService — orchestration', () => {
       } as never);
 
       await svc.proxyRequest(baseOpts());
-      expect(tierService.getTiers).toHaveBeenCalledWith('agent-1');
+      expect(tierService.getTiers).toHaveBeenCalledWith('agent-1', 'user-1');
     });
 
     it('returns null fallback chain when neither resolver nor tier provides routes', async () => {
@@ -1139,7 +1139,7 @@ describe('ProxyService — orchestration', () => {
           body: { messages: [{ role: 'user', content: 'HEARTBEAT_OK' }] },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
     });
 
@@ -1171,7 +1171,7 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
     });
 
     it('does not detect heartbeat when no user message exists', async () => {
@@ -1283,8 +1283,10 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      const [, scoringMessages] = resolveService.resolve.mock.calls[0];
-      expect(scoringMessages.every((m) => m.role === 'user')).toBe(true);
+      const [, , scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect((scoringMessages as Array<{ role: string }>).every((m) => m.role === 'user')).toBe(
+        true,
+      );
     });
   });
 });

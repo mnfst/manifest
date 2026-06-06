@@ -29,6 +29,7 @@ export interface ProviderSelectContentProps {
   onClose?: () => void;
   showHeader?: boolean;
   showFooter?: boolean;
+  initialTab?: 'subscription' | 'api_key' | 'local';
 }
 
 const noop = () => {};
@@ -42,7 +43,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
-    'subscription',
+    props.initialTab ?? 'subscription',
   );
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(async () => {
@@ -52,7 +53,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv ? deepLinkProv.id : null,
   );
   const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
-    deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
+    deepLink?.authType ?? (deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key'),
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);
@@ -68,7 +69,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [editing, setEditing] = createSignal(false);
   const [validationError, setValidationError] = createSignal<string | null>(null);
   const [direction, setDirection] = createSignal<'forward' | 'back' | null>(null);
-  const [addKeyIntent, setAddKeyIntent] = createSignal(false);
+  const [addKeyIntent, setAddKeyIntent] = createSignal(deepLink?.addKey === true);
   const subscriptionProviders = () => PROVIDERS.filter((p) => p.supportsSubscription);
   const apiKeyProviders = () => PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
   const localProviders = () => PROVIDERS.filter((p) => p.localOnly);
@@ -131,6 +132,10 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     setDirection('back');
     resetToList();
   };
+
+  // When the modal was opened with closeOnBack (from provider pages),
+  // the back button closes the modal instead of returning to the list.
+  const detailBack = deepLink?.closeOnBack ? () => closeHandler()() : goBack;
 
   // Kept as an alias of goBack so callers that finish a flow (create /
   // delete / connect) don't have to know how back-nav works.
@@ -243,7 +248,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
-            onBack={goBack}
+            onBack={detailBack}
             onOpenCustomForm={() => {
               setLocalServerProvider(null);
               openCustomForm();
@@ -267,7 +272,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
               completeToList();
               props.onUpdate();
             }}
-            onBack={goBack}
+            onBack={detailBack}
             onDeleted={() => {
               completeToList();
               props.onUpdate();
@@ -460,14 +465,14 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             agentName={props.agentName}
             connected={isSubscriptionWithToken(selectedProvider()!)}
             activeKeys={getActiveProviderKeys(selectedProvider()!, 'subscription')}
-            onBack={goBack}
+            onBack={detailBack}
             onConnected={async () => {
               await props.onUpdate();
-              goBack();
+              detailBack();
             }}
             onUpdated={props.onUpdate}
             onDisconnected={() => {
-              goBack();
+              detailBack();
               props.onUpdate();
             }}
           />
@@ -497,7 +502,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
             setEditing={setEditing}
             validationError={validationError}
             setValidationError={setValidationError}
-            onBack={goBack}
+            onBack={detailBack}
             onUpdate={props.onUpdate}
             onClose={closeHandler()}
             initialAddKey={addKeyIntent()}

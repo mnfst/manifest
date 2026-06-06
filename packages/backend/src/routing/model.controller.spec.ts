@@ -46,6 +46,7 @@ describe('ModelController', () => {
     jest.clearAllMocks();
     mockProviderService = {
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      recalculateTiersForUser: jest.fn().mockResolvedValue(undefined),
     };
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
@@ -65,6 +66,7 @@ describe('ModelController', () => {
     };
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
+      listForUser: jest.fn().mockResolvedValue([]),
     };
     mockPricingSync = {
       getAll: jest.fn().mockReturnValue(new Map([['gpt-4o', {}]])),
@@ -164,11 +166,13 @@ describe('ModelController', () => {
   /* ── refreshModels ── */
 
   describe('refreshModels', () => {
-    it('should call discoverAllForAgent and return ok', async () => {
+    it('should call discoverAllForAgent and recalculateTiersForUser and return ok', async () => {
       const result = await controller.refreshModels(mockUser, mockAgentName);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
-      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result).toEqual({ ok: true });
     });
   });
@@ -189,11 +193,12 @@ describe('ModelController', () => {
       const result = await controller.refreshProviderModels(mockUser, mockParams, {});
 
       expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
-        TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         undefined,
       );
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result).toEqual({
         ok: true,
         model_count: 7,
@@ -205,7 +210,7 @@ describe('ModelController', () => {
     it('forwards the optional authType query param', async () => {
       await controller.refreshProviderModels(mockUser, mockParams, { authType: 'subscription' });
       expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
-        TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         'subscription',
       );
@@ -221,6 +226,7 @@ describe('ModelController', () => {
 
       const result = await controller.refreshProviderModels(mockUser, mockParams, {});
 
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result.ok).toBe(false);
       expect(result.error).toBe('Provider returned no models');
@@ -237,7 +243,8 @@ describe('ModelController', () => {
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
-      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      // available-models returns the user's full global pool — userId only, no agentId.
+      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith('user-1');
       expect(result).toHaveLength(1);
       expect(result[0].model_name).toBe('gpt-4o');
       expect(result[0].provider).toBe('openai');
@@ -438,13 +445,16 @@ describe('ModelController', () => {
           displayName: 'llama-3.1-70b',
         }),
       ]);
-      mockCustomProviderService.list.mockResolvedValue([{ id: 'cp-uuid', name: 'Groq' }]);
+      mockCustomProviderService.listForUser.mockResolvedValue([{ id: 'cp-uuid', name: 'Groq' }]);
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 
       expect(result).toHaveLength(1);
       expect(result[0].display_name).toBe('llama-3.1-70b');
       expect(result[0].provider_display_name).toBe('Groq');
+      // display-name map is user-scoped (matches user-global model discovery pool)
+      expect(mockCustomProviderService.listForUser).toHaveBeenCalledWith('user-1');
+      expect(mockCustomProviderService.list).not.toHaveBeenCalled();
     });
 
     it('should fall back to provider key when custom provider name not in map', async () => {
@@ -455,7 +465,7 @@ describe('ModelController', () => {
           displayName: 'model-x',
         }),
       ]);
-      mockCustomProviderService.list.mockResolvedValue([]);
+      mockCustomProviderService.listForUser.mockResolvedValue([]);
 
       const result = await controller.getAvailableModels(mockUser, mockAgentName);
 

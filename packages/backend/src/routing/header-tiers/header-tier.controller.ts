@@ -192,6 +192,7 @@ export class HeaderTierController {
     const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
     return this.headerTierService.setOverride(
       agent.id,
+      user.id,
       id,
       model,
       provider,
@@ -219,7 +220,7 @@ export class HeaderTierController {
     @Body() body: FallbacksBody,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.headerTierService.setFallbacks(agent.id, id, body.models, body.routes);
+    return this.headerTierService.setFallbacks(agent.id, user.id, id, body.models, body.routes);
   }
 
   @Delete(':agentName/header-tiers/:id/fallbacks')

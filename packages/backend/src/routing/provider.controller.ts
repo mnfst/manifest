@@ -18,6 +18,7 @@ import { TierService } from './routing-core/tier.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
+import { serializeProviderConnection } from './provider-response';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
@@ -44,7 +45,7 @@ export class ProviderController {
   @Get(':agentName/status')
   async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+    const providers = await this.providerService.getProviders(user.id);
     const hasActiveProvider = providers.some((p) => p.is_active);
 
     if (!hasActiveProvider) {
@@ -69,22 +70,9 @@ export class ProviderController {
 
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
-    return providers.map((p) => ({
-      id: p.id,
-      provider: p.provider,
-      auth_type: p.auth_type ?? 'api_key',
-      is_active: p.is_active,
-      has_api_key: !!p.api_key_encrypted,
-      key_prefix: p.key_prefix ?? null,
-      label: p.label,
-      priority: p.priority,
-      region: p.region ?? null,
-      connected_at: p.connected_at,
-      models_fetched_at: p.models_fetched_at ?? null,
-      cached_model_count: Array.isArray(p.cached_models) ? p.cached_models.length : 0,
-    }));
+    await this.resolveAgentService.resolve(user.id, params.agentName);
+    const providers = await this.providerService.getProviders(user.id);
+    return providers.map(serializeProviderConnection);
   }
 
   @Post(':agentName/providers')
@@ -140,7 +128,7 @@ export class ProviderController {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
     }
     try {
-      await this.providerService.recalculateTiers(agent.id);
+      await this.providerService.recalculateTiers(agent.id, user.id);
     } catch {
       // Tier recalculation failure is non-fatal
     }
@@ -165,6 +153,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const updated = await this.providerService.renameKey(
       agent.id,
+      user.id,
       params.provider,
       body.authType ?? 'api_key',
       params.label,
@@ -188,6 +177,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const updated = await this.providerService.reorderKeys(
       agent.id,
+      user.id,
       params.provider,
       body.authType ?? 'api_key',
       body.labels,
@@ -204,7 +194,7 @@ export class ProviderController {
   @Post(':agentName/providers/deactivate-all')
   async deactivateAllProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.providerService.deactivateAllProviders(agent.id);
+    await this.providerService.deactivateAllProviders(agent.id, user.id);
     return { ok: true };
   }
 
@@ -217,6 +207,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       params.provider,
       query.authType,
       query.label,

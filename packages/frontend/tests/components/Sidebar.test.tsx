@@ -224,3 +224,75 @@ describe("Sidebar with no agent selected", () => {
     expect(screen.getByText("Agents")).toBeDefined();
   });
 });
+
+describe("Sidebar PROVIDERS section", () => {
+  beforeEach(() => {
+    mockAgentName = null;
+    mockPathname = "/";
+  });
+
+  it("renders PROVIDERS section label", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("PROVIDERS")).toBeDefined();
+  });
+
+  it("renders Subscriptions link with correct href", () => {
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/subscriptions"]');
+    expect(link).not.toBeNull();
+    expect(link?.textContent?.trim()).toBe("Subscriptions");
+  });
+
+  it("renders BYOK link with correct href", () => {
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/byok"]');
+    expect(link).not.toBeNull();
+    expect(link?.textContent?.trim()).toBe("BYOK");
+  });
+
+  it("renders Local link with correct href", () => {
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/local"]');
+    expect(link).not.toBeNull();
+    expect(link?.textContent?.trim()).toBe("Local");
+  });
+
+  it("marks Subscriptions link active when on /providers/subscriptions", () => {
+    mockPathname = "/providers/subscriptions";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/subscriptions"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+    expect(link?.classList.contains("active")).toBe(true);
+  });
+
+  it("marks BYOK link active when on /providers/byok", () => {
+    mockPathname = "/providers/byok";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/byok"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+    expect(link?.classList.contains("active")).toBe(true);
+  });
+
+  it("marks Local link active when on /providers/local", () => {
+    mockPathname = "/providers/local";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/local"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+    expect(link?.classList.contains("active")).toBe(true);
+  });
+
+  it("does not mark Subscriptions active when on /providers/byok", () => {
+    mockPathname = "/providers/byok";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/subscriptions"]');
+    expect(link?.getAttribute("aria-current")).toBeNull();
+    expect(link?.classList.contains("active")).toBe(false);
+  });
+
+  it("renders PROVIDERS section with agent selected", () => {
+    mockAgentName = "test-agent";
+    mockPathname = "/agents/test-agent";
+    render(() => <Sidebar />);
+    expect(screen.getByText("PROVIDERS")).toBeDefined();
+  });
+});

@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID } from './helpers';
+import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID, TEST_USER_ID } from './helpers';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
@@ -54,7 +54,7 @@ beforeAll(async () => {
 
   // Recalculate tier assignments with the seeded models
   const autoAssign = app.get(TierAutoAssignService);
-  await autoAssign.recalculate(TEST_AGENT_ID);
+  await autoAssign.recalculate(TEST_AGENT_ID, TEST_USER_ID);
 }, 30000);
 
 afterAll(async () => {
