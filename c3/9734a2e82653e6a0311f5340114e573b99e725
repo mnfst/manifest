@@ -1,0 +1,39 @@
+packages/backend/src/playground/playground.service.ts
+  s_feb7f7e060c1a0::t_283412505d4336 79,87-88
+  s_feb7f7e060c1a0::t_b6bbba0111920f 125
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_feb7f7e060c1a0::t_637505b83e87e3 311
+  s_feb7f7e060c1a0::t_ef281c4b7f6ce5 256
+  s_feb7f7e060c1a0::t_ddf6763faf5a48 288
+  s_feb7f7e060c1a0::t_5f6cfcdb9f153a 334
+  s_feb7f7e060c1a0::t_e0e6cd661a7939 270,272-273
+  s_feb7f7e060c1a0::t_134cb87e470bf0 300
+packages/backend/src/routing/__tests__/specificity.controller.spec.ts
+  s_feb7f7e060c1a0::t_1300cf7f62a399 171
+packages/backend/test/proxy.e2e-spec.ts
+  s_feb7f7e060c1a0::t_737359c2d63986 4,57
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_feb7f7e060c1a0::t_1f52b5ced1a4d1 89
+  s_feb7f7e060c1a0::t_6ed60fad42e827 260,265
+  s_feb7f7e060c1a0::t_fa1721d0d71080 205,212
+packages/backend/test/routing-flow.e2e-spec.ts
+  s_feb7f7e060c1a0::t_737359c2d63986 145,411
+packages/backend/src/routing/specificity.controller.ts
+  s_feb7f7e060c1a0::t_060859d43e75d8 112-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "c39734a2e82653e6a0311f5340114e573b99e725",
+  "prompts": {},
+  "sessions": {
+    "s_feb7f7e060c1a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ec97357-b8ee-4663-a679-fc29bdec4c22",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
