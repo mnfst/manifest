@@ -195,7 +195,7 @@ describe('ProviderSelectContent — providerDeepLink', () => {
       // List view should NOT have appeared (closeOnBack = close modal, not navigate)
     });
 
-    it('closeOnBack=false (absent) — close button goes back to list view', async () => {
+    it('closeOnBack=false (absent) — close button calls onClose to dismiss the modal', async () => {
       const onClose = vi.fn();
       const { container } = render(() => (
         <ProviderSelectContent
@@ -209,13 +209,13 @@ describe('ProviderSelectContent — providerDeepLink', () => {
       // Should start in detail view
       expect(container.querySelector('.provider-modal__view--from-right')).not.toBeNull();
 
+      // The header Close (×) button always dismisses the modal via onClose,
+      // regardless of closeOnBack. Navigation back to list is done by other means.
       fireEvent.click(screen.getByLabelText('Close'));
 
-      // Should return to list, not call onClose
       await waitFor(() => {
-        expect(screen.getByText('Connect providers')).toBeDefined();
+        expect(onClose).toHaveBeenCalled();
       });
-      expect(onClose).not.toHaveBeenCalled();
     });
   });
 });

@@ -203,7 +203,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         <div>
           <div class="routing-modal__title">Connect providers</div>
         </div>
-        <button class="modal__close" onClick={props.onBack} aria-label="Close">
+        <button class="modal__close" onClick={props.onClose} aria-label="Close">
           <svg
             width="16"
             height="16"

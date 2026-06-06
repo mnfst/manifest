@@ -343,7 +343,7 @@ describe('ProviderSelectModal', () => {
       expect(link.getAttribute('target')).toBe('_blank');
     });
 
-    it('returns to list view when close button is clicked in detail view', async () => {
+    it('calls onClose when the close button is clicked in detail view', async () => {
       render(() => (
         <ProviderSelectModal
           providers={[]}
@@ -356,11 +356,9 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('OpenAI'));
       expect(screen.getByLabelText('OpenAI API key')).toBeDefined();
 
-      // In the detail view the header has a Close button that calls onBack (go-back-to-list)
+      // The header Close (×) button dismisses the entire modal by calling onClose.
       fireEvent.click(screen.getByLabelText('Close'));
-      expect(screen.queryByLabelText('OpenAI API key')).toBeNull();
-      // List view is back
-      expect(screen.getByText('Done')).toBeDefined();
+      expect(onClose).toHaveBeenCalled();
     });
 
     it('shows disconnect icon for connected providers', () => {

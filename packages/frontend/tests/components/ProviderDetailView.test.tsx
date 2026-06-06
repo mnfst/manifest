@@ -383,14 +383,15 @@ describe('ProviderDetailView', () => {
     });
   });
 
-  it('renders close button that calls onBack', () => {
+  it('renders close button that calls onClose', () => {
     const props = createTestProps();
     render(() => <ProviderDetailView {...props} />);
-    // The header close button (×) calls onBack to go back to the list
+    // The header close button (×) calls onClose to dismiss the modal entirely
     const btn = screen.getByLabelText('Close');
     expect(btn).toBeDefined();
     fireEvent.click(btn);
-    expect(props.onBack).toHaveBeenCalled();
+    expect(props.onClose).toHaveBeenCalled();
+    expect(props.onBack).not.toHaveBeenCalled();
   });
 
   describe('local auth type branch', () => {
