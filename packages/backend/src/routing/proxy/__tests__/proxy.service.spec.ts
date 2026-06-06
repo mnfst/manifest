@@ -910,7 +910,7 @@ describe('ProxyService — orchestration', () => {
       } as never);
 
       await svc.proxyRequest(baseOpts());
-      expect(tierService.getTiers).toHaveBeenCalledWith('agent-1');
+      expect(tierService.getTiers).toHaveBeenCalledWith('agent-1', 'user-1');
     });
 
     it('returns null fallback chain when neither resolver nor tier provides routes', async () => {

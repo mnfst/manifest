@@ -37,12 +37,12 @@ export class TierService {
     return rows.some((r) => !!r.override_route || !!r.auto_assigned_route);
   }
 
-  async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
+  async getTiers(agentId: string, userId: string): Promise<TierAssignment[]> {
     const cached = this.routingCache.getTiers(agentId);
     if (cached) return cached;
 
     // Trigger provider cleanup to deactivate unsupported subscription providers
-    if (userId) await this.providerService.getProviders(userId);
+    await this.providerService.getProviders(userId);
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     // Figure out which slots are missing. Every agent should have a row for
@@ -60,7 +60,7 @@ export class TierService {
     const created: TierAssignment[] = missing.map((slot: TierSlot) =>
       Object.assign(new TierAssignment(), {
         id: randomUUID(),
-        user_id: userId ?? '',
+        user_id: userId,
         agent_id: agentId,
         tier: slot,
         override_route: null,
@@ -89,7 +89,7 @@ export class TierService {
     // auto-assigned models. Providers are user-scoped (agent_id is NULL after
     // the LiftProvidersToUserLevel migration), so filter by user_id — filtering
     // by agent_id here would always return zero rows and silently skip backfill.
-    if (userId) {
+    {
       const providers = await this.providerRepo.find({
         where: { user_id: userId, is_active: true },
       });

@@ -104,7 +104,7 @@ export class ResolveService {
 
     const result = scoreRequest(input, undefined, momentum);
 
-    const tiers = await this.tierService.getTiers(agentId);
+    const tiers = await this.tierService.getTiers(agentId, userId);
     const assignment = tiers.find((t) => t.tier === result.tier);
 
     if (!assignment) {
@@ -158,7 +158,7 @@ export class ResolveService {
     tier: TierSlot,
     reason: 'heartbeat' | 'default' = 'heartbeat',
   ): Promise<ResolveResponse> {
-    const tiers = await this.tierService.getTiers(agentId);
+    const tiers = await this.tierService.getTiers(agentId, userId);
     const assignment = tiers.find((t) => t.tier === tier);
 
     if (!assignment) {

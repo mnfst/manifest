@@ -122,7 +122,7 @@ describe('TierService', () => {
     it('returns the cached value when present without touching repos', async () => {
       const cached = [{ tier: 'simple' }] as TierAssignment[];
       routingCache.getTiers.mockReturnValue(cached);
-      const result = await svc.getTiers('agent-1');
+      const result = await svc.getTiers('agent-1', 'user-1');
       expect(result).toBe(cached);
       expect(tierRepo.find).not.toHaveBeenCalled();
       expect(providerService.getProviders).not.toHaveBeenCalled();
@@ -134,10 +134,12 @@ describe('TierService', () => {
           ({ tier: slot, override_route: null, auto_assigned_route: null }) as TierAssignment,
       );
       tierRepo.find.mockResolvedValue(existing);
-      const result = await svc.getTiers('agent-1');
+      const result = await svc.getTiers('agent-1', 'user-1');
       expect(result).toEqual(existing);
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', existing);
       expect(autoAssign.recalculate).not.toHaveBeenCalled();
+      // userId is now required — getProviders must always be called to trigger cleanup
+      expect(providerService.getProviders).toHaveBeenCalledWith('user-1');
     });
 
     it('inserts the missing slots when some are absent', async () => {
@@ -157,11 +159,11 @@ describe('TierService', () => {
       expect(result).toHaveLength(TIER_SLOTS.length);
     });
 
-    it('uses an empty userId when none is passed', async () => {
+    it('threads userId through to inserted rows', async () => {
       tierRepo.find.mockResolvedValueOnce([]);
-      await svc.getTiers('agent-1');
+      await svc.getTiers('agent-1', 'user-42');
       const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
-      expect(inserted.every((r) => r.user_id === '')).toBe(true);
+      expect(inserted.every((r) => r.user_id === 'user-42')).toBe(true);
     });
 
     it('falls back to existing rows on a unique-index race during insert', async () => {
@@ -170,7 +172,7 @@ describe('TierService', () => {
       const racedRows = TIER_SLOTS.map((slot) => ({ tier: slot }) as TierAssignment);
       tierRepo.find.mockResolvedValueOnce(racedRows);
 
-      const result = await svc.getTiers('agent-1');
+      const result = await svc.getTiers('agent-1', 'user-1');
       expect(result).toBe(racedRows);
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', racedRows);
     });
@@ -180,7 +182,7 @@ describe('TierService', () => {
       const err = new Error('FK violation');
       tierRepo.insert.mockRejectedValueOnce(err);
       tierRepo.find.mockResolvedValueOnce([]);
-      await expect(svc.getTiers('agent-1')).rejects.toThrow(err);
+      await expect(svc.getTiers('agent-1', 'user-1')).rejects.toThrow(err);
     });
 
     it('triggers auto-assign and re-reads when a usable provider exists', async () => {
@@ -220,11 +222,16 @@ describe('TierService', () => {
       });
     });
 
-    it('skips the provider lookup entirely when no userId is passed', async () => {
-      tierRepo.find.mockResolvedValueOnce([]);
-      await svc.getTiers('agent-1');
-      expect(providerRepo.find).not.toHaveBeenCalled();
-      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+    it('always calls getProviders with userId to trigger provider cleanup', async () => {
+      // Now that userId is required, getProviders is always called (not just when userId is present).
+      tierRepo.find.mockResolvedValueOnce(
+        TIER_SLOTS.map(
+          (slot) =>
+            ({ tier: slot, override_route: null, auto_assigned_route: null }) as TierAssignment,
+        ),
+      );
+      await svc.getTiers('agent-1', 'user-1');
+      expect(providerService.getProviders).toHaveBeenCalledWith('user-1');
     });
   });
 

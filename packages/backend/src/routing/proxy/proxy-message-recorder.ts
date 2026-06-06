@@ -207,7 +207,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.agentId,
       provider,
       model,
     );
@@ -276,7 +276,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.agentId,
       null,
       primaryModel,
     );
@@ -351,7 +351,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.agentId,
       opts?.provider,
       model,
     );
@@ -419,12 +419,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const baseline = await this.computeBaseline(ctx.agentId, ctx.userId, inputTokens, outputTokens);
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.agentId,
       provider,
       model,
     );
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.agentId,
       null,
       fallbackFromModel,
     );
@@ -507,7 +507,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.agentId,
       provider,
       model,
     );
@@ -657,7 +657,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     try {
       const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
         this.providerService.getProviders(userId),
-        this.tierService.getTiers(agentId),
+        this.tierService.getTiers(agentId, userId),
         this.specificityService.getAssignments(agentId),
         this.headerTierService.list(agentId),
       ]);

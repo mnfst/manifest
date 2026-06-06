@@ -513,7 +513,7 @@ export class ProxyService {
     // null (e.g. the tier itself was missing).
     let fallbackRoutes = resolved.fallback_routes ?? null;
     if (!fallbackRoutes) {
-      const tiers = await this.tierService.getTiers(agentId);
+      const tiers = await this.tierService.getTiers(agentId, userId);
       const assignment = tiers.find((t) => t.tier === resolved.tier);
       fallbackRoutes = assignment?.fallback_routes ?? null;
     }
