@@ -88,5 +88,17 @@ describe('RetentionService', () => {
 			const result = await service.purgeOldMessages(7);
 			expect(result).toBe(0);
 		});
+
+		it('returns 0 and does not execute query for days = 0', async () => {
+			const result = await service.purgeOldMessages(0);
+			expect(qb.execute).not.toHaveBeenCalled();
+			expect(result).toBe(0);
+		});
+
+		it('returns 0 and does not execute query for negative days', async () => {
+			const result = await service.purgeOldMessages(-1);
+			expect(qb.execute).not.toHaveBeenCalled();
+			expect(result).toBe(0);
+		});
 	});
 });

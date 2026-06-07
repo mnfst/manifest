@@ -23,7 +23,7 @@ export class RetentionCronService implements OnModuleInit {
 			this.logger.log(`Purged ${count} message(s) older than ${days} day(s)`);
 			return count;
 		} catch (err) {
-			this.logger.error(`Retention purge failed: ${err}`);
+			this.logger.error('Retention purge failed', err instanceof Error ? err.stack : err);
 			return 0;
 		}
 	}

@@ -33,6 +33,9 @@ export class RetentionService {
 	}
 
 	async purgeOldMessages(days: number): Promise<number> {
+		if (days <= 0) {
+			return 0;
+		}
 		const result = await this.messageRepo
 			.createQueryBuilder()
 			.delete()

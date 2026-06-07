@@ -46,4 +46,10 @@ describe('SetRetentionDto', () => {
 		const errors = await validate(dto);
 		expect(errors.length).toBeGreaterThan(0);
 	});
+
+	it('rejects empty body (days missing)', async () => {
+		const dto = plainToInstance(SetRetentionDto, {});
+		const errors = await validate(dto);
+		expect(errors.length).toBeGreaterThan(0);
+	});
 });

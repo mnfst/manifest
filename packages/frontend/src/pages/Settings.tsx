@@ -495,6 +495,7 @@ const Settings: Component = () => {
 								<option value="7">7 days</option>
 								<option value="30">30 days</option>
 								<option value="90">90 days</option>
+									<option value="180">180 days</option>
 							</select>
 							{savingRetention() && <span class="spinner" style="margin-left: 8px;" />}
 						</Show>
