@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, For, onMount, type Component } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onMount, untrack, type Component } from 'solid-js';
 import { useLocation, useNavigate } from '@solidjs/router';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
@@ -30,6 +30,9 @@ interface CostByModelTableProps {
 type SortColumn = 'tokens' | 'share_pct' | 'estimated_cost';
 type SortDir = 'asc' | 'desc';
 
+const VALID_COLUMNS = ['tokens', 'share_pct', 'estimated_cost'] as const;
+const VALID_DIRS = ['asc', 'desc'] as const;
+
 function resolveRowProvider(row: CostByModelRow): string | undefined {
 	if (row.provider) {
 		const resolved = resolveProviderId(row.provider);
@@ -47,37 +50,50 @@ function resolveRowProviderName(row: CostByModelRow): string | undefined {
 	);
 }
 
+function parseUrlParams(search: string): { col: SortColumn | null; dir: SortDir } {
+	const params = new URLSearchParams(search);
+	const col = params.get('sortColumn');
+	const dir = params.get('sortDir');
+	return {
+		col: col !== null && VALID_COLUMNS.includes(col as SortColumn) ? (col as SortColumn) : null,
+		dir: dir !== null && VALID_DIRS.includes(dir as SortDir) ? (dir as SortDir) : 'desc',
+	};
+}
+
+function headerSortKey(
+	activeCol: SortColumn | null,
+	column: SortColumn,
+	dir: SortDir,
+): 'ascending' | 'descending' | undefined {
+	if (activeCol !== column) return undefined;
+	return dir === 'asc' ? 'ascending' : 'descending';
+}
+
 const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 	const [sortColumn, setSortColumn] = createSignal<SortColumn | null>(null);
 	const [sortDir, setSortDir] = createSignal<SortDir>('desc');
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	onMount(() => {
-		const params = new URLSearchParams(location.search);
-		const col = params.get('sortColumn');
-		const dir = params.get('sortDir');
-		if (col && ['tokens', 'share_pct', 'estimated_cost'].includes(col)) {
-			setSortColumn(col as SortColumn);
-		}
-		if (dir && ['asc', 'desc'].includes(dir)) {
-			setSortDir(dir as SortDir);
-		}
+	// Sync URL -> signals (back/forward navigation)
+	createEffect(() => {
+		const { col, dir } = parseUrlParams(location.search);
+		setSortColumn(col);
+		setSortDir(dir);
 	});
 
+	// Sync signals -> URL (untrack prevents back/forward overwrites)
 	createEffect(() => {
 		const col = sortColumn();
 		const dir = sortDir();
-		const params = new URLSearchParams(location.search);
+		const currentSearch = untrack(() => location.search);
+		const params = new URLSearchParams();
 		if (col) {
 			params.set('sortColumn', col);
 			params.set('sortDir', dir);
-		} else {
-			params.delete('sortColumn');
-			params.delete('sortDir');
 		}
 		const newSearch = params.toString() ? `?${params.toString()}` : '';
-		if (location.search !== newSearch) {
+		if (currentSearch !== newSearch) {
 			navigate(newSearch, { replace: true });
 		}
 	});
@@ -96,6 +112,13 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 		}
 	};
 
+	const handleSortKey = (e: KeyboardEvent, col: SortColumn) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handleSort(col);
+		}
+	};
+
 	const sortedRows = createMemo(() => {
 		const col = sortColumn();
 		const dir = sortDir();
@@ -104,8 +127,8 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 			return rows.sort((a, b) => b.estimated_cost - a.estimated_cost);
 		}
 		return rows.sort((a, b) => {
-			const av = a[col];
-			const bv = b[col];
+			const av = a[col] ?? 0;
+			const bv = b[col] ?? 0;
 			if (av === bv) return a.model.localeCompare(b.model);
 			const cmp = av < bv ? -1 : 1;
 			return dir === 'asc' ? cmp : -cmp;
@@ -123,15 +146,12 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 					<tr>
 						<th>Model</th>
 						<th
+							role="button"
+							tabIndex={0}
 							onClick={() => handleSort('tokens')}
+							onKeyDown={(e) => handleSortKey(e, 'tokens')}
 							style="cursor: pointer;"
-							aria-sort={
-								sortColumn() === 'tokens'
-									? sortDir() === 'asc'
-										? 'ascending'
-										: 'descending'
-									: 'none'
-							}
+							aria-sort={headerSortKey(sortColumn(), 'tokens', sortDir())}
 						>
 							Tokens
 							{sortColumn() === 'tokens' && (
@@ -141,15 +161,12 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 							)}
 						</th>
 						<th
+							role="button"
+							tabIndex={0}
 							onClick={() => handleSort('share_pct')}
+							onKeyDown={(e) => handleSortKey(e, 'share_pct')}
 							style="cursor: pointer;"
-							aria-sort={
-								sortColumn() === 'share_pct'
-									? sortDir() === 'asc'
-										? 'ascending'
-										: 'descending'
-									: 'none'
-							}
+							aria-sort={headerSortKey(sortColumn(), 'share_pct', sortDir())}
 						>
 							% of total
 							{sortColumn() === 'share_pct' && (
@@ -159,15 +176,12 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 							)}
 						</th>
 						<th
+							role="button"
+							tabIndex={0}
 							onClick={() => handleSort('estimated_cost')}
+							onKeyDown={(e) => handleSortKey(e, 'estimated_cost')}
 							style="cursor: pointer;"
-							aria-sort={
-								sortColumn() === 'estimated_cost'
-									? sortDir() === 'asc'
-										? 'ascending'
-										: 'descending'
-									: 'none'
-							}
+							aria-sort={headerSortKey(sortColumn(), 'estimated_cost', sortDir())}
 						>
 							Cost
 							{sortColumn() === 'estimated_cost' && (
@@ -200,12 +214,13 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
 												const letter = (provName ?? stripCustomPrefix(row.model))
 													.charAt(0)
 													.toUpperCase();
+												const provNameForTitle = provName ?? '';
 												return (
 													<span
 														class="provider-card__logo-letter"
-														title={provName}
+														title={provNameForTitle || undefined}
 														style={{
-															background: customProviderColor(provName ?? ''),
+															background: customProviderColor(provNameForTitle),
 															width: '16px',
 															height: '16px',
 															'font-size': '9px',

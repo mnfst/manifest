@@ -7,7 +7,11 @@ const mockNavigate = vi.fn((to: string) => {
 let mockSearch = '';
 
 vi.mock('@solidjs/router', () => ({
-	useLocation: vi.fn(() => ({ search: mockSearch })),
+	useLocation: vi.fn(() => ({
+		get search() {
+			return mockSearch;
+		},
+	})),
 	useNavigate: vi.fn(() => mockNavigate),
 }));
 
@@ -109,7 +113,7 @@ describe('CostByModelTable sort', () => {
 			<CostByModelTable rows={rowModels()} customProviderName={() => undefined} />
 		));
 		const tokensHeader = getByText('Tokens').closest('th')!;
-		expect(tokensHeader.getAttribute('aria-sort')).toBe('none');
+		expect(tokensHeader.getAttribute('aria-sort')).toBeNull();
 		fireEvent.click(tokensHeader);
 		expect(tokensHeader.getAttribute('aria-sort')).toBe('descending');
 		fireEvent.click(tokensHeader);
@@ -145,5 +149,74 @@ describe('CostByModelTable sort', () => {
 		const arrows = container.querySelectorAll('th span[aria-hidden="true"]');
 		expect(arrows).toHaveLength(1);
 		expect(arrows[0]?.textContent).toBe('↓');
+	});
+
+	it('keyboard Enter on header triggers sort', () => {
+		const { getByText } = render(() => (
+			<CostByModelTable rows={rowModels()} customProviderName={() => undefined} />
+		));
+		const tokensHeader = getByText('Tokens').closest('th')!;
+		fireEvent.keyDown(tokensHeader, { key: 'Enter' });
+		expect(mockNavigate).toHaveBeenCalledWith('?sortColumn=tokens&sortDir=desc', { replace: true });
+	});
+
+	it('keyboard Space on header triggers sort', () => {
+		const { getByText } = render(() => (
+			<CostByModelTable rows={rowModels()} customProviderName={() => undefined} />
+		));
+		const tokensHeader = getByText('Tokens').closest('th')!;
+		fireEvent.keyDown(tokensHeader, { key: ' ' });
+		expect(mockNavigate).toHaveBeenCalledWith('?sortColumn=tokens&sortDir=desc', { replace: true });
+	});
+
+	it('inactive headers omit aria-sort', () => {
+		const { getByText } = render(() => (
+			<CostByModelTable rows={rowModels()} customProviderName={() => undefined} />
+		));
+		const tokensHeader = getByText('Tokens').closest('th')!;
+		expect(tokensHeader.getAttribute('aria-sort')).toBeNull();
+		const costHeader = getByText('Cost').closest('th')!;
+		expect(costHeader.getAttribute('aria-sort')).toBeNull();
+		fireEvent.click(tokensHeader);
+		expect(tokensHeader.getAttribute('aria-sort')).toBe('descending');
+		expect(costHeader.getAttribute('aria-sort')).toBeNull();
+	});
+
+	it('reset clears URL params entirely', () => {
+		const { getByText } = render(() => (
+			<CostByModelTable rows={rowModels()} customProviderName={() => undefined} />
+		));
+		const costHeader = getByText('Cost').closest('th')!;
+		fireEvent.click(costHeader);
+		mockNavigate.mockClear();
+		fireEvent.click(costHeader);
+		mockNavigate.mockClear();
+		fireEvent.click(costHeader);
+		// third click resets to null sortColumn
+		expect(mockNavigate).toHaveBeenCalledWith('', { replace: true });
+	});
+
+	it('handles null/undefined sort values gracefully', () => {
+		const rowsWithNulls = rowModels().map((r, i) => {
+			if (i === 0) return { ...r, tokens: null as unknown as number, share_pct: null as unknown as number };
+			return r;
+		});
+		const { container, getByText } = render(() => (
+			<CostByModelTable rows={rowsWithNulls} customProviderName={() => undefined} />
+		));
+		fireEvent.click(getByText('Tokens').closest('th')!);
+		// should not throw; null treated as 0
+		const cells = firstColModels(container);
+		expect(cells).toHaveLength(3);
+	});
+
+	it('hydrates with invalid sortDir defaults to desc', () => {
+		mockSearch = '?sortColumn=tokens&sortDir=invalid';
+		const { container, getByText } = render(() => (
+			<CostByModelTable rows={rowModels()} customProviderName={() => undefined} />
+		));
+		fireEvent.click(getByText('Tokens').closest('th')!);
+		// was desc, click -> asc
+		expect(mockNavigate).toHaveBeenCalledWith('?sortColumn=tokens&sortDir=asc', { replace: true });
 	});
 });
