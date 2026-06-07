@@ -4,7 +4,9 @@ import type { JSX } from 'solid-js';
 
 // ─── API mocks (incl. the streaming primitive the real store calls) ─────────
 const mockGetAvailableModels = vi.fn();
+const mockGetGlobalAvailableModels = vi.fn();
 const mockGetProviders = vi.fn();
+const mockGetGlobalProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockGetPlaygroundRun = vi.fn();
 const mockListPlaygroundRuns = vi.fn();
@@ -13,7 +15,9 @@ const mockSetPlaygroundRunBest = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   getAvailableModels: (...a: unknown[]) => mockGetAvailableModels(...a),
+  getGlobalAvailableModels: (...a: unknown[]) => mockGetGlobalAvailableModels(...a),
   getProviders: (...a: unknown[]) => mockGetProviders(...a),
+  getGlobalProviders: (...a: unknown[]) => mockGetGlobalProviders(...a),
   getCustomProviders: (...a: unknown[]) => mockGetCustomProviders(...a),
   getPlaygroundRun: (...a: unknown[]) => mockGetPlaygroundRun(...a),
   listPlaygroundRuns: (...a: unknown[]) => mockListPlaygroundRuns(...a),
@@ -33,10 +37,12 @@ const setSearchParamsFn = vi.fn((p: { run?: string }) => {
 const searchParamsState: { run?: string } = {};
 // Each test gets a unique agent name so getOrCreatePlaygroundStore() hands
 // out a fresh store (the cache is module-level and survives between tests).
-let currentAgent = 'demo-0';
+let currentAgent: string | undefined = 'demo-0';
+const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: currentAgent }),
   useSearchParams: () => [searchParamsState, setSearchParamsFn],
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock('@solidjs/meta', () => ({
@@ -68,7 +74,10 @@ vi.mock('../../src/components/playground/PlaygroundColumn.jsx', () => ({
         <span data-testid={`fastest-${c.id}`}>{String(props.isFastest)}</span>
         <span data-testid={`readonly-${c.id}`}>{String(props.readOnly)}</span>
         <span data-testid={`hasmarkbest-${c.id}`}>{String(!!props.onMarkBest)}</span>
-        <button data-testid={`markbest-${c.id}`} onClick={() => (props.onMarkBest as () => void)?.()}>
+        <button
+          data-testid={`markbest-${c.id}`}
+          onClick={() => (props.onMarkBest as () => void)?.()}
+        >
           mb
         </button>
         <button
@@ -83,7 +92,10 @@ vi.mock('../../src/components/playground/PlaygroundColumn.jsx', () => ({
         >
           ch
         </button>
-        <button data-testid={`retry-${c.id}`} onClick={() => (props.onRetry as (id: string) => void)(c.id)}>
+        <button
+          data-testid={`retry-${c.id}`}
+          onClick={() => (props.onRetry as (id: string) => void)(c.id)}
+        >
           rt
         </button>
       </div>
@@ -108,10 +120,7 @@ vi.mock('../../src/components/playground/PlaygroundPrompt.jsx', () => ({
       >
         set
       </button>
-      <button
-        data-testid="prompt-recall"
-        onClick={() => (props.onRecallPrevious as () => void)()}
-      >
+      <button data-testid="prompt-recall" onClick={() => (props.onRecallPrevious as () => void)()}>
         recall
       </button>
     </div>
@@ -227,9 +236,7 @@ vi.mock('../../src/components/playground/RequestHeadersPopover.jsx', async (impo
         <span data-testid="headers-entrycount">{props.entries.length}</span>
         <button
           data-testid="headers-change"
-          onClick={() =>
-            props.onChange([{ id: 'h1', key: 'X-Custom', value: 'v1' }])
-          }
+          onClick={() => props.onChange([{ id: 'h1', key: 'X-Custom', value: 'v1' }])}
         >
           change
         </button>
@@ -272,7 +279,10 @@ vi.mock('../../src/components/ProviderSelectModal.jsx', () => ({
         <button data-testid="provider-modal-close" onClick={() => (props.onClose as () => void)()}>
           close
         </button>
-        <button data-testid="provider-modal-update" onClick={() => (props.onUpdate as () => void)()}>
+        <button
+          data-testid="provider-modal-update"
+          onClick={() => (props.onUpdate as () => void)()}
+        >
           update
         </button>
       </div>
@@ -366,17 +376,26 @@ describe('Playground page', () => {
     for (const k of Object.keys(ssStore)) delete ssStore[k];
 
     mockGetAvailableModels.mockReset().mockResolvedValue([MODEL_A, MODEL_B]);
+    mockGetGlobalAvailableModels.mockReset().mockResolvedValue([MODEL_A, MODEL_B]);
     mockGetProviders.mockReset().mockResolvedValue([ACTIVE_PROVIDER, ACTIVE_PROVIDER_B]);
+    mockGetGlobalProviders.mockReset().mockResolvedValue([ACTIVE_PROVIDER, ACTIVE_PROVIDER_B]);
     mockGetCustomProviders.mockReset().mockResolvedValue([]);
     mockGetPlaygroundRun.mockReset().mockResolvedValue(makeRunDetail());
-    mockListPlaygroundRuns
-      .mockReset()
-      .mockResolvedValue([
-        { id: 'r-42', prompt: 'p', createdAt: '2026-01-01', modelCount: 1, models: ['M'], starred: false, bestColumnId: null },
-      ]);
+    mockListPlaygroundRuns.mockReset().mockResolvedValue([
+      {
+        id: 'r-42',
+        prompt: 'p',
+        createdAt: '2026-01-01',
+        modelCount: 1,
+        models: ['M'],
+        starred: false,
+        bestColumnId: null,
+      },
+    ]);
     mockStreamPlayground.mockReset().mockResolvedValue(streamResult());
     mockSetPlaygroundRunBest.mockReset().mockResolvedValue('dbcol-1');
     setSearchParamsFn.mockClear();
+    mockNavigate.mockReset();
     mockToastError.mockReset();
 
     vi.stubGlobal('localStorage', {
@@ -420,6 +439,32 @@ describe('Playground page', () => {
     });
   });
 
+  it('uses global provider APIs on the tenant playground route', async () => {
+    currentAgent = undefined;
+    const { getByText } = render(() => <Playground />);
+    expect(getByText('Global Playground')).toBeDefined();
+
+    await waitFor(() => expect(mockGetGlobalAvailableModels).toHaveBeenCalled());
+    await waitFor(() => expect(mockGetGlobalProviders).toHaveBeenCalled());
+    expect(mockGetAvailableModels).not.toHaveBeenCalled();
+    expect(mockGetProviders).not.toHaveBeenCalled();
+    expect(mockGetCustomProviders).not.toHaveBeenCalled();
+
+    fireEvent.click(await find('prompt-set'));
+    fireEvent.click(await find('prompt-submit'));
+
+    await waitFor(() => expect(mockStreamPlayground).toHaveBeenCalled());
+    expect(mockStreamPlayground.mock.calls[0][0]).toMatchObject({
+      agentName: 'global',
+      scope: 'global',
+    });
+    expect(mockListPlaygroundRuns).not.toHaveBeenCalled();
+    expect(ssStore['manifest.playground.lastRun']).toBeUndefined();
+
+    fireEvent.click(getByText('Manage providers'));
+    expect(mockNavigate).toHaveBeenCalledWith('/providers');
+  });
+
   it('shows the empty state when providers exist but none are active', async () => {
     mockGetProviders.mockResolvedValue([{ ...ACTIVE_PROVIDER, is_active: false }]);
     render(() => <Playground />);
@@ -438,9 +483,7 @@ describe('Playground page', () => {
 
       await waitFor(() => expect(mockStreamPlayground).toHaveBeenCalled());
       // Run id was set in the URL + sessionStorage.
-      await waitFor(() =>
-        expect(ssStore['manifest.playground.lastRun']).toBeDefined(),
-      );
+      await waitFor(() => expect(ssStore['manifest.playground.lastRun']).toBeDefined());
       // The running→idle effect refreshes history and auto-selects the latest.
       await waitFor(() => expect(mockListPlaygroundRuns).toHaveBeenCalled());
       // After streaming completes the summary table receives the columns.
@@ -457,9 +500,9 @@ describe('Playground page', () => {
       fireEvent.click(await find('prompt-submit'));
       // No prompt set → runAll() returns undefined → no run param written.
       await new Promise((r) => setTimeout(r, 20));
-      expect(
-        setSearchParamsFn.mock.calls.some((c) => c[0] && 'run' in c[0] && c[0].run),
-      ).toBe(false);
+      expect(setSearchParamsFn.mock.calls.some((c) => c[0] && 'run' in c[0] && c[0].run)).toBe(
+        false,
+      );
     });
 
     it('toasts when the streamed run fails for a column', async () => {
@@ -475,17 +518,16 @@ describe('Playground page', () => {
 
   describe('winner badges (real findWinners)', () => {
     it('marks the cheapest + fastest columns once two columns succeed', async () => {
-      mockStreamPlayground.mockImplementation(
-        async (req: { model: string }) =>
-          req.model === 'openai/gpt-4o-mini'
-            ? streamResult({
-                columnId: 'db-openai',
-                metrics: { cost: 0.001, inputTokens: 1, outputTokens: 2, durationMs: 50 },
-              })
-            : streamResult({
-                columnId: 'db-anthropic',
-                metrics: { cost: 0.005, inputTokens: 1, outputTokens: 2, durationMs: 300 },
-              }),
+      mockStreamPlayground.mockImplementation(async (req: { model: string }) =>
+        req.model === 'openai/gpt-4o-mini'
+          ? streamResult({
+              columnId: 'db-openai',
+              metrics: { cost: 0.001, inputTokens: 1, outputTokens: 2, durationMs: 50 },
+            })
+          : streamResult({
+              columnId: 'db-anthropic',
+              metrics: { cost: 0.005, inputTokens: 1, outputTokens: 2, durationMs: 300 },
+            }),
       );
       render(() => <Playground />);
       await find('prompt-set');
@@ -505,9 +547,7 @@ describe('Playground page', () => {
       expect(fastFlags).toContain('true');
       // Summary table receives the completed columns.
       await waitFor(() =>
-        expect(Number(document.querySelector('[data-testid="summary-cols"]')?.textContent)).toBe(
-          2,
-        ),
+        expect(Number(document.querySelector('[data-testid="summary-cols"]')?.textContent)).toBe(2),
       );
     });
   });
@@ -530,9 +570,7 @@ describe('Playground page', () => {
       fireEvent.click(await find(`markbest-${colId}`));
       await waitFor(() => expect(mockSetPlaygroundRunBest).toHaveBeenCalled());
       await waitFor(() =>
-        expect(document.querySelector('[data-testid="summary-best"]')?.textContent).toBe(
-          'dbcol-1',
-        ),
+        expect(document.querySelector('[data-testid="summary-best"]')?.textContent).toBe('dbcol-1'),
       );
     });
 
@@ -681,7 +719,9 @@ describe('Playground page', () => {
       expect(document.querySelector('[data-testid="prompt"]')).not.toBeNull();
 
       fireEvent.click(await find(`remove-${colId}`));
-      await waitFor(() => expect(document.querySelector(`[data-testid="col-${colId}"]`)).toBeNull());
+      await waitFor(() =>
+        expect(document.querySelector(`[data-testid="col-${colId}"]`)).toBeNull(),
+      );
     });
 
     it('opens the add-model picker via the Add button and adds a column', async () => {
@@ -723,9 +763,7 @@ describe('Playground page', () => {
       // Close via the popover and via the toggle.
       fireEvent.click(await find('headers-close'));
       await waitFor(() =>
-        expect(document.querySelector('[data-testid="headers-open"]')?.textContent).toBe(
-          'closed',
-        ),
+        expect(document.querySelector('[data-testid="headers-open"]')?.textContent).toBe('closed'),
       );
       fireEvent.click(trigger);
       fireEvent.click(trigger);
@@ -778,7 +816,9 @@ describe('Playground page', () => {
         },
       });
       // onChange triggers updateHeaders → persistHeaders → swallowed throw.
-      expect(() => fireEvent.click(document.querySelector('[data-testid="headers-change"]') as HTMLElement)).not.toThrow();
+      expect(() =>
+        fireEvent.click(document.querySelector('[data-testid="headers-change"]') as HTMLElement),
+      ).not.toThrow();
     });
   });
 
@@ -895,7 +935,9 @@ describe('Playground page', () => {
     await find('provider-modal');
     fireEvent.click(await find('provider-modal-update'));
     fireEvent.click(await find('provider-modal-close'));
-    await waitFor(() => expect(document.querySelector('[data-testid="provider-modal"]')).toBeNull());
+    await waitFor(() =>
+      expect(document.querySelector('[data-testid="provider-modal"]')).toBeNull(),
+    );
     // Closing triggers refetchAllProviders → providers fetched again.
     await waitFor(() => expect(mockGetProviders.mock.calls.length).toBeGreaterThan(1));
   });

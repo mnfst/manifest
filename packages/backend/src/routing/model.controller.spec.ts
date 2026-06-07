@@ -49,6 +49,7 @@ describe('ModelController', () => {
     };
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
+      getModelsForGlobalProviders: jest.fn().mockResolvedValue([]),
       discoverAllForAgent: jest.fn().mockResolvedValue(undefined),
       refreshProvider: jest.fn().mockResolvedValue({
         ok: true,
@@ -230,6 +231,23 @@ describe('ModelController', () => {
   /* ── getAvailableModels ── */
 
   describe('getAvailableModels', () => {
+    it('should return global provider models without resolving an agent', async () => {
+      mockDiscoveryService.getModelsForGlobalProviders.mockResolvedValue([
+        makeDiscovered({ id: 'gpt-4o-mini', provider: 'openai', displayName: 'GPT-4o mini' }),
+      ]);
+
+      const result = await controller.getGlobalAvailableModels(mockUser);
+
+      expect(mockDiscoveryService.getModelsForGlobalProviders).toHaveBeenCalledWith('user-1');
+      expect(mockResolveAgent.resolve).not.toHaveBeenCalled();
+      expect(result[0]).toMatchObject({
+        model_name: 'gpt-4o-mini',
+        provider: 'openai',
+        auth_type: 'api_key',
+        display_name: 'GPT-4o mini',
+      });
+    });
+
     it('should return models from discovery service', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([
         makeDiscovered({ id: 'gpt-4o', provider: 'openai', displayName: 'GPT-4o' }),

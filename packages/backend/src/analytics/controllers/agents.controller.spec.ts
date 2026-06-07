@@ -12,11 +12,13 @@ import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
 
 describe('AgentsController', () => {
   let controller: AgentsController;
   let cacheManager: Cache;
   let mockGetAgentList: jest.Mock;
+  let mockOnboardAgent: jest.Mock;
   let mockGetKeyForAgent: jest.Mock;
   let mockRotateKey: jest.Mock;
   let mockConfigGet: jest.Mock;
@@ -26,12 +28,18 @@ describe('AgentsController', () => {
   let mockDuplicate: jest.Mock;
   let mockGetCopySummary: jest.Mock;
   let mockSuggestName: jest.Mock;
+  let mockCopyGlobalProvidersToAgent: jest.Mock;
 
   beforeEach(async () => {
     mockGetAgentList = jest.fn().mockResolvedValue([
       { agent_name: 'bot-1', agent_id: 'id-1', message_count: 100 },
       { agent_name: 'bot-2', agent_id: 'id-2', message_count: 50 },
     ]);
+    mockOnboardAgent = jest.fn().mockResolvedValue({
+      tenantId: 't1',
+      agentId: 'a1',
+      apiKey: 'mnfst_key',
+    });
     mockGetKeyForAgent = jest.fn().mockResolvedValue({ keyPrefix: 'mnfst_test1234' });
     mockRotateKey = jest.fn().mockResolvedValue({ apiKey: 'mnfst_new_key_123' });
     mockConfigGet = jest.fn().mockReturnValue('');
@@ -59,6 +67,7 @@ describe('AgentsController', () => {
       modelParams: 0,
     });
     mockSuggestName = jest.fn().mockResolvedValue('bot-copy');
+    mockCopyGlobalProvidersToAgent = jest.fn().mockResolvedValue(0);
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -95,7 +104,7 @@ describe('AgentsController', () => {
         {
           provide: ApiKeyGeneratorService,
           useValue: {
-            onboardAgent: jest.fn(),
+            onboardAgent: mockOnboardAgent,
             getKeyForAgent: mockGetKeyForAgent,
             rotateKey: mockRotateKey,
           },
@@ -119,6 +128,10 @@ describe('AgentsController', () => {
         {
           provide: IngestEventBusService,
           useValue: { emit: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: mockCopyGlobalProvidersToAgent },
         },
       ],
     }).compile();
@@ -248,6 +261,46 @@ describe('AgentsController', () => {
     expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
   });
 
+  it('copies selected global providers after creating an agent', async () => {
+    mockCopyGlobalProvidersToAgent.mockResolvedValueOnce(2);
+    const providerIds = [
+      '550e8400-e29b-41d4-a716-446655440000',
+      '550e8400-e29b-41d4-a716-446655440001',
+    ];
+    const user = { id: 'u1', email: 'test@example.com' };
+
+    const result = await controller.createAgent(
+      user as never,
+      {
+        name: 'My Agent',
+        global_provider_ids: providerIds,
+      } as never,
+    );
+
+    expect(mockOnboardAgent).toHaveBeenCalledWith(
+      expect.objectContaining({ tenantName: 'u1', agentName: 'my-agent' }),
+    );
+    expect(mockCopyGlobalProvidersToAgent).toHaveBeenCalledWith('u1', 'a1', providerIds);
+    expect(result.copied).toEqual({ globalProviders: 2 });
+  });
+
+  it('keeps agent creation successful when global provider copy fails', async () => {
+    mockCopyGlobalProvidersToAgent.mockRejectedValueOnce(new Error('copy failed'));
+    const user = { id: 'u1', email: 'test@example.com' };
+
+    const result = await controller.createAgent(
+      user as never,
+      {
+        name: 'My Agent',
+        global_provider_ids: ['550e8400-e29b-41d4-a716-446655440000'],
+      } as never,
+    );
+
+    expect(result.agent.name).toBe('my-agent');
+    expect(result.copied).toEqual({ globalProviders: 0 });
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+  });
+
   it('passes agent_category and agent_platform to onboardAgent', async () => {
     const mockOnboard = jest.fn().mockResolvedValue({
       tenantId: 't1',
@@ -283,6 +336,10 @@ describe('AgentsController', () => {
         {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();
@@ -346,6 +403,10 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
+        },
       ],
     }).compile();
 
@@ -360,7 +421,6 @@ describe('AgentsController', () => {
   });
 
   it('passes category/platform to updateAgentType on PATCH', async () => {
-    const mockUpdateType = jest.fn().mockResolvedValue(undefined);
     const user = { id: 'u1' };
     const result = await controller.updateAgent(user as never, 'bot-1', {
       agent_category: 'app',
@@ -405,6 +465,10 @@ describe('AgentsController', () => {
         {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: mockInvalidate },
+        },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();
@@ -456,6 +520,10 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
+        },
       ],
     }).compile();
 
@@ -501,6 +569,10 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
+        },
       ],
     }).compile();
 
@@ -544,6 +616,10 @@ describe('AgentsController', () => {
         {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();
@@ -646,6 +722,10 @@ describe('AgentsController', () => {
         {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: { copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();

@@ -33,6 +33,9 @@ import { buildForwardBody, derivePromptForHistory } from './playground-payload';
 import { consumeProviderStream } from './playground-stream';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
 
+type PlaygroundAgent = { id: string; tenant_id: string; name: string };
+type PlaygroundScope = { type: 'agent'; agent: PlaygroundAgent } | { type: 'global' };
+
 @Injectable()
 export class PlaygroundService {
   private readonly logger = new Logger(PlaygroundService.name);
@@ -63,7 +66,7 @@ export class PlaygroundService {
    * *after* the stream opens are delivered as a terminal `error` event.
    */
   async runStream(userId: string, dto: RunPlaygroundDto, res: ExpressResponse): Promise<void> {
-    let agent: { id: string; tenant_id: string; name: string };
+    let scope: PlaygroundScope;
     let authType: AuthType;
     let apiKey: string;
     let rawApiKey: string;
@@ -75,68 +78,109 @@ export class PlaygroundService {
     let oauthResourceUrl: string | undefined;
     let providerRegion: string | null | undefined;
     try {
-      agent = await this.resolveAgent.resolve(userId, dto.agentName);
-      const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
-      if (!hasProvider) {
-        return this.sendPreStreamError(
-          res,
-          404,
-          `Provider "${dto.provider}" is not connected for this agent`,
+      if (dto.scope === 'global') {
+        scope = { type: 'global' };
+        const hasProvider = await this.providerKeyService.hasActiveGlobalProvider(
+          userId,
+          dto.provider,
         );
-      }
-      authType =
-        dto.authType ?? (await this.providerKeyService.getAuthType(agent.id, dto.provider));
-      const keys = await this.providerKeyService.getProviderKeys(agent.id, dto.provider, authType);
-      const key = keys[0];
-      if (!key || key.apiKey === null) {
-        return this.sendPreStreamError(
-          res,
-          404,
-          `No usable API key found for provider "${dto.provider}"`,
+        if (!hasProvider) {
+          return this.sendPreStreamError(
+            res,
+            404,
+            `Provider "${dto.provider}" is not connected globally`,
+          );
+        }
+        authType =
+          dto.authType ?? (await this.providerKeyService.getGlobalAuthType(userId, dto.provider));
+        const keys = await this.providerKeyService.getGlobalProviderKeys(
+          userId,
+          dto.provider,
+          authType,
         );
-      }
-      rawApiKey = key.apiKey;
-      providerKeyLabel = key.label;
-      providerRegion = key.region;
-      const resolved = await resolveApiKey(
-        dto.provider,
-        rawApiKey,
-        authType,
-        agent.id,
-        userId,
-        this.openaiOauth,
-        this.minimaxOauth,
-        this.anthropicOauth,
-        this.geminiOauth,
-        this.kiroOauth,
-        this.xaiOauth,
-        providerKeyLabel,
-      );
-      if (resolved.apiKey === null) {
-        return this.sendPreStreamError(
-          res,
-          404,
-          `No usable API key found for provider "${dto.provider}"`,
+        const key = keys[0];
+        if (!key || key.apiKey === null) {
+          return this.sendPreStreamError(
+            res,
+            404,
+            `No usable API key found for provider "${dto.provider}"`,
+          );
+        }
+        rawApiKey = key.apiKey;
+        apiKey = rawApiKey;
+        providerKeyLabel = key.label;
+        providerRegion = key.region;
+        oauthResourceUrl = undefined;
+        providerResource = undefined;
+      } else {
+        const agent = await this.resolveAgent.resolve(userId, dto.agentName);
+        scope = { type: 'agent', agent };
+        const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
+        if (!hasProvider) {
+          return this.sendPreStreamError(
+            res,
+            404,
+            `Provider "${dto.provider}" is not connected for this agent`,
+          );
+        }
+        authType =
+          dto.authType ?? (await this.providerKeyService.getAuthType(agent.id, dto.provider));
+        const keys = await this.providerKeyService.getProviderKeys(
+          agent.id,
+          dto.provider,
+          authType,
         );
+        const key = keys[0];
+        if (!key || key.apiKey === null) {
+          return this.sendPreStreamError(
+            res,
+            404,
+            `No usable API key found for provider "${dto.provider}"`,
+          );
+        }
+        rawApiKey = key.apiKey;
+        providerKeyLabel = key.label;
+        providerRegion = key.region;
+        const resolved = await resolveApiKey(
+          dto.provider,
+          rawApiKey,
+          authType,
+          agent.id,
+          userId,
+          this.openaiOauth,
+          this.minimaxOauth,
+          this.anthropicOauth,
+          this.geminiOauth,
+          this.kiroOauth,
+          this.xaiOauth,
+          providerKeyLabel,
+        );
+        if (resolved.apiKey === null) {
+          return this.sendPreStreamError(
+            res,
+            404,
+            `No usable API key found for provider "${dto.provider}"`,
+          );
+        }
+        apiKey = resolved.apiKey;
+        if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
+          rawApiKey =
+            (await this.providerKeyService.getProviderApiKey(
+              agent.id,
+              dto.provider,
+              authType,
+              providerKeyLabel,
+            )) ?? rawApiKey;
+        }
+        oauthResourceUrl = authType === 'subscription' ? resolved.resourceUrl : undefined;
+        // Gemini OAuth stores the CodeAssist project id (not a URL) in the same
+        // field; it is forwarded as providerResource. MiniMax's resource URL is
+        // applied as a base-URL override below, not here.
+        providerResource =
+          authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
+            ? resolved.resourceUrl
+            : undefined;
       }
-      apiKey = resolved.apiKey;
-      if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
-        rawApiKey =
-          (await this.providerKeyService.getProviderApiKey(
-            agent.id,
-            dto.provider,
-            authType,
-            providerKeyLabel,
-          )) ?? rawApiKey;
-      }
-      oauthResourceUrl = authType === 'subscription' ? resolved.resourceUrl : undefined;
-      // Gemini OAuth stores the CodeAssist project id (not a URL) in the same
-      // field; it is forwarded as providerResource. MiniMax's resource URL is
-      // applied as a base-URL override below, not here.
-      providerResource =
-        authType === 'subscription' && dto.provider.toLowerCase() === 'gemini'
-          ? resolved.resourceUrl
-          : undefined;
     } catch (err) {
       const status = err instanceof HttpException ? err.getStatus() : 500;
       const message = err instanceof Error ? err.message : String(err);
@@ -182,11 +226,15 @@ export class PlaygroundService {
         providerResource,
       };
       forward = await this.providerClient.forward(forwardOptions);
-      if (forward.response.status === 401 && authType === 'subscription') {
+      if (
+        forward.response.status === 401 &&
+        authType === 'subscription' &&
+        scope.type === 'agent'
+      ) {
         const refreshed = await refreshRejectedOAuthCredential(
           dto.provider,
           rawApiKey,
-          agent.id,
+          scope.agent.id,
           userId,
           providerKeyLabel,
           {
@@ -200,7 +248,7 @@ export class PlaygroundService {
         );
         if (refreshed?.apiKey && refreshed.apiKey !== apiKey) {
           this.logger.log(
-            `OAuth token rejected upstream in Playground; refreshed provider=${dto.provider} agent=${agent.id}`,
+            `OAuth token rejected upstream in Playground; refreshed provider=${dto.provider} agent=${scope.agent.id}`,
           );
           apiKey = refreshed.apiKey;
           providerResource =
@@ -231,18 +279,20 @@ export class PlaygroundService {
       }
       const durationMs = Date.now() - startedAt;
       const errorSummary = this.truncateError(bodyText, forward.response.status);
-      await this.recordError(
-        userId,
-        agent,
-        dto,
-        authType,
-        forward.response.status,
-        bodyText,
-        durationMs,
-      );
-      await this.history.saveColumn(
-        this.errorColumn(userId, agent, dto, authType, headers, errorSummary),
-      );
+      if (scope.type === 'agent') {
+        await this.recordError(
+          userId,
+          scope.agent,
+          dto,
+          authType,
+          forward.response.status,
+          bodyText,
+          durationMs,
+        );
+        await this.history.saveColumn(
+          this.errorColumn(userId, scope.agent, dto, authType, headers, errorSummary),
+        );
+      }
       return this.sendPreStreamError(res, 502, errorSummary);
     }
 
@@ -255,10 +305,20 @@ export class PlaygroundService {
 
     if (!forward.response.body) {
       const message = 'Provider returned an empty stream';
-      await this.recordError(userId, agent, dto, authType, 502, message, Date.now() - startedAt);
-      await this.history.saveColumn(
-        this.errorColumn(userId, agent, dto, authType, headers, message),
-      );
+      if (scope.type === 'agent') {
+        await this.recordError(
+          userId,
+          scope.agent,
+          dto,
+          authType,
+          502,
+          message,
+          Date.now() - startedAt,
+        );
+        await this.history.saveColumn(
+          this.errorColumn(userId, scope.agent, dto, authType, headers, message),
+        );
+      }
       send({ type: 'error', message });
       res.end();
       return;
@@ -289,31 +349,34 @@ export class PlaygroundService {
       });
       const tokensPerSec = outputTokens > 0 ? outputTokens / (Math.max(totalMs, 1) / 1000) : null;
 
-      await this.recordSuccess(userId, agent, dto, authType, {
-        inputTokens,
-        outputTokens,
-        cacheReadTokens,
-        cacheCreationTokens,
-        cost,
-        durationMs: totalMs,
-      });
+      let columnId: string | null = null;
+      if (scope.type === 'agent') {
+        await this.recordSuccess(userId, scope.agent, dto, authType, {
+          inputTokens,
+          outputTokens,
+          cacheReadTokens,
+          cacheCreationTokens,
+          cost,
+          durationMs: totalMs,
+        });
 
-      const columnId = await this.history.saveColumn({
-        userId,
-        agent,
-        runId: dto.runId,
-        prompt: derivePromptForHistory(dto),
-        model: dto.model,
-        provider: dto.provider,
-        authType,
-        displayName: null,
-        position: dto.position ?? 0,
-        status: 'success',
-        content,
-        headers,
-        errorMessage: null,
-        metrics: { inputTokens, outputTokens, cost, durationMs: totalMs },
-      });
+        columnId = await this.history.saveColumn({
+          userId,
+          agent: scope.agent,
+          runId: dto.runId,
+          prompt: derivePromptForHistory(dto),
+          model: dto.model,
+          provider: dto.provider,
+          authType,
+          displayName: null,
+          position: dto.position ?? 0,
+          status: 'success',
+          content,
+          headers,
+          errorMessage: null,
+          metrics: { inputTokens, outputTokens, cost, durationMs: totalMs },
+        });
+      }
 
       send({
         type: 'done',
@@ -332,10 +395,12 @@ export class PlaygroundService {
       }
       const message = err instanceof Error ? err.message : String(err);
       const durationMs = Date.now() - startedAt;
-      await this.recordError(userId, agent, dto, authType, 502, message, durationMs);
-      await this.history.saveColumn(
-        this.errorColumn(userId, agent, dto, authType, headers, message),
-      );
+      if (scope.type === 'agent') {
+        await this.recordError(userId, scope.agent, dto, authType, 502, message, durationMs);
+        await this.history.saveColumn(
+          this.errorColumn(userId, scope.agent, dto, authType, headers, message),
+        );
+      }
       send({ type: 'error', message });
       if (!res.writableEnded) res.end();
     }

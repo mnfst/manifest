@@ -728,6 +728,32 @@ describe('ModelDiscoveryService', () => {
     });
   });
 
+  describe('getModelsForGlobalProviders', () => {
+    it('returns cached models from active global provider rows', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          agent_id: null,
+          user_id: 'user-1',
+          provider: 'openai',
+          cached_models: [makeModel({ id: 'gpt-4o-mini', provider: 'openai' })],
+        }),
+      ]);
+
+      const result = await service.getModelsForGlobalProviders('user-1');
+
+      expect(providerRepo.find).toHaveBeenCalledWith({
+        where: expect.objectContaining({ user_id: 'user-1', agent_id: expect.any(Object) }),
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        id: 'gpt-4o-mini',
+        provider: 'openai',
+        authType: 'api_key',
+      });
+      expect(customProviderRepo.find).not.toHaveBeenCalled();
+    });
+  });
+
   /* ── getModelsForAgent caching ── */
 
   describe('getModelsForAgent (cache)', () => {

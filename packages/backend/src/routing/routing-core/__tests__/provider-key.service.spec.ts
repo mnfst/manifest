@@ -37,7 +37,7 @@ describe('ProviderKeyService', () => {
     getProviderKeys: jest.Mock;
     setProviderKeys: jest.Mock;
   };
-  let providerService: jest.Mocked<Pick<ProviderService, 'getProviders'>>;
+  let providerService: jest.Mocked<Pick<ProviderService, 'getProviders' | 'getGlobalProviders'>>;
   let svc: ProviderKeyService;
 
   beforeEach(() => {
@@ -54,7 +54,10 @@ describe('ProviderKeyService', () => {
       getProviderKeys: jest.fn().mockReturnValue(undefined),
       setProviderKeys: jest.fn(),
     };
-    providerService = { getProviders: jest.fn().mockResolvedValue([]) };
+    providerService = {
+      getProviders: jest.fn().mockResolvedValue([]),
+      getGlobalProviders: jest.fn().mockResolvedValue([]),
+    };
 
     svc = new ProviderKeyService(
       providerRepo as unknown as Repository<UserProvider>,
@@ -248,6 +251,56 @@ describe('ProviderKeyService', () => {
 
       const result = await svc.getProviderApiKey('agent-1', 'openai');
       expect(result).toBe('real-key');
+    });
+  });
+
+  describe('global provider keys', () => {
+    it('resolves decrypted global provider keys by user scope', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'global-1',
+          user_id: 'user-1',
+          agent_id: null,
+          provider: 'openai',
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc',
+          is_active: true,
+          label: 'Work',
+          priority: 0,
+          region: null,
+        },
+      ]);
+      mockedDecrypt.mockReturnValue('plaintext-global-key');
+
+      const result = await svc.getGlobalProviderApiKey('user-1', 'openai', 'api_key', 'Work');
+
+      expect(result).toBe('plaintext-global-key');
+      expect(providerRepo.find).toHaveBeenCalledWith({
+        where: expect.objectContaining({ user_id: 'user-1', agent_id: expect.any(Object) }),
+        order: { priority: 'ASC' },
+      });
+      expect(routingCache.setProviderKeys).not.toHaveBeenCalled();
+    });
+
+    it('chooses subscription auth for active global providers with a token', async () => {
+      providerService.getGlobalProviders.mockResolvedValue([
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc-key',
+          is_active: true,
+        },
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          api_key_encrypted: 'enc-sub',
+          is_active: true,
+        },
+      ] as UserProvider[]);
+
+      const result = await svc.getGlobalAuthType('user-1', 'openai');
+
+      expect(result).toBe('subscription');
     });
   });
 

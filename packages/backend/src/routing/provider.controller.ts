@@ -1,15 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
 import { ProviderService } from './routing-core/provider.service';
@@ -27,8 +16,8 @@ import {
   RenameProviderKeyDto,
   ReorderProviderKeysDto,
 } from './dto/routing.dto';
-import { isQwenRegion } from './qwen-region';
-import { getSubscriptionEndpointRegionConfig } from './subscription-region';
+import { assertProviderRegionSupported } from './provider-region-validation';
+import { serializeProviderConnection } from './provider-response';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -71,20 +60,7 @@ export class ProviderController {
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const providers = await this.providerService.getProviders(agent.id);
-    return providers.map((p) => ({
-      id: p.id,
-      provider: p.provider,
-      auth_type: p.auth_type ?? 'api_key',
-      is_active: p.is_active,
-      has_api_key: !!p.api_key_encrypted,
-      key_prefix: p.key_prefix ?? null,
-      label: p.label,
-      priority: p.priority,
-      region: p.region ?? null,
-      connected_at: p.connected_at,
-      models_fetched_at: p.models_fetched_at ?? null,
-      cached_model_count: Array.isArray(p.cached_models) ? p.cached_models.length : 0,
-    }));
+    return providers.map(serializeProviderConnection);
   }
 
   @Post(':agentName/providers')
@@ -94,28 +70,7 @@ export class ProviderController {
     @Body() body: ConnectProviderDto,
   ) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const lowerProvider = body.provider.toLowerCase();
-    const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
-    const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(
-      lowerProvider,
-      body.authType,
-    );
-
-    if (body.region !== undefined) {
-      if (isQwenProvider) {
-        if (!isQwenRegion(body.region)) {
-          throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
-        }
-      } else if (subscriptionRegionConfig) {
-        if (!subscriptionRegionConfig.isRegion(body.region)) {
-          throw new BadRequestException(subscriptionRegionConfig.validationMessage);
-        }
-      } else {
-        throw new BadRequestException(
-          'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, Xiaomi MiMo Token Plan, and Z.ai subscriptions',
-        );
-      }
-    }
+    assertProviderRegionSupported(body.provider, body.authType, body.region);
 
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {

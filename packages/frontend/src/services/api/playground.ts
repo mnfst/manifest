@@ -25,6 +25,7 @@ export interface PlaygroundStreamResult {
 
 export interface RunPlaygroundRequest {
   agentName: string;
+  scope?: 'agent' | 'global';
   model: string;
   provider: string;
   authType?: AuthType;

@@ -136,6 +136,26 @@ describe('RunPlaygroundDto', () => {
       const errors = await validate(dto);
       expect(errors.length).toBeGreaterThan(0);
     });
+
+    it('accepts the global playground scope', async () => {
+      const dto = toDto({
+        ...VALID_BASE,
+        scope: 'global',
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    });
+
+    it('rejects unknown playground scopes', async () => {
+      const dto = toDto({
+        ...VALID_BASE,
+        scope: 'tenant',
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      const errors = await validate(dto);
+      expect(errors.some((e) => e.property === 'scope')).toBe(true);
+    });
   });
 });
 

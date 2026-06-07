@@ -1,0 +1,250 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
+
+const mockGetGlobalProviders = vi.fn();
+const mockConnectGlobalProvider = vi.fn();
+const mockDisconnectGlobalProvider = vi.fn();
+const mockRefreshGlobalProviderModels = vi.fn();
+const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+const validateApiKeyMock = vi.hoisted(() => vi.fn());
+const validateSubscriptionKeyMock = vi.hoisted(() => vi.fn());
+
+vi.mock('../../src/services/api.js', () => ({
+  getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
+  connectGlobalProvider: (...args: unknown[]) => mockConnectGlobalProvider(...args),
+  disconnectGlobalProvider: (...args: unknown[]) => mockDisconnectGlobalProvider(...args),
+  refreshGlobalProviderModels: (...args: unknown[]) => mockRefreshGlobalProviderModels(...args),
+}));
+
+vi.mock('../../src/services/providers.js', () => ({
+  PROVIDERS: [
+    {
+      id: 'openai',
+      name: 'OpenAI',
+      color: '#111',
+      initial: 'O',
+      subtitle: '',
+      models: [],
+      keyPrefix: 'sk-',
+      minKeyLength: 3,
+      keyPlaceholder: 'sk-test',
+    },
+    {
+      id: 'minimax',
+      name: 'MiniMax',
+      color: '#222',
+      initial: 'M',
+      subtitle: '',
+      models: [],
+      keyPrefix: 'sk-',
+      minKeyLength: 3,
+      keyPlaceholder: 'sk-test',
+      supportsSubscription: true,
+      subscriptionAuthMode: 'token',
+      subscriptionKeyPlaceholder: 'sk-cp-test',
+      subscriptionEndpointRegions: [{ value: 'global', label: 'Global' }],
+    },
+  ],
+}));
+
+vi.mock('../../src/components/ProviderIcon.js', () => ({
+  providerIcon: () => null,
+}));
+
+vi.mock('../../src/services/provider-utils.js', () => ({
+  validateApiKey: (...args: unknown[]) => validateApiKeyMock(...args),
+  validateSubscriptionKey: (...args: unknown[]) => validateSubscriptionKeyMock(...args),
+}));
+
+vi.mock('../../src/services/formatters.js', () => ({
+  formatTimeAgo: () => 'just now',
+}));
+
+vi.mock('../../src/services/toast-store.js', () => ({ toast }));
+
+vi.mock('@solidjs/meta', () => ({
+  Title: (props: any) => <title>{props.children}</title>,
+  Meta: () => null,
+}));
+
+import GlobalProviders from '../../src/pages/GlobalProviders';
+
+describe('GlobalProviders', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetGlobalProviders.mockResolvedValue([
+      {
+        id: 'p1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        key_prefix: 'sk-test',
+        label: 'Default',
+        priority: 0,
+        connected_at: '2026-01-01T00:00:00.000Z',
+        models_fetched_at: '2026-01-01T00:00:00.000Z',
+        cached_model_count: 2,
+      },
+    ]);
+    mockConnectGlobalProvider.mockResolvedValue({ id: 'p2' });
+    mockRefreshGlobalProviderModels.mockResolvedValue({
+      ok: true,
+      model_count: 3,
+      last_fetched_at: '2026-01-01T00:00:00.000Z',
+      error: null,
+    });
+    mockDisconnectGlobalProvider.mockResolvedValue({ ok: true, notifications: [] });
+    validateApiKeyMock.mockReturnValue({ valid: true });
+    validateSubscriptionKeyMock.mockReturnValue({ valid: true });
+  });
+
+  it('renders global provider rows', async () => {
+    render(() => <GlobalProviders />);
+
+    await screen.findByText('OpenAI');
+
+    expect(screen.getByText('Connections')).toBeDefined();
+    expect(screen.getByText('1 active')).toBeDefined();
+    expect(screen.getByText('2 models')).toBeDefined();
+  });
+
+  it('renders an empty state when no global providers exist', async () => {
+    mockGetGlobalProviders.mockResolvedValueOnce([]);
+    render(() => <GlobalProviders />);
+
+    await screen.findByText('No global providers yet');
+
+    expect(screen.getByText('0 active')).toBeDefined();
+  });
+
+  it('connects a global API-key provider', async () => {
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
+    await fireEvent.input(screen.getByLabelText('Label'), { target: { value: 'Work' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() =>
+      expect(mockConnectGlobalProvider).toHaveBeenCalledWith({
+        provider: 'openai',
+        authType: 'api_key',
+        apiKey: 'sk-new',
+        label: 'Work',
+      }),
+    );
+    expect(toast.success).toHaveBeenCalledWith('OpenAI connected');
+  });
+
+  it('stops before connect when API-key validation fails', async () => {
+    validateApiKeyMock.mockReturnValueOnce({ valid: false, error: 'Bad key' });
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    expect(toast.error).toHaveBeenCalledWith('Bad key');
+    expect(mockConnectGlobalProvider).not.toHaveBeenCalled();
+  });
+
+  it('connects a subscription provider with the default region', async () => {
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'minimax' } });
+    await fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'subscription' } });
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-cp-new' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() =>
+      expect(mockConnectGlobalProvider).toHaveBeenCalledWith({
+        provider: 'minimax',
+        authType: 'subscription',
+        apiKey: 'sk-cp-new',
+        region: 'global',
+      }),
+    );
+  });
+
+  it('stops before connect when subscription credential validation fails', async () => {
+    validateSubscriptionKeyMock.mockReturnValueOnce({ valid: false });
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.change(screen.getByLabelText('Provider'), { target: { value: 'minimax' } });
+    await fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'subscription' } });
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'bad' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    expect(toast.error).toHaveBeenCalledWith('Invalid subscription credential');
+    expect(mockConnectGlobalProvider).not.toHaveBeenCalled();
+  });
+
+  it('clears saving state when connect rejects', async () => {
+    mockConnectGlobalProvider.mockRejectedValueOnce(new Error('network'));
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.input(screen.getByLabelText('Key'), { target: { value: 'sk-new' } });
+    await fireEvent.click(screen.getByText('Connect'));
+
+    await waitFor(() =>
+      expect((screen.getByText('Connect') as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
+  it('refreshes and disconnects a global provider row', async () => {
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.click(screen.getByText('Refresh'));
+    await waitFor(() =>
+      expect(mockRefreshGlobalProviderModels).toHaveBeenCalledWith('openai', 'api_key'),
+    );
+    await waitFor(() =>
+      expect((screen.getByText('Disconnect') as HTMLButtonElement).disabled).toBe(false),
+    );
+
+    await fireEvent.click(screen.getByText('Disconnect'));
+    await waitFor(() =>
+      expect(mockDisconnectGlobalProvider).toHaveBeenCalledWith('openai', 'api_key', 'Default'),
+    );
+  });
+
+  it('shows a refresh error and clears the busy state', async () => {
+    mockRefreshGlobalProviderModels.mockResolvedValueOnce({
+      ok: false,
+      model_count: 0,
+      last_fetched_at: null,
+      error: 'Provider timed out',
+    });
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.click(screen.getByText('Refresh'));
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Provider timed out'));
+    await waitFor(() =>
+      expect((screen.getByText('Refresh') as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+
+  it('clears row busy state when refresh or disconnect rejects', async () => {
+    mockRefreshGlobalProviderModels.mockRejectedValueOnce(new Error('network'));
+    mockDisconnectGlobalProvider.mockRejectedValueOnce(new Error('network'));
+    render(() => <GlobalProviders />);
+    await screen.findByText('OpenAI');
+
+    await fireEvent.click(screen.getByText('Refresh'));
+    await waitFor(() =>
+      expect((screen.getByText('Refresh') as HTMLButtonElement).disabled).toBe(false),
+    );
+
+    await fireEvent.click(screen.getByText('Disconnect'));
+    await waitFor(() =>
+      expect((screen.getByText('Disconnect') as HTMLButtonElement).disabled).toBe(false),
+    );
+  });
+});

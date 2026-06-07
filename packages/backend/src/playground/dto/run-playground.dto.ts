@@ -71,6 +71,10 @@ export class RunPlaygroundDto {
   @Validate(PlaygroundPayloadShapeConstraint)
   agentName!: string;
 
+  @IsOptional()
+  @IsIn(['agent', 'global'])
+  scope?: 'agent' | 'global';
+
   @IsString()
   @IsNotEmpty()
   model!: string;

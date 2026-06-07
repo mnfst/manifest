@@ -113,6 +113,17 @@ export class AgentProviderKeyParamDto {
   label!: string;
 }
 
+export class ProviderKeyParamDto {
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
+  label!: string;
+}
+
 export class RemoveProviderQueryDto {
   @IsOptional()
   @IsIn(AUTH_TYPES)

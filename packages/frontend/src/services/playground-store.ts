@@ -63,6 +63,8 @@ export interface RunOptions {
   requestHeaders?: Record<string, string>;
 }
 
+export type PlaygroundScope = 'agent' | 'global';
+
 let columnCounter = 0;
 const nextColumnId = (): string => `col-${++columnCounter}-${Date.now().toString(36)}`;
 
@@ -125,7 +127,10 @@ function modelBrandId(modelName: string): string | undefined {
   return inferProviderFromModel(modelName);
 }
 
-export function createPlaygroundStore(agentName: string): PlaygroundStore {
+export function createPlaygroundStore(
+  agentName: string,
+  scope: PlaygroundScope = 'agent',
+): PlaygroundStore {
   const [columns, setColumns] = createStore<PlaygroundColumn[]>([]);
   const [prompt, setPrompt] = createSignal('');
   const [history, setHistory] = createSignal<string[]>([]);
@@ -216,6 +221,7 @@ export function createPlaygroundStore(agentName: string): PlaygroundStore {
       const result = await streamPlayground(
         {
           agentName,
+          scope,
           model: col.model,
           provider: col.provider,
           authType: col.authType,
@@ -483,12 +489,16 @@ export function createPlaygroundStore(agentName: string): PlaygroundStore {
  */
 const storeCache = new Map<string, PlaygroundStore>();
 
-export function getOrCreatePlaygroundStore(agentName: string): PlaygroundStore {
-  let store = storeCache.get(agentName);
+export function getOrCreatePlaygroundStore(
+  agentName: string,
+  scope: PlaygroundScope = 'agent',
+): PlaygroundStore {
+  const cacheKey = `${scope}:${agentName}`;
+  let store = storeCache.get(cacheKey);
   if (!store) {
     createRoot(() => {
-      store = createPlaygroundStore(agentName);
-      storeCache.set(agentName, store!);
+      store = createPlaygroundStore(agentName, scope);
+      storeCache.set(cacheKey, store!);
     });
   }
   return store!;

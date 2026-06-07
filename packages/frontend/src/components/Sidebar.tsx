@@ -41,6 +41,23 @@ const Sidebar: Component<SidebarProps> = (props) => {
         >
           Agents
         </A>
+        <div class="sidebar__section-label">TENANT</div>
+        <A
+          href="/providers"
+          class="sidebar__link"
+          classList={{ active: location.pathname === '/providers' }}
+          aria-current={location.pathname === '/providers' ? 'page' : undefined}
+        >
+          Providers
+        </A>
+        <A
+          href="/playground"
+          class="sidebar__link"
+          classList={{ active: location.pathname === '/playground' }}
+          aria-current={location.pathname === '/playground' ? 'page' : undefined}
+        >
+          Playground
+        </A>
       </Show>
 
       <Show when={getAgentName()}>
@@ -76,6 +93,24 @@ const Sidebar: Component<SidebarProps> = (props) => {
           class="sidebar__link"
           classList={{ active: isActive('/playground') }}
           aria-current={isActive('/playground') ? 'page' : undefined}
+        >
+          Playground
+        </A>
+
+        <div class="sidebar__section-label">TENANT</div>
+        <A
+          href="/providers"
+          class="sidebar__link"
+          classList={{ active: location.pathname === '/providers' }}
+          aria-current={location.pathname === '/providers' ? 'page' : undefined}
+        >
+          Providers
+        </A>
+        <A
+          href="/playground"
+          class="sidebar__link"
+          classList={{ active: location.pathname === '/playground' }}
+          aria-current={location.pathname === '/playground' ? 'page' : undefined}
         >
           Playground
         </A>

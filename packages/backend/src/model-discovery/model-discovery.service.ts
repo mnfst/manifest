@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
@@ -259,7 +259,7 @@ export class ModelDiscoveryService {
     await this.providerRepo.save(provider);
     // The agent's effective model list just changed on disk — drop the cache
     // so getModelsForAgent() reassembles it on the next read.
-    this.invalidate(provider.agent_id);
+    if (provider.agent_id) this.invalidate(provider.agent_id);
 
     this.logger.log(
       `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
@@ -339,6 +339,68 @@ export class ModelDiscoveryService {
     }
   }
 
+  async refreshGlobalProvider(
+    userId: string,
+    providerId: string,
+    authType?: AuthType,
+  ): Promise<{
+    ok: boolean;
+    model_count: number;
+    last_fetched_at: string | null;
+    error: string | null;
+  }> {
+    const where: {
+      user_id: string;
+      agent_id: ReturnType<typeof IsNull>;
+      provider: string;
+      is_active: true;
+      auth_type?: AuthType;
+    } = {
+      user_id: userId,
+      agent_id: IsNull(),
+      provider: providerId,
+      is_active: true,
+    };
+    if (authType) where.auth_type = authType;
+    const provider = await this.providerRepo.findOne({ where });
+    if (!provider) {
+      return { ok: false, model_count: 0, last_fetched_at: null, error: 'Provider not found' };
+    }
+
+    const previousCount = Array.isArray(provider.cached_models) ? provider.cached_models.length : 0;
+    const previousFetchedAt = provider.models_fetched_at;
+
+    if (provider.provider.startsWith('custom:')) {
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: 'Custom providers are managed manually — edit the provider to update its model list',
+      };
+    }
+
+    try {
+      const models = await this.discoverModels(provider);
+      return {
+        ok: models.length > 0,
+        model_count: models.length,
+        last_fetched_at: provider.models_fetched_at,
+        error: models.length === 0 ? 'Provider returned no models' : null,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `Per-provider refresh failed for global ${provider.provider} (user ${userId}): ${message}`,
+      );
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: message,
+      };
+    }
+  }
+
   /**
    * Cached view of an agent's discovered models (2-minute TTL). Returns the
    * cached list when warm, otherwise runs the full DB-backed assembly and
@@ -375,28 +437,13 @@ export class ModelDiscoveryService {
       where: { agent_id: agentId, is_active: true },
     });
 
-    const models: DiscoveredModel[] = [];
-    const seen = new Map<string, number>();
-
-    for (const p of providers) {
-      if (p.provider.startsWith('custom:')) continue;
-      const rawCached = p.cached_models;
-      if (!Array.isArray(rawCached)) continue;
-      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
-      const providerAuthType: AuthType = p.auth_type;
-      const providerId = p.provider.toLowerCase();
-      for (const m of cached) {
-        const effectiveAuthType = m.authType ?? providerAuthType;
-        // Deduplicate by the routable tuple, not just model ID. Multiple
-        // providers can expose the same native model name, and the picker must
-        // keep each provider-specific route selectable.
-        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
-        if (!seen.has(dedupeKey)) {
-          seen.set(dedupeKey, models.length);
-          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
-        }
-      }
-    }
+    const models = this.collectCachedProviderModels(providers);
+    const seen = new Map(
+      models.map((model, index) => [
+        `${model.provider}::${model.authType ?? 'api_key'}::${model.id}`,
+        index,
+      ]),
+    );
 
     // Build auth_type lookup for custom providers from their user_providers rows
     const customAuthTypes = new Map<string, AuthType>();
@@ -437,6 +484,40 @@ export class ModelDiscoveryService {
           capabilityCode: false,
           qualityScore: 2,
         });
+      }
+    }
+
+    return models;
+  }
+
+  async getModelsForGlobalProviders(userId: string): Promise<DiscoveredModel[]> {
+    const providers = await this.providerRepo.find({
+      where: { user_id: userId, agent_id: IsNull(), is_active: true },
+    });
+    return this.collectCachedProviderModels(providers);
+  }
+
+  private collectCachedProviderModels(providers: UserProvider[]): DiscoveredModel[] {
+    const models: DiscoveredModel[] = [];
+    const seen = new Map<string, number>();
+
+    for (const p of providers) {
+      if (p.provider.startsWith('custom:')) continue;
+      const rawCached = p.cached_models;
+      if (!Array.isArray(rawCached)) continue;
+      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
+      const providerAuthType: AuthType = p.auth_type;
+      const providerId = p.provider.toLowerCase();
+      for (const m of cached) {
+        const effectiveAuthType = m.authType ?? providerAuthType;
+        // Deduplicate by the routable tuple, not just model ID. Multiple
+        // providers can expose the same native model name, and the picker must
+        // keep each provider-specific route selectable.
+        const dedupeKey = `${providerId}::${effectiveAuthType}::${m.id}`;
+        if (!seen.has(dedupeKey)) {
+          seen.set(dedupeKey, models.length);
+          models.push({ ...m, provider: p.provider, authType: effectiveAuthType });
+        }
       }
     }
 

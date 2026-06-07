@@ -5,6 +5,7 @@ import {
   AgentNameParamDto,
   ConnectProviderDto,
   CopilotPollDto,
+  ProviderKeyParamDto,
   SetResponseModeDto,
   SetFallbacksDto,
   responseModeFromDto,
@@ -130,6 +131,26 @@ describe('ConnectProviderDto', () => {
     expect(dto.provider).toBe(42 as unknown as string);
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('ProviderKeyParamDto', () => {
+  function toProviderKeyParamDto(data: Record<string, unknown>): ProviderKeyParamDto {
+    return plainToInstance(ProviderKeyParamDto, data);
+  }
+
+  it('accepts provider and labeled key params', async () => {
+    const dto = toProviderKeyParamDto({ provider: 'openai', label: 'Default' });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects empty and overlong labels', async () => {
+    const empty = toProviderKeyParamDto({ provider: 'openai', label: '' });
+    const overlong = toProviderKeyParamDto({ provider: 'openai', label: 'x'.repeat(51) });
+
+    await expect(validate(empty)).resolves.not.toHaveLength(0);
+    await expect(validate(overlong)).resolves.not.toHaveLength(0);
   });
 });
 

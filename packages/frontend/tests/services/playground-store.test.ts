@@ -341,6 +341,20 @@ describe('createPlaygroundStore', () => {
       expect(new Set(calls.map((c) => c.position))).toEqual(new Set([0, 1]));
     });
 
+    it('passes global scope for tenant playground stores', async () => {
+      const store = createPlaygroundStore('global', 'global');
+      store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
+      streamPlaygroundMock.mockResolvedValue(okResult());
+      store.setPrompt('hi');
+
+      await store.runAll();
+
+      expect(streamPlaygroundMock.mock.calls[0][0]).toMatchObject({
+        agentName: 'global',
+        scope: 'global',
+      });
+    });
+
     it('does not append a late delta after the column was replaced', async () => {
       const store = createPlaygroundStore('demo');
       store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
@@ -609,9 +623,7 @@ describe('createPlaygroundStore', () => {
       store.setPrompt('hi');
 
       let resolveFirst: ((v: unknown) => void) | null = null;
-      streamPlaygroundMock.mockImplementationOnce(
-        () => new Promise((res) => (resolveFirst = res)),
-      );
+      streamPlaygroundMock.mockImplementationOnce(() => new Promise((res) => (resolveFirst = res)));
       streamPlaygroundMock.mockImplementationOnce(async () => okResult({ content: 'second' }));
 
       const colId = store.columns[0]!.id;
@@ -955,9 +967,7 @@ describe('createPlaygroundStore', () => {
       store.addColumn('openai/gpt-4o-mini', 'openai', 'api_key', 'A');
       store.setPrompt('hi');
       let resolveStream: ((v: unknown) => void) | null = null;
-      streamPlaygroundMock.mockImplementation(
-        () => new Promise((res) => (resolveStream = res)),
-      );
+      streamPlaygroundMock.mockImplementation(() => new Promise((res) => (resolveStream = res)));
       const p = store.runAll();
       await Promise.resolve();
       expect(store.isAnyRunning()).toBe(true);
