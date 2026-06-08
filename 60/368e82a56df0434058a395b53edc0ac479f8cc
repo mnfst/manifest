@@ -1,0 +1,25 @@
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_0dc1825d457013::t_e9d98bda4200fe 21
+  s_0dc1825d457013::t_f695e34d5488b6 61,83-89,99
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_0dc1825d457013::t_84cc460b775a46 53,80,102-108,121
+  s_0dc1825d457013::t_5e3beabbd88fc9 13
+packages/backend/test/multi-key-providers.e2e-spec.ts
+  s_0dc1825d457013::t_f2211adfb455d3 125-127,129,132,145-146,148,151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "60368e82a56df0434058a395b53edc0ac479f8cc",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
