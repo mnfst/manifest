@@ -82,7 +82,7 @@ const AgentOverview: Component = () => {
     // After setup, go to routing (with provider modal if no providers)
     const hasProviders = overview()?.has_providers === true;
     navigate(
-      `/agents/${encodeURIComponent(agentName()!)}/routing`,
+      `/harnesses/${encodeURIComponent(agentName()!)}/routing`,
       hasProviders ? {} : { state: { openProviders: true } },
     );
   };
@@ -506,7 +506,7 @@ const AgentOverview: Component = () => {
             Recent Messages
             <Show when={agentName()}>
               <A
-                href={`/agents/${encodeURIComponent(agentName()!)}/messages`}
+                href={`/harnesses/${encodeURIComponent(agentName()!)}/messages`}
                 class="view-more-link"
               >
                 View more

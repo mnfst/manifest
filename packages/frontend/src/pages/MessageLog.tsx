@@ -74,18 +74,36 @@ const MessageLog: Component = () => {
   const columns = () =>
     isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
   const [agentFilter, setAgentFilter] = createSignal('');
-  const [agentList] = createResource(
+  const [agentListRaw] = createResource(
     () => true,
     async () => {
       try {
         const data = await getAgents();
-        const list = ((data as any)?.agents ?? data ?? []) as Array<{ agent_name: string }>;
-        return list.map((a) => a.agent_name).sort();
+        return ((data as any)?.agents ?? data ?? []) as Array<{
+          agent_name: string;
+          agent_platform?: string | null;
+          agent_category?: string | null;
+        }>;
       } catch {
-        return [] as string[];
+        return [] as Array<{
+          agent_name: string;
+          agent_platform?: string | null;
+          agent_category?: string | null;
+        }>;
       }
     },
   );
+  const agentList = createMemo(() => (agentListRaw() ?? []).map((a) => a.agent_name).sort());
+  const agentPlatformMap = createMemo(() => {
+    const map = new Map<string, { platform: string | null; category: string | null }>();
+    for (const a of agentListRaw() ?? []) {
+      map.set(a.agent_name, {
+        platform: a.agent_platform ?? null,
+        category: a.agent_category ?? null,
+      });
+    }
+    return map;
+  });
   const agentFilterOptions = createMemo(() => [
     { label: 'All harnesses', value: '' },
     ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
@@ -599,6 +617,7 @@ const MessageLog: Component = () => {
                   columns={columns()}
                   agentName={params.agentName}
                   customProviderName={customProviderName}
+                  agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}

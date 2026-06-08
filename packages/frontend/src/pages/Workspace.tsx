@@ -70,7 +70,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       resetForm();
       const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
-      navigate(`/agents/${encodeURIComponent(slug)}`, {
+      navigate(`/harnesses/${encodeURIComponent(slug)}`, {
         state: { newApiKey: result?.apiKey },
       });
     } catch {
@@ -398,7 +398,10 @@ const Workspace: Component = () => {
               <For each={data()!.agents}>
                 {(agent) => (
                   <div class="agent-card-wrap">
-                    <A href={`/agents/${encodeURIComponent(agent.agent_name)}`} class="agent-card">
+                    <A
+                      href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
+                      class="agent-card"
+                    >
                       <div class="agent-card__top">
                         <Show when={platformIcon(agent.agent_platform, agent.agent_category)}>
                           <img

@@ -852,7 +852,7 @@ const ConnectionDetail: Component = () => {
                             <tr>
                               <td>
                                 <A
-                                  href={`/agents/${agent.agent_name}`}
+                                  href={`/harnesses/${agent.agent_name}`}
                                   style="text-decoration: none; color: hsl(var(--foreground)); font-weight: 500; display: flex; align-items: center; gap: 8px;"
                                 >
                                   <Show when={platformIcon(agent.agent_platform, null)}>

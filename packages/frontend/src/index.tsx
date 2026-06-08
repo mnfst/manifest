@@ -68,7 +68,7 @@ render(
           {/* Global: overview & messages (filterable by agent) */}
           <Route path="/overview" component={Overview} />
           <Route path="/messages" component={MessageLog} />
-          <Route path="/agents" component={Workspace} />
+          <Route path="/harnesses" component={Workspace} />
 
           {/* Global: providers (user-level) */}
           <Route path="/providers/subscriptions" component={Subscriptions} />
@@ -81,7 +81,7 @@ render(
           <Route path="/playground" component={Playground} />
 
           {/* Agent detail: horizontal tabs (routing, providers, guardrails, settings) */}
-          <Route path="/agents/:agentName" component={AgentGuard}>
+          <Route path="/harnesses/:agentName" component={AgentGuard}>
             <Route path="" component={AgentDetail}>
               <Route path="/" component={AgentOverview} />
               <Route path="/overview" component={AgentOverview} />
@@ -107,7 +107,7 @@ render(
               path="/limits"
               component={() => {
                 const agentName = window.location.pathname.split('/')[2];
-                return <Navigate href={`/agents/${agentName}/guardrails`} />;
+                return <Navigate href={`/harnesses/${agentName}/guardrails`} />;
               }}
             />
             <Route path="/help" component={() => <Navigate href="/overview" />} />

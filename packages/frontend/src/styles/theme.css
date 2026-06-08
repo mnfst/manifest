@@ -866,7 +866,7 @@ h6 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px var(--gap-lg);
+  padding: 6px var(--gap-lg) 6px var(--gap-md);
   margin: var(--gap-md) 0.5rem 1px;
   border-radius: var(--radius);
   cursor: pointer;

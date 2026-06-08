@@ -21,6 +21,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
+import { platformIcon } from 'manifest-shared';
 
 const MONO = 'font-family: var(--font-mono);';
 const MONO_XS =
@@ -154,10 +155,20 @@ export function columnHeader(key: MessageColumnKey, tooltips?: boolean): JSX.Ele
   );
 }
 
-export function AgentCell(item: MessageRow): JSX.Element {
+export function AgentCell(
+  item: MessageRow,
+  platformLookup?: (
+    name: string,
+  ) => { platform: string | null; category: string | null } | undefined,
+): JSX.Element {
+  const info = item.agent_name && platformLookup ? platformLookup(item.agent_name) : undefined;
+  const icon = info?.platform ? platformIcon(info.platform, info.category) : undefined;
   return (
     <td style="white-space: nowrap; font-weight: 500; font-size: var(--font-size-xs);">
-      {item.agent_name ?? '—'}
+      <span style="display: inline-flex; align-items: center; gap: 5px;">
+        {icon && <img src={icon} alt="" width="14" height="14" style="flex-shrink: 0;" />}
+        {item.agent_name ?? '—'}
+      </span>
     </td>
   );
 }
@@ -367,7 +378,7 @@ export function StatusCell(
           <span class={`status-badge status-badge--${item.status}`}>
             {item.status === 'fallback_error' && <FallbackIcon />}
             {item.status === 'rate_limited' ? (
-              <A href={`/agents/${encodeURIComponent(agentName)}/limits`}>
+              <A href={`/harnesses/${encodeURIComponent(agentName)}/limits`}>
                 {formatStatus(item.status)}
               </A>
             ) : (
@@ -454,6 +465,9 @@ export function FeedbackCell(
 export interface CellRenderContext {
   agentName: string;
   customProviderName: (model: string) => string | undefined;
+  agentPlatformLookup?: (
+    name: string,
+  ) => { platform: string | null; category: string | null } | undefined;
   onFallbackErrorClick?: (model: string) => void;
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
@@ -470,7 +484,7 @@ export function renderCell(
     case 'date':
       return DateCell(item);
     case 'agent':
-      return AgentCell(item);
+      return AgentCell(item, ctx.agentPlatformLookup);
     case 'message':
       return MessageCell(item);
     case 'cost':

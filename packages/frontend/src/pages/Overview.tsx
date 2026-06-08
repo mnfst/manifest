@@ -322,7 +322,7 @@ const Overview: Component = () => {
                     class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
                     onClick={() =>
-                      navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                      navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
                         state: { openProviders: true },
                       })
                     }
@@ -393,7 +393,7 @@ const Overview: Component = () => {
                         style="display: flex; justify-content: space-between; align-items: center;"
                       >
                         Recent Messages
-                        <A href={`/agents/${params.agentName}/messages`} class="view-more-link">
+                        <A href={`/harnesses/${params.agentName}/messages`} class="view-more-link">
                           View more
                         </A>
                       </div>
@@ -438,7 +438,7 @@ const Overview: Component = () => {
             setSetupCompleted(true);
           }}
           onGoToRouting={() => {
-            navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+            navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
               state: { openProviders: true },
             });
           }}

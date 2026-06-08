@@ -152,7 +152,7 @@ const Header: Component<HeaderProps> = (props) => {
         </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A href="/agents" class="header__breadcrumb-link">
+          <A href="/harnesses" class="header__breadcrumb-link">
             Harnesses
           </A>
           <span class="header__separator">/</span>
@@ -190,7 +190,7 @@ const Header: Component<HeaderProps> = (props) => {
               <Show when={gearOpen()}>
                 <div class="header__dropdown" role="menu" style="left: 0; right: auto;">
                   <A
-                    href={`/agents/${encodeURIComponent(getAgentName()!)}/settings`}
+                    href={`/harnesses/${encodeURIComponent(getAgentName()!)}/settings`}
                     class="header__dropdown-item"
                     role="menuitem"
                     onClick={() => setGearOpen(false)}

@@ -47,9 +47,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       }
 
       if (hasProviders) {
-        navigate(`/agents/${encodeURIComponent(slug)}/routing`);
+        navigate(`/harnesses/${encodeURIComponent(slug)}/routing`);
       } else {
-        navigate(`/agents/${encodeURIComponent(slug)}/routing`, {
+        navigate(`/harnesses/${encodeURIComponent(slug)}/routing`, {
           state: { openProviders: true },
         });
       }

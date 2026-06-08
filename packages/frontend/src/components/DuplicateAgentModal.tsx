@@ -86,7 +86,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
       toast.success(`Duplicated "${props.sourceName}" to "${slug}"`);
       props.onClose();
       props.onDuplicated?.();
-      navigate(`/agents/${encodeURIComponent(slug)}`, {
+      navigate(`/harnesses/${encodeURIComponent(slug)}`, {
         state: { newApiKey: result.apiKey },
       });
     } catch {

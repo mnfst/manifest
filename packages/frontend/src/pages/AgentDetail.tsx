@@ -33,10 +33,10 @@ const AgentDetail: ParentComponent = (props) => {
 
       <div style="margin-bottom: 8px;">
         <A
-          href="/agents"
+          href="/harnesses"
           style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
         >
-          ← Agents
+          ← Harnesses
         </A>
       </div>
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">

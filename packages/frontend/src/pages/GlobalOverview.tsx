@@ -911,7 +911,7 @@ const GlobalOverview: Component = () => {
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Harnesses</span>
                   <A
-                    href="/agents?add=true"
+                    href="/harnesses?add=true"
                     class="btn btn--outline btn--sm"
                     style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                   >
@@ -927,7 +927,7 @@ const GlobalOverview: Component = () => {
                       const icon = platformIcon(agent.agent_platform, agent.agent_category);
                       return (
                         <A
-                          href={`/agents/${agent.agent_name}`}
+                          href={`/harnesses/${agent.agent_name}`}
                           style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                         >
                           <Show when={icon}>
@@ -948,7 +948,7 @@ const GlobalOverview: Component = () => {
                   </For>
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                  <A href="/agents" class="view-more-link">
+                  <A href="/harnesses" class="view-more-link">
                     View more
                   </A>
                 </div>
@@ -1303,7 +1303,7 @@ const GlobalOverview: Component = () => {
                     return (
                       <tr
                         style="cursor: pointer;"
-                        onClick={() => navigate(`/agents/${agent.agent_name}`)}
+                        onClick={() => navigate(`/harnesses/${agent.agent_name}`)}
                       >
                         <td>
                           <div style="display: flex; align-items: center; gap: 8px;">

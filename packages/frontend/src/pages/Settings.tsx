@@ -152,7 +152,7 @@ const Settings: Component = () => {
       const result = await renameAgent(agentName(), name().trim());
       const slug = (result?.name as string) ?? name().trim();
       markAgentCreated(slug);
-      window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
+      window.location.replace(`/harnesses/${encodeURIComponent(slug)}/settings`);
     } catch {
       setName(agentName());
     } finally {

@@ -32,7 +32,7 @@ const ConnectProvider: Component = () => {
     if (baseUrl) qp.set('baseUrl', baseUrl);
     if (apiKey) qp.set('apiKey', apiKey);
     if (models) qp.set('models', models);
-    return `/agents/${encodeURIComponent(agentName)}/routing?${qp.toString()}`;
+    return `/harnesses/${encodeURIComponent(agentName)}/routing?${qp.toString()}`;
   };
 
   const autoCreate = async () => {
