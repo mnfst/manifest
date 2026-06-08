@@ -1,0 +1,25 @@
+.changeset/google-exclusive-schema-bounds.md
+  s_55b97b5c73ce7c::t_ee0abc168ae0e5 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_55b97b5c73ce7c::t_ef373a0bfd3ae1 3442-3486
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_55b97b5c73ce7c::t_1fea0f89443054 76-77
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_55b97b5c73ce7c::t_b93cc13ba5e985 164,194,201,206-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "09a73799a7f4f30f7da408c6e7f84328325a7ae9",
+  "prompts": {},
+  "sessions": {
+    "s_55b97b5c73ce7c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea655-360c-7612-846d-f0caa24d98d9",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
