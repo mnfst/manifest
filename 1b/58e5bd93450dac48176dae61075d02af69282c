@@ -1,0 +1,36 @@
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.ts
+  s_0dc1825d457013::t_ced0d9277e291c 1-19,36-206,208-212,291-292,294-295,302-305,265,267,282,284,287,289,25,29-30,34
+  s_1bf5a50a7e4e24::t_4ae5e28314285c 215,207,213-214,216-264,266,268-271,273-281,283,285-286,288,290,293,35
+  s_0dc1825d457013::t_bcb573acba3a0c 20-24,26-28,31-33
+  s_0dc1825d457013::t_f2fccca7918839 296-301
+packages/backend/src/database/migrations/1791000000000-LiftProvidersToUserLevel.spec.ts
+  s_0dc1825d457013::t_56070cafa00053 1-44,47-51,80-91,93-101,121-124,133-137,53,73,76,78-79
+  s_1bf5a50a7e4e24::t_a2c79411dcc17b 102-104,45-46,92,105-107,110,112,117-120,55-56,63-64
+  s_0dc1825d457013::t_c1702e3171a18e 108-109,111,114-116,54,60-62,68-69,125-132
+  s_1bf5a50a7e4e24::t_8aa66c07d49341 113
+  s_0dc1825d457013::t_ee3db038a97e03 52,57-59,65-67,70-72,74-75,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "1b58e5bd93450dac48176dae61075d02af69282c",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_1bf5a50a7e4e24": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea70d-736f-7373-b8a5-602325074a7e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

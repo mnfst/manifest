@@ -1,0 +1,21 @@
+packages/backend/src/routing/routing-core/routing-cache.service.ts
+  s_0dc1825d457013::t_4cb64a1751741b 68-69,72-73,76-77,80-81,85,89,93,98
+  s_0dc1825d457013::t_d3c7661c04161a 157-168
+  s_0dc1825d457013::t_a57c2a7fa7db79 141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "fd52da054fd4dcc14efac694451502e1dc15cc11",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+packages/backend/src/routing/copilot.controller.ts
+  s_0dc1825d457013::t_9b2264259eb82a 34
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_0dc1825d457013::t_38eb0965c555af 151
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 227,231
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_0dc1825d457013::t_5300fe24111324 159
+  s_0dc1825d457013::t_c45818d2e4e591 162-163,164-177
+  s_0dc1825d457013::t_5f76b7b570ab66 31,38,44
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_0dc1825d457013::t_8b60c7faf89e05 235
+  s_0dc1825d457013::t_478da48a058ca9 270
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_0dc1825d457013::t_7eac967ce75266 125
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 193,197
+packages/backend/src/routing/provider.controller.ts
+  s_0dc1825d457013::t_246b22b3cf38a4 7,14-15,18
+  s_0dc1825d457013::t_fdf92ae609ba18 46-48
+  s_0dc1825d457013::t_b00538dd5bd4c3 54
+  s_0dc1825d457013::t_076b76075943e0 80
+  s_0dc1825d457013::t_50568c051e6fa8 141-151
+  s_0dc1825d457013::t_4557eebd697e34 196
+  s_0dc1825d457013::t_dc2303f6c9c896 220
+  s_0dc1825d457013::t_6ae9e9065deebe 237
+  s_0dc1825d457013::t_e77772c0d39776 250
+  s_0dc1825d457013::t_119bd6010aa7bd 132,161-166
+  s_0dc1825d457013::t_77a4b88514bac7 167-171
+packages/backend/src/routing/copilot.controller.spec.ts
+  s_0dc1825d457013::t_68474ef1f4fc5f 100
+  s_0dc1825d457013::t_df27c8a8e551ca 147
+packages/backend/src/routing/provider.controller.spec.ts
+  s_0dc1825d457013::t_d41ac4321eaf3e 145
+  s_0dc1825d457013::t_7597e8f3e08528 335
+  s_0dc1825d457013::t_68b70775ca58eb 580-583
+  s_0dc1825d457013::t_a6a77a89f38121 602
+  s_0dc1825d457013::t_095fbba8a10978 632
+  s_0dc1825d457013::t_c8c20210ac3407 670
+  s_0dc1825d457013::t_8a96adcd63d8c8 719
+  s_0dc1825d457013::t_89c2573bf3b21d 751
+  s_0dc1825d457013::t_b32dc69bf900ad 775
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_0dc1825d457013::t_dbc75a17ce5b82 190
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 278,282
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  s_0dc1825d457013::t_78ad17b3507275 261
+  s_0dc1825d457013::t_346b958022afc8 263-264,265-282
+  s_0dc1825d457013::t_6c513a1c3bde9c 33,40,46
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_0dc1825d457013::t_6dc782725d00bc 219
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 299,303
+packages/backend/test/agent-provider-access.e2e-spec.ts
+  s_0dc1825d457013::t_b0efed8f4e8b09 1,3,7,15-18,20-28,32-33,36-37,39-44,46-52,55-63,65-67,70-72,76-77,79,82,114,143,145-146,164-165,179,184,200-202,205-208,213-214,220-221,262-265,175,256-257,113
+  s_0dc1825d457013::t_fa1db33129f666 80,230,2,4-6,8-14,19,29-31,34-35,38,45,53-54,64,68-69,73-75,78,81,84-87,116-118,120-136,139-140,142,144,148-149,151,153-157,159-161,163,166,180-183,185-186,188,190-191,193,203-204,209-210,212,215-217,219,222-229,231-233,235-236,238-239,242-244,247-249,252-253,255,259-261,101-102,105
+  s_0dc1825d457013::t_6e04f956fe0ae7 83,88,90-100,103,107,110-111
+  s_0dc1825d457013::t_80772a55f8a583 237,245-246,119,137-138,141,147,150,152,158,162,192,194,211,218,250-251,258,89,104
+  s_0dc1825d457013::t_0d6d2853aec0e0 241,173,176,187,234
+  s_0dc1825d457013::t_20470048af7435 167-172,174,177-178,195-199
+  s_0dc1825d457013::t_8e68c6f39ce92c 106,108-109,112
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_0dc1825d457013::t_7ec6447e208016 303
+  s_0dc1825d457013::t_22a7827e016e82 318
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_0dc1825d457013::t_b00e19bc58756f 200
+  s_1bf5a50a7e4e24::t_1a0f8d77c65e7b 238,242
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_0dc1825d457013::t_fe3c879bf83923 135
+  s_0dc1825d457013::t_546fc62492e869 146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d4cb0dd176b79a093faab8867eeecfe6253c4c9e",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_1bf5a50a7e4e24": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea70d-736f-7373-b8a5-602325074a7e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

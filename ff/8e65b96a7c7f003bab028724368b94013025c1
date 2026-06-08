@@ -1,0 +1,42 @@
+packages/frontend/tests/pages/Routing.test.tsx
+  s_a313dd8af843ee::t_b07065563eb18d 9,30,641
+  s_a313dd8af843ee::t_5c1dd83d8b2a14 111-113,306
+  s_a313dd8af843ee::t_155751d52bc315 683-698,700-701,703-705
+  s_a313dd8af843ee::t_635a37bf0c37cd 699,1362
+  s_a313dd8af843ee::t_88f04f8e6c06e3 702
+  s_0dc1825d457013::t_0b51c92f16a083 1817-1818,76,81,101,1819-1862
+  s_0dc1825d457013::t_c9b1e4235e0d57 662
+  s_0dc1825d457013::t_26167179940146 72-75,77-80,82-85,89-100
+  s_0dc1825d457013::t_5cabd97a94131a 86-88
+  s_0dc1825d457013::t_f0b69eda19478a 631-633
+packages/frontend/src/pages/Routing.tsx
+  s_a313dd8af843ee::t_4cc4dceb3cd2e5 32,90-93,307,364-369,571,603,650,756,69
+  s_a313dd8af843ee::t_c98cca1b5e8dca 465,495-498
+  s_0dc1825d457013::t_e05079b4ea7b7d 767,70,768-783
+  s_0dc1825d457013::t_50a999e085aff4 17-19
+  s_0dc1825d457013::t_9cda59406fdac5 62-68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "ff8e65b96a7c7f003bab028724368b94013025c1",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_a313dd8af843ee": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea752-f7c6-7af2-a508-cbf862813173",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
