@@ -1503,4 +1503,71 @@ describe("MessageLog", () => {
       });
     });
   });
+
+  describe("global mode title and CTA (Bug 2 + Bug 3)", () => {
+    it("renders 'Messages - Manifest' title without agent prefix in global mode", () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      const title = container.querySelector("title");
+      expect(title?.textContent).toBe("Messages - Manifest");
+    });
+
+    it("renders agent-scoped title in agent mode", () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      const title = container.querySelector("title");
+      expect(title?.textContent).toContain("test-agent");
+      expect(title?.textContent).toContain("Messages - Manifest");
+    });
+
+    it("does not render 'undefined' in the title in global mode", () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      const title = container.querySelector("title");
+      expect(title?.textContent).not.toContain("undefined");
+    });
+
+    it("does not render SetupModal in global mode (no agentName)", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        // Setup modal must not be rendered when there is no agentName
+        expect(container.querySelector('[data-testid="setup-modal"]')).toBeNull();
+      });
+    });
+
+    it("shows 'Go to Agents' link (not SetupModal CTA) in the empty state in global mode", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages yet");
+        // Global empty state guides to /agents, not set-up-agent modal
+        const link = container.querySelector('a[href="/agents"]') as HTMLAnchorElement;
+        expect(link).not.toBeNull();
+        expect(link.textContent).toContain("Go to Agents");
+        // No "Set up agent" button in global mode
+        expect(container.textContent).not.toContain("Set up agent");
+      });
+    });
+
+    it("does not navigate to /agents/undefined/routing in global mode", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages yet");
+      });
+      // Clicking the "Go to Agents" link should use the href attribute, not navigate()
+      // Verify no button triggers mockNavigate with "/agents/undefined/routing"
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.stringContaining("undefined"),
+        expect.anything(),
+      );
+    });
+  });
 });

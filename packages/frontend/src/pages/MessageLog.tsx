@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta';
-import { useNavigate, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
@@ -333,11 +333,17 @@ const MessageLog: Component = () => {
   return (
     <div class="container--full">
       <Title>
-        {agentDisplayName() ?? decodeURIComponent(params.agentName)} Messages - Manifest
+        {params.agentName
+          ? `${agentDisplayName() ?? decodeURIComponent(params.agentName)} Messages - Manifest`
+          : 'Messages - Manifest'}
       </Title>
       <Meta
         name="description"
-        content={`Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`}
+        content={
+          params.agentName
+            ? `Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`
+            : 'Browse all messages across all agents. Filter by provider or cost.'
+        }
       />
       <div class="page-header">
         <div>
@@ -383,7 +389,7 @@ const MessageLog: Component = () => {
               />
             </div>
           </Show>
-          <Show when={showEmptyState() && !setupCompleted()}>
+          <Show when={showEmptyState() && !!params.agentName && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
               Set up agent
             </button>
@@ -461,18 +467,34 @@ const MessageLog: Component = () => {
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
             <Show
-              when={setupCompleted()}
+              when={params.agentName && setupCompleted()}
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No messages yet</div>
-                  <p>Set up your agent and send a message. Every LLM call shows up here.</p>
-                  <button
-                    class="btn btn--primary btn--sm"
-                    style="margin-top: var(--gap-md);"
-                    onClick={() => setSetupOpen(true)}
+                  <Show
+                    when={params.agentName}
+                    fallback={
+                      <>
+                        <p>Create an agent and send a message. Every LLM call shows up here.</p>
+                        <A
+                          href="/agents"
+                          class="btn btn--primary btn--sm"
+                          style="margin-top: var(--gap-md);"
+                        >
+                          Go to Agents
+                        </A>
+                      </>
+                    }
                   >
-                    Set up agent
-                  </button>
+                    <p>Set up your agent and send a message. Every LLM call shows up here.</p>
+                    <button
+                      class="btn btn--primary btn--sm"
+                      style="margin-top: var(--gap-md);"
+                      onClick={() => setSetupOpen(true)}
+                    >
+                      Set up agent
+                    </button>
+                  </Show>
                   <div class="empty-state__img-wrapper">
                     <img
                       src="/example-messages.svg"
@@ -576,13 +598,15 @@ const MessageLog: Component = () => {
         </Show>
       </Show>
 
-      <SetupModal
-        open={setupOpen()}
-        agentName={decodeURIComponent(params.agentName)}
-        agentPlatform={agentPlatform()}
-        agentCategory={agentCategory()}
-        onClose={() => setSetupOpen(false)}
-      />
+      <Show when={!!params.agentName}>
+        <SetupModal
+          open={setupOpen()}
+          agentName={decodeURIComponent(params.agentName)}
+          agentPlatform={agentPlatform()}
+          agentCategory={agentCategory()}
+          onClose={() => setSetupOpen(false)}
+        />
+      </Show>
 
       <Show when={!isSelfHosted()}>
         <FeedbackModal
