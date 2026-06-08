@@ -15,6 +15,7 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 const mockGetMessages = vi.fn();
+const mockGetAgents = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockGetSpecificityAssignments = vi.fn();
 const mockGetMessageDetails = vi.fn();
@@ -25,6 +26,7 @@ const mockClearMessageFeedback = vi.fn();
 const mockDeleteMessageRecording = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
+  getAgents: (...args: unknown[]) => mockGetAgents(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   getSpecificityAssignments: (...args: unknown[]) => mockGetSpecificityAssignments(...args),
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
@@ -132,6 +134,7 @@ describe("MessageLog", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = "test-agent";
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }, { agent_name: "agent-beta" }] });
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
@@ -1275,6 +1278,170 @@ describe("MessageLog", () => {
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.header_tier_id).toBe("ht-premium");
         expect(lastQ.routing_tier).toBeUndefined();
+      });
+    });
+  });
+
+  describe("Agent filter (global mode)", () => {
+    it("renders agent filter dropdown in global mode (no agentName)", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        // agent filter is the first select in global mode
+        expect(selects.length).toBeGreaterThanOrEqual(1);
+        expect(selects[0].textContent).toContain("All agents");
+      });
+    });
+
+    it("populates agent filter with sorted agent names from getAgents()", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        expect(selects[0].textContent).toContain("agent-alpha");
+        expect(selects[0].textContent).toContain("agent-beta");
+      });
+    });
+
+    it("does NOT render agent filter dropdown in agent-scoped mode", async () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        // In agent mode, first select is provider filter (no "All agents" option)
+        expect(selects[0].textContent).not.toContain("All agents");
+        expect(selects[0].textContent).toContain("All providers");
+      });
+    });
+
+    it("passes agent_name query param when an agent is selected", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve so the options are populated
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      mockGetMessages.mockClear();
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-alpha");
+      });
+    });
+
+    it("omits agent_name query param when 'All agents' is selected", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve so the options are populated
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      // Select an agent first
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        expect(calls.some((c: any[]) => c[0]?.agent_name === "agent-alpha")).toBe(true);
+      });
+      mockGetMessages.mockClear();
+      // Then go back to "All agents"
+      fireEvent.change(agentSelect, { target: { value: "" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBeUndefined();
+      });
+    });
+
+    it("includes agentFilter in hasActiveFilters so filtered-empty state appears", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve before interacting with the filter
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages match your filters");
+      });
+    });
+
+    it("clears agentFilter when Clear filters is clicked", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve before interacting with the filter
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages match your filters");
+      });
+      // Clear filters — restores data
+      mockGetMessages.mockResolvedValue(messagesData);
+      const clearBtn = container.querySelector(".btn--outline") as HTMLButtonElement;
+      fireEvent.click(clearBtn);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        expect(calls.some((c: any[]) => !c[0]?.agent_name)).toBe(true);
+      });
+    });
+
+    it("handles getAgents() error gracefully (empty agent list)", async () => {
+      mockAgentName = "";
+      mockGetAgents.mockRejectedValue(new Error("network error"));
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        // Agent filter still renders with just "All agents"
+        expect(selects[0].textContent).toContain("All agents");
+        expect(selects[0].textContent).not.toContain("agent-alpha");
+      });
+    });
+
+    it("resets page when agentFilter changes", async () => {
+      mockAgentName = "";
+      const bigData = { ...messagesData, total_count: 120, next_cursor: "cursor-2" };
+      mockGetMessages.mockResolvedValue(bigData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="pagination-next"]')).not.toBeNull();
+      });
+      // Navigate to next page
+      const nextBtn = container.querySelector('[data-testid="pagination-next"]') as HTMLButtonElement;
+      mockGetMessages.mockResolvedValue({ ...bigData, next_cursor: null });
+      nextBtn.click();
+      await vi.waitFor(() => {
+        expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ cursor: "cursor-2" }));
+      });
+      // Changing agent filter should reset page (no cursor)
+      mockGetMessages.mockClear();
+      mockGetMessages.mockResolvedValue(messagesData);
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.cursor).toBeUndefined();
       });
     });
   });
