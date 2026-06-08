@@ -17,6 +17,22 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
       `CREATE INDEX IF NOT EXISTS "IDX_agent_provider_access_provider" ON "agent_provider_access" ("user_provider_id")`,
     );
 
+    // Enforce referential integrity at the DB level: this junction controls
+    // per-agent authorization, so a dangling agent_id / user_provider_id would
+    // be a silent access bug. ON DELETE CASCADE guarantees grants disappear
+    // with their owning row even if a future code path hard-deletes an agent
+    // or provider without going through the service-layer cleanup.
+    await queryRunner.query(`
+    ALTER TABLE "agent_provider_access"
+      ADD CONSTRAINT "FK_agent_provider_access_agent"
+      FOREIGN KEY ("agent_id") REFERENCES "agents" ("id") ON DELETE CASCADE
+  `);
+    await queryRunner.query(`
+    ALTER TABLE "agent_provider_access"
+      ADD CONSTRAINT "FK_agent_provider_access_provider"
+      FOREIGN KEY ("user_provider_id") REFERENCES "user_providers" ("id") ON DELETE CASCADE
+  `);
+
     // 2. Backfill each old agent-scoped provider row as an explicit attachment.
     await queryRunner.query(`
     INSERT INTO "agent_provider_access" ("agent_id", "user_provider_id")
@@ -277,6 +293,12 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
     CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_providers_agent_provider_auth_label"
     ON "user_providers" ("agent_id", "provider", "auth_type", LOWER("label"))
   `);
+    await queryRunner.query(
+      `ALTER TABLE "agent_provider_access" DROP CONSTRAINT IF EXISTS "FK_agent_provider_access_provider"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "agent_provider_access" DROP CONSTRAINT IF EXISTS "FK_agent_provider_access_agent"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_provider_access_provider"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "agent_provider_access"`);
   }

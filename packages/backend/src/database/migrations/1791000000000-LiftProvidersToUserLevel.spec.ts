@@ -49,6 +49,34 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     ).toBe(true);
   });
 
+  it('adds ON DELETE CASCADE foreign keys on the junction so grants cannot orphan', async () => {
+    await migration.up(queryRunner);
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('ADD CONSTRAINT "FK_agent_provider_access_agent"') &&
+          q.includes('FOREIGN KEY ("agent_id") REFERENCES "agents" ("id")') &&
+          q.includes('ON DELETE CASCADE'),
+      ),
+    ).toBe(true);
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('ADD CONSTRAINT "FK_agent_provider_access_provider"') &&
+          q.includes('FOREIGN KEY ("user_provider_id") REFERENCES "user_providers" ("id")') &&
+          q.includes('ON DELETE CASCADE'),
+      ),
+    ).toBe(true);
+    // FKs must be added after the table exists.
+    const createTableIdx = queries.findIndex((q) =>
+      q.includes('CREATE TABLE IF NOT EXISTS "agent_provider_access"'),
+    );
+    const agentFkIdx = queries.findIndex((q) =>
+      q.includes('ADD CONSTRAINT "FK_agent_provider_access_agent"'),
+    );
+    expect(agentFkIdx).toBeGreaterThan(createTableIdx);
+  });
+
   it('never deletes a provider row', async () => {
     await migration.up(queryRunner);
     expect(queries.some((q) => /DELETE\s+FROM\s+"user_providers"/i.test(q))).toBe(false);
@@ -94,6 +122,14 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
       ),
     ).toBe(true);
     expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" SET NOT NULL'))).toBe(true);
+    expect(
+      queries.some((q) =>
+        q.includes('DROP CONSTRAINT IF EXISTS "FK_agent_provider_access_provider"'),
+      ),
+    ).toBe(true);
+    expect(
+      queries.some((q) => q.includes('DROP CONSTRAINT IF EXISTS "FK_agent_provider_access_agent"')),
+    ).toBe(true);
     expect(queries.some((q) => q.includes('DROP TABLE IF EXISTS "agent_provider_access"'))).toBe(
       true,
     );
