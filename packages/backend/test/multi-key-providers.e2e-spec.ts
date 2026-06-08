@@ -10,8 +10,10 @@
  *    teardown semantics
  */
 import { INestApplication } from '@nestjs/common';
+import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_AGENT_ID, TEST_API_KEY } from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_USER_ID } from './helpers';
+import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
 
 let app: INestApplication;
 
@@ -48,9 +50,24 @@ async function listActiveOpenAi() {
 
 describe('Multi-key per provider — HTTP', () => {
   beforeEach(async () => {
-    // Each test starts from a clean OpenAI provider state by deactivating
-    // anything left behind from a previous test (the test app shares the DB).
-    await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all')).expect(201);
+    // Each test starts from a clean OpenAI provider state. Providers are
+    // user-global now, so inactive same-key rows from earlier tests would be
+    // resurrected with their old labels if we only deactivated them.
+    const ds = app.get(DataSource);
+    await ds.query(
+      `DELETE FROM agent_provider_access
+       WHERE user_provider_id IN (
+         SELECT id FROM user_providers WHERE user_id = $1 AND provider = $2
+       )`,
+      [TEST_USER_ID, 'openai'],
+    );
+    await ds.query(`DELETE FROM user_providers WHERE user_id = $1 AND provider = $2`, [
+      TEST_USER_ID,
+      'openai',
+    ]);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
   });
 
   it('initial connect (no label) creates a row labeled "Default" with priority 0', async () => {
@@ -85,15 +102,22 @@ describe('Multi-key per provider — HTTP', () => {
         .send({ provider: 'openai', apiKey: `sk-${i}`, label: `Key ${i}` })
         .expect(201);
     }
-    const res = await auth(api().post('/api/v1/routing/test-agent/providers'))
-      .send({ provider: 'openai', apiKey: 'sk-6', label: 'Key 6' });
+    const res = await auth(api().post('/api/v1/routing/test-agent/providers')).send({
+      provider: 'openai',
+      apiKey: 'sk-6',
+      label: 'Key 6',
+    });
     expect(res.status).toBe(400);
     expect(res.body.message).toMatch(/at most 5/i);
   });
 
   it('accepts custom labels for subscription auth_type', async () => {
-    const res = await auth(api().post('/api/v1/routing/test-agent/providers'))
-      .send({ provider: 'anthropic', apiKey: 'sub-token', authType: 'subscription', label: 'Pro' });
+    const res = await auth(api().post('/api/v1/routing/test-agent/providers')).send({
+      provider: 'anthropic',
+      apiKey: 'sub-token',
+      authType: 'subscription',
+      label: 'Pro',
+    });
     // Multi-key chains apply to subscription too — multiple Anthropic Pro
     // tokens, multiple ChatGPT Plus accounts, etc.
     expect(res.status).toBe(201);
@@ -109,9 +133,7 @@ describe('Multi-key per provider — HTTP', () => {
       .send({ provider: 'openai', apiKey: 'sk-work', label: 'Work' })
       .expect(201);
 
-    const res = await auth(
-      api().patch('/api/v1/routing/test-agent/providers/openai/keys/Work'),
-    )
+    const res = await auth(api().patch('/api/v1/routing/test-agent/providers/openai/keys/Work'))
       .send({ newLabel: 'Office' })
       .expect(200);
     expect(res.body.label).toBe('Office');
@@ -146,8 +168,9 @@ describe('Multi-key per provider — HTTP', () => {
       .send({ provider: 'openai', apiKey: 'sk-work', label: 'Work' })
       .expect(201);
 
-    await auth(api().delete('/api/v1/routing/test-agent/providers/openai?label=Default'))
-      .expect(200);
+    await auth(api().delete('/api/v1/routing/test-agent/providers/openai?label=Default')).expect(
+      200,
+    );
 
     const rows = await listActiveOpenAi();
     expect(rows).toHaveLength(1);

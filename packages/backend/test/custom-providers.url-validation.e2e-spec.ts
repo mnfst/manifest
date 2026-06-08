@@ -15,7 +15,6 @@ import { createTestApp, TEST_API_KEY } from './helpers';
 
 describe('Custom Providers URL validation (e2e)', () => {
   let app: INestApplication;
-  const agentName = 'test-agent';
   const headers = { 'x-api-key': TEST_API_KEY };
   const baseModels = [{ model_name: 'm1' }];
 
@@ -27,15 +26,13 @@ describe('Custom Providers URL validation (e2e)', () => {
     await app?.close();
   });
 
-  // Per-test cleanup keeps the (agent_id, name) unique constraint clear.
+  // Per-test cleanup keeps the (user_id, name) unique constraint clear.
   async function deleteByName(name: string): Promise<void> {
-    const list = await request(app.getHttpServer())
-      .get(`/api/v1/routing/${agentName}/custom-providers`)
-      .set(headers);
+    const list = await request(app.getHttpServer()).get(`/api/v1/custom-providers`).set(headers);
     const match = list.body.find((p: { name: string; id: string }) => p.name === name);
     if (match) {
       await request(app.getHttpServer())
-        .delete(`/api/v1/routing/${agentName}/custom-providers/${match.id}`)
+        .delete(`/api/v1/custom-providers/${match.id}`)
         .set(headers);
     }
   }
@@ -51,7 +48,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // IsUrl(require_protocol:true) demands a real scheme — "not-a-url"
       // has no scheme, no host, no path, so the DTO never reaches service.
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'Malformed1', base_url: 'not-a-url', models: baseModels })
         .expect(400);
@@ -65,7 +62,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // "localhost:9000" looks like a URL to humans but validator.js
       // rejects it without an http(s):// prefix.
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'NoScheme', base_url: 'localhost:9000', models: baseModels })
         .expect(400);
@@ -77,7 +74,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // Caught by IsNotEmpty before IsUrl. Explicit assertion catches a
       // regression where "" silently becomes a default value.
       await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'EmptyUrl', base_url: '', models: baseModels })
         .expect(400);
@@ -95,7 +92,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // to localhost. NODE_ENV=test skips SSRF, mirroring the real
       // selfhosted allowPrivate path.
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'Dev Localhost', base_url: 'http://localhost:9000/v1', models: baseModels })
         .expect(201);
@@ -110,7 +107,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       const longPath = 'x'.repeat(200);
       const longUrl = `https://api.example.com/v1/${longPath}`;
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'Long Path', base_url: longUrl, models: baseModels })
         .expect(201);
@@ -144,7 +141,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // AC-2 in the Mine paper: forwarding API keys + completions over
       // http leaks credentials to passive wire-sniffers.
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({
           name: 'Plaintext HTTP',
@@ -164,7 +161,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // RFC 1918 private space must never be reachable from the cloud
       // proxy — that's how attackers pivot to internal services.
       await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'Private IP', base_url: 'https://10.0.0.5/v1', models: baseModels })
         .expect(400);
@@ -174,7 +171,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // Loopback is the classic SSRF target (admin consoles bound there).
       // Even with https://, cloud mode must refuse it.
       await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({ name: 'Loopback', base_url: 'https://127.0.0.1:8080/v1', models: baseModels })
         .expect(400);
@@ -186,7 +183,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // override path doesn't reopen the IMDS hole.
       process.env['MANIFEST_MODE'] = 'selfhosted';
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({
           name: 'IMDS',
@@ -206,7 +203,7 @@ describe('Custom Providers URL validation (e2e)', () => {
     beforeEach(async () => {
       // Fresh row per test so a 400 update doesn't poison the next test.
       const res = await request(app.getHttpServer())
-        .post(`/api/v1/routing/${agentName}/custom-providers`)
+        .post(`/api/v1/custom-providers`)
         .set(headers)
         .send({
           name: 'Update Target',
@@ -224,7 +221,7 @@ describe('Custom Providers URL validation (e2e)', () => {
     it('rejects a malformed base_url on update as 400', async () => {
       // Same DTO rules as POST — IsUrl fires on update too.
       await request(app.getHttpServer())
-        .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+        .put(`/api/v1/custom-providers/${createdId}`)
         .set(headers)
         .send({ base_url: 'not-a-url' })
         .expect(400);
@@ -232,7 +229,7 @@ describe('Custom Providers URL validation (e2e)', () => {
 
     it('rejects schemeless host:port on update as 400', async () => {
       await request(app.getHttpServer())
-        .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+        .put(`/api/v1/custom-providers/${createdId}`)
         .set(headers)
         .send({ base_url: 'localhost:9000' })
         .expect(400);
@@ -245,7 +242,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       process.env['MANIFEST_MODE'] = 'cloud';
       try {
         await request(app.getHttpServer())
-          .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+          .put(`/api/v1/custom-providers/${createdId}`)
           .set(headers)
           .send({ base_url: 'http://api.example.com/v1' })
           .expect(400);
@@ -261,7 +258,7 @@ describe('Custom Providers URL validation (e2e)', () => {
       // Negative-space control: a well-formed public URL must succeed
       // and the new base_url must persist.
       const res = await request(app.getHttpServer())
-        .put(`/api/v1/routing/${agentName}/custom-providers/${createdId}`)
+        .put(`/api/v1/custom-providers/${createdId}`)
         .set(headers)
         .send({ base_url: 'https://api.example.com/openai/v1' })
         .expect(200);

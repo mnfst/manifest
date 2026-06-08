@@ -204,36 +204,39 @@ describe('RoutingCacheService', () => {
 
   describe('invalidateAgent', () => {
     it('clears tiers, providers, custom providers, and provider key chains for agent', () => {
+      // In the new architecture, providers and providerKeys are user-scoped.
+      // invalidateAgent clears agent-scoped caches; invalidateUser clears user-scoped caches.
       const tiers = [{ id: 'ta-1', tier: 'fast' }] as TierAssignment[];
       const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
       const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
 
       service.setTiers('agent-1', tiers);
-      service.setProviders('agent-1', providers);
-      service.setCustomProviders('agent-1', cps);
-      service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-test')]);
+      service.setProviders('user-1', providers);
+      service.setCustomProviders('user-1', cps);
+      service.setProviderKeys('user-1', 'openai', [providerKey('Default', 'sk-test')]);
 
       expect(service.getTiers('agent-1')).toEqual(tiers);
-      expect(service.getProviders('agent-1')).toEqual(providers);
-      expect(service.getCustomProviders('agent-1')).toEqual(cps);
-      expect(service.getProviderKeys('agent-1', 'openai')?.[0].apiKey).toBe('sk-test');
+      expect(service.getProviders('user-1')).toEqual(providers);
+      expect(service.getCustomProviders('user-1')).toEqual(cps);
+      expect(service.getProviderKeys('user-1', 'openai')?.[0].apiKey).toBe('sk-test');
 
       service.invalidateAgent('agent-1');
+      service.invalidateUser('user-1');
 
       expect(service.getTiers('agent-1')).toBeNull();
-      expect(service.getProviders('agent-1')).toBeNull();
-      expect(service.getCustomProviders('agent-1')).toBeNull();
-      expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
+      expect(service.getProviders('user-1')).toBeNull();
+      expect(service.getCustomProviders('user-1')).toBeNull();
+      expect(service.getProviderKeys('user-1', 'openai')).toBeUndefined();
     });
 
     it('does not clear provider key chains for other agents', () => {
-      service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-1')]);
-      service.setProviderKeys('agent-2', 'openai', [providerKey('Default', 'sk-2')]);
+      service.setProviderKeys('user-1', 'openai', [providerKey('Default', 'sk-1')]);
+      service.setProviderKeys('user-2', 'openai', [providerKey('Default', 'sk-2')]);
 
-      service.invalidateAgent('agent-1');
+      service.invalidateUser('user-1');
 
-      expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
-      expect(service.getProviderKeys('agent-2', 'openai')?.[0].apiKey).toBe('sk-2');
+      expect(service.getProviderKeys('user-1', 'openai')).toBeUndefined();
+      expect(service.getProviderKeys('user-2', 'openai')?.[0].apiKey).toBe('sk-2');
     });
 
     it('is a no-op for unknown agent', () => {

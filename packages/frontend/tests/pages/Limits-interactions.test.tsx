@@ -63,7 +63,7 @@ describe("Limits page interactions", () => {
     const { toast } = await import("../../src/services/toast-store.js");
 
     render(() => <Limits />);
-    fireEvent.click(screen.getByText("Create rule"));
+    fireEvent.click(screen.getByText("Create guardrail"));
     fireEvent.click(screen.getByTestId("mock-save"));
 
     await vi.waitFor(() => {
@@ -89,9 +89,9 @@ describe("Limits page interactions", () => {
 
     // Open kebab menu
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
 
     // Click Delete in dropdown
     await vi.waitFor(() => {
@@ -126,17 +126,17 @@ describe("Limits page interactions", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
     // First click opens menu
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => {
       expect(document.querySelector(".rule-menu__dropdown")).not.toBeNull();
     });
 
     // Second click on same button closes menu
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => {
       expect(document.querySelector(".rule-menu__dropdown")).toBeNull();
     });
@@ -155,9 +155,9 @@ describe("Limits page interactions", () => {
 
     // Open kebab menu and click Edit
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Edit")).toBeDefined());
     fireEvent.click(screen.getByText("Edit"));
 
@@ -181,7 +181,7 @@ describe("Limits page interactions", () => {
     (createNotificationRule as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error("fail"));
 
     render(() => <Limits />);
-    fireEvent.click(screen.getByText("Create rule"));
+    fireEvent.click(screen.getByText("Create guardrail"));
     fireEvent.click(screen.getByTestId("mock-save"));
 
     // Should not throw — error is caught
@@ -202,9 +202,9 @@ describe("Limits page interactions", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -238,9 +238,9 @@ describe("Limits page interactions", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -261,7 +261,7 @@ describe("Limits page interactions", () => {
 
     resolveDelete!();
     await vi.waitFor(() => {
-      expect(deleteBtn.textContent).toBe("Delete rule");
+      expect(deleteBtn.textContent).toBe("Delete guardrail");
     });
   });
 

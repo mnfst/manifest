@@ -49,7 +49,7 @@ export function authBadgeFor(
   authType: string | null | undefined,
   size: number,
 ): JSX.Element | null {
-  const overlay = size <= 8 ? ' provider-auth-badge--overlay' : '';
+  const overlay = size <= 12 ? ' provider-auth-badge--overlay' : '';
   if (authType === 'subscription')
     return (
       <span

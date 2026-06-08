@@ -24,6 +24,8 @@ import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { ProviderRateLimit } from '../entities/provider-rate-limit.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -112,6 +114,9 @@ import { AddReasoningContentCache1790100000000 } from './migrations/179010000000
 import { AddDedupCompositeIndex1790200000000 } from './migrations/1790200000000-AddDedupCompositeIndex';
 import { AddErrorsPartialIndex1790300000000 } from './migrations/1790300000000-AddErrorsPartialIndex';
 import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1790400000000-DropRedundantAgentApiKeyPrefixIndex';
+import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
+import { AddProviderRateLimits1791100000000 } from './migrations/1791100000000-AddProviderRateLimits';
+import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 
 const entities = [
   AgentMessage,
@@ -136,6 +141,8 @@ const entities = [
   PlaygroundRun,
   PlaygroundColumn,
   ReasoningContentCacheEntry,
+  AgentProviderAccess,
+  ProviderRateLimit,
 ];
 
 const migrations = [
@@ -225,6 +232,9 @@ const migrations = [
   AddDedupCompositeIndex1790200000000,
   AddErrorsPartialIndex1790300000000,
   DropRedundantAgentApiKeyPrefixIndex1790400000000,
+  LiftProvidersToUserLevel1791000000000,
+  AddProviderRateLimits1791100000000,
+  LiftCustomProvidersToUserLevel1791200000000,
 ];
 
 @Module({
@@ -276,6 +286,7 @@ const migrations = [
       MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
+      ProviderRateLimit,
     ]),
     ModelPricesModule,
   ],

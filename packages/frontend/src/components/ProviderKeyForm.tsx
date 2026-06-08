@@ -4,6 +4,7 @@ import {
   createMemo,
   createEffect,
   createSignal,
+  on,
   onMount,
   type Component,
   type Accessor,
@@ -519,19 +520,23 @@ export const AddAnotherKeyAction: Component<AddAnotherKeyActionProps> = (props) 
 
   const defaultLabel = () => suggestNextProviderKeyLabel(props.existingLabels());
 
-  // Sync label suggestion when opened externally and auto-focus the API key field
-  createEffect(() => {
-    if (isOpen() && !label().trim()) {
-      setLabel(defaultLabel());
-    }
-    const defaultEndpointRegion = props.endpointRegions?.[0]?.value;
-    if (isOpen() && defaultEndpointRegion && !endpointRegion()) {
-      setEndpointRegion(props.initialEndpointRegion ?? defaultEndpointRegion);
-    }
-    if (isOpen()) {
-      requestAnimationFrame(() => apiKeyInputRef?.focus());
-    }
-  });
+  // Sync label suggestion when opened externally and auto-focus the API key field.
+  // Use `on()` with explicit deps to avoid tracking label/endpointRegion signals,
+  // which would re-fire the effect (and steal focus) on every keystroke.
+  createEffect(
+    on(isOpen, (open, prevOpen) => {
+      if (open && !label().trim()) {
+        setLabel(defaultLabel());
+      }
+      const defaultEndpointRegion = props.endpointRegions?.[0]?.value;
+      if (open && defaultEndpointRegion && !endpointRegion()) {
+        setEndpointRegion(props.initialEndpointRegion ?? defaultEndpointRegion);
+      }
+      if (open && !prevOpen) {
+        requestAnimationFrame(() => apiKeyInputRef?.focus());
+      }
+    }),
+  );
 
   const submit = async () => {
     const labelToUse = (label().trim() || defaultLabel()).slice(0, MAX_LABEL_LENGTH);

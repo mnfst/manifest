@@ -107,7 +107,7 @@ describe('DeleteRuleModal', () => {
         onDelete={vi.fn()}
       />
     ));
-    expect(screen.getByRole('heading', { name: 'Delete rule' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'Delete guardrail' })).toBeDefined();
   });
 
   it('does not render when target is null', () => {

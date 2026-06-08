@@ -1,0 +1,107 @@
+import { useParams, useLocation } from '@solidjs/router';
+import { Show, type ParentComponent } from 'solid-js';
+import { A } from '@solidjs/router';
+import { Title } from '@solidjs/meta';
+import { agentPath } from '../services/routing.js';
+import { agentPlatformIcon } from '../services/agent-platform-store.js';
+
+/**
+ * Agent detail layout with horizontal tabs: Routing, Providers, Settings.
+ * Wraps child route content.
+ */
+const AgentDetail: ParentComponent = (props) => {
+  const params = useParams<{ agentName: string }>();
+  const location = useLocation();
+
+  const agentName = () => decodeURIComponent(params.agentName);
+  const path = (sub: string) => agentPath(params.agentName, sub);
+
+  const isActive = (sub: string) => {
+    const p = path(sub);
+    if (sub === '' || sub === '/overview') {
+      return location.pathname === path('') || location.pathname === path('/overview');
+    }
+    if (sub === '/routing') {
+      return location.pathname === path('/routing');
+    }
+    return location.pathname.startsWith(p);
+  };
+
+  return (
+    <div class="container--lg">
+      <Title>{agentName()} | Manifest</Title>
+
+      <div style="margin-bottom: 8px;">
+        <A
+          href="/harnesses"
+          style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
+        >
+          ← Harnesses
+        </A>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+        <Show when={agentPlatformIcon()}>
+          <img src={agentPlatformIcon()!} alt="" width="28" height="28" style="flex-shrink: 0;" />
+        </Show>
+        <h1 class="page-header__title" style="margin: 0;">
+          {agentName()}
+        </h1>
+      </div>
+
+      {/* Horizontal tabs */}
+      <div class="panel__tabs" role="tablist" style="margin-top: 12px; margin-bottom: 0;">
+        <A
+          href={path('')}
+          role="tab"
+          aria-selected={isActive('/overview')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/overview') }}
+        >
+          Overview
+        </A>
+        <A
+          href={path('/routing')}
+          role="tab"
+          aria-selected={isActive('/routing')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/routing') }}
+        >
+          Routing
+        </A>
+        <A
+          href={path('/providers')}
+          role="tab"
+          aria-selected={isActive('/providers')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/providers') }}
+        >
+          Providers
+        </A>
+        <A
+          href={path('/guardrails')}
+          role="tab"
+          aria-selected={isActive('/guardrails')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/guardrails') }}
+        >
+          Limits
+        </A>
+        <A
+          href={path('/settings')}
+          role="tab"
+          aria-selected={isActive('/settings')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/settings') }}
+        >
+          Settings
+        </A>
+      </div>
+      <hr style="border: none; border-top: 1px solid hsl(var(--border)); margin: 8px 0 24px;" />
+
+      {/* Tab content from child routes */}
+      {props.children}
+    </div>
+  );
+};
+
+export default AgentDetail;

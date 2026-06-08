@@ -138,9 +138,9 @@ describe("Settings", () => {
     mockUpdateAgent.mockResolvedValue({});
   });
 
-  it("renders Settings heading", () => {
+  it("renders Agent name label", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.getByText("Agent name")).toBeDefined();
   });
 
   it("renders agent name input with value", () => {
@@ -330,10 +330,9 @@ describe("Settings", () => {
     });
   });
 
-  it("shows breadcrumb with agent name", () => {
+  it("shows agent name in page title", () => {
     const { container } = render(() => <Settings />);
     expect(container.textContent).toContain("test-agent");
-    expect(container.textContent).toContain("Rename your agent");
   });
 
   it("handles rotate key error gracefully", async () => {

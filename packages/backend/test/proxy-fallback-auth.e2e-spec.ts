@@ -10,7 +10,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_TENANT_ID } from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
@@ -50,7 +50,7 @@ beforeAll(async () => {
      VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
     [
       'up-anthropic',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'anthropic',
       'api_key',
@@ -77,7 +77,7 @@ beforeAll(async () => {
      VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
     [
       'up-openai-sub',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'openai',
       'subscription',
@@ -98,6 +98,12 @@ beforeAll(async () => {
       ]),
     ],
   );
+  await ds.query(
+    `INSERT INTO agent_provider_access (agent_id, user_provider_id)
+     VALUES ($1,$2),($1,$3)
+     ON CONFLICT DO NOTHING`,
+    [TEST_AGENT_ID, 'up-anthropic', 'up-openai-sub'],
+  );
 
   // Wire the default tier with the bug scenario: api_key primary -> subscription fallback.
   // Tiers are created lazily on first `getTiers()` call, so INSERT (not UPDATE)
@@ -111,7 +117,7 @@ beforeAll(async () => {
        fallback_routes = EXCLUDED.fallback_routes`,
     [
       'tier-default',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'default',
       JSON.stringify({ provider: 'anthropic', authType: 'api_key', model: PRIMARY_MODEL }),
@@ -206,7 +212,9 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
 
     // The seeder + auto-assign warm the routing cache before the test's DB
     // writes, so flush it now or the resolver keeps using the stale tier.
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     await request(app.getHttpServer())
       .post('/v1/chat/completions')
@@ -249,7 +257,9 @@ describe('Proxy fallback success — auth_type/cost_usd attribution (#1173)', ()
 
     // The seeder + auto-assign warm the routing cache before the test's DB
     // writes, so flush it now or the resolver keeps using the stale tier.
-    app.get(RoutingCacheService).invalidateAgent(TEST_AGENT_ID);
+    const cache = app.get(RoutingCacheService);
+    cache.invalidateAgent(TEST_AGENT_ID);
+    cache.invalidateUser(TEST_USER_ID);
 
     const res = await request(app.getHttpServer())
       .post('/v1/chat/completions')

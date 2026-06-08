@@ -1,4 +1,4 @@
-import type { Component } from "solid-js";
+import type { Component } from 'solid-js';
 
 interface SparklineProps {
   data: number[];
@@ -14,7 +14,7 @@ const Sparkline: Component<SparklineProps> = (props) => {
   const gradId = `spark-grad-${idCounter++}`;
   const w = () => props.width ?? 200;
   const h = () => props.height ?? 50;
-  const color = () => props.color ?? "hsl(178, 75%, 44%)";
+  const color = () => props.color ?? 'hsl(178, 75%, 44%)';
 
   const pathData = () => {
     const points = props.data;
@@ -30,7 +30,7 @@ const Sparkline: Component<SparklineProps> = (props) => {
       y: Math.round((padding + usableH - (v / max) * usableH) * 10) / 10,
     }));
 
-    const line = coords.map((c, i) => (i === 0 ? `M${c.x},${c.y}` : `L${c.x},${c.y}`)).join(" ");
+    const line = coords.map((c, i) => (i === 0 ? `M${c.x},${c.y}` : `L${c.x},${c.y}`)).join(' ');
     const last = coords[coords.length - 1]!;
     const area = `${line} L${last.x},${h()} L0,${h()} Z`;
 
@@ -38,7 +38,14 @@ const Sparkline: Component<SparklineProps> = (props) => {
   };
 
   return (
-    <svg width={w()} height={h()} viewBox={`0 0 ${w()} ${h()}`} preserveAspectRatio="none" style="display: block;" aria-hidden="true">
+    <svg
+      width={w()}
+      height={h()}
+      viewBox={`0 0 ${w()} ${h()}`}
+      preserveAspectRatio="none"
+      style={`display: block; flex-shrink: 0; min-width: ${w()}px;`}
+      aria-hidden="true"
+    >
       {pathData() && (
         <>
           <defs>
@@ -48,7 +55,14 @@ const Sparkline: Component<SparklineProps> = (props) => {
             </linearGradient>
           </defs>
           <path d={pathData()!.area} fill={`url(#${gradId})`} />
-          <path d={pathData()!.line} fill="none" stroke={color()} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          <path
+            d={pathData()!.line}
+            fill="none"
+            stroke={color()}
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </>
       )}
     </svg>

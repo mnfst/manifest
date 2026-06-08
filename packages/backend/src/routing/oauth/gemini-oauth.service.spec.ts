@@ -197,7 +197,7 @@ describe('GeminiOauthService', () => {
         undefined,
         undefined,
       );
-      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'gemini');
+      expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'gemini');
     });
 
     it('stores providerId as gemini and authType as subscription', async () => {
@@ -250,7 +250,7 @@ describe('GeminiOauthService', () => {
       await svc.exchangeCode(state, 'auth-code');
 
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
     });
 
     it('swallows discovery errors (OAuth success is not rolled back)', async () => {

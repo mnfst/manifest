@@ -1,0 +1,77 @@
+/* Action menu — three-dot dropdown for table rows */
+
+.action-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.action-menu__trigger:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.action-menu__dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  min-width: 140px;
+  padding: 4px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.1);
+}
+
+.action-menu__item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.action-menu__item:hover {
+  background: hsl(var(--muted));
+}
+
+.action-menu__item--danger {
+  color: hsl(var(--destructive));
+}
+
+.action-menu__item--danger:hover {
+  background: hsl(var(--destructive) / 0.1);
+}
+
+/* Usage bar — inline rate limit progress bar in provider tables */
+
+.usage-bar {
+  width: 60px;
+  height: 6px;
+  background: hsl(var(--muted));
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.usage-bar__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: hsl(var(--success));
+  transition: width var(--transition-fast);
+}

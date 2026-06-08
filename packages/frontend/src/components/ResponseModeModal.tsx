@@ -89,6 +89,7 @@ const ResponseModeModal: Component<Props> = (props) => {
       }}
       onKeyDown={(e) => {
         if (e.key === 'Escape') props.onClose();
+        if (e.key === 'Enter') props.onClose();
       }}
     >
       <div
@@ -186,6 +187,12 @@ const ResponseModeModal: Component<Props> = (props) => {
               </div>
             </div>
           </Show>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; padding: 0 24px 20px;">
+          <button class="btn btn--primary btn--sm" onClick={() => props.onClose()}>
+            Done
+          </button>
         </div>
       </div>
     </div>

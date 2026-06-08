@@ -64,12 +64,9 @@ const unavailableCapabilityLabel = (capability: ModelCapability): string => {
 };
 
 const ModelPickerModal: Component<Props> = (props) => {
-  const hasSubscription = () =>
-    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'subscription');
-  const hasApiKey = () =>
-    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'api_key');
-  const hasLocal = () =>
-    (props.connectedProviders ?? []).some((p) => p.is_active && p.auth_type === 'local');
+  const hasSubscription = () => props.models.some((m) => m.auth_type === 'subscription');
+  const hasApiKey = () => props.models.some((m) => m.auth_type === 'api_key' || !m.auth_type);
+  const hasLocal = () => props.models.some((m) => m.auth_type === 'local');
   // Show the tab strip whenever the user has models in more than one auth
   // category — otherwise the picker is single-category and the tabs add
   // noise. Local counts as its own category alongside subscription/api_key.
@@ -698,20 +695,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                 ? 'No models match your search.'
                 : showFreeOnly()
                   ? 'No free models available from your connected providers.'
-                  : isSub()
-                    ? 'No subscription providers connected. Connect a provider to see models.'
-                    : isLocal()
-                      ? 'No local providers connected. Connect a local provider to see models.'
-                      : 'No API key providers connected. Connect a provider to see models.'}
-              <Show when={!search().trim() && !showFreeOnly() && props.onConnectProviders}>
-                <button
-                  class="btn btn--primary btn--sm"
-                  style="margin-top: 12px;"
-                  onClick={() => props.onConnectProviders?.()}
-                >
-                  Connect providers
-                </button>
-              </Show>
+                  : 'No models available for this category.'}
             </div>
           </Show>
         </div>

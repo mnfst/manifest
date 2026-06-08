@@ -356,7 +356,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('OpenAI'));
       expect(screen.getByLabelText('OpenAI API key')).toBeDefined();
 
-      fireEvent.click(screen.getByLabelText('Back to providers'));
+      fireEvent.click(screen.getByLabelText('Close'));
       expect(screen.queryByLabelText('OpenAI API key')).toBeNull();
       // List view is back
       expect(screen.getByText('Done')).toBeDefined();
@@ -2367,7 +2367,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Delete'));
 
       await waitFor(() => {
-        expect(mockDeleteCustomProvider).toHaveBeenCalledWith('test-agent', 'cp-1');
+        expect(mockDeleteCustomProvider).toHaveBeenCalledWith('cp-1');
       });
       expect(onUpdate).toHaveBeenCalled();
       // Should navigate back to list view

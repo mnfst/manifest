@@ -13,6 +13,7 @@ import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
+import { RateLimitTrackerService } from './rate-limit-tracker.service';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type {
   AuthType,
@@ -142,6 +143,7 @@ export class ProxyService {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
+    private readonly rateLimitTracker: RateLimitTrackerService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -173,6 +175,7 @@ export class ProxyService {
 
     const resolved = await this.resolveRouting(
       agentId,
+      userId,
       routingBody,
       sessionKey,
       specificityOverride,
@@ -265,6 +268,15 @@ export class ProxyService {
       reasoningContentLookup,
       paramMergeContext,
     });
+
+    // Capture rate limit headers (fire-and-forget, never blocks proxy)
+    this.rateLimitTracker.captureFromResponse(
+      forward.response,
+      userId,
+      route.provider,
+      route.authType,
+      route.keyLabel ?? undefined,
+    );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const fallbackResult = await this.tryFallbackChain({
@@ -390,6 +402,7 @@ export class ProxyService {
 
   private async resolveRouting(
     agentId: string,
+    userId: string,
     body: ProxyRequestOptions['body'],
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
@@ -403,9 +416,10 @@ export class ProxyService {
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
     return isHeartbeat
-      ? this.resolveService.resolveForTier(agentId, 'simple')
+      ? this.resolveService.resolveForTier(agentId, userId, 'simple')
       : this.resolveService.resolve(
           agentId,
+          userId,
           scoringMessages,
           scoringTools,
           body.tool_choice,
@@ -428,10 +442,11 @@ export class ProxyService {
     providerRegion?: string | null;
   } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
-      agentId,
+      userId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
+      agentId,
     );
     if (apiKey === null) return null;
 
@@ -462,10 +477,11 @@ export class ProxyService {
         )) ?? apiKey;
     }
     const providerRegion = await this.providerKeyService.getProviderRegion(
-      agentId,
+      userId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
+      agentId,
     );
     return {
       apiKey: unwrappedApiKey,

@@ -63,24 +63,23 @@ describe("Limits page", () => {
 
   it("renders page title", () => {
     render(() => <Limits />);
-    expect(screen.getByText("Limits")).toBeDefined();
+    expect(screen.getByText("Guardrails")).toBeDefined();
   });
 
   it("renders breadcrumb with agent name", () => {
     const { container } = render(() => <Limits />);
     expect(container.textContent).toContain("test-agent");
-    expect(container.textContent).toContain("Get notified or block requests when token or cost thresholds are exceeded");
   });
 
-  it("renders Create rule button", () => {
+  it("renders Create guardrail button", () => {
     render(() => <Limits />);
-    expect(screen.getByText("Create rule")).toBeDefined();
+    expect(screen.getByText("Create guardrail")).toBeDefined();
   });
 
-  it("renders empty state when no rules", async () => {
+  it("renders empty state when no guardrails", async () => {
     render(() => <Limits />);
     await waitFor(() => {
-      expect(screen.getByText("No rules yet")).toBeDefined();
+      expect(screen.getByText("No guardrails yet")).toBeDefined();
     });
     expect(screen.getByText("Set up alerts for usage spikes, or hard limits to block requests over budget.")).toBeDefined();
   });
@@ -266,7 +265,7 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
       expect(container.querySelector(".limit-type-icon")).not.toBeNull();
       expect(container.textContent).toContain("7");
     });
@@ -296,10 +295,10 @@ describe("Limits page", () => {
     const { container } = render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
 
     await vi.waitFor(() => {
       expect(document.querySelector(".rule-menu__dropdown")).not.toBeNull();
@@ -318,10 +317,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
 
     await vi.waitFor(() => {
       expect(screen.getByText("Delete")).toBeDefined();
@@ -331,7 +330,7 @@ describe("Limits page", () => {
 
     await vi.waitFor(() => {
       const title = document.querySelector(".modal-card__title") as HTMLElement;
-      expect(title.textContent).toBe("Delete rule");
+      expect(title.textContent).toBe("Delete guardrail");
       expect(screen.getByText("I understand this action is irreversible")).toBeDefined();
 
       const deleteBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
@@ -349,10 +348,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -379,10 +378,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Edit")).toBeDefined());
     fireEvent.click(screen.getByText("Edit"));
 
@@ -405,10 +404,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -428,10 +427,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -452,10 +451,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -469,7 +468,7 @@ describe("Limits page", () => {
 
     await vi.waitFor(() => {
       const titles = document.querySelectorAll(".modal-card__title");
-      const deleteTitle = Array.from(titles).find((t) => t.textContent === "Delete rule");
+      const deleteTitle = Array.from(titles).find((t) => t.textContent === "Delete guardrail");
       expect(deleteTitle).toBeUndefined();
     });
   });
@@ -484,10 +483,10 @@ describe("Limits page", () => {
     render(() => <Limits />);
 
     await vi.waitFor(() => {
-      expect(screen.getByLabelText("Rule options")).toBeDefined();
+      expect(screen.getByLabelText("Guardrail options")).toBeDefined();
     });
 
-    fireEvent.click(screen.getByLabelText("Rule options"));
+    fireEvent.click(screen.getByLabelText("Guardrail options"));
     await vi.waitFor(() => expect(screen.getByText("Delete")).toBeDefined());
     fireEvent.click(screen.getByText("Delete"));
 
@@ -502,7 +501,7 @@ describe("Limits page", () => {
 
     await vi.waitFor(() => {
       const titles = document.querySelectorAll(".modal-card__title");
-      const deleteTitle = Array.from(titles).find((t) => t.textContent === "Delete rule");
+      const deleteTitle = Array.from(titles).find((t) => t.textContent === "Delete guardrail");
       expect(deleteTitle).toBeUndefined();
     });
   });
@@ -516,8 +515,8 @@ describe("Limits page", () => {
 
     render(() => <Limits />);
 
-    // Open the create rule modal
-    fireEvent.click(screen.getByText("Create rule"));
+    // Open the create guardrail modal
+    fireEvent.click(screen.getByText("Create guardrail"));
     await vi.waitFor(() => {
       const modal = screen.getByTestId("limit-modal");
       expect(modal.getAttribute("data-open")).toBe("true");

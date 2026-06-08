@@ -85,7 +85,14 @@ interface DeleteRuleModalProps {
 const DeleteRuleModal: Component<DeleteRuleModalProps> = (props) => (
   <Portal>
     <Show when={props.target}>
-      <div class="modal-overlay" onClick={props.onCancel}>
+      <div
+        class="modal-overlay"
+        onClick={props.onCancel}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') props.onCancel();
+          if (e.key === 'Enter' && props.confirmed && !props.deleting) props.onDelete();
+        }}
+      >
         <div
           class="modal-card"
           role="dialog"
@@ -94,13 +101,15 @@ const DeleteRuleModal: Component<DeleteRuleModalProps> = (props) => (
           style="max-width: 440px;"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 class="modal-card__title" id="delete-rule-modal-title">Delete rule</h2>
+          <h2 class="modal-card__title" id="delete-rule-modal-title">
+            Delete guardrail
+          </h2>
           <p class="modal-card__desc">
             This will permanently delete the{' '}
             <span style="font-weight: 600;">
               {props.target!.metric_type === 'tokens' ? 'token' : 'cost'}
             </span>{' '}
-            rule ({formatThreshold(props.target!)}{' '}
+            guardrail ({formatThreshold(props.target!)}{' '}
             {PERIOD_LABELS[props.target!.period]?.toLowerCase() ?? props.target!.period}). This
             action cannot be undone.
           </p>
@@ -123,7 +132,7 @@ const DeleteRuleModal: Component<DeleteRuleModalProps> = (props) => (
               disabled={!props.confirmed || props.deleting}
               onClick={props.onDelete}
             >
-              {props.deleting ? <span class="spinner" /> : 'Delete rule'}
+              {props.deleting ? <span class="spinner" /> : 'Delete guardrail'}
             </button>
           </div>
         </div>
@@ -152,7 +161,9 @@ const RemoveProviderModal: Component<RemoveProviderModalProps> = (props) => (
           style="max-width: 440px;"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 class="modal-card__title" id="remove-provider-modal-title">Remove provider</h2>
+          <h2 class="modal-card__title" id="remove-provider-modal-title">
+            Remove provider
+          </h2>
           <p class="modal-card__desc">
             This will disconnect your email provider.
             <Show when={props.hasEmailRules}>

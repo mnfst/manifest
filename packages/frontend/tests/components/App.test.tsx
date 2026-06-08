@@ -70,14 +70,14 @@ describe("App", () => {
     expect(container.querySelector(".main-content")).not.toBeNull();
   });
 
-  it("does not show sidebar on non-agent paths", () => {
+  it("shows sidebar on all paths", () => {
     const { container } = render(() => <App />);
-    expect(container.querySelector('[data-testid="sidebar"]')).toBeNull();
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
   });
 
-  it("does not show mobile navigation toggle on non-agent paths", () => {
+  it("shows mobile navigation toggle on all paths", () => {
     const { container } = render(() => <App />);
-    expect(container.querySelector('[data-testid="mobile-nav-toggle"]')).toBeNull();
+    expect(container.querySelector('[data-testid="mobile-nav-toggle"]')).not.toBeNull();
   });
 });
 

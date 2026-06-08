@@ -7,7 +7,7 @@ import {
   onCleanup,
   type Component,
 } from 'solid-js';
-import { A, useNavigate } from '@solidjs/router';
+import { A, useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import AgentTypeSelect from '../components/AgentTypeSelect.jsx';
@@ -65,12 +65,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
       });
-      toast.success(`Agent "${agentName}" connected`);
+      toast.success(`Harness "${agentName}" connected`);
       props.onClose();
       resetForm();
       const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
-      navigate(`/agents/${encodeURIComponent(slug)}`, {
+      navigate(`/harnesses/${encodeURIComponent(slug)}`, {
         state: { newApiKey: result?.apiKey },
       });
     } catch {
@@ -113,10 +113,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
-            Connect Agent
+            Connect Harness
           </h2>
           <p class="modal-card__desc">
-            Name your agent to start tracking its LLM usage, costs, and messages in real time.
+            Name your harness to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
           <div class="agent-type-select-row">
@@ -132,14 +132,14 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
             <div style="flex: 1;">
               <label class="modal-card__field-label" for="agent-name-input">
-                Agent name
+                Harness name
               </label>
               <input
                 ref={(el) => requestAnimationFrame(() => el.focus())}
                 id="agent-name-input"
                 class="modal-card__input modal-card__input--lg"
                 type="text"
-                placeholder="e.g. My Cool Agent"
+                placeholder="e.g. My Cool Harness"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
                 disabled={creating()}
@@ -289,6 +289,13 @@ const Workspace: Component = () => {
     () => getAgents() as Promise<AgentsData>,
   );
   const [modalOpen, setModalOpen] = createSignal(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  if (searchParams.add === 'true') {
+    queueMicrotask(() => {
+      setSearchParams({ add: undefined });
+      setModalOpen(true);
+    });
+  }
   const [duplicateSource, setDuplicateSource] = createSignal<string | null>(null);
   const [deleteTarget, setDeleteTarget] = createSignal<string | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = createSignal('');
@@ -305,7 +312,7 @@ const Workspace: Component = () => {
     setDeleting(true);
     try {
       await deleteAgent(target);
-      toast.success(`Agent "${target}" deleted`);
+      toast.success(`Harness "${target}" deleted`);
       closeDeleteModal();
       await refetch();
     } catch {
@@ -317,15 +324,15 @@ const Workspace: Component = () => {
 
   return (
     <div class="container--md">
-      <Title>My Agents - Manifest</Title>
+      <Title>Harnesses - Manifest</Title>
       <Meta
         name="description"
-        content="View and manage all your AI agents. Monitor usage, messages, and costs."
+        content="View and manage all your harnesses. Monitor usage, messages, and costs."
       />
       <div class="page-header">
         <div>
-          <h1>My Agents</h1>
-          <span class="breadcrumb">View and manage all your connected AI agents</span>
+          <h1>Harnesses</h1>
+          <span class="breadcrumb">View and manage all your connected harnesses</span>
         </div>
         <button class="btn btn--primary btn--sm" onClick={() => setModalOpen(true)}>
           <svg
@@ -342,7 +349,7 @@ const Workspace: Component = () => {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Connect Agent
+          Connect Harness
         </button>
       </div>
 
@@ -373,14 +380,16 @@ const Workspace: Component = () => {
             when={data()?.agents?.length}
             fallback={
               <div class="empty-state">
-                <div class="empty-state__title">No agents yet</div>
-                <p>Connect an agent or an AI app to take control of your routing and your costs.</p>
+                <div class="empty-state__title">No harnesses yet</div>
+                <p>
+                  Connect a harness or an AI app to take control of your routing and your costs.
+                </p>
                 <button
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() => setModalOpen(true)}
                 >
-                  Connect your first agent
+                  Connect your first harness
                 </button>
               </div>
             }
@@ -389,7 +398,10 @@ const Workspace: Component = () => {
               <For each={data()!.agents}>
                 {(agent) => (
                   <div class="agent-card-wrap">
-                    <A href={`/agents/${encodeURIComponent(agent.agent_name)}`} class="agent-card">
+                    <A
+                      href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
+                      class="agent-card"
+                    >
                       <div class="agent-card__top">
                         <Show when={platformIcon(agent.agent_platform, agent.agent_category)}>
                           <img
@@ -470,8 +482,8 @@ const Workspace: Component = () => {
             </h3>
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
               This will permanently delete the{' '}
-              <strong style="color: hsl(var(--foreground));">{deleteTarget()}</strong> agent and all
-              its data. This action cannot be undone.
+              <strong style="color: hsl(var(--foreground));">{deleteTarget()}</strong> harness and
+              all its data. This action cannot be undone.
             </p>
             <label
               for="workspace-delete-confirm"
@@ -503,7 +515,7 @@ const Workspace: Component = () => {
                 onClick={handleDelete}
                 disabled={deleteConfirmName() !== deleteTarget() || deleting()}
               >
-                {deleting() ? <span class="spinner" /> : 'Delete agent'}
+                {deleting() ? <span class="spinner" /> : 'Delete harness'}
               </button>
             </div>
           </div>

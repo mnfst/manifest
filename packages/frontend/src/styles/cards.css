@@ -85,6 +85,7 @@
   margin-bottom: var(--gap-lg);
   box-shadow: var(--card-shadow);
   animation: fadeInUp 300ms ease-out both;
+  position: relative;
 }
 
 .chart-card__header {
@@ -174,11 +175,48 @@
 
 .chart-card__body {
   padding: var(--gap-md) var(--gap-lg) var(--gap-lg);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .chart-card__body .u-wrap {
-  overflow: hidden !important;
+  overflow: visible !important;
+}
+
+/* ── Scroll Panel (capped height + fade) ─────────── */
+.scroll-panel {
+  position: relative;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scroll-panel > .panel__title {
+  padding: 16px 16px 0;
+  margin-bottom: 0;
+}
+
+.scroll-panel__body {
+  max-height: 480px;
+  overflow-y: auto;
+  padding-bottom: 32px;
+}
+
+.scroll-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, hsl(var(--card)));
+  border-radius: 0 0 var(--radius) var(--radius);
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.scroll-panel--at-bottom::after {
+  opacity: 0;
 }
 
 /* ── Panel Header with Tabs ────────────────────────── */
@@ -214,6 +252,7 @@
   border: none;
   border-radius: calc(var(--radius) - 2px);
   cursor: pointer;
+  text-decoration: none;
   transition: all var(--transition-fast);
 }
 

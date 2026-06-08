@@ -69,11 +69,11 @@ describe('ModelParamsAffordance', () => {
     // done. The desc text shows immediately but the empty-state link is gated
     // behind Show when={!loading}.
     const link = (await waitFor(() =>
-      screen.getByRole('link', { name: 'Request model parameters for gpt-4o' }),
+      screen.getByRole('link', { name: 'Request parameters for gpt-4o' }),
     )) as HTMLAnchorElement;
     expect(screen.getByText('No parameter controls are published for gpt-4o yet.')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
-    expect(link.textContent).toBe('Request parameters for this model');
+    expect(link.textContent).toBe('Request parameters for gpt-4o');
     const url = new URL(link.href);
     expect(`${url.origin}${url.pathname}`).toBe(
       'https://github.com/mnfst/modelparams.dev/issues/new',
@@ -105,7 +105,7 @@ describe('ModelParamsAffordance', () => {
 
     const link = (await waitFor(() =>
       screen.getByRole('link', {
-        name: 'Request model parameters for Claude Sonnet 4.6',
+        name: 'Request parameters for Claude Sonnet 4.6',
       }),
     )) as HTMLAnchorElement;
     const url = new URL(link.href);
@@ -171,7 +171,6 @@ describe('ModelParamsAffordance', () => {
     fireEvent.click(findButton(container) as HTMLButtonElement);
 
     fireEvent.click(await waitFor(() => getByRole('button', { name: /Thinking mode/ })));
-    expect(getByRole('link', { name: 'Request parameters for deepseek-v4' })).toBeTruthy();
     fireEvent.click(getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {

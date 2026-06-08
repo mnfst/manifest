@@ -87,7 +87,7 @@ export class XaiOauthController {
     }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(agent.id, 'xai', 'subscription');
+    const keys = await this.providerKeyService.getProviderKeys(user.id, 'xai', 'subscription');
     const keysToRevoke = keyLabel
       ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
       : keys;
@@ -105,6 +105,7 @@ export class XaiOauthController {
 
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       'xai',
       'subscription',
       keyLabel,

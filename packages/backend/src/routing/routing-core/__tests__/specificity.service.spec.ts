@@ -253,7 +253,7 @@ describe('SpecificityService', () => {
   describe('setFallbacks', () => {
     it('returns [] when no row exists', async () => {
       repo.findOne.mockResolvedValue(null);
-      expect(await svc.setFallbacks('agent-1', 'coding', ['gpt-4o'])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'user-1', 'coding', ['gpt-4o'])).toEqual([]);
       expect(repo.save).not.toHaveBeenCalled();
     });
 
@@ -267,7 +267,7 @@ describe('SpecificityService', () => {
         fallback_routes: null,
       } as SpecificityAssignment);
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'coding', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks('agent-1', 'user-1', 'coding', ['gpt-4o'], provided);
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
@@ -283,6 +283,7 @@ describe('SpecificityService', () => {
       } as SpecificityAssignment);
       const result = await svc.setFallbacks(
         'agent-1',
+        'user-1',
         'coding',
         ['gpt-4o'],
         [route('different-provider', 'api_key', 'gpt-4o')],
@@ -294,7 +295,7 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue({
         fallback_routes: null,
       } as SpecificityAssignment);
-      expect(await svc.setFallbacks('agent-1', 'coding', [])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'user-1', 'coding', [])).toEqual([]);
     });
 
     it('throws when any model cannot be unambiguously resolved', async () => {
@@ -305,7 +306,7 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue({
         fallback_routes: null,
       } as SpecificityAssignment);
-      await expect(svc.setFallbacks('agent-1', 'coding', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'user-1', 'coding', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -328,6 +329,7 @@ describe('SpecificityService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
+          'user-1',
           'coding',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],

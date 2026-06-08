@@ -41,6 +41,6 @@ export class SavingsController {
     @CurrentUser() user: AuthUser,
   ) {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return this.savingsQuery.getBaselineCandidates(agent.id, null);
+    return this.savingsQuery.getBaselineCandidates(user.id, null);
   }
 }

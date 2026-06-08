@@ -216,7 +216,7 @@ export class MinimaxOauthService {
       e: toAbsoluteExpiryTimestamp(payload.expired_in),
       u: resourceUrl,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'minimax');
+    const label = await this.providerService.nextOAuthLabel(pending.userId, 'minimax');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -228,7 +228,7 @@ export class MinimaxOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      await this.providerService.recalculateTiers(pending.agentId, pending.userId);
     } catch (err) {
       this.logger.warn(`Model discovery after MiniMax OAuth failed: ${err}`);
     }
@@ -289,11 +289,11 @@ export class MinimaxOauthService {
     if (Date.now() < blob.e - 60_000) return blob;
     try {
       return await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('minimax', userId, agentId, keyLabel),
+        key: oauthRefreshKey('minimax', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'minimax', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'minimax', keyLabel),
         parse: parseMinimaxBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
         persist: (refreshed) =>

@@ -386,7 +386,7 @@ describe('ProviderDetailView', () => {
   it('renders back button', () => {
     const props = createTestProps();
     render(() => <ProviderDetailView {...props} />);
-    const btn = screen.getByLabelText('Back to providers');
+    const btn = screen.getByLabelText('Close');
     expect(btn).toBeDefined();
     fireEvent.click(btn);
     expect(props.onBack).toHaveBeenCalled();

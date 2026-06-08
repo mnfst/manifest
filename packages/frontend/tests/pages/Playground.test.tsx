@@ -6,6 +6,7 @@ import type { JSX } from 'solid-js';
 const mockGetAvailableModels = vi.fn();
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
+const mockGetAgents = vi.fn();
 const mockGetPlaygroundRun = vi.fn();
 const mockListPlaygroundRuns = vi.fn();
 const mockStreamPlayground = vi.fn();
@@ -15,6 +16,7 @@ vi.mock('../../src/services/api.js', () => ({
   getAvailableModels: (...a: unknown[]) => mockGetAvailableModels(...a),
   getProviders: (...a: unknown[]) => mockGetProviders(...a),
   getCustomProviders: (...a: unknown[]) => mockGetCustomProviders(...a),
+  getAgents: (...a: unknown[]) => mockGetAgents(...a),
   getPlaygroundRun: (...a: unknown[]) => mockGetPlaygroundRun(...a),
   listPlaygroundRuns: (...a: unknown[]) => mockListPlaygroundRuns(...a),
   streamPlayground: (...a: unknown[]) => mockStreamPlayground(...a),
@@ -368,6 +370,7 @@ describe('Playground page', () => {
     mockGetAvailableModels.mockReset().mockResolvedValue([MODEL_A, MODEL_B]);
     mockGetProviders.mockReset().mockResolvedValue([ACTIVE_PROVIDER, ACTIVE_PROVIDER_B]);
     mockGetCustomProviders.mockReset().mockResolvedValue([]);
+    mockGetAgents.mockReset().mockResolvedValue({ agents: [{ agent_name: currentAgent }] });
     mockGetPlaygroundRun.mockReset().mockResolvedValue(makeRunDetail());
     mockListPlaygroundRuns
       .mockReset()
@@ -890,8 +893,9 @@ describe('Playground page', () => {
   });
 
   it('opens and closes the connect-providers modal and refetches on close/update', async () => {
-    const { getByText } = render(() => <Playground />);
-    fireEvent.click(getByText('Connect providers'));
+    mockGetProviders.mockResolvedValue([{ ...ACTIVE_PROVIDER, is_active: false }]);
+    render(() => <Playground />);
+    fireEvent.click(await find('empty-connect'));
     await find('provider-modal');
     fireEvent.click(await find('provider-modal-update'));
     fireEvent.click(await find('provider-modal-close'));

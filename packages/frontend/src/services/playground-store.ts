@@ -125,7 +125,8 @@ function modelBrandId(modelName: string): string | undefined {
   return inferProviderFromModel(modelName);
 }
 
-export function createPlaygroundStore(agentName: string): PlaygroundStore {
+export function createPlaygroundStore(agentName: string | (() => string)): PlaygroundStore {
+  const resolveAgentName = typeof agentName === 'function' ? agentName : () => agentName;
   const [columns, setColumns] = createStore<PlaygroundColumn[]>([]);
   const [prompt, setPrompt] = createSignal('');
   const [history, setHistory] = createSignal<string[]>([]);
@@ -215,7 +216,7 @@ export function createPlaygroundStore(agentName: string): PlaygroundStore {
     try {
       const result = await streamPlayground(
         {
-          agentName,
+          agentName: resolveAgentName(),
           model: col.model,
           provider: col.provider,
           authType: col.authType,

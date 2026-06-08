@@ -110,6 +110,7 @@ describe('HeaderTierController', () => {
     });
     expect(service.setOverride).toHaveBeenCalledWith(
       'agent-1',
+      'user-1',
       'ht-1',
       'gpt-4o',
       'OpenAI',
@@ -133,6 +134,7 @@ describe('HeaderTierController', () => {
     });
     expect(service.setOverride).toHaveBeenCalledWith(
       'agent-1',
+      'user-1',
       'ht-1',
       'gpt-4o',
       'openai',
@@ -151,7 +153,13 @@ describe('HeaderTierController', () => {
   it('setFallbacks forwards models', async () => {
     const { controller, service } = makeController();
     const out = await controller.setFallbacks(user, 'my-agent', 'ht-1', { models: ['a'] });
-    expect(service.setFallbacks).toHaveBeenCalledWith('agent-1', 'ht-1', ['a'], undefined);
+    expect(service.setFallbacks).toHaveBeenCalledWith(
+      'agent-1',
+      'user-1',
+      'ht-1',
+      ['a'],
+      undefined,
+    );
     expect(out).toEqual(['m']);
   });
 

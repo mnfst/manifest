@@ -7,84 +7,9 @@ import type { RoutingProvider, CustomProviderData } from '../services/api.js';
 
 /** Skeleton placeholder rendered while routing data is loading. */
 export const RoutingLoadingSkeleton: Component = () => (
-  <>
-    {/* Connections row */}
-    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 20px;">
-      <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
-      <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
-      <div class="skeleton" style="width: 16px; height: 16px; border-radius: 50%;" />
-      <div class="skeleton skeleton--text" style="width: 90px; margin-left: 4px;" />
-    </div>
-
-    {/* Tabs */}
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-      <div class="skeleton" style="width: 76px; height: 30px; border-radius: var(--radius);" />
-      <div class="skeleton" style="width: 96px; height: 30px; border-radius: var(--radius);" />
-      <div class="skeleton" style="width: 68px; height: 30px; border-radius: var(--radius);" />
-    </div>
-
-    {/* Description + toggle */}
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-      <div class="skeleton skeleton--text" style="width: 260px;" />
-      <div class="skeleton" style="width: 44px; height: 22px; border-radius: 11px;" />
-    </div>
-
-    {/* 4-column card grid */}
-    <div class="routing-cards">
-      <For each={[0, 1, 2, 3]}>
-        {() => (
-          <div class="routing-card">
-            {/* Tier name */}
-            <div style="padding: 12px 16px 10px;">
-              <div class="skeleton skeleton--text" style="width: 65px; height: 15px;" />
-            </div>
-
-            {/* Primary model chip — full-width skeleton block */}
-            <div style="margin: 0 12px 8px; padding: 10px 12px; border-radius: var(--radius); background: hsl(var(--muted-foreground) / 0.08);">
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <div
-                  class="skeleton"
-                  style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
-                />
-                <div class="skeleton skeleton--text" style="width: 120px;" />
-              </div>
-              <div class="skeleton skeleton--text" style="width: 160px; height: 12px;" />
-            </div>
-
-            {/* Fallback rows — each is a skeleton row block */}
-            <div style="padding: 0 12px; display: flex; flex-direction: column; gap: 6px;">
-              <For each={[0, 1, 2, 3]}>
-                {() => (
-                  <div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius); background: hsl(var(--muted-foreground) / 0.08);">
-                    <div
-                      class="skeleton"
-                      style="width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;"
-                    />
-                    <div class="skeleton skeleton--text" style="width: 90px;" />
-                  </div>
-                )}
-              </For>
-            </div>
-
-            {/* Add fallback button */}
-            <div style="padding: 10px 12px 14px;">
-              <div
-                class="skeleton"
-                style="width: 110px; height: 28px; border-radius: var(--radius);"
-              />
-            </div>
-          </div>
-        )}
-      </For>
-    </div>
-
-    {/* Footer */}
-    <div class="routing-footer">
-      <div class="skeleton" style="width: 105px; height: 32px; border-radius: var(--radius);" />
-      <div style="flex: 1;" />
-      <div class="skeleton skeleton--text" style="width: 115px;" />
-    </div>
-  </>
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div class="skeleton" style="width: 100%; height: 320px; border-radius: var(--radius);" />
+  </div>
 );
 
 export interface ActiveProviderIconsProps {

@@ -5,8 +5,7 @@ import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { UserProvider } from '../../entities/user-provider.entity';
-import { CustomProvider } from '../../entities/custom-provider.entity';
+import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
@@ -18,7 +17,6 @@ import { RoutingCacheService } from '../../routing/routing-core/routing-cache.se
 
 export interface DuplicateAgentSummary {
   providers: number;
-  customProviders: number;
   tierAssignments: number;
   specificityAssignments: number;
   modelParams: number;
@@ -40,17 +38,8 @@ export class AgentDuplicationService {
     private readonly routingCache: RoutingCacheService,
   ) {}
 
-  private static readonly CUSTOM_PREFIX = 'custom:';
-
   private generateOtlpKey(): string {
     return API_KEY_PREFIX + randomBytes(32).toString('base64url');
-  }
-
-  private remapCustomProviderRef(provider: string, idMap: Map<string, string>): string {
-    if (!provider.startsWith(AgentDuplicationService.CUSTOM_PREFIX)) return provider;
-    const oldId = provider.slice(AgentDuplicationService.CUSTOM_PREFIX.length);
-    const newId = idMap.get(oldId);
-    return newId ? `${AgentDuplicationService.CUSTOM_PREFIX}${newId}` : provider;
   }
 
   private async findOwnedAgent(userId: string, agentName: string): Promise<Agent | null> {
@@ -67,18 +56,16 @@ export class AgentDuplicationService {
     const source = await this.findOwnedAgent(userId, sourceName);
     if (!source) throw new NotFoundException(`Agent "${sourceName}" not found`);
 
-    const [providers, customProviders, tierAssignments, specificityAssignments, modelParams] =
-      await Promise.all([
-        this.dataSource.getRepository(UserProvider).count({ where: { agent_id: source.id } }),
-        this.dataSource.getRepository(CustomProvider).count({ where: { agent_id: source.id } }),
-        this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
-        this.dataSource
-          .getRepository(SpecificityAssignment)
-          .count({ where: { agent_id: source.id } }),
-        this.dataSource.getRepository(AgentModelParams).count({ where: { agent_id: source.id } }),
-      ]);
+    const [providers, tierAssignments, specificityAssignments, modelParams] = await Promise.all([
+      this.dataSource.getRepository(AgentProviderAccess).count({ where: { agent_id: source.id } }),
+      this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
+      this.dataSource
+        .getRepository(SpecificityAssignment)
+        .count({ where: { agent_id: source.id } }),
+      this.dataSource.getRepository(AgentModelParams).count({ where: { agent_id: source.id } }),
+    ]);
 
-    return { providers, customProviders, tierAssignments, specificityAssignments, modelParams };
+    return { providers, tierAssignments, specificityAssignments, modelParams };
   }
 
   async suggestName(userId: string, sourceName: string): Promise<string> {
@@ -143,53 +130,22 @@ export class AgentDuplicationService {
         is_active: true,
       });
 
-      const customProviders = await manager
-        .getRepository(CustomProvider)
+      // Providers/custom providers are user-global, so the duplicate shares
+      // the same credential rows. Copy only the agent/provider attachments.
+      const providerAccess = await manager
+        .getRepository(AgentProviderAccess)
         .find({ where: { agent_id: source.id } });
-      const customProviderIdMap = new Map<string, string>();
-      if (customProviders.length > 0) {
-        const newCustomProviders = customProviders.map((cp) => {
-          const newId = uuidv4();
-          customProviderIdMap.set(cp.id, newId);
-          return {
-            id: newId,
+      if (providerAccess.length > 0) {
+        await manager.getRepository(AgentProviderAccess).insert(
+          providerAccess.map((row) => ({
             agent_id: newAgentId,
-            user_id: cp.user_id,
-            name: cp.name,
-            base_url: cp.base_url,
-            api_kind: cp.api_kind,
-            models: cp.models,
-            created_at: now,
-          };
-        });
-        await manager.getRepository(CustomProvider).insert(newCustomProviders);
-      }
-
-      const providers = await manager
-        .getRepository(UserProvider)
-        .find({ where: { agent_id: source.id } });
-      if (providers.length > 0) {
-        await manager.getRepository(UserProvider).insert(
-          providers.map((p) => ({
-            id: uuidv4(),
-            user_id: p.user_id,
-            agent_id: newAgentId,
-            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
-            api_key_encrypted: p.api_key_encrypted,
-            key_prefix: p.key_prefix,
-            auth_type: p.auth_type,
-            label: p.label,
-            priority: p.priority,
-            region: p.region,
-            is_active: p.is_active,
-            connected_at: now,
-            updated_at: now,
-            cached_models: p.cached_models,
-            models_fetched_at: p.models_fetched_at,
+            user_provider_id: row.user_provider_id,
           })),
         );
       }
 
+      // Custom provider route IDs are already user-global, so tier/specificity
+      // and model-param routes that reference `custom:<id>` keep the original id.
       const tiers = await manager
         .getRepository(TierAssignment)
         .find({ where: { agent_id: source.id } });
@@ -253,12 +209,9 @@ export class AgentDuplicationService {
               p.user_id,
               newAgentId,
               p.scope_key,
-              // Same `custom:<uuid>` remap as user_providers / tier_assignments
-              // / specificity_assignments above. Without this, a params row
-              // configured for `custom:<old-uuid>` would point to the source
-              // agent's custom provider after duplication, breaking the
-              // per-route lookup for the new agent.
-              this.remapCustomProviderRef(p.provider, customProviderIdMap),
+              // Custom providers are user-global and shared by the duplicate,
+              // so any `custom:<id>` reference is copied verbatim.
+              p.provider,
               p.auth_type,
               p.model_name,
               p.params,
@@ -270,8 +223,7 @@ export class AgentDuplicationService {
       }
 
       return {
-        providers: providers.length,
-        customProviders: customProviders.length,
+        providers: providerAccess.length,
         tierAssignments: tiers.length,
         specificityAssignments: specificity.length,
         modelParams: modelParams.length,

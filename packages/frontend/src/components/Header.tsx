@@ -5,7 +5,12 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import {
+  connectionBreadcrumbName,
+  connectionBreadcrumbBackLink,
+} from '../services/connection-breadcrumb-store.js';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
+import { invalidateCustomProvidersCache } from '../services/api/routing.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -81,6 +86,7 @@ const Header: Component<HeaderProps> = (props) => {
   };
 
   const handleLogout = async () => {
+    invalidateCustomProvidersCache();
     await authClient.signOut();
     navigate('/login', { replace: true });
   };
@@ -132,10 +138,22 @@ const Header: Component<HeaderProps> = (props) => {
             Dev
           </span>
         )}
+        <Show when={location.pathname.startsWith('/providers/connections/')}>
+          <span class="header__separator">/</span>
+          <A href={connectionBreadcrumbBackLink()} class="header__breadcrumb-link">
+            Providers
+          </A>
+          <Show when={connectionBreadcrumbName()}>
+            <span class="header__separator">/</span>
+            <span class="header__breadcrumb-current">
+              <span>{connectionBreadcrumbName()}</span>
+            </span>
+          </Show>
+        </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A href="/" class="header__breadcrumb-link">
-            Workspace
+          <A href="/harnesses" class="header__breadcrumb-link">
+            Harnesses
           </A>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">
@@ -153,7 +171,7 @@ const Header: Component<HeaderProps> = (props) => {
               <button
                 class="header__gear-btn"
                 onClick={() => setGearOpen(!gearOpen())}
-                aria-label="Agent actions"
+                aria-label="Harness actions"
                 aria-haspopup="menu"
                 aria-expanded={gearOpen()}
               >
@@ -172,7 +190,7 @@ const Header: Component<HeaderProps> = (props) => {
               <Show when={gearOpen()}>
                 <div class="header__dropdown" role="menu" style="left: 0; right: auto;">
                   <A
-                    href={`/agents/${encodeURIComponent(getAgentName()!)}/settings`}
+                    href={`/harnesses/${encodeURIComponent(getAgentName()!)}/settings`}
                     class="header__dropdown-item"
                     role="menuitem"
                     onClick={() => setGearOpen(false)}
@@ -211,7 +229,7 @@ const Header: Component<HeaderProps> = (props) => {
                       <path d="M20 2H10c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 12H10V4h10z" />
                       <path d="M4 22h10c1.1 0 2-.9 2-2v-2h-2v2H4V10h2V8H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2m10-10h2v-2h2V8h-2V6h-2v2h-2v2h2z" />
                     </svg>
-                    Duplicate agent
+                    Duplicate harness
                   </button>
                 </div>
               </Show>

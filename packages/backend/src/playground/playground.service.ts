@@ -76,7 +76,11 @@ export class PlaygroundService {
     let providerRegion: string | null | undefined;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
-      const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
+      const hasProvider = await this.providerKeyService.hasActiveProvider(
+        userId,
+        dto.provider,
+        agent.id,
+      );
       if (!hasProvider) {
         return this.sendPreStreamError(
           res,
@@ -85,8 +89,14 @@ export class PlaygroundService {
         );
       }
       authType =
-        dto.authType ?? (await this.providerKeyService.getAuthType(agent.id, dto.provider));
-      const keys = await this.providerKeyService.getProviderKeys(agent.id, dto.provider, authType);
+        dto.authType ??
+        (await this.providerKeyService.getAuthType(userId, dto.provider, undefined, agent.id));
+      const keys = await this.providerKeyService.getProviderKeys(
+        userId,
+        dto.provider,
+        authType,
+        agent.id,
+      );
       const key = keys[0];
       if (!key || key.apiKey === null) {
         return this.sendPreStreamError(
@@ -123,10 +133,11 @@ export class PlaygroundService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agent.id,
+            userId,
             dto.provider,
             authType,
             providerKeyLabel,
+            agent.id,
           )) ?? rawApiKey;
       }
       oauthResourceUrl = authType === 'subscription' ? resolved.resourceUrl : undefined;
@@ -150,10 +161,11 @@ export class PlaygroundService {
     // Resolve the upstream endpoint + forwarded model id through the SAME helper
     // the proxy uses, so region overrides (minimax/qwen/zai) and vendor-prefix
     // stripping (copilot/minimax/zai/custom) match. Custom providers store their
-    // endpoint on a DB row, fetched here and passed in.
+    // endpoint on a DB row, fetched here and passed in — scoped by user_id to
+    // prevent cross-user resolution.
     const customProvider = CustomProviderService.isCustom(dto.provider)
       ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(dto.provider) },
+          where: { id: CustomProviderService.extractId(dto.provider), user_id: userId },
         })
       : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({

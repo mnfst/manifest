@@ -116,7 +116,7 @@ describe('SavingsController', () => {
       await controller.getBaselineCandidates('bot-1', user as never);
 
       expect(mockResolveAgent).toHaveBeenCalledWith('u1', 'bot-1');
-      expect(mockGetCandidates).toHaveBeenCalledWith('agent-uuid-1', null);
+      expect(mockGetCandidates).toHaveBeenCalledWith('u1', null);
     });
   });
 });
