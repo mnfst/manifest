@@ -168,10 +168,14 @@ describe("Overview", () => {
     expect(container.textContent).toContain("Overview");
   });
 
-  it("renders breadcrumb subtitle", () => {
+  it("does not render duplicate agent-name H1 or breadcrumb subtitle (AgentDetail owns the H1)", () => {
     mockGetOverview.mockResolvedValue(overviewData);
-    render(() => <Overview />);
-    expect(screen.getByText(/Real-time summary of spending/)).toBeDefined();
+    const { container } = render(() => <Overview />);
+    // The breadcrumb "Real-time summary…" must no longer be rendered inside Overview,
+    // because AgentDetail already shows the agent name as an H1 above the tabs.
+    expect(container.querySelector('.breadcrumb')).toBeNull();
+    // No H1 element should be rendered by Overview itself.
+    expect(container.querySelector('h1')).toBeNull();
   });
 
   it("shows loading skeleton while fetching", () => {
