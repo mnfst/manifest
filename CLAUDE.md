@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-04-12
+Last updated: 2026-06-08
 
 ## What Manifest Is
 
@@ -57,9 +57,9 @@ The `AgentKeyAuthGuard` accepts any non-`mnfst_*` token from loopback IPs in the
 
 - **Backend**: NestJS 11, TypeORM 0.3, PostgreSQL 16, Better Auth, class-validator, class-transformer, Helmet
 - **Frontend**: SolidJS, Vite, uPlot (charts), Better Auth client, custom CSS theme
-- **Runtime**: TypeScript 5.x (strict mode), Node.js 24.x
+- **Runtime**: TypeScript 5.x (strict mode), Node.js 22.x
 - **Monorepo**: npm workspaces + Turborepo
-- **Release**: Changesets for version management + GitHub Actions for npm publishing
+- **Release**: Changesets for version management + GitHub Actions for Docker publishing
 
 ## Project Structure
 
@@ -83,11 +83,11 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo agent message seed data
-│   │   ├── entities/                        # TypeORM entities (17 files)
+│   │   ├── entities/                        # TypeORM entities (22 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, etc.
+│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, user-provider, tier-assignment, specificity-assignment, header-tier, playground-run, playground-column, reasoning-content-cache-entry, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
@@ -95,7 +95,7 @@ packages/
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers
-│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
+│   │   │   ├── services/                    # agent-recording-cache, ingest-event-bus, manifest-runtime, tenant-cache
 │   │   │   ├── utils/range.util.ts
 │   │   │   ├── utils/hash.util.ts           # API key hashing (scrypt KDF)
 │   │   │   ├── utils/crypto.util.ts         # AES-256-GCM encryption
@@ -114,8 +114,11 @@ packages/
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
 │   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
 │   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
-│   │   │   ├── specificity.controller.ts   # Specificity routing CRUD endpoints
-│   │   │   └── resolve/                     # Scoring-based tier + specificity resolution
+│   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
+│   │   │   ├── oauth/                       # Provider OAuth flows (Anthropic, Gemini, OpenAI, xAI, Kiro, MiniMax)
+│   │   │   ├── header-tiers/               # Header-based routing tier overrides
+│   │   │   ├── custom-provider/            # Custom provider management
+│   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
 │   │   │   ├── specificity-detector.ts     # Task-type detection (coding, trading, etc.)
@@ -127,6 +130,7 @@ packages/
 │   │   ├── setup/                           # First-run admin setup wizard
 │   │   ├── public-stats/                    # Public aggregate usage endpoints (opt-in)
 │   │   ├── free-models/                     # Free LLM model catalog
+│   │   ├── playground/                      # Prompt playground (run, history, columns)
 │   │   ├── model-discovery/                 # Per-provider model fetching + fallback
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
 │   └── test/                                # E2E tests (supertest)
@@ -152,6 +156,9 @@ packages/
 │   │   │   ├── Routing.tsx                  # LLM routing config
 │   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
 │   │   │   ├── ModelPrices.tsx              # Model pricing table
+│   │   │   ├── Playground.tsx               # Prompt playground
+│   │   │   ├── FreeModels.tsx               # Free model catalog
+│   │   │   ├── ConnectProvider.tsx          # Provider connection flow
 │   │   │   ├── Help.tsx                     # Help page
 │   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
@@ -329,16 +336,20 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 | GET | `/api/v1/agents/:name/key` | Session/API Key | Get agent API key |
 | POST | `/api/v1/agents/:name/rotate-key` | Session/API Key | Rotate API key |
 | PATCH | `/api/v1/agents/:name` | Session/API Key | Rename agent |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
+| POST | `/api/v1/agents/:name/duplicate` | Session/API Key | Duplicate agent |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
-| GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
-| GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
+| GET | `/api/v1/free-models` | Session/API Key | Free model catalog |
+| GET | `/api/v1/savings` | Session/API Key | Savings summary + timeseries |
+| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message detail, feedback, recording |
+| GET | `/api/v1/agent/usage` | Bearer (mnfst_*) | Per-agent token usage |
+| GET | `/api/v1/agent/costs` | Bearer (mnfst_*) | Per-agent cost data |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications` | Session/API Key | Notification rules CRUD |
 | GET/POST/DELETE | `/api/v1/notifications/email-provider` | Session/API Key | Email provider config |
-| GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config (tiers + providers) |
+| GET/POST/PUT/DELETE | `/api/v1/routing/*` | Session/API Key | Routing config (tiers, providers, header-tiers, model-params, OAuth) |
 | GET/PUT/POST/DELETE | `/api/v1/routing/:agent/specificity/*` | Session/API Key | Specificity routing config |
 | POST | `/api/v1/routing/subscription-providers` | Session/API Key | Subscription provider config |
-| POST | `/api/v1/routing/:agentName/ollama/sync` | Session/API Key | Sync Ollama models |
+| GET/POST/PATCH | `/api/v1/playground/*` | Session/API Key | Prompt playground (runs, history) |
+| GET/POST | `/api/v1/setup/*` | Public | First-run admin setup wizard |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
 | POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
@@ -351,6 +362,7 @@ All analytics queries filter by user via `addTenantFilter(qb, userId)` from `que
 See `packages/backend/.env.example` for all variables. Key ones:
 
 - `BETTER_AUTH_SECRET` — **Required.** Secret for Better Auth session signing (min 32 chars). Generate with `openssl rand -hex 32`.
+- `MANIFEST_ENCRYPTION_KEY` — Recommended. Separate secret (min 32 chars) for AES-256-GCM encryption of stored provider API keys and OAuth tokens. If unset, falls back to `BETTER_AUTH_SECRET` — functional but a session-cookie leak would then also expose every stored provider credential. Generate with `openssl rand -hex 32`.
 - `DATABASE_URL` — **Required in production.** PostgreSQL connection string. Format: `postgresql://user:password@host:port/database`. Defaults to `postgresql://myuser:mypassword@localhost:5432/mydatabase` (matches the local Docker command).
 - `PORT` — Server port. Default: `3001`
 - `BIND_ADDRESS` — Bind address. Default: `127.0.0.1` (use `0.0.0.0` for Railway/Docker)
@@ -361,9 +373,13 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
-- `MAILGUN_API_KEY` — Mailgun API key for email verification/password reset.
-- `MAILGUN_DOMAIN` — Mailgun sending domain (e.g. `mg.manifest.build`).
-- `NOTIFICATION_FROM_EMAIL` — Sender email. Default: `noreply@manifest.build`
+- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `20`
+- `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream LLM provider requests. Set below your client's timeout so the fallback chain has room to run. Default: `180000`
+- `EMAIL_PROVIDER` — Unified email provider: `resend`, `mailgun`, or `sendgrid`. Used for both Better Auth transactional emails (verification, password reset) and threshold alert notifications.
+- `EMAIL_API_KEY` — API key for the configured email provider.
+- `EMAIL_FROM` — Sender address. Default: `noreply@manifest.build`
+- `EMAIL_DOMAIN` — Sending domain (required for Mailgun).
+- `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` / `NOTIFICATION_FROM_EMAIL` — **Deprecated.** Still honored for backward compat; prefer the unified `EMAIL_*` vars above.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
@@ -396,6 +412,9 @@ Helmet enforces a strict CSP in `main.ts`. The policy only allows `'self'` origi
 
 Current self-hosted assets:
 - **Boxicons Duotone** — `public/fonts/boxicons/` (CSS + woff/ttf font files)
+- **Bricolage Grotesque** — `public/fonts/bricolage-grotesque-latin.woff2`
+- **DM Sans** — `public/fonts/dm-sans-latin.woff2`
+- **JetBrains Mono** — `public/fonts/jetbrains-mono-latin.woff2`
 
 To add a new font or icon library:
 1. Download the CSS and font files into `packages/frontend/public/`
@@ -456,7 +475,7 @@ values with 400, so downgrades stay safe.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
 - **LLM Routing**: Two-layer routing system with provider key management (AES-256-GCM encrypted) and OpenAI-compatible proxy at `/v1/chat/completions`:
-  - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 23 weighted keyword dimensions.
+  - **Complexity tiers** (always active): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 31 weighted keyword dimensions.
   - **Specificity routing** (opt-in): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
   - **Resolution order**: specificity check (if any category active) → complexity scoring → tier assignment → provider/model resolution → proxy forward.
 
