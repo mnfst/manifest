@@ -1,0 +1,29 @@
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  s_0dc1825d457013::t_6c513a1c3bde9c 33,40,46
+  s_0dc1825d457013::t_346b958022afc8 265-282
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_0dc1825d457013::t_5f76b7b570ab66 31,38,44
+  s_0dc1825d457013::t_c45818d2e4e591 164-177
+packages/backend/test/agent-provider-access.e2e-spec.ts
+  s_0dc1825d457013::t_6e04f956fe0ae7 89-105,107,110-111,113
+  s_0dc1825d457013::t_8e68c6f39ce92c 106,108-109,112
+packages/backend/src/routing/provider.controller.ts
+  s_0dc1825d457013::t_119bd6010aa7bd 132,161-166
+  s_0dc1825d457013::t_77a4b88514bac7 167-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "9b69a5bb8ed24f798cb91b4b64deaecf9b6ef05a",
+  "prompts": {},
+  "sessions": {
+    "s_0dc1825d457013": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cbd425c-3d59-4a03-96b2-7ac8c9143488",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
