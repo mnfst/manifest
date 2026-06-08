@@ -3,6 +3,7 @@ import { Show, type ParentComponent } from 'solid-js';
 import { Title } from '@solidjs/meta';
 import { agentPath } from '../services/routing.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
+import { agentDisplayName } from '../services/agent-display-name.js';
 
 /**
  * AgentDetail — horizontal-tabbed shell for the agent detail view.
@@ -31,7 +32,7 @@ const AgentDetail: ParentComponent = (props) => {
 
   return (
     <div class="container--lg">
-      <Title>{agentName()} | Manifest</Title>
+      <Title>{agentDisplayName() ?? agentName()} | Manifest</Title>
 
       <div style="margin-bottom: 8px;">
         <A
@@ -46,7 +47,7 @@ const AgentDetail: ParentComponent = (props) => {
           <img src={agentPlatformIcon()!} alt="" width="28" height="28" style="flex-shrink: 0;" />
         </Show>
         <h1 class="page-header__title" style="margin: 0;">
-          {agentName()}
+          {agentDisplayName() ?? agentName()}
         </h1>
       </div>
 

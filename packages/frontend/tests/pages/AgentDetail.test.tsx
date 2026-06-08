@@ -30,12 +30,19 @@ vi.mock("../../src/services/agent-platform-store.js", () => ({
   agentPlatformIcon: () => undefined,
 }));
 
+// Default: no resolved display name (falls back to decoded slug)
+let mockAgentDisplayName: string | null = null;
+vi.mock("../../src/services/agent-display-name.js", () => ({
+  agentDisplayName: () => mockAgentDisplayName,
+}));
+
 import AgentDetail from "../../src/pages/AgentDetail";
 
 describe("AgentDetail", () => {
   beforeEach(() => {
     mockPathname = "/agents/my-agent";
     mockParams.agentName = "my-agent";
+    mockAgentDisplayName = null;
   });
 
   it("renders the page title with the agent name", () => {
@@ -163,6 +170,30 @@ describe("AgentDetail", () => {
     expect(tabs[1].className).toContain("panel__tab--active");
     expect(tabs[0].className).not.toContain("panel__tab--active");
   });
+
+  it("uses resolved display name in title when agentDisplayName is set", () => {
+    mockAgentDisplayName = "My Cool Agent";
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    expect(container.querySelector("title")?.textContent).toBe("My Cool Agent | Manifest");
+  });
+
+  it("uses resolved display name in heading when agentDisplayName is set", () => {
+    mockAgentDisplayName = "My Cool Agent";
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    expect(container.querySelector("h1")?.textContent).toContain("My Cool Agent");
+  });
+
+  it("falls back to decoded slug in title when agentDisplayName is null", () => {
+    mockAgentDisplayName = null;
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    expect(container.querySelector("title")?.textContent).toBe("my-agent | Manifest");
+  });
+
+  it("falls back to decoded slug in heading when agentDisplayName is null", () => {
+    mockAgentDisplayName = null;
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    expect(container.querySelector("h1")?.textContent).toContain("my-agent");
+  });
 });
 
 describe("AgentDetail with platform icon", () => {
@@ -173,6 +204,9 @@ describe("AgentDetail with platform icon", () => {
   it("shows platform icon when agentPlatformIcon returns a URL", async () => {
     vi.doMock("../../src/services/agent-platform-store.js", () => ({
       agentPlatformIcon: () => "/icons/robot.svg",
+    }));
+    vi.doMock("../../src/services/agent-display-name.js", () => ({
+      agentDisplayName: () => null,
     }));
     vi.doMock("@solidjs/router", () => ({
       useParams: () => ({ agentName: "my-agent" }),
