@@ -368,6 +368,11 @@ describe("Workspace", () => {
         agent_platform: "openclaw",
       }));
     });
+    // New agents land on the Routing tab (they inherit all providers + routes).
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/agents/typed-agent/routing",
+      expect.objectContaining({ state: expect.objectContaining({ newApiKey: "k" }) }),
+    );
   });
 
   it("does not submit when name is empty", async () => {

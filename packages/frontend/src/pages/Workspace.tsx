@@ -70,7 +70,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       resetForm();
       const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
-      navigate(`/agents/${encodeURIComponent(slug)}`, {
+      // Land on Routing: a new agent inherits all connected providers with
+      // auto-assigned routes, so the routing view is the most useful first stop.
+      navigate(`/agents/${encodeURIComponent(slug)}/routing`, {
         state: { newApiKey: result?.apiKey },
       });
     } catch {
