@@ -706,7 +706,7 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('default');
     });
 
-    it('returns null route when the override is orphaned and auto is null', async () => {
+    it('uses the first fallback when the override is orphaned and auto is null', async () => {
       mockedScore.mockReturnValue({
         tier: 'standard',
         confidence: 0.7,
@@ -725,11 +725,11 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve('agent-1', messages);
       expect(result.tier).toBe('standard');
-      expect(result.route).toBeNull();
-      expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'fallback-1')]);
+      expect(result.route).toEqual(route('anthropic', 'api_key', 'fallback-1'));
+      expect(result.fallback_routes).toBeNull();
     });
 
-    it('falls through to auto when override is orphaned but auto is set', async () => {
+    it('tries fallbacks before auto when the override is orphaned but auto is set', async () => {
       mockedScore.mockReturnValue({
         tier: 'standard',
         confidence: 0.7,
@@ -741,13 +741,20 @@ describe('ResolveService', () => {
           tier: 'standard',
           override_route: route('openai', 'api_key', 'orphaned'),
           auto_assigned_route: route('openai', 'api_key', 'auto'),
-          fallback_routes: null,
+          fallback_routes: [
+            route('anthropic', 'api_key', 'fallback-1'),
+            route('google', 'api_key', 'fallback-2'),
+          ],
         } as unknown as TierAssignment,
       ]);
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
       const result = await svc.resolve('agent-1', messages);
-      expect(result.route).toEqual(route('openai', 'api_key', 'auto'));
+      expect(result.route).toEqual(route('anthropic', 'api_key', 'fallback-1'));
+      expect(result.fallback_routes).toEqual([
+        route('google', 'api_key', 'fallback-2'),
+        route('openai', 'api_key', 'auto'),
+      ]);
     });
 
     it('passes momentum input when recentTiers is non-empty', async () => {
