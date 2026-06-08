@@ -31,7 +31,7 @@ export class CopilotController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const result = await this.copilotAuth.pollForToken(body.deviceCode);
     if (result.status === 'complete' && result.token) {
-      const label = await this.providerService.nextOAuthLabel(agent.id, 'copilot');
+      const label = await this.providerService.nextOAuthLabel(user.id, 'copilot');
       const { provider: record } = await this.providerService.upsertProvider(
         agent.id,
         user.id,
@@ -43,7 +43,7 @@ export class CopilotController {
       );
       try {
         await this.discoveryService.discoverModels(record);
-        await this.providerService.recalculateTiers(agent.id);
+        await this.providerService.recalculateTiers(agent.id, user.id);
       } catch {
         // Discovery failure is non-fatal
       }

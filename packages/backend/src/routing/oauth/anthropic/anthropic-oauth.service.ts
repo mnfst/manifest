@@ -148,7 +148,7 @@ export class AnthropicOauthService {
       e: Date.now() + data.expires_in * 1000,
     };
 
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, PROVIDER);
+    const label = await this.providerService.nextOAuthLabel(pending.userId, PROVIDER);
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -160,7 +160,7 @@ export class AnthropicOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      await this.providerService.recalculateTiers(pending.agentId, pending.userId);
     } catch (err) {
       this.logger.warn(`Model discovery after Anthropic OAuth failed: ${err}`);
     }

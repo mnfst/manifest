@@ -76,7 +76,7 @@ export class PlaygroundService {
     let providerRegion: string | null | undefined;
     try {
       agent = await this.resolveAgent.resolve(userId, dto.agentName);
-      const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
+      const hasProvider = await this.providerKeyService.hasActiveProvider(userId, dto.provider);
       if (!hasProvider) {
         return this.sendPreStreamError(
           res,
@@ -84,9 +84,8 @@ export class PlaygroundService {
           `Provider "${dto.provider}" is not connected for this agent`,
         );
       }
-      authType =
-        dto.authType ?? (await this.providerKeyService.getAuthType(agent.id, dto.provider));
-      const keys = await this.providerKeyService.getProviderKeys(agent.id, dto.provider, authType);
+      authType = dto.authType ?? (await this.providerKeyService.getAuthType(userId, dto.provider));
+      const keys = await this.providerKeyService.getProviderKeys(userId, dto.provider, authType);
       const key = keys[0];
       if (!key || key.apiKey === null) {
         return this.sendPreStreamError(
@@ -123,7 +122,7 @@ export class PlaygroundService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agent.id,
+            userId,
             dto.provider,
             authType,
             providerKeyLabel,

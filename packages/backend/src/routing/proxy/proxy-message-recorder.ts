@@ -416,7 +416,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
-    const baseline = await this.computeBaseline(ctx.agentId, inputTokens, outputTokens);
+    const baseline = await this.computeBaseline(ctx.agentId, ctx.userId, inputTokens, outputTokens);
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.agentId,
@@ -499,6 +499,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
     const baseline = await this.computeBaseline(
       ctx.agentId,
+      ctx.userId,
       usage.prompt_tokens,
       usage.completion_tokens,
     );
@@ -649,12 +650,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
   private async computeBaseline(
     agentId: string,
+    userId: string,
     inputTokens: number,
     outputTokens: number,
   ): Promise<{ modelId: string; cost: number } | null> {
     try {
       const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
-        this.providerService.getProviders(agentId),
+        this.providerService.getProviders(userId),
         this.tierService.getTiers(agentId),
         this.specificityService.getAssignments(agentId),
         this.headerTierService.list(agentId),

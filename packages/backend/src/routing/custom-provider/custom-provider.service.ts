@@ -304,6 +304,7 @@ export class CustomProviderService {
       // index is keyed on (agent_id, provider, auth_type).
       await this.providerService.retagAuthType(
         agentId,
+        userId,
         CustomProviderService.providerKey(id),
         nextAuthType,
       );
@@ -311,11 +312,12 @@ export class CustomProviderService {
 
     // Recalculate tiers when models changed (even without API key change)
     if (dto.models !== undefined && !('apiKey' in dto) && !nameCategoryChanged) {
-      await this.autoAssign.recalculate(agentId);
+      await this.autoAssign.recalculate(agentId, userId);
     }
 
     await this.repo.save(cp);
     this.routingCache.invalidateAgent(agentId);
+    this.routingCache.invalidateUser(userId);
 
     // Reload pricing cache when the model list changes so new prices (or
     // edits to existing ones) are used for subsequent cost computations.
@@ -326,17 +328,18 @@ export class CustomProviderService {
     return cp;
   }
 
-  async remove(agentId: string, id: string): Promise<void> {
+  async remove(agentId: string, id: string, userId?: string): Promise<void> {
     const cp = await this.repo.findOne({ where: { id, agent_id: agentId } });
     if (!cp) {
       throw new NotFoundException('Custom provider not found');
     }
 
     const provKey = CustomProviderService.providerKey(id);
+    const effectiveUserId = userId ?? cp.user_id;
 
     // Remove UserProvider + tier overrides
     try {
-      await this.providerService.removeProvider(agentId, provKey);
+      await this.providerService.removeProvider(agentId, effectiveUserId, provKey);
     } catch {
       // Provider may not exist if creation partially failed
     }

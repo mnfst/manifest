@@ -205,11 +205,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(agentId, prefix))
+            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(agentId, requestedModel));
+            (await this.providerKeyService.findProviderForModel(userId, requestedModel));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -217,14 +217,14 @@ export class ProxyFallbackService {
         }
         const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
         authType = (await this.providerKeyService.getAuthType(
-          agentId,
+          userId,
           provider,
           excludeAuth,
         )) as AuthType;
       }
       if (!providerKeyLabel && authType === 'subscription') {
         providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          agentId,
+          userId,
           provider,
           authType,
         );
@@ -232,7 +232,7 @@ export class ProxyFallbackService {
 
       const model = normalizeProviderModel(provider, requestedModel);
       const apiKey = await this.providerKeyService.getProviderApiKey(
-        agentId,
+        userId,
         provider,
         authType,
         providerKeyLabel,
@@ -268,14 +268,14 @@ export class ProxyFallbackService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agentId,
+            userId,
             provider,
             authType,
             providerKeyLabel,
           )) ?? apiKey;
       }
       const providerRegion = await this.providerKeyService.getProviderRegion(
-        agentId,
+        userId,
         provider,
         authType,
         providerKeyLabel,
