@@ -71,7 +71,7 @@ render(
             <Route path="/limits" component={AgentLimitsRedirect} />
             <Route path="/messages" component={AgentMessagesRedirect} />
 
-            {/* Tabbed shell wraps Overview / Routing / Guardrails / Settings */}
+            {/* Tabbed shell wraps Overview / Routing / Limits / Settings */}
             <Route path="/" component={AgentDetail}>
               <Route path="/" component={AgentOverview} />
               <Route path="/overview" component={AgentOverview} />

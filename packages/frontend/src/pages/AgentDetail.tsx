@@ -9,7 +9,7 @@ import { agentDisplayName } from '../services/agent-display-name.js';
  * AgentDetail — horizontal-tabbed shell for the agent detail view.
  *
  * Renders a header (back-link to /agents + agent display name) and a
- * horizontal tab bar (Overview / Routing / Guardrails / Settings). Child
+ * horizontal tab bar (Overview / Routing / Limits / Settings). Child
  * routes render in the body via props.children (SolidJS nested <Route>).
  */
 const AgentDetail: ParentComponent = (props) => {
@@ -78,7 +78,7 @@ const AgentDetail: ParentComponent = (props) => {
           class="panel__tab"
           classList={{ 'panel__tab--active': isActive('/guardrails') }}
         >
-          Guardrails
+          Limits
         </A>
         <A
           href={path('/settings')}
