@@ -560,6 +560,27 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].displayName).toBe('custom-llm');
     });
 
+    it('should filter stale unsupported OpenAI subscription cached models', async () => {
+      const providers = [
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({ id: 'gpt-5.5', provider: 'openai', authType: 'subscription' }),
+            makeModel({ id: 'gpt-5.2-codex', provider: 'openai', authType: 'subscription' }),
+            makeModel({ id: 'gpt-5.1-codex-max', provider: 'openai', authType: 'subscription' }),
+            makeModel({ id: 'gpt-5.3-codex-spark', provider: 'openai', authType: 'subscription' }),
+          ],
+        }),
+      ];
+      providerRepo.find.mockResolvedValue(providers);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
+    });
+
     it('should inherit auth_type from user_providers row for custom provider models', async () => {
       const providers = [
         makeProvider({
@@ -1259,7 +1280,7 @@ describe('ModelDiscoveryService', () => {
       });
       mockDecrypt.mockReturnValue(blob);
 
-      const models = [makeModel({ id: 'gpt-5.3-codex' })];
+      const models = [makeModel({ id: 'gpt-5.5' })];
       fetcher.fetch.mockResolvedValue(models);
 
       await service.discoverModels(
@@ -1546,12 +1567,12 @@ describe('ModelDiscoveryService', () => {
 
       const orMap = new Map([
         [
-          'openai/gpt-5.2-codex',
+          'openai/gpt-5.5',
           {
             input: 0.000001,
             output: 0.000004,
             contextWindow: 200000,
-            displayName: 'GPT-5.2 Codex',
+            displayName: 'GPT-5.5',
           },
         ],
       ]);
@@ -1746,12 +1767,12 @@ describe('ModelDiscoveryService', () => {
     it('should use subscription fallback for openai when no token and pricing matches known models', async () => {
       const orMap = new Map([
         [
-          'openai/gpt-5.2-codex',
+          'openai/gpt-5.5',
           {
             input: 0.000001,
             output: 0.000004,
             contextWindow: 200000,
-            displayName: 'GPT-5.2 Codex',
+            displayName: 'GPT-5.5',
           },
         ],
         [
@@ -1770,10 +1791,12 @@ describe('ModelDiscoveryService', () => {
       );
 
       const ids = result.map((m) => m.id);
-      // gpt-5.2-codex from OpenRouter + remaining knownModels added directly
-      expect(ids).toContain('gpt-5.2-codex');
+      // gpt-5.5 from OpenRouter + remaining supported knownModels added directly
+      expect(ids).toContain('gpt-5.5');
       expect(ids).toContain('gpt-5.4');
-      expect(ids).toContain('gpt-5.3-codex');
+      expect(ids).toContain('gpt-5.3-codex-spark');
+      expect(ids).not.toContain('gpt-5.2-codex');
+      expect(ids).not.toContain('gpt-5.1-codex-max');
       // gpt-4o does NOT match any knownModel prefix
       expect(ids).not.toContain('gpt-4o');
       // All should be stamped as subscription
@@ -2163,12 +2186,12 @@ describe('ModelDiscoveryService', () => {
     it('should include OpenRouter matches plus uncovered knownModels for openai', () => {
       const orMap = new Map([
         [
-          'openai/gpt-5.2-codex',
+          'openai/gpt-5.5',
           {
             input: 0.000001,
             output: 0.000004,
             contextWindow: 200000,
-            displayName: 'GPT-5.2 Codex',
+            displayName: 'GPT-5.5',
           },
         ],
         [
@@ -2176,12 +2199,12 @@ describe('ModelDiscoveryService', () => {
           { input: 0.0000025, output: 0.00001, contextWindow: 128000, displayName: 'GPT-4o' },
         ],
         [
-          'openai/gpt-5.1-codex',
+          'openai/gpt-5.4-mini',
           {
             input: 0.000002,
             output: 0.000008,
             contextWindow: 128000,
-            displayName: 'GPT-5.1 Codex',
+            displayName: 'GPT-5.4 Mini',
           },
         ],
       ]);
@@ -2190,15 +2213,16 @@ describe('ModelDiscoveryService', () => {
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
       const ids = result.map((m) => m.id);
 
-      // gpt-5.2-codex and gpt-5.1-codex from OpenRouter, plus remaining knownModels added directly
-      expect(ids).toContain('gpt-5.2-codex');
-      expect(ids).toContain('gpt-5.1-codex');
+      // gpt-5.5 and gpt-5.4-mini from OpenRouter, plus remaining supported knownModels added directly
+      expect(ids).toContain('gpt-5.5');
+      expect(ids).toContain('gpt-5.4-mini');
       expect(ids).toContain('gpt-5.4');
-      expect(ids).toContain('gpt-5.3-codex');
-      // gpt-5.2 is covered by gpt-5.2-codex (prefix match), so NOT added separately
+      expect(ids).toContain('gpt-5.3-codex-spark');
+      expect(ids).not.toContain('gpt-5.3-codex');
+      expect(ids).not.toContain('gpt-5.2-codex');
       expect(ids).not.toContain('gpt-5.2');
-      // gpt-5.1-codex-max is added (not covered by gpt-5.1-codex)
-      expect(ids).toContain('gpt-5.1-codex-max');
+      expect(ids).not.toContain('gpt-5.1-codex-max');
+      expect(ids).not.toContain('gpt-5.1-codex');
       // gpt-4o is NOT included (not a known model prefix)
       expect(ids).not.toContain('gpt-4o');
     });
@@ -2359,14 +2383,14 @@ describe('ModelDiscoveryService', () => {
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
 
-      // gpt-5.2 is covered by gpt-5.2-codex prefix, gpt-5.1-codex covered by gpt-5.1-codex-max prefix
-      expect(result.length).toBe(7);
+      expect(result.length).toBe(4);
+      expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
-      expect(result.map((m) => m.id)).toContain('gpt-5.3-codex');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
-      expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
-      expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-max');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.3-codex');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.1-codex-max');
       // All zero-cost subscription models
       for (const m of result) {
         expect(m.inputPricePerToken).toBe(0);
@@ -2561,23 +2585,24 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      // 1 discovered + 7 knownModels (gpt-5.2 covered by gpt-5.2-codex, gpt-5.1-codex covered by gpt-5.1-codex-max)
-      expect(result.length).toBe(8);
+      // 1 discovered + 4 ChatGPT-account supported knownModels
+      expect(result.length).toBe(5);
       expect(result[0].id).toBe('gpt-oss-120b');
+      expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
-      expect(result.map((m) => m.id)).toContain('gpt-5.2-codex');
+      expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
     });
 
     it('should not duplicate models already in raw', () => {
       const raw: DiscoveredModel[] = [
-        makeModel({ id: 'gpt-5.2', provider: 'openai', contextWindow: 200000 }),
+        makeModel({ id: 'gpt-5.5', provider: 'openai', contextWindow: 200000 }),
       ];
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      const matchingModels = result.filter((m) => m.id === 'gpt-5.2');
+      const matchingModels = result.filter((m) => m.id === 'gpt-5.5');
       expect(matchingModels).toHaveLength(1);
       // Original model preserved (not replaced)
       expect(matchingModels[0].contextWindow).toBe(200000);
