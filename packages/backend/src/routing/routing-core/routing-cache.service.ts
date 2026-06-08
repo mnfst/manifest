@@ -65,37 +65,37 @@ export class RoutingCacheService {
     setWithEviction(this.tiers, agentId, data);
   }
 
-  getProviders(agentId: string): UserProvider[] | null {
-    return getOrExpire(this.providers, agentId) ?? null;
+  getProviders(userId: string): UserProvider[] | null {
+    return getOrExpire(this.providers, userId) ?? null;
   }
 
-  setProviders(agentId: string, data: UserProvider[]): void {
-    setWithEviction(this.providers, agentId, data);
+  setProviders(userId: string, data: UserProvider[]): void {
+    setWithEviction(this.providers, userId, data);
   }
 
-  getCustomProviders(agentId: string): CustomProvider[] | null {
-    return getOrExpire(this.customProviders, agentId) ?? null;
+  getCustomProviders(userId: string): CustomProvider[] | null {
+    return getOrExpire(this.customProviders, userId) ?? null;
   }
 
-  setCustomProviders(agentId: string, data: CustomProvider[]): void {
-    setWithEviction(this.customProviders, agentId, data);
+  setCustomProviders(userId: string, data: CustomProvider[]): void {
+    setWithEviction(this.customProviders, userId, data);
   }
 
   getProviderKeys(
-    agentId: string,
+    userId: string,
     provider: string,
     authType?: string,
   ): CachedProviderKey[] | undefined {
-    return getOrExpire(this.providerKeys, `${agentId}:${provider}:${authType ?? 'default'}`);
+    return getOrExpire(this.providerKeys, `${userId}:${provider}:${authType ?? 'default'}`);
   }
 
   setProviderKeys(
-    agentId: string,
+    userId: string,
     provider: string,
     keys: CachedProviderKey[],
     authType?: string,
   ): void {
-    setWithEviction(this.providerKeys, `${agentId}:${provider}:${authType ?? 'default'}`, keys);
+    setWithEviction(this.providerKeys, `${userId}:${provider}:${authType ?? 'default'}`, keys);
   }
 
   getSpecificity(agentId: string): SpecificityAssignment[] | null {
@@ -138,8 +138,6 @@ export class RoutingCacheService {
 
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
-    this.providers.delete(agentId);
-    this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
     this.modelParams.delete(agentId);
@@ -154,5 +152,18 @@ export class RoutingCacheService {
         // callers or skip the remaining listeners.
       }
     }
+  }
+
+  /**
+   * Invalidate user-scoped caches (providers, custom providers, provider keys).
+   * Call after any change to the user's global provider set (connect, disconnect,
+   * rename, reorder).
+   */
+  invalidateUser(userId: string): void {
+    this.providers.delete(userId);
+    this.customProviders.delete(userId);
+    const prefix = `${userId}:`;
+    const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
+    for (const k of toDelete) this.providerKeys.delete(k);
   }
 }
