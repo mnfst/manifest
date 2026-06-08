@@ -196,6 +196,7 @@ export class HeaderTierService {
 
   async setOverride(
     agentId: string,
+    userId: string,
     id: string,
     model: string,
     provider?: string,
@@ -210,7 +211,7 @@ export class HeaderTierService {
       explicit ??
       unambiguousRoute(
         model,
-        await this.discoveryService.getModelsForAgent(row.agent_id),
+        await this.discoveryService.getModelsForAgent(userId, row.agent_id),
         providerKeyLabel,
       );
     assertStreamableResponseMode(
@@ -238,12 +239,13 @@ export class HeaderTierService {
 
   async setFallbacks(
     agentId: string,
+    userId: string,
     id: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const row = await this.findOrThrow(agentId, id);
-    const fallbackRoutes = await this.buildFallbackRoutes(row.agent_id, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(row.agent_id, userId, models, routes);
     assertStreamableResponseMode(
       row.response_mode,
       `custom tier "${row.name}"`,
@@ -277,11 +279,12 @@ export class HeaderTierService {
    */
   private async buildFallbackRoutes(
     agentId: string,
+    userId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

@@ -9,6 +9,7 @@ import { Tenant } from '../entities/tenant.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { ProviderService } from './routing-core/provider.service';
+import type { ModelRoute } from 'manifest-shared';
 
 @Controller('api/v1/agents/:agentName/provider-access')
 export class AgentProviderAccessController {
@@ -121,27 +122,40 @@ export class AgentProviderAccessController {
       const providerModels = new Set(
         (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
       );
-
-      if (providerModels.size > 0) {
-        const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
-        for (const tier of tiers) {
-          let changed = false;
-          if (tier.override_route && providerModels.has(tier.override_route.model)) {
-            tier.override_route = null;
-            changed = true;
+      const providerName = provider.provider.toLowerCase();
+      const providerAuthType = provider.auth_type;
+      const providerLabel = provider.label?.toLowerCase();
+      const routeBelongsToDisabledProvider = (route: ModelRoute | null): boolean => {
+        if (!route) return false;
+        if (route.provider) {
+          if (route.provider.toLowerCase() !== providerName) return false;
+          if (route.authType && route.authType !== providerAuthType) return false;
+          if (route.keyLabel && providerLabel && route.keyLabel.toLowerCase() !== providerLabel) {
+            return false;
           }
-          if (tier.auto_assigned_route && providerModels.has(tier.auto_assigned_route.model)) {
-            tier.auto_assigned_route = null;
-            changed = true;
-          }
-          const fallbacks = tier.fallback_routes ?? [];
-          const filtered = fallbacks.filter((fb) => !providerModels.has(fb.model));
-          if (filtered.length !== fallbacks.length) {
-            tier.fallback_routes = filtered.length > 0 ? filtered : null;
-            changed = true;
-          }
-          if (changed) await this.tierRepo.save(tier);
+          return true;
         }
+        return providerModels.has(route.model);
+      };
+
+      const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
+      for (const tier of tiers) {
+        let changed = false;
+        if (routeBelongsToDisabledProvider(tier.override_route)) {
+          tier.override_route = null;
+          changed = true;
+        }
+        if (routeBelongsToDisabledProvider(tier.auto_assigned_route)) {
+          tier.auto_assigned_route = null;
+          changed = true;
+        }
+        const fallbacks = tier.fallback_routes ?? [];
+        const filtered = fallbacks.filter((fb) => !routeBelongsToDisabledProvider(fb));
+        if (filtered.length !== fallbacks.length) {
+          tier.fallback_routes = filtered.length > 0 ? filtered : null;
+          changed = true;
+        }
+        if (changed) await this.tierRepo.save(tier);
       }
     }
 

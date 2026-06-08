@@ -8,6 +8,7 @@ import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { UserProvider } from '../entities/user-provider.entity';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
@@ -46,6 +47,7 @@ import { SavingsQueryService } from './services/savings-query.service';
       AgentLog,
       CustomProvider,
       UserProvider,
+      AgentProviderAccess,
       TierAssignment,
       SpecificityAssignment,
       HeaderTier,

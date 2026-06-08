@@ -146,6 +146,9 @@ describe('AgentProviderAccessController', () => {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             user_id: USER_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
           } as Partial<UserProvider>),
         },
@@ -184,6 +187,9 @@ describe('AgentProviderAccessController', () => {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             user_id: USER_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
           } as Partial<UserProvider>),
         },
@@ -289,6 +295,9 @@ describe('AgentProviderAccessController', () => {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             user_id: USER_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
           } as Partial<UserProvider>),
         },
@@ -322,6 +331,9 @@ describe('AgentProviderAccessController', () => {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             user_id: USER_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
           } as Partial<UserProvider>),
         },

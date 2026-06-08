@@ -416,7 +416,7 @@ describe('TierService', () => {
   describe('setFallbacks', () => {
     it('returns [] when no tier row exists', async () => {
       tierRepo.findOne.mockResolvedValue(null);
-      expect(await svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'user-1', 'standard', ['gpt-4o'])).toEqual([]);
       expect(tierRepo.save).not.toHaveBeenCalled();
     });
 
@@ -431,7 +431,7 @@ describe('TierService', () => {
       } as TierAssignment);
 
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'standard', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks('agent-1', 'user-1', 'standard', ['gpt-4o'], provided);
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
@@ -450,6 +450,7 @@ describe('TierService', () => {
       // ignore the explicit routes and resolve from discovery instead.
       const result = await svc.setFallbacks(
         'agent-1',
+        'user-1',
         'standard',
         ['gpt-4o'],
         [route('openai', 'api_key', 'different-model')],
@@ -469,6 +470,7 @@ describe('TierService', () => {
       // Aligned by name but provider doesn't match available list.
       const result = await svc.setFallbacks(
         'agent-1',
+        'user-1',
         'standard',
         ['gpt-4o'],
         [route('different-provider', 'api_key', 'gpt-4o')],
@@ -483,7 +485,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      const result = await svc.setFallbacks('agent-1', 'standard', []);
+      const result = await svc.setFallbacks('agent-1', 'user-1', 'standard', []);
       expect(result).toEqual([]);
     });
 
@@ -498,7 +500,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      await expect(svc.setFallbacks('agent-1', 'standard', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'user-1', 'standard', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(tierRepo.save).not.toHaveBeenCalled();
@@ -531,6 +533,7 @@ describe('TierService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
+          'user-1',
           'standard',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],
@@ -635,6 +638,7 @@ describe('TierService', () => {
 
       const result = await svc.setFallbacks(
         'agent-1',
+        'user-1',
         'standard',
         ['local-model'],
         [route('custom:local', 'api_key', 'local-model')],

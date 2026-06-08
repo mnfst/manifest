@@ -116,7 +116,7 @@ export class TierService {
     authType?: AuthType,
     providerKeyLabel?: string,
   ): Promise<TierAssignment> {
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     const matches = available.filter((m) => m.id === model);
     if (matches.length === 0) {
       const providerHint = provider ? ` (provider: ${provider})` : '';
@@ -276,13 +276,14 @@ export class TierService {
 
   async setFallbacks(
     agentId: string,
+    userId: string,
     tier: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
-    const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, userId, models, routes);
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
@@ -332,11 +333,12 @@ export class TierService {
    */
   private async buildFallbackRoutes(
     agentId: string,
+    userId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       // Cross-check each caller-provided route against the discovered model

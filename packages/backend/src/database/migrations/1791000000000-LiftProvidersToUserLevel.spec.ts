@@ -42,7 +42,8 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(
       queries.some(
         (q) =>
-          q.includes('CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"') &&
+          q.includes('CREATE UNIQUE INDEX IF NOT EXISTS') &&
+          q.includes('"IDX_user_providers_user_provider_auth_label"') &&
           q.includes('LOWER("label")'),
       ),
     ).toBe(true);
@@ -60,7 +61,7 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     );
     const relabelIdx = queries.findIndex((q) => q.includes('WITH colliding_labels AS'));
     const createIdx = queries.findIndex((q) =>
-      q.includes('CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"'),
+      q.includes('"IDX_user_providers_user_provider_auth_label"'),
     );
     expect(dropOldIdx).toBeGreaterThan(-1);
     expect(relabelIdx).toBeGreaterThan(-1);
@@ -70,11 +71,25 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
 
   it('down restores agent_id strictness, the agent-scoped index, and drops access', async () => {
     await migration.down(queryRunner);
-    expect(queries.some((q) => q.includes('SET "agent_id" = sub.agent_id'))).toBe(true);
     expect(
       queries.some(
         (q) =>
-          q.includes('CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth_label"') &&
+          q.includes('INSERT INTO "user_providers"') &&
+          q.includes('ranked_grants.rn > 1') &&
+          q.includes('ON CONFLICT ("id") DO NOTHING'),
+      ),
+    ).toBe(true);
+    expect(queries.some((q) => q.includes('SET "agent_id" = first_grant."agent_id"'))).toBe(true);
+    expect(
+      queries.some(
+        (q) => q.includes('DELETE FROM "user_providers"') && q.includes('"agent_id" IS NULL'),
+      ),
+    ).toBe(true);
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('CREATE UNIQUE INDEX IF NOT EXISTS') &&
+          q.includes('"IDX_user_providers_agent_provider_auth_label"') &&
           q.includes('"agent_id"'),
       ),
     ).toBe(true);

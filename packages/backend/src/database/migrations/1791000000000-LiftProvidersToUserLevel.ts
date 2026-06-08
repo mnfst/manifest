@@ -188,28 +188,95 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
 
     // 6. Create the new user-scoped unique index.
     await queryRunner.query(`
-    CREATE UNIQUE INDEX "IDX_user_providers_user_provider_auth_label"
+    CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_providers_user_provider_auth_label"
     ON "user_providers" ("user_id", "provider", "auth_type", LOWER("label"))
   `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-    UPDATE "user_providers" up
-    SET "agent_id" = sub.agent_id
-    FROM (
-      SELECT DISTINCT ON ("user_provider_id") "user_provider_id", "agent_id"
-      FROM "agent_provider_access"
-      ORDER BY "user_provider_id", "agent_id"
-    ) sub
-    WHERE up."id" = sub."user_provider_id" AND up."agent_id" IS NULL
-  `);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_user_providers_user_provider_auth_label"`);
+
     await queryRunner.query(`
-    CREATE UNIQUE INDEX "IDX_user_providers_agent_provider_auth_label"
+    WITH ranked_grants AS (
+      SELECT
+        apa."user_provider_id",
+        apa."agent_id",
+        ROW_NUMBER() OVER (
+          PARTITION BY apa."user_provider_id"
+          ORDER BY apa."agent_id"
+        ) AS rn
+      FROM "agent_provider_access" apa
+      JOIN "user_providers" up ON up."id" = apa."user_provider_id"
+      WHERE up."agent_id" IS NULL
+    )
+    INSERT INTO "user_providers" (
+      "id",
+      "user_id",
+      "agent_id",
+      "provider",
+      "api_key_encrypted",
+      "key_prefix",
+      "auth_type",
+      "label",
+      "priority",
+      "region",
+      "is_active",
+      "connected_at",
+      "updated_at",
+      "cached_models",
+      "models_fetched_at"
+    )
+    SELECT
+      up."id" || ':' || ranked_grants."agent_id",
+      up."user_id",
+      ranked_grants."agent_id",
+      up."provider",
+      up."api_key_encrypted",
+      up."key_prefix",
+      up."auth_type",
+      up."label",
+      up."priority",
+      up."region",
+      up."is_active",
+      up."connected_at",
+      up."updated_at",
+      up."cached_models",
+      up."models_fetched_at"
+    FROM ranked_grants
+    JOIN "user_providers" up ON up."id" = ranked_grants."user_provider_id"
+    WHERE ranked_grants.rn > 1
+    ON CONFLICT ("id") DO NOTHING
+  `);
+
+    await queryRunner.query(`
+    WITH first_grant AS (
+      SELECT DISTINCT ON (apa."user_provider_id")
+        apa."user_provider_id",
+        apa."agent_id"
+      FROM "agent_provider_access"
+      JOIN "user_providers" up ON up."id" = apa."user_provider_id"
+      WHERE up."agent_id" IS NULL
+      ORDER BY apa."user_provider_id", apa."agent_id"
+    )
+    UPDATE "user_providers" up
+    SET "agent_id" = first_grant."agent_id"
+    FROM first_grant
+    WHERE up."id" = first_grant."user_provider_id"
+      AND up."agent_id" IS NULL
+  `);
+
+    await queryRunner.query(`
+    DELETE FROM "user_providers"
+    WHERE "agent_id" IS NULL
+  `);
+
+    await queryRunner.query(`
+    ALTER TABLE "user_providers" ALTER COLUMN "agent_id" SET NOT NULL
+  `);
+    await queryRunner.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_providers_agent_provider_auth_label"
     ON "user_providers" ("agent_id", "provider", "auth_type", LOWER("label"))
   `);
-    await queryRunner.query(`ALTER TABLE "user_providers" ALTER COLUMN "agent_id" SET NOT NULL`);
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_provider_access_provider"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "agent_provider_access"`);
   }

@@ -88,7 +88,7 @@ export class ModelController {
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const models = await this.discoveryService.getModelsForAgent(user.id);
+    const models = await this.discoveryService.getModelsForAgent(user.id, agent.id);
 
     // Build display name map for custom providers
     const customProviders = await this.customProviderService.list(agent.id);

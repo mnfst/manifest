@@ -507,7 +507,12 @@ describe('PlaygroundService.runStream', () => {
 
     await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
 
-    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(USER_ID, 'openai');
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(
+      USER_ID,
+      'openai',
+      undefined,
+      AGENT.id,
+    );
     // subscription auth → cost is 0, not null
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);
@@ -544,6 +549,7 @@ describe('PlaygroundService.runStream', () => {
       USER_ID,
       'openai',
       'subscription',
+      AGENT.id,
     );
     expect(mocks.openaiOauth.unwrapToken).toHaveBeenCalledWith(
       oauthBlob,

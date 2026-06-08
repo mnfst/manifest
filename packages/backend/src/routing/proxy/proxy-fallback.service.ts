@@ -205,11 +205,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix))
+            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix, agentId))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(userId, requestedModel));
+            (await this.providerKeyService.findProviderForModel(userId, requestedModel, agentId));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -220,6 +220,7 @@ export class ProxyFallbackService {
           userId,
           provider,
           excludeAuth,
+          agentId,
         )) as AuthType;
       }
       if (!providerKeyLabel && authType === 'subscription') {
@@ -227,6 +228,7 @@ export class ProxyFallbackService {
           userId,
           provider,
           authType,
+          agentId,
         );
       }
 
@@ -236,6 +238,7 @@ export class ProxyFallbackService {
         provider,
         authType,
         providerKeyLabel,
+        agentId,
       );
       if (apiKey === null) {
         this.logger.debug(
@@ -272,6 +275,7 @@ export class ProxyFallbackService {
             provider,
             authType,
             providerKeyLabel,
+            agentId,
           )) ?? apiKey;
       }
       const providerRegion = await this.providerKeyService.getProviderRegion(
@@ -279,6 +283,7 @@ export class ProxyFallbackService {
         provider,
         authType,
         providerKeyLabel,
+        agentId,
       );
 
       this.logger.log(

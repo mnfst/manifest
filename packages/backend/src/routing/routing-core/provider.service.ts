@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
+import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { Agent } from '../../entities/agent.entity';
@@ -45,6 +46,8 @@ export class ProviderService {
     private readonly autoAssign: TierAutoAssignService,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly routingCache: RoutingCacheService,
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
   ) {}
 
   /** Public entry point for tier recalculation (e.g. after model discovery). */
@@ -78,6 +81,22 @@ export class ProviderService {
     );
     this.routingCache.setProviders(userId, providers);
     return providers;
+  }
+
+  async grantProviderAccess(agentId: string, userProviderId: string): Promise<void> {
+    if (!this.accessRepo) return;
+    await this.accessRepo
+      .createQueryBuilder()
+      .insert()
+      .into(AgentProviderAccess)
+      .values({ agent_id: agentId, user_provider_id: userProviderId })
+      .orIgnore()
+      .execute();
+  }
+
+  private async deleteProviderAccess(userProviderIds: string[]): Promise<void> {
+    if (!this.accessRepo || userProviderIds.length === 0) return;
+    await this.accessRepo.delete({ user_provider_id: In(userProviderIds) });
   }
 
   /**
@@ -162,7 +181,7 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
-      await this.afterProviderChange(agentId, userId);
+      await this.afterProviderChange(agentId, userId, existing.id);
       return { provider: existing, isNew: false };
     }
 
@@ -182,7 +201,7 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderChange(agentId, userId);
+    await this.afterProviderChange(agentId, userId, record.id);
     return { provider: record, isNew: true };
   }
 
@@ -219,7 +238,7 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
-      await this.afterProviderChange(agentId, userId);
+      await this.afterProviderChange(agentId, userId, existing.id);
       return { provider: existing, isNew: false };
     }
 
@@ -242,7 +261,7 @@ export class ProviderService {
         sameKey.is_active = true;
         sameKey.updated_at = new Date().toISOString();
         await this.providerRepo.save(sameKey);
-        await this.afterProviderChange(agentId, userId);
+        await this.afterProviderChange(agentId, userId, sameKey.id);
         return { provider: sameKey, isNew: false };
       }
     }
@@ -263,7 +282,7 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderChange(agentId, userId);
+    await this.afterProviderChange(agentId, userId, record.id);
     return { provider: record, isNew: true };
   }
 
@@ -439,7 +458,10 @@ export class ProviderService {
       where: { user_id: userId, provider, auth_type: 'subscription' },
     });
 
-    if (existing) return { isNew: false };
+    if (existing) {
+      await this.afterProviderChange(agentId, userId, existing.id);
+      return { isNew: false };
+    }
     const hasApiKey = await this.providerRepo.findOne({
       where: { user_id: userId, provider, auth_type: 'api_key', is_active: true },
     });
@@ -460,16 +482,21 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderChange(agentId, userId);
+    await this.afterProviderChange(agentId, userId, record.id);
     return { isNew: true };
   }
 
-  private async afterProviderChange(agentId: string | null, userId: string): Promise<void> {
+  private async afterProviderChange(
+    agentId: string | null,
+    userId: string,
+    userProviderId?: string,
+  ): Promise<void> {
     // A null agentId means the change is user-global (e.g. a custom provider)
     // and has no single agent context — recalculate every owned agent instead.
     if (agentId === null) {
       await this.recalculateTiersForUser(userId);
     } else {
+      if (userProviderId) await this.grantProviderAccess(agentId, userProviderId);
       await this.autoAssign.recalculate(agentId, userId);
       this.routingCache.invalidateAgent(agentId);
     }
@@ -540,12 +567,14 @@ export class ProviderService {
     const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider, is_active: true };
     if (authType) where.auth_type = authType;
     const activeRows = await this.providerRepo.find({ where });
+    let affectedRows = activeRows;
 
     if (activeRows.length === 0) {
       const fallbackWhere: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
       if (authType) fallbackWhere.auth_type = authType;
       const any = await this.providerRepo.findOne({ where: fallbackWhere });
       if (!any) throw new NotFoundException('Provider not found');
+      affectedRows = [any];
     } else {
       const now = new Date().toISOString();
       for (const row of activeRows) {
@@ -554,6 +583,7 @@ export class ProviderService {
       }
       await this.providerRepo.save(activeRows);
     }
+    await this.deleteProviderAccess(affectedRows.map((row) => row.id));
     const otherActive = await this.providerRepo.find({
       where: { user_id: userId, provider, is_active: true },
     });
@@ -668,6 +698,7 @@ export class ProviderService {
     }
 
     await this.providerRepo.remove(target);
+    await this.deleteProviderAccess([target.id]);
     await this.relabelOverrides(agentId, provider, target.auth_type, target.label, null);
     await this.renumberPriorities(userId, provider, target.auth_type);
     this.routingCache.invalidateAgent(agentId);

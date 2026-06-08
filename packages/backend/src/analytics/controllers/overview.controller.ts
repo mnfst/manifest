@@ -11,6 +11,9 @@ import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
 
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
@@ -22,6 +25,8 @@ export class OverviewController {
     private readonly tenantCache: TenantCacheService,
     private readonly providerService: ProviderService,
     private readonly resolveAgent: ResolveAgentService,
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess>,
   ) {}
 
   @Get('overview')
@@ -63,9 +68,12 @@ export class OverviewController {
   private async hasActiveProviders(userId: string, agentName?: string): Promise<boolean> {
     if (!agentName) return false;
     try {
-      await this.resolveAgent.resolve(userId, agentName);
+      const agent = await this.resolveAgent.resolve(userId, agentName);
       const providers = await this.providerService.getProviders(userId);
-      return providers.some((p) => p.is_active);
+      const activeProviderIds = new Set(providers.filter((p) => p.is_active).map((p) => p.id));
+      if (activeProviderIds.size === 0) return false;
+      const grants = await this.accessRepo.find({ where: { agent_id: agent.id } });
+      return grants.some((grant) => activeProviderIds.has(grant.user_provider_id));
     } catch {
       return false;
     }

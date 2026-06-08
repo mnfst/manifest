@@ -271,9 +271,8 @@ export class ProviderKeyService {
   }
 
   async isModelAvailable(userId: string, model: string, agentId?: string): Promise<boolean> {
-    // Check discovered models first (discovery is user-scoped; agent filtering
-    // happens at the provider level via filterProvidersForAgent below)
-    const discovered = await this.discoveryService.getModelForAgent(userId, model);
+    // Check discovered models first.
+    const discovered = await this.discoveryService.getModelForAgent(userId, model, agentId);
     if (discovered) return true;
 
     const pricing = this.pricingCache.getByModel(model);

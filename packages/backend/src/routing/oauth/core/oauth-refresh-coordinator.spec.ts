@@ -45,12 +45,12 @@ function makeParams(overrides: Partial<CoordinatedRefreshParams<TestBlob>> = {})
 }
 
 describe('oauthRefreshKey', () => {
-  it('namespaces by provider/user/agent and defaults the label', () => {
-    expect(oauthRefreshKey('openai', 'u', 'a')).toBe('openai:u:a:Default');
+  it('namespaces by provider/user and defaults the label', () => {
+    expect(oauthRefreshKey('openai', 'u')).toBe('openai:u:Default');
   });
 
   it('uses an explicit label when provided', () => {
-    expect(oauthRefreshKey('openai', 'u', 'a', 'Work')).toBe('openai:u:a:Work');
+    expect(oauthRefreshKey('openai', 'u', 'Work')).toBe('openai:u:Work');
   });
 });
 
