@@ -27,17 +27,20 @@ function createConfig(nodeEnv = 'production'): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue('X Account');
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -142,6 +145,20 @@ describe('XaiOauthService', () => {
     expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
     expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
     expect(svc.getPendingCount()).toBe(0);
+  });
+
+  it('recalcs ALL owned agents after discovery when the provider row is NEW', async () => {
+    providerService.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+    fetchMock.mockResolvedValue(
+      mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
+    );
+    const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+    const state = new URL(url).searchParams.get('state')!;
+
+    await svc.exchangeCode(state, 'auth-code');
+
+    expect(providerService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+    expect(providerService.recalculateTiers).not.toHaveBeenCalled();
   });
 
   it('rejects unknown and expired states', async () => {

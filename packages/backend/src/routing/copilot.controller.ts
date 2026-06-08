@@ -32,7 +32,7 @@ export class CopilotController {
     const result = await this.copilotAuth.pollForToken(body.deviceCode);
     if (result.status === 'complete' && result.token) {
       const label = await this.providerService.nextOAuthLabel(user.id, 'copilot');
-      const { provider: record } = await this.providerService.upsertProvider(
+      const { provider: record, isNew } = await this.providerService.upsertProvider(
         agent.id,
         user.id,
         'copilot',
@@ -43,7 +43,14 @@ export class CopilotController {
       );
       try {
         await this.discoveryService.discoverModels(record);
-        await this.providerService.recalculateTiers(agent.id, user.id);
+        // A NEW provider is global + ON for every owned agent, so recalc every
+        // sibling against the post-discovery model set; a reconnect only touches
+        // the connecting agent (preserving per-agent disables).
+        if (isNew) {
+          await this.providerService.recalculateTiersForUser(user.id);
+        } else {
+          await this.providerService.recalculateTiers(agent.id, user.id);
+        }
       } catch {
         // Discovery failure is non-fatal
       }

@@ -30,17 +30,20 @@ function createConfig(): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -257,6 +260,24 @@ describe('MinimaxOauthService', () => {
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(svc.getPendingCount()).toBe(0);
+    });
+
+    it('recalcs ALL owned agents after discovery when the provider row is NEW', async () => {
+      provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      const start = await startFlow();
+      fetchMock.mockResolvedValueOnce(
+        mockResponse(200, {
+          status: 'success',
+          access_token: 'at',
+          refresh_token: 'rt',
+          expired_in: 3600,
+        }),
+      );
+
+      await svc.pollAuthorization(start.flowId, 'user-1');
+
+      expect(provider.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('swallows discovery errors after a successful token exchange', async () => {

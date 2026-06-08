@@ -86,6 +86,31 @@ describe('Direction 2 – connecting a NEW provider auto-grants every existing a
     const enabled: string[] = res.body.enabled ?? [];
     expect(enabled).toContain(providerId);
   });
+
+  it('sibling agent B has a tier route computed AGAINST the post-discovery model set', async () => {
+    // The bug: grantNewProviderToAllAgents recalcs every agent INSIDE
+    // upsertProvider, but that runs BEFORE discoverModels populates the new
+    // provider's cached_models — so siblings would be left with auto-assigned
+    // routes derived from a model set that excluded the new provider. The fix
+    // re-recalcs ALL owned agents AFTER discovery on a NEW-provider connect.
+    //
+    // Discovery for openai (fake key) falls back to the stubbed OpenRouter
+    // cache, so the provider's cached_models = gpt-4o / gpt-4o-mini after the
+    // connect above. A sibling (agent B) that was never the connect context
+    // must therefore have a non-null auto_assigned_route pointing at openai.
+    const tiers = await ds.query(
+      `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
+      [agentBId],
+    );
+    expect(tiers.length).toBeGreaterThan(0);
+    // auto_assigned_route is a JSONB { provider, authType, model } object.
+    const routes = tiers
+      .map((t: { auto_assigned_route: { provider?: string } | null }) => t.auto_assigned_route)
+      .filter((r: unknown): r is { provider?: string } => r !== null);
+    // At least one tier routes to the just-connected openai provider — proof B
+    // was recalced against the model set that INCLUDES the new provider.
+    expect(routes.some((r: { provider?: string }) => r.provider === 'openai')).toBe(true);
+  });
 });
 
 describe('Direction 1 – creating a NEW agent inherits every existing provider', () => {

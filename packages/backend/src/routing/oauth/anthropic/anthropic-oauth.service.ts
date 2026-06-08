@@ -149,7 +149,7 @@ export class AnthropicOauthService {
     };
 
     const label = await this.providerService.nextOAuthLabel(pending.userId, PROVIDER);
-    const { provider: savedProvider } = await this.providerService.upsertProvider(
+    const { provider: savedProvider, isNew } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
       PROVIDER,
@@ -160,7 +160,14 @@ export class AnthropicOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId, pending.userId);
+      // A NEW provider is global + ON for every owned agent: recalc all siblings
+      // against the post-discovery model set. A reconnect only touches the
+      // connecting agent (preserving per-agent disables).
+      if (isNew) {
+        await this.providerService.recalculateTiersForUser(pending.userId);
+      } else {
+        await this.providerService.recalculateTiers(pending.agentId, pending.userId);
+      }
     } catch (err) {
       this.logger.warn(`Model discovery after Anthropic OAuth failed: ${err}`);
     }

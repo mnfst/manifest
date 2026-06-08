@@ -22,6 +22,7 @@ describe('CopilotController', () => {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: false }),
       nextOAuthLabel: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      recalculateTiersForUser: jest.fn().mockResolvedValue(undefined),
     };
     mockResolveAgent = {
       resolve: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' } as Agent),
@@ -108,7 +109,7 @@ describe('CopilotController', () => {
       );
     });
 
-    it('should call discoverModels and recalculateTiers on successful token poll', async () => {
+    it('should discover then recalc ALL owned agents when the copilot provider is NEW', async () => {
       const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
       mockCopilotAuth.pollForToken.mockResolvedValue({
         status: 'complete',
@@ -124,7 +125,27 @@ describe('CopilotController', () => {
       } as never);
 
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
+      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+    });
+
+    it('should recalc ONLY the connecting agent on an existing-row copilot reconnect', async () => {
+      const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_token',
+      });
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: providerRecord,
+        isNew: false,
+      });
+
+      await controller.copilotPollToken(mockUser, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
       expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
     });
 
     it('should swallow discovery errors in copilotPollToken', async () => {

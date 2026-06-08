@@ -31,17 +31,20 @@ function createConfig(overrides: Record<string, string> = {}): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue('Kiro 1');
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -313,6 +316,20 @@ describe('KiroOauthService', () => {
       });
       expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
       expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
+    });
+
+    it('recalcs ALL owned agents after discovery when the provider row is NEW', async () => {
+      provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      const service = makeService();
+      const flowId = await startAndGetFlowId(service);
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse(200, { accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }),
+      );
+
+      await service.pollAuthorization(flowId, 'user-1');
+
+      expect(provider.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('still succeeds when post-connect discovery throws', async () => {
