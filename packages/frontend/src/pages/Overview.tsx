@@ -36,6 +36,7 @@ import { isRecentlyCreated } from '../services/recent-agents.js';
 import { messagePing } from '../services/sse.js';
 import {
   RANGE_STORAGE_KEY,
+  VALID_RANGES,
   useOverviewColumns,
   useOverviewRange,
 } from '../services/use-overview-range.js';
@@ -90,8 +91,10 @@ const Overview: Component = () => {
   const navigate = useNavigate();
   preloadModelDisplayNames();
   const { isSelfHosted, columns } = useOverviewColumns();
+  // Only treat the stored value as a user selection when it is actually valid.
+  // An invalid stored range falls through to the smart-range cascade.
   const [userSelectedRange, setUserSelectedRange] = createSignal(
-    !!localStorage.getItem(RANGE_STORAGE_KEY),
+    VALID_RANGES.has(localStorage.getItem(RANGE_STORAGE_KEY) ?? ''),
   );
   const { range, setRange, handleRangeChange } = useOverviewRange({
     markUserSelected: () => setUserSelectedRange(true),

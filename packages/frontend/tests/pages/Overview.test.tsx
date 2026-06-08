@@ -697,6 +697,26 @@ describe("Overview", () => {
         expect(select.value).toBe("30d");
       });
     });
+
+    it("cascades when localStorage contains an invalid range (not treated as user selection)", async () => {
+      // An invalid stored range must NOT lock userSelectedRange=true;
+      // the smart-range cascade must still kick in.
+      localStorage.setItem("manifest_chart_range", "invalid");
+      const emptyUsageData = {
+        ...overviewData,
+        has_data: true,
+        token_usage: [],
+        cost_usage: [],
+        message_usage: [],
+      };
+      mockGetOverview.mockResolvedValue(emptyUsageData);
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        // Cascade should run: all-empty data + invalid stored range → lands at 24h
+        const select = container.querySelector('[data-testid="select"]') as HTMLSelectElement;
+        expect(select.value).toBe("24h");
+      });
+    });
   });
 
   it("renders provider icon and auth badge in cost_by_model for known providers", async () => {
