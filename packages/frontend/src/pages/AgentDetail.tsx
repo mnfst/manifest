@@ -1,14 +1,15 @@
 import { A, useLocation, useParams } from '@solidjs/router';
-import { type ParentComponent } from 'solid-js';
+import { type ParentComponent, Show } from 'solid-js';
 import { Title } from '@solidjs/meta';
 import { agentPath } from '../services/routing.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import { agentPlatformIcon } from '../services/agent-platform-store.js';
 
 /**
  * AgentDetail — horizontal-tabbed shell for the agent detail view.
  *
- * Renders a header (back-link to /agents + agent display name) and a
- * horizontal tab bar (Overview / Routing / Limits / Settings). Child
+ * Renders a header (back-link to /agents + platform icon + agent display name)
+ * and a horizontal tab bar (Overview / Routing / Limits / Settings). Child
  * routes render in the body via props.children (SolidJS nested <Route>).
  */
 const AgentDetail: ParentComponent = (props) => {
@@ -40,6 +41,15 @@ const AgentDetail: ParentComponent = (props) => {
         >
           ← Agents
         </A>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+        <Show when={agentPlatformIcon()}>
+          <img src={agentPlatformIcon()!} alt="" width="28" height="28" style="flex-shrink: 0;" />
+        </Show>
+        <h1 class="page-header__title" style="margin: 0;">
+          {agentDisplayName() ?? agentName()}
+        </h1>
       </div>
 
       {/* Horizontal tabs */}
