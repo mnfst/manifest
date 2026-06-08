@@ -141,7 +141,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     expect(createBtn.disabled).toBe(false);
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/weird%2Fname", expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith("/agents/weird%2Fname/routing", expect.anything());
     });
   });
 
@@ -151,7 +151,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     fireEvent.input(input, { target: { value: "100%cool" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/100%25cool", expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith("/agents/100%25cool/routing", expect.anything());
     });
   });
 
@@ -162,7 +162,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("bot-🚀")}`,
+        `/agents/${encodeURIComponent("bot-🚀")}/routing`,
         expect.anything(),
       );
     });
@@ -242,7 +242,7 @@ describe("Workspace AddAgentModal - exact createAgent payload", () => {
     fireEvent.input(input, { target: { value: "Demo Agent" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/demo-agent-1", {
+      expect(mockNavigate).toHaveBeenCalledWith("/agents/demo-agent-1/routing", {
         state: { newApiKey: "key-xyz" },
       });
     });
@@ -256,7 +256,7 @@ describe("Workspace AddAgentModal - exact createAgent payload", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("Fallback Agent")}`,
+        `/agents/${encodeURIComponent("Fallback Agent")}/routing`,
         { state: { newApiKey: "k" } },
       );
     });
