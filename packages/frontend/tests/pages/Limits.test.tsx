@@ -63,7 +63,7 @@ describe("Limits page", () => {
 
   it("renders page title", () => {
     render(() => <Limits />);
-    expect(screen.getByText("Limits")).toBeDefined();
+    expect(screen.getByText(/Get notified or block requests when token or cost thresholds are exceeded/)).toBeDefined();
   });
 
   it("renders breadcrumb with agent name", () => {

@@ -626,9 +626,8 @@ describe('Routing page', () => {
   it('renders the page header with the agent display name', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Routing')).toBeDefined();
+      expect(screen.getByText(/Pick which model handles each type of request/)).toBeDefined();
     });
-    expect(screen.getByText(/Pick which model handles each type of request/)).toBeDefined();
   });
 
   it('renders the empty providers state when no providers are connected', async () => {

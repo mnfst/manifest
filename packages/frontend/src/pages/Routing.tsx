@@ -445,7 +445,6 @@ const Routing: Component = () => {
 
       <div class="page-header routing-page-header">
         <div>
-          <h1>Routing</h1>
           <span class="breadcrumb">
             {agentDisplayName() ?? agentName()} &rsaquo; Pick which model handles each type of
             request

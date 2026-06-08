@@ -131,7 +131,6 @@ const Limits: Component = () => {
 
       <div class="page-header">
         <div>
-          <h1>Limits</h1>
           <span class="breadcrumb">
             {agentDisplayName() ?? agentName()} &rsaquo; Get notified or block requests when token
             or cost thresholds are exceeded

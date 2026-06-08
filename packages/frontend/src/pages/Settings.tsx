@@ -184,7 +184,6 @@ const Settings: Component = () => {
       />
       <div class="page-header">
         <div>
-          <h1>Settings</h1>
           <span class="breadcrumb">
             {agentDisplayName() ?? agentName()} &rsaquo; Rename your agent, manage API keys, and
             view setup instructions

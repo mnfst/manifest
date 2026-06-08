@@ -140,7 +140,7 @@ describe("Settings", () => {
 
   it("renders Settings heading", () => {
     render(() => <Settings />);
-    expect(screen.getByText("Settings")).toBeDefined();
+    expect(screen.getByText(/Rename your agent, manage API keys, and view setup instructions/)).toBeDefined();
   });
 
   it("renders agent name input with value", () => {
