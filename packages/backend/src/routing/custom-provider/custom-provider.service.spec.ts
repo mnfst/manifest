@@ -49,10 +49,12 @@ function makeDeps(overrides: {
   const getCustomProviders = jest.fn().mockReturnValue(overrides.cached ?? null);
   const setCustomProviders = jest.fn();
   const invalidateAgent = jest.fn();
+  const invalidateUser = jest.fn();
   const routingCache = {
     getCustomProviders,
     setCustomProviders,
     invalidateAgent,
+    invalidateUser,
   } as unknown as RoutingCacheService;
 
   const recalculate = jest.fn().mockResolvedValue(undefined);
@@ -567,7 +569,7 @@ describe('CustomProviderService', () => {
         ],
       });
       expect(existing.models[0].context_window).toBe(128_000);
-      expect(recalculate).toHaveBeenCalledWith('agent-1');
+      expect(recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(upsertProvider).not.toHaveBeenCalled();
       // Edited prices must flow into the shared pricing cache so the next
       // proxied message picks up the new per-token cost.
@@ -615,7 +617,7 @@ describe('CustomProviderService', () => {
         findOneResults: [existing, null],
       });
       await svc.update('agent-1', 'cp1', 'user-1', { name: 'My Home Server' });
-      expect(retagAuthType).toHaveBeenCalledWith('agent-1', 'custom:cp1', 'api_key');
+      expect(retagAuthType).toHaveBeenCalledWith('agent-1', 'user-1', 'custom:cp1', 'api_key');
       // No apiKey in the DTO, so upsertProvider must not fire.
       expect(upsertProvider).not.toHaveBeenCalled();
       // retagAuthType owns the cache invalidation; rename should not double-recalculate tiers.
@@ -626,14 +628,14 @@ describe('CustomProviderService', () => {
       const existing = { id: 'cp1', agent_id: 'agent-1', name: 'LM Studio' } as CustomProvider;
       const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
       await svc.update('agent-1', 'cp1', 'user-1', { name: 'Home Server' });
-      expect(retagAuthType).toHaveBeenLastCalledWith('agent-1', 'custom:cp1', 'api_key');
+      expect(retagAuthType).toHaveBeenLastCalledWith('agent-1', 'user-1', 'custom:cp1', 'api_key');
     });
 
     it('retags api_key → local when renaming into a canonical local name', async () => {
       const existing = { id: 'cp1', agent_id: 'agent-1', name: 'Home Server' } as CustomProvider;
       const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
       await svc.update('agent-1', 'cp1', 'user-1', { name: 'LM Studio' });
-      expect(retagAuthType).toHaveBeenLastCalledWith('agent-1', 'custom:cp1', 'local');
+      expect(retagAuthType).toHaveBeenLastCalledWith('agent-1', 'user-1', 'custom:cp1', 'local');
     });
 
     it('does not retag when a rename stays within the same category', async () => {
@@ -681,10 +683,10 @@ describe('CustomProviderService', () => {
     });
 
     it('deletes the row and attempts provider removal', async () => {
-      const cp = { id: 'cp1', agent_id: 'agent-1' } as CustomProvider;
+      const cp = { id: 'cp1', agent_id: 'agent-1', user_id: 'user-1' } as CustomProvider;
       const { svc, removeProvider, remove, reloadPricing } = makeDeps({ findOneResults: [cp] });
       await svc.remove('agent-1', 'cp1');
-      expect(removeProvider).toHaveBeenCalledWith('agent-1', 'custom:cp1');
+      expect(removeProvider).toHaveBeenCalledWith('agent-1', 'user-1', 'custom:cp1');
       expect(remove).toHaveBeenCalledWith(cp);
       // Stale pricing entries for this provider must be dropped from the
       // cache so getAll() stops returning them.

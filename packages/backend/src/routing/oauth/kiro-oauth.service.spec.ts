@@ -297,7 +297,7 @@ describe('KiroOauthService', () => {
       const result = await service.pollAuthorization(flowId, 'user-1');
 
       expect(result).toEqual({ status: 'success' });
-      expect(provider.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'kiro');
+      expect(provider.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'kiro');
       const [, , prov, serialized, authType, , label] = provider.upsertProvider.mock.calls[0];
       expect(prov).toBe('kiro');
       expect(authType).toBe('subscription');
@@ -312,7 +312,7 @@ describe('KiroOauthService', () => {
         region: 'us-east-1',
       });
       expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
     });
 
     it('still succeeds when post-connect discovery throws', async () => {

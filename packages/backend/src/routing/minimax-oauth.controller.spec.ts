@@ -104,6 +104,7 @@ describe('MinimaxOauthController', () => {
     expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
     expect(providerService.removeProvider).toHaveBeenCalledWith(
       'agent-id-1',
+      'user-1',
       'minimax',
       'subscription',
       undefined,
@@ -118,6 +119,7 @@ describe('MinimaxOauthController', () => {
 
     expect(providerService.removeProvider).toHaveBeenCalledWith(
       'agent-id-1',
+      'user-1',
       'minimax',
       'subscription',
       'Key 2',

@@ -388,10 +388,10 @@ describe('ModelDiscoveryService', () => {
       providerRepo.find.mockResolvedValue(providers);
       fetcher.fetch.mockResolvedValue([]);
 
-      await service.discoverAllForAgent('agent-1');
+      await service.discoverAllForAgent('user-1');
 
       expect(providerRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', is_active: true },
+        where: { user_id: 'user-1', is_active: true },
       });
       expect(fetcher.fetch).toHaveBeenCalledTimes(2);
     });
@@ -463,9 +463,9 @@ describe('ModelDiscoveryService', () => {
         makeModel({ id: 'gpt-4o-mini' }),
       ]);
 
-      const result = await service.refreshProvider('agent-1', 'openai', 'api_key');
+      const result = await service.refreshProvider('user-1', 'openai', 'api_key');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
+        where: { user_id: 'user-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
       });
       expect(result.ok).toBe(true);
       expect(result.model_count).toBe(2);
@@ -792,10 +792,10 @@ describe('ModelDiscoveryService', () => {
       await service.getModelsForAgent('agent-1');
       expect(providerRepo.find).toHaveBeenCalledTimes(1);
 
-      // Discover models for the same agent → cached_models change on disk →
-      // the per-agent model cache must be dropped.
+      // Discover models for the same user → cached_models change on disk →
+      // the per-user model cache must be dropped.
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o', provider: 'openai' })]);
-      await service.discoverModels(makeProvider({ agent_id: 'agent-1' }));
+      await service.discoverModels(makeProvider({ user_id: 'agent-1' }));
 
       await service.getModelsForAgent('agent-1');
       // Second getModelsForAgent must hit the DB again (find called twice for

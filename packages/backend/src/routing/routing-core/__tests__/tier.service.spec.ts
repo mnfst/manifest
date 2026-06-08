@@ -186,13 +186,13 @@ describe('TierService', () => {
     it('triggers auto-assign and re-reads when a usable provider exists', async () => {
       tierRepo.find.mockResolvedValueOnce([]);
       providerRepo.find.mockResolvedValue([
-        { agent_id: 'agent-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
+        { user_id: 'user-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
       ]);
       const finalRows = TIER_SLOTS.map((slot) => ({ tier: slot }) as TierAssignment);
       tierRepo.find.mockResolvedValueOnce(finalRows);
 
-      const result = await svc.getTiers('agent-1');
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      const result = await svc.getTiers('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', finalRows);
       expect(result).toBe(finalRows);
     });

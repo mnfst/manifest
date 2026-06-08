@@ -96,7 +96,7 @@ describe('CopilotController', () => {
         deviceCode: 'dc_abc',
       } as never);
 
-      expect(mockProviderService.nextOAuthLabel).toHaveBeenCalledWith(TEST_AGENT_ID, 'copilot');
+      expect(mockProviderService.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'copilot');
       expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
         'user-1',
@@ -124,7 +124,7 @@ describe('CopilotController', () => {
       } as never);
 
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
     });
 
     it('should swallow discovery errors in copilotPollToken', async () => {
