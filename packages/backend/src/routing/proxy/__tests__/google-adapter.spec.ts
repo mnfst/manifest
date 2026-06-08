@@ -161,6 +161,7 @@ describe('Google Adapter', () => {
                 type: 'object',
                 properties: {
                   name: { type: 'string', title: 'Name', default: 'foo' },
+                  count: { type: 'integer', minimum: 0, exclusiveMinimum: true },
                   config: {
                     type: 'object',
                     additionalProperties: true,
@@ -190,14 +191,61 @@ describe('Google Adapter', () => {
       const props = params.properties as Record<string, Record<string, unknown>>;
       expect(props.name).not.toHaveProperty('title');
       expect(props.name).not.toHaveProperty('default');
+      expect(props.count).not.toHaveProperty('exclusiveMinimum');
       expect(props.config).not.toHaveProperty('additionalProperties');
       expect(props.config).not.toHaveProperty('patternProperties');
 
       // Supported fields preserved
       expect(params.type).toBe('object');
       expect(props.name.type).toBe('string');
+      expect(props.count).toEqual({ type: 'integer', minimum: 0 });
       expect(props.config.type).toBe('object');
       expect(props.config.properties).toEqual({ key: { type: 'string' } });
+    });
+
+    it('strips exclusive numeric bounds without removing same-named properties', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Set limits' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'set_limits',
+              parameters: {
+                type: 'object',
+                properties: {
+                  threshold: {
+                    type: 'number',
+                    minimum: 0,
+                    maximum: 1,
+                    exclusiveMinimum: true,
+                    exclusiveMaximum: false,
+                  },
+                  exclusiveMinimum: {
+                    type: 'string',
+                    description: 'A user-defined property name',
+                  },
+                },
+              },
+            },
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.5-flash');
+
+      const tools = result.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+
+      expect(props.threshold).toEqual({ type: 'number', minimum: 0, maximum: 1 });
+      expect(props.exclusiveMinimum).toEqual({
+        type: 'string',
+        description: 'A user-defined property name',
+      });
     });
 
     it('strips both $ref and the non-standard dollar-less ref variant', () => {
