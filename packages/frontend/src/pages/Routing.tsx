@@ -14,6 +14,9 @@ import RoutingTabs from '../components/RoutingTabs.js';
 import ResponseModeModal from '../components/ResponseModeModal.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import SetupModal from '../components/SetupModal.jsx';
+import { isRecentlyCreated } from '../services/recent-agents.js';
+import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
@@ -55,6 +58,15 @@ const Routing: Component = () => {
   const location = useLocation<{ openProviders?: boolean }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const agentName = () => decodeURIComponent(params.agentName);
+
+  // Newly created agents land on this tab; show the setup modal here too (it
+  // used to live only on Overview). Opens for a freshly-created agent unless
+  // already completed/dismissed.
+  const [setupOpen, setSetupOpen] = createSignal(
+    isRecentlyCreated(agentName()) &&
+      !localStorage.getItem(`setup_completed_${params.agentName}`) &&
+      !localStorage.getItem(`setup_dismissed_${params.agentName}`),
+  );
 
   const customProviderPrefill = createMemo(() => parseCustomProviderParams(searchParams));
   const providerDeepLink = createMemo(() => parseProviderDeepLink(searchParams));
@@ -752,6 +764,22 @@ const Routing: Component = () => {
         onAddFallback={handleAddFallback}
         onProviderUpdate={handleProviderUpdate}
         onOpenProviderModal={openProviderModal}
+      />
+
+      <SetupModal
+        open={setupOpen()}
+        agentName={agentName()}
+        apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
+        agentPlatform={agentPlatform()}
+        agentCategory={agentCategory()}
+        onClose={() => {
+          localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
+          setSetupOpen(false);
+        }}
+        onDone={() => {
+          localStorage.setItem(`setup_completed_${params.agentName}`, '1');
+          setSetupOpen(false);
+        }}
       />
     </div>
   );

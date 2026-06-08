@@ -69,6 +69,36 @@ vi.mock('../../src/services/agent-display-name.js', () => ({
   agentDisplayName: () => 'Demo',
 }));
 
+const mockIsRecentlyCreated = vi.fn(() => false);
+vi.mock('../../src/services/recent-agents.js', () => ({
+  isRecentlyCreated: (...args: unknown[]) => mockIsRecentlyCreated(...args),
+}));
+
+vi.mock('../../src/services/agent-platform-store.js', () => ({
+  agentPlatform: () => 'openclaw',
+  agentCategory: () => 'coding',
+}));
+
+let lastSetupModalProps: Record<string, unknown> | null = null;
+vi.mock('../../src/components/SetupModal.jsx', () => ({
+  default: (props: Record<string, unknown>) => {
+    lastSetupModalProps = props;
+    // Read every prop so the JSX-attribute lines in Routing.tsx count as covered.
+    const _read = [props.agentName, props.apiKey, props.agentPlatform, props.agentCategory];
+    void _read;
+    return (
+      <div data-testid="setup-modal" data-open={props.open ? 'true' : 'false'}>
+        <button data-testid="setup-close" onClick={() => (props.onClose as () => void)?.()}>
+          close
+        </button>
+        <button data-testid="setup-done" onClick={() => (props.onDone as () => void)?.()}>
+          done
+        </button>
+      </div>
+    );
+  },
+}));
+
 vi.mock('../../src/services/routing-params.js', () => ({
   parseCustomProviderParams: () => null,
   parseProviderDeepLink: () => null,
@@ -598,6 +628,9 @@ const baseProvider = {
 beforeEach(() => {
   vi.clearAllMocks();
   lastModalsProps = null;
+  lastSetupModalProps = null;
+  localStorage.clear();
+  mockIsRecentlyCreated.mockReturnValue(false);
   useParams.mockReturnValue({ agentName: 'demo' });
   useLocation.mockReturnValue({ state: undefined });
   useSearchParams.mockReturnValue([{}, setSearchParamsFn]);
@@ -1781,6 +1814,50 @@ describe('Routing page', () => {
     fireEvent.keyDown(overlay, { key: 'Escape' });
     await waitFor(() => {
       expect(screen.queryByText('Got it')).toBeNull();
+    });
+  });
+
+  describe('setup modal', () => {
+    it('opens the SetupModal for a freshly-created agent and wires its handlers', async () => {
+      mockIsRecentlyCreated.mockReturnValue(true);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      // (a) Recently-created agent → modal opens.
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
+      expect(mockIsRecentlyCreated).toHaveBeenCalledWith('demo');
+
+      // (b) onDone marks the agent as completed and closes the modal.
+      fireEvent.click(screen.getByTestId('setup-done'));
+      await waitFor(() => {
+        expect(localStorage.getItem('setup_completed_demo')).toBe('1');
+        expect((lastSetupModalProps?.open as boolean)).toBe(false);
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+    });
+
+    it('marks the agent dismissed and closes when onClose fires', async () => {
+      mockIsRecentlyCreated.mockReturnValue(true);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
+      });
+      // (c) onClose sets the dismissed flag and closes the modal.
+      fireEvent.click(screen.getByTestId('setup-close'));
+      await waitFor(() => {
+        expect(localStorage.getItem('setup_dismissed_demo')).toBe('1');
+        expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+      });
+    });
+
+    it('keeps the SetupModal closed for an agent that is not recently created', async () => {
+      mockIsRecentlyCreated.mockReturnValue(false);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
     });
   });
 });
