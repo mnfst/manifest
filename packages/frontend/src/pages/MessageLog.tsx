@@ -66,24 +66,27 @@ const MessageLog: Component = () => {
   onMount(() => {
     checkIsSelfHosted().then(setIsSelfHosted);
   });
-  const columns = () =>
-    isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
+  const columns = () => {
+    const base = isSelfHosted()
+      ? DETAILED_COLUMNS.filter((c) => c !== 'feedback')
+      : DETAILED_COLUMNS;
+    if (params.agentName) return base;
+    // Global Messages spans every agent, so show which agent each row belongs to.
+    const at = base.indexOf('model');
+    return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
+  };
   const [agentFilter, setAgentFilter] = createSignal('');
   const [agentList] = createResource(
     () => !params.agentName,
     async (isGlobal) => {
       if (!isGlobal) return [] as string[];
-      try {
-        const data = (await getAgents()) as
-          | { agents?: Array<{ agent_name: string }> }
-          | Array<{ agent_name: string }>;
-        const list = (Array.isArray(data) ? data : (data?.agents ?? [])) as Array<{
-          agent_name: string;
-        }>;
-        return list.map((a) => a.agent_name).sort();
-      } catch {
-        return [] as string[];
-      }
+      const data = (await getAgents()) as
+        | { agents?: Array<{ agent_name: string }> }
+        | Array<{ agent_name: string }>;
+      const list = (Array.isArray(data) ? data : (data?.agents ?? [])) as Array<{
+        agent_name: string;
+      }>;
+      return list.map((a) => a.agent_name).sort();
     },
   );
   const agentFilterOptions = createMemo(() => [

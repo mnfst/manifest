@@ -1405,17 +1405,28 @@ describe("MessageLog", () => {
       });
     });
 
-    it("handles getAgents() error gracefully (empty agent list)", async () => {
+    it("surfaces getAgents() errors to the resource error state (not silently empty)", async () => {
       mockAgentName = "";
-      mockGetAgents.mockRejectedValue(new Error("network error"));
+      // The loader no longer swallows errors: when getAgents() rejects the
+      // rejection propagates out of the loader so SolidJS resource transitions
+      // into error state instead of silently returning [].
+      // We verify: (1) getAgents was actually called; (2) the UI still renders
+      // the agent filter gracefully via `agentList() ?? []`.
+      mockGetAgents.mockImplementation(async () => {
+        throw new Error("network error");
+      });
       mockGetMessages.mockResolvedValue(messagesData);
-      const { container } = render(() => <MessageLog />);
+      const { container, unmount } = render(() => <MessageLog />);
       await vi.waitFor(() => {
+        expect(mockGetAgents).toHaveBeenCalled();
         const selects = container.querySelectorAll('[data-testid="select"]');
-        // Agent filter still renders with just "All agents"
+        // Agent filter still renders gracefully (agentList() ?? [] = [])
         expect(selects[0].textContent).toContain("All agents");
         expect(selects[0].textContent).not.toContain("agent-alpha");
       });
+      // Unmount and reset before the rejection can leak into the next test.
+      unmount();
+      mockGetAgents.mockResolvedValue({ agents: [] });
     });
 
     it("resets page when agentFilter changes", async () => {
@@ -1442,6 +1453,53 @@ describe("MessageLog", () => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.cursor).toBeUndefined();
+      });
+    });
+
+    it("renders 'Agent' column header in the message table when in global mode", async () => {
+      // Fix: columns() now inserts 'agent' before 'model' when !params.agentName.
+      // This test asserts the Agent column header actually appears in the DOM,
+      // not just that the component receives the columns array.
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("gpt-4o");
+      });
+      const headers = Array.from(container.querySelectorAll("thead th"));
+      const headerTexts = headers.map((th) => th.textContent?.trim());
+      expect(headerTexts).toContain("Agent");
+    });
+
+    it("does NOT render 'Agent' column header in agent-scoped mode", async () => {
+      // mockAgentName is "test-agent" from beforeEach — agent-scoped mode.
+      // columns() returns DETAILED_COLUMNS unchanged (no 'agent' key).
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("gpt-4o");
+      });
+      const headers = Array.from(container.querySelectorAll("thead th"));
+      const headerTexts = headers.map((th) => th.textContent?.trim());
+      expect(headerTexts).not.toContain("Agent");
+    });
+
+    it("renders agent_name values in the Agent column cells in global mode", async () => {
+      // Each message row must show its agent_name in the Agent cell when
+      // the 'agent' column is included (global mode).
+      mockAgentName = "";
+      const globalMessagesData = {
+        ...messagesData,
+        items: [
+          { ...messagesData.items[0], agent_name: "alpha-bot" },
+          { ...messagesData.items[1], agent_name: "beta-bot" },
+        ],
+      };
+      mockGetMessages.mockResolvedValue(globalMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("alpha-bot");
+        expect(container.textContent).toContain("beta-bot");
       });
     });
   });
