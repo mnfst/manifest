@@ -48,6 +48,14 @@ describe("Sidebar — global nav (agent route)", () => {
     expect(screen.getByText("Agents")).toBeDefined();
   });
 
+  it("renders provider section links", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("PROVIDERS")).toBeDefined();
+    expect(screen.getByText("Subscriptions")).toBeDefined();
+    expect(screen.getByText("BYOK")).toBeDefined();
+    expect(screen.getByText("Local")).toBeDefined();
+  });
+
   it("does not render MONITORING section on agent route", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("MONITORING");
@@ -67,6 +75,9 @@ describe("Sidebar — global nav (agent route)", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/overview"]')).not.toBeNull();
     expect(container.querySelector('a[href="/messages"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/providers/subscriptions"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/providers/byok"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull();
     expect(container.querySelector('a[href="/agents"]')).not.toBeNull();
   });
 
@@ -100,6 +111,13 @@ describe("Sidebar — global nav (global route)", () => {
     const agentsLink = container.querySelector('a[href="/agents"]');
     expect(agentsLink).not.toBeNull();
     expect(agentsLink?.textContent).toContain("Agents");
+  });
+
+  it("marks provider links active on provider pages", () => {
+    mockPathname = "/providers/byok";
+    const { container } = render(() => <Sidebar />);
+    const byokLink = container.querySelector('a[href="/providers/byok"]');
+    expect(byokLink?.getAttribute("aria-current")).toBe("page");
   });
 
   it("does not render MONITORING section in global mode", () => {
@@ -136,7 +154,7 @@ describe("Sidebar — global nav (global route)", () => {
 });
 
 describe("Sidebar — identical in agent and global mode", () => {
-  it("renders the same 3 links on /overview and /agents/:name", () => {
+  it("renders the same links on /overview and /agents/:name", () => {
     mockPathname = "/overview";
     const { container: globalContainer } = render(() => <Sidebar />);
     const globalLinks = Array.from(globalContainer.querySelectorAll("a.sidebar__link")).map(
@@ -150,7 +168,14 @@ describe("Sidebar — identical in agent and global mode", () => {
     );
 
     expect(agentLinks).toEqual(globalLinks);
-    expect(globalLinks).toEqual(["/overview", "/messages", "/agents"]);
+    expect(globalLinks).toEqual([
+      "/overview",
+      "/messages",
+      "/providers/subscriptions",
+      "/providers/byok",
+      "/providers/local",
+      "/agents",
+    ]);
   });
 });
 

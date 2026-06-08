@@ -328,6 +328,47 @@ export function refreshProviderModels(agentName: string, provider: string, authT
   return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
 }
 
+/* -- Agent Provider Access -- */
+
+export interface AgentProviderAccess {
+  enabled: string[];
+}
+
+export interface AgentProviderDisableImpact {
+  affected_tiers: Array<{ tier: string; model: string; position: string }>;
+}
+
+function agentProviderAccessPath(agentName: string, suffix = ''): string {
+  const encodedAgent = encodeURIComponent(agentName);
+  return suffix
+    ? `/agents/${encodedAgent}/provider-access${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+    : `/agents/${encodedAgent}/provider-access`;
+}
+
+export function getAgentProviderAccess(agentName: string) {
+  return fetchJson<AgentProviderAccess>(agentProviderAccessPath(agentName));
+}
+
+export function getAgentProviderDisableImpact(agentName: string, userProviderId: string) {
+  return fetchJson<AgentProviderDisableImpact>(
+    agentProviderAccessPath(agentName, `${encodeURIComponent(userProviderId)}/impact`),
+  );
+}
+
+export function enableAgentProviderAccess(agentName: string, userProviderId: string) {
+  return fetchMutate<{ ok: boolean }>(
+    agentProviderAccessPath(agentName, encodeURIComponent(userProviderId)),
+    { method: 'PUT' },
+  );
+}
+
+export function disableAgentProviderAccess(agentName: string, userProviderId: string) {
+  return fetchMutate<{ ok: boolean }>(
+    agentProviderAccessPath(agentName, encodeURIComponent(userProviderId)),
+    { method: 'DELETE' },
+  );
+}
+
 /* -- Routing: Pricing cache health -- */
 
 export interface PricingHealth {

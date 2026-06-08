@@ -9,8 +9,8 @@ import { agentPlatformIcon } from '../services/agent-platform-store.js';
  * AgentDetail — horizontal-tabbed shell for the agent detail view.
  *
  * Renders a header (back-link to /agents + platform icon + agent display name)
- * and a horizontal tab bar (Overview / Routing / Limits / Settings). Child
- * routes render in the body via props.children (SolidJS nested <Route>).
+ * and a horizontal tab bar (Overview / Routing / Providers / Limits / Settings).
+ * Child routes render in the body via props.children (SolidJS nested <Route>).
  */
 const AgentDetail: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
@@ -71,6 +71,15 @@ const AgentDetail: ParentComponent = (props) => {
           classList={{ 'panel__tab--active': isActive('/routing') }}
         >
           Routing
+        </A>
+        <A
+          href={path('/providers')}
+          role="tab"
+          aria-selected={isActive('/providers')}
+          class="panel__tab"
+          classList={{ 'panel__tab--active': isActive('/providers') }}
+        >
+          Providers
         </A>
         <A
           href={path('/guardrails')}

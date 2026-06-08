@@ -19,6 +19,7 @@ clearReloadFlag();
 const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
 const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
 const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
+const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
 const AgentLimitsRedirect = lazyReload(() => import('./pages/AgentLimitsRedirect.jsx'));
 const AgentMessagesRedirect = lazyReload(() => import('./pages/AgentMessagesRedirect.jsx'));
 const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
@@ -35,6 +36,9 @@ const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
 const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
+const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.jsx'));
+const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
+const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -66,6 +70,9 @@ render(
           <Route path="/overview" component={GlobalOverview} />
           <Route path="/messages" component={MessageLog} />
           <Route path="/agents" component={Workspace} />
+          <Route path="/providers/subscriptions" component={Subscriptions} />
+          <Route path="/providers/byok" component={Byok} />
+          <Route path="/providers/local" component={LocalProviders} />
           <Route path="/agents/:agentName" component={AgentGuard}>
             {/* Redirects: /limits → /guardrails, /messages → global /messages */}
             <Route path="/limits" component={AgentLimitsRedirect} />
@@ -76,6 +83,7 @@ render(
               <Route path="/" component={AgentOverview} />
               <Route path="/overview" component={AgentOverview} />
               <Route path="/routing" component={Routing} />
+              <Route path="/providers" component={AgentProviders} />
               <Route path="/guardrails" component={Limits} />
               <Route path="/settings/*" component={Settings} />
             </Route>

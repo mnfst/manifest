@@ -57,24 +57,24 @@ describe("AgentDetail", () => {
     expect(backLink.textContent).toContain("Agents");
   });
 
-  it("renders an h1 with the agent name in the agent detail body", () => {
+  it("renders an H1 with the agent name", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("h1")?.textContent?.trim()).toBe("my-agent");
   });
 
-  it("renders a tablist with exactly 4 tabs", () => {
+  it("renders a tablist with exactly 5 tabs", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tablist = container.querySelector('[role="tablist"]');
     expect(tablist).not.toBeNull();
     const tabs = tablist!.querySelectorAll('[role="tab"]');
-    expect(tabs.length).toBe(4);
+    expect(tabs.length).toBe(5);
   });
 
-  it("renders tabs labeled Overview, Routing, Limits, Settings in order", () => {
+  it("renders tabs labeled Overview, Routing, Providers, Limits, Settings in order", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     const labels = Array.from(tabs).map((t) => t.textContent);
-    expect(labels).toEqual(["Overview", "Routing", "Limits", "Settings"]);
+    expect(labels).toEqual(["Overview", "Routing", "Providers", "Limits", "Settings"]);
   });
 
   it("Overview tab links to the agent root path", () => {
@@ -89,16 +89,22 @@ describe("AgentDetail", () => {
     expect(tabs[1].getAttribute("href")).toBe("/agents/my-agent/routing");
   });
 
-  it("Guardrails tab links to /agents/:name/guardrails", () => {
+  it("Providers tab links to /agents/:name/providers", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[2].getAttribute("href")).toBe("/agents/my-agent/guardrails");
+    expect(tabs[2].getAttribute("href")).toBe("/agents/my-agent/providers");
+  });
+
+  it("Limits tab links to /agents/:name/guardrails", () => {
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
+    expect(tabs[3].getAttribute("href")).toBe("/agents/my-agent/guardrails");
   });
 
   it("Settings tab links to /agents/:name/settings", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[3].getAttribute("href")).toBe("/agents/my-agent/settings");
+    expect(tabs[4].getAttribute("href")).toBe("/agents/my-agent/settings");
   });
 
   it("marks Overview tab active when pathname is the agent root", () => {
@@ -109,6 +115,7 @@ describe("AgentDetail", () => {
     expect(tabs[1].getAttribute("aria-selected")).toBe("false");
     expect(tabs[2].getAttribute("aria-selected")).toBe("false");
     expect(tabs[3].getAttribute("aria-selected")).toBe("false");
+    expect(tabs[4].getAttribute("aria-selected")).toBe("false");
   });
 
   it("marks Overview tab active when pathname is /overview", () => {
@@ -126,8 +133,15 @@ describe("AgentDetail", () => {
     expect(tabs[1].getAttribute("aria-selected")).toBe("true");
   });
 
-  it("marks Guardrails tab active when pathname is /guardrails", () => {
+  it("marks Limits tab active when pathname is /guardrails", () => {
     mockPathname = "/agents/my-agent/guardrails";
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    const tabs = container.querySelectorAll('[role="tab"]');
+    expect(tabs[3].getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("marks Providers tab active when pathname is /providers", () => {
+    mockPathname = "/agents/my-agent/providers";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[2].getAttribute("aria-selected")).toBe("true");
@@ -137,7 +151,7 @@ describe("AgentDetail", () => {
     mockPathname = "/agents/my-agent/settings/advanced";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
-    expect(tabs[3].getAttribute("aria-selected")).toBe("true");
+    expect(tabs[4].getAttribute("aria-selected")).toBe("true");
   });
 
   it("renders children inside the shell", () => {
@@ -157,7 +171,7 @@ describe("AgentDetail", () => {
     expect(container.querySelector("h1")?.textContent?.trim()).toBe("my agent");
   });
 
-  it("does not render a platform icon when agentPlatformIcon returns undefined", () => {
+  it("does not show platform icon when agentPlatformIcon returns undefined", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("img")).toBeNull();
   });
@@ -176,7 +190,7 @@ describe("AgentDetail", () => {
     expect(container.querySelector("title")?.textContent).toBe("My Cool Agent | Manifest");
   });
 
-  it("renders the h1 with the display name when agentDisplayName is set", () => {
+  it("renders the H1 with the display name when agentDisplayName is set", () => {
     mockAgentDisplayName = "My Cool Agent";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("h1")?.textContent?.trim()).toBe("My Cool Agent");
@@ -188,7 +202,7 @@ describe("AgentDetail", () => {
     expect(container.querySelector("title")?.textContent).toBe("my-agent | Manifest");
   });
 
-  it("renders the h1 with the decoded slug when agentDisplayName is null", () => {
+  it("renders the H1 with the decoded slug when agentDisplayName is null", () => {
     mockAgentDisplayName = null;
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("h1")?.textContent?.trim()).toBe("my-agent");
@@ -200,7 +214,7 @@ describe("AgentDetail with platform icon", () => {
     vi.resetModules();
   });
 
-  it("renders the platform icon and h1 when agentPlatformIcon is set", async () => {
+  it("renders the platform icon and H1 when agentPlatformIcon is set", async () => {
     vi.doMock("../../src/services/agent-platform-store.js", () => ({
       agentPlatformIcon: () => "/icons/robot.svg",
     }));

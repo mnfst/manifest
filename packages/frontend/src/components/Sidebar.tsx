@@ -50,6 +50,32 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         Messages
       </A>
+      <div class="sidebar__section-label">PROVIDERS</div>
+      <A
+        href="/providers/subscriptions"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/subscriptions') }}
+        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
+      >
+        Subscriptions
+      </A>
+      <A
+        href="/providers/byok"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/byok') }}
+        aria-current={isGlobalActive('/providers/byok') ? 'page' : undefined}
+      >
+        BYOK
+      </A>
+      <A
+        href="/providers/local"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/local') }}
+        aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
+      >
+        Local
+      </A>
+      <div class="sidebar__section-label">AGENTS</div>
       <A
         href="/agents"
         class="sidebar__link"
