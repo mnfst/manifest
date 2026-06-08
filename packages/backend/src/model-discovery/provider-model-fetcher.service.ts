@@ -236,6 +236,13 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
  * or metadata field can catch the model. Document WHY each entry exists.
  */
 export const PROVIDER_BLOCKLIST: Record<string, ReadonlySet<string>> = {
+  'openai-subscription': new Set([
+    'gpt-5.3-codex', // ChatGPT Codex returns 400: not supported with a ChatGPT account
+    'gpt-5.2-codex', // ChatGPT Codex returns 400: not supported with a ChatGPT account
+    'gpt-5.2', // ChatGPT Codex returns 400: not supported with a ChatGPT account
+    'gpt-5.1-codex-max', // ChatGPT Codex returns 400: not supported with a ChatGPT account
+    'gpt-5.1-codex', // ChatGPT Codex returns 400: not supported with a ChatGPT account
+  ]),
   mistral: new Set([
     'voxtral-mini-2602', // Invalid model returned by API; not a real chat endpoint
   ]),
