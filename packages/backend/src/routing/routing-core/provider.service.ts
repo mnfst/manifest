@@ -94,6 +94,38 @@ export class ProviderService {
       .execute();
   }
 
+  /**
+   * Symmetric auto-connect, direction 1 (a NEW agent appears).
+   *
+   * Providers are user-global and ON by default for every agent, so a freshly
+   * created agent must immediately inherit every usable provider the user has
+   * already connected — then have its auto-assigned routes calculated from that
+   * model set. Mirrors the enable endpoint (grant + recalculateTiers), fanned
+   * out across the whole provider set. No-op safe when the user has 0 providers.
+   */
+  async enableAllProvidersForAgent(agentId: string, userId: string): Promise<void> {
+    for (const provider of await this.getProviders(userId)) {
+      await this.grantProviderAccess(agentId, provider.id);
+    }
+    await this.recalculateTiers(agentId, userId);
+  }
+
+  /**
+   * Symmetric auto-connect, direction 2 (a NEW provider is connected).
+   *
+   * A newly connected provider is global and ON by default, so every agent the
+   * user already owns must immediately gain access to it — then have all owned
+   * agents' auto-assigned routes refreshed against the expanded model set.
+   * Mirrors the enable endpoint, fanned out across every owned agent. No-op
+   * safe when the user owns 0 agents.
+   */
+  async grantNewProviderToAllAgents(userId: string, userProviderId: string): Promise<void> {
+    for (const agentId of await this.listOwnedAgentIds(userId)) {
+      await this.grantProviderAccess(agentId, userProviderId);
+    }
+    await this.recalculateTiersForUser(userId);
+  }
+
   private async deleteProviderAccess(userProviderIds: string[]): Promise<void> {
     if (!this.accessRepo || userProviderIds.length === 0) return;
     await this.accessRepo.delete({ user_provider_id: In(userProviderIds) });
@@ -201,7 +233,10 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderChange(agentId, userId, record.id);
+    // A brand-new provider is global + ON by default: grant it to every agent
+    // the user owns (incl. the connecting one) and recalc all their routes.
+    // This is a superset of afterProviderChange's new-row work for this row.
+    await this.grantNewProviderToAllAgents(userId, record.id);
     return { provider: record, isNew: true };
   }
 
@@ -282,7 +317,10 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderChange(agentId, userId, record.id);
+    // A brand-new provider is global + ON by default: grant it to every agent
+    // the user owns (incl. the connecting one) and recalc all their routes.
+    // This is a superset of afterProviderChange's new-row work for this row.
+    await this.grantNewProviderToAllAgents(userId, record.id);
     return { provider: record, isNew: true };
   }
 
@@ -482,7 +520,10 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderChange(agentId, userId, record.id);
+    // A brand-new subscription provider is global + ON by default: grant it to
+    // every agent the user owns (incl. the connecting one) and recalc all their
+    // routes — a superset of afterProviderChange's new-row work for this row.
+    await this.grantNewProviderToAllAgents(userId, record.id);
     return { isNew: true };
   }
 

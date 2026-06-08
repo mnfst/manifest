@@ -5,6 +5,7 @@ import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
 import { Agent } from '../../../entities/agent.entity';
 import { HeaderTier } from '../../../entities/header-tier.entity';
+import { AgentProviderAccess } from '../../../entities/agent-provider-access.entity';
 import type { Repository } from 'typeorm';
 import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
@@ -941,6 +942,248 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       const label = await svc.nextOAuthLabel('user-1', 'openai');
       expect(label).toBe('Key 3');
+    });
+  });
+});
+
+describe('ProviderService — symmetric provider↔agent auto-connect', () => {
+  const PREV_SECRET = process.env.BETTER_AUTH_SECRET;
+
+  // A query-builder mock whose insert chain records the granted (agent, provider)
+  // pairs so the symmetric-grant tests can assert exactly which grants were made.
+  const makeAccessRepo = (granted: Array<{ agent: string; provider: string }>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const insertChain: any = {
+      insert: jest.fn().mockReturnThis(),
+      into: jest.fn().mockReturnThis(),
+      values: jest.fn((v: { agent_id: string; user_provider_id: string }) => {
+        granted.push({ agent: v.agent_id, provider: v.user_provider_id });
+        return insertChain;
+      }),
+      orIgnore: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue(undefined),
+    };
+    return {
+      createQueryBuilder: jest.fn().mockReturnValue(insertChain),
+      delete: jest.fn().mockResolvedValue(undefined),
+    };
+  };
+
+  const build = (agentIds: string[], granted: Array<{ agent: string; provider: string }>) => {
+    const providerRepo = makeRepo();
+    const agentRepo = makeRepo(agentIds);
+    const autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
+    const routingCache = {
+      getProviders: jest.fn().mockReturnValue(null),
+      setProviders: jest.fn(),
+      invalidateAgent: jest.fn(),
+      invalidateUser: jest.fn(),
+    };
+    const accessRepo = makeAccessRepo(granted);
+    const svc = new ProviderService(
+      providerRepo as unknown as Repository<UserProvider>,
+      makeRepo() as unknown as Repository<TierAssignment>,
+      makeRepo() as unknown as Repository<SpecificityAssignment>,
+      agentRepo as unknown as Repository<Agent>,
+      makeRepo() as unknown as Repository<HeaderTier>,
+      autoAssign as unknown as TierAutoAssignService,
+      { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
+      routingCache as unknown as RoutingCacheService,
+      accessRepo as unknown as Repository<AgentProviderAccess>,
+    );
+    return { svc, providerRepo, autoAssign, routingCache };
+  };
+
+  beforeAll(() => {
+    process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+  });
+  afterAll(() => {
+    if (PREV_SECRET === undefined) delete process.env.BETTER_AUTH_SECRET;
+    else process.env.BETTER_AUTH_SECRET = PREV_SECRET;
+  });
+
+  describe('enableAllProvidersForAgent', () => {
+    it('grants every usable provider to the agent and recalculates that agent', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo, autoAssign, routingCache } = build(['agent-x'], granted);
+      providerRepo.find.mockResolvedValue([
+        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
+        { id: 'p2', provider: 'anthropic', auth_type: 'api_key', is_active: true } as UserProvider,
+      ]);
+
+      await svc.enableAllProvidersForAgent('new-agent', 'user-1');
+
+      expect(granted).toEqual([
+        { agent: 'new-agent', provider: 'p1' },
+        { agent: 'new-agent', provider: 'p2' },
+      ]);
+      // recalculateTiers(new-agent, user-1): recalc that agent + invalidate.
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('new-agent', 'user-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('new-agent');
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+    });
+
+    it('is a no-op grant when the user has no usable providers', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo, autoAssign } = build(['agent-x'], granted);
+      providerRepo.find.mockResolvedValue([]);
+
+      await expect(svc.enableAllProvidersForAgent('new-agent', 'user-1')).resolves.toBeUndefined();
+      expect(granted).toEqual([]);
+      // Routes are still recalculated for the new agent (empty model set).
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('new-agent', 'user-1');
+    });
+  });
+
+  describe('grantNewProviderToAllAgents', () => {
+    it('grants the new provider to every owned agent and recalculates all of them', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, autoAssign, routingCache } = build(['agent-1', 'agent-2'], granted);
+
+      await svc.grantNewProviderToAllAgents('user-1', 'new-provider');
+
+      expect(granted).toEqual([
+        { agent: 'agent-1', provider: 'new-provider' },
+        { agent: 'agent-2', provider: 'new-provider' },
+      ]);
+      // recalculateTiersForUser: recalc every owned agent + invalidate each.
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-2', 'user-1');
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+    });
+
+    it('is a no-op grant when the user owns no agents', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, autoAssign } = build([], granted);
+
+      await expect(
+        svc.grantNewProviderToAllAgents('user-1', 'new-provider'),
+      ).resolves.toBeUndefined();
+      expect(granted).toEqual([]);
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('upsertProvider — new provider connect fans out to all agents', () => {
+    it('grants a brand-new api_key provider to every owned agent (Default label path)', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+      // No existing row → new-row branch.
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const { isNew, provider } = await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-new-key',
+        'api_key',
+      );
+
+      expect(isNew).toBe(true);
+      // Every owned agent (not just the connecting one) gets the grant.
+      expect(granted).toEqual([
+        { agent: 'agent-1', provider: provider.id },
+        { agent: 'agent-2', provider: provider.id },
+      ]);
+    });
+
+    it('grants a brand-new labeled provider to every owned agent', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+      // upsertProviderWithLabel: no existing rows → new-row branch.
+      providerRepo.find.mockResolvedValue([]);
+
+      const { isNew, provider } = await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-labeled-key',
+        'api_key',
+        undefined,
+        'Work',
+      );
+
+      expect(isNew).toBe(true);
+      expect(granted).toEqual([
+        { agent: 'agent-1', provider: provider.id },
+        { agent: 'agent-2', provider: provider.id },
+      ]);
+    });
+
+    it('grants a brand-new tokenless subscription provider to every owned agent', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+      // registerSubscriptionProvider new-row branch: no existing sub/api_key row.
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
+
+      expect(isNew).toBe(true);
+      expect(granted.map((g) => g.agent)).toEqual(['agent-1', 'agent-2']);
+    });
+  });
+
+  describe('reconnect of an EXISTING provider does NOT re-grant (per-agent disables preserved)', () => {
+    it('does not grant other agents when an existing Default-label row is updated', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+      const grantSpy = jest.spyOn(svc, 'grantNewProviderToAllAgents');
+      // Existing row → update-in-place branch (afterProviderChange path).
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p-existing',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        is_active: true,
+      });
+
+      const { isNew } = await svc.upsertProvider('agent-1', 'user-1', 'openai', 'sk-rotated');
+
+      expect(isNew).toBe(false);
+      // The fan-out-to-all-agents path is NOT taken on reconnect.
+      expect(grantSpy).not.toHaveBeenCalled();
+      // Only the connecting agent is (re)granted via afterProviderChange —
+      // sibling agent-2 keeps whatever per-agent disable state it had.
+      expect(granted).toEqual([{ agent: 'agent-1', provider: 'p-existing' }]);
+      expect(granted.some((g) => g.agent === 'agent-2')).toBe(false);
+    });
+
+    it('does not re-grant when reconnecting the same key under a new label (sameKey path)', async () => {
+      const granted: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+      const grantSpy = jest.spyOn(svc, 'grantNewProviderToAllAgents');
+      const sameKeyEncrypted = encrypt('sk-same-key', getEncryptionSecret());
+      // upsertProviderWithLabel: a row with the SAME decrypted key already
+      // exists under a different label → sameKey reactivation branch.
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p-same',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          api_key_encrypted: sameKeyEncrypted,
+          is_active: true,
+          priority: 0,
+        } as unknown as UserProvider,
+      ]);
+
+      const { isNew } = await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-same-key',
+        'api_key',
+        undefined,
+        'Key 2',
+      );
+
+      expect(isNew).toBe(false);
+      // The fan-out-to-all-agents path is NOT taken on a same-key reconnect.
+      expect(grantSpy).not.toHaveBeenCalled();
+      // Only the connecting agent is (re)granted via afterProviderChange —
+      // sibling agent-2 keeps whatever per-agent disable state it had.
+      expect(granted).toEqual([{ agent: 'agent-1', provider: 'p-same' }]);
+      expect(granted.some((g) => g.agent === 'agent-2')).toBe(false);
     });
   });
 });

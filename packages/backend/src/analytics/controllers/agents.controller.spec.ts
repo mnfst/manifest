@@ -12,6 +12,15 @@ import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
+
+// Shared no-op ProviderService stub. createAgent now auto-enables every usable
+// provider on the new agent (symmetric global-providers auto-connect), so every
+// testing module that instantiates AgentsController must provide it.
+const providerServiceProvider = () => ({
+  provide: ProviderService,
+  useValue: { enableAllProvidersForAgent: jest.fn().mockResolvedValue(undefined) },
+});
 
 describe('AgentsController', () => {
   let controller: AgentsController;
@@ -120,6 +129,7 @@ describe('AgentsController', () => {
           provide: IngestEventBusService,
           useValue: { emit: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -284,6 +294,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -346,6 +357,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -406,6 +418,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: mockInvalidate },
         },
+        providerServiceProvider(),
       ],
     }).compile();
     const ctrl = module.get<AgentsController>(AgentsController);
@@ -456,6 +469,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -501,6 +515,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -545,6 +560,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -647,6 +663,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 

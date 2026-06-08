@@ -29,6 +29,7 @@ import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants'
 import { slugify } from '../../common/utils/slugify';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -40,6 +41,7 @@ export class AgentsController {
     private readonly tenantCache: TenantCacheService,
     private readonly eventBus: IngestEventBusService,
     private readonly recordingCache: AgentRecordingCacheService,
+    private readonly providerService: ProviderService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -79,6 +81,10 @@ export class AgentsController {
       }
       throw error;
     }
+    // Providers are global + ON by default: a brand-new agent immediately
+    // inherits every usable provider the user already connected, with its
+    // auto-assigned routes calculated from that model set.
+    await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
     await this.cacheManager.del(this.agentListCacheKey(user.id));
     this.eventBus.emit(user.id, 'agent');
     return {

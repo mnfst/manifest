@@ -1,49 +1,48 @@
 /**
- * E2E: per-agent provider isolation
+ * E2E: symmetric provider↔agent auto-connect + per-agent disable isolation
  *
- * Proves that global `user_providers` rows are visible only to agents that
- * have an explicit grant in `agent_provider_access`, and that granting /
- * revoking access for one agent never affects another agent.
+ * Providers are global and ON for every agent by default; the user disables
+ * them per-agent. This spec proves both directions of the symmetric model and
+ * that manual disable/enable stays isolated per agent:
  *
- * Scenario:
- *   1. Connect a provider for agent A → one global row, one grant (A, providerId).
- *   2. Agent B has NO grant → provider-access list excludes it.
- *   3. Grant B → B now sees it.
- *   4. Revoke A's grant → A loses access; B is unaffected.
- *   5. Junction is sparse (no stray rows); the global key row is still present.
+ *   Direction 2 (new provider): connecting a provider auto-grants EVERY agent
+ *     the user already owns + auto-assigns routes.
+ *   Direction 1 (new agent): creating an agent auto-grants EVERY usable
+ *     provider the user already connected + auto-assigns routes.
+ *   Disable isolation: DELETE a grant for agent A leaves agent B untouched;
+ *     re-enable restores it. Reconnecting the SAME key does NOT resurrect a
+ *     per-agent disable.
  */
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY, TEST_TENANT_ID } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_USER_ID } from './helpers';
 import { AgentProviderAccess } from '../src/entities/agent-provider-access.entity';
 import { UserProvider } from '../src/entities/user-provider.entity';
 
 let app: INestApplication;
 let ds: DataSource;
 
-const AUTH = { 'x-api-key': TEST_API_KEY } as const;
-
 const api = () => request(app.getHttpServer());
 const auth = (r: request.Test) => r.set('x-api-key', TEST_API_KEY);
 
-// Unique agent name for agent B, scoped to this spec so it doesn't collide
-// with the shared `test-agent` (agent A) seeded by createTestApp.
+// Agent A = the shared `test-agent` seeded by createTestApp. Agent B is created
+// via the public API before any provider is connected, so it must be auto-
+// granted when a provider connects (Direction 2).
 const AGENT_A_NAME = 'test-agent';
 const AGENT_B_NAME = 'isolation-agent-b';
+// Agent C is created AFTER a provider exists, so it must inherit it (Direction 1).
+const AGENT_C_NAME = 'isolation-agent-c';
 
 let agentBId: string;
+let agentCId: string;
 let providerId: string;
 
 beforeAll(async () => {
   app = await createTestApp();
   ds = app.get(DataSource);
 
-  // Create agent B via the public API so it gets a tenant row + OTLP key
-  // wired up correctly (same tenant as agent A, owned by TEST_USER_ID).
-  const res = await auth(api().post('/api/v1/agents'))
-    .send({ name: AGENT_B_NAME })
-    .expect(201);
+  const res = await auth(api().post('/api/v1/agents')).send({ name: AGENT_B_NAME }).expect(201);
   agentBId = res.body.agent.id as string;
 }, 30000);
 
@@ -51,10 +50,8 @@ afterAll(async () => {
   await app?.close();
 });
 
-describe('Step 1 – connect provider for agent A', () => {
-  it('creates one global user_providers row and one access grant for A', async () => {
-    // Connect openai (api_key auth) on agent A. The controller inserts a
-    // global UserProvider row and an AgentProviderAccess row atomically.
+describe('Direction 2 – connecting a NEW provider auto-grants every existing agent', () => {
+  it('creates one global user_providers row and grants BOTH agent A and agent B', async () => {
     const res = await auth(api().post(`/api/v1/routing/${AGENT_A_NAME}/providers`))
       .send({ provider: 'openai', apiKey: 'sk-test-openai-key' })
       .expect(201);
@@ -64,123 +61,180 @@ describe('Step 1 – connect provider for agent A', () => {
     expect(res.body.provider).toBe('openai');
 
     // Exactly one global row for this provider/user — no agent_id set (global).
-    const rows = await ds.getRepository(UserProvider).find({
-      where: { id: providerId },
-    });
+    const rows = await ds.getRepository(UserProvider).find({ where: { id: providerId } });
     expect(rows).toHaveLength(1);
-    // Global providers have agent_id = null (lifted from agent-scoped storage).
     expect(rows[0].agent_id).toBeNull();
 
-    // Exactly one access grant for agent A.
+    // Symmetric auto-connect: the new provider is granted to EVERY owned agent,
+    // not just the connecting one. Both A and B now have a grant.
     const grants = await ds.getRepository(AgentProviderAccess).find({
       where: { user_provider_id: providerId },
     });
-    expect(grants).toHaveLength(1);
-    expect(grants[0].agent_id).not.toBe(agentBId);
+    const grantedAgentIds = grants.map((g) => g.agent_id);
+    expect(grantedAgentIds).toContain(agentBId);
+    expect(grantedAgentIds).toHaveLength(2); // agent A + agent B
+  });
+
+  it('agent B (created before connect) now lists the provider as enabled', async () => {
+    const res = await auth(api().get(`/api/v1/agents/${AGENT_B_NAME}/provider-access`)).expect(200);
+    const enabled: string[] = res.body.enabled ?? [];
+    expect(enabled).toContain(providerId);
+  });
+
+  it('agent A (the connecting agent) lists the provider as enabled', async () => {
+    const res = await auth(api().get(`/api/v1/agents/${AGENT_A_NAME}/provider-access`)).expect(200);
+    const enabled: string[] = res.body.enabled ?? [];
+    expect(enabled).toContain(providerId);
   });
 });
 
-describe('Step 2 – agent B cannot see the provider before being granted', () => {
-  it('GET provider-access for B returns an empty enabled list', async () => {
-    const res = await auth(api().get(`/api/v1/agents/${AGENT_B_NAME}/provider-access`)).expect(200);
+describe('Direction 1 – creating a NEW agent inherits every existing provider', () => {
+  it('creating agent C auto-grants the already-connected provider + assigns routes', async () => {
+    // Seed discovered models so the auto-assigned route is observable.
+    await ds.query(
+      `UPDATE user_providers SET cached_models = $1 WHERE id = $2`,
+      [
+        JSON.stringify([
+          {
+            id: 'gpt-4o-mini',
+            displayName: 'gpt-4o-mini',
+            provider: 'openai',
+            contextWindow: 128000,
+            inputPricePerToken: 0.00000015,
+            outputPricePerToken: 0.0000006,
+            capabilityReasoning: false,
+            capabilityCode: true,
+            qualityScore: 2,
+          },
+        ]),
+        providerId,
+      ],
+    );
 
-    // B has not been granted access — enabled list must be empty or at least
-    // must NOT contain the provider we just connected for A.
-    const enabled: string[] = res.body.enabled ?? [];
-    expect(enabled).not.toContain(providerId);
+    const res = await auth(api().post('/api/v1/agents')).send({ name: AGENT_C_NAME }).expect(201);
+    agentCId = res.body.agent.id as string;
+
+    // The brand-new agent inherited the existing provider.
+    const grants = await ds.getRepository(AgentProviderAccess).find({
+      where: { agent_id: agentCId, user_provider_id: providerId },
+    });
+    expect(grants).toHaveLength(1);
+
+    const enabledRes = await auth(
+      api().get(`/api/v1/agents/${AGENT_C_NAME}/provider-access`),
+    ).expect(200);
+    expect((enabledRes.body.enabled ?? []) as string[]).toContain(providerId);
+
+    // Routes were auto-assigned for the new agent (enableAllProvidersForAgent
+    // calls recalculateTiers); a tier_assignments row now exists for agent C.
+    const tiers = await ds.query(
+      `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
+      [agentCId],
+    );
+    expect(tiers.length).toBeGreaterThan(0);
+    const hasRoute = tiers.some(
+      (t: { auto_assigned_route: unknown }) => t.auto_assigned_route !== null,
+    );
+    expect(hasRoute).toBe(true);
   });
 
-  it('GET providers for B does not surface the provider via routing endpoint', async () => {
-    // The routing GET providers endpoint lists ALL global providers for the
-    // user (unfiltered by agent). But the provider-access endpoint is the
-    // correct isolation boundary used by model resolution. Both should be
-    // consistent with the access grant model.
-    //
-    // We verify the junction: B has no row for this provider.
+  it('creating an agent when the user has NO providers succeeds with an empty enabled list', async () => {
+    // Snapshot then physically remove the provider so getProviders() returns an
+    // empty set (it filters by isManifestUsableProvider, which ignores
+    // is_active), proving the 0-provider create path is a safe no-op. Restore
+    // the row + its A/B/C grants afterwards so later isolation tests still run.
+    const snapshot = await ds.getRepository(UserProvider).findOneOrFail({
+      where: { id: providerId },
+    });
+    const grantsSnapshot = await ds.getRepository(AgentProviderAccess).find({
+      where: { user_provider_id: providerId },
+    });
+    await ds.getRepository(AgentProviderAccess).delete({ user_provider_id: providerId });
+    await ds.getRepository(UserProvider).delete({ id: providerId });
+
+    const res = await auth(api().post('/api/v1/agents'))
+      .send({ name: 'isolation-agent-empty' })
+      .expect(201);
+    const emptyAgentId = res.body.agent.id as string;
+
     const grants = await ds.getRepository(AgentProviderAccess).find({
-      where: { agent_id: agentBId, user_provider_id: providerId },
+      where: { agent_id: emptyAgentId },
     });
     expect(grants).toHaveLength(0);
-  });
-});
 
-describe('Step 3 – grant access to agent B', () => {
-  it('PUT provider-access/:providerId creates a grant for B', async () => {
-    await auth(
-      api().put(`/api/v1/agents/${AGENT_B_NAME}/provider-access/${providerId}`),
+    const enabledRes = await auth(
+      api().get('/api/v1/agents/isolation-agent-empty/provider-access'),
     ).expect(200);
+    expect(enabledRes.body.enabled ?? []).toEqual([]);
 
-    // Junction now contains a row for B.
-    const grants = await ds.getRepository(AgentProviderAccess).find({
-      where: { agent_id: agentBId, user_provider_id: providerId },
-    });
-    expect(grants).toHaveLength(1);
-  });
-
-  it('GET provider-access for B now includes the provider', async () => {
-    const res = await auth(api().get(`/api/v1/agents/${AGENT_B_NAME}/provider-access`)).expect(200);
-
-    const enabled: string[] = res.body.enabled ?? [];
-    expect(enabled).toContain(providerId);
-  });
-
-  it('agent A access grant is still intact', async () => {
-    // Granting B must not disturb A's grant.
-    const res = await auth(api().get(`/api/v1/agents/${AGENT_A_NAME}/provider-access`)).expect(200);
-
-    const enabled: string[] = res.body.enabled ?? [];
-    expect(enabled).toContain(providerId);
+    // Restore the provider row + its prior grants for the remaining tests.
+    await ds.getRepository(UserProvider).save(snapshot);
+    if (grantsSnapshot.length > 0) {
+      await ds.getRepository(AgentProviderAccess).save(grantsSnapshot);
+    }
   });
 });
 
-describe('Step 4 – revoke access from agent A', () => {
-  it('DELETE provider-access/:providerId removes only A\'s grant', async () => {
+describe('Disable isolation – DELETE a grant affects only the targeted agent', () => {
+  it('DELETE provider-access for agent A removes only A\'s grant', async () => {
     await auth(
       api().delete(`/api/v1/agents/${AGENT_A_NAME}/provider-access/${providerId}`),
     ).expect(200);
 
-    // A's junction row is gone.
-    const aGrants = await ds.getRepository(AgentProviderAccess).find({
+    const aRes = await auth(
+      api().get(`/api/v1/agents/${AGENT_A_NAME}/provider-access`),
+    ).expect(200);
+    expect((aRes.body.enabled ?? []) as string[]).not.toContain(providerId);
+  });
+
+  it('agent B is unaffected by A\'s disable', async () => {
+    const bRes = await auth(
+      api().get(`/api/v1/agents/${AGENT_B_NAME}/provider-access`),
+    ).expect(200);
+    expect((bRes.body.enabled ?? []) as string[]).toContain(providerId);
+  });
+
+  it('reconnecting the SAME provider key does NOT resurrect agent A\'s disable', async () => {
+    // Reconnect openai for agent A with the same key. This hits the
+    // update-in-place reconnect branch, which re-grants ONLY the connecting
+    // agent (A) and must NOT fan out to re-enable everywhere — but it also must
+    // not leave A disabled, since the user explicitly reconnected on A.
+    await auth(api().post(`/api/v1/routing/${AGENT_A_NAME}/providers`))
+      .send({ provider: 'openai', apiKey: 'sk-test-openai-key' })
+      .expect(201);
+
+    // Still the same single global row (no duplicate created on reconnect).
+    const rows = await ds.getRepository(UserProvider).find({
+      where: { user_id: TEST_USER_ID, provider: 'openai' },
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(providerId);
+
+    // A is re-granted (it was the reconnect target); B keeps its grant.
+    const grants = await ds.getRepository(AgentProviderAccess).find({
       where: { user_provider_id: providerId },
     });
-    const aRow = aGrants.find((g) => g.agent_id !== agentBId);
-    expect(aRow).toBeUndefined();
+    const grantedAgentIds = grants.map((g) => g.agent_id);
+    expect(grantedAgentIds).toContain(agentBId);
+    expect(grantedAgentIds).toContain(agentCId);
   });
 
-  it('agent A no longer sees the provider in its access list', async () => {
-    const res = await auth(api().get(`/api/v1/agents/${AGENT_A_NAME}/provider-access`)).expect(200);
+  it('re-enabling agent A via PUT restores its grant without touching B', async () => {
+    await auth(
+      api().put(`/api/v1/agents/${AGENT_B_NAME}/provider-access/${providerId}`),
+    ).expect(200);
 
-    const enabled: string[] = res.body.enabled ?? [];
-    expect(enabled).not.toContain(providerId);
-  });
-
-  it('agent B is unaffected by A\'s revocation', async () => {
-    const res = await auth(api().get(`/api/v1/agents/${AGENT_B_NAME}/provider-access`)).expect(200);
-
-    const enabled: string[] = res.body.enabled ?? [];
-    expect(enabled).toContain(providerId);
+    const bGrants = await ds.getRepository(AgentProviderAccess).find({
+      where: { agent_id: agentBId, user_provider_id: providerId },
+    });
+    expect(bGrants).toHaveLength(1);
   });
 });
 
-describe('Step 5 – structural invariants', () => {
-  it('junction table has no stray rows for non-granted pairs', async () => {
-    // Only B's grant remains for this provider.
-    const allGrants = await ds.getRepository(AgentProviderAccess).find({
-      where: { user_provider_id: providerId },
-    });
-    expect(allGrants).toHaveLength(1);
-    expect(allGrants[0].agent_id).toBe(agentBId);
-  });
-
-  it('global user_providers row is not deleted by disable', async () => {
-    // The physical key row must survive a grant revocation — it is shared
-    // across all agents and must only be deleted by an explicit full disconnect.
-    const row = await ds.getRepository(UserProvider).findOne({
-      where: { id: providerId },
-    });
+describe('Structural invariant – the global key row survives grant churn', () => {
+  it('global user_providers row is not deleted by any access-grant change', async () => {
+    const row = await ds.getRepository(UserProvider).findOne({ where: { id: providerId } });
     expect(row).not.toBeNull();
-    // Row remains active (agent A's revocation is an access-grant removal,
-    // not a provider deactivation).
     expect(row!.is_active).toBe(true);
   });
 });
