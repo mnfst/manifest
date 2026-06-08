@@ -1,8 +1,7 @@
 import { A, useLocation, useParams } from '@solidjs/router';
-import { Show, type ParentComponent } from 'solid-js';
+import { type ParentComponent } from 'solid-js';
 import { Title } from '@solidjs/meta';
 import { agentPath } from '../services/routing.js';
-import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 
 /**
@@ -41,14 +40,6 @@ const AgentDetail: ParentComponent = (props) => {
         >
           ← Agents
         </A>
-      </div>
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
-        <Show when={agentPlatformIcon()}>
-          <img src={agentPlatformIcon()!} alt="" width="28" height="28" style="flex-shrink: 0;" />
-        </Show>
-        <h1 class="page-header__title" style="margin: 0;">
-          {agentDisplayName() ?? agentName()}
-        </h1>
       </div>
 
       {/* Horizontal tabs */}

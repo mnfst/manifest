@@ -57,10 +57,9 @@ describe("AgentDetail", () => {
     expect(backLink.textContent).toContain("Agents");
   });
 
-  it("renders the decoded agent name as a heading", () => {
+  it("does not render an h1 heading in the agent detail body", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
-    const h1 = container.querySelector("h1");
-    expect(h1?.textContent).toContain("my-agent");
+    expect(container.querySelector("h1")).toBeNull();
   });
 
   it("renders a tablist with exactly 4 tabs", () => {
@@ -71,11 +70,11 @@ describe("AgentDetail", () => {
     expect(tabs.length).toBe(4);
   });
 
-  it("renders tabs labeled Overview, Routing, Guardrails, Settings in order", () => {
+  it("renders tabs labeled Overview, Routing, Limits, Settings in order", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     const labels = Array.from(tabs).map((t) => t.textContent);
-    expect(labels).toEqual(["Overview", "Routing", "Guardrails", "Settings"]);
+    expect(labels).toEqual(["Overview", "Routing", "Limits", "Settings"]);
   });
 
   it("Overview tab links to the agent root path", () => {
@@ -150,15 +149,15 @@ describe("AgentDetail", () => {
     expect(container.querySelector('[data-testid="child-content"]')).not.toBeNull();
   });
 
-  it("decodes URL-encoded agent names in title and heading", () => {
+  it("decodes URL-encoded agent names in title", () => {
     mockParams.agentName = "my%20agent";
     mockPathname = "/agents/my%20agent";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("title")?.textContent).toBe("my agent | Manifest");
-    expect(container.querySelector("h1")?.textContent).toContain("my agent");
+    expect(container.querySelector("h1")).toBeNull();
   });
 
-  it("does not show platform icon when agentPlatformIcon returns undefined", () => {
+  it("does not render a platform icon", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("img")).toBeNull();
   });
@@ -177,10 +176,10 @@ describe("AgentDetail", () => {
     expect(container.querySelector("title")?.textContent).toBe("My Cool Agent | Manifest");
   });
 
-  it("uses resolved display name in heading when agentDisplayName is set", () => {
+  it("does not render an h1 when agentDisplayName is set", () => {
     mockAgentDisplayName = "My Cool Agent";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
-    expect(container.querySelector("h1")?.textContent).toContain("My Cool Agent");
+    expect(container.querySelector("h1")).toBeNull();
   });
 
   it("falls back to decoded slug in title when agentDisplayName is null", () => {
@@ -189,19 +188,19 @@ describe("AgentDetail", () => {
     expect(container.querySelector("title")?.textContent).toBe("my-agent | Manifest");
   });
 
-  it("falls back to decoded slug in heading when agentDisplayName is null", () => {
+  it("does not render an h1 when agentDisplayName is null", () => {
     mockAgentDisplayName = null;
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
-    expect(container.querySelector("h1")?.textContent).toContain("my-agent");
+    expect(container.querySelector("h1")).toBeNull();
   });
 });
 
-describe("AgentDetail with platform icon", () => {
+describe("AgentDetail platform icon removal", () => {
   beforeEach(() => {
     vi.resetModules();
   });
 
-  it("shows platform icon when agentPlatformIcon returns a URL", async () => {
+  it("never renders a platform icon even when agentPlatformIcon returns a URL", async () => {
     vi.doMock("../../src/services/agent-platform-store.js", () => ({
       agentPlatformIcon: () => "/icons/robot.svg",
     }));
@@ -217,10 +216,9 @@ describe("AgentDetail with platform icon", () => {
       Title: (props: any) => <title>{props.children}</title>,
     }));
 
-    const { default: AgentDetailWithIcon } = await import("../../src/pages/AgentDetail");
-    const { container } = render(() => <AgentDetailWithIcon>{null}</AgentDetailWithIcon>);
-    const img = container.querySelector("img");
-    expect(img).not.toBeNull();
-    expect(img?.getAttribute("src")).toBe("/icons/robot.svg");
+    const { default: AgentDetailNoIcon } = await import("../../src/pages/AgentDetail");
+    const { container } = render(() => <AgentDetailNoIcon>{null}</AgentDetailNoIcon>);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("h1")).toBeNull();
   });
 });
