@@ -34,10 +34,26 @@ const Sidebar: Component<SidebarProps> = (props) => {
     >
       <Show when={!getAgentName()}>
         <A
-          href="/"
+          href="/overview"
           class="sidebar__link"
-          classList={{ active: location.pathname === '/' }}
-          aria-current={location.pathname === '/' ? 'page' : undefined}
+          classList={{ active: location.pathname === '/overview' }}
+          aria-current={location.pathname === '/overview' ? 'page' : undefined}
+        >
+          Overview
+        </A>
+        <A
+          href="/messages"
+          class="sidebar__link"
+          classList={{ active: location.pathname === '/messages' }}
+          aria-current={location.pathname === '/messages' ? 'page' : undefined}
+        >
+          Messages
+        </A>
+        <A
+          href="/agents"
+          class="sidebar__link"
+          classList={{ active: location.pathname === '/agents' }}
+          aria-current={location.pathname === '/agents' ? 'page' : undefined}
         >
           Agents
         </A>

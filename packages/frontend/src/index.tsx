@@ -5,6 +5,7 @@ import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
+import RootRedirect from './components/RootRedirect.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -15,6 +16,7 @@ import './styles/theme.css';
 
 clearReloadFlag();
 
+const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
 const Overview = lazyReload(() => import('./pages/Overview.jsx'));
 const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
@@ -57,7 +59,10 @@ render(
       <ToastContainer />
       <Router>
         <Route path="/" component={App}>
-          <Route path="/" component={Workspace} />
+          <Route path="/" component={RootRedirect} />
+          <Route path="/overview" component={GlobalOverview} />
+          <Route path="/messages" component={MessageLog} />
+          <Route path="/agents" component={Workspace} />
           <Route path="/agents/:agentName" component={AgentGuard}>
             <Route path="/" component={Overview} />
             <Route path="/messages" component={MessageLog} />

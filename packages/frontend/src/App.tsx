@@ -36,7 +36,11 @@ const AppInner: ParentComponent = (props) => {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
   const isAgentMode = () => location.pathname.startsWith('/agents/');
-  const showSidebar = () => isAgentMode();
+  const isGlobalRoute = () =>
+    location.pathname === '/overview' ||
+    location.pathname === '/messages' ||
+    location.pathname === '/agents';
+  const showSidebar = () => isAgentMode() || isGlobalRoute();
   const { content: rightSidebar } = useRightSidebar();
 
   createEffect<string | undefined>((previousPath) => {

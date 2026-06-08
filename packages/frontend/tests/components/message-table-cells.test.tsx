@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { FallbackIcon, HeartbeatIcon, ModelCell, RecordedIcon } from '../../src/components/message-table-cells';
+import { FallbackIcon, HeartbeatIcon, ModelCell, RecordedIcon, AgentCell, StatusCell } from '../../src/components/message-table-cells';
 import type { MessageRow } from '../../src/components/message-table-types';
 
 vi.mock('@solidjs/router', () => ({
@@ -82,6 +82,38 @@ describe('RecordedIcon', () => {
     expect(svg!.getAttribute('aria-hidden')).toBe('true');
     const circles = container.querySelectorAll('circle');
     expect(circles.length).toBe(2);
+  });
+});
+
+describe('AgentCell', () => {
+  it('renders agent_name when present', () => {
+    const row = baseRow({ agent_name: 'my-agent' });
+    const { container } = render(() => <table><tbody><tr>{AgentCell(row)}</tr></tbody></table>);
+    expect(container.textContent).toContain('my-agent');
+  });
+
+  it('renders em dash when agent_name is null', () => {
+    const row = baseRow({ agent_name: null });
+    const { container } = render(() => <table><tbody><tr>{AgentCell(row)}</tr></tbody></table>);
+    expect(container.textContent).toContain('—');
+  });
+});
+
+describe('StatusCell without agentName (global mode)', () => {
+  it('renders plain text for rate_limited when no agentName provided', () => {
+    const row = baseRow({ status: 'rate_limited' });
+    const { container } = render(() => <table><tbody><tr>{StatusCell(row, undefined)}</tr></tbody></table>);
+    // No link, just text
+    expect(container.querySelector('a')).toBeNull();
+    expect(container.textContent).toContain('rate_limited');
+  });
+
+  it('renders link for rate_limited when agentName is provided', () => {
+    const row = baseRow({ status: 'rate_limited' });
+    const { container } = render(() => <table><tbody><tr>{StatusCell(row, 'my-agent')}</tr></tbody></table>);
+    const link = container.querySelector('a');
+    expect(link).not.toBeNull();
+    expect(link!.getAttribute('href')).toContain('/agents/my-agent/limits');
   });
 });
 

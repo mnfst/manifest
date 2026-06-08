@@ -142,15 +142,27 @@ describe("Sidebar with agent", () => {
   });
 });
 
-describe("Sidebar without agent", () => {
+describe("Sidebar without agent (global mode)", () => {
   beforeAll(() => {
     mockAgentName = null;
-    mockPathname = "/";
+    mockPathname = "/overview";
   });
 
-  it("renders Agents link when no agent selected", () => {
+  it("renders Overview link in global mode", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Agents")).toBeDefined();
+    expect(screen.getByText("Overview")).toBeDefined();
+  });
+
+  it("renders Messages link in global mode", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("Messages")).toBeDefined();
+  });
+
+  it("renders Agents link pointing to /agents in global mode", () => {
+    const { container } = render(() => <Sidebar />);
+    const agentsLink = container.querySelector('a[href="/agents"]');
+    expect(agentsLink).not.toBeNull();
+    expect(agentsLink?.textContent).toContain("Agents");
   });
 
   it("does not render MONITORING section when no agent", () => {
@@ -158,10 +170,26 @@ describe("Sidebar without agent", () => {
     expect(container.textContent).not.toContain("MONITORING");
   });
 
-  it("does not render agent navigation links when no agent", () => {
+  it("marks Overview link active on /overview path", () => {
     const { container } = render(() => <Sidebar />);
-    expect(container.textContent).not.toContain("Overview");
-    expect(container.textContent).not.toContain("Messages");
+    const overviewLink = container.querySelector('a[href="/overview"]');
+    expect(overviewLink?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Messages link active on /messages path", () => {
+    mockPathname = "/messages";
+    const { container } = render(() => <Sidebar />);
+    const messagesLink = container.querySelector('a[href="/messages"]');
+    expect(messagesLink?.getAttribute("aria-current")).toBe("page");
+    mockPathname = "/overview";
+  });
+
+  it("marks Agents link active on /agents path", () => {
+    mockPathname = "/agents";
+    const { container } = render(() => <Sidebar />);
+    const agentsLink = container.querySelector('a[href="/agents"]');
+    expect(agentsLink?.getAttribute("aria-current")).toBe("page");
+    mockPathname = "/overview";
   });
 });
 
@@ -216,11 +244,12 @@ describe("Sidebar active states for sub-paths", () => {
 describe("Sidebar with no agent selected", () => {
   beforeAll(() => {
     mockAgentName = null;
-    mockPathname = "/";
+    mockPathname = "/overview";
   });
 
-  it("shows Agents link when no agent is selected", () => {
-    render(() => <Sidebar />);
-    expect(screen.getByText("Agents")).toBeDefined();
+  it("shows Agents link pointing to /agents when no agent is selected", () => {
+    const { container } = render(() => <Sidebar />);
+    const agentsLink = container.querySelector('a[href="/agents"]');
+    expect(agentsLink).not.toBeNull();
   });
 });

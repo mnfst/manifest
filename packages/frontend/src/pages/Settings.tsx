@@ -137,7 +137,7 @@ const Settings: Component = () => {
     try {
       await deleteAgent(agentName());
       toast.success(`Agent "${agentName()}" deleted`);
-      navigate('/', { replace: true });
+      navigate('/agents', { replace: true });
     } catch {
       setDeleting(false);
     }

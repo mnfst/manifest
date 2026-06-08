@@ -983,4 +983,52 @@ describe('MessageTable', () => {
       expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
     });
   });
+
+  describe('agent column (global mode)', () => {
+    it('renders Agent column header when agent column is in columns list', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ agent_name: 'my-agent' })]}
+          columns={['agent', 'date']}
+          customProviderName={noopProvider}
+        />
+      ));
+      const headers = container.querySelectorAll('th');
+      expect(headers[0]!.textContent).toContain('Agent');
+      expect(headers[1]!.textContent).toContain('Date');
+    });
+
+    it('renders agent_name value in agent cell', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ agent_name: 'my-agent' })]}
+          columns={['agent']}
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.textContent).toContain('my-agent');
+    });
+
+    it('renders em dash when agent_name is null', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ agent_name: null })]}
+          columns={['agent']}
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.textContent).toContain('—');
+    });
+
+    it('works without agentName prop (global mode)', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date', 'status']}
+          customProviderName={noopProvider}
+        />
+      ));
+      expect(container.querySelector('.data-table')).not.toBeNull();
+    });
+  });
 });

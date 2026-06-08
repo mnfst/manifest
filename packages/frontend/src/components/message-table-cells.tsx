@@ -132,6 +132,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   duration: 'Latency',
   status: 'Status',
   feedback: '',
+  agent: 'Agent',
 };
 
 const TOOLTIP_TEXT: Partial<Record<MessageColumnKey, string>> = {
@@ -345,9 +346,13 @@ export function DurationCell(item: MessageRow): JSX.Element {
   );
 }
 
+export function AgentCell(item: MessageRow): JSX.Element {
+  return <td>{item.agent_name ?? '—'}</td>;
+}
+
 export function StatusCell(
   item: MessageRow,
-  agentName: string,
+  agentName: string | undefined,
   onFallbackErrorClick?: (model: string) => void,
 ): JSX.Element {
   return (
@@ -358,9 +363,13 @@ export function StatusCell(
           <span class={`status-badge status-badge--${item.status}`}>
             {item.status === 'fallback_error' && <FallbackIcon />}
             {item.status === 'rate_limited' ? (
-              <A href={`/agents/${encodeURIComponent(agentName)}/limits`}>
-                {formatStatus(item.status)}
-              </A>
+              agentName ? (
+                <A href={`/agents/${encodeURIComponent(agentName)}/limits`}>
+                  {formatStatus(item.status)}
+                </A>
+              ) : (
+                formatStatus(item.status)
+              )
             ) : (
               formatStatus(item.status)
             )}
@@ -443,7 +452,7 @@ export function FeedbackCell(
 }
 
 export interface CellRenderContext {
-  agentName: string;
+  agentName?: string;
   customProviderName: (model: string) => string | undefined;
   onFallbackErrorClick?: (model: string) => void;
   onFeedbackLike?: (id: string) => void;
@@ -485,5 +494,7 @@ export function renderCell(
         ctx.onFeedbackDislike ?? (() => {}),
         ctx.onFeedbackClear ?? (() => {}),
       );
+    case 'agent':
+      return AgentCell(item);
   }
 }

@@ -134,7 +134,7 @@ const Header: Component<HeaderProps> = (props) => {
         )}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A href="/" class="header__breadcrumb-link">
+          <A href="/agents" class="header__breadcrumb-link">
             Workspace
           </A>
           <span class="header__separator">/</span>

@@ -38,7 +38,8 @@ export type MessageColumnKey =
   | 'cache'
   | 'duration'
   | 'status'
-  | 'feedback';
+  | 'feedback'
+  | 'agent';
 
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'feedback',

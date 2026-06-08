@@ -91,6 +91,27 @@ describe("App with agent path", () => {
     expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
   });
 
+  it("shows sidebar on /overview path", () => {
+    routerState.pathname = "/overview";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /messages path", () => {
+    routerState.pathname = "/messages";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
+  it("shows sidebar on /agents path (workspace list)", () => {
+    routerState.pathname = "/agents";
+    const { container } = render(() => <App />);
+    expect(container.querySelector('[data-testid="sidebar"]')).not.toBeNull();
+    expect(container.querySelector(".app-body--with-sidebar")).not.toBeNull();
+  });
+
   it("opens and closes the mobile sidebar drawer", () => {
     routerState.pathname = "/agents/demo";
 
