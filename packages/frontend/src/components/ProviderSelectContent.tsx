@@ -52,7 +52,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     deepLinkProv ? deepLinkProv.id : null,
   );
   const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
-    deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key',
+    deepLink?.authType ?? (deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key'),
   );
   const [showCustomForm, setShowCustomForm] = createSignal(!!props.customProviderPrefill);
   const [tilePrefill, setTilePrefill] = createSignal<CustomProviderPrefill | null>(null);

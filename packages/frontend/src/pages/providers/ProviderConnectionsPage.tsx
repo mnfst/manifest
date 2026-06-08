@@ -11,6 +11,7 @@ import {
   type UserProviderSummary,
 } from '../../services/api/providers.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
+import type { ProviderDeepLink } from '../../services/routing-params.js';
 import { PROVIDERS, type ProviderDef } from '../../services/providers.js';
 import { customProviderColor, formatNumber, formatTimeAgo } from '../../services/formatters.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
@@ -124,6 +125,7 @@ const ProviderMark: Component<{ providerId: string; name: string }> = (props) =>
 const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props) => {
   const copy = () => PAGE_COPY[props.kind];
   const [showModal, setShowModal] = createSignal(false);
+  const [deepLink, setDeepLink] = createSignal<ProviderDeepLink | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [data, { refetch: refetchGlobalProviders }] = createResource(async () => {
@@ -217,13 +219,18 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       .get(providerId)
       ?.connections.filter((connection) => connection.is_active).length ?? 0;
 
-  const openModal = () => {
+  const openModal = (providerId?: string) => {
+    // Deep-link with the page's auth type so the connection form opens in the
+    // matching mode (e.g. the Subscriptions page opens the OAuth/subscription
+    // flow rather than the API-key form for providers that support both).
+    setDeepLink(providerId ? { providerId, authType: copy().authType } : null);
     void refetchModalProviders();
     setShowModal(true);
   };
 
   const handleModalClose = () => {
     setShowModal(false);
+    setDeepLink(null);
     void refetchGlobalProviders();
   };
 
@@ -243,7 +250,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <h1 class="page-header__title">{copy().heading}</h1>
           <p class="page-header__subtitle">{copy().subtitle}</p>
         </div>
-        <button class="btn btn--primary btn--sm" disabled={!firstAgentName()} onClick={openModal}>
+        <button
+          class="btn btn--primary btn--sm"
+          disabled={!firstAgentName()}
+          onClick={() => openModal()}
+        >
           {copy().addLabel}
         </button>
       </div>
@@ -353,7 +364,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       <button
                         class="btn btn--outline btn--sm"
                         disabled={!firstAgentName()}
-                        onClick={openModal}
+                        onClick={() => openModal(provider.id)}
                       >
                         {copy().addLabel}
                       </button>
@@ -371,6 +382,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           agentName={firstAgentName()}
           providers={modalProviders() ?? []}
           customProviders={customProviders() ?? []}
+          providerDeepLink={deepLink()}
           onUpdate={handleModalUpdate}
           onClose={handleModalClose}
         />

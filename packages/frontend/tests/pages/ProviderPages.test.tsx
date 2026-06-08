@@ -165,6 +165,29 @@ describe('provider pages', () => {
     });
   });
 
+  it('deep-links the connect modal to a specific provider when added from its row', async () => {
+    render(() => <Subscriptions />);
+
+    // Index 0 is the generic page-header button (no deep link, covered above);
+    // index 1 is the first supported-provider row (OpenAI), which should open
+    // straight into that provider's connection form rather than the picker list.
+    // Wait until the agents resource resolves so the row button is enabled.
+    await waitFor(() => {
+      expect((screen.getAllByText('Add subscription')[1] as HTMLButtonElement).disabled).toBe(
+        false,
+      );
+    });
+
+    fireEvent.click(screen.getAllByText('Add subscription')[1]!);
+    await waitFor(() => {
+      expect(mockProviderSelectModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerDeepLink: { providerId: 'openai', authType: 'subscription' },
+        }),
+      );
+    });
+  });
+
   it('renders the BYOK page with custom provider connections', async () => {
     render(() => <Byok />);
 
