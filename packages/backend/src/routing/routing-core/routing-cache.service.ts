@@ -138,6 +138,7 @@ export class RoutingCacheService {
 
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
+    this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
     this.modelParams.delete(agentId);
