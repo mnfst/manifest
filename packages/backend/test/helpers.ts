@@ -200,10 +200,13 @@ export async function createTestApp(): Promise<INestApplication> {
     }).compile();
 
     const app = moduleFixture.createNestApplication();
+    // Mirror the production pipe in main.ts (incl. forbidNonWhitelisted) so e2e
+    // faithfully exercises the strict-input behavior the app actually ships.
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
         whitelist: true,
+        forbidNonWhitelisted: true,
       }),
     );
     await app.init();

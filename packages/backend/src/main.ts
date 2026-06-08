@@ -109,6 +109,11 @@ export async function bootstrap() {
     new ValidationPipe({
       transform: true,
       whitelist: true,
+      // Reject (rather than silently strip) unexpected fields so mass-assignment
+      // probes and malformed clients get a clear 400 instead of a quietly
+      // half-honored request. The proxy passthrough routes read the raw body
+      // (no DTO), so upstream LLM payloads are unaffected.
+      forbidNonWhitelisted: true,
     }),
   );
 

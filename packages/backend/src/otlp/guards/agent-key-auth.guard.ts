@@ -16,7 +16,7 @@ import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { IngestionContext } from '../interfaces/ingestion-context.interface';
 import { verifyKey, keyPrefix as computePrefix } from '../../common/utils/hash.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
-import { isLoopbackPeer } from '../../common/utils/local-ip';
+import { isTrustedLoopbackPeer } from '../../common/utils/local-ip';
 const MIN_TOKEN_LENGTH = 12;
 
 function cacheKey(token: string): string {
@@ -87,10 +87,14 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
     const request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    // Use socket.remoteAddress (TCP peer) — request.ip honors X-Forwarded-For
-    // and is spoofable when `trust proxy` is enabled.
+    // `isTrustedLoopbackPeer` uses socket.remoteAddress (TCP peer) — request.ip
+    // honors X-Forwarded-For and is spoofable when `trust proxy` is enabled —
+    // and suppresses the shortcut when a forwarding header is present, so a
+    // dev instance fronted by a reverse proxy can't have unauthenticated ingest
+    // opened up to remote callers that appear as loopback.
     const isDevLoopback =
-      this.configService.get<string>('app.nodeEnv') === 'development' && isLoopbackPeer(request);
+      this.configService.get<string>('app.nodeEnv') === 'development' &&
+      isTrustedLoopbackPeer(request);
 
     if (!authHeader) {
       if (await this.handleDevLoopback(request, isDevLoopback)) return true;

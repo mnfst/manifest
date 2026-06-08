@@ -337,6 +337,34 @@ describe('AgentKeyAuthGuard', () => {
       await guard.canActivate(ctx2);
       expect(mockFindOne).not.toHaveBeenCalled();
     });
+
+    it('suppresses the loopback bypass when a forwarding header is present (no auth header)', async () => {
+      // A reverse proxy in front of a dev instance makes the peer 127.0.0.1 for
+      // every forwarded request. An active key exists, so the only thing
+      // blocking the bypass is the forwarding-header guard.
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+      const { ctx } = makeContext({ 'x-forwarded-for': '8.8.8.8' }, '127.0.0.1');
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Authorization header required');
+    });
+
+    it('suppresses the loopback bypass for a non-mnfst token behind a proxy', async () => {
+      mockFindOne.mockResolvedValue({
+        tenant_id: 'dev-tenant',
+        agent_id: 'dev-agent',
+        agent: { name: 'demo-agent' },
+        tenant: { name: 'dev-user' },
+      });
+      const { ctx } = makeContext(
+        { authorization: 'Bearer dev-no-auth', 'x-forwarded-for': '8.8.8.8' },
+        '127.0.0.1',
+      );
+      await expect(guard.canActivate(ctx)).rejects.toThrow('Invalid API key format');
+    });
   });
 
   it('handles request.ip being undefined without crashing', async () => {

@@ -5,7 +5,7 @@ import { fromNodeHeaders } from 'better-auth/node';
 import { createHash } from 'crypto';
 import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
-import { isLoopbackPeer } from '../common/utils/local-ip';
+import { isTrustedLoopbackPeer } from '../common/utils/local-ip';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
 
 interface CachedSession {
@@ -86,11 +86,14 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
     // In the self-hosted version, fall back to a synthetic user for loopback
     // requests without a session (e.g. curl, programmatic access).
     //
-    // Use the TCP peer address (request.socket.remoteAddress) — request.ip
-    // honors `trust proxy` and X-Forwarded-For, which a remote attacker can
-    // forge when the backend is reachable directly or sits behind a proxy
-    // that fails to strip XFF. The socket address cannot be spoofed.
-    if (isSelfHosted() && isLoopbackPeer(request)) {
+    // `isTrustedLoopbackPeer` checks the TCP peer address
+    // (request.socket.remoteAddress) — request.ip honors `trust proxy` and
+    // X-Forwarded-For, which a remote attacker can forge. It also suppresses
+    // the shortcut whenever a forwarding header is present: a same-host
+    // reverse proxy makes every request's peer 127.0.0.1, so without that
+    // guard a proxied self-hosted instance would hand the trusted Local User
+    // to anyone on the internet.
+    if (isSelfHosted() && isTrustedLoopbackPeer(request)) {
       (request as Request & { user: unknown }).user = {
         id: 'local',
         name: 'Local User',

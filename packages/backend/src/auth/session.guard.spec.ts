@@ -248,6 +248,23 @@ describe('SessionGuard', () => {
       expect(request['user']).toBeUndefined();
       expect(request['authMethod']).toBeUndefined();
     });
+
+    it('does NOT inject synthetic user for a loopback peer behind a reverse proxy', async () => {
+      // A same-host reverse proxy makes the socket peer 127.0.0.1 for every
+      // forwarded request. The presence of a forwarding header proves this is
+      // not a direct local call, so the shortcut must be suppressed.
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+      (auth.api.getSession as jest.Mock).mockResolvedValue(null);
+      const { context, request } = createMockContext({
+        ip: '127.0.0.1',
+        headers: { 'x-forwarded-for': '8.8.8.8' },
+      });
+
+      await guard.canActivate(context);
+
+      expect(request['user']).toBeUndefined();
+      expect(request['authMethod']).toBeUndefined();
+    });
   });
 
   describe('session cache', () => {
