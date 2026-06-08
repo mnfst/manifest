@@ -23,27 +23,26 @@ export function isLoopbackPeer(request: Request): boolean {
 
 // Headers that are only ever set by a reverse proxy / load balancer. A direct
 // local caller (curl on the box, a local SDK, the bundled dashboard) sets none
-// of them.
-const FORWARDED_HEADER_NAMES = [
-  'forwarded',
-  'x-forwarded-for',
-  'x-forwarded-host',
-  'x-forwarded-proto',
-  'x-real-ip',
-] as const;
+// of them. The whole `x-forwarded-*` family is matched by prefix so a variant
+// like `x-forwarded-port` can't slip a proxy hop past the check.
+const PROXY_HEADER_PREFIX = 'x-forwarded-';
+const PROXY_HEADER_NAMES = ['forwarded', 'x-real-ip', 'via'] as const;
 
 /**
  * True when the request carries any header indicating it traversed a proxy hop.
  *
- * We deliberately trust only the *presence* of these headers, never their
- * values (those are attacker-spoofable). Presence alone is enough to prove the
- * request did not arrive as a direct local call.
+ * We deliberately key off the *presence* of these headers, never their values
+ * (those are attacker-spoofable, and an empty value is still proof a proxy
+ * inserted the header). Presence alone is enough to show the request did not
+ * arrive as a direct local call. Node lowercases inbound header names, so the
+ * comparison is case-insensitive.
  */
 export function hasForwardedHeaders(request: Request): boolean {
-  return FORWARDED_HEADER_NAMES.some((name) => {
-    const value = request.headers[name];
-    return Array.isArray(value) ? value.length > 0 : typeof value === 'string' && value.length > 0;
-  });
+  return Object.keys(request.headers).some(
+    (name) =>
+      name.startsWith(PROXY_HEADER_PREFIX) ||
+      (PROXY_HEADER_NAMES as readonly string[]).includes(name),
+  );
 }
 
 /**

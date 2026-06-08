@@ -55,22 +55,28 @@ describe('local-ip', () => {
   });
 
   describe('hasForwardedHeaders', () => {
-    it.each(['forwarded', 'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-real-ip'])(
-      'detects the %s header when set to a non-empty string',
-      (header) => {
-        expect(hasForwardedHeaders(makeRequest('127.0.0.1', { [header]: '1.2.3.4' }))).toBe(true);
-      },
-    );
+    it.each([
+      'forwarded',
+      'x-forwarded-for',
+      'x-forwarded-host',
+      'x-forwarded-proto',
+      'x-forwarded-port',
+      'x-real-ip',
+      'via',
+    ])('detects the %s proxy header', (header) => {
+      expect(hasForwardedHeaders(makeRequest('127.0.0.1', { [header]: '1.2.3.4' }))).toBe(true);
+    });
 
-    it('detects a forwarding header set to a non-empty array', () => {
+    it('detects a forwarding header set to an array', () => {
       expect(
         hasForwardedHeaders(makeRequest('127.0.0.1', { 'x-forwarded-for': ['1.2.3.4'] })),
       ).toBe(true);
     });
 
-    it('ignores empty string and empty array header values', () => {
-      expect(hasForwardedHeaders(makeRequest('127.0.0.1', { 'x-forwarded-for': '' }))).toBe(false);
-      expect(hasForwardedHeaders(makeRequest('127.0.0.1', { 'x-forwarded-for': [] }))).toBe(false);
+    it('detects a forwarding header by presence even when its value is empty', () => {
+      // An empty value is still proof a proxy inserted the header.
+      expect(hasForwardedHeaders(makeRequest('127.0.0.1', { 'x-forwarded-for': '' }))).toBe(true);
+      expect(hasForwardedHeaders(makeRequest('127.0.0.1', { 'x-forwarded-for': [] }))).toBe(true);
     });
 
     it('is false when no forwarding headers are present', () => {
