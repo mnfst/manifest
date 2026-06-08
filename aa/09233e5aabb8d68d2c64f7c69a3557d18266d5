@@ -1,0 +1,35 @@
+.changeset/chatgpt-subscription-supported-models.md
+  s_34c85872c6f2d7::t_ca899317596dc8 1-5
+packages/shared/src/subscription/configs.ts
+  s_34c85872c6f2d7::t_47b513ce9edc2e 48
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_34c85872c6f2d7::t_5ce8619c15f416 124-139,376-384
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_34c85872c6f2d7::t_8b87e325af7bd4 239-245
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_34c85872c6f2d7::t_ede5f2c5436c11 387-391
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_34c85872c6f2d7::t_30f6548cd0687a 1770,1775,1794-1795,1797-1799,2189,2194,2202,2207,2216-2218,2220-2222,2224-2225,2386-2387,2391-2393,2588-2589,2591,2595
+  s_34c85872c6f2d7::t_5aa873304de1fe 563-583,2600,2605
+  s_34c85872c6f2d7::t_4bff9ce983e869 1283,1570,1575
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_34c85872c6f2d7::t_e46dd3bd336892 1812-1813,1835
+  s_34c85872c6f2d7::t_a147d7437f4c9e 1820-1821,1844-1865
+  s_34c85872c6f2d7::t_8eddd3ed19769c 1834
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "aa09233e5aabb8d68d2c64f7c69a3557d18266d5",
+  "prompts": {},
+  "sessions": {
+    "s_34c85872c6f2d7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ea655-8054-7cb2-aaaa-382b9bb1e2a0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
