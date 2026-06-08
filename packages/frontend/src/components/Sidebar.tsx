@@ -1,23 +1,25 @@
 import { A, useLocation } from '@solidjs/router';
-import { Show, type Component } from 'solid-js';
-import { useAgentName, agentPath } from '../services/routing.js';
+import type { Component } from 'solid-js';
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onNavigate?: () => void;
 }
 
+/**
+ * Returns true when the given route matches the current location either
+ * exactly or as a path prefix (so `/agents` stays active on `/agents/:name/*`).
+ */
+function makeIsGlobalActive(pathname: () => string) {
+  return (route: string): boolean => {
+    const p = pathname();
+    return p === route || p.startsWith(route + '/');
+  };
+}
+
 const Sidebar: Component<SidebarProps> = (props) => {
   const location = useLocation();
-  const getAgentName = useAgentName();
-
-  const path = (sub: string) => agentPath(getAgentName(), sub);
-
-  const isActive = (sub: string) => {
-    const p = path(sub);
-    if (sub === '') return location.pathname === p;
-    return location.pathname.startsWith(p);
-  };
+  const isGlobalActive = makeIsGlobalActive(() => location.pathname);
 
   return (
     <nav
@@ -32,119 +34,30 @@ const Sidebar: Component<SidebarProps> = (props) => {
         }
       }}
     >
-      <Show when={!getAgentName()}>
-        <A
-          href="/overview"
-          class="sidebar__link"
-          classList={{ active: location.pathname === '/overview' }}
-          aria-current={location.pathname === '/overview' ? 'page' : undefined}
-        >
-          Overview
-        </A>
-        <A
-          href="/messages"
-          class="sidebar__link"
-          classList={{ active: location.pathname === '/messages' }}
-          aria-current={location.pathname === '/messages' ? 'page' : undefined}
-        >
-          Messages
-        </A>
-        <A
-          href="/agents"
-          class="sidebar__link"
-          classList={{ active: location.pathname === '/agents' }}
-          aria-current={location.pathname === '/agents' ? 'page' : undefined}
-        >
-          Agents
-        </A>
-      </Show>
-
-      <Show when={getAgentName()}>
-        <div class="sidebar__section-label">MONITORING</div>
-        <A
-          href={path('')}
-          class="sidebar__link"
-          classList={{ active: isActive('') }}
-          aria-current={isActive('') ? 'page' : undefined}
-        >
-          Overview
-        </A>
-        <A
-          href={path('/messages')}
-          class="sidebar__link"
-          classList={{ active: isActive('/messages') }}
-          aria-current={isActive('/messages') ? 'page' : undefined}
-        >
-          Messages
-        </A>
-
-        <div class="sidebar__section-label">MANAGE</div>
-        <A
-          href={path('/routing')}
-          class="sidebar__link"
-          classList={{ active: isActive('/routing') }}
-          aria-current={isActive('/routing') ? 'page' : undefined}
-        >
-          Routing
-        </A>
-        <A
-          href={path('/playground')}
-          class="sidebar__link"
-          classList={{ active: isActive('/playground') }}
-          aria-current={isActive('/playground') ? 'page' : undefined}
-        >
-          Playground
-        </A>
-        <A
-          href={path('/limits')}
-          class="sidebar__link"
-          classList={{ active: isActive('/limits') }}
-          aria-current={isActive('/limits') ? 'page' : undefined}
-        >
-          Limits
-        </A>
-        <A
-          href={path('/settings')}
-          class="sidebar__link"
-          classList={{ active: isActive('/settings') }}
-          aria-current={isActive('/settings') ? 'page' : undefined}
-        >
-          Settings
-        </A>
-      </Show>
-
-      <Show when={getAgentName()}>
-        <div class="sidebar__section-label">RESOURCES</div>
-        <A
-          href={path('/model-prices')}
-          class="sidebar__link"
-          classList={{ active: isActive('/model-prices') }}
-          aria-current={isActive('/model-prices') ? 'page' : undefined}
-        >
-          Model Prices
-        </A>
-        <A
-          href={path('/free-models')}
-          class="sidebar__link"
-          classList={{ active: isActive('/free-models') }}
-          aria-current={isActive('/free-models') ? 'page' : undefined}
-        >
-          <img
-            src="/icons/free.svg"
-            alt="Free Models"
-            style="height: 12px; vertical-align: middle;"
-          />{' '}
-          Models
-        </A>
-        <A
-          href={path('/help')}
-          class="sidebar__link"
-          classList={{ active: isActive('/help') }}
-          aria-current={isActive('/help') ? 'page' : undefined}
-        >
-          Help
-        </A>
-      </Show>
+      <A
+        href="/overview"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/overview') }}
+        aria-current={isGlobalActive('/overview') ? 'page' : undefined}
+      >
+        Overview
+      </A>
+      <A
+        href="/messages"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/messages') }}
+        aria-current={isGlobalActive('/messages') ? 'page' : undefined}
+      >
+        Messages
+      </A>
+      <A
+        href="/agents"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/agents') }}
+        aria-current={isGlobalActive('/agents') ? 'page' : undefined}
+      >
+        Agents
+      </A>
 
       <div class="sidebar__spacer" />
 

@@ -35,12 +35,11 @@ const SseConnector: ParentComponent = (props) => {
 const AppInner: ParentComponent = (props) => {
   const location = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = createSignal(false);
-  const isAgentMode = () => location.pathname.startsWith('/agents/');
-  const isGlobalRoute = () =>
-    location.pathname === '/overview' ||
-    location.pathname === '/messages' ||
-    location.pathname === '/agents';
-  const showSidebar = () => isAgentMode() || isGlobalRoute();
+  // The sidebar is global and rendered identically on every authenticated
+  // route. Guest/setup routes never reach this component, so we show the
+  // sidebar everywhere except the root redirect ("/") which navigates away
+  // immediately and needs no nav chrome.
+  const showSidebar = () => location.pathname !== '/';
   const { content: rightSidebar } = useRightSidebar();
 
   createEffect<string | undefined>((previousPath) => {
