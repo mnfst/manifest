@@ -61,17 +61,38 @@ export class AgentProviderAccessController {
     const providerModels = new Set(
       (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
     );
-    if (providerModels.size === 0) return { affected_tiers: [] };
+    const providerName = provider.provider.toLowerCase();
+    const providerAuthType = provider.auth_type;
+    const providerLabel = provider.label?.toLowerCase();
+    const routeBelongsToDisabledProvider = (route: ModelRoute | null): boolean => {
+      if (!route) return false;
+      if (route.provider) {
+        if (route.provider.toLowerCase() !== providerName) return false;
+        if (route.authType && route.authType !== providerAuthType) return false;
+        if (route.keyLabel && providerLabel && route.keyLabel.toLowerCase() !== providerLabel) {
+          return false;
+        }
+        return true;
+      }
+      return providerModels.has(route.model);
+    };
 
     const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
     const affected: Array<{ tier: string; model: string; position: string }> = [];
 
     for (const tier of tiers) {
-      if (tier.override_route && providerModels.has(tier.override_route.model)) {
-        affected.push({ tier: tier.tier, model: tier.override_route.model, position: 'primary' });
+      if (routeBelongsToDisabledProvider(tier.override_route)) {
+        affected.push({ tier: tier.tier, model: tier.override_route!.model, position: 'primary' });
+      }
+      if (routeBelongsToDisabledProvider(tier.auto_assigned_route)) {
+        affected.push({
+          tier: tier.tier,
+          model: tier.auto_assigned_route!.model,
+          position: 'auto-assigned',
+        });
       }
       for (const [i, fb] of (tier.fallback_routes ?? []).entries()) {
-        if (providerModels.has(fb.model)) {
+        if (routeBelongsToDisabledProvider(fb)) {
           affected.push({ tier: tier.tier, model: fb.model, position: `fallback ${i + 1}` });
         }
       }

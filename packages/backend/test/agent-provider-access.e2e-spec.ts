@@ -256,6 +256,39 @@ describe('Disable isolation – DELETE a grant affects only the targeted agent',
   });
 });
 
+describe('Disable impact preview – mirrors what the disable handler will strip', () => {
+  it('reports an auto_assigned_route that uses the provider with position "auto-assigned"', async () => {
+    // Regression: the preview used to ignore auto_assigned_route entirely (and
+    // early-return [] when the provider had no cached models), so an agent
+    // routed via an auto-assigned openai route saw an empty impact even though
+    // disabling would strip that route. Force a deterministic auto-assigned
+    // openai route on agent B, then assert the preview surfaces it.
+    await ds.query(
+      `UPDATE tier_assignments
+         SET auto_assigned_route = $1, override_route = NULL, fallback_routes = NULL
+       WHERE agent_id = $2 AND tier = 'standard'`,
+      [JSON.stringify({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }), agentBId],
+    );
+
+    const res = await auth(
+      api().get(`/api/v1/agents/${AGENT_B_NAME}/provider-access/${providerId}/impact`),
+    ).expect(200);
+
+    const affected: Array<{ tier: string; model: string; position: string }> =
+      res.body.affected_tiers ?? [];
+    // The regression returned [] here; now every auto-assigned openai route is
+    // surfaced. Assert the deterministic standard-tier route we just pinned is
+    // among them with the new 'auto-assigned' position.
+    const autoAssigned = affected.filter((a) => a.position === 'auto-assigned');
+    expect(autoAssigned.length).toBeGreaterThan(0);
+    expect(autoAssigned).toContainEqual({
+      tier: 'standard',
+      model: 'gpt-4o-mini',
+      position: 'auto-assigned',
+    });
+  });
+});
+
 describe('Structural invariant – the global key row survives grant churn', () => {
   it('global user_providers row is not deleted by any access-grant change', async () => {
     const row = await ds.getRepository(UserProvider).findOne({ where: { id: providerId } });
