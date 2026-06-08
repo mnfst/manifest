@@ -1,17 +1,17 @@
 import { Meta, Title } from '@solidjs/meta';
 import { A } from '@solidjs/router';
-import { createMemo, createResource, createSignal, onMount, Show, type Component } from 'solid-js';
+import { createMemo, createResource, createSignal, Show, type Component } from 'solid-js';
 import ChartCard from '../components/ChartCard.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import OverviewSkeleton from '../components/OverviewSkeleton.jsx';
 import Select from '../components/Select.jsx';
-import { COMPACT_COLUMNS, type MessageRow } from '../components/message-table-types.js';
+import { type MessageRow } from '../components/message-table-types.js';
 import { getOverview } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
-import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
+import { useOverviewColumns, useOverviewRange } from '../services/use-overview-range.js';
 import '../styles/overview.css';
 
 interface GlobalOverviewData {
@@ -49,24 +49,8 @@ interface GlobalOverviewData {
 
 const GlobalOverview: Component = () => {
   preloadModelDisplayNames();
-  const [isSelfHosted, setIsSelfHosted] = createSignal(false);
-  onMount(() => {
-    checkIsSelfHosted().then(setIsSelfHosted);
-  });
-  const columns = () =>
-    isSelfHosted() ? COMPACT_COLUMNS.filter((c) => c !== 'feedback') : COMPACT_COLUMNS;
-
-  const RANGE_STORAGE_KEY = 'manifest_chart_range';
-  const VALID_RANGES = new Set(['24h', '7d', '30d']);
-  const savedRange = localStorage.getItem(RANGE_STORAGE_KEY);
-  const [range, setRange] = createSignal(
-    savedRange && VALID_RANGES.has(savedRange) ? savedRange : '30d',
-  );
-
-  const handleRangeChange = (value: string) => {
-    setRange(value);
-    localStorage.setItem(RANGE_STORAGE_KEY, value);
-  };
+  const { columns } = useOverviewColumns();
+  const { range, handleRangeChange } = useOverviewRange();
 
   const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages' | 'savings'>(
     'messages',
