@@ -132,7 +132,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   duration: 'Latency',
   status: 'Status',
   feedback: '',
-  agent: 'Agent',
+  agent: 'Harness',
 };
 
 const TOOLTIP_TEXT: Partial<Record<MessageColumnKey, string>> = {
@@ -364,7 +364,7 @@ export function StatusCell(
             {item.status === 'fallback_error' && <FallbackIcon />}
             {item.status === 'rate_limited' ? (
               agentName ? (
-                <A href={`/agents/${encodeURIComponent(agentName)}/limits`}>
+                <A href={`/harnesses/${encodeURIComponent(agentName)}/limits`}>
                   {formatStatus(item.status)}
                 </A>
               ) : (

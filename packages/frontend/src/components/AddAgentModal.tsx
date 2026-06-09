@@ -7,7 +7,7 @@ import { markAgentCreated } from '../services/recent-agents.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 
 /**
- * "Connect Agent" modal extracted from Workspace so it can be reused by other
+ * "Connect Harness" modal extracted from Workspace so it can be reused by other
  * onboarding surfaces (e.g. an empty-state CTA or a deep-link).
  *
  * Onboarding navigation: a freshly created agent inherits every connected
@@ -62,7 +62,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       // The user dismissed the modal while the request was in flight — honour
       // that dismissal and skip every success side effect + the navigation.
       if (cancelled) return;
-      toast.success(`Agent "${agentName}" connected`);
+      toast.success(`Harness "${agentName}" connected`);
       props.onClose();
       resetForm();
       const slug = result?.agent?.name ?? agentName;
@@ -84,7 +84,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       if (cancelled) return;
 
       // Land on Routing either way; the new agent's API key is surfaced there.
-      navigate(`/agents/${encodeURIComponent(slug)}/routing`, {
+      navigate(`/harnesses/${encodeURIComponent(slug)}/routing`, {
         state: {
           newApiKey: result?.apiKey,
           ...(hasProviders ? {} : { openProviders: true }),
@@ -121,10 +121,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
-            Connect Agent
+            Connect Harness
           </h2>
           <p class="modal-card__desc">
-            Name your agent to start tracking its LLM usage, costs, and messages in real time.
+            Name your harness to start tracking its LLM usage, costs, and messages in real time.
           </p>
 
           <div class="agent-type-select-row">
@@ -140,14 +140,14 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
             <div style="flex: 1;">
               <label class="modal-card__field-label" for="agent-name-input">
-                Agent name
+                Harness name
               </label>
               <input
                 ref={(el) => requestAnimationFrame(() => el.focus())}
                 id="agent-name-input"
                 class="modal-card__input modal-card__input--lg"
                 type="text"
-                placeholder="e.g. My Cool Agent"
+                placeholder="e.g. My Cool Harness"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
                 disabled={creating()}

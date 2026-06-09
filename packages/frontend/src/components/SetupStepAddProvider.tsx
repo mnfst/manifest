@@ -44,18 +44,18 @@ const SetupStepAddProvider: Component<Props> = (props) => {
     <div>
       <h3 class="setup-step__heading">
         {props.platform === 'hermes'
-          ? 'Connect your Hermes agent to Manifest'
+          ? 'Connect your Hermes harness to Manifest'
           : props.platform === 'openclaw'
-            ? 'Connect your OpenClaw agent to Manifest'
+            ? 'Connect your OpenClaw harness to Manifest'
             : props.platform === 'nanobot'
-              ? 'Connect your Nanobot agent to Manifest'
+              ? 'Connect your Nanobot harness to Manifest'
               : props.platform === 'craft'
-                ? 'Connect your Craft agent to Manifest'
+                ? 'Connect your Craft harness to Manifest'
                 : props.platform === 'claude-code'
                   ? 'Connect Claude Code to Manifest'
                   : props.platform === 'opencode'
                     ? 'Connect OpenCode to Manifest'
-                    : 'Connect your agent to Manifest'}
+                    : 'Connect your harness to Manifest'}
       </h3>
 
       {/* Platform-filtered mode: show only relevant content */}
@@ -99,7 +99,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
       {/* Default / "other": show full tabbed UI */}
       <Show when={!isFiltered()}>
         <p class="setup-step__desc">
-          Point your agent at the Manifest endpoint using the model{' '}
+          Point your harness at the Manifest endpoint using the model{' '}
           <code class="setup-model-hint__code">auto</code>
         </p>
 

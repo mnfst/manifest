@@ -8,7 +8,7 @@ import { agentPlatformIcon } from '../services/agent-platform-store.js';
 /**
  * AgentDetail — horizontal-tabbed shell for the agent detail view.
  *
- * Renders a header (back-link to /agents + platform icon + agent display name)
+ * Renders a header (back-link to /harnesses + platform icon + agent display name)
  * and a horizontal tab bar (Overview / Routing / Providers / Limits / Settings).
  * Child routes render in the body via props.children (SolidJS nested <Route>).
  */
@@ -36,10 +36,10 @@ const AgentDetail: ParentComponent = (props) => {
 
       <div style="margin-bottom: 8px;">
         <A
-          href="/agents"
+          href="/harnesses"
           style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
         >
-          ← Agents
+          ← Harnesses
         </A>
       </div>
 

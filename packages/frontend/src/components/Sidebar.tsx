@@ -8,7 +8,7 @@ interface SidebarProps {
 
 /**
  * Returns true when the given route matches the current location either
- * exactly or as a path prefix (so `/agents` stays active on `/agents/:name/*`).
+ * exactly or as a path prefix (so `/harnesses` stays active on `/harnesses/:name/*`).
  */
 function makeIsGlobalActive(pathname: () => string) {
   return (route: string): boolean => {
@@ -26,7 +26,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       id="agent-navigation"
       class="sidebar"
       classList={{ 'sidebar--mobile-open': props.mobileOpen === true }}
-      aria-label="Agent navigation"
+      aria-label="Navigation"
       onClick={(event) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) {
           props.onNavigate?.();
@@ -75,14 +75,14 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         Local
       </A>
-      <div class="sidebar__section-label">AGENTS</div>
+      <div class="sidebar__section-label">HARNESSES</div>
       <A
-        href="/agents"
+        href="/harnesses"
         class="sidebar__link"
-        classList={{ active: isGlobalActive('/agents') }}
-        aria-current={isGlobalActive('/agents') ? 'page' : undefined}
+        classList={{ active: isGlobalActive('/harnesses') }}
+        aria-current={isGlobalActive('/harnesses') ? 'page' : undefined}
       >
-        Agents
+        Harnesses
       </A>
 
       <div class="sidebar__section-label">TOOLS</div>

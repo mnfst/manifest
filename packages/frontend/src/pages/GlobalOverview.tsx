@@ -108,9 +108,13 @@ const GlobalOverview: Component = () => {
           <Show when={showEmptyState()}>
             <div class="empty-state">
               <div class="empty-state__title">No activity yet</div>
-              <p>Create an agent and send a message. Usage data shows up here.</p>
-              <A href="/agents" class="btn btn--primary btn--sm" style="margin-top: var(--gap-md);">
-                Go to Agents
+              <p>Create a harness and send a message. Usage data shows up here.</p>
+              <A
+                href="/harnesses"
+                class="btn btn--primary btn--sm"
+                style="margin-top: var(--gap-md);"
+              >
+                Go to Harnesses
               </A>
               <div class="empty-state__img-wrapper">
                 <img

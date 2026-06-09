@@ -259,7 +259,7 @@ const Overview: Component = () => {
             </Show>
             <Show when={showEmptyState() && !setupCompleted()}>
               <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-                Set up agent
+                Set up harness
               </button>
             </Show>
           </div>
@@ -273,13 +273,13 @@ const Overview: Component = () => {
                 fallback={
                   <div class="empty-state">
                     <div class="empty-state__title">No activity yet</div>
-                    <p>Set up your agent and send a message. Usage data shows up here.</p>
+                    <p>Set up your harness and send a message. Usage data shows up here.</p>
                     <button
                       class="btn btn--primary btn--sm"
                       style="margin-top: var(--gap-md);"
                       onClick={() => setSetupOpen(true)}
                     >
-                      Set up agent
+                      Set up harness
                     </button>
                     <div class="empty-state__img-wrapper">
                       <img
@@ -299,7 +299,7 @@ const Overview: Component = () => {
                     class="btn btn--primary btn--sm"
                     style="margin-top: var(--gap-md);"
                     onClick={() =>
-                      navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                      navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
                         state: { openProviders: true },
                       })
                     }
@@ -370,7 +370,7 @@ const Overview: Component = () => {
                         style="display: flex; justify-content: space-between; align-items: center;"
                       >
                         Recent Messages
-                        <A href={`/agents/${params.agentName}/messages`} class="view-more-link">
+                        <A href={`/harnesses/${params.agentName}/messages`} class="view-more-link">
                           View more
                         </A>
                       </div>
@@ -415,7 +415,7 @@ const Overview: Component = () => {
             setSetupCompleted(true);
           }}
           onGoToRouting={() => {
-            navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+            navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
               state: { openProviders: true },
             });
           }}

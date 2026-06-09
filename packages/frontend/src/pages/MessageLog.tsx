@@ -71,7 +71,7 @@ const MessageLog: Component = () => {
       ? DETAILED_COLUMNS.filter((c) => c !== 'feedback')
       : DETAILED_COLUMNS;
     if (params.agentName) return base;
-    // Global Messages spans every agent, so show which agent each row belongs to.
+    // Global Messages spans every harness, so show which harness each row belongs to.
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
@@ -92,7 +92,7 @@ const MessageLog: Component = () => {
     },
   );
   const agentFilterOptions = createMemo(() => [
-    { label: 'All agents', value: '' },
+    { label: 'All harnesses', value: '' },
     ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
@@ -344,7 +344,7 @@ const MessageLog: Component = () => {
         content={
           params.agentName
             ? `Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`
-            : 'Browse all messages across all agents. Filter by provider or cost.'
+            : 'Browse all messages across all harnesses. Filter by provider or cost.'
         }
       />
       <div class="page-header">
@@ -393,7 +393,7 @@ const MessageLog: Component = () => {
           </Show>
           <Show when={showEmptyState() && !!params.agentName && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-              Set up agent
+              Set up harness
             </button>
           </Show>
         </div>
@@ -477,24 +477,24 @@ const MessageLog: Component = () => {
                     when={params.agentName}
                     fallback={
                       <>
-                        <p>Create an agent and send a message. Every LLM call shows up here.</p>
+                        <p>Create a harness and send a message. Every LLM call shows up here.</p>
                         <A
-                          href="/agents"
+                          href="/harnesses"
                           class="btn btn--primary btn--sm"
                           style="margin-top: var(--gap-md);"
                         >
-                          Go to Agents
+                          Go to Harnesses
                         </A>
                       </>
                     }
                   >
-                    <p>Set up your agent and send a message. Every LLM call shows up here.</p>
+                    <p>Set up your harness and send a message. Every LLM call shows up here.</p>
                     <button
                       class="btn btn--primary btn--sm"
                       style="margin-top: var(--gap-md);"
                       onClick={() => setSetupOpen(true)}
                     >
-                      Set up agent
+                      Set up harness
                     </button>
                   </Show>
                   <div class="empty-state__img-wrapper">
@@ -515,7 +515,7 @@ const MessageLog: Component = () => {
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() =>
-                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                    navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
                       state: { openProviders: true },
                     })
                   }
