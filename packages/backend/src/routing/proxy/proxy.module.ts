@@ -21,6 +21,7 @@ import { ProviderClient } from './provider-client';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
 import { ProxyMessageDedup } from './proxy-message-dedup';
+import { ProviderCircuitBreakerService } from './provider-circuit-breaker.service';
 import { SessionMomentumService } from './session-momentum.service';
 import { CopilotTokenService } from './copilot-token.service';
 import { ThoughtSignatureCache } from './thought-signature-cache';
@@ -50,6 +51,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
   providers: [
     ProxyService,
     ProxyFallbackService,
+    ProviderCircuitBreakerService,
     ProviderClient,
     ProxyRateLimiter,
     ProxyMessageRecorder,

@@ -15,6 +15,7 @@ import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { ProviderCircuitBreakerService } from '../provider-circuit-breaker.service';
 import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
 
 const specCatalog: ProviderParamSpecCatalog = [
@@ -52,6 +53,7 @@ describe('ProxyFallbackService', () => {
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
   let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
+  let circuitBreaker: ProviderCircuitBreakerService;
 
   beforeEach(() => {
     providerKeyService = {
@@ -126,6 +128,7 @@ describe('ProxyFallbackService', () => {
       ),
     };
 
+    circuitBreaker = new ProviderCircuitBreakerService();
     service = new ProxyFallbackService(
       providerKeyService,
       customProviderRepo,
@@ -140,6 +143,7 @@ describe('ProxyFallbackService', () => {
       pricingCache,
       modelParamsService,
       providerParamSpecs,
+      circuitBreaker,
       reasoningCache as unknown as ReasoningContentCache,
     );
   });
@@ -368,6 +372,76 @@ describe('ProxyFallbackService', () => {
 
       expect(result.response.ok).toBe(false);
       expect(result.response.status).toBe(503);
+    });
+
+    it('retries once on a stale-connection error, then succeeds on a fresh socket', async () => {
+      const staleSocket = new Error('socket hang up');
+      (staleSocket as Error & { code?: string }).code = 'ECONNRESET';
+      providerClient.forward.mockRejectedValueOnce(staleSocket).mockResolvedValueOnce({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await service.tryForwardToProvider({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      expect(result.response.status).toBe(200);
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+    });
+
+    it('gives up with a 503 when the stale-connection retry also fails', async () => {
+      const staleSocket = (): Error => {
+        const err = new Error('socket hang up');
+        (err as Error & { code?: string }).code = 'ECONNRESET';
+        return err;
+      };
+      providerClient.forward
+        .mockRejectedValueOnce(staleSocket())
+        .mockRejectedValueOnce(staleSocket());
+
+      const result = await service.tryForwardToProvider({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      expect(result.response.status).toBe(503);
+      expect(providerClient.forward).toHaveBeenCalledTimes(2);
+    });
+
+    it('fast-fails with a circuit-open 503 without calling the provider when the breaker is open', async () => {
+      for (let i = 0; i < 20; i++) circuitBreaker.recordFailure('openai:default');
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await service.tryForwardToProvider({
+        provider: 'OpenAI',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      expect(result.response.status).toBe(503);
+      const errBody = (await result.response.json()) as { error: { message: string } };
+      expect(errBody.error.message).toContain('circuit open');
+      expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
     it('rethrows non-transport errors', async () => {
