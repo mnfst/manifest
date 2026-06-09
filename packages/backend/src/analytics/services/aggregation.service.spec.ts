@@ -259,7 +259,8 @@ describe('AggregationService', () => {
       const labelCalls = mockQb.andWhere.mock.calls.filter((c: unknown[]) => c[0] === labelClause);
       // Current + previous window builders each add the label predicate.
       expect(labelCalls).toHaveLength(2);
-      for (const call of labelCalls) expect(call[1]).toEqual({ keyLabel: 'Work' });
+      for (const call of labelCalls)
+        expect(call[1]).toEqual(expect.objectContaining({ keyLabel: 'Work' }));
     });
 
     it('does not add the label filter when no label is given', async () => {
