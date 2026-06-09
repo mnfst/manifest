@@ -1,19 +1,27 @@
-import { createSignal, For, onCleanup, onMount, Show, type Component } from 'solid-js';
+import { createSignal, For, onCleanup, onMount, Show, type JSX, type Component } from 'solid-js';
 
 interface MenuItem {
   label: string;
   onClick: () => void;
   danger?: boolean;
+  /** Optional leading icon rendered before the label. */
+  icon?: JSX.Element;
 }
 
 interface ActionMenuProps {
   items: MenuItem[];
+  /** Accessible label for the trigger button. Defaults to "Actions". */
+  ariaLabel?: string;
+  /** Extra class applied to the root wrapper (e.g. for per-surface positioning). */
+  class?: string;
 }
 
 /**
  * Generic kebab ("⋮") action menu: a trigger button that toggles a dropdown of
- * caller-supplied items. Closes on outside click. Reusable across cards and
- * detail views so each surface doesn't re-implement the popover wiring.
+ * caller-supplied items. Closes on outside click or Escape. Reusable across
+ * cards and detail views so each surface doesn't re-implement the popover
+ * wiring. An `--open` modifier is reflected on the root so surfaces can keep the
+ * trigger visible while the menu is open (e.g. hover-revealed card kebabs).
  */
 const ActionMenu: Component<ActionMenuProps> = (props) => {
   const [open, setOpen] = createSignal(false);
@@ -25,19 +33,38 @@ const ActionMenu: Component<ActionMenuProps> = (props) => {
     }
   };
 
-  onMount(() => document.addEventListener('click', handleClickOutside));
-  onCleanup(() => document.removeEventListener('click', handleClickOutside));
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(false);
+  };
+
+  onMount(() => {
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+  });
+  onCleanup(() => {
+    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('keydown', handleKeyDown);
+  });
 
   return (
-    <div ref={containerRef} style="position: relative; display: inline-flex;">
+    <div
+      ref={containerRef}
+      classList={{
+        'action-menu': true,
+        'action-menu--open': open(),
+        [props.class ?? '']: !!props.class,
+      }}
+    >
       <button
+        type="button"
         class="action-menu__trigger"
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           setOpen(!open());
         }}
-        aria-label="Actions"
-        aria-haspopup="true"
+        aria-label={props.ariaLabel ?? 'Actions'}
+        aria-haspopup="menu"
         aria-expanded={open()}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -47,17 +74,22 @@ const ActionMenu: Component<ActionMenuProps> = (props) => {
         </svg>
       </button>
       <Show when={open()}>
-        <div class="action-menu__dropdown">
+        <div class="action-menu__dropdown" role="menu">
           <For each={props.items}>
             {(item) => (
               <button
+                type="button"
                 class="action-menu__item"
                 classList={{ 'action-menu__item--danger': item.danger }}
-                onClick={() => {
+                role="menuitem"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setOpen(false);
                   item.onClick();
                 }}
               >
+                <Show when={item.icon}>{item.icon}</Show>
                 {item.label}
               </button>
             )}

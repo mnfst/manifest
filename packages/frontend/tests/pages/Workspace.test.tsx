@@ -484,17 +484,27 @@ describe("Workspace", () => {
   describe("agent card menu", () => {
     const clickKebab = async (container: HTMLElement) => {
       await vi.waitFor(() => {
-        const trigger = container.querySelector(".agent-card__menu-trigger");
+        const trigger = container.querySelector(".agent-card__menu .action-menu__trigger");
         expect(trigger).not.toBeNull();
       });
-      const trigger = container.querySelector(".agent-card__menu-trigger") as HTMLButtonElement;
+      const trigger = container.querySelector(
+        ".agent-card__menu .action-menu__trigger",
+      ) as HTMLButtonElement;
       fireEvent.click(trigger);
     };
+
+    it("labels the kebab trigger with the agent name", async () => {
+      const { container } = render(() => <Workspace />);
+      await vi.waitFor(() => {
+        const trigger = container.querySelector(".agent-card__menu .action-menu__trigger");
+        expect(trigger?.getAttribute("aria-label")).toBe("Actions for demo-agent");
+      });
+    });
 
     it("opens kebab popover with Duplicate and Delete", async () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
-      expect(container.querySelector(".agent-card__menu-popover")).not.toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
       expect(container.textContent).toContain("Duplicate");
       expect(container.textContent).toContain("Delete");
     });
@@ -503,31 +513,31 @@ describe("Workspace", () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
       await clickKebab(container);
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("closes the popover when clicking outside", async () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
-      expect(container.querySelector(".agent-card__menu-popover")).not.toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
       fireEvent.click(document.body);
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("closes the popover on Escape", async () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
       fireEvent.keyDown(document, { key: "Escape" });
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("ignores Escape when popover is already closed", async () => {
       const { container } = render(() => <Workspace />);
       await vi.waitFor(() => {
-        expect(container.querySelector(".agent-card__menu-trigger")).not.toBeNull();
+        expect(container.querySelector(".agent-card__menu .action-menu__trigger")).not.toBeNull();
       });
       fireEvent.keyDown(document, { key: "Escape" });
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("opens the DuplicateAgentModal when Duplicate is clicked", async () => {

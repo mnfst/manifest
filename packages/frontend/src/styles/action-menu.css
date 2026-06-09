@@ -1,11 +1,17 @@
 /* Action menu — three-dot dropdown shared across cards and detail views */
 
+.action-menu {
+  position: relative;
+  display: inline-flex;
+}
+
 .action-menu__trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
+  padding: 0;
   border: none;
   border-radius: var(--radius);
   background: transparent;
@@ -14,46 +20,101 @@
   transition: all var(--transition-fast);
 }
 
-.action-menu__trigger:hover {
+.action-menu__trigger:hover,
+.action-menu--open .action-menu__trigger {
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
 }
 
+.action-menu__trigger:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 .action-menu__dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   right: 0;
   z-index: 50;
-  min-width: 140px;
+  min-width: 160px;
   padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   box-shadow: 0 4px 12px hsl(0 0% 0% / 0.1);
+  animation: fadeInUp 120ms ease-out both;
 }
 
 .action-menu__item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border: none;
   border-radius: calc(var(--radius) - 2px);
   background: transparent;
   color: hsl(var(--foreground));
   font-size: var(--font-size-sm);
+  font-family: var(--font-family);
   text-align: left;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
-.action-menu__item:hover {
+.action-menu__item:hover,
+.action-menu__item:focus-visible {
   background: hsl(var(--muted));
+  outline: none;
 }
 
 .action-menu__item--danger {
-  color: hsl(var(--destructive));
+  color: hsl(var(--destructive, 0 72% 51%));
 }
 
-.action-menu__item--danger:hover {
-  background: hsl(var(--destructive) / 0.1);
+.action-menu__item--danger:hover,
+.action-menu__item--danger:focus-visible {
+  background: hsl(var(--destructive, 0 72% 51%) / 0.08);
+}
+
+/* ── Agent card variant ─────────────────────────────
+   Workspace cards reveal the kebab on hover/focus and keep it visible while
+   the menu is open. Positioned in the card's top-right corner. */
+.agent-card__menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+
+.agent-card__menu .action-menu__trigger {
+  width: 28px;
+  height: 28px;
+  border-radius: calc(var(--radius) - 2px);
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.agent-card-wrap:hover .agent-card__menu .action-menu__trigger,
+.agent-card-wrap:focus-within .agent-card__menu .action-menu__trigger,
+.agent-card__menu.action-menu--open .action-menu__trigger,
+.agent-card__menu .action-menu__trigger:focus-visible {
+  opacity: 1;
+}
+
+.agent-card__menu .action-menu__trigger:hover,
+.agent-card__menu.action-menu--open .action-menu__trigger {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+.agent-card__menu .action-menu__item:hover,
+.agent-card__menu .action-menu__item:focus-visible {
+  background: hsl(var(--accent));
 }

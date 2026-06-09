@@ -1,15 +1,8 @@
-import {
-  createEffect,
-  createResource,
-  createSignal,
-  Show,
-  For,
-  onCleanup,
-  type Component,
-} from 'solid-js';
+import { createResource, createSignal, Show, For, type Component } from 'solid-js';
 import { A, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
+import ActionMenu from '../components/ActionMenu.jsx';
 import AddAgentModal from '../components/AddAgentModal.jsx';
 import DuplicateAgentModal from '../components/DuplicateAgentModal.jsx';
 import { getAgents, deleteAgent } from '../services/api.js';
@@ -35,126 +28,40 @@ interface AgentsData {
   agents: Agent[];
 }
 
-const AgentCardMenu: Component<{
-  agentName: string;
-  onDuplicate: () => void;
-  onDelete: () => void;
-}> = (props) => {
-  const [open, setOpen] = createSignal(false);
-  let rootEl: HTMLDivElement | undefined;
+const DuplicateIcon: Component = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
 
-  const handleDocumentClick = (e: MouseEvent) => {
-    if (rootEl && !rootEl.contains(e.target as Node)) setOpen(false);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') setOpen(false);
-  };
-
-  // Only register global listeners while the popover is open, so N cards
-  // don't attach N permanent document listeners to the workspace grid.
-  createEffect(() => {
-    if (!open()) return;
-    document.addEventListener('click', handleDocumentClick);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleDocumentClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  });
-
-  return (
-    <div ref={rootEl} class="agent-card__menu" classList={{ 'agent-card__menu--open': open() }}>
-      <button
-        type="button"
-        class="agent-card__menu-trigger"
-        aria-haspopup="menu"
-        aria-expanded={open()}
-        aria-label={`Actions for ${props.agentName}`}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="5" cy="12" r="1" />
-          <circle cx="12" cy="12" r="1" />
-          <circle cx="19" cy="12" r="1" />
-        </svg>
-      </button>
-      <Show when={open()}>
-        <div class="agent-card__menu-popover" role="menu">
-          <button
-            type="button"
-            class="agent-card__menu-item"
-            role="menuitem"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setOpen(false);
-              props.onDuplicate();
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-            </svg>
-            Duplicate
-          </button>
-          <button
-            type="button"
-            class="agent-card__menu-item agent-card__menu-item--danger"
-            role="menuitem"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setOpen(false);
-              props.onDelete();
-            }}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 6h18" />
-              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            </svg>
-            Delete
-          </button>
-        </div>
-      </Show>
-    </div>
-  );
-};
+const DeleteIcon: Component = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 6h18" />
+    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+  </svg>
+);
 
 const Workspace: Component = () => {
   const [data, { refetch }] = createResource(
@@ -303,13 +210,25 @@ const Workspace: Component = () => {
                         <Sparkline data={agent.sparkline} width={280} height={50} />
                       </div>
                     </A>
-                    <AgentCardMenu
-                      agentName={agent.agent_name}
-                      onDuplicate={() => setDuplicateSource(agent.agent_name)}
-                      onDelete={() => {
-                        setDeleteTarget(agent.agent_name);
-                        setDeleteConfirmName('');
-                      }}
+                    <ActionMenu
+                      class="agent-card__menu"
+                      ariaLabel={`Actions for ${agent.agent_name}`}
+                      items={[
+                        {
+                          label: 'Duplicate',
+                          icon: <DuplicateIcon />,
+                          onClick: () => setDuplicateSource(agent.agent_name),
+                        },
+                        {
+                          label: 'Delete',
+                          danger: true,
+                          icon: <DeleteIcon />,
+                          onClick: () => {
+                            setDeleteTarget(agent.agent_name);
+                            setDeleteConfirmName('');
+                          },
+                        },
+                      ]}
                     />
                   </div>
                 )}

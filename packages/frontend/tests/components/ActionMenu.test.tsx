@@ -56,11 +56,56 @@ describe("ActionMenu", () => {
     expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
   });
 
-  it("removes the document listener on unmount", () => {
+  it("closes when Escape is pressed", () => {
+    const { container } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
+    fireEvent.click(container.querySelector(".action-menu__trigger")!);
+    expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(container.querySelector(".action-menu__dropdown")).toBeNull();
+  });
+
+  it("ignores non-Escape keydowns while open", () => {
+    const { container } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
+    fireEvent.click(container.querySelector(".action-menu__trigger")!);
+    fireEvent.keyDown(document, { key: "Enter" });
+    expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
+  });
+
+  it("uses the default trigger aria-label", () => {
+    const { container } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
+    expect(container.querySelector(".action-menu__trigger")!.getAttribute("aria-label")).toBe("Actions");
+  });
+
+  it("applies a custom aria-label and root class", () => {
+    const { container } = render(() => (
+      <ActionMenu class="agent-card__menu" ariaLabel="Actions for foo" items={[{ label: "Edit", onClick: () => {} }]} />
+    ));
+    expect(container.querySelector(".action-menu")!.classList.contains("agent-card__menu")).toBe(true);
+    expect(container.querySelector(".action-menu__trigger")!.getAttribute("aria-label")).toBe("Actions for foo");
+  });
+
+  it("reflects the open state with the --open modifier", () => {
+    const { container } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
+    const root = container.querySelector(".action-menu")!;
+    expect(root.classList.contains("action-menu--open")).toBe(false);
+    fireEvent.click(container.querySelector(".action-menu__trigger")!);
+    expect(root.classList.contains("action-menu--open")).toBe(true);
+  });
+
+  it("renders a leading icon when provided", () => {
+    const { container } = render(() => (
+      <ActionMenu items={[{ label: "Edit", icon: <svg data-testid="icon" />, onClick: () => {} }]} />
+    ));
+    fireEvent.click(container.querySelector(".action-menu__trigger")!);
+    expect(container.querySelector('[data-testid="icon"]')).not.toBeNull();
+  });
+
+  it("removes the document listeners on unmount", () => {
     const removeSpy = vi.spyOn(document, "removeEventListener");
     const { unmount } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
     unmount();
     expect(removeSpy).toHaveBeenCalledWith("click", expect.any(Function));
+    expect(removeSpy).toHaveBeenCalledWith("keydown", expect.any(Function));
     removeSpy.mockRestore();
   });
 });
