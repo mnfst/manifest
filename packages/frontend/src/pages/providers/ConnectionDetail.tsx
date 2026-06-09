@@ -150,7 +150,9 @@ const ConnectionDetail: Component = () => {
   const savedRange = () => {
     try {
       const v = sessionStorage.getItem(rangeKey());
-      if (v === '7d' || v === '30d') return v;
+      // Restore any persisted range, including '24h' (previously dropped, so a
+      // saved 24h selection silently reset to the 7d default on reload).
+      if (v === '24h' || v === '7d' || v === '30d') return v;
     } catch {
       /* ignore */
     }
@@ -212,11 +214,6 @@ const ConnectionDetail: Component = () => {
     },
   );
 
-  const messageChartData = createMemo(() => {
-    const src = analytics()?.message_usage;
-    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
-  });
-
   const [agentTimeseries] = createResource(
     () => {
       const c = conn();
@@ -255,18 +252,29 @@ const ConnectionDetail: Component = () => {
     },
   );
 
-  // Harness tag selection for chart filtering (persisted in sessionStorage)
+  // Harness tag selection for chart filtering (persisted in sessionStorage).
+  // `null` means "no persisted preference" (→ default to all selected); a Set
+  // — even an empty one — means an explicit user choice, so a genuine
+  // "Unselect all" survives and isn't coerced back to "all selected".
   const storageKey = () => `agent-filter:${params.connectionId}`;
-  const loadSavedAgents = (): Set<string> => {
+  const loadSavedAgents = (): Set<string> | null => {
     try {
       const saved = sessionStorage.getItem(storageKey());
-      if (saved) return new Set(JSON.parse(saved) as string[]);
+      if (saved !== null) return new Set(JSON.parse(saved) as string[]);
     } catch {
       /* ignore */
     }
-    return new Set();
+    return null;
   };
-  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(loadSavedAgents());
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string> | null>(loadSavedAgents());
+  const persistSelection = (next: Set<string>) => {
+    setSelectedAgents(next);
+    try {
+      sessionStorage.setItem(storageKey(), JSON.stringify([...next]));
+    } catch {
+      /* ignore */
+    }
+  };
   const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
   let agentFilterRef: HTMLDivElement | undefined;
 
@@ -312,32 +320,29 @@ const ConnectionDetail: Component = () => {
   };
   const effectiveSelected = () => {
     const sel = selectedAgents();
-    // If nothing selected yet (initial load), select all
-    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
+    // No persisted preference (null) → default to all selected. An explicit
+    // (possibly empty) Set is honored as-is so "Unselect all" sticks.
+    if (sel === null) return new Set(allAgents());
     return sel;
   };
 
   const toggleAgent = (agent: string) => {
-    const current = effectiveSelected();
-    const next = new Set(current);
+    const next = new Set(effectiveSelected());
     if (next.has(agent)) {
       next.delete(agent);
     } else {
       next.add(agent);
     }
-    setSelectedAgents(next);
-    try {
-      sessionStorage.setItem(storageKey(), JSON.stringify([...next]));
-    } catch {
-      /* ignore */
-    }
+    persistSelection(next);
   };
 
-  const filteredAgentTimeseries = createMemo(() => {
-    const raw = agentTimeseries();
+  // Filter a series bundle down to the selected agents. An explicit empty
+  // selection (genuine "Unselect all") yields empty agents/series, so the chart
+  // renders its empty state instead of silently showing everything.
+  type Series = { agents: string[]; timeseries: Array<Record<string, number | string>> };
+  const filterSeries = (raw: Series | null | undefined): Series | undefined => {
     if (!raw) return undefined;
     const sel = effectiveSelected();
-    if (sel.size === 0) return raw;
     const agents = raw.agents.filter((a) => sel.has(a));
     const timeseries = raw.timeseries.map((row) => {
       const filtered: Record<string, number | string> = {};
@@ -347,39 +352,11 @@ const ConnectionDetail: Component = () => {
       return filtered;
     });
     return { agents, timeseries };
-  });
+  };
 
-  const filteredAgentMessageTimeseries = createMemo(() => {
-    const raw = agentMessageTimeseries();
-    if (!raw) return undefined;
-    const sel = effectiveSelected();
-    if (sel.size === 0) return raw;
-    const agents = raw.agents.filter((a) => sel.has(a));
-    const timeseries = raw.timeseries.map((row) => {
-      const filtered: Record<string, number | string> = {};
-      for (const [k, v] of Object.entries(row)) {
-        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
-      }
-      return filtered;
-    });
-    return { agents, timeseries };
-  });
-
-  const filteredAgentCostTimeseries = createMemo(() => {
-    const raw = agentCostTimeseries();
-    if (!raw) return undefined;
-    const sel = effectiveSelected();
-    if (sel.size === 0) return raw;
-    const agents = raw.agents.filter((a) => sel.has(a));
-    const timeseries = raw.timeseries.map((row) => {
-      const filtered: Record<string, number | string> = {};
-      for (const [k, v] of Object.entries(row)) {
-        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
-      }
-      return filtered;
-    });
-    return { agents, timeseries };
-  });
+  const filteredAgentTimeseries = createMemo(() => filterSeries(agentTimeseries()));
+  const filteredAgentMessageTimeseries = createMemo(() => filterSeries(agentMessageTimeseries()));
+  const filteredAgentCostTimeseries = createMemo(() => filterSeries(agentCostTimeseries()));
 
   // Provider management modal (rename / disconnect / refresh models all live
   // inside ProviderSelectModal). The "Manage" button opens it directly.
@@ -580,14 +557,7 @@ const ConnectionDetail: Component = () => {
                               class="agent-filter-select__action-btn"
                               type="button"
                               disabled={selectedAgentCount() === allAgents().length}
-                              onClick={() => {
-                                setSelectedAgents(new Set(allAgents()));
-                                try {
-                                  sessionStorage.setItem(storageKey(), JSON.stringify(allAgents()));
-                                } catch {
-                                  /* ignore */
-                                }
-                              }}
+                              onClick={() => persistSelection(new Set(allAgents()))}
                             >
                               Select all
                             </button>
@@ -595,14 +565,7 @@ const ConnectionDetail: Component = () => {
                               class="agent-filter-select__action-btn"
                               type="button"
                               disabled={selectedAgentCount() === 0}
-                              onClick={() => {
-                                setSelectedAgents(new Set<string>());
-                                try {
-                                  sessionStorage.setItem(storageKey(), JSON.stringify([]));
-                                } catch {
-                                  /* ignore */
-                                }
-                              }}
+                              onClick={() => persistSelection(new Set<string>())}
                             >
                               Unselect all
                             </button>
@@ -676,8 +639,6 @@ const ConnectionDetail: Component = () => {
                       tokensValue={analytics()!.summary.tokens.value}
                       tokensTrendPct={analytics()!.summary.tokens.trend_pct}
                       costValue={isByok() ? (totalCost() ?? 0) : undefined}
-                      tokenUsage={analytics()!.token_usage}
-                      messageChartData={messageChartData()}
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
                       agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}

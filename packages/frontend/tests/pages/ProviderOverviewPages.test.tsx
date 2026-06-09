@@ -753,21 +753,45 @@ describe('ConnectionDetail (analytics)', () => {
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('messages');
 
     fireEvent.click(screen.getByText('All harnesses (2)'));
+    // Genuine "Unselect all": the empty selection must STICK (persisted as []),
+    // not be coerced back to "all selected".
     fireEvent.click(screen.getByText('Unselect all'));
     expect(sessionStorage.getItem('agent-filter:conn-openai')).toBe('[]');
 
     const filterToggle = () =>
       screen.getAllByText('demo-agent').find((el) => el.closest('.agent-filter-select'))!;
-    // demo-agent currently on → toggle off (remove branch)
-    fireEvent.click(filterToggle());
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('worker-agent');
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).not.toContain('demo-agent');
-    // demo-agent currently off → toggle on (add branch)
+    // After unselect-all the selection is genuinely empty, so toggling
+    // demo-agent ADDS it (add branch) rather than removing from an implicit all.
     fireEvent.click(filterToggle());
     expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('demo-agent');
+    expect(sessionStorage.getItem('agent-filter:conn-openai')).not.toContain('worker-agent');
+    // demo-agent currently on → toggle off (remove branch) → back to empty.
+    fireEvent.click(filterToggle());
+    expect(sessionStorage.getItem('agent-filter:conn-openai')).toBe('[]');
 
     fireEvent.click(screen.getByText('Select all'));
+    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('demo-agent');
+    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('worker-agent');
     fireEvent.keyDown(document, { key: 'Escape' });
+  });
+
+  it('defaults to all harnesses selected when no selection is persisted, then honors a saved empty selection', async () => {
+    // No persisted preference → effectiveSelected() is all agents.
+    sessionStorage.removeItem('agent-filter:conn-openai');
+    const first = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    fireEvent.click(screen.getByText('All harnesses (2)'));
+    // "All harnesses (2)" label reflects all-selected by default.
+    expect(screen.getAllByText('All harnesses (2)').length).toBeGreaterThan(0);
+    first.unmount();
+
+    // A persisted empty selection ([]) must be restored as a genuine empty
+    // selection on reload, not reset to "all selected".
+    sessionStorage.setItem('agent-filter:conn-openai', '[]');
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    fireEvent.click(screen.getByText('0 of 2 harnesses'));
+    expect(screen.getAllByText('0 of 2 harnesses').length).toBeGreaterThan(0);
   });
 
   it('opens the provider management modal with the connection deep link', async () => {
