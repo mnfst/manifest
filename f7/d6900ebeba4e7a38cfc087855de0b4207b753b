@@ -1,0 +1,55 @@
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8f7bd68edeeec2::t_f40cc0cb474eba 42-66,79
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8f7bd68edeeec2::t_261f47e0dedb52 318-370
+  s_8f7bd68edeeec2::t_918110dd166920 769,789-790,794
+packages/backend/src/routing/proxy/rate-limit-tracker.service.ts
+  s_8f7bd68edeeec2::t_cf57b7a2a54a7f 44-53
+  s_8f7bd68edeeec2::t_44b81a9550cffb 217-224,229,235
+  s_8f7bd68edeeec2::t_51d42c534aa028 312-314
+  s_8f7bd68edeeec2::t_1fa5ca1196fb21 68
+  s_8f7bd68edeeec2::t_65f40b100a1fa2 236
+  s_8f7bd68edeeec2::t_afcc97b6060ac4 77-89
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8f7bd68edeeec2::t_497867e8449e95 610-612
+  s_8f7bd68edeeec2::t_944199bad68533 272-275,281
+packages/backend/src/routing/proxy/__tests__/rate-limit-tracker.service.spec.ts
+  s_8f7bd68edeeec2::t_b43b620fa6aad2 106-132
+  s_8f7bd68edeeec2::t_f5a272a430592f 263-299
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_6f1b95adfbdee8 593-606,613-631,633
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_8e2ab4691d4717 166-169,175,177-180
+  s_8f7bd68edeeec2::t_82e0d2f2da9a0c 211,239,256,274
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_8f7bd68edeeec2::t_208fe324a4ebfc 280,282,285,291-312,325
+  s_8f7bd68edeeec2::t_5ec03c936c8f5e 348,427,466,504,532
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_8f7bd68edeeec2::t_f33876038f8804 70,76,82,88,97,109,121,127,133,143-159
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_8f7bd68edeeec2::t_35954c3ef505e7 173-185
+  s_8f7bd68edeeec2::t_4dc591e14c91d4 10
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_6bb9ed3a59d77f 423-440
+  s_8f7bd68edeeec2::t_28a46e1e20ce61 65-74
+  s_8f7bd68edeeec2::t_90e9794469f202 365-366
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_f4dae480510378 12
+  s_8f7bd68edeeec2::t_ed0c5b6f68d5ce 436-438,471-473,507-509,542-544,577-579,610-612
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "f7d6900ebeba4e7a38cfc087855de0b4207b753b",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
