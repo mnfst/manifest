@@ -313,10 +313,16 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBeUndefined();
   });
 
-  it('anthropic uses Bearer + oauth beta header for subscription auth', () => {
+  it('anthropic uses Claude Code-shaped headers for subscription auth', () => {
     const headers = PROVIDER_ENDPOINTS['anthropic'].buildHeaders('skst-token', 'subscription');
     expect(headers['Authorization']).toBe('Bearer skst-token');
-    expect(headers['anthropic-beta']).toBe('oauth-2025-04-20');
+    expect(headers['anthropic-beta']).toContain('claude-code-20250219');
+    expect(headers['anthropic-beta']).toContain('oauth-2025-04-20');
+    expect(headers['anthropic-dangerous-direct-browser-access']).toBe('true');
+    expect(headers['user-agent']).toContain('claude-cli/');
+    expect(headers['x-app']).toBe('cli');
+    expect(headers['x-stainless-runtime']).toBe('node');
+    expect(headers['x-stainless-lang']).toBe('js');
     expect(headers['x-api-key']).toBeUndefined();
   });
 

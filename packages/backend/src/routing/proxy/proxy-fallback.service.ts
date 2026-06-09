@@ -76,6 +76,10 @@ import {
   resolveApiKey,
 } from './oauth-credentials';
 
+const RATE_LIMIT_COOLDOWN_DEFAULT_MS = 60_000;
+const RATE_LIMIT_COOLDOWN_MAX_MS = 5 * 60_000;
+const MAX_RATE_LIMIT_COOLDOWNS = 2_000;
+
 export interface FailedFallback {
   model: string;
   provider: string;
@@ -92,6 +96,7 @@ export interface FailedFallback {
 @Injectable()
 export class ProxyFallbackService {
   private readonly logger = new Logger(ProxyFallbackService.name);
+  private readonly rateLimitCooldowns = new Map<string, number>();
 
   constructor(
     private readonly providerKeyService: ProviderKeyService,
@@ -336,9 +341,16 @@ export class ProxyFallbackService {
   }
 
   async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {
+    const cooldown = this.getActiveRateLimitCooldown(opts);
+    if (cooldown) {
+      return this.buildRateLimitCooldownForward(opts, cooldown);
+    }
+
     try {
       const forward = await this.forwardToProvider(opts);
-      return await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
+      const result = await this.retryOAuthSubscriptionAfterRejectedToken(opts, forward);
+      this.recordRateLimitCooldown(opts, result.response);
+      return result;
     } catch (error) {
       if (opts.signal?.aborted) throw error;
       if (!isTransportError(error)) throw error;
@@ -356,6 +368,96 @@ export class ProxyFallbackService {
         isChatGpt: false,
       };
     }
+  }
+
+  private getActiveRateLimitCooldown(opts: ForwardProviderOptions): number | null {
+    const key = this.rateLimitCooldownKey(opts);
+    if (!key) return null;
+    const expiresAt = this.rateLimitCooldowns.get(key);
+    if (!expiresAt) return null;
+    if (expiresAt <= Date.now()) {
+      this.rateLimitCooldowns.delete(key);
+      return null;
+    }
+    return expiresAt;
+  }
+
+  private buildRateLimitCooldownForward(
+    opts: ForwardProviderOptions,
+    expiresAt: number,
+  ): ForwardResult {
+    const retryAfterSeconds = Math.max(1, Math.ceil((expiresAt - Date.now()) / 1000));
+    const message =
+      `Provider route temporarily cooling down after an upstream 429: ` +
+      `${opts.provider}/${opts.model}`;
+    return {
+      response: new Response(JSON.stringify({ error: { message } }), {
+        status: 429,
+        headers: {
+          'content-type': 'application/json',
+          'retry-after': String(retryAfterSeconds),
+        },
+      }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    };
+  }
+
+  private recordRateLimitCooldown(opts: ForwardProviderOptions, response: Response): void {
+    if (response.status !== 429) return;
+    const key = this.rateLimitCooldownKey(opts);
+    if (!key) return;
+    if (this.rateLimitCooldowns.size >= MAX_RATE_LIMIT_COOLDOWNS) {
+      this.evictExpiredRateLimitCooldowns();
+      if (this.rateLimitCooldowns.size >= MAX_RATE_LIMIT_COOLDOWNS) {
+        this.evictOldestRateLimitCooldown();
+      }
+    }
+    const ttlMs = this.parseRetryAfterMs(response.headers.get('retry-after'));
+    this.rateLimitCooldowns.set(key, Date.now() + ttlMs);
+  }
+
+  private evictExpiredRateLimitCooldowns(now = Date.now()): void {
+    for (const [key, expiresAt] of this.rateLimitCooldowns) {
+      if (expiresAt <= now) this.rateLimitCooldowns.delete(key);
+    }
+  }
+
+  private evictOldestRateLimitCooldown(): void {
+    let oldestKey: string | null = null;
+    let oldestExpiresAt = Number.POSITIVE_INFINITY;
+    for (const [key, expiresAt] of this.rateLimitCooldowns) {
+      if (expiresAt >= oldestExpiresAt) continue;
+      oldestKey = key;
+      oldestExpiresAt = expiresAt;
+    }
+    if (oldestKey) this.rateLimitCooldowns.delete(oldestKey);
+  }
+
+  private parseRetryAfterMs(retryAfter: string | null): number {
+    if (!retryAfter) return RATE_LIMIT_COOLDOWN_DEFAULT_MS;
+    const seconds = Number(retryAfter);
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.min(seconds * 1000, RATE_LIMIT_COOLDOWN_MAX_MS);
+    }
+    const retryAt = Date.parse(retryAfter);
+    if (Number.isNaN(retryAt)) return RATE_LIMIT_COOLDOWN_DEFAULT_MS;
+    return Math.min(
+      Math.max(retryAt - Date.now(), RATE_LIMIT_COOLDOWN_DEFAULT_MS),
+      RATE_LIMIT_COOLDOWN_MAX_MS,
+    );
+  }
+
+  private rateLimitCooldownKey(opts: ForwardProviderOptions): string | null {
+    if (!opts.agentId || !opts.authType) return null;
+    return [
+      opts.agentId,
+      opts.provider.toLowerCase(),
+      opts.authType,
+      opts.providerKeyLabel ?? '',
+      opts.model.toLowerCase(),
+    ].join('\u0000');
   }
 
   private async retryOAuthSubscriptionAfterRejectedToken(

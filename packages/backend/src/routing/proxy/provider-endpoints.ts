@@ -5,6 +5,7 @@ import {
   CODEX_CLI_USER_AGENT,
   COPILOT_EDITOR_VERSION,
   COPILOT_PLUGIN_VERSION,
+  buildClaudeCodeSubscriptionHeaders,
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
@@ -65,16 +66,15 @@ const openaiHeaders = (apiKey: string) => ({
 const openaiPath = () => '/v1/chat/completions';
 
 const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
+  if (authType === 'subscription') {
+    return buildClaudeCodeSubscriptionHeaders(apiKey);
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'anthropic-version': '2023-06-01',
   };
-  if (authType === 'subscription') {
-    headers['Authorization'] = `Bearer ${apiKey}`;
-    headers['anthropic-beta'] = 'oauth-2025-04-20';
-  } else {
-    headers['x-api-key'] = apiKey;
-  }
+  headers['x-api-key'] = apiKey;
   return headers;
 };
 

@@ -21,7 +21,6 @@ import {
 } from '../routing/xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../routing/zai-region';
 import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
-import { filterBySubscriptionAccess } from './anthropic-subscription-probe';
 import {
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -101,6 +100,7 @@ export class ModelDiscoveryService {
     if (provider.auth_type === 'subscription' && apiKey) {
       if (
         lowerProvider === 'openai' ||
+        lowerProvider === 'anthropic' ||
         lowerProvider === 'minimax' ||
         lowerProvider === 'kiro' ||
         lowerProvider === 'xai'
@@ -154,12 +154,17 @@ export class ModelDiscoveryService {
 
     let raw: DiscoveredModel[];
 
-    // Subscription providers without a token: use curated fallback
-    if (provider.auth_type === 'subscription' && !apiKey) {
+    const useCuratedSubscriptionModels =
+      provider.auth_type === 'subscription' && (!apiKey || lowerProvider === 'anthropic');
+
+    // Subscription providers without a token use curated fallback. Anthropic
+    // subscription discovery is also static so connecting Claude Code does
+    // not spend live /models or /messages calls before the first real request.
+    if (useCuratedSubscriptionModels) {
       raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
       if (raw.length > 0) {
         this.logger.log(
-          `No token for subscription provider ${provider.provider} — using ${raw.length} fallback models`,
+          `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
         );
       }
     } else {
@@ -214,13 +219,6 @@ export class ModelDiscoveryService {
     // always select them, even if the live API or OpenRouter didn't return them.
     if (provider.auth_type === 'subscription') {
       raw = supplementWithKnownModels(raw, provider.provider);
-    }
-
-    // Anthropic subscription tokens may only access certain model families
-    // (e.g. Pro = haiku only, Team = haiku + sonnet). Probe one model per
-    // family to filter out inaccessible models before showing them to the user.
-    if (lowerProvider === 'anthropic' && provider.auth_type === 'subscription' && apiKey) {
-      raw = await filterBySubscriptionAccess(raw, apiKey);
     }
 
     // Preserve the full AuthType union (api_key / subscription / local) —
