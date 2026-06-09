@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Agent } from '../entities/agent.entity';
+import { Tenant } from '../entities/tenant.entity';
 import { TenantCacheService } from '../common/services/tenant-cache.service';
 import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants';
 
@@ -30,8 +31,10 @@ export class PlaygroundAgentService {
   ) {}
 
   async resolve(userId: string): Promise<Agent> {
-    const tenantId = await this.tenantCache.resolve(userId);
-    if (!tenantId) throw new NotFoundException('Tenant not found');
+    // The Playground is a global page that may be opened before the user has
+    // created any normal agent — i.e. before onboarding created their tenant row.
+    // Bootstrap the tenant so the reserved agent can always be created.
+    const tenantId = (await this.tenantCache.resolve(userId)) ?? (await this.ensureTenant(userId));
 
     const existing = await this.findSystemAgent(tenantId);
     if (existing) return existing;
@@ -73,5 +76,23 @@ export class PlaygroundAgentService {
     return this.agentRepo.findOne({
       where: { tenant_id: tenantId, is_system: true, deleted_at: IsNull() },
     });
+  }
+
+  /** Create the user's tenant row if it doesn't exist yet (race-safe). */
+  private async ensureTenant(userId: string): Promise<string> {
+    const repo = this.dataSource.getRepository(Tenant);
+    const existing = await repo.findOne({ where: { name: userId } });
+    if (existing) return existing.id;
+
+    const id = randomUUID();
+    try {
+      await repo.insert({ id, name: userId, is_active: true });
+      return id;
+    } catch {
+      // Lost a creation race — reuse the winner's row.
+      const raced = await repo.findOne({ where: { name: userId } });
+      if (raced) return raced.id;
+      throw new NotFoundException('Tenant could not be resolved');
+    }
   }
 }

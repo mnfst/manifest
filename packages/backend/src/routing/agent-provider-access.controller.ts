@@ -30,8 +30,10 @@ export class AgentProviderAccessController {
   private async resolveAgent(agentName: string, userId: string) {
     const tenant = await this.tenantRepo.findOne({ where: { name: userId } });
     if (!tenant) return null;
+    // Exclude the reserved system (Playground) agent — its grants are the global
+    // pool and must not be togglable/removable through this per-agent endpoint.
     return this.agentRepo.findOne({
-      where: { name: decodeURIComponent(agentName), tenant_id: tenant.id },
+      where: { name: decodeURIComponent(agentName), tenant_id: tenant.id, is_system: false },
     });
   }
 
