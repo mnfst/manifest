@@ -43,13 +43,18 @@ export class AgentDuplicationService {
   }
 
   private async findOwnedAgent(userId: string, agentName: string): Promise<Agent | null> {
-    return this.agentRepo
-      .createQueryBuilder('a')
-      .leftJoin('a.tenant', 't')
-      .where('t.name = :userId', { userId })
-      .andWhere('a.name = :agentName', { agentName })
-      .andWhere('a.deleted_at IS NULL')
-      .getOne();
+    return (
+      this.agentRepo
+        .createQueryBuilder('a')
+        .leftJoin('a.tenant', 't')
+        .where('t.name = :userId', { userId })
+        .andWhere('a.name = :agentName', { agentName })
+        .andWhere('a.deleted_at IS NULL')
+        // Exclude the reserved system agent — it cannot be cloned or used as a
+        // duplication source (it has no API key and is tenant-singleton).
+        .andWhere('a.is_system = false')
+        .getOne()
+    );
   }
 
   async getCopySummary(userId: string, sourceName: string): Promise<DuplicateAgentSummary> {

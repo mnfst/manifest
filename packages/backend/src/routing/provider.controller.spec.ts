@@ -686,6 +686,22 @@ describe('ProviderController', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    it('upsertProvider passes { allowSystem: true } so the Playground agent can connect providers', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'openai', is_active: true },
+        isNew: false,
+      });
+
+      await controller.upsertProvider(mockUser, { agentName: 'Playground' } as never, {
+        provider: 'openai',
+        apiKey: 'sk-test',
+      });
+
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'Playground', {
+        allowSystem: true,
+      });
+    });
+
     it('should propagate NotFoundException through removeProvider', async () => {
       mockResolveAgent.resolve.mockRejectedValue(
         new NotFoundException('Agent "missing-agent" not found'),

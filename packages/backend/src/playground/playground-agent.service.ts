@@ -34,7 +34,16 @@ export class PlaygroundAgentService {
     // The Playground is a global page that may be opened before the user has
     // created any normal agent — i.e. before onboarding created their tenant row.
     // Bootstrap the tenant so the reserved agent can always be created.
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? (await this.ensureTenant(userId));
+    const cached = await this.tenantCache.resolve(userId);
+    let tenantId: string;
+    if (cached) {
+      tenantId = cached;
+    } else {
+      tenantId = await this.ensureTenant(userId);
+      // Bust the stale null so subsequent resolves (e.g. ResolveAgentService) see
+      // the real tenant id instead of waiting out the 5-minute TTL.
+      this.tenantCache.invalidate(userId);
+    }
 
     const existing = await this.findSystemAgent(tenantId);
     if (existing) return existing;

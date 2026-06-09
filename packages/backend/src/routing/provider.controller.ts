@@ -104,7 +104,11 @@ export class ProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: ConnectProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    // allowSystem: true — connecting a provider to the Playground system agent
+    // is additive and correct (grants belong to the user-global pool).
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
+      allowSystem: true,
+    });
     const lowerProvider = body.provider.toLowerCase();
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
     const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(

@@ -14,8 +14,10 @@ export class SeedPlaygroundAgents1791400000000 implements MigrationInterface {
     //    named 'Playground' (suffix with its id — never delete a user's agent) so
     //    the reserved per-tenant agent can take the name without colliding on the
     //    (tenant_id, name) unique index.
+    //    Slug-safe form: `name-<uuid>` (hyphen + UUID chars are all [a-z0-9-]).
+    //    Space/bracket suffixes would break ^[a-zA-Z0-9_-]+$ route validators.
     await queryRunner.query(
-      `UPDATE "agents" SET "name" = "name" || ' [' || "id" || ']'
+      `UPDATE "agents" SET "name" = "name" || '-' || "id"
        WHERE "name" = $1 AND "is_system" = false AND "deleted_at" IS NULL`,
       [PLAYGROUND_AGENT_NAME],
     );

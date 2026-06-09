@@ -35,4 +35,24 @@ describe('TenantCacheService', () => {
     await service.resolve('user-1');
     expect(mockFindOne).toHaveBeenCalledTimes(1);
   });
+
+  it('invalidate() forces the next resolve() to re-hit the DB', async () => {
+    // First resolve populates the cache.
+    mockFindOne.mockResolvedValueOnce({ id: 'tenant-abc' });
+    await service.resolve('user-1');
+    expect(mockFindOne).toHaveBeenCalledTimes(1);
+
+    // Invalidate clears the cached entry.
+    service.invalidate('user-1');
+
+    // Next resolve must re-query.
+    mockFindOne.mockResolvedValueOnce({ id: 'tenant-abc-refreshed' });
+    const result = await service.resolve('user-1');
+    expect(mockFindOne).toHaveBeenCalledTimes(2);
+    expect(result).toBe('tenant-abc-refreshed');
+  });
+
+  it('invalidate() on an unknown user is a no-op (does not throw)', () => {
+    expect(() => service.invalidate('no-such-user')).not.toThrow();
+  });
 });

@@ -71,7 +71,9 @@ export class CustomProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: CreateCustomProviderDto,
   ) {
-    await this.resolveAgentService.resolve(user.id, params.agentName);
+    // allowSystem: true — creating a custom provider from the Playground page is
+    // additive (user-global resource); the system agent is a valid owner context.
+    await this.resolveAgentService.resolve(user.id, params.agentName, { allowSystem: true });
     const cp = await this.customProviderService.create(user.id, body);
     const provKey = CustomProviderService.providerKey(cp.id);
     const up = (await this.providerService.getProviders(user.id)).find(

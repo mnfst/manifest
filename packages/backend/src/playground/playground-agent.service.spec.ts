@@ -44,6 +44,7 @@ interface Mocks {
   };
   tenantCache: {
     resolve: jest.Mock;
+    invalidate: jest.Mock;
   };
   dataSource: {
     transaction: jest.Mock;
@@ -89,6 +90,7 @@ function buildService(mocks: Partial<Mocks> = {}): {
     },
     tenantCache: {
       resolve: jest.fn().mockResolvedValue(TENANT_ID),
+      invalidate: jest.fn(),
     },
     dataSource: {
       // Default: runs the transaction callback with a stock manager (insert + query succeed).
@@ -133,6 +135,46 @@ describe('PlaygroundAgentService.resolve', () => {
       const result = await service.resolve(USER_ID);
       expect(result).toBe(existing);
     });
+
+    it('does NOT call tenantCache.invalidate when tenantCache already resolved an id', async () => {
+      const existing = makeAgent();
+      const { service, mocks } = buildService({
+        agentRepo: { findOne: jest.fn().mockResolvedValue(existing) },
+        // tenantCache.resolve returns TENANT_ID (non-null) by default
+      });
+
+      await service.resolve(USER_ID);
+
+      expect(mocks.tenantCache.invalidate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('(a1) tenantCache miss → ensureTenant → cache invalidated', () => {
+    it('calls tenantCache.invalidate(userId) after ensureTenant bootstraps the tenant', async () => {
+      const tenantRepo = makeTenantRepo({
+        findOne: jest.fn().mockResolvedValue(makeTenant()),
+      });
+
+      const invalidateFn = jest.fn();
+      const { service } = buildService({
+        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: invalidateFn },
+        dataSource: {
+          transaction: jest
+            .fn()
+            .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
+              await cb(makeManager());
+            }),
+          getRepository: jest.fn().mockReturnValue(tenantRepo),
+        },
+      });
+
+      await service.resolve(USER_ID);
+
+      // invalidate must be called with the userId so subsequent resolves see the
+      // real tenantId instead of the cached null.
+      expect(invalidateFn).toHaveBeenCalledTimes(1);
+      expect(invalidateFn).toHaveBeenCalledWith(USER_ID);
+    });
   });
 
   describe('(a2) ensureTenant — tenant already exists in DB (findOne returns row)', () => {
@@ -147,7 +189,7 @@ describe('PlaygroundAgentService.resolve', () => {
       const manager = makeManager(insertFn, queryFn);
 
       const { service, mocks } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null) },
+        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
         dataSource: {
           transaction: jest
             .fn()
@@ -179,7 +221,7 @@ describe('PlaygroundAgentService.resolve', () => {
       });
 
       const { service, mocks } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null) },
+        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
         dataSource: {
           transaction: jest
             .fn()
@@ -221,7 +263,7 @@ describe('PlaygroundAgentService.resolve', () => {
       });
 
       const { service } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null) },
+        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
         dataSource: {
           transaction: jest
             .fn()
@@ -249,7 +291,7 @@ describe('PlaygroundAgentService.resolve', () => {
       });
 
       const { service } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null) },
+        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
         dataSource: {
           transaction: jest.fn().mockResolvedValue(undefined),
           getRepository: jest.fn().mockReturnValue(tenantRepo),

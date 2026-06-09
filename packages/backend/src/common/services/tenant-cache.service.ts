@@ -22,4 +22,9 @@ export class TenantCacheService {
       return tenant?.id ?? null;
     });
   }
+
+  /** Remove a cached entry so the next resolve() re-hits the DB. */
+  invalidate(userId: string): void {
+    this.cache.invalidate(userId);
+  }
 }

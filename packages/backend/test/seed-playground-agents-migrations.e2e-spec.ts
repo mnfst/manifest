@@ -79,7 +79,9 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
       `SELECT "name","is_system" FROM "agents" WHERE "id" = 'a-user'`,
     );
     expect(row[0].is_system).toBe(false);
-    expect(row[0].name).toBe('Playground [a-user]');
+    // Slug-safe suffix: `name-<id>` so the relabeled agent remains routable
+    // via the ^[a-zA-Z0-9_-]+$ validator (no spaces or brackets).
+    expect(row[0].name).toBe('Playground-a-user');
   });
 
   it("grants each Playground agent its tenant's whole provider pool", async () => {
