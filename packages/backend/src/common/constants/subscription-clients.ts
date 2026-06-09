@@ -20,19 +20,7 @@ export const CODEX_CLI_USER_AGENT = 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unk
 export const CLAUDE_CODE_USER_AGENT = 'claude-cli/2.1.92 (external, sdk-cli)';
 export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.80.0';
 export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v24.14.0';
-export const CLAUDE_CODE_BETA_FLAGS = [
-  'claude-code-20250219',
-  'oauth-2025-04-20',
-  'interleaved-thinking-2025-05-14',
-  'context-management-2025-06-27',
-  'prompt-caching-scope-2026-01-05',
-  'advanced-tool-use-2025-11-20',
-  'effort-2025-11-24',
-  'structured-outputs-2025-12-15',
-  'fast-mode-2026-02-01',
-  'redact-thinking-2026-02-12',
-  'token-efficient-tools-2026-03-28',
-].join(',');
+export const CLAUDE_CODE_BETA_FLAGS = ['claude-code-20250219', 'oauth-2025-04-20'].join(',');
 
 function claudeCodeStainlessArch(arch = process.arch): string {
   switch (arch) {

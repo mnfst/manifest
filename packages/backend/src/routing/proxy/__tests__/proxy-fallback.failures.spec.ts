@@ -184,6 +184,50 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(providerClient.forward).toHaveBeenCalledTimes(1);
   });
 
+  it('evicts an active cooldown when the cooldown cache is full', async () => {
+    const cooldowns = (service as unknown as { rateLimitCooldowns: Map<string, number> })
+      .rateLimitCooldowns;
+    const now = Date.now();
+    for (let i = 0; i < 2_000; i += 1) {
+      cooldowns.set(
+        `agent-1\u0000anthropic\u0000subscription\u0000Key ${i}\u0000model-${i}`,
+        now + i + 1,
+      );
+    }
+
+    providerClient.forward.mockResolvedValueOnce({
+      response: new Response('rate limit', {
+        status: 429,
+        headers: { 'retry-after': '120' },
+      }),
+      isGoogle: false,
+      isAnthropic: true,
+      isChatGpt: false,
+    });
+
+    await service.tryForwardToProvider({
+      provider: 'anthropic',
+      apiKey: 'sk-ant-oat-token',
+      model: 'claude-sonnet-4-6',
+      body,
+      stream: false,
+      sessionKey: 'sess-1',
+      agentId: 'agent-1',
+      providerKeyLabel: 'Claude Code',
+      authType: 'subscription',
+    });
+
+    expect(cooldowns.size).toBe(2_000);
+    expect(cooldowns.has('agent-1\u0000anthropic\u0000subscription\u0000Key 0\u0000model-0')).toBe(
+      false,
+    );
+    expect(
+      cooldowns.has(
+        'agent-1\u0000anthropic\u0000subscription\u0000Claude Code\u0000claude-sonnet-4-6',
+      ),
+    ).toBe(true);
+  });
+
   it('does NOT short-circuit on 401 auth errors — continues to next route (current contract)', async () => {
     // shouldTriggerFallback(401) === true, so an auth failure on the first
     // route keeps the loop going. This test pins that behavior: if anyone

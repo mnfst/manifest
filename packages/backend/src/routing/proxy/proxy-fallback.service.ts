@@ -410,6 +410,9 @@ export class ProxyFallbackService {
     if (!key) return;
     if (this.rateLimitCooldowns.size >= MAX_RATE_LIMIT_COOLDOWNS) {
       this.evictExpiredRateLimitCooldowns();
+      if (this.rateLimitCooldowns.size >= MAX_RATE_LIMIT_COOLDOWNS) {
+        this.evictOldestRateLimitCooldown();
+      }
     }
     const ttlMs = this.parseRetryAfterMs(response.headers.get('retry-after'));
     this.rateLimitCooldowns.set(key, Date.now() + ttlMs);
@@ -419,6 +422,17 @@ export class ProxyFallbackService {
     for (const [key, expiresAt] of this.rateLimitCooldowns) {
       if (expiresAt <= now) this.rateLimitCooldowns.delete(key);
     }
+  }
+
+  private evictOldestRateLimitCooldown(): void {
+    let oldestKey: string | null = null;
+    let oldestExpiresAt = Number.POSITIVE_INFINITY;
+    for (const [key, expiresAt] of this.rateLimitCooldowns) {
+      if (expiresAt >= oldestExpiresAt) continue;
+      oldestKey = key;
+      oldestExpiresAt = expiresAt;
+    }
+    if (oldestKey) this.rateLimitCooldowns.delete(oldestKey);
   }
 
   private parseRetryAfterMs(retryAfter: string | null): number {
