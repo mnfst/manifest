@@ -76,6 +76,30 @@ describe("ActionMenu", () => {
     expect(container.querySelector(".action-menu__trigger")!.getAttribute("aria-label")).toBe("Actions");
   });
 
+  it("exposes aria-expanded on the trigger reflecting the open state", () => {
+    const { container } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
+    const trigger = container.querySelector(".action-menu__trigger")!;
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("does not claim unimplemented menu ARIA semantics", () => {
+    // The dropdown is an honest list of buttons: it must NOT expose role="menu"
+    // / role="menuitem" or aria-haspopup="menu", because the component does not
+    // implement menu keyboard/focus semantics (roving focus). See ActionMenu doc.
+    const { container } = render(() => (
+      <ActionMenu items={[{ label: "Edit", onClick: () => {} }, { label: "Remove", onClick: () => {} }]} />
+    ));
+    const trigger = container.querySelector(".action-menu__trigger")!;
+    expect(trigger.getAttribute("aria-haspopup")).toBeNull();
+    fireEvent.click(trigger);
+    expect(container.querySelector('[role="menu"]')).toBeNull();
+    expect(container.querySelectorAll('[role="menuitem"]').length).toBe(0);
+    // The items remain real buttons so they stay keyboard-focusable/clickable.
+    expect(container.querySelectorAll("button.action-menu__item").length).toBe(2);
+  });
+
   it("applies a custom aria-label and root class", () => {
     const { container } = render(() => (
       <ActionMenu class="agent-card__menu" ariaLabel="Actions for foo" items={[{ label: "Edit", onClick: () => {} }]} />

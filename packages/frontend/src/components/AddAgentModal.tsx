@@ -1,4 +1,4 @@
-import { createSignal, Show, type Component } from 'solid-js';
+import { createSignal, onCleanup, Show, type Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
@@ -25,6 +25,24 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   );
   const [creating, setCreating] = createSignal(false);
 
+  // Tracks whether the user dismissed the modal (overlay click / Escape) while a
+  // create request was still in flight. A dismissed create must NOT run its
+  // post-success side effects (toast, markAgentCreated) or navigate afterwards —
+  // otherwise closing the modal mid-request still yanks the user to Routing once
+  // the request resolves. Reset at the start of every create attempt.
+  let cancelled = false;
+  // If the component unmounts mid-request, treat it like a dismissal so we never
+  // navigate from a disposed modal.
+  onCleanup(() => {
+    cancelled = true;
+  });
+
+  const dismiss = () => {
+    cancelled = true;
+    props.onClose();
+    resetForm();
+  };
+
   const handleCategoryChange = (c: AgentCategory) => {
     setCategory(c);
     setPlatform(PLATFORMS_BY_CATEGORY[c][0] ?? null);
@@ -33,6 +51,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   const handleCreate = async () => {
     const agentName = name().trim();
     if (!agentName) return;
+    cancelled = false;
     setCreating(true);
     try {
       const result = await createAgent({
@@ -40,6 +59,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
       });
+      // The user dismissed the modal while the request was in flight — honour
+      // that dismissal and skip every success side effect + the navigation.
+      if (cancelled) return;
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
       resetForm();
@@ -57,6 +79,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         // Treat a failed providers lookup as "no providers" so onboarding still
         // surfaces the connect flow rather than silently skipping it.
       }
+
+      // A dismissal during the providers lookup must also skip the redirect.
+      if (cancelled) return;
 
       // Land on Routing either way; the new agent's API key is surfaced there.
       navigate(`/agents/${encodeURIComponent(slug)}/routing`, {
@@ -80,21 +105,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' && e.target instanceof HTMLInputElement) handleCreate();
-    if (e.key === 'Escape') {
-      props.onClose();
-      resetForm();
-    }
+    if (e.key === 'Escape') dismiss();
   };
 
   return (
     <Show when={props.open}>
-      <div
-        class="modal-overlay"
-        onClick={() => {
-          props.onClose();
-          resetForm();
-        }}
-      >
+      <div class="modal-overlay" onClick={dismiss}>
         <div
           class="modal-card"
           style="max-width: 540px;"

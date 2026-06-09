@@ -30,6 +30,13 @@ interface ActionMenuProps {
  * cards and detail views so each surface doesn't re-implement the popover
  * wiring. An `--open` modifier is reflected on the root so surfaces can keep the
  * trigger visible while the menu is open (e.g. hover-revealed card kebabs).
+ *
+ * A11y: the dropdown is intentionally a plain list of buttons — it does NOT use
+ * `role="menu"` / `role="menuitem"` (nor `aria-haspopup="menu"`), because those
+ * roles promise full menu keyboard semantics (arrow-key roving focus, focus
+ * management) that this component does not implement. Claiming them would
+ * mislead assistive tech. The trigger keeps `aria-label` + `aria-expanded`,
+ * which honestly describes a disclosure that toggles a group of buttons.
  */
 const ActionMenu: Component<ActionMenuProps> = (props) => {
   const [open, setOpen] = createSignal(false);
@@ -77,7 +84,6 @@ const ActionMenu: Component<ActionMenuProps> = (props) => {
           setOpen(!open());
         }}
         aria-label={props.ariaLabel ?? 'Actions'}
-        aria-haspopup="menu"
         aria-expanded={open()}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -87,14 +93,13 @@ const ActionMenu: Component<ActionMenuProps> = (props) => {
         </svg>
       </button>
       <Show when={open()}>
-        <div class="action-menu__dropdown" role="menu">
+        <div class="action-menu__dropdown">
           <For each={props.items}>
             {(item) => (
               <button
                 type="button"
                 class="action-menu__item"
                 classList={{ 'action-menu__item--danger': item.danger }}
-                role="menuitem"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

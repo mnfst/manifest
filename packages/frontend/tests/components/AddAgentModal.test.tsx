@@ -189,6 +189,83 @@ describe("AddAgentModal", () => {
     resolveCreate!({ agent: { name: "slow" }, apiKey: "k" });
   });
 
+  it("does not navigate after the create resolves if the modal was dismissed mid-request (overlay)", async () => {
+    let resolveCreate: (v: unknown) => void;
+    mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
+    const { container, input } = renderOpen();
+    fireEvent.input(input, { target: { value: "dismissed" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
+
+    // User dismisses the modal (overlay click) while the request is still pending.
+    fireEvent.click(container.querySelector(".modal-overlay")!);
+
+    // Now the in-flight request resolves — the post-success side effects and the
+    // navigation must be skipped because the user already dismissed the modal.
+    resolveCreate!({ agent: { name: "dismissed" }, apiKey: "k" });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockMarkAgentCreated).not.toHaveBeenCalled();
+    expect(mockGetGlobalProviders).not.toHaveBeenCalled();
+  });
+
+  it("does not navigate after the create resolves if the modal was dismissed mid-request (Escape)", async () => {
+    let resolveCreate: (v: unknown) => void;
+    mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
+    const { input } = renderOpen();
+    fireEvent.input(input, { target: { value: "esc-dismissed" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
+
+    // Escape dismisses the modal while the create is still pending.
+    fireEvent.keyDown(input, { key: "Escape" });
+
+    resolveCreate!({ agent: { name: "esc-dismissed" }, apiKey: "k" });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockMarkAgentCreated).not.toHaveBeenCalled();
+  });
+
+  it("does not navigate if dismissed during the providers lookup", async () => {
+    let resolveProviders: (v: unknown) => void;
+    mockGetGlobalProviders.mockReturnValue(new Promise((r) => { resolveProviders = r; }));
+    const { container, input } = renderOpen();
+    fireEvent.input(input, { target: { value: "late-dismiss" } });
+    fireEvent.click(screen.getByText("Create"));
+
+    // createAgent resolves first (it ran the success side effects), then the
+    // providers lookup is in flight when the user dismisses the modal.
+    await vi.waitFor(() => expect(mockGetGlobalProviders).toHaveBeenCalled());
+    // Default mock returns agent.name "new-agent" as the slug.
+    expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-agent");
+
+    fireEvent.click(container.querySelector(".modal-overlay")!);
+    resolveProviders!({ providers: [{ provider: "openai" }] });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("still navigates on a normal (non-dismissed) successful create", async () => {
+    // Guards against the dismissal flag wrongly suppressing a clean success: a
+    // second create after a prior dismissal must reset the flag and navigate.
+    const { input } = renderOpen();
+    fireEvent.input(input, { target: { value: "clean" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    fireEvent.input(input, { target: { value: "clean" } });
+    fireEvent.click(screen.getByText("Create"));
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/agents/new-agent/routing", {
+        state: { newApiKey: "key-1" },
+      });
+    });
+  });
+
   it("does not navigate or mark created when createAgent rejects", async () => {
     mockCreateAgent.mockRejectedValue(new Error("boom"));
     const { input, createBtn } = renderOpen();
