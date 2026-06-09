@@ -1,0 +1,95 @@
+name: DB Diagram Comment
+
+# Posts (or updates) the schema-diff comment rendered by the "DB Diagram"
+# workflow. It is split out from that workflow so it can run with a write token
+# even for PRs from forks:
+#
+#   - "DB Diagram" runs on `pull_request`, executes the PR's (untrusted)
+#     migrations, and gets a READ-ONLY token. It only uploads the rendered
+#     markdown as an artifact — it never comments.
+#   - This workflow runs on `workflow_run` from the DEFAULT branch (trusted
+#     code), so GitHub grants it a read-write token. It downloads the artifact
+#     and posts the comment.
+#
+# Security: this workflow never executes any downloaded content. It only reads
+# the rendered markdown + the PR number from the artifact and calls the issues
+# API, so a malicious fork can at worst influence comment text, never code.
+
+permissions:
+  contents: read
+
+on:
+  workflow_run:
+    workflows: ['DB Diagram']
+    types:
+      - completed
+
+jobs:
+  comment:
+    name: Post schema diff comment
+    runs-on: ubuntu-latest
+    # Only act on successful PR builds; non-PR or failed runs have nothing to post.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      # Tolerate a missing artifact: a PR opened before this split shipped still
+      # runs the old "DB Diagram" (no upload), so its completion would otherwise
+      # fail this download. Such PRs just get no comment until they rebase.
+      - name: Download rendered comment artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: db-diagram-comment
+          path: /tmp/db-diagram-comment
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post or update sticky PR comment
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const dir = '/tmp/db-diagram-comment';
+
+            if (!fs.existsSync(`${dir}/comment.md`) || !fs.existsSync(`${dir}/pr-number.txt`)) {
+              core.info('No db-diagram artifact contents found; nothing to post.');
+              return;
+            }
+
+            // The artifact carries the PR number explicitly: workflow_run's own
+            // `pull_requests` payload is empty for fork PRs, so it is the only
+            // reliable source. Validate it before touching any issue.
+            const prRaw = fs.readFileSync(`${dir}/pr-number.txt`, 'utf8').trim();
+            const issue_number = Number.parseInt(prRaw, 10);
+            if (!Number.isInteger(issue_number) || issue_number <= 0) {
+              core.setFailed(`Invalid PR number in artifact: ${JSON.stringify(prRaw)}`);
+              return;
+            }
+
+            const body = fs.readFileSync(`${dir}/comment.md`, 'utf8');
+            const marker = '<!-- db-diagram-bot -->';
+            const { owner, repo } = context.repo;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100,
+            });
+            const existing = comments.find((c) => c.body && c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+              core.info(`Updated existing comment ${existing.id} on #${issue_number}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body,
+              });
+              core.info(`Created new comment on #${issue_number}`);
+            }
