@@ -217,6 +217,16 @@ describe("Sidebar — harness switcher list", () => {
     expect(alpha?.textContent).toContain("Alpha Harness");
   });
 
+  it("URL-encodes harness names with special characters in the item href", async () => {
+    mockGetAgents.mockResolvedValueOnce({ agents: [{ agent_name: "a/b c", display_name: "A B" }] });
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector("a.sidebar__agent-item")).not.toBeNull();
+    });
+    const item = container.querySelector("a.sidebar__agent-item");
+    expect(item?.getAttribute("href")).toBe("/harnesses/a%2Fb%20c");
+  });
+
   it("falls back to agent_name when display_name is missing", async () => {
     const { container } = render(() => <Sidebar />);
     await waitFor(() => {
