@@ -4,6 +4,9 @@ import {
   formatTimestamp,
   addTenantFilter,
   selectMessageRowColumns,
+  excludeSystemAgents,
+  EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+  filterByKeyLabel,
   MESSAGE_ROW_SELECT_ALIASES,
 } from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
@@ -177,6 +180,84 @@ describe('addTenantFilter', () => {
     addTenantFilter(qb, 'user-123', 'my-agent', 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('excludeSystemAgents', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const mockLeftJoin = jest.fn();
+    const qb = {
+      leftJoin: mockLeftJoin.mockImplementation(() => qb),
+      andWhere: mockAndWhere.mockImplementation(() => qb),
+    };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere, mockLeftJoin };
+  }
+
+  it('excludes system agents via a NOT EXISTS semi-join (no join added)', () => {
+    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb();
+    excludeSystemAgents(qb);
+
+    // Semi-join only: never adds a LEFT JOIN of its own.
+    expect(mockLeftJoin).not.toHaveBeenCalled();
+    expect(mockAndWhere).toHaveBeenCalledWith(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+  });
+
+  it('matches the system agent by id OR name and never multiplies rows', () => {
+    // The predicate is a pure existence test (cannot duplicate fact rows) and
+    // matches on either agent_id OR agent_name (so a Playground row carrying
+    // only agent_name, NULL agent_id, is still excluded).
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('NOT EXISTS');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.is_system = true');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.tenant_id = at.tenant_id');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain(
+      'sysag.id = at.agent_id OR sysag.name = at.agent_name',
+    );
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(excludeSystemAgents(qb)).toBe(qb);
+  });
+});
+
+describe('filterByKeyLabel', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('matches the label case-insensitively', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Work' },
+    );
+  });
+
+  it('collapses a null label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, null);
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('collapses an empty-string label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, '');
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('collapses an undefined label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, undefined);
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(filterByKeyLabel(qb, 'x')).toBe(qb);
   });
 });
 

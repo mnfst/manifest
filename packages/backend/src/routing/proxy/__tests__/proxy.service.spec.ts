@@ -24,6 +24,7 @@ import type { ThinkingBlockCache } from '../thinking-block-cache';
 import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { RateLimitTrackerService } from '../rate-limit-tracker.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -92,6 +93,7 @@ describe('ProxyService — orchestration', () => {
   let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
+  let rateLimitTracker: { captureFromResponse: jest.Mock };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -144,6 +146,7 @@ describe('ProxyService — orchestration', () => {
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     };
+    rateLimitTracker = { captureFromResponse: jest.fn() };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -164,6 +167,7 @@ describe('ProxyService — orchestration', () => {
       reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
+      rateLimitTracker as unknown as RateLimitTrackerService,
     );
   });
 
@@ -674,6 +678,65 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.provider).toBe('anthropic');
       expect(result.meta.primaryProvider).toBe('openai');
+    });
+
+    it("captures the fallback success response's rate-limit headers", async () => {
+      // The failed primary still gets a capture call; this proves the WINNING
+      // fallback connection's limits are also captured (provider/auth/label
+      // matching the fallback, not the primary).
+      const fallbackOk = okResponse();
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { response: fallbackOk, isGoogle: false, isAnthropic: true, isChatGpt: false },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'subscription',
+          keyLabel: 'Work',
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      // One capture for the failed primary, one for the fallback success.
+      const fallbackCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === fallbackOk,
+      );
+      expect(fallbackCapture).toBeDefined();
+      expect(fallbackCapture).toEqual([fallbackOk, 'user-1', 'anthropic', 'subscription', 'Work']);
+    });
+
+    it('passes empty auth_type to the fallback capture when the success has no authType', async () => {
+      const fallbackOk = okResponse();
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { response: fallbackOk, isGoogle: false, isAnthropic: true, isChatGpt: false },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      const fallbackCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === fallbackOk,
+      );
+      expect(fallbackCapture).toEqual([fallbackOk, 'user-1', 'anthropic', '', undefined]);
     });
 
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {

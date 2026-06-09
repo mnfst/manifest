@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, selectMessageRowColumns } from './query-helpers';
+import { addTenantFilter, selectMessageRowColumns, excludeSystemAgents } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   computeCutoff,
@@ -39,6 +39,9 @@ export class TimeseriesQueriesService {
     hourly: boolean,
     tenantId?: string,
     agentName?: string,
+    authType?: string,
+    provider?: string,
+    excludeSystem = false,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -54,6 +57,9 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+    if (excludeSystem) excludeSystemAgents(qb);
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {
@@ -275,6 +281,329 @@ export class TimeseriesQueriesService {
     });
   }
 
+  async getPerAgentTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    authType?: string,
+    provider?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.agent_name', 'agent_name')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.agent_name IS NOT NULL');
+    // Drop the reserved Playground (is_system) agent. The NOT EXISTS semi-join
+    // matches by id OR name (so name-only Playground rows are excluded too) and
+    // can't multiply the per-agent SUM the way a name-based LEFT JOIN would.
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.agent_name')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'agent_name', 'tokens');
+  }
+
+  async getPerAgentMessageTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    authType?: string,
+    provider?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.agent_name', 'agent_name')
+      .addSelect('COUNT(*)', 'messages')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.agent_name IS NOT NULL');
+    // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.agent_name')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'agent_name', 'messages');
+  }
+
+  async getPerAgentCostTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    authType?: string,
+    provider?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.agent_name', 'agent_name')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.agent_name IS NOT NULL');
+    // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
+    if (provider) qb.andWhere('at.provider = :provider', { provider });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.agent_name')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'agent_name', 'cost');
+  }
+
+  async getPerProviderTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.provider', 'provider')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.provider IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent so per-provider totals
+    // stay consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.provider')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'provider', 'tokens');
+  }
+
+  async getPerProviderMessageTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.provider', 'provider')
+      .addSelect('COUNT(*)', 'messages')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.provider IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.provider')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'provider', 'messages');
+  }
+
+  async getPerModelTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.model', 'model')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.model IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent so per-model totals stay
+    // consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.model')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'model', 'tokens');
+  }
+
+  async getPerModelMessageTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.model', 'model')
+      .addSelect('COUNT(*)', 'messages')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.model IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.model')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+
+    return pivotByKey(rows, bucketAlias, 'model', 'messages');
+  }
+
+  async getPerProviderCostTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.provider', 'provider')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.provider IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.provider')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+    return pivotByKey(rows, bucketAlias, 'provider', 'cost');
+  }
+
+  async getPerModelCostTimeseries(
+    range: string,
+    userId: string,
+    hourly: boolean,
+    tenantId?: string,
+    agentName?: string,
+  ) {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.model', 'model')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.model IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.model')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+    return pivotByKey(rows, bucketAlias, 'model', 'cost');
+  }
+
+  async getAgentNamesByAuthType(
+    authType: string,
+    userId: string,
+    tenantId?: string,
+  ): Promise<string[]> {
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select('DISTINCT at.agent_name', 'agent_name')
+      .where('at.auth_type = :authType', { authType })
+      .andWhere('at.agent_name IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent. The NOT EXISTS semi-join
+    // matches by id OR name, so a Playground row carrying only agent_name (NULL
+    // agent_id) is still dropped, and it can't multiply rows.
+    excludeSystemAgents(qb);
+    addTenantFilter(qb, userId, undefined, tenantId);
+    const rows = await qb.orderBy('at.agent_name', 'ASC').getRawMany();
+    return rows.map((r: Record<string, unknown>) => String(r['agent_name']));
+  }
+
   private parseBucketRow(
     r: Record<string, unknown>,
     bucketAlias: 'hour' | 'date',
@@ -288,4 +617,36 @@ export class TimeseriesQueriesService {
     row[bucketAlias] = String(r[bucketAlias]);
     return row;
   }
+}
+
+/**
+ * Pivot grouped rows into a per-bucket timeseries with one numeric column per
+ * distinct series key. Series keys are sorted alphabetically and every bucket
+ * row carries every series (zero-filled), so the frontend can render a stable
+ * multi-series chart without re-deriving the column set.
+ */
+function pivotByKey(
+  rows: Array<Record<string, unknown>>,
+  bucketAlias: string,
+  keyField: string,
+  valueField: string,
+): { agents: string[]; timeseries: Array<Record<string, number | string>> } {
+  const keySet = new Set<string>();
+  for (const r of rows) keySet.add(String(r[keyField]));
+  const keys = [...keySet].sort();
+
+  const byBucket = new Map<string, Record<string, number>>();
+  for (const r of rows) {
+    const bucket = String(r[bucketAlias]);
+    if (!byBucket.has(bucket)) byBucket.set(bucket, {});
+    byBucket.get(bucket)![String(r[keyField])] = Number(r[valueField] ?? 0);
+  }
+
+  const timeseries = [...byBucket.entries()].map(([bucket, map]) => {
+    const row: Record<string, number | string> = { [bucketAlias]: bucket };
+    for (const k of keys) row[k] = map[k] ?? 0;
+    return row;
+  });
+
+  return { agents: keys, timeseries };
 }
