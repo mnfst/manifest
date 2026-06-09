@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+import type { ModelRoute } from 'manifest-shared';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
@@ -52,6 +53,37 @@ export class AgentDuplicationService {
     const oldId = provider.slice(AgentDuplicationService.CUSTOM_PREFIX.length);
     const newId = idMap.get(oldId);
     return newId ? `${AgentDuplicationService.CUSTOM_PREFIX}${newId}` : provider;
+  }
+
+  private remapCustomModelRef(model: string, idMap: Map<string, string>): string {
+    if (!model.startsWith(AgentDuplicationService.CUSTOM_PREFIX)) return model;
+    const slashIndex = model.indexOf('/');
+    const providerPart = slashIndex === -1 ? model : model.slice(0, slashIndex);
+    const remappedProvider = this.remapCustomProviderRef(providerPart, idMap);
+    return slashIndex === -1 ? remappedProvider : `${remappedProvider}${model.slice(slashIndex)}`;
+  }
+
+  private remapCustomRoute(
+    route: ModelRoute | null,
+    idMap: Map<string, string>,
+  ): ModelRoute | null {
+    if (!route) return route;
+    const candidate = route as unknown as Record<string, unknown>;
+    if (typeof candidate.provider !== 'string' || typeof candidate.model !== 'string') {
+      return route;
+    }
+    const provider = this.remapCustomProviderRef(route.provider, idMap);
+    const model = this.remapCustomModelRef(route.model, idMap);
+    return provider === route.provider && model === route.model
+      ? route
+      : { ...route, provider, model };
+  }
+
+  private remapCustomRoutes(
+    routes: ModelRoute[] | null,
+    idMap: Map<string, string>,
+  ): ModelRoute[] | null {
+    return routes?.map((route) => this.remapCustomRoute(route, idMap)!) ?? null;
   }
 
   private async findOwnedAgent(userId: string, agentName: string): Promise<Agent | null> {
@@ -232,9 +264,9 @@ export class AgentDuplicationService {
             user_id: t.user_id,
             agent_id: newAgentId,
             tier: t.tier,
-            override_route: t.override_route,
-            auto_assigned_route: t.auto_assigned_route,
-            fallback_routes: t.fallback_routes,
+            override_route: this.remapCustomRoute(t.override_route, customProviderIdMap),
+            auto_assigned_route: this.remapCustomRoute(t.auto_assigned_route, customProviderIdMap),
+            fallback_routes: this.remapCustomRoutes(t.fallback_routes, customProviderIdMap),
             output_modality: t.output_modality,
             response_mode: t.response_mode,
             updated_at: now,
@@ -253,9 +285,9 @@ export class AgentDuplicationService {
             agent_id: newAgentId,
             category: s.category,
             is_active: s.is_active,
-            override_route: s.override_route,
-            auto_assigned_route: s.auto_assigned_route,
-            fallback_routes: s.fallback_routes,
+            override_route: this.remapCustomRoute(s.override_route, customProviderIdMap),
+            auto_assigned_route: this.remapCustomRoute(s.auto_assigned_route, customProviderIdMap),
+            fallback_routes: this.remapCustomRoutes(s.fallback_routes, customProviderIdMap),
             output_modality: s.output_modality,
             response_mode: s.response_mode,
             updated_at: now,
@@ -285,14 +317,14 @@ export class AgentDuplicationService {
               p.user_id,
               newAgentId,
               p.scope_key,
-              // Same `custom:<uuid>` remap as user_providers / tier_assignments
-              // / specificity_assignments above. Without this, a params row
-              // configured for `custom:<old-uuid>` would point to the source
-              // agent's custom provider after duplication, breaking the
-              // per-route lookup for the new agent.
+              // Same `custom:<uuid>` remap as user_providers and copied route
+              // assignments above. Without this, a params row configured for
+              // `custom:<old-uuid>` would point to the source agent's custom
+              // provider after duplication, breaking the per-route lookup for
+              // the new agent.
               this.remapCustomProviderRef(p.provider, customProviderIdMap),
               p.auth_type,
-              p.model_name,
+              this.remapCustomModelRef(p.model_name, customProviderIdMap),
               p.params,
               now,
               now,

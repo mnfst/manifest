@@ -283,9 +283,28 @@ describe('AgentDuplicationService', () => {
             user_id: 'u1',
             agent_id: 'src-1',
             tier: 'standard',
-            override_route: null,
-            auto_assigned_route: null,
-            fallback_routes: ['x'],
+            override_route: {
+              provider: 'custom:cp1',
+              authType: 'local',
+              model: 'custom:cp1/qwen-72b',
+            },
+            auto_assigned_route: {
+              provider: 'custom:cp1',
+              authType: 'local',
+              model: 'custom:cp1/auto',
+            },
+            fallback_routes: [
+              {
+                provider: 'custom:cp1',
+                authType: 'local',
+                model: 'custom:cp1/fallback',
+              },
+              {
+                provider: 'anthropic',
+                authType: 'api_key',
+                model: 'anthropic/claude-opus-4-6',
+              },
+            ],
           },
         ],
         SpecificityAssignment: [
@@ -295,9 +314,19 @@ describe('AgentDuplicationService', () => {
             agent_id: 'src-1',
             category: 'coding',
             is_active: true,
-            override_route: null,
-            auto_assigned_route: 'auto',
-            fallback_routes: null,
+            override_route: {
+              provider: 'custom:cp1',
+              authType: 'local',
+              model: 'custom:cp1/coding',
+            },
+            auto_assigned_route: null,
+            fallback_routes: [
+              {
+                provider: 'custom:cp1',
+                authType: 'local',
+                model: 'custom:cp1/spec-fallback',
+              },
+            ],
           },
         ],
         AgentModelParams: [
@@ -317,8 +346,8 @@ describe('AgentDuplicationService', () => {
             user_id: 'u1',
             agent_id: 'src-1',
             provider: 'custom:cp1',
-            auth_type: 'api_key',
-            model_name: 'qwen-72b',
+            auth_type: 'local',
+            model_name: 'custom:cp1/qwen-72b',
             scope_key: 'tier:default',
             params: { thinking: { type: 'enabled' } },
           },
@@ -364,6 +393,48 @@ describe('AgentDuplicationService', () => {
       expect(upRows[0]['provider']).toBe(`custom:${newCpId}`);
       expect(upRows[0]['agent_id']).toBe(agentRow['id']);
 
+      // Custom routes are cloned onto the new custom provider id, including
+      // full `custom:<id>/model` model keys.
+      const tierRows = insertedRows['TierAssignment'] as Array<Record<string, unknown>>;
+      expect(tierRows).toHaveLength(1);
+      expect(tierRows[0]['override_route']).toEqual({
+        provider: `custom:${newCpId}`,
+        authType: 'local',
+        model: `custom:${newCpId}/qwen-72b`,
+      });
+      expect(tierRows[0]['auto_assigned_route']).toEqual({
+        provider: `custom:${newCpId}`,
+        authType: 'local',
+        model: `custom:${newCpId}/auto`,
+      });
+      expect(tierRows[0]['fallback_routes']).toEqual([
+        {
+          provider: `custom:${newCpId}`,
+          authType: 'local',
+          model: `custom:${newCpId}/fallback`,
+        },
+        {
+          provider: 'anthropic',
+          authType: 'api_key',
+          model: 'anthropic/claude-opus-4-6',
+        },
+      ]);
+
+      const specRows = insertedRows['SpecificityAssignment'] as Array<Record<string, unknown>>;
+      expect(specRows).toHaveLength(1);
+      expect(specRows[0]['override_route']).toEqual({
+        provider: `custom:${newCpId}`,
+        authType: 'local',
+        model: `custom:${newCpId}/coding`,
+      });
+      expect(specRows[0]['fallback_routes']).toEqual([
+        {
+          provider: `custom:${newCpId}`,
+          authType: 'local',
+          model: `custom:${newCpId}/spec-fallback`,
+        },
+      ]);
+
       // Two grants must be inserted: one pointing at the global row's original
       // id, and one pointing at the freshly-cloned custom companion row.
       const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
@@ -386,6 +457,7 @@ describe('AgentDuplicationService', () => {
       expect(deepseekRow['params']).toEqual({ thinking: { type: 'disabled' } });
       const customMpRow = mpRows.find((r) => String(r['provider']).startsWith('custom:'))!;
       expect(customMpRow['provider']).toBe(`custom:${newCpId}`);
+      expect(customMpRow['model_name']).toBe(`custom:${newCpId}/qwen-72b`);
       expect(customMpRow['agent_id']).toBe(agentRow['id']);
 
       expect(mockInvalidateAgent).toHaveBeenCalledWith(agentRow['id']);
