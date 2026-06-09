@@ -201,6 +201,19 @@ describe('GET /api/v1/provider-analytics', () => {
     expect(Array.isArray(res.body.model_usage)).toBe(true);
     expect(res.body.model_usage.length).toBeGreaterThan(0);
     expect(Array.isArray(res.body.recent_messages)).toBe(true);
+    // The agent breakdown joins agents by id, not name, so the soft-deleted
+    // agent reusing the 'test-agent' slug cannot double-count it. Both the agent
+    // and model breakdowns cover the same messages, so their token sums must be
+    // equal; a name-based join would inflate the agent side to twice the model side.
+    const agentTokens = res.body.agents.reduce(
+      (s: number, a: { tokens_30d: number }) => s + Number(a.tokens_30d),
+      0,
+    );
+    const modelTokens = res.body.model_usage.reduce(
+      (s: number, m: { tokens: number }) => s + Number(m.tokens),
+      0,
+    );
+    expect(agentTokens).toBe(modelTokens);
   });
 
   it('keeps same-provider/auth connections separate by label in connection-detail', async () => {

@@ -214,7 +214,10 @@ export class ProviderAnalyticsController {
       .addSelect('COUNT(*)', 'messages')
       .addSelect('MAX(at.timestamp)', 'last_used')
       .addSelect('MAX(a.agent_platform)', 'agent_platform')
-      .leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id')
+      // Join on agent identity, not name: a soft-deleted agent sharing a slug
+      // with a live one would otherwise match twice and double this breakdown's
+      // per-agent tokens/cost/message counts.
+      .leftJoin('agents', 'a', 'a.id = at.agent_id')
       .where('at.tenant_id = :tid', { tid: tenant.id })
       .andWhere('at.provider = :provider', { provider: conn.provider })
       .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
