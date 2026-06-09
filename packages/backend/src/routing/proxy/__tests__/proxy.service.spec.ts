@@ -24,6 +24,7 @@ import type { ThinkingBlockCache } from '../thinking-block-cache';
 import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { RateLimitTrackerService } from '../rate-limit-tracker.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -92,6 +93,7 @@ describe('ProxyService — orchestration', () => {
   let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
+  let rateLimitTracker: { captureFromResponse: jest.Mock };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -144,6 +146,7 @@ describe('ProxyService — orchestration', () => {
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     };
+    rateLimitTracker = { captureFromResponse: jest.fn() };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -164,6 +167,7 @@ describe('ProxyService — orchestration', () => {
       reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
+      rateLimitTracker as unknown as RateLimitTrackerService,
     );
   });
 
