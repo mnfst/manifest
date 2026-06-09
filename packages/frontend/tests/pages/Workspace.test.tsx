@@ -2,9 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 const mockNavigate = vi.fn();
+let mockSearchParams: Record<string, string | undefined> = {};
+const mockSetSearchParams = vi.fn((next: Record<string, string | undefined>) => {
+  mockSearchParams = { ...mockSearchParams, ...next };
+});
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams] as const,
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -15,10 +20,12 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetAgents = vi.fn();
 const mockCreateAgent = vi.fn();
 const mockDeleteAgent = vi.fn();
+const mockGetGlobalProviders = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
+  getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
 vi.mock("../../src/components/DuplicateAgentModal.jsx", async () => {
@@ -125,12 +132,16 @@ import Workspace from "../../src/pages/Workspace";
 describe("Workspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({
       agents: [
         { agent_name: "demo-agent", display_name: "Demo Agent", message_count: 42, last_active: "2024-01-01", total_cost: 5.5, total_tokens: 15000, sparkline: [1, 2, 3] },
       ],
     });
     mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent", display_name: "new-agent" }, apiKey: "test-key" });
+    // Default: tenant already has a provider, so onboarding does not inject the
+    // openProviders nudge and navigation carries only newApiKey.
+    mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
   });
 
   it("renders My Agents heading", async () => {
@@ -369,10 +380,13 @@ describe("Workspace", () => {
       }));
     });
     // New agents land on the Routing tab (they inherit all providers + routes).
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/typed-agent/routing",
-      expect.objectContaining({ state: expect.objectContaining({ newApiKey: "k" }) }),
-    );
+    // Navigation happens after the async providers lookup, so wait for it.
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/agents/typed-agent/routing",
+        expect.objectContaining({ state: expect.objectContaining({ newApiKey: "k" }) }),
+      );
+    });
   });
 
   it("does not submit when name is empty", async () => {
@@ -403,6 +417,26 @@ describe("Workspace", () => {
       // ErrorState component should render
       expect(container.querySelector(".error-state") || container.textContent?.includes("error")).toBeDefined();
     });
+  });
+
+  it("auto-opens the create modal and clears ?add when deep-linked", async () => {
+    mockSearchParams = { add: "true" };
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      expect(container.querySelector(".modal-card__input")).not.toBeNull();
+    });
+    // The deep-link param is cleared so a refresh/back doesn't re-open it.
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ add: undefined });
+  });
+
+  it("does not auto-open the modal without the ?add deep-link", async () => {
+    mockSearchParams = {};
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      expect(mockGetAgents).toHaveBeenCalled();
+    });
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+    expect(mockSetSearchParams).not.toHaveBeenCalled();
   });
 
   it("opens modal from empty state connect button", async () => {

@@ -6,9 +6,14 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 // payload, which the happy-path tests don't strictly assert.
 
 const mockNavigate = vi.fn();
+let mockSearchParams: Record<string, string | undefined> = {};
+const mockSetSearchParams = vi.fn((next: Record<string, string | undefined>) => {
+  mockSearchParams = { ...mockSearchParams, ...next };
+});
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams] as const,
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -19,10 +24,12 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetAgents = vi.fn();
 const mockCreateAgent = vi.fn();
 const mockDeleteAgent = vi.fn();
+const mockGetGlobalProviders = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
+  getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
 vi.mock("../../src/components/DuplicateAgentModal.jsx", () => ({ default: () => null }));
@@ -92,8 +99,10 @@ const openModal = () => {
 describe("Workspace AddAgentModal - name validation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({ agents: [] });
     mockCreateAgent.mockResolvedValue({ agent: { name: "stub" }, apiKey: "k" });
+    mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
   });
 
   it("keeps Create disabled while the name is the empty string", () => {
@@ -201,8 +210,10 @@ describe("Workspace AddAgentModal - name validation", () => {
 describe("Workspace AddAgentModal - exact createAgent payload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({ agents: [] });
     mockCreateAgent.mockResolvedValue({ agent: { name: "demo" }, apiKey: "k" });
+    mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
   });
 
   it("submits the default category and platform when the user only types a name", async () => {
