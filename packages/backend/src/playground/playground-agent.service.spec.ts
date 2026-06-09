@@ -1,9 +1,8 @@
 import { NotFoundException } from '@nestjs/common';
-import type { Repository } from 'typeorm';
+import type { DataSource, EntityManager, Repository } from 'typeorm';
 import { PlaygroundAgentService } from './playground-agent.service';
 import type { Agent } from '../entities/agent.entity';
 import type { TenantCacheService } from '../common/services/tenant-cache.service';
-import type { ProviderService } from '../routing/routing-core/provider.service';
 import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants';
 
 const TENANT_ID = 'tenant-abc';
@@ -26,14 +25,27 @@ function makeAgent(overrides: Partial<Agent> = {}): Agent {
 interface Mocks {
   agentRepo: {
     findOne: jest.Mock;
-    insert: jest.Mock;
   };
   tenantCache: {
     resolve: jest.Mock;
   };
-  providerService: {
-    enableAllProvidersForAgent: jest.Mock;
+  dataSource: {
+    transaction: jest.Mock;
   };
+}
+
+/**
+ * Build a mock EntityManager whose getRepository(Agent).insert and .query
+ * can be configured per-test.
+ */
+function makeManager(
+  insertFn: jest.Mock = jest.fn().mockResolvedValue(undefined),
+  queryFn: jest.Mock = jest.fn().mockResolvedValue(undefined),
+): EntityManager {
+  return {
+    getRepository: () => ({ insert: insertFn }),
+    query: queryFn,
+  } as unknown as EntityManager;
 }
 
 function buildService(mocks: Partial<Mocks> = {}): {
@@ -43,13 +55,15 @@ function buildService(mocks: Partial<Mocks> = {}): {
   const full: Mocks = {
     agentRepo: {
       findOne: jest.fn().mockResolvedValue(null),
-      insert: jest.fn().mockResolvedValue(undefined),
     },
     tenantCache: {
       resolve: jest.fn().mockResolvedValue(TENANT_ID),
     },
-    providerService: {
-      enableAllProvidersForAgent: jest.fn().mockResolvedValue(undefined),
+    dataSource: {
+      // Default: runs the transaction callback with a stock manager (insert + query succeed).
+      transaction: jest.fn().mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
+        await cb(makeManager());
+      }),
     },
     ...mocks,
   };
@@ -57,7 +71,7 @@ function buildService(mocks: Partial<Mocks> = {}): {
   const service = new PlaygroundAgentService(
     full.agentRepo as unknown as Repository<Agent>,
     full.tenantCache as unknown as TenantCacheService,
-    full.providerService as unknown as ProviderService,
+    full.dataSource as unknown as DataSource,
   );
 
   return { service, mocks: full };
@@ -74,45 +88,29 @@ describe('PlaygroundAgentService.resolve', () => {
       await expect(service.resolve(USER_ID)).rejects.toThrow('Tenant not found');
     });
 
-    it('does not call agentRepo when tenant is not found', async () => {
+    it('does not call the dataSource when tenant is not found', async () => {
       const { service, mocks } = buildService({
         tenantCache: { resolve: jest.fn().mockResolvedValue(null) },
       });
 
       await expect(service.resolve(USER_ID)).rejects.toThrow(NotFoundException);
-      expect(mocks.agentRepo.findOne).not.toHaveBeenCalled();
-      expect(mocks.agentRepo.insert).not.toHaveBeenCalled();
+      expect(mocks.dataSource.transaction).not.toHaveBeenCalled();
     });
   });
 
   describe('(b) existing system agent returned', () => {
-    it('returns the existing agent without inserting a new one', async () => {
+    it('returns the existing agent without starting a transaction', async () => {
       const existing = makeAgent();
       const { service, mocks } = buildService({
         agentRepo: {
           findOne: jest.fn().mockResolvedValue(existing),
-          insert: jest.fn(),
         },
       });
 
       const result = await service.resolve(USER_ID);
 
       expect(result).toBe(existing);
-      expect(mocks.agentRepo.insert).not.toHaveBeenCalled();
-    });
-
-    it('does not call enableAllProvidersForAgent when an agent already exists', async () => {
-      const existing = makeAgent();
-      const { service, mocks } = buildService({
-        agentRepo: {
-          findOne: jest.fn().mockResolvedValue(existing),
-          insert: jest.fn(),
-        },
-      });
-
-      await service.resolve(USER_ID);
-
-      expect(mocks.providerService.enableAllProvidersForAgent).not.toHaveBeenCalled();
+      expect(mocks.dataSource.transaction).not.toHaveBeenCalled();
     });
 
     it('queries agentRepo with the correct tenant_id, is_system and deleted_at filters', async () => {
@@ -120,7 +118,6 @@ describe('PlaygroundAgentService.resolve', () => {
       const { service, mocks } = buildService({
         agentRepo: {
           findOne: jest.fn().mockResolvedValue(existing),
-          insert: jest.fn(),
         },
       });
 
@@ -135,17 +132,38 @@ describe('PlaygroundAgentService.resolve', () => {
   });
 
   describe('(c) lazy-create path', () => {
-    it('inserts a new agent and returns it when no system agent exists', async () => {
+    it('runs a transaction that inserts the agent and calls the grant query', async () => {
+      const insertFn = jest.fn().mockResolvedValue(undefined);
+      const queryFn = jest.fn().mockResolvedValue(undefined);
+      const manager = makeManager(insertFn, queryFn);
+
       const { service, mocks } = buildService({
-        agentRepo: {
-          findOne: jest.fn().mockResolvedValue(null),
-          insert: jest.fn().mockResolvedValue(undefined),
+        dataSource: {
+          transaction: jest
+            .fn()
+            .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
+              await cb(manager);
+            }),
         },
       });
 
       const result = await service.resolve(USER_ID);
 
-      expect(mocks.agentRepo.insert).toHaveBeenCalledTimes(1);
+      expect(mocks.dataSource.transaction).toHaveBeenCalledTimes(1);
+      expect(insertFn).toHaveBeenCalledTimes(1);
+
+      // The grant query must receive [agentId, userId].
+      expect(queryFn).toHaveBeenCalledTimes(1);
+      const [_sql, params] = queryFn.mock.calls[0] as [string, [string, string]];
+      expect(params[0]).toBe(result.id);
+      expect(params[1]).toBe(USER_ID);
+    });
+
+    it('returns a new agent with the correct fields (no DB re-fetch on success)', async () => {
+      const { service, mocks } = buildService();
+
+      const result = await service.resolve(USER_ID);
+
       expect(result.name).toBe(PLAYGROUND_AGENT_NAME);
       expect(result.display_name).toBe(PLAYGROUND_AGENT_NAME);
       expect(result.is_system).toBe(true);
@@ -153,49 +171,23 @@ describe('PlaygroundAgentService.resolve', () => {
       expect(result.tenant_id).toBe(TENANT_ID);
       expect(typeof result.id).toBe('string');
       expect(result.id.length).toBeGreaterThan(0);
-    });
 
-    it('calls enableAllProvidersForAgent with the new agent id and userId', async () => {
-      const { service, mocks } = buildService({
-        agentRepo: {
-          findOne: jest.fn().mockResolvedValue(null),
-          insert: jest.fn().mockResolvedValue(undefined),
-        },
-      });
-
-      const result = await service.resolve(USER_ID);
-
-      expect(mocks.providerService.enableAllProvidersForAgent).toHaveBeenCalledTimes(1);
-      expect(mocks.providerService.enableAllProvidersForAgent).toHaveBeenCalledWith(
-        result.id,
-        USER_ID,
-      );
-    });
-
-    it('returns the newly-created agent object (not a DB re-fetch)', async () => {
-      const { service, mocks } = buildService({
-        agentRepo: {
-          findOne: jest.fn().mockResolvedValue(null),
-          insert: jest.fn().mockResolvedValue(undefined),
-        },
-      });
-
-      const result = await service.resolve(USER_ID);
-
-      // insert is called once; findOne is called once (initial check only — no re-fetch on success)
+      // findOne called once (pre-insert check); no second call after success.
       expect(mocks.agentRepo.findOne).toHaveBeenCalledTimes(1);
-      expect(result.tenant_id).toBe(TENANT_ID);
     });
   });
 
-  describe('(d) race: insert throws → re-find returns a row', () => {
-    it('returns the race winner row without calling enableAllProvidersForAgent', async () => {
+  describe('(d) race: transaction throws → re-find returns a row', () => {
+    it('returns the race winner row without running a second transaction', async () => {
       const raceWinner = makeAgent({ id: 'agent-winner' });
       const { service, mocks } = buildService({
         agentRepo: {
-          // First findOne (pre-insert check) → null; second (post-race re-find) → raceWinner
           findOne: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(raceWinner),
-          insert: jest.fn().mockRejectedValue(new Error('duplicate key value violates unique')),
+        },
+        dataSource: {
+          transaction: jest
+            .fn()
+            .mockRejectedValue(new Error('duplicate key value violates unique')),
         },
       });
 
@@ -203,15 +195,18 @@ describe('PlaygroundAgentService.resolve', () => {
 
       expect(result).toBe(raceWinner);
       expect(mocks.agentRepo.findOne).toHaveBeenCalledTimes(2);
-      expect(mocks.providerService.enableAllProvidersForAgent).not.toHaveBeenCalled();
+      // Transaction was attempted once (and threw); no retry.
+      expect(mocks.dataSource.transaction).toHaveBeenCalledTimes(1);
     });
 
-    it('does not re-throw the insert error when the race winner row is found', async () => {
+    it('does not re-throw the transaction error when the race winner row is found', async () => {
       const raceWinner = makeAgent({ id: 'agent-winner' });
       const { service } = buildService({
         agentRepo: {
           findOne: jest.fn().mockResolvedValueOnce(null).mockResolvedValueOnce(raceWinner),
-          insert: jest.fn().mockRejectedValue(new Error('unique constraint')),
+        },
+        dataSource: {
+          transaction: jest.fn().mockRejectedValue(new Error('unique constraint')),
         },
       });
 
@@ -219,13 +214,14 @@ describe('PlaygroundAgentService.resolve', () => {
     });
   });
 
-  describe('(e) race: insert throws → re-find returns null', () => {
+  describe('(e) race: transaction throws → re-find returns null', () => {
     it('throws NotFoundException when re-find after race returns null', async () => {
       const { service } = buildService({
         agentRepo: {
-          // Both findOne calls return null (no winner row)
           findOne: jest.fn().mockResolvedValue(null),
-          insert: jest.fn().mockRejectedValue(new Error('duplicate key')),
+        },
+        dataSource: {
+          transaction: jest.fn().mockRejectedValue(new Error('duplicate key')),
         },
       });
 
@@ -235,16 +231,19 @@ describe('PlaygroundAgentService.resolve', () => {
       );
     });
 
-    it('does not call enableAllProvidersForAgent when the race re-find also returns null', async () => {
-      const { service, mocks } = buildService({
+    it('does not attempt a second transaction when the race re-find also returns null', async () => {
+      const transactionFn = jest.fn().mockRejectedValue(new Error('duplicate key'));
+      const { service } = buildService({
         agentRepo: {
           findOne: jest.fn().mockResolvedValue(null),
-          insert: jest.fn().mockRejectedValue(new Error('duplicate key')),
+        },
+        dataSource: {
+          transaction: transactionFn,
         },
       });
 
       await expect(service.resolve(USER_ID)).rejects.toThrow(NotFoundException);
-      expect(mocks.providerService.enableAllProvidersForAgent).not.toHaveBeenCalled();
+      expect(transactionFn).toHaveBeenCalledTimes(1);
     });
   });
 });

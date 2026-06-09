@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   Inject,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -120,6 +121,9 @@ export class AgentsController {
   ) {
     const slug = slugify(body.name);
     if (!slug) throw new BadRequestException('Agent name produces an empty slug');
+    if (slug === PLAYGROUND_AGENT_SLUG) {
+      throw new BadRequestException('"Playground" is a reserved agent name');
+    }
     const displayName = body.name.trim();
     let result;
     try {
@@ -155,6 +159,11 @@ export class AgentsController {
 
   @Get('agents/:agentName/key')
   async getAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    // Guard: system agents cannot expose their API key through the user-facing
+    // key endpoint (findAgentInfo filters is_system = false and returns null for
+    // the reserved "Playground" agent, same as for any missing agent).
+    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
+    if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
     const keyData = await this.apiKeyGenerator.getKeyForAgent(user.id, agentName);
     const apiKey = keyData.fullKey ?? undefined;
     return {
@@ -165,6 +174,11 @@ export class AgentsController {
 
   @Post('agents/:agentName/rotate-key')
   async rotateAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    // Guard: system agents cannot have their key rotated through the user-facing
+    // endpoint (findAgentInfo filters is_system = false and returns null for the
+    // reserved "Playground" agent, same as for any missing agent).
+    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
+    if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
     const result = await this.apiKeyGenerator.rotateKey(user.id, agentName);
     return { apiKey: result.apiKey };
   }

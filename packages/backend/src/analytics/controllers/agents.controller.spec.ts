@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import type { Cache } from 'cache-manager';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -643,6 +643,35 @@ describe('AgentsController', () => {
     await expect(
       controller.duplicateAgent(user as never, 'bot-1', { name: 'bot-copy' } as never),
     ).rejects.toThrow('boom');
+  });
+
+  // P1-B: duplicate must honor the reserved name
+  it('rejects duplicateAgent with the reserved "Playground" name', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+    ).rejects.toThrow(/reserved/i);
+    expect(mockDuplicate).not.toHaveBeenCalled();
+  });
+
+  // P1-A: key endpoints must reject the system "Playground" agent
+  it('getAgentKey throws NotFoundException for the system "Playground" agent', async () => {
+    // findAgentInfo returns null for system agents (is_system = false filter)
+    // which is the same shape as a missing agent — NotFoundException is thrown.
+    const user = { id: 'u1' };
+    await expect(controller.getAgentKey(user as never, 'Playground')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('rotateAgentKey throws NotFoundException for the system "Playground" agent', async () => {
+    const user = { id: 'u1' };
+    await expect(controller.rotateAgentKey(user as never, 'Playground')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('re-throws non-duplicate QueryFailedError from onboardAgent', async () => {

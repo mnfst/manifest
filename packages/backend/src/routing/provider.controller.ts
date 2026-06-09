@@ -76,7 +76,11 @@ export class ProviderController {
 
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    // allowSystem: true — the Playground page reads the provider list for the
+    // reserved system agent; all mutation endpoints remain blocked.
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
+      allowSystem: true,
+    });
     const providers = await this.providerService.getProviders(user.id);
     return providers.map((p) => ({
       id: p.id,

@@ -657,7 +657,12 @@ describe('ProviderController', () => {
       await expect(
         controller.getProviders(mockUser, { agentName: 'nonexistent' } as never),
       ).rejects.toThrow(NotFoundException);
-      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent');
+      // getProviders passes { allowSystem: true } so the Playground agent can be
+      // read; the NotFoundException originates from the service mock, not the
+      // is_system check.
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent', {
+        allowSystem: true,
+      });
     });
 
     it('should resolve agent and pass its id to service methods', async () => {

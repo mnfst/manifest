@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Agent } from '../entities/agent.entity';
 import { TenantCacheService } from '../common/services/tenant-cache.service';
-import { ProviderService } from '../routing/routing-core/provider.service';
 import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants';
 
 /**
@@ -15,6 +14,11 @@ import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants'
  * The migration seeds it for existing tenants and onboarding creates it for new
  * ones; this lazily creates it on first use as a safety net so the Playground
  * always has an agent to run under.
+ *
+ * The agent insert and provider-pool grant are executed inside a single DB
+ * transaction so a committed reserved agent is always fully granted.  If a
+ * concurrent request wins the unique-index race the transaction throws and we
+ * simply return the winner's row.
  */
 @Injectable()
 export class PlaygroundAgentService {
@@ -22,7 +26,7 @@ export class PlaygroundAgentService {
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly tenantCache: TenantCacheService,
-    private readonly providerService: ProviderService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async resolve(userId: string): Promise<Agent> {
@@ -40,8 +44,21 @@ export class PlaygroundAgentService {
       is_active: true,
       tenant_id: tenantId,
     });
+
     try {
-      await this.agentRepo.insert(agent);
+      await this.dataSource.transaction(async (manager) => {
+        // Insert the reserved agent row.
+        await manager.getRepository(Agent).insert(agent);
+
+        // Grant the new agent the tenant's whole provider pool atomically — the
+        // same shape the seed migration uses.  No tier recalculation needed here;
+        // symmetric auto-connect handles providers added later.
+        await manager.query(
+          `INSERT INTO "agent_provider_access" ("agent_id","user_provider_id") ` +
+            `SELECT $1, "id" FROM "user_providers" WHERE "user_id" = $2 ON CONFLICT DO NOTHING`,
+          [agent.id, userId],
+        );
+      });
     } catch {
       // Lost a creation race with a concurrent request — reuse the winner's row.
       const raced = await this.findSystemAgent(tenantId);
@@ -49,8 +66,6 @@ export class PlaygroundAgentService {
       throw new NotFoundException('Playground agent could not be resolved');
     }
 
-    // Grant the new agent the tenant's whole provider pool (global pool).
-    await this.providerService.enableAllProvidersForAgent(agent.id, userId);
     return agent;
   }
 

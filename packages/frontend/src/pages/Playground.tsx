@@ -131,18 +131,30 @@ function findWinners(columns: readonly ColumnData[]): {
 const Playground: Component = () => {
   const [searchParams, setSearchParams] = useSearchParams<{ run?: string }>();
   const [agent] = createResource(getPlaygroundAgent);
-  const agentName = () => agent()?.name ?? 'Playground';
+  // Only the resolved name (from the server) drives resource sources and the
+  // store key. Using `undefined` as the source keeps resources idle until
+  // getPlaygroundAgent resolves, preventing 404 fetches for models/providers
+  // before the reserved agent row is guaranteed to exist server-side.
+  const resolvedAgentName = () => agent()?.name;
+  // Display fallback for UI text that needs a name before resolution.
+  const agentName = () => resolvedAgentName() ?? 'Playground';
 
-  const [available, { refetch: refetchAvailable }] = createResource(agentName, getAvailableModels);
-  const [providers, { refetch: refetchProviders }] = createResource(agentName, getProviders);
+  const [available, { refetch: refetchAvailable }] = createResource(
+    resolvedAgentName,
+    getAvailableModels,
+  );
+  const [providers, { refetch: refetchProviders }] = createResource(
+    resolvedAgentName,
+    getProviders,
+  );
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
-    agentName,
+    resolvedAgentName,
     getCustomProviders,
   );
 
-  // Memo so the store key updates when agentName() resolves from the fallback
-  // to the actual server-assigned name ("Playground"). This ensures each test
-  // render gets an isolated store keyed by the mock-resolved name.
+  // Memo so the store key updates when resolvedAgentName() settles to the
+  // actual server-assigned name ("Playground"). This ensures each test render
+  // gets an isolated store keyed by the mock-resolved name.
   const store = createMemo(() => getOrCreatePlaygroundStore(agentName()));
   const [pickerForColumn, setPickerForColumn] = createSignal<string | null>(null);
   const [showAddPicker, setShowAddPicker] = createSignal(false);

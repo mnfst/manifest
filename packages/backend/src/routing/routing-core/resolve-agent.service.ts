@@ -12,6 +12,15 @@ interface CachedAgent {
   expiresAt: number;
 }
 
+export interface ResolveOptions {
+  /** When true, system agents (is_system = true) are returned to the caller.
+   * By default system agents are rejected with a NotFoundException so that
+   * generic mutation/config endpoints cannot target the reserved "Playground"
+   * agent. Only pass true for read-only endpoints that legitimately need to
+   * serve the Playground agent (e.g. available-models, providers list). */
+  allowSystem?: boolean;
+}
+
 @Injectable()
 export class ResolveAgentService {
   private readonly cache = new Map<string, CachedAgent>();
@@ -22,19 +31,32 @@ export class ResolveAgentService {
     private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async resolve(userId: string, agentName: string): Promise<Agent> {
+  async resolve(userId: string, agentName: string, options: ResolveOptions = {}): Promise<Agent> {
     const tenantId = await this.tenantCache.resolve(userId);
     if (!tenantId) throw new NotFoundException('Tenant not found');
 
     const cacheKey = `${tenantId}:${agentName}`;
     const cached = this.cache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.agent;
+
+    // If we have a live cache entry, validate is_system before returning it.
+    // This ensures the check runs on cache hits as well as fresh DB loads.
+    if (cached && cached.expiresAt > Date.now()) {
+      if (cached.agent.is_system && !options.allowSystem) {
+        throw new NotFoundException(`Agent "${agentName}" not found`);
+      }
+      return cached.agent;
+    }
     if (cached) this.cache.delete(cacheKey);
 
     const agent = await this.agentRepo.findOne({
       where: { tenant_id: tenantId, name: agentName, deleted_at: IsNull() },
     });
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
+
+    // Reject system agents unless the caller explicitly opted in.
+    if (agent.is_system && !options.allowSystem) {
+      throw new NotFoundException(`Agent "${agentName}" not found`);
+    }
 
     if (this.cache.size >= MAX_ENTRIES && !this.cache.has(cacheKey)) {
       const firstKey = this.cache.keys().next().value;
