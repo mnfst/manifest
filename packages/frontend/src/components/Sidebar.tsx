@@ -181,7 +181,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               const isSelected = () => currentAgent() === name();
               return (
                 <A
-                  href={`/harnesses/${name()}`}
+                  href={`/harnesses/${encodeURIComponent(name())}`}
                   class="sidebar__agent-item"
                   classList={{ 'sidebar__agent-item--active': isSelected() }}
                   aria-current={isSelected() ? 'page' : undefined}

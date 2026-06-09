@@ -98,7 +98,13 @@ render(
           </Route>
 
           {/* Legacy /agents redirects → /harnesses (keep bookmarks alive) */}
-          <Route path="/agents" component={() => <Navigate href="/harnesses" />} />
+          <Route
+            path="/agents"
+            component={() => {
+              const { search, hash } = window.location;
+              return <Navigate href={`/harnesses${search}${hash}`} />;
+            }}
+          />
           <Route
             path="/agents/:agentName/*rest"
             component={() => {
