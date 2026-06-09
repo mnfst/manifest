@@ -3,7 +3,7 @@ import type { Component } from 'solid-js';
 import { agentPath } from '../services/routing.js';
 
 /**
- * Redirects /agents/:agentName/limits → /agents/:agentName/guardrails.
+ * Redirects /harnesses/:agentName/limits → /harnesses/:agentName/guardrails.
  * Keeps backward-compat for any bookmarks or links using the old path.
  */
 const AgentLimitsRedirect: Component = () => {

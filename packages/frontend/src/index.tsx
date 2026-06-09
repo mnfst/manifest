@@ -1,6 +1,6 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-import { Router, Route } from '@solidjs/router';
+import { Router, Route, Navigate } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
@@ -69,12 +69,12 @@ render(
           <Route path="/" component={RootRedirect} />
           <Route path="/overview" component={GlobalOverview} />
           <Route path="/messages" component={MessageLog} />
-          <Route path="/agents" component={Workspace} />
+          <Route path="/harnesses" component={Workspace} />
           <Route path="/playground" component={Playground} />
           <Route path="/providers/subscriptions" component={Subscriptions} />
           <Route path="/providers/byok" component={Byok} />
           <Route path="/providers/local" component={LocalProviders} />
-          <Route path="/agents/:agentName" component={AgentGuard}>
+          <Route path="/harnesses/:agentName" component={AgentGuard}>
             {/* Redirects: /limits → /guardrails, /messages → global /messages */}
             <Route path="/limits" component={AgentLimitsRedirect} />
             <Route path="/messages" component={AgentMessagesRedirect} />
@@ -94,6 +94,26 @@ render(
             <Route path="/free-models" component={FreeModels} />
             <Route path="/help" component={Help} />
           </Route>
+
+          {/* Legacy /agents redirects → /harnesses (keep bookmarks alive) */}
+          <Route path="/agents" component={() => <Navigate href="/harnesses" />} />
+          <Route
+            path="/agents/:agentName/*rest"
+            component={() => {
+              const { pathname, search, hash } = window.location;
+              const target = pathname.replace(/^\/agents/, '/harnesses');
+              return <Navigate href={`${target}${search}${hash}`} />;
+            }}
+          />
+          <Route
+            path="/agents/:agentName"
+            component={() => {
+              const { pathname, search, hash } = window.location;
+              const target = pathname.replace(/^\/agents/, '/harnesses');
+              return <Navigate href={`${target}${search}${hash}`} />;
+            }}
+          />
+
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
         </Route>
