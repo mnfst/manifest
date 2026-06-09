@@ -1,0 +1,82 @@
+packages/backend/src/routing/custom-provider/custom-provider.service.edge-cases.spec.ts
+  s_8f7bd68edeeec2::t_88553a8142861a 66
+  s_8f7bd68edeeec2::t_745a80ec2be74c 106,116,118,176-177,186,201,215,228,230-232,239,242
+  s_8f7bd68edeeec2::t_be09d48fdc5ff8 22
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_8f7bd68edeeec2::t_1f6b28d606ae5d 285
+  s_8f7bd68edeeec2::t_ff95cece17abb4 210,279,354,422,427,510
+packages/backend/src/routing/model.controller.ts
+  s_8f7bd68edeeec2::t_f4c3e1b3186c84 93-94
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_8f7bd68edeeec2::t_ef02635619b1f0 280-282,284-286
+  s_8f7bd68edeeec2::t_187fc6c7db0186 25,118,127,185-188,209,220,237,268,274-275,279,283,287-295
+  s_8f7bd68edeeec2::t_3e0f9f645ecfce 163-165,167-169
+packages/backend/src/database/database.module.ts
+  s_8f7bd68edeeec2::t_3d722c3d2837cf 117
+  s_8f7bd68edeeec2::t_797f48ceed1b7f 233
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_8f7bd68edeeec2::t_3d833c1fd873ce 205-208,260,282,302,308,312,319-320,357-358,378-380
+packages/frontend/src/services/api/routing.ts
+  s_8f7bd68edeeec2::t_296bc1e5371077 451,470,504
+  s_8f7bd68edeeec2::t_20c0aede2dd83c 413-417
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_8f7bd68edeeec2::t_b36f2c2a3517bc 72-73
+  s_8f7bd68edeeec2::t_ed520ae2e65f32 121-122
+  s_8f7bd68edeeec2::t_3effc367bf3e36 24-26,28
+  s_8f7bd68edeeec2::t_d5eed2efa515b8 97-98
+packages/frontend/src/services/sse.ts
+  s_8f7bd68edeeec2::t_da225e74726e90 2
+  s_8f7bd68edeeec2::t_0d9da31be0af1e 50-53
+packages/backend/src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel.spec.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 1-27,32-39,51-79
+  s_8f7bd68edeeec2::t_8e324705b1f9b7 28-31,40-50
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 145,150,155,174,189-190,193-194,198-203,205,228-233,235,251-252,259-265,267,289-299,314,324,326,333-334,336,343-344,351-352,354
+  s_8f7bd68edeeec2::t_5ed8b87d3b024e 339
+  s_8f7bd68edeeec2::t_236d8f13957910 77,83-91
+  s_8f7bd68edeeec2::t_fe11c6f630169e 364-365
+  s_8f7bd68edeeec2::t_b2bbd889ed10ed 30
+  s_8f7bd68edeeec2::t_39ddc7803af5cb 247
+packages/backend/test/custom-providers-lift-migrations.e2e-spec.ts
+  s_8f7bd68edeeec2::t_9b8ae55617ff72 2
+  s_8f7bd68edeeec2::t_4d30d947a7fd68 65-167
+  s_8f7bd68edeeec2::t_d96ab42f42c7c0 1,3-62
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_8f7bd68edeeec2::t_4b2eaff86ffc6a 218-220
+  s_8f7bd68edeeec2::t_67eea7a71cf3da 59-69,71
+  s_8f7bd68edeeec2::t_6416f456c734ff 3
+  s_8f7bd68edeeec2::t_24becce23d5e14 136-141,146-151,153
+packages/backend/src/entities/custom-provider.entity.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 1,15
+packages/backend/src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 1-43,48-49,51-55,83-84,88-89,95-100,119-132
+  s_8f7bd68edeeec2::t_959b1d58a4aeb4 44-47,50,56-82,85-87
+  s_8f7bd68edeeec2::t_7d3f9d2407d0dc 90-94,101-118
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_8f7bd68edeeec2::t_db8cde7213e00b 164
+  s_8f7bd68edeeec2::t_8d39706b40f7ea 201
+  s_8f7bd68edeeec2::t_48aba927684438 232
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_8f7bd68edeeec2::t_81e15cbb734c5b 63-65,71,76
+  s_8f7bd68edeeec2::t_745a80ec2be74c 43,48,86,89,136,151,161,175,184,191,204,222,233,245,258,267,279,281-282,302-313,319,326,332,336,350,352,362,364,374,376,388,396,402,419,448,478,502-504,508,510-514,516-532,538,542,545,559,566,568,577,580-582,586-587,590,600,607-635,637,647,666,671-672,675-676,680,684,686-687,691,693-694,698,700,705-706,709,721,728,738,742,746-747,756,759
+  s_8f7bd68edeeec2::t_d417fb3b89b671 539,546
+  s_8f7bd68edeeec2::t_c5fa92f5b44c8f 743-745,749
+  s_8f7bd68edeeec2::t_a349371c10868e 323-325,327-329
+  s_8f7bd68edeeec2::t_c172bd66a9bbf4 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "4b07d71313862e0c0c3a891a1565c05faf41be11",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
