@@ -175,6 +175,9 @@ export class TimeseriesQueriesService {
       agentQb.leftJoin('a.tenant', 't').where('t.name = :userId', { userId });
     }
     agentQb.andWhere('a.deleted_at IS NULL');
+    // The reserved Playground agent is a system agent — never list it in the
+    // Workspace grid / agent switcher.
+    agentQb.andWhere('a.is_system = false');
 
     const statsCutoff = computeCutoff('30 days');
     const sparkCutoff = computeCutoff('7 days');

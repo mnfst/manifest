@@ -27,6 +27,7 @@ import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { slugify } from '../../common/utils/slugify';
+import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
@@ -63,6 +64,9 @@ export class AgentsController {
     const slug = slugify(body.name);
     if (!slug) {
       throw new BadRequestException('Agent name produces an empty slug');
+    }
+    if (slug === PLAYGROUND_AGENT_SLUG) {
+      throw new BadRequestException('"Playground" is a reserved agent name');
     }
     const displayName = body.name.trim();
     let result: { tenantId: string; agentId: string; apiKey: string };
@@ -176,6 +180,9 @@ export class AgentsController {
     if (body.name) {
       const slug = slugify(body.name);
       if (!slug) throw new BadRequestException('Agent name produces an empty slug');
+      if (slug === PLAYGROUND_AGENT_SLUG) {
+        throw new BadRequestException('"Playground" is a reserved agent name');
+      }
       const displayName = body.name.trim();
       await this.lifecycle.renameAgent(user.id, agentName, slug, displayName);
       result['renamed'] = true;

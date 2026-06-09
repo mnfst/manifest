@@ -1,21 +1,31 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Res } from '@nestjs/common';
 import type { Response as ExpressResponse } from 'express';
 import type { PlaygroundHistoryRunDetail, PlaygroundHistoryRunSummary } from 'manifest-shared';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.instance';
 import { PlaygroundService } from './playground.service';
 import { PlaygroundHistoryService } from './playground-history.service';
-import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import { PlaygroundAgentService } from './playground-agent.service';
 import { RunPlaygroundDto } from './dto/run-playground.dto';
-import { ListHistoryQueryDto, RunIdParamDto, SetBestColumnDto } from './dto/history.dto';
+import { RunIdParamDto, SetBestColumnDto } from './dto/history.dto';
 
 @Controller('api/v1/playground')
 export class PlaygroundController {
   constructor(
     private readonly playgroundService: PlaygroundService,
     private readonly historyService: PlaygroundHistoryService,
-    private readonly resolveAgent: ResolveAgentService,
+    private readonly playgroundAgent: PlaygroundAgentService,
   ) {}
+
+  // Resolves (creating on first use) the reserved per-tenant Playground agent and
+  // returns its name. The frontend calls this on load, then uses the name to
+  // fetch the Playground's available models / providers — guaranteeing the agent
+  // exists before those by-name lookups run.
+  @Get('agent')
+  async getAgent(@CurrentUser() user: AuthUser): Promise<{ name: string }> {
+    const agent = await this.playgroundAgent.resolve(user.id);
+    return { name: agent.name };
+  }
 
   @Post('run')
   async run(
@@ -27,11 +37,8 @@ export class PlaygroundController {
   }
 
   @Get('runs')
-  async listRuns(
-    @CurrentUser() user: AuthUser,
-    @Query() query: ListHistoryQueryDto,
-  ): Promise<PlaygroundHistoryRunSummary[]> {
-    const agent = await this.resolveAgent.resolve(user.id, query.agentName);
+  async listRuns(@CurrentUser() user: AuthUser): Promise<PlaygroundHistoryRunSummary[]> {
+    const agent = await this.playgroundAgent.resolve(user.id);
     return this.historyService.listRuns(user.id, agent.id);
   }
 
@@ -39,9 +46,8 @@ export class PlaygroundController {
   async getRun(
     @CurrentUser() user: AuthUser,
     @Param() params: RunIdParamDto,
-    @Query() query: ListHistoryQueryDto,
   ): Promise<PlaygroundHistoryRunDetail> {
-    const agent = await this.resolveAgent.resolve(user.id, query.agentName);
+    const agent = await this.playgroundAgent.resolve(user.id);
     return this.historyService.getRun(user.id, params.runId, agent.id);
   }
 

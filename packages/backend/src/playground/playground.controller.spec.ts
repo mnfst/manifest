@@ -3,7 +3,7 @@ import type { Response as ExpressResponse } from 'express';
 import { PlaygroundController } from './playground.controller';
 import { PlaygroundService } from './playground.service';
 import { PlaygroundHistoryService } from './playground-history.service';
-import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import { PlaygroundAgentService } from './playground-agent.service';
 import type { AuthUser } from '../auth/auth.instance';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
 
@@ -13,7 +13,7 @@ const USER: AuthUser = {
   email: 't@example.com',
 } as unknown as AuthUser;
 
-const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
+const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'Playground' };
 
 describe('PlaygroundController', () => {
   let controller: PlaygroundController;
@@ -22,7 +22,7 @@ describe('PlaygroundController', () => {
   let getRun: jest.Mock;
   let toggleStar: jest.Mock;
   let setBestColumn: jest.Mock;
-  let resolveAgent: jest.Mock;
+  let playgroundAgentResolve: jest.Mock;
 
   beforeEach(async () => {
     runStream = jest.fn();
@@ -30,7 +30,7 @@ describe('PlaygroundController', () => {
     getRun = jest.fn();
     toggleStar = jest.fn();
     setBestColumn = jest.fn();
-    resolveAgent = jest.fn().mockResolvedValue(AGENT);
+    playgroundAgentResolve = jest.fn().mockResolvedValue(AGENT);
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PlaygroundController],
@@ -40,7 +40,10 @@ describe('PlaygroundController', () => {
           provide: PlaygroundHistoryService,
           useValue: { listRuns, getRun, toggleStar, setBestColumn },
         },
-        { provide: ResolveAgentService, useValue: { resolve: resolveAgent } },
+        {
+          provide: PlaygroundAgentService,
+          useValue: { resolve: playgroundAgentResolve },
+        },
       ],
     }).compile();
 
@@ -50,7 +53,6 @@ describe('PlaygroundController', () => {
   describe('POST /playground/run', () => {
     it('delegates to PlaygroundService.runStream with the user id, dto and response', async () => {
       const dto = {
-        agentName: 'demo',
         model: 'openai/gpt-4o-mini',
         provider: 'openai',
         messages: [{ role: 'user', content: 'hi' }],
@@ -71,9 +73,9 @@ describe('PlaygroundController', () => {
         { id: 'r1', prompt: 'p', createdAt: 'now', modelCount: 1, models: ['m'] },
       ]);
 
-      const out = await controller.listRuns(USER, { agentName: 'demo' });
+      const out = await controller.listRuns(USER);
 
-      expect(resolveAgent).toHaveBeenCalledWith('user-1', 'demo');
+      expect(playgroundAgentResolve).toHaveBeenCalledWith('user-1');
       expect(listRuns).toHaveBeenCalledWith('user-1', 'agent-1');
       expect(out).toHaveLength(1);
     });
@@ -90,9 +92,9 @@ describe('PlaygroundController', () => {
         columns: [],
       });
 
-      const out = await controller.getRun(USER, { runId: 'r1' }, { agentName: 'demo' });
+      const out = await controller.getRun(USER, { runId: 'r1' });
 
-      expect(resolveAgent).toHaveBeenCalledWith('user-1', 'demo');
+      expect(playgroundAgentResolve).toHaveBeenCalledWith('user-1');
       expect(getRun).toHaveBeenCalledWith('user-1', 'r1', 'agent-1');
       expect(out.id).toBe('r1');
     });
@@ -100,9 +102,7 @@ describe('PlaygroundController', () => {
     it('propagates errors from the history service', async () => {
       const err = new Error('not found');
       getRun.mockRejectedValue(err);
-      await expect(controller.getRun(USER, { runId: 'r1' }, { agentName: 'demo' })).rejects.toBe(
-        err,
-      );
+      await expect(controller.getRun(USER, { runId: 'r1' })).rejects.toBe(err);
     });
   });
 

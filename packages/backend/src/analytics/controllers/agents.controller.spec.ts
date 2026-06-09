@@ -249,6 +249,21 @@ describe('AgentsController', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('rejects rename to the reserved "Playground" name', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.updateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+    ).rejects.toThrow(/reserved/i);
+    expect(mockRenameAgent).not.toHaveBeenCalled();
+  });
+
+  it('rejects createAgent with the reserved "Playground" name', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.createAgent(user as never, { name: 'Playground' } as never),
+    ).rejects.toThrow(/reserved/i);
+  });
+
   it('deletes agent and returns success', async () => {
     const user = { id: 'u1' };
     const result = await controller.deleteAgent(user as never, 'bot-1');

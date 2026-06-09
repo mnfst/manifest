@@ -6,6 +6,7 @@ import type { JSX } from 'solid-js';
 const mockGetAvailableModels = vi.fn();
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
+const mockGetPlaygroundAgent = vi.fn();
 const mockGetPlaygroundRun = vi.fn();
 const mockListPlaygroundRuns = vi.fn();
 const mockStreamPlayground = vi.fn();
@@ -15,6 +16,7 @@ vi.mock('../../src/services/api.js', () => ({
   getAvailableModels: (...a: unknown[]) => mockGetAvailableModels(...a),
   getProviders: (...a: unknown[]) => mockGetProviders(...a),
   getCustomProviders: (...a: unknown[]) => mockGetCustomProviders(...a),
+  getPlaygroundAgent: (...a: unknown[]) => mockGetPlaygroundAgent(...a),
   getPlaygroundRun: (...a: unknown[]) => mockGetPlaygroundRun(...a),
   listPlaygroundRuns: (...a: unknown[]) => mockListPlaygroundRuns(...a),
   streamPlayground: (...a: unknown[]) => mockStreamPlayground(...a),
@@ -31,11 +33,7 @@ const setSearchParamsFn = vi.fn((p: { run?: string }) => {
   if ('run' in p) searchParamsState.run = p.run;
 });
 const searchParamsState: { run?: string } = {};
-// Each test gets a unique agent name so getOrCreatePlaygroundStore() hands
-// out a fresh store (the cache is module-level and survives between tests).
-let currentAgent = 'demo-0';
 vi.mock('@solidjs/router', () => ({
-  useParams: () => ({ agentName: currentAgent }),
   useSearchParams: () => [searchParamsState, setSearchParamsFn],
 }));
 
@@ -356,7 +354,9 @@ let agentSeq = 0;
 
 describe('Playground page', () => {
   beforeEach(() => {
-    currentAgent = `agent-${++agentSeq}`;
+    // Each test gets a unique agent name so getOrCreatePlaygroundStore() hands
+    // out a fresh store (the cache is module-level and survives between tests).
+    const agentName = `agent-${++agentSeq}`;
     lastColProps = [];
     lastSummaryProps = null;
     providerModalProps = null;
@@ -368,6 +368,7 @@ describe('Playground page', () => {
     mockGetAvailableModels.mockReset().mockResolvedValue([MODEL_A, MODEL_B]);
     mockGetProviders.mockReset().mockResolvedValue([ACTIVE_PROVIDER, ACTIVE_PROVIDER_B]);
     mockGetCustomProviders.mockReset().mockResolvedValue([]);
+    mockGetPlaygroundAgent.mockReset().mockResolvedValue({ name: agentName });
     mockGetPlaygroundRun.mockReset().mockResolvedValue(makeRunDetail());
     mockListPlaygroundRuns
       .mockReset()
@@ -572,7 +573,7 @@ describe('Playground page', () => {
       render(() => <Playground />);
       renderSidebar();
       fireEvent.click(await find('pick-r-42'));
-      await waitFor(() => expect(mockGetPlaygroundRun).toHaveBeenCalledWith('r-42', currentAgent));
+      await waitFor(() => expect(mockGetPlaygroundRun).toHaveBeenCalledWith('r-42'));
       // Store now holds the historical column.
       await waitFor(() => {
         const hist = lastColProps.find(
@@ -867,7 +868,7 @@ describe('Playground page', () => {
       searchParamsState.run = 'r-99';
       mockGetPlaygroundRun.mockResolvedValue(makeRunDetail({ id: 'r-99' }));
       render(() => <Playground />);
-      await waitFor(() => expect(mockGetPlaygroundRun).toHaveBeenCalledWith('r-99', currentAgent));
+      await waitFor(() => expect(mockGetPlaygroundRun).toHaveBeenCalledWith('r-99'));
     });
 
     it('restores from sessionStorage lastRun when no search param is set', async () => {
@@ -875,7 +876,7 @@ describe('Playground page', () => {
       ssStore['manifest.playground.lastRun'] = 'r-ss';
       mockGetPlaygroundRun.mockResolvedValue(makeRunDetail({ id: 'r-ss' }));
       render(() => <Playground />);
-      await waitFor(() => expect(mockGetPlaygroundRun).toHaveBeenCalledWith('r-ss', currentAgent));
+      await waitFor(() => expect(mockGetPlaygroundRun).toHaveBeenCalledWith('r-ss'));
     });
 
     it('clears the stale run param + sessionStorage when restoring it fails', async () => {

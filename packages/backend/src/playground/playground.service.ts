@@ -15,7 +15,7 @@ import {
   resolveApiKey,
 } from '../routing/proxy/oauth-credentials';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
-import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import { PlaygroundAgentService } from './playground-agent.service';
 import { OpenaiOauthService } from '../routing/oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../routing/oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
@@ -38,7 +38,7 @@ export class PlaygroundService {
   private readonly logger = new Logger(PlaygroundService.name);
 
   constructor(
-    private readonly resolveAgent: ResolveAgentService,
+    private readonly playgroundAgent: PlaygroundAgentService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly providerClient: ProviderClient,
     private readonly openaiOauth: OpenaiOauthService,
@@ -75,7 +75,11 @@ export class PlaygroundService {
     let oauthResourceUrl: string | undefined;
     let providerRegion: string | null | undefined;
     try {
-      agent = await this.resolveAgent.resolve(userId, dto.agentName);
+      // The Playground always runs under the reserved per-tenant "Playground"
+      // agent (created on first use), so runs record under it in global Messages
+      // and route against the whole global provider pool — regardless of any
+      // agentName the client sends.
+      agent = await this.playgroundAgent.resolve(userId);
       const hasProvider = await this.providerKeyService.hasActiveProvider(
         userId,
         dto.provider,

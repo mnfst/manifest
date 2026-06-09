@@ -45,7 +45,18 @@ function defaultData(): MockData {
   };
 }
 
+interface MakeServiceResult {
+  service: PayloadBuilderService;
+  agentsRepo: {
+    createQueryBuilder: jest.Mock;
+  };
+}
+
 async function makeService(partial: Partial<MockData>): Promise<PayloadBuilderService> {
+  return (await makeServiceWithRepo(partial)).service;
+}
+
+async function makeServiceWithRepo(partial: Partial<MockData>): Promise<MakeServiceResult> {
   const data: MockData = { ...defaultData(), ...partial };
 
   const messagesQueue = [
@@ -54,7 +65,12 @@ async function makeService(partial: Partial<MockData>): Promise<PayloadBuilderSe
     { rows: data.authTypes, mode: 'getRawMany' as const },
     { row: data.totals, mode: 'getRawOne' as const },
   ];
-  const agentsQueue = [{ rows: data.agentPlatforms, mode: 'getRawMany' as const }];
+  // userAgentsCount() uses getRawOne returning {count: string};
+  // agentsByPlatform() uses getRawMany returning CategoryPlatformRow[].
+  const agentsQueue = [
+    { row: { count: String(data.agentsCount) }, mode: 'getRawOne' as const },
+    { rows: data.agentPlatforms, mode: 'getRawMany' as const },
+  ];
 
   function makeQb(entry: { rows?: unknown; row?: unknown; mode: 'getRawMany' | 'getRawOne' }) {
     return {
@@ -71,20 +87,19 @@ async function makeService(partial: Partial<MockData>): Promise<PayloadBuilderSe
   const messagesRepo = {
     createQueryBuilder: jest.fn(() => makeQb(messagesQueue.shift()!)),
   };
-  const agentsRepo = {
+  const agentsRepoMock = {
     createQueryBuilder: jest.fn(() => makeQb(agentsQueue.shift()!)),
-    count: jest.fn().mockResolvedValue(data.agentsCount),
   };
 
   const module: TestingModule = await Test.createTestingModule({
     providers: [
       PayloadBuilderService,
       { provide: getRepositoryToken(AgentMessage), useValue: messagesRepo },
-      { provide: getRepositoryToken(Agent), useValue: agentsRepo },
+      { provide: getRepositoryToken(Agent), useValue: agentsRepoMock },
     ],
   }).compile();
 
-  return module.get(PayloadBuilderService);
+  return { service: module.get(PayloadBuilderService), agentsRepo: agentsRepoMock };
 }
 
 describe('PayloadBuilderService', () => {
@@ -384,5 +399,35 @@ describe('PayloadBuilderService', () => {
     const payload = await service.build('inst', '1.0.0');
 
     expect(payload.agents_by_platform).toEqual({ unknown: 2 });
+  });
+
+  it('excludes system agents from agents_total count (is_system = false filter applied)', async () => {
+    // The count query is for user agents only — system agents (e.g. Playground)
+    // must not inflate the install telemetry.
+    const { service, agentsRepo } = await makeServiceWithRepo({ agentsCount: 3 });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.agents_total).toBe(3);
+    // The count QB must have received a where clause filtering system agents.
+    const countQb = agentsRepo.createQueryBuilder.mock.results[0].value as {
+      where: jest.Mock;
+    };
+    expect(countQb.where).toHaveBeenCalledWith('a.is_system = false');
+  });
+
+  it('excludes system agents from agents_by_platform (is_system = false filter applied)', async () => {
+    const { service, agentsRepo } = await makeServiceWithRepo({
+      agentPlatforms: [{ category: 'personal', platform: 'openclaw', count: '2' }],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.agents_by_platform).toEqual({ openclaw: 2 });
+    // The platform QB (second agents QB call) must filter system agents.
+    const platformQb = agentsRepo.createQueryBuilder.mock.results[1].value as {
+      where: jest.Mock;
+    };
+    expect(platformQb.where).toHaveBeenCalledWith('a.is_system = false');
   });
 });

@@ -50,7 +50,7 @@ export class PayloadBuilderService {
         this.messagesByBucket('routing_tier'),
         this.messagesByBucket('auth_type'),
         this.totals(),
-        this.agents.count(),
+        this.userAgentsCount(),
         this.agentsByPlatform(),
       ]);
 
@@ -122,6 +122,7 @@ export class PayloadBuilderService {
       .select('a.agent_category', 'category')
       .addSelect('a.agent_platform', 'platform')
       .addSelect('COUNT(*)', 'count')
+      .where('a.is_system = false')
       .groupBy('a.agent_category')
       .addGroupBy('a.agent_platform')
       .getRawMany<CategoryPlatformRow>();
@@ -129,6 +130,16 @@ export class PayloadBuilderService {
       bucket: r.platform === 'other' && r.category ? `${r.category}:${r.platform}` : r.platform,
       count: r.count,
     }));
+  }
+
+  /** Count only user-created agents; system agents (e.g. Playground) are excluded. */
+  private async userAgentsCount(): Promise<number> {
+    const result = await this.agents
+      .createQueryBuilder('a')
+      .select('COUNT(*)', 'count')
+      .where('a.is_system = false')
+      .getRawOne<{ count: string }>();
+    return Number(result?.count ?? 0);
   }
 
   private async totals(): Promise<TotalsRow> {
