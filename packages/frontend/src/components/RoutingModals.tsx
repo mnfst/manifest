@@ -67,6 +67,7 @@ interface RoutingModalsProps {
     providerKeyLabel?: string,
   ) => void;
   onProviderUpdate: () => Promise<void>;
+  onProviderPoll?: () => Promise<void>;
   onOpenProviderModal: () => void;
 }
 
@@ -315,17 +316,16 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
       </Show>
 
       <Show when={props.showProviderModal()}>
-        <Suspense fallback={null}>
-          <ProviderSelectModal
-            agentName={props.agentName()}
-            providers={props.connectedProviders()}
-            customProviders={props.customProviders()}
-            customProviderPrefill={props.customProviderPrefill}
-            providerDeepLink={props.providerDeepLink}
-            onClose={props.onProviderModalClose}
-            onUpdate={props.onProviderUpdate}
-          />
-        </Suspense>
+        <ProviderSelectModal
+          agentName={props.agentName()}
+          providers={props.connectedProviders()}
+          customProviders={props.customProviders()}
+          customProviderPrefill={props.customProviderPrefill}
+          providerDeepLink={props.providerDeepLink}
+          onClose={props.onProviderModalClose}
+          onUpdate={props.onProviderUpdate}
+          onPollProviders={props.onProviderPoll}
+        />
       </Show>
 
       <RoutingInstructionModal
