@@ -65,9 +65,17 @@ describe('LiftCustomProvidersToUserLevel1791200000000', () => {
     expect(queries.some((q) => /DELETE\s+FROM\s+"custom_providers"/i.test(q))).toBe(false);
   });
 
-  it('down re-adds agent_id and recreates the agent-scoped unique index', async () => {
+  it('down re-adds agent_id, restores the agent FK, and recreates the agent-scoped unique index', async () => {
     await migration.down(queryRunner);
     expect(queries.some((q) => q.includes('ADD COLUMN IF NOT EXISTS "agent_id"'))).toBe(true);
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('ADD CONSTRAINT "FK_custom_providers_agent"') &&
+          q.includes('REFERENCES "agents"') &&
+          q.includes('ON DELETE CASCADE'),
+      ),
+    ).toBe(true);
     expect(
       queries.some(
         (q) =>

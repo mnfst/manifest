@@ -124,6 +124,16 @@ export class LiftCustomProvidersToUserLevel1791200000000 implements MigrationInt
     await queryRunner.query(
       `ALTER TABLE "custom_providers" ADD COLUMN IF NOT EXISTS "agent_id" varchar`,
     );
+    // Restore the original agent FK (ON DELETE CASCADE) so the rolled-back schema
+    // re-enforces referential integrity. The original column was also NOT NULL,
+    // but that can't be restored on down() — the lift discarded each row's agent
+    // binding, so there are no values to backfill; leaving it nullable is the
+    // closest non-destructive equivalent.
+    await queryRunner.query(`
+      ALTER TABLE "custom_providers"
+        ADD CONSTRAINT "FK_custom_providers_agent"
+        FOREIGN KEY ("agent_id") REFERENCES "agents" ("id") ON DELETE CASCADE
+    `);
     await queryRunner.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS "IDX_custom_providers_agent_name"
       ON "custom_providers" ("agent_id", "name")

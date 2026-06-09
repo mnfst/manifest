@@ -359,6 +359,10 @@ export class CustomProviderService {
     // Delete CustomProvider row
     await this.repo.remove(cp);
 
+    // Drop the now-deleted provider from the user-scoped custom-provider cache
+    // so a subsequent list() doesn't serve it from a warm cache (mirrors update).
+    this.routingCache.invalidateUser(userId);
+
     // Drop stale pricing entries for this provider's models from the cache.
     await this.pricingCache.reload();
 

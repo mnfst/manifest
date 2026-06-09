@@ -740,12 +740,15 @@ describe('CustomProviderService', () => {
 
     it('deletes the row and attempts provider removal', async () => {
       const cp = { id: 'cp1' } as CustomProvider;
-      const { svc, removeProvider, remove, reloadPricing, emit } = makeDeps({
+      const { svc, removeProvider, remove, reloadPricing, emit, invalidateUser } = makeDeps({
         findOneResults: [cp],
       });
       await svc.remove('user-1', 'cp1');
       expect(removeProvider).toHaveBeenCalledWith(null, 'user-1', 'custom:cp1');
       expect(remove).toHaveBeenCalledWith(cp);
+      // The user-scoped custom-provider cache must be dropped so a later list()
+      // doesn't serve the deleted provider from a warm cache.
+      expect(invalidateUser).toHaveBeenCalledWith('user-1');
       expect(emit).toHaveBeenCalledWith('user-1', 'routing');
       // Stale pricing entries for this provider must be dropped from the
       // cache so getAll() stops returning them.
