@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import type { DataSource, EntityManager, Repository } from 'typeorm';
 import { PlaygroundAgentService } from './playground-agent.service';
 import type { Agent } from '../entities/agent.entity';
@@ -284,10 +283,11 @@ describe('PlaygroundAgentService.resolve', () => {
   });
 
   describe('(a5) ensureTenant — insert throws, re-find returns null', () => {
-    it('throws NotFoundException("Tenant could not be resolved")', async () => {
+    it('re-throws the original DB error (does not mask it as not-found)', async () => {
+      const dbError = new Error('connection reset');
       const tenantRepo = makeTenantRepo({
         findOne: jest.fn().mockResolvedValue(null), // both calls return null
-        insert: jest.fn().mockRejectedValue(new Error('duplicate key')),
+        insert: jest.fn().mockRejectedValue(dbError),
       });
 
       const { service } = buildService({
@@ -298,8 +298,7 @@ describe('PlaygroundAgentService.resolve', () => {
         },
       });
 
-      await expect(service.resolve(USER_ID)).rejects.toThrow(NotFoundException);
-      await expect(service.resolve(USER_ID)).rejects.toThrow('Tenant could not be resolved');
+      await expect(service.resolve(USER_ID)).rejects.toThrow('connection reset');
     });
   });
 
@@ -422,22 +421,20 @@ describe('PlaygroundAgentService.resolve', () => {
     });
   });
 
-  describe('(e) race: transaction throws → re-find returns null', () => {
-    it('throws NotFoundException when re-find after race returns null', async () => {
+  describe('(e) transaction throws → re-find returns null', () => {
+    it('re-throws the original DB error (not a race → surface the real failure)', async () => {
+      const dbError = new Error('deadlock detected');
       const { service } = buildService({
         agentRepo: {
           findOne: jest.fn().mockResolvedValue(null),
         },
         dataSource: {
-          transaction: jest.fn().mockRejectedValue(new Error('duplicate key')),
+          transaction: jest.fn().mockRejectedValue(dbError),
           getRepository: jest.fn().mockReturnValue(makeTenantRepo()),
         },
       });
 
-      await expect(service.resolve(USER_ID)).rejects.toThrow(NotFoundException);
-      await expect(service.resolve(USER_ID)).rejects.toThrow(
-        'Playground agent could not be resolved',
-      );
+      await expect(service.resolve(USER_ID)).rejects.toThrow('deadlock detected');
     });
 
     it('does not attempt a second transaction when the race re-find also returns null', async () => {
@@ -452,7 +449,7 @@ describe('PlaygroundAgentService.resolve', () => {
         },
       });
 
-      await expect(service.resolve(USER_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.resolve(USER_ID)).rejects.toThrow('duplicate key');
       expect(transactionFn).toHaveBeenCalledTimes(1);
     });
   });

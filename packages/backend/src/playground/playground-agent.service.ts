@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
@@ -71,11 +71,13 @@ export class PlaygroundAgentService {
           [agent.id, userId],
         );
       });
-    } catch {
-      // Lost a creation race with a concurrent request — reuse the winner's row.
+    } catch (err) {
+      // A concurrent request may have won the unique-index race — reuse its row.
+      // Any other failure is a real error (not a race): re-throw it rather than
+      // masking it as a generic not-found.
       const raced = await this.findSystemAgent(tenantId);
       if (raced) return raced;
-      throw new NotFoundException('Playground agent could not be resolved');
+      throw err;
     }
 
     return agent;
@@ -97,11 +99,11 @@ export class PlaygroundAgentService {
     try {
       await repo.insert({ id, name: userId, is_active: true });
       return id;
-    } catch {
-      // Lost a creation race — reuse the winner's row.
+    } catch (err) {
+      // Concurrent winner → reuse its row; any other failure is real → re-throw.
       const raced = await repo.findOne({ where: { name: userId } });
       if (raced) return raced.id;
-      throw new NotFoundException('Tenant could not be resolved');
+      throw err;
     }
   }
 }

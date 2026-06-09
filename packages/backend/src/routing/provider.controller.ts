@@ -77,7 +77,8 @@ export class ProviderController {
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     // allowSystem: true — the Playground page reads the provider list for the
-    // reserved system agent; all mutation endpoints remain blocked.
+    // reserved system agent. Destructive/config mutations (rename, reorder,
+    // deactivate, remove) still reject it; only additive connect is allowed.
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
       allowSystem: true,
     });
