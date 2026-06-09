@@ -1,0 +1,77 @@
+packages/frontend/tests/pages/AgentRedirects.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 24,31,36
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_8f7bd68edeeec2::t_2d29c79e87923b 147,149,152,154,177,187,189,197,220,236,244,246,258,266,284,297,309,321,332,351,357,369,386,394,446,449,473,587,608,625
+  s_8f7bd68edeeec2::t_7f7dd3e4d81e8a 251
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 116
+packages/frontend/tests/pages/FreeModels.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 171
+packages/frontend/tests/pages/Overview.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 9,371,567,572,576,613
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 518,997
+packages/frontend/tests/components/RecordedMessageModal.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 5,98
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_8f7bd68edeeec2::t_2d29c79e87923b 91,153,163,174,256,270
+packages/frontend/tests/components/AgentTypeSelect.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 362,369
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 7
+packages/frontend/tests/pages/GlobalOverview.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 221,242,246
+packages/frontend/tests/components/Header.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 310,316,322,324,330-331,338,341
+packages/frontend/tests/pages/AgentOverview.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 11
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 71-72,97,111,123,135,149
+packages/frontend/tests/components/DuplicateAgentModal.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 120,130,148,212,289
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 23,29,289,304,321,338,442,449
+packages/frontend/tests/pages/AgentDetail.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 5,43,53,55,83,86,89,92,95,98,101,104,107,111,122,129,137,144,151,168,180,226
+  s_8f7bd68edeeec2::t_595f2b127fbeeb 57
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_8f7bd68edeeec2::t_30323c23ea8b70 578,594,598,1294,1324-1325,1366,1433,1552,1558-1559,1561,1563,1567,1575
+  s_8f7bd68edeeec2::t_cc7abfa98c0a6b 1349
+  s_8f7bd68edeeec2::t_0b7499a8203802 1468,1470,1480,1483,1493
+  s_8f7bd68edeeec2::t_dbad98600b0c28 1562
+  s_8f7bd68edeeec2::t_260342dc5a572c 1574
+packages/frontend/tests/pages/Settings.test.tsx
+  s_8f7bd68edeeec2::t_43152ea7e3dca4 9,148,152,154,169,182,184,230,232,255,266,269,276,303,310-311,317,319,350,352,421,435,444,776,785
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_8f7bd68edeeec2::t_7d47e9146fc4fe 33,46,48,81,84,86,90-91,93,109,111,113,141-142,144,157,164,177,188,230-231,233,237-238,240,244-245
+packages/frontend/tests/pages/ConnectProvider.test.tsx
+  s_8f7bd68edeeec2::t_a66f19f9f03934 37,62,79,103,160,194,222,224-226,247-248,263,282
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 140,309
+  s_8f7bd68edeeec2::t_c1009504b95d46 476
+  s_8f7bd68edeeec2::t_2dada7bae919c0 1021
+packages/frontend/tests/services/analytics-api.test.ts
+  s_8f7bd68edeeec2::t_f48a0d4f4e7852 8
+packages/frontend/tests/services/routing.test.ts
+  s_8f7bd68edeeec2::t_ac2ef01258c96a 14,17
+packages/frontend/tests/components/SetupModal.test.tsx
+  s_8f7bd68edeeec2::t_01e64153c315c7 53,108
+packages/frontend/tests/services/routing-useagent.test.tsx
+  s_8f7bd68edeeec2::t_e7efca76b80a5e 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "dcaa8ce7366204016468e11c384addeacc0a9902",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
