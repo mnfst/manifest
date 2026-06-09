@@ -383,6 +383,14 @@
 .setup-method-tabs .panel__tabs {
   width: 100%;
   margin-bottom: 12px;
+  /* The framework tabs don't shrink (flex-shrink: 0), so a full row can exceed
+     the modal width. Scroll within the modal instead of overflowing past its
+     edge (the mobile media query already does this; desktop needs it too). */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.setup-method-tabs .panel__tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .setup-method-tabs .panel__tab {
