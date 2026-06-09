@@ -603,7 +603,7 @@ describe('TimeseriesQueriesService', () => {
       const liveAgentCall = mockTurnQb.andWhere.mock.calls.find(
         (c) => typeof c[0] === 'string' && c[0].includes('at.agent_id = ('),
       );
-      expect(liveAgentCall![1]).toEqual({ agentName: 'agent-x' });
+      expect(liveAgentCall![1]).toEqual({ liveAgentName: 'agent-x', liveTenantId: 'tenant-1' });
       // Playground (is_system) usage must be excluded from per-provider totals,
       // via the same NOT EXISTS semi-join as the per-agent endpoints (no join).
       expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);

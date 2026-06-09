@@ -160,7 +160,11 @@ describe('addTenantFilter', () => {
     expect(secondCall[0]).toContain('at.agent_id = (');
     expect(secondCall[0]).toContain('FROM agents');
     expect(secondCall[0]).toContain('deleted_at IS NULL');
-    expect(secondCall[1]).toEqual({ agentName: 'my-agent' });
+    // No resolved tenant → the agent lookup is scoped via the user's tenant
+    // (tenant.name = userId), never `at.tenant_id` (which can be NULL here).
+    expect(secondCall[0]).toContain('FROM tenants');
+    expect(secondCall[0]).not.toContain('at.tenant_id');
+    expect(secondCall[1]).toEqual({ liveAgentName: 'my-agent', liveUserId: 'user-123' });
   });
 
   it('does not add agent_name filter when agentName is undefined', () => {
@@ -170,9 +174,9 @@ describe('addTenantFilter', () => {
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
   });
 
-  it('filterByLiveAgentName constrains to the live agent id and returns the builder', () => {
+  it('filterByLiveAgentName scopes by the resolved tenant id when one is provided', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    const result = filterByLiveAgentName(qb, 'my-agent');
+    const result = filterByLiveAgentName(qb, 'my-agent', 'user-123', 'tenant-456');
 
     expect(result).toBe(qb);
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
@@ -180,7 +184,21 @@ describe('addTenantFilter', () => {
     expect(call[0]).toContain('at.agent_id = (');
     expect(call[0]).toContain('FROM agents');
     expect(call[0]).toContain('deleted_at IS NULL');
-    expect(call[1]).toEqual({ agentName: 'my-agent' });
+    expect(call[0]).toContain('a.tenant_id = :liveTenantId');
+    // Must never key the lookup off the (possibly NULL) message tenant_id.
+    expect(call[0]).not.toContain('at.tenant_id');
+    expect(call[1]).toEqual({ liveAgentName: 'my-agent', liveTenantId: 'tenant-456' });
+  });
+
+  it('filterByLiveAgentName resolves the tenant from the user on the fallback path (NULL tenant_id safe)', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    const result = filterByLiveAgentName(qb, 'my-agent', 'user-123');
+
+    expect(result).toBe(qb);
+    const call = mockAndWhere.mock.calls[0];
+    expect(call[0]).toContain('FROM tenants');
+    expect(call[0]).not.toContain('at.tenant_id');
+    expect(call[1]).toEqual({ liveAgentName: 'my-agent', liveUserId: 'user-123' });
   });
 
   it('returns the query builder for chaining', () => {

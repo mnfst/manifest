@@ -51,16 +51,29 @@ export function downsample(data: number[], targetLen: number): number[] {
 export function filterByLiveAgentName<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   agentName: string,
+  userId: string,
+  tenantId?: string,
 ): SelectQueryBuilder<T> {
+  // Scope the live-agent lookup to the SAME tenant the outer query resolves to,
+  // NOT `at.tenant_id`: on the user_id fallback path (no resolved tenant)
+  // message rows can carry a NULL tenant_id, which would make the subquery match
+  // nothing and blank the chart. When a tenant is resolved, match it directly;
+  // otherwise resolve the tenant from the user (tenant.name = userId).
+  const tenantScope = tenantId
+    ? 'a.tenant_id = :liveTenantId'
+    : 'a.tenant_id = (SELECT t.id FROM tenants t WHERE t.name = :liveUserId LIMIT 1)';
+  const params: ObjectLiteral = { liveAgentName: agentName };
+  if (tenantId) params.liveTenantId = tenantId;
+  else params.liveUserId = userId;
   return qb.andWhere(
     `at.agent_id = (
-        SELECT id FROM agents
-        WHERE tenant_id = at.tenant_id
-          AND name = :agentName
-          AND deleted_at IS NULL
+        SELECT a.id FROM agents a
+        WHERE ${tenantScope}
+          AND a.name = :liveAgentName
+          AND a.deleted_at IS NULL
         LIMIT 1
       )`,
-    { agentName },
+    params,
   );
 }
 
@@ -76,7 +89,7 @@ export function addTenantFilter<T extends ObjectLiteral>(
     qb.andWhere('at.user_id = :userId', { userId });
   }
   if (agentName) {
-    filterByLiveAgentName(qb, agentName);
+    filterByLiveAgentName(qb, agentName, userId, tenantId);
   }
   return qb;
 }
