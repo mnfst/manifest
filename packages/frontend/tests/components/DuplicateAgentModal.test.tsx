@@ -90,7 +90,6 @@ describe('DuplicateAgentModal', () => {
     // "What is copied" items
     const list = qa('.duplicate-agent__list li').map((li) => li.textContent);
     expect(list.some((t) => t?.includes('3') && t?.includes('provider credential'))).toBe(true);
-    expect(list.some((t) => t?.includes('1') && t?.includes('custom provider'))).toBe(true);
     expect(list.some((t) => t?.includes('4') && t?.includes('tier override'))).toBe(true);
     expect(list.some((t) => t?.includes('2') && t?.includes('specificity override'))).toBe(true);
 

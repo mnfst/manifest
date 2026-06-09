@@ -56,9 +56,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   const totalCopied = () => {
     const c = preview()?.copied;
     if (!c) return 0;
-    return (
-      c.providers + c.customProviders + c.tierAssignments + c.specificityAssignments + c.modelParams
-    );
+    return c.providers + c.tierAssignments + c.specificityAssignments + c.modelParams;
   };
 
   const handleNameInput = (value: string) => {
@@ -161,10 +159,6 @@ const DuplicateAgentModal: Component<Props> = (props) => {
                   <strong>{preview()!.copied.providers}</strong> provider credential
                   {preview()!.copied.providers === 1 ? '' : 's'} (encrypted API keys &amp;
                   subscriptions)
-                </li>
-                <li>
-                  <strong>{preview()!.copied.customProviders}</strong> custom provider
-                  {preview()!.copied.customProviders === 1 ? '' : 's'}
                 </li>
                 <li>
                   <strong>{preview()!.copied.tierAssignments}</strong> tier override

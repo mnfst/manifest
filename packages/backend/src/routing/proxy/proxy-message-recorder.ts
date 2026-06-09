@@ -207,7 +207,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       provider,
       model,
     );
@@ -276,13 +276,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       null,
       primaryModel,
     );
     const canonicalFailures = await Promise.all(
       failures.map((f) =>
-        this.customProviders.canonicalizeAgentMessageKeys(ctx.agentId, f.provider, f.model),
+        this.customProviders.canonicalizeAgentMessageKeys(ctx.userId, f.provider, f.model),
       ),
     );
     const rows: Partial<AgentMessage>[] = [];
@@ -351,7 +351,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       opts?.provider,
       model,
     );
@@ -419,12 +419,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const baseline = await this.computeBaseline(ctx.agentId, ctx.userId, inputTokens, outputTokens);
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       provider,
       model,
     );
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       null,
       fallbackFromModel,
     );
@@ -507,7 +507,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.agentId,
+      ctx.userId,
       provider,
       model,
     );

@@ -114,6 +114,7 @@ import { AddDedupCompositeIndex1790200000000 } from './migrations/1790200000000-
 import { AddErrorsPartialIndex1790300000000 } from './migrations/1790300000000-AddErrorsPartialIndex';
 import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1790400000000-DropRedundantAgentApiKeyPrefixIndex';
 import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
+import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 
 const entities = [
   AgentMessage,
@@ -229,6 +230,7 @@ const migrations = [
   AddErrorsPartialIndex1790300000000,
   DropRedundantAgentApiKeyPrefixIndex1790400000000,
   LiftProvidersToUserLevel1791000000000,
+  LiftCustomProvidersToUserLevel1791200000000,
 ];
 
 @Module({

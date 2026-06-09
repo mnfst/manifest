@@ -1,4 +1,5 @@
 import { createSignal } from 'solid-js';
+import { invalidateCustomProvidersCache } from './api/routing.js';
 
 // pingCount counts ANY event from the bus (legacy back-compat for callers that
 // don't care which kind fired). New code should depend on the targeted
@@ -46,6 +47,10 @@ export function connectSse(): () => void {
     bumpPing();
   });
   es.addEventListener('routing', () => {
+    // Custom providers are user-global; a routing change (incl. a custom-provider
+    // create/update/delete on any agent) can change every agent's list, so drop
+    // the cached lists before the routingPing-driven refetch reads them.
+    invalidateCustomProvidersCache();
     setRoutingPing((n) => n + 1);
     bumpPing();
   });

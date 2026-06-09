@@ -66,7 +66,6 @@ export interface CreateAgentParams {
 export interface DuplicateAgentPreview {
   copied: {
     providers: number;
-    customProviders: number;
     tierAssignments: number;
     specificityAssignments: number;
     modelParams: number;

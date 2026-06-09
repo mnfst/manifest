@@ -196,7 +196,6 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-a',
-          agent_id: 'agent-a',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -205,7 +204,6 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-b',
-          agent_id: 'agent-b',
           models: [{ model_name: 'shared' }],
         }),
       ]);
