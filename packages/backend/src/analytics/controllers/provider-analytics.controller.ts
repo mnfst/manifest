@@ -8,7 +8,6 @@ import { TimeseriesQueriesService } from '../services/timeseries-queries.service
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { Tenant } from '../../entities/tenant.entity';
 import {
   selectMessageRowColumns,
   filterByKeyLabel,
@@ -27,8 +26,6 @@ export class ProviderAnalyticsController {
     private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
   ) {}
 
   @Get()
@@ -166,16 +163,21 @@ export class ProviderAnalyticsController {
     @CurrentUser() user: AuthUser,
     @Query('connection_id') connectionId?: string,
   ) {
-    if (!connectionId) return { connection: null, agents: [], recent_messages: [] };
+    // Every branch returns the same shape (incl. `model_usage`) so the client
+    // never has to special-case a missing field.
+    if (!connectionId)
+      return { connection: null, agents: [], model_usage: [], recent_messages: [] };
 
     // Look up the connection (security: must belong to the user)
     const conn = await this.providerRepo.findOne({
       where: { id: connectionId, user_id: user.id },
     });
-    if (!conn) return { connection: null, agents: [], recent_messages: [] };
+    if (!conn) return { connection: null, agents: [], model_usage: [], recent_messages: [] };
 
-    const tenant = await this.tenantRepo.findOne({ where: { name: user.id } });
-    if (!tenant) {
+    // Resolve the tenant via the shared cache like every other endpoint here,
+    // instead of re-querying the tenants table by name on every request.
+    const tenantId = await this.tenantCache.resolve(user.id);
+    if (!tenantId) {
       return {
         connection: {
           id: conn.id,
@@ -206,7 +208,7 @@ export class ProviderAnalyticsController {
       this.messageRepo
         .createQueryBuilder('at')
         .select('MAX(at.timestamp)', 'last_used_at')
-        .where('at.tenant_id = :tid', { tid: tenant.id })
+        .where('at.tenant_id = :tid', { tid: tenantId })
         .andWhere('at.provider = :provider', { provider: conn.provider })
         .andWhere('at.auth_type = :authType', { authType: conn.auth_type }),
       connLabel,
@@ -234,7 +236,7 @@ export class ProviderAnalyticsController {
       // NOT EXISTS semi-join in excludeSystemAgents (catches id- AND name-only
       // Playground rows without re-introducing duplication).
       .leftJoin('agents', 'a', 'a.id = at.agent_id')
-      .where('at.tenant_id = :tid', { tid: tenant.id })
+      .where('at.tenant_id = :tid', { tid: tenantId })
       .andWhere('at.provider = :provider', { provider: conn.provider })
       .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
@@ -251,7 +253,7 @@ export class ProviderAnalyticsController {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .addSelect('COUNT(*)', 'messages')
-      .where('at.tenant_id = :tid', { tid: tenant.id })
+      .where('at.tenant_id = :tid', { tid: tenantId })
       .andWhere('at.provider = :provider', { provider: conn.provider })
       .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
@@ -269,7 +271,7 @@ export class ProviderAnalyticsController {
 
     // Recent messages (top 5)
     const msgQb = selectMessageRowColumns(this.messageRepo.createQueryBuilder('at'), costExpr)
-      .where('at.tenant_id = :tid', { tid: tenant.id })
+      .where('at.tenant_id = :tid', { tid: tenantId })
       .andWhere('at.provider = :provider', { provider: conn.provider })
       .andWhere('at.auth_type = :authType', { authType: conn.auth_type });
     // Keep reserved Playground runs out of the recent-messages list too.

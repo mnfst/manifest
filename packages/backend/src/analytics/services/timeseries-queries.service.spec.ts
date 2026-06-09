@@ -590,11 +590,47 @@ describe('TimeseriesQueriesService', () => {
       expect(out.agents).toEqual(['anthropic', 'openai']);
       expect(out.timeseries[0]).toEqual({ hour: '01', anthropic: 3, openai: 7 });
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain('at.agent_name = :agentName');
+      // Scope to the LIVE agent owning the slug (agent_id subquery), not a raw
+      // name match — a soft-deleted agent sharing the slug must not leak rows.
+      const liveAgentClause = clauses.find(
+        (c) =>
+          typeof c === 'string' &&
+          c.includes('at.agent_id = (') &&
+          c.includes('deleted_at IS NULL'),
+      );
+      expect(liveAgentClause).toBeDefined();
+      expect(clauses).not.toContain('at.agent_name = :agentName');
+      const liveAgentCall = mockTurnQb.andWhere.mock.calls.find(
+        (c) => typeof c[0] === 'string' && c[0].includes('at.agent_id = ('),
+      );
+      expect(liveAgentCall![1]).toEqual({ agentName: 'agent-x' });
       // Playground (is_system) usage must be excluded from per-provider totals,
       // via the same NOT EXISTS semi-join as the per-agent endpoints (no join).
       expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
       expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
+    });
+
+    it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
+      await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      const liveAgentClause = clauses.find(
+        (c) =>
+          typeof c === 'string' &&
+          c.includes('at.agent_id = (') &&
+          c.includes('deleted_at IS NULL'),
+      );
+      expect(liveAgentClause).toBeDefined();
+      expect(clauses).not.toContain('at.agent_name = :agentName');
+    });
+
+    it('omits the agent filter entirely when no agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: 1 }]);
+      await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses.some((c) => typeof c === 'string' && c.includes('at.agent_id = ('))).toBe(
+        false,
+      );
     });
 
     it('getPerProviderMessageTimeseries pivots message counts', async () => {

@@ -39,6 +39,31 @@ export function downsample(data: number[], targetLen: number): number[] {
   return result;
 }
 
+/**
+ * Constrain a message aggregate to the LIVE agent currently owning a slug.
+ *
+ * `agent_messages` stores `agent_id` alongside `agent_name`, so filtering by
+ * name alone would pull in rows from a soft-deleted agent that shares the slug
+ * with a live one (slug reuse). Resolving to the live agent's id keeps a
+ * recreated agent's chart free of its dead namesake's history. Assumes the
+ * query builder aliases `agent_messages` as `at`.
+ */
+export function filterByLiveAgentName<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  agentName: string,
+): SelectQueryBuilder<T> {
+  return qb.andWhere(
+    `at.agent_id = (
+        SELECT id FROM agents
+        WHERE tenant_id = at.tenant_id
+          AND name = :agentName
+          AND deleted_at IS NULL
+        LIMIT 1
+      )`,
+    { agentName },
+  );
+}
+
 export function addTenantFilter<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   userId: string,
@@ -51,20 +76,7 @@ export function addTenantFilter<T extends ObjectLiteral>(
     qb.andWhere('at.user_id = :userId', { userId });
   }
   if (agentName) {
-    // Resolve to the live agent's id so soft-deleted agents that share the
-    // same slug as the current agent don't leak old rows. agent_messages
-    // stores agent_id alongside agent_name; we filter on the id of whatever
-    // live agent currently owns the slug.
-    qb.andWhere(
-      `at.agent_id = (
-        SELECT id FROM agents
-        WHERE tenant_id = at.tenant_id
-          AND name = :agentName
-          AND deleted_at IS NULL
-        LIMIT 1
-      )`,
-      { agentName },
-    );
+    filterByLiveAgentName(qb, agentName);
   }
   return qb;
 }

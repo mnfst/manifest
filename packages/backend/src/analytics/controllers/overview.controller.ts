@@ -67,34 +67,25 @@ export class OverviewController {
 
   @Get('overview/per-agent-timeseries')
   async getPerAgentTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerAgentTimeseries(range, user.id, hourly, tenantId);
   }
 
   @Get('overview/per-agent-message-timeseries')
   async getPerAgentMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerAgentMessageTimeseries(range, user.id, hourly, tenantId);
   }
 
   @Get('overview/per-agent-cost-timeseries')
   async getPerAgentCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerAgentCostTimeseries(range, user.id, hourly, tenantId);
   }
 
   @Get('overview/per-provider-timeseries')
   async getPerProviderTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const agentName = query.agent_name;
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerProviderTimeseries(range, user.id, hourly, tenantId, agentName);
   }
 
@@ -103,10 +94,7 @@ export class OverviewController {
     @Query() query: RangeQueryDto,
     @CurrentUser() user: AuthUser,
   ) {
-    const range = query.range ?? '24h';
-    const agentName = query.agent_name;
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerProviderMessageTimeseries(
       range,
       user.id,
@@ -118,10 +106,7 @@ export class OverviewController {
 
   @Get('overview/per-provider-cost-timeseries')
   async getPerProviderCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const agentName = query.agent_name;
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerProviderCostTimeseries(
       range,
       user.id,
@@ -133,28 +118,19 @@ export class OverviewController {
 
   @Get('overview/per-model-cost-timeseries')
   async getPerModelCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const agentName = query.agent_name;
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerModelCostTimeseries(range, user.id, hourly, tenantId, agentName);
   }
 
   @Get('overview/per-model-timeseries')
   async getPerModelTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const agentName = query.agent_name;
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerModelTimeseries(range, user.id, hourly, tenantId, agentName);
   }
 
   @Get('overview/per-model-message-timeseries')
   async getPerModelMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const range = query.range ?? '24h';
-    const agentName = query.agent_name;
-    const hourly = isHourlyRange(range);
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
     return this.timeseries.getPerModelMessageTimeseries(
       range,
       user.id,
@@ -162,6 +138,25 @@ export class OverviewController {
       tenantId,
       agentName,
     );
+  }
+
+  /**
+   * Shared derivation of the (range, hourly, tenantId, agentName) tuple every
+   * `overview/per-*-timeseries` endpoint needs. Extracted so the per-endpoint
+   * methods can't drift in how they default the range, compute `hourly`, or
+   * resolve the tenant.
+   */
+  private async deriveTimeseriesArgs(
+    query: RangeQueryDto,
+    user: AuthUser,
+  ): Promise<{ range: string; hourly: boolean; tenantId: string | undefined; agentName?: string }> {
+    const range = query.range ?? '24h';
+    return {
+      range,
+      hourly: isHourlyRange(range),
+      tenantId: (await this.tenantCache.resolve(user.id)) ?? undefined,
+      agentName: query.agent_name,
+    };
   }
 
   private async hasActiveProviders(userId: string, agentName?: string): Promise<boolean> {
