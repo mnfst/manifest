@@ -261,6 +261,31 @@ describe('RateLimitTrackerService', () => {
       expect(out).toEqual([]);
     });
 
+    it('reclaims expired entries before evicting a live one when full', async () => {
+      const res = new Response(null, {
+        headers: makeHeaders({ 'x-ratelimit-limit-requests': '1' }),
+      });
+      const t0 = 1_000_000_000_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(t0);
+      // Fill the cache to capacity; every entry expires at t0 + TTL.
+      for (let i = 0; i < 2000; i++) {
+        service.captureFromResponse(res.clone(), `stale-${i}`, 'openai', 'api_key');
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+      // Advance past the TTL so all 2000 entries are now expired, then insert a
+      // fresh one: setCapped must sweep the expired entries (freeing capacity)
+      // rather than evicting a live entry.
+      nowSpy.mockReturnValue(t0 + 60_001);
+      service.captureFromResponse(res.clone(), 'fresh-user', 'openai', 'api_key');
+      await Promise.resolve();
+      await Promise.resolve();
+      // The fresh entry is live and served straight from the in-memory cache.
+      const fresh = await service.getRateLimits('fresh-user');
+      expect(fresh.length).toBeGreaterThan(0);
+      nowSpy.mockRestore();
+    });
+
     it('enforces MAX_CACHE on the DB-repopulation path', async () => {
       // Fill the cache to exactly MAX_CACHE via captures.
       const res = new Response(null, {

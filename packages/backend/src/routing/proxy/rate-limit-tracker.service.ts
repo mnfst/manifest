@@ -81,8 +81,17 @@ function userCachePrefix(userId: string): string {
  */
 function setCapped(cacheKey: string, snapshot: RateLimitSnapshot): void {
   if (cache.size >= MAX_CACHE && !cache.has(cacheKey)) {
-    const firstKey = cache.keys().next().value;
-    if (firstKey !== undefined) cache.delete(firstKey);
+    // Reclaim expired entries first: stale snapshots shouldn't consume capacity
+    // and force premature eviction of a still-live entry.
+    const now = Date.now();
+    for (const [key, entry] of cache) {
+      if (entry.expiresAt <= now) cache.delete(key);
+    }
+    // Still at capacity (everything live) → evict the oldest as a last resort.
+    if (cache.size >= MAX_CACHE) {
+      const firstKey = cache.keys().next().value;
+      if (firstKey !== undefined) cache.delete(firstKey);
+    }
   }
   cache.set(cacheKey, { data: snapshot, expiresAt: Date.now() + TTL_MS });
 }
