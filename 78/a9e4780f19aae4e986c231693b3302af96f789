@@ -1,0 +1,47 @@
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8f7bd68edeeec2::t_50e434f13da0ac 74-77,79-80,82-92
+  s_8f7bd68edeeec2::t_bd2c467beec83f 94-97,99-101,105
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_e05363ead7097a 304-306
+  s_8f7bd68edeeec2::t_b450cd600646dd 597-601
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_8f7bd68edeeec2::t_b0cd580ed4f8c5 238
+  s_8f7bd68edeeec2::t_58668cd407a981 224-227
+  s_8f7bd68edeeec2::t_4d402671e78b08 7
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_552e215c573abb 596,598-599
+  s_8f7bd68edeeec2::t_b0ae9de9e3d562 7
+  s_8f7bd68edeeec2::t_e3c05759401e4e 467-469,476
+  s_8f7bd68edeeec2::t_0480241b5f73d3 543-545
+  s_8f7bd68edeeec2::t_824ad6ca63de12 567-568
+  s_8f7bd68edeeec2::t_dac6ddc8642117 503,506-513
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_a4439db6107d90 12-16
+  s_8f7bd68edeeec2::t_0a0d425ff914d4 223-226,232-234
+  s_8f7bd68edeeec2::t_f60da7e59d1377 250-252
+  s_8f7bd68edeeec2::t_168b9ea09a5540 266-267
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_8f7bd68edeeec2::t_63c2a40852e09b 187,197-198,201,203-215,219
+  s_8f7bd68edeeec2::t_29f708782953d0 8
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_7e2a9f614a49e8 79-89
+  s_8f7bd68edeeec2::t_dfbbf177fc2692 141-146,151-163
+  s_8f7bd68edeeec2::t_b09b8c52551c59 246-260
+  s_8f7bd68edeeec2::t_b7c15b83585ebd 334-339
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "78a9e4780f19aae4e986c231693b3302af96f789",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
