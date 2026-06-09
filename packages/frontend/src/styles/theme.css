@@ -836,6 +836,126 @@ h6 {
   font-weight: 500;
 }
 
+/* Interactive section label (HARNESSES) — same base as .sidebar__section-label */
+.sidebar__section-label--interactive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px var(--gap-lg) 6px var(--gap-md);
+  margin: var(--gap-md) 0.5rem 1px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.sidebar__section-label--interactive:hover {
+  background: hsl(var(--sidebar-accent));
+}
+
+.sidebar__section-label-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sidebar__section-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: hsl(var(--muted));
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sidebar__section-label--interactive:hover .sidebar__section-add {
+  opacity: 1;
+}
+
+.sidebar__section-add:hover {
+  color: hsl(var(--sidebar-foreground));
+  background: hsl(var(--border));
+}
+
+.sidebar__section-caret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.sidebar__section-caret:hover {
+  color: hsl(var(--sidebar-foreground));
+}
+
+/* Harness list items */
+.sidebar__agents-list {
+  padding: 0;
+}
+
+.sidebar__agent-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px var(--gap-lg);
+  margin: 1px 0.5rem;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--sidebar-foreground));
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-radius: var(--radius);
+}
+
+.sidebar__agent-item:hover {
+  background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-accent-foreground));
+}
+
+.sidebar__agent-item--active {
+  background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-primary));
+  font-weight: 600;
+}
+
+.sidebar__agent-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dark .sidebar__agent-icon {
+  filter: invert(1);
+}
+
+.sidebar__agent-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__agents-empty {
+  padding: 6px var(--gap-lg);
+  margin: 1px 0.5rem;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
 .sidebar__spacer {
   flex: 1;
 }

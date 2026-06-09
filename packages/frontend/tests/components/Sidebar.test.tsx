@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fireEvent, render, screen } from "@solidjs/testing-library";
+import { fireEvent, render, screen, waitFor } from "@solidjs/testing-library";
 
 let mockPathname = "/overview";
 
@@ -14,7 +14,12 @@ vi.mock("@solidjs/router", () => ({
       }
     }
     return (
-      <a href={props.href} class={classes.join(" ").trim()} aria-current={props["aria-current"]}>
+      <a
+        href={props.href}
+        class={classes.join(" ").trim()}
+        aria-current={props["aria-current"]}
+        onClick={props.onClick}
+      >
         {props.children}
       </a>
     );
@@ -22,17 +27,63 @@ vi.mock("@solidjs/router", () => ({
   useLocation: () => ({ get pathname() { return mockPathname; } }),
 }));
 
-import Sidebar from "../../src/components/Sidebar";
+// getAgents returns the harness list rendered in the in-nav switcher. Each test
+// can override the resolved value via mockGetAgents.
+const mockGetAgents = vi.fn();
+vi.mock("../../src/services/api.js", () => ({
+  getAgents: (...args: unknown[]) => mockGetAgents(...args),
+}));
 
-beforeEach(() => {
-  mockPathname = "/overview";
+// The SSE ping signal drives the agents resource refetch — a stable 0 is fine.
+vi.mock("../../src/services/sse.js", () => ({
+  agentPing: () => 0,
+}));
+
+// Stub the create-harness modal so the Sidebar test stays isolated from the
+// modal's own dependency tree; we only assert that the + button opens it.
+const mockAddModal = vi.fn();
+vi.mock("../../src/components/AddAgentModal.jsx", async () => {
+  const { Show } = await import("solid-js");
+  return {
+    default: (props: any) => (
+      // Read props.open reactively (Show tracks the `when` accessor) so the stub
+      // re-renders when the Sidebar toggles addModalOpen.
+      <Show
+        when={(() => {
+          mockAddModal(props.open);
+          return props.open;
+        })()}
+      >
+        <div data-testid="add-agent-modal" />
+      </Show>
+    ),
+  };
 });
 
-describe("Sidebar — global nav (agent route)", () => {
-  beforeEach(() => {
-    mockPathname = "/harnesses/test-agent";
-  });
+import Sidebar from "../../src/components/Sidebar";
 
+const SAMPLE_AGENTS = [
+  {
+    agent_name: "alpha",
+    display_name: "Alpha Harness",
+    agent_platform: "openclaw",
+    agent_category: "personal",
+  },
+  {
+    // No display_name → falls back to agent_name. No platform → no icon.
+    agent_name: "beta",
+    agent_platform: null,
+    agent_category: null,
+  },
+];
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockPathname = "/overview";
+  mockGetAgents.mockResolvedValue({ agents: SAMPLE_AGENTS });
+});
+
+describe("Sidebar — global nav links", () => {
   it("renders Overview link", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("Overview")).toBeDefined();
@@ -43,11 +94,6 @@ describe("Sidebar — global nav (agent route)", () => {
     expect(screen.getByText("Messages")).toBeDefined();
   });
 
-  it("renders Harnesses link", () => {
-    render(() => <Sidebar />);
-    expect(screen.getByText("Harnesses")).toBeDefined();
-  });
-
   it("renders provider section links", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("PROVIDERS")).toBeDefined();
@@ -56,127 +102,257 @@ describe("Sidebar — global nav (agent route)", () => {
     expect(screen.getByText("Local")).toBeDefined();
   });
 
-  it("does not render MONITORING section on agent route", () => {
+  it("renders the HARNESSES section label", () => {
+    render(() => <Sidebar />);
+    expect(screen.getByText("HARNESSES")).toBeDefined();
+  });
+
+  it("renders the TOOLS section with Playground link", () => {
+    const { container } = render(() => <Sidebar />);
+    expect(screen.getByText("TOOLS")).toBeDefined();
+    expect(container.querySelector('a[href="/playground"]')).not.toBeNull();
+  });
+
+  it("does not render legacy MONITORING/MANAGE/RESOURCES sections", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("MONITORING");
-  });
-
-  it("does not render MANAGE section on agent route", () => {
-    const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("MANAGE");
-  });
-
-  it("does not render RESOURCES section on agent route", () => {
-    const { container } = render(() => <Sidebar />);
     expect(container.textContent).not.toContain("RESOURCES");
   });
 
-  it("links point to global routes, not agent-scoped routes", () => {
+  it("global links point to global routes", () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/overview"]')).not.toBeNull();
     expect(container.querySelector('a[href="/messages"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/subscriptions"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/byok"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull();
-    expect(container.querySelector('a[href="/harnesses"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/playground"]')).not.toBeNull();
   });
 
-  it("marks Harnesses link active on /harnesses/:name path", () => {
+  it("keeps exactly the expected sidebar__link set (no static Harnesses link)", () => {
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/harnesses"]');
-    expect(agentsLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("marks Harnesses link active on /harnesses/:name/routing sub-path", () => {
-    mockPathname = "/harnesses/test-agent/routing";
-    const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/harnesses"]');
-    expect(agentsLink?.getAttribute("aria-current")).toBe("page");
-  });
-});
-
-describe("Sidebar — global nav (global route)", () => {
-  it("renders Overview link in global mode", () => {
-    render(() => <Sidebar />);
-    expect(screen.getByText("Overview")).toBeDefined();
-  });
-
-  it("renders Messages link in global mode", () => {
-    render(() => <Sidebar />);
-    expect(screen.getByText("Messages")).toBeDefined();
-  });
-
-  it("renders Harnesses link pointing to /harnesses", () => {
-    const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/harnesses"]');
-    expect(agentsLink).not.toBeNull();
-    expect(agentsLink?.textContent).toContain("Harnesses");
-  });
-
-  it("marks provider links active on provider pages", () => {
-    mockPathname = "/providers/byok";
-    const { container } = render(() => <Sidebar />);
-    const byokLink = container.querySelector('a[href="/providers/byok"]');
-    expect(byokLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("does not render MONITORING section in global mode", () => {
-    const { container } = render(() => <Sidebar />);
-    expect(container.textContent).not.toContain("MONITORING");
-  });
-
-  it("marks Overview link active on /overview path", () => {
-    const { container } = render(() => <Sidebar />);
-    const overviewLink = container.querySelector('a[href="/overview"]');
-    expect(overviewLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("marks Messages link active on /messages path", () => {
-    mockPathname = "/messages";
-    const { container } = render(() => <Sidebar />);
-    const messagesLink = container.querySelector('a[href="/messages"]');
-    expect(messagesLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("marks Harnesses link active on /harnesses path", () => {
-    mockPathname = "/harnesses";
-    const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/harnesses"]');
-    expect(agentsLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("does not mark Overview active when on /messages", () => {
-    mockPathname = "/messages";
-    const { container } = render(() => <Sidebar />);
-    const overviewLink = container.querySelector('a[href="/overview"]');
-    expect(overviewLink?.getAttribute("aria-current")).not.toBe("page");
-  });
-});
-
-describe("Sidebar — identical in agent and global mode", () => {
-  it("renders the same links on /overview and /harnesses/:name", () => {
-    mockPathname = "/overview";
-    const { container: globalContainer } = render(() => <Sidebar />);
-    const globalLinks = Array.from(globalContainer.querySelectorAll("a.sidebar__link")).map(
-      (a) => a.getAttribute("href"),
+    const links = Array.from(container.querySelectorAll("a.sidebar__link")).map((a) =>
+      a.getAttribute("href"),
     );
-
-    mockPathname = "/harnesses/test-agent";
-    const { container: agentContainer } = render(() => <Sidebar />);
-    const agentLinks = Array.from(agentContainer.querySelectorAll("a.sidebar__link")).map(
-      (a) => a.getAttribute("href"),
-    );
-
-    expect(agentLinks).toEqual(globalLinks);
-    expect(globalLinks).toEqual([
+    expect(links).toEqual([
       "/overview",
       "/messages",
       "/providers/subscriptions",
       "/providers/byok",
       "/providers/local",
-      "/harnesses",
       "/playground",
     ]);
+    // The collapsible section replaces the old static link — there is no
+    // sidebar__link pointing at /harnesses anymore.
+    expect(container.querySelector('a.sidebar__link[href="/harnesses"]')).toBeNull();
+  });
+});
+
+describe("Sidebar — global nav active state", () => {
+  it("marks Overview active only on exact /overview path", () => {
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/overview"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Messages active on /messages", () => {
+    mockPathname = "/messages";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/messages"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks provider links active on provider pages (prefix match)", () => {
+    mockPathname = "/providers/byok";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/byok"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Subscriptions active on /providers/subscriptions", () => {
+    mockPathname = "/providers/subscriptions";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/subscriptions"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Local active on /providers/local", () => {
+    mockPathname = "/providers/local";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/providers/local"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("marks Playground active on /playground", () => {
+    mockPathname = "/playground";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/playground"]');
+    expect(link?.getAttribute("aria-current")).toBe("page");
+  });
+
+  it("does not mark Overview active when on /messages", () => {
+    mockPathname = "/messages";
+    const { container } = render(() => <Sidebar />);
+    const link = container.querySelector('a[href="/overview"]');
+    expect(link?.getAttribute("aria-current")).not.toBe("page");
+  });
+});
+
+describe("Sidebar — harness switcher list", () => {
+  it("renders one harness item per agent", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2);
+    });
+    expect(mockGetAgents).toHaveBeenCalledWith();
+  });
+
+  it("links each item to /harnesses/:name and shows the display name", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector('a[href="/harnesses/alpha"]')).not.toBeNull();
+    });
+    const alpha = container.querySelector('a[href="/harnesses/alpha"]');
+    expect(alpha?.textContent).toContain("Alpha Harness");
+  });
+
+  it("falls back to agent_name when display_name is missing", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector('a[href="/harnesses/beta"]')).not.toBeNull();
+    });
+    const beta = container.querySelector('a[href="/harnesses/beta"]');
+    expect(beta?.textContent).toContain("beta");
+  });
+
+  it("renders a platform icon for agents that have one and omits it otherwise", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2);
+    });
+    const alpha = container.querySelector('a[href="/harnesses/alpha"]');
+    const beta = container.querySelector('a[href="/harnesses/beta"]');
+    // alpha has a known platform → icon present; beta has no platform → no icon.
+    expect(alpha?.querySelector("img.sidebar__agent-icon")).not.toBeNull();
+    expect(beta?.querySelector("img.sidebar__agent-icon")).toBeNull();
+  });
+
+  it("marks the current /harnesses/:name route active", async () => {
+    mockPathname = "/harnesses/alpha";
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector('a[href="/harnesses/alpha"]')).not.toBeNull();
+    });
+    const alpha = container.querySelector('a[href="/harnesses/alpha"]');
+    const beta = container.querySelector('a[href="/harnesses/beta"]');
+    expect(alpha?.getAttribute("aria-current")).toBe("page");
+    expect(alpha?.classList.contains("sidebar__agent-item--active")).toBe(true);
+    expect(beta?.getAttribute("aria-current")).not.toBe("page");
+  });
+
+  it("excludes system/Playground agents by calling getAgents() with the default (no includeSystem)", async () => {
+    render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(mockGetAgents).toHaveBeenCalled();
+    });
+    // Default invocation = system agents excluded (getAgents(false)).
+    expect(mockGetAgents).toHaveBeenCalledWith();
+  });
+
+  it("resolves a bare array response (no { agents } wrapper)", async () => {
+    mockGetAgents.mockResolvedValue(SAMPLE_AGENTS);
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2);
+    });
+  });
+
+  it("renders the empty state when there are no harnesses", async () => {
+    mockGetAgents.mockResolvedValue({ agents: [] });
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-empty")).not.toBeNull();
+    });
+    expect(container.querySelector(".sidebar__agents-empty")?.textContent).toContain(
+      "No harnesses yet",
+    );
+    expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(0);
+  });
+
+  it("falls back to an empty list (and empty state) when getAgents rejects", async () => {
+    mockGetAgents.mockRejectedValue(new Error("boom"));
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-empty")).not.toBeNull();
+    });
+  });
+
+  it("falls back to an empty list when getAgents resolves to null", async () => {
+    mockGetAgents.mockResolvedValue(null);
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-empty")).not.toBeNull();
+    });
+    expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(0);
+  });
+});
+
+describe("Sidebar — collapse toggle", () => {
+  it("hides the harness list when the caret is clicked, and re-shows on toggle back", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
+    });
+
+    const caret = container.querySelector(".sidebar__section-caret") as HTMLButtonElement;
+    expect(caret.getAttribute("aria-expanded")).toBe("true");
+
+    await fireEvent.click(caret);
+    expect(container.querySelector(".sidebar__agents-list")).toBeNull();
+    expect(caret.getAttribute("aria-expanded")).toBe("false");
+    expect(caret.getAttribute("aria-label")).toBe("Expand harnesses");
+
+    await fireEvent.click(caret);
+    expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
+    expect(caret.getAttribute("aria-expanded")).toBe("true");
+    expect(caret.getAttribute("aria-label")).toBe("Collapse harnesses");
+  });
+
+  it("toggles collapse when the section label itself is clicked", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
+    });
+    const label = container.querySelector(".sidebar__section-label--interactive") as HTMLElement;
+    await fireEvent.click(label);
+    expect(container.querySelector(".sidebar__agents-list")).toBeNull();
+  });
+});
+
+describe("Sidebar — create-harness modal", () => {
+  it("opens the AddAgentModal when the + button is clicked", async () => {
+    const { container } = render(() => <Sidebar />);
+    expect(container.querySelector('[data-testid="add-agent-modal"]')).toBeNull();
+
+    const addBtn = container.querySelector(".sidebar__section-add") as HTMLButtonElement;
+    await fireEvent.click(addBtn);
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-testid="add-agent-modal"]')).not.toBeNull();
+    });
+    expect(mockAddModal).toHaveBeenCalledWith(true);
+  });
+
+  it("clicking + does not also toggle the section collapse", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
+    });
+    const addBtn = container.querySelector(".sidebar__section-add") as HTMLButtonElement;
+    await fireEvent.click(addBtn);
+    // List stays visible — the + click stopped propagation to the label toggle.
+    expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
   });
 });
 
@@ -207,51 +383,25 @@ describe("Sidebar — structure and interaction", () => {
     expect(onNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it("renders Feedback section", () => {
-    render(() => <Sidebar />);
+  it("calls onNavigate when a harness item is clicked", async () => {
+    const onNavigate = vi.fn();
+    const { container } = render(() => <Sidebar onNavigate={onNavigate} />);
+    await waitFor(() => {
+      expect(container.querySelector('a[href="/harnesses/alpha"]')).not.toBeNull();
+    });
+    const item = container.querySelector('a[href="/harnesses/alpha"]') as HTMLAnchorElement;
+    item.addEventListener("click", (event) => event.preventDefault(), { once: true });
+    await fireEvent.click(item);
+    expect(onNavigate).toHaveBeenCalled();
+  });
+
+  it("renders Feedback section with hint and external attributes", () => {
+    const { container } = render(() => <Sidebar />);
     expect(screen.getByText("Feedback")).toBeDefined();
-  });
-
-  it("shows feedback hint text", () => {
-    const { container } = render(() => <Sidebar />);
     expect(container.textContent).toContain("Share ideas or report bugs");
-  });
-
-  it("feedback link is external with correct attributes", () => {
-    const { container } = render(() => <Sidebar />);
     const feedbackLink = container.querySelector("a.sidebar__feedback") as HTMLAnchorElement;
     expect(feedbackLink).not.toBeNull();
     expect(feedbackLink.target).toBe("_blank");
     expect(feedbackLink.rel).toContain("noopener");
-  });
-});
-
-describe("Sidebar — active state via isGlobalActive prefix matching", () => {
-  it("marks /harnesses active on /harnesses sub-path /harnesses/foo/routing", () => {
-    mockPathname = "/harnesses/foo/routing";
-    const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/harnesses"]');
-    expect(agentsLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("marks /harnesses active on /harnesses/foo (no trailing slash)", () => {
-    mockPathname = "/harnesses/foo";
-    const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/harnesses"]');
-    expect(agentsLink?.getAttribute("aria-current")).toBe("page");
-  });
-
-  it("does not mark /overview active when on /harnesses", () => {
-    mockPathname = "/harnesses";
-    const { container } = render(() => <Sidebar />);
-    const overviewLink = container.querySelector('a[href="/overview"]');
-    expect(overviewLink?.getAttribute("aria-current")).not.toBe("page");
-  });
-
-  it("marks /overview active only on exact /overview path", () => {
-    mockPathname = "/overview";
-    const { container } = render(() => <Sidebar />);
-    const overviewLink = container.querySelector('a[href="/overview"]');
-    expect(overviewLink?.getAttribute("aria-current")).toBe("page");
   });
 });

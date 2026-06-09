@@ -1,9 +1,21 @@
 import { A, useLocation } from '@solidjs/router';
-import type { Component } from 'solid-js';
+import { Show, For, createSignal, createResource, type Component } from 'solid-js';
+import { useAgentName } from '../services/routing.js';
+import { getAgents } from '../services/api.js';
+import { agentPing } from '../services/sse.js';
+import { platformIcon } from 'manifest-shared';
+import AddAgentModal from './AddAgentModal.jsx';
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onNavigate?: () => void;
+}
+
+interface HarnessItem {
+  agent_name: string;
+  display_name?: string;
+  agent_platform?: string | null;
+  agent_category?: string | null;
 }
 
 /**
@@ -20,6 +32,32 @@ function makeIsGlobalActive(pathname: () => string) {
 const Sidebar: Component<SidebarProps> = (props) => {
   const location = useLocation();
   const isGlobalActive = makeIsGlobalActive(() => location.pathname);
+  const getAgentName = useAgentName();
+  const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
+  const [addModalOpen, setAddModalOpen] = createSignal(false);
+
+  // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
+  // fires (create/delete/rename). Uses the DEFAULT getAgents() — system agents
+  // (the reserved Playground) are excluded so they never leak into the switcher.
+  const [agents] = createResource(
+    () => agentPing(),
+    async (): Promise<HarnessItem[]> => {
+      try {
+        const data = (await getAgents()) as { agents?: HarnessItem[] } | HarnessItem[] | null;
+        if (Array.isArray(data)) return data;
+        return data?.agents ?? [];
+      } catch {
+        return [];
+      }
+    },
+  );
+
+  const currentAgent = () => getAgentName();
+
+  const handleNav = () => {
+    props.onNavigate?.();
+    window.dispatchEvent(new CustomEvent('sidebar-navigate'));
+  };
 
   return (
     <nav
@@ -29,8 +67,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       aria-label="Navigation"
       onClick={(event) => {
         if ((event.target as HTMLElement).closest('a.sidebar__link')) {
-          props.onNavigate?.();
-          window.dispatchEvent(new CustomEvent('sidebar-navigate'));
+          handleNav();
         }
       }}
     >
@@ -75,15 +112,91 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         Local
       </A>
-      <div class="sidebar__section-label">HARNESSES</div>
-      <A
-        href="/harnesses"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/harnesses') }}
-        aria-current={isGlobalActive('/harnesses') ? 'page' : undefined}
+
+      {/* Harnesses — collapsible section with a + create button */}
+      <div
+        class="sidebar__section-label sidebar__section-label--interactive"
+        onClick={() => setAgentsCollapsed(!agentsCollapsed())}
       >
-        Harnesses
-      </A>
+        <div class="sidebar__section-label-left">
+          <span>HARNESSES</span>
+          <button
+            type="button"
+            class="sidebar__section-add"
+            title="Create new harness"
+            aria-label="Create new harness"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAddModalOpen(true);
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" />
+            </svg>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="sidebar__section-caret"
+          onClick={(e) => {
+            e.stopPropagation();
+            setAgentsCollapsed(!agentsCollapsed());
+          }}
+          aria-expanded={!agentsCollapsed()}
+          aria-label={agentsCollapsed() ? 'Expand harnesses' : 'Collapse harnesses'}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style={{
+              transition: 'transform 150ms',
+              transform: agentsCollapsed() ? 'rotate(-90deg)' : 'rotate(0deg)',
+            }}
+          >
+            <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
+          </svg>
+        </button>
+      </div>
+
+      <Show when={!agentsCollapsed()}>
+        <div class="sidebar__agents-list">
+          <For
+            each={agents() ?? []}
+            fallback={<div class="sidebar__agents-empty">No harnesses yet</div>}
+          >
+            {(agent) => {
+              const name = () => agent.agent_name;
+              const display = () => agent.display_name || agent.agent_name;
+              const icon = () => platformIcon(agent.agent_platform, agent.agent_category);
+              const isSelected = () => currentAgent() === name();
+              return (
+                <A
+                  href={`/harnesses/${name()}`}
+                  class="sidebar__agent-item"
+                  classList={{ 'sidebar__agent-item--active': isSelected() }}
+                  aria-current={isSelected() ? 'page' : undefined}
+                  onClick={handleNav}
+                >
+                  <Show when={icon()}>
+                    <img src={icon()} alt="" class="sidebar__agent-icon" />
+                  </Show>
+                  <span class="sidebar__agent-item-name">{display()}</span>
+                </A>
+              );
+            }}
+          </For>
+        </div>
+      </Show>
 
       <div class="sidebar__section-label">TOOLS</div>
       <A
@@ -109,6 +222,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
         </span>
         <p class="sidebar__feedback-hint">Share ideas or report bugs.</p>
       </a>
+
+      {/* Create-harness modal, opened by the HARNESSES section + button */}
+      <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
     </nav>
   );
 };

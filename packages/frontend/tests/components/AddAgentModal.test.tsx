@@ -260,7 +260,7 @@ describe("AddAgentModal", () => {
     fireEvent.input(input, { target: { value: "clean" } });
     fireEvent.click(screen.getByText("Create"));
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/new-agent/routing", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/new-agent/routing", {
         state: { newApiKey: "key-1" },
       });
     });
