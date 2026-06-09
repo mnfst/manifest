@@ -1,0 +1,21 @@
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_8f7bd68edeeec2::t_3520fa29893a65 178
+packages/frontend/src/components/Sidebar.tsx
+  s_8f7bd68edeeec2::t_50dab8993a8044 88-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "9845d3e93db9e87342610a0c4b951a590753a88f",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
