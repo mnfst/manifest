@@ -1,0 +1,32 @@
+packages/frontend/src/components/MultiAgentTokenChart.tsx
+  s_8f7bd68edeeec2::t_ca4bbda5f90f56 132-140,146-147
+  s_8f7bd68edeeec2::t_552d78a48a91a4 238-242
+packages/frontend/src/components/ProviderChartCard.tsx
+  s_8f7bd68edeeec2::t_c241c574fa33ae 103-116,118-129,131-143,145
+  s_8f7bd68edeeec2::t_cc8a70ef779b65 1,5-7
+  s_8f7bd68edeeec2::t_f1ef8fee7eb543 59-60,75,77-78,88-90,100
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_8f7bd68edeeec2::t_fc6a9943bc664a 2
+  s_8f7bd68edeeec2::t_f277b893123c6e 92,127,129-131
+  s_8f7bd68edeeec2::t_37c46f43820424 335,348-357,366-382
+  s_8f7bd68edeeec2::t_8b109a8b311a82 140,168,170,194
+  s_8f7bd68edeeec2::t_8d7e0bdbc311a2 77-84
+  s_8f7bd68edeeec2::t_2e2e80de24f04d 319-320,322-323
+  s_8f7bd68edeeec2::t_585307faa896ea 61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "70670bc5bc6ac2c699571bebadf5e1206bdc3d62",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
