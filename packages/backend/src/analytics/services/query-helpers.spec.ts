@@ -200,11 +200,7 @@ describe('excludeSystemAgents', () => {
     const { qb, mockAndWhere, mockLeftJoin } = makeMockQb([]);
     excludeSystemAgents(qb);
 
-    expect(mockLeftJoin).toHaveBeenCalledWith(
-      'agents',
-      'a',
-      'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
-    );
+    expect(mockLeftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
     expect(mockAndWhere).toHaveBeenCalledWith('(a.is_system IS NULL OR a.is_system = false)');
   });
 

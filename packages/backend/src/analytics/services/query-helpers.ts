@@ -71,17 +71,25 @@ export function addTenantFilter<T extends ObjectLiteral>(
 
 /**
  * Exclude the reserved Playground (`is_system`) agent from a message
- * aggregate. Joins the `agents` table on (name, tenant_id) and keeps only
- * rows whose agent is non-system (or has no matching agent row at all, e.g.
- * legacy telemetry where the agent was deleted). Assumes the query builder
- * aliases `agent_messages` as `at`. The join alias `a` is reused by callers
- * that already reference `a.*`, so it must stay `a`.
+ * aggregate. Joins the `agents` table on **agent identity** (`a.id =
+ * at.agent_id`) and keeps only rows whose agent is non-system (or has no
+ * matching agent row at all, e.g. legacy telemetry where the agent was
+ * deleted → `is_system` is NULL → included).
+ *
+ * The join is on `agent_id`, not `(name, tenant_id)`, on purpose: a soft-
+ * deleted agent and a live agent can share a slug, so a name-based join is
+ * one-to-many and multiplies fact rows, inflating any SUM/COUNT downstream.
+ * Joining on the immutable id is one-to-(zero-or-one), so no duplication.
+ *
+ * Assumes the query builder aliases `agent_messages` as `at` (so `at.agent_id`
+ * is the fact-table column). The join alias `a` is reused by callers that
+ * already reference `a.*`, so it must stay `a`.
  */
 export function excludeSystemAgents<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
 ): SelectQueryBuilder<T> {
   if (!qb.expressionMap.joinAttributes.some((j) => j.alias.name === 'a')) {
-    qb.leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id');
+    qb.leftJoin('agents', 'a', 'a.id = at.agent_id');
   }
   return qb.andWhere('(a.is_system IS NULL OR a.is_system = false)');
 }

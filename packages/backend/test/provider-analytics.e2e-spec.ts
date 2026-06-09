@@ -50,6 +50,18 @@ beforeAll(async () => {
     );
   }
 
+  // Finding 1 (join duplication): a SOFT-DELETED agent that reuses the live
+  // agent's slug `test-agent` in the same tenant. A name-based agents join
+  // (a.name = at.agent_name) would match BOTH this row and the live agent for
+  // every `test-agent` message, doubling every per-agent SUM. The id-based
+  // join (a.id = at.agent_id) matches only the live agent, so totals stay exact.
+  const ghostAgentId = uuid();
+  await ds.query(
+    `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at, deleted_at)
+     VALUES ($1,'test-agent','Old Test Agent','recreated slug',false,true,$2,$3,$3,$3)`,
+    [ghostAgentId, TEST_TENANT_ID, now],
+  );
+
   // Finding 1: a reserved Playground (is_system) agent whose usage must NOT
   // pollute provider analytics aggregates or the connection breakdown.
   const playgroundAgentId = uuid();
@@ -139,6 +151,21 @@ describe('GET /api/v1/provider-analytics', () => {
     expect(res.body).toHaveProperty('agents');
     expect(res.body).toHaveProperty('timeseries');
     expect(res.body.agents).toContain('test-agent');
+  });
+
+  it('does not double-count when a soft-deleted agent shares a slug (Finding 1)', async () => {
+    // Real openai subscription usage for `test-agent` is exactly 1800 tokens
+    // (1500 + 300). A soft-deleted agent reuses the same slug+tenant, so a
+    // name-based join would report 3600. The id-based join keeps it at 1800.
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/provider-analytics/per-agent-timeseries?auth_type=subscription&provider=openai')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const total = res.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(total).toBe(1800);
   });
 
   it('returns per-agent message + cost timeseries', async () => {
@@ -244,6 +271,27 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
       expect(res.body).toHaveProperty('agents');
       expect(res.body).toHaveProperty('timeseries');
     }
+  });
+
+  it('excludes the Playground (is_system) agent from per-provider and per-model timeseries (Finding 2)', async () => {
+    // The Playground agent logged 18000 openai/gpt-4o tokens. Real openai usage
+    // is 1800 tokens (gpt-4o 1500 + gpt-4o-mini 300). Before the fix these
+    // endpoints had no is_system filter, so openai would have read 19800 and
+    // gpt-4o 19500. After the fix the Playground rows are excluded.
+    const sumKey = (rows: Array<Record<string, number>>, key: string): number =>
+      rows.reduce((sum, row) => sum + (row[key] ?? 0), 0);
+
+    const provider = await request(app.getHttpServer())
+      .get('/api/v1/overview/per-provider-timeseries?range=24h')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    expect(sumKey(provider.body.timeseries, 'openai')).toBe(1800);
+
+    const model = await request(app.getHttpServer())
+      .get('/api/v1/overview/per-model-timeseries?range=24h')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    expect(sumKey(model.body.timeseries, 'gpt-4o')).toBe(1500);
   });
 });
 

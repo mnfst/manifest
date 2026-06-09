@@ -228,11 +228,7 @@ describe('AggregationService', () => {
       // Both the current and previous window builders add the guard, so it must
       // appear (the join is also issued).
       expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
-      expect(mockQb.leftJoin).toHaveBeenCalledWith(
-        'agents',
-        'a',
-        'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
-      );
+      expect(mockQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
     });
 
     it('does not exclude system agents by default (excludeSystem omitted)', async () => {

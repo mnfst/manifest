@@ -299,10 +299,12 @@ export class TimeseriesQueriesService {
       .select(bucketExpr, bucketAlias)
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
-      .leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.agent_name IS NOT NULL')
-      .andWhere('(a.is_system IS NULL OR a.is_system = false)');
+      .andWhere('at.agent_name IS NOT NULL');
+    // Join on agent identity (a.id = at.agent_id), not name+tenant: a soft-
+    // deleted agent sharing a slug with a live one would otherwise match
+    // multiple `a` rows and multiply the per-agent SUM.
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
@@ -334,10 +336,10 @@ export class TimeseriesQueriesService {
       .select(bucketExpr, bucketAlias)
       .addSelect('at.agent_name', 'agent_name')
       .addSelect('COUNT(*)', 'messages')
-      .leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.agent_name IS NOT NULL')
-      .andWhere('(a.is_system IS NULL OR a.is_system = false)');
+      .andWhere('at.agent_name IS NOT NULL');
+    // Identity-based join (see getPerAgentTimeseries) to avoid double-counting.
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
@@ -370,10 +372,10 @@ export class TimeseriesQueriesService {
       .select(bucketExpr, bucketAlias)
       .addSelect('at.agent_name', 'agent_name')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
-      .leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id')
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.agent_name IS NOT NULL')
-      .andWhere('(a.is_system IS NULL OR a.is_system = false)');
+      .andWhere('at.agent_name IS NOT NULL');
+    // Identity-based join (see getPerAgentTimeseries) to avoid double-counting.
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
@@ -406,6 +408,9 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent so per-provider totals
+    // stay consistent with the per-agent / summary endpoints (identity join).
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
 
@@ -437,6 +442,8 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (identity join).
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
 
@@ -468,6 +475,9 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent so per-model totals stay
+    // consistent with the per-agent / summary endpoints (identity join).
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
 
@@ -499,6 +509,8 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (identity join).
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
 
@@ -530,6 +542,8 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (identity join).
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
     const rows = await qb
@@ -559,6 +573,8 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent (identity join).
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
     const rows = await qb
@@ -577,7 +593,11 @@ export class TimeseriesQueriesService {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select('DISTINCT at.agent_name', 'agent_name')
-      .leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id')
+      // Identity-based join (a.id = at.agent_id) so a soft-deleted agent that
+      // shares a slug with a live one can't match multiple `a` rows. DISTINCT
+      // already collapses duplicates here, but keeping the join consistent with
+      // excludeSystemAgents avoids a future SUM/COUNT inheriting the bug.
+      .leftJoin('agents', 'a', 'a.id = at.agent_id')
       .where('at.auth_type = :authType', { authType })
       .andWhere('at.agent_name IS NOT NULL')
       // Exclude the reserved Playground (is_system) agent.

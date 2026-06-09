@@ -469,11 +469,7 @@ describe('TimeseriesQueriesService', () => {
       );
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
-      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
-        'agents',
-        'a',
-        'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
-      );
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
     });
 
     it('does not exclude system agents by default', async () => {
@@ -510,6 +506,15 @@ describe('TimeseriesQueriesService', () => {
       expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
       expect(clauses).toContain('at.auth_type = :authType');
       expect(clauses).toContain('at.provider = :provider');
+      // Identity-based join (a.id = at.agent_id) — a soft-deleted agent that
+      // shares a slug with a live one must NOT match multiple `a` rows and
+      // double-count the per-agent SUM.
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalledWith(
+        'agents',
+        'a',
+        'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
+      );
     });
 
     it('getPerAgentMessageTimeseries pivots message counts', async () => {
@@ -535,9 +540,12 @@ describe('TimeseriesQueriesService', () => {
       const out = await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
       expect(out.agents).toEqual(['anthropic', 'openai']);
       expect(out.timeseries[0]).toEqual({ hour: '01', anthropic: 3, openai: 7 });
-      expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
-        'at.agent_name = :agentName',
-      );
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('at.agent_name = :agentName');
+      // Playground (is_system) usage must be excluded from per-provider totals,
+      // via the same identity-based agents join as the per-agent endpoints.
+      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
     });
 
     it('getPerProviderMessageTimeseries pivots message counts', async () => {
@@ -557,6 +565,10 @@ describe('TimeseriesQueriesService', () => {
       const out = await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
       expect(out.agents).toEqual(['gpt-4o']);
       expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 9 }]);
+      // Playground (is_system) usage must be excluded from per-model totals.
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
     });
 
     it('getPerModelMessageTimeseries pivots message counts', async () => {
