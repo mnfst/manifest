@@ -812,7 +812,9 @@ h6 {
   letter-spacing: 0.05em;
 }
 
-.sidebar__link {
+/* Base styling shared by global nav links and harness switcher items. */
+.sidebar__link,
+.sidebar__agent-item {
   display: flex;
   align-items: center;
   gap: var(--gap-xs);
@@ -825,7 +827,8 @@ h6 {
   transition: all var(--transition-fast);
 }
 
-.sidebar__link:hover {
+.sidebar__link:hover,
+.sidebar__agent-item:hover {
   background: hsl(var(--sidebar-accent));
   color: hsl(var(--sidebar-accent-foreground));
 }
@@ -836,26 +839,40 @@ h6 {
   font-weight: 500;
 }
 
-/* Interactive section label (HARNESSES) — same base as .sidebar__section-label */
-.sidebar__section-label--interactive {
+/* HARNESSES section header — a row holding the collapse toggle and + button. */
+.sidebar__section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px var(--gap-lg) 6px var(--gap-md);
   margin: var(--gap-md) 0.5rem 1px;
+}
+
+/* Collapse toggle: carries the uppercased section label styling so it reads as
+   a section heading, with the caret icon trailing the text. */
+.sidebar__section-caret {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px var(--gap-md);
+  background: none;
+  border: none;
   border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
-.sidebar__section-label--interactive:hover {
+.sidebar__section-caret:hover,
+.sidebar__section-caret:focus-visible {
   background: hsl(var(--sidebar-accent));
-}
-
-.sidebar__section-label-left {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  color: hsl(var(--sidebar-foreground));
 }
 
 .sidebar__section-add {
@@ -870,61 +887,26 @@ h6 {
   padding: 0;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  opacity: 0;
   transition:
-    opacity var(--transition-fast),
     color var(--transition-fast),
     background var(--transition-fast);
 }
 
-.sidebar__section-label--interactive:hover .sidebar__section-add {
-  opacity: 1;
-}
-
-.sidebar__section-add:hover {
+.sidebar__section-add:hover,
+.sidebar__section-add:focus-visible {
   color: hsl(var(--sidebar-foreground));
   background: hsl(var(--border));
 }
 
-.sidebar__section-caret {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  padding: 0;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
-.sidebar__section-caret:hover {
-  color: hsl(var(--sidebar-foreground));
-}
-
-/* Harness list items */
+/* Harness list items reuse the shared link base (above); these are the only
+   harness-specific overrides — a wider icon gap and a bolder label. */
 .sidebar__agents-list {
   padding: 0;
 }
 
 .sidebar__agent-item {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  padding: 6px var(--gap-lg);
-  margin: 1px 0.5rem;
-  font-size: var(--font-size-sm);
   font-weight: 500;
-  color: hsl(var(--sidebar-foreground));
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  border-radius: var(--radius);
-}
-
-.sidebar__agent-item:hover {
-  background: hsl(var(--sidebar-accent));
-  color: hsl(var(--sidebar-accent-foreground));
 }
 
 .sidebar__agent-item--active {

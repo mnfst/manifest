@@ -103,16 +103,10 @@ render(
               return <Navigate href={`/harnesses${search}${hash}`} />;
             }}
           />
+          {/* The *rest splat matches zero trailing segments too, so this single
+              route also covers the bare /agents/:agentName path. */}
           <Route
             path="/agents/:agentName/*rest"
-            component={() => {
-              const { pathname, search, hash } = window.location;
-              const target = pathname.replace(/^\/agents/, '/harnesses');
-              return <Navigate href={`${target}${search}${hash}`} />;
-            }}
-          />
-          <Route
-            path="/agents/:agentName"
             component={() => {
               const { pathname, search, hash } = window.location;
               const target = pathname.replace(/^\/agents/, '/harnesses');
