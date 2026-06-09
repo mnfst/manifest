@@ -1,0 +1,45 @@
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 38,56,67,87,100,110,123,133,146,166-169,175,177-180,211,239,256,274
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 318-370,769,789-790,794
+packages/backend/src/routing/proxy/__tests__/rate-limit-tracker.service.spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 106-132,263-298
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 99,110,127,141,157-182,197,211,224-257,280,282,285,291-312,325,348,427,466,504,532
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 42-66,79
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 16,272-275,281,610-612
+packages/backend/src/routing/proxy/rate-limit-tracker.service.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 44-53,68,76-89,217-224,229,235-236,312-314
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 10,173-183
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 240-274
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 70,76,82,88,97,109,121,127,133,143-159
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 478-496,548-580,593-606,613-633
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 65-74,225-281,365-366,423-439
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 11,66,82-85,96,144,154-155
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_caf20fdcc4af86 7-13,51,70-72,301,322-325,343,362-363,381,401-402,436-438,471-473,507-509,542-544,577-579,610-612
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d73810e0ebd913772d5974f9f9e370596428f863",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
