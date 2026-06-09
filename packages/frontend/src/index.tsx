@@ -70,6 +70,7 @@ render(
           <Route path="/overview" component={GlobalOverview} />
           <Route path="/messages" component={MessageLog} />
           <Route path="/agents" component={Workspace} />
+          <Route path="/playground" component={Playground} />
           <Route path="/providers/subscriptions" component={Subscriptions} />
           <Route path="/providers/byok" component={Byok} />
           <Route path="/providers/local" component={LocalProviders} />
@@ -89,7 +90,6 @@ render(
             </Route>
 
             {/* Non-tab agent routes: kept reachable but not primary tabs */}
-            <Route path="/playground" component={Playground} />
             <Route path="/model-prices" component={ModelPrices} />
             <Route path="/free-models" component={FreeModels} />
             <Route path="/help" component={Help} />
