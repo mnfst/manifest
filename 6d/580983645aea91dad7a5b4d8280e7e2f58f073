@@ -1,0 +1,22 @@
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_8f7bd68edeeec2::t_a600b02b60ba26 217-220
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_38008cb66dd83c 209
+  s_8f7bd68edeeec2::t_ed4922a73aec6c 204-208,210-216
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6d580983645aea91dad7a5b4d8280e7e2f58f073",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
