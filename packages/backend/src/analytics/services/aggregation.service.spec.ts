@@ -8,11 +8,12 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 describe('AggregationService', () => {
   let service: AggregationService;
   let mockGetRawOne: jest.Mock;
+  let mockQb: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
 
-    const mockQb: Record<string, jest.Mock> = {
+    mockQb = {
       select: jest.fn(),
       addSelect: jest.fn(),
       where: jest.fn(),
@@ -183,6 +184,25 @@ describe('AggregationService', () => {
       expect(result.tokens.tokens_today.trend_pct).toBe(0);
       expect(result.cost.trend_pct).toBe(0);
       expect(result.messages.trend_pct).toBe(0);
+    });
+
+    it('applies auth_type and provider filters to current + previous windows', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics(
+        '24h',
+        'u1',
+        'tenant-123',
+        undefined,
+        'subscription',
+        'openai',
+      );
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
     });
   });
 });

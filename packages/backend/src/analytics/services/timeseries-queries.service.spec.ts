@@ -433,4 +433,127 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].sparkline).toEqual([]);
     });
   });
+
+  describe('getTimeseries with authType/provider filters', () => {
+    it('applies auth_type and provider andWhere clauses', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries(
+        '24h',
+        'u1',
+        true,
+        'tenant-1',
+        'agent-x',
+        'subscription',
+        'openai',
+      );
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
+    });
+  });
+
+  describe('per-agent pivoted timeseries (hourly)', () => {
+    const rows = [
+      { hour: '01', agent_name: 'bravo', tokens: 5, messages: 2, cost: 0.5 },
+      { hour: '01', agent_name: 'alpha', tokens: 10, messages: 1, cost: 1.0 },
+      { hour: '02', agent_name: 'alpha', tokens: 3, messages: 4, cost: 0.3 },
+    ];
+
+    it('getPerAgentTimeseries pivots tokens with sorted agents and zero-fill', async () => {
+      mockGetRawMany.mockResolvedValue(rows);
+      const out = await service.getPerAgentTimeseries(
+        '24h',
+        'u1',
+        true,
+        'tenant-1',
+        'subscription',
+        'openai',
+      );
+      expect(out.agents).toEqual(['alpha', 'bravo']);
+      expect(out.timeseries).toEqual([
+        { hour: '01', alpha: 10, bravo: 5 },
+        { hour: '02', alpha: 3, bravo: 0 },
+      ]);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
+    });
+
+    it('getPerAgentMessageTimeseries pivots message counts', async () => {
+      mockGetRawMany.mockResolvedValue(rows);
+      const out = await service.getPerAgentMessageTimeseries('24h', 'u1', true);
+      expect(out.timeseries[0]).toEqual({ hour: '01', alpha: 1, bravo: 2 });
+    });
+
+    it('getPerAgentCostTimeseries pivots cost (non-hourly date bucket)', async () => {
+      mockGetRawMany.mockResolvedValue([{ date: '2026-01-01', agent_name: 'alpha', cost: 2.5 }]);
+      const out = await service.getPerAgentCostTimeseries('7d', 'u1', false);
+      expect(out.agents).toEqual(['alpha']);
+      expect(out.timeseries).toEqual([{ date: '2026-01-01', alpha: 2.5 }]);
+    });
+  });
+
+  describe('per-provider / per-model pivoted timeseries', () => {
+    it('getPerProviderTimeseries filters by agentName and pivots tokens', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { hour: '01', provider: 'openai', tokens: 7 },
+        { hour: '01', provider: 'anthropic', tokens: 3 },
+      ]);
+      const out = await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      expect(out.agents).toEqual(['anthropic', 'openai']);
+      expect(out.timeseries[0]).toEqual({ hour: '01', anthropic: 3, openai: 7 });
+      expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
+        'at.agent_name = :agentName',
+      );
+    });
+
+    it('getPerProviderMessageTimeseries pivots message counts', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', messages: 4 }]);
+      const out = await service.getPerProviderMessageTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', openai: 4 }]);
+    });
+
+    it('getPerProviderCostTimeseries pivots cost', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', cost: 1.25 }]);
+      const out = await service.getPerProviderCostTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', openai: 1.25 }]);
+    });
+
+    it('getPerModelTimeseries pivots tokens', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
+      const out = await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      expect(out.agents).toEqual(['gpt-4o']);
+      expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 9 }]);
+    });
+
+    it('getPerModelMessageTimeseries pivots message counts', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', messages: 2 }]);
+      const out = await service.getPerModelMessageTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 2 }]);
+    });
+
+    it('getPerModelCostTimeseries pivots cost', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', cost: 0.9 }]);
+      const out = await service.getPerModelCostTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 0.9 }]);
+    });
+
+    it('zero-fills missing values from null', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: null }]);
+      const out = await service.getPerProviderTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', openai: 0 }]);
+    });
+  });
+
+  describe('getAgentNamesByAuthType', () => {
+    it('returns distinct agent names excluding system agents', async () => {
+      mockGetRawMany.mockResolvedValue([{ agent_name: 'a' }, { agent_name: 'b' }]);
+      const out = await service.getAgentNamesByAuthType('subscription', 'u1', 'tenant-1');
+      expect(out).toEqual(['a', 'b']);
+      expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
+        '(a.is_system IS NULL OR a.is_system = false)',
+      );
+    });
+  });
 });

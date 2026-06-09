@@ -65,6 +65,105 @@ export class OverviewController {
     };
   }
 
+  @Get('overview/per-agent-timeseries')
+  async getPerAgentTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerAgentTimeseries(range, user.id, hourly, tenantId);
+  }
+
+  @Get('overview/per-agent-message-timeseries')
+  async getPerAgentMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerAgentMessageTimeseries(range, user.id, hourly, tenantId);
+  }
+
+  @Get('overview/per-agent-cost-timeseries')
+  async getPerAgentCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerAgentCostTimeseries(range, user.id, hourly, tenantId);
+  }
+
+  @Get('overview/per-provider-timeseries')
+  async getPerProviderTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerProviderTimeseries(range, user.id, hourly, tenantId, agentName);
+  }
+
+  @Get('overview/per-provider-message-timeseries')
+  async getPerProviderMessageTimeseries(
+    @Query() query: RangeQueryDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerProviderMessageTimeseries(
+      range,
+      user.id,
+      hourly,
+      tenantId,
+      agentName,
+    );
+  }
+
+  @Get('overview/per-provider-cost-timeseries')
+  async getPerProviderCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerProviderCostTimeseries(
+      range,
+      user.id,
+      hourly,
+      tenantId,
+      agentName,
+    );
+  }
+
+  @Get('overview/per-model-cost-timeseries')
+  async getPerModelCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerModelCostTimeseries(range, user.id, hourly, tenantId, agentName);
+  }
+
+  @Get('overview/per-model-timeseries')
+  async getPerModelTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerModelTimeseries(range, user.id, hourly, tenantId, agentName);
+  }
+
+  @Get('overview/per-model-message-timeseries')
+  async getPerModelMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+    const range = query.range ?? '24h';
+    const agentName = query.agent_name;
+    const hourly = isHourlyRange(range);
+    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+    return this.timeseries.getPerModelMessageTimeseries(
+      range,
+      user.id,
+      hourly,
+      tenantId,
+      agentName,
+    );
+  }
+
   private async hasActiveProviders(userId: string, agentName?: string): Promise<boolean> {
     if (!agentName) return false;
     try {
