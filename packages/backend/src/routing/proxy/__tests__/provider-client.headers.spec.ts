@@ -48,7 +48,7 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     expect(sentHeaders).not.toHaveProperty('anthropic-beta');
   });
 
-  it('Anthropic subscription path sends Authorization Bearer + oauth beta (and NO x-api-key)', async () => {
+  it('Anthropic subscription path sends Claude Code-shaped Bearer headers (and NO x-api-key)', async () => {
     mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
     await client.forward({
@@ -65,8 +65,21 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
       Authorization: 'Bearer sk-ant-oat-token',
       'Content-Type': 'application/json',
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'oauth-2025-04-20',
+      'anthropic-beta': expect.stringContaining('claude-code-20250219'),
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'user-agent': expect.stringContaining('claude-cli/'),
+      'x-app': 'cli',
+      'x-stainless-arch': expect.any(String),
+      'x-stainless-helper-method': 'stream',
+      'x-stainless-lang': 'js',
+      'x-stainless-os': expect.any(String),
+      'x-stainless-package-version': expect.any(String),
+      'x-stainless-retry-count': '0',
+      'x-stainless-runtime': 'node',
+      'x-stainless-runtime-version': expect.any(String),
+      'x-stainless-timeout': '600',
     });
+    expect(sentHeaders['anthropic-beta']).toContain('oauth-2025-04-20');
     expect(sentHeaders).not.toHaveProperty('x-api-key');
   });
 

@@ -73,6 +73,29 @@ describe('OAuthPendingFlowStore', () => {
     expect(query.mock.calls[0][0]).toContain('AND "expires_at" > NOW()');
   });
 
+  it('unwraps Postgres DELETE RETURNING tuples when consuming a pending flow', async () => {
+    const { store, query } = buildStore();
+    query.mockResolvedValue([
+      [
+        {
+          provider: 'anthropic',
+          state: 's1',
+          code_verifier: 'v1',
+          agent_id: 'agent-1',
+          user_id: 'user-1',
+          expires_at: new Date('2026-05-01T12:10:00Z'),
+        },
+      ],
+      1,
+    ]);
+
+    await expect(store.consume('anthropic', 's1', 'agent-1', 'user-1')).resolves.toMatchObject({
+      agentId: 'agent-1',
+      userId: 'user-1',
+      verifier: 'v1',
+    });
+  });
+
   it('returns null when no pending flow matches', async () => {
     const { store, query } = buildStore();
     query.mockResolvedValue([]);

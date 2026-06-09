@@ -7,6 +7,7 @@ import {
   CODEX_CLI_VERSION,
   COPILOT_EDITOR_VERSION,
   COPILOT_PLUGIN_VERSION,
+  buildClaudeCodeSubscriptionHeaders,
 } from '../common/constants/subscription-clients';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
@@ -636,8 +637,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
         'anthropic-version': '2023-06-01',
       };
       if (authType === 'subscription') {
-        headers['Authorization'] = `Bearer ${key}`;
-        headers['anthropic-beta'] = 'oauth-2025-04-20';
+        return buildClaudeCodeSubscriptionHeaders(key);
       } else {
         headers['x-api-key'] = key;
       }

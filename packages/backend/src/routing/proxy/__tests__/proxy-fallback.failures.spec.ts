@@ -151,6 +151,39 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(result.failures.map((f) => f.provider)).toEqual(['openai', 'anthropic']);
   });
 
+  it('cooldowns repeated 429 attempts for the same provider key and model', async () => {
+    providerClient.forward.mockResolvedValueOnce({
+      response: new Response('rate limit', {
+        status: 429,
+        headers: { 'retry-after': '120' },
+      }),
+      isGoogle: false,
+      isAnthropic: true,
+      isChatGpt: false,
+    });
+
+    const opts = {
+      provider: 'anthropic',
+      apiKey: 'sk-ant-oat-token',
+      model: 'claude-sonnet-4-6',
+      body,
+      stream: false,
+      sessionKey: 'sess-1',
+      agentId: 'agent-1',
+      providerKeyLabel: 'Claude Code',
+      authType: 'subscription',
+    };
+
+    const first = await service.tryForwardToProvider(opts);
+    const second = await service.tryForwardToProvider(opts);
+
+    expect(first.response.status).toBe(429);
+    expect(second.response.status).toBe(429);
+    expect(second.response.headers.get('retry-after')).toBe('120');
+    expect(await second.response.text()).toContain('temporarily cooling down');
+    expect(providerClient.forward).toHaveBeenCalledTimes(1);
+  });
+
   it('does NOT short-circuit on 401 auth errors — continues to next route (current contract)', async () => {
     // shouldTriggerFallback(401) === true, so an auth failure on the first
     // route keeps the loop going. This test pins that behavior: if anyone

@@ -17,5 +17,67 @@ export const CODEX_CLI_VERSION = '0.128.0';
 export const CODEX_CLI_ORIGINATOR = 'codex_cli_rs';
 export const CODEX_CLI_USER_AGENT = 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown';
 
+export const CLAUDE_CODE_USER_AGENT = 'claude-cli/2.1.92 (external, sdk-cli)';
+export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.80.0';
+export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v24.14.0';
+export const CLAUDE_CODE_BETA_FLAGS = [
+  'claude-code-20250219',
+  'oauth-2025-04-20',
+  'interleaved-thinking-2025-05-14',
+  'context-management-2025-06-27',
+  'prompt-caching-scope-2026-01-05',
+  'advanced-tool-use-2025-11-20',
+  'effort-2025-11-24',
+  'structured-outputs-2025-12-15',
+  'fast-mode-2026-02-01',
+  'redact-thinking-2026-02-12',
+  'token-efficient-tools-2026-03-28',
+].join(',');
+
+function claudeCodeStainlessArch(arch = process.arch): string {
+  switch (arch) {
+    case 'arm64':
+      return 'arm64';
+    case 'x64':
+      return 'x64';
+    default:
+      return `Other:${arch}`;
+  }
+}
+
+function claudeCodeStainlessOs(platform = process.platform): string {
+  switch (platform) {
+    case 'darwin':
+      return 'MacOS';
+    case 'linux':
+      return 'Linux';
+    case 'win32':
+      return 'Windows';
+    case 'freebsd':
+      return 'FreeBSD';
+    default:
+      return `Other:${platform}`;
+  }
+}
+
+export const buildClaudeCodeSubscriptionHeaders = (apiKey: string): Record<string, string> => ({
+  Authorization: `Bearer ${apiKey}`,
+  'Content-Type': 'application/json',
+  'anthropic-version': '2023-06-01',
+  'anthropic-beta': CLAUDE_CODE_BETA_FLAGS,
+  'anthropic-dangerous-direct-browser-access': 'true',
+  'user-agent': CLAUDE_CODE_USER_AGENT,
+  'x-app': 'cli',
+  'x-stainless-arch': claudeCodeStainlessArch(),
+  'x-stainless-helper-method': 'stream',
+  'x-stainless-lang': 'js',
+  'x-stainless-os': claudeCodeStainlessOs(),
+  'x-stainless-package-version': CLAUDE_CODE_STAINLESS_PACKAGE_VERSION,
+  'x-stainless-retry-count': '0',
+  'x-stainless-runtime': 'node',
+  'x-stainless-runtime-version': CLAUDE_CODE_STAINLESS_RUNTIME_VERSION,
+  'x-stainless-timeout': '600',
+});
+
 export const COPILOT_EDITOR_VERSION = 'vscode/1.100.0';
 export const COPILOT_PLUGIN_VERSION = 'copilot/1.300.0';

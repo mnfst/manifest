@@ -64,7 +64,7 @@ export class OAuthPendingFlowStore {
     agentId: string,
     userId: string,
   ): Promise<OAuthPendingFlowRecord | null> {
-    const rows = (await this.dataSource.query(
+    const result = await this.dataSource.query(
       `
         DELETE FROM "oauth_pending_flows"
         WHERE "provider" = $1
@@ -75,7 +75,8 @@ export class OAuthPendingFlowStore {
         RETURNING "provider", "state", "code_verifier", "agent_id", "user_id", "expires_at"
       `,
       [provider, state, agentId, userId],
-    )) as RawOAuthPendingFlow[];
+    );
+    const rows = queryRows<RawOAuthPendingFlow>(result);
 
     return rows[0] ? mapRow(rows[0]) : null;
   }
@@ -169,4 +170,16 @@ function mapRow(row: RawOAuthPendingFlow): OAuthPendingFlowRecord {
     userId: row.user_id,
     expiresAt,
   };
+}
+
+function queryRows<T>(result: unknown): T[] {
+  if (
+    Array.isArray(result) &&
+    result.length === 2 &&
+    Array.isArray(result[0]) &&
+    typeof result[1] === 'number'
+  ) {
+    return result[0] as T[];
+  }
+  return result as T[];
 }
