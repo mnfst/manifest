@@ -129,13 +129,22 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
       const reversedAgents = [...props.agents].reverse();
       const multiDay = isMultiDayRange(props.range);
 
+      // Per-agent fallback color, keyed on the agent's ORIGINAL index in
+      // props.agents (not the reversed render order), so each series gets a
+      // distinct color instead of all collapsing onto AGENT_COLORS[0]. An
+      // explicit colorMap entry still takes precedence.
+      const colorFor = (agent: string) => {
+        const i = props.agents.indexOf(agent);
+        return props.colorMap?.[agent] ?? AGENT_COLORS[i % AGENT_COLORS.length] ?? '#888';
+      };
+
       const series: uPlot.Series[] = [
         { value: createFormatLegendTimestamp(props.range) },
         ...reversedAgents.map((agent) => ({
           label: agent,
           scale: 'y' as const,
-          stroke: props.colorMap?.[agent] ?? AGENT_COLORS[0],
-          fill: props.colorMap?.[agent] ?? AGENT_COLORS[0],
+          stroke: colorFor(agent),
+          fill: colorFor(agent),
           width: 0,
           paths: bars,
           points: { show: false },
@@ -226,7 +235,11 @@ const MultiAgentTokenChart: Component<MultiAgentTokenChartProps> = (props) => {
             a[1] = {
               ...a[1]!,
               values: (u: uPlot, vals: number[]) =>
-                vals.map((v) => (isCost() ? `$${v.toFixed(2)}` : formatLegendTokens(u, v))),
+                vals.map((v) =>
+                  // formatCost surfaces sub-cent values as "< $0.01" instead of
+                  // rounding them to "$0.00".
+                  isCost() ? (formatCost(v) ?? '$0.00') : formatLegendTokens(u, v),
+                ),
             };
             return a;
           })(),

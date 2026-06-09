@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen } from '@solidjs/testing-library';
+import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 
 let capturedLifecycleOpts: any = null;
 let capturedChartOpts: any = null;
@@ -58,7 +58,7 @@ vi.mock('../../src/components/InfoTooltip.jsx', () => ({
 }));
 
 import GlobalOverviewSkeleton from '../../src/components/GlobalOverviewSkeleton';
-import MultiAgentTokenChart from '../../src/components/MultiAgentTokenChart';
+import MultiAgentTokenChart, { AGENT_COLORS } from '../../src/components/MultiAgentTokenChart';
 import ProviderChartCard from '../../src/components/ProviderChartCard';
 
 beforeEach(() => {
@@ -74,6 +74,14 @@ const buildCapturedChart = () => {
   capturedLifecycleOpts.buildChart();
 };
 
+// ProviderChartCard lazy-loads MultiAgentTokenChart (uPlot stays out of the
+// initial bundle), so its lifecycle hook is registered asynchronously. Wait for
+// the lazy chart to mount before driving buildChart().
+const buildLazyChart = async () => {
+  await waitFor(() => expect(capturedLifecycleOpts).not.toBeNull());
+  buildCapturedChart();
+};
+
 describe('analytics chart surface components', () => {
   it('renders the global overview skeleton placeholders', () => {
     const { container } = render(() => <GlobalOverviewSkeleton />);
@@ -81,7 +89,7 @@ describe('analytics chart surface components', () => {
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(10);
   });
 
-  it('renders ProviderChartCard views and changes active view on click', () => {
+  it('renders ProviderChartCard views and changes active view on click', async () => {
     const onViewChange = vi.fn();
 
     render(() => (
@@ -95,8 +103,6 @@ describe('analytics chart surface components', () => {
         costValue={4.56}
         costTrendPct={-2}
         costInfoTooltip="API key cost only"
-        tokenUsage={[{ hour: '2026-06-04 10:00:00', input_tokens: 800, output_tokens: 400 }]}
-        messageChartData={[{ time: '2026-06-04 10:00:00', value: 12 }]}
         range="24h"
         agentTimeseries={{
           agents: ['openai'],
@@ -118,8 +124,11 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('Messages')).toBeDefined();
     expect(screen.getByText('Token usage')).toBeDefined();
     expect(screen.getByTestId('info-tooltip')).toBeDefined();
-    buildCapturedChart();
+    await buildLazyChart();
 
+    // Tab controls are semantic <button>s (keyboard/a11y).
+    const messagesTab = screen.getByText('Messages').closest('button');
+    expect(messagesTab).not.toBeNull();
     fireEvent.click(screen.getByText('Messages'));
     expect(onViewChange).toHaveBeenCalledWith('messages');
     fireEvent.click(screen.getByText('Token usage'));
@@ -128,7 +137,7 @@ describe('analytics chart surface components', () => {
     expect(onViewChange).toHaveBeenCalledWith('cost');
   });
 
-  it('renders ProviderChartCard message and cost chart branches', () => {
+  it('renders ProviderChartCard message and cost chart branches', async () => {
     const onViewChange = vi.fn();
 
     const { unmount } = render(() => (
@@ -141,8 +150,6 @@ describe('analytics chart surface components', () => {
         tokensTrendPct={0}
         costValue={4.56}
         costTrendPct={0}
-        tokenUsage={[]}
-        messageChartData={[{ time: '2026-06-04 10:00:00', value: 12 }]}
         range="24h"
         agentTimeseries={{ agents: ['openai'], timeseries: [] }}
         agentMessageTimeseries={{
@@ -158,8 +165,9 @@ describe('analytics chart surface components', () => {
     ));
 
     expect(screen.getByText('Messages')).toBeDefined();
-    buildCapturedChart();
+    await buildLazyChart();
     unmount();
+    capturedLifecycleOpts = null;
 
     render(() => (
       <ProviderChartCard
@@ -171,8 +179,6 @@ describe('analytics chart surface components', () => {
         tokensTrendPct={0}
         costValue={4.56}
         costTrendPct={0}
-        tokenUsage={[]}
-        messageChartData={[]}
         range="24h"
         agentTimeseries={{ agents: ['openai'], timeseries: [] }}
         agentMessageTimeseries={{ agents: ['openai'], timeseries: [] }}
@@ -185,7 +191,7 @@ describe('analytics chart surface components', () => {
     ));
 
     expect(screen.getByText('Cost')).toBeDefined();
-    buildCapturedChart();
+    await buildLazyChart();
   });
 
   it('renders ProviderChartCard empty states and hides cost when missing', () => {
@@ -197,8 +203,6 @@ describe('analytics chart surface components', () => {
         messagesTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
-        tokenUsage={[]}
-        messageChartData={[]}
         range="24h"
         agentTimeseries={{ agents: [], timeseries: [] }}
         agentMessageTimeseries={{ agents: [], timeseries: [] }}
@@ -218,8 +222,6 @@ describe('analytics chart surface components', () => {
         messagesTrendPct={0}
         tokensValue={0}
         tokensTrendPct={0}
-        tokenUsage={[]}
-        messageChartData={[]}
         range="24h"
         agentTimeseries={{ agents: [], timeseries: [] }}
         agentMessageTimeseries={{ agents: [], timeseries: [] }}
@@ -240,8 +242,6 @@ describe('analytics chart surface components', () => {
         tokensTrendPct={0}
         costValue={0}
         costTrendPct={0}
-        tokenUsage={[]}
-        messageChartData={[]}
         range="24h"
         agentTimeseries={{ agents: [], timeseries: [] }}
         agentMessageTimeseries={{ agents: [], timeseries: [] }}
@@ -316,7 +316,11 @@ describe('analytics chart surface components', () => {
 
     buildCapturedChart();
     expect(capturedChartData[1][0]).toBe(0);
+    // Cost y-axis uses formatCost: whole/cent values render normally, but a
+    // sub-cent value surfaces as "< $0.01" instead of rounding to "$0.00".
     expect(capturedChartOpts.axes[1].values({}, [1.23])).toEqual(['$1.23']);
+    expect(capturedChartOpts.axes[1].values({}, [0.004])).toEqual(['< $0.01']);
+    expect(capturedChartOpts.axes[1].values({}, [0])).toEqual(['$0.00']);
     expect(
       capturedChartOpts.cursor.move({ posToIdx: () => null, data: [[]], valToPos: () => 0 }, 42, 9),
     ).toEqual([42, 9]);
@@ -328,7 +332,7 @@ describe('analytics chart surface components', () => {
     expect(hover).toHaveBeenLastCalledWith(null);
   });
 
-  it('falls back to default colors when no colorMap entry exists', () => {
+  it('falls back to a distinct per-index default color for each series (no colorMap)', () => {
     const hover = vi.fn();
 
     render(() => (
@@ -341,6 +345,16 @@ describe('analytics chart surface components', () => {
     ));
 
     buildCapturedChart();
+    // Series are rendered in reverse agent order; each must get the default
+    // color for its ORIGINAL index, so colors don't all collapse onto index 0.
+    // reversed = ['anthropic'(idx1), 'openai'(idx0)] → AGENT_COLORS[1], [0].
+    const strokes = capturedChartOpts.series
+      .slice(1)
+      .map((s: { stroke: string }) => s.stroke);
+    expect(strokes).toEqual([AGENT_COLORS[1], AGENT_COLORS[0]]);
+    // A real per-series distinction: the two strokes differ.
+    expect(strokes[0]).not.toBe(strokes[1]);
+
     capturedChartOpts.hooks.setCursor[0]({
       cursor: { idx: 0 },
       data: capturedChartData,
@@ -348,5 +362,23 @@ describe('analytics chart surface components', () => {
       valToPos: () => 700,
     });
     expect(hover).toHaveBeenCalledWith({ openai: 10, anthropic: 5 });
+  });
+
+  it('honors an explicit colorMap entry over the per-index fallback', () => {
+    render(() => (
+      <MultiAgentTokenChart
+        agents={['openai', 'anthropic']}
+        timeseries={[{ hour: '2026-06-04 10:00:00', openai: 10, anthropic: 5 }]}
+        range="24h"
+        colorMap={{ openai: '#abcdef' }}
+      />
+    ));
+
+    buildCapturedChart();
+    // reversed order: anthropic (no map → AGENT_COLORS[1]), openai (mapped).
+    const strokes = capturedChartOpts.series
+      .slice(1)
+      .map((s: { stroke: string }) => s.stroke);
+    expect(strokes).toEqual([AGENT_COLORS[1], '#abcdef']);
   });
 });

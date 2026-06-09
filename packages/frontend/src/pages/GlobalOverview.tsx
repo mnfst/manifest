@@ -381,11 +381,6 @@ const GlobalOverview: Component = () => {
   const agentList = () => (agents() ?? []) as AgentRow[];
   const providerList = () => (providers() ?? []) as ProviderGroup[];
 
-  const messageChartData = createMemo(() => {
-    const src = overview()?.message_usage;
-    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
-  });
-
   const sortedAgents = createMemo(() => {
     return [...agentList()].sort((a, b) => (b.total_tokens ?? 0) - (a.total_tokens ?? 0));
   });
@@ -629,8 +624,6 @@ const GlobalOverview: Component = () => {
                 costValue={o().summary.cost_today.value}
                 costTrendPct={o().summary.cost_today.trend_pct}
                 costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                tokenUsage={o().token_usage}
-                messageChartData={messageChartData()}
                 range={chartRange()}
                 agentTimeseries={filteredAgentTimeseries() ?? undefined}
                 agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
