@@ -3,7 +3,7 @@ import { useNavigate } from '@solidjs/router';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
-import { markAgentCreated } from '../services/recent-agents.js';
+import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 
 /**
@@ -67,6 +67,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       resetForm();
       const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
+      // Persistent flag so the setup modal reopens after a page refresh until
+      // the user dismisses or completes it (the in-memory mark above is dropped
+      // on reload / cleared by AgentGuard once the agent appears in the list).
+      markSetupPending(slug);
 
       // Decide whether to nudge the user into connecting a provider. A brand-new
       // tenant has nothing routed yet, so we open the provider flow on landing.

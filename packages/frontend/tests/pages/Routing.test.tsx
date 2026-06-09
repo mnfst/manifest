@@ -70,8 +70,12 @@ vi.mock('../../src/services/agent-display-name.js', () => ({
 }));
 
 const mockIsRecentlyCreated = vi.fn(() => false);
+const mockIsSetupPending = vi.fn(() => false);
+const mockClearSetupPending = vi.fn();
 vi.mock('../../src/services/recent-agents.js', () => ({
   isRecentlyCreated: (...args: unknown[]) => mockIsRecentlyCreated(...args),
+  isSetupPending: (...args: unknown[]) => mockIsSetupPending(...args),
+  clearSetupPending: (...args: unknown[]) => mockClearSetupPending(...args),
 }));
 
 vi.mock('../../src/services/agent-platform-store.js', () => ({
@@ -631,6 +635,7 @@ beforeEach(() => {
   lastSetupModalProps = null;
   localStorage.clear();
   mockIsRecentlyCreated.mockReturnValue(false);
+  mockIsSetupPending.mockReturnValue(false);
   useParams.mockReturnValue({ agentName: 'demo' });
   useLocation.mockReturnValue({ state: undefined });
   useSearchParams.mockReturnValue([{}, setSearchParamsFn]);
@@ -1828,31 +1833,66 @@ describe('Routing page', () => {
       expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
       expect(mockIsRecentlyCreated).toHaveBeenCalledWith('demo');
 
-      // (b) onDone marks the agent as completed and closes the modal.
+      // (b) onDone marks the agent as completed, clears pending, closes the modal.
       fireEvent.click(screen.getByTestId('setup-done'));
       await waitFor(() => {
         expect(localStorage.getItem('setup_completed_demo')).toBe('1');
         expect((lastSetupModalProps?.open as boolean)).toBe(false);
       });
+      expect(mockClearSetupPending).toHaveBeenCalledWith('demo');
       expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
     });
 
-    it('marks the agent dismissed and closes when onClose fires', async () => {
+    it('opens the SetupModal when setup is pending (survives a refresh)', async () => {
+      // Refresh-simulated mount: the in-memory recently-created flag is gone,
+      // but the persistent pending flag is still set → modal must reopen.
+      mockIsRecentlyCreated.mockReturnValue(false);
+      mockIsSetupPending.mockReturnValue(true);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
+      });
+      expect(mockIsSetupPending).toHaveBeenCalledWith('demo');
+    });
+
+    it('keeps the SetupModal closed when pending but already dismissed', async () => {
+      mockIsSetupPending.mockReturnValue(true);
+      localStorage.setItem('setup_dismissed_demo', '1');
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+    });
+
+    it('keeps the SetupModal closed when pending but already completed', async () => {
+      mockIsSetupPending.mockReturnValue(true);
+      localStorage.setItem('setup_completed_demo', '1');
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+    });
+
+    it('marks the agent dismissed, clears pending, and closes when onClose fires', async () => {
       mockIsRecentlyCreated.mockReturnValue(true);
       render(() => <Routing />);
       await waitFor(() => {
         expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
       });
-      // (c) onClose sets the dismissed flag and closes the modal.
+      // (c) onClose sets the dismissed flag, clears pending, and closes the modal.
       fireEvent.click(screen.getByTestId('setup-close'));
       await waitFor(() => {
         expect(localStorage.getItem('setup_dismissed_demo')).toBe('1');
         expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
       });
+      expect(mockClearSetupPending).toHaveBeenCalledWith('demo');
     });
 
-    it('keeps the SetupModal closed for an agent that is not recently created', async () => {
+    it('keeps the SetupModal closed for an agent that is neither recent nor pending', async () => {
       mockIsRecentlyCreated.mockReturnValue(false);
+      mockIsSetupPending.mockReturnValue(false);
       render(() => <Routing />);
       await waitFor(() => {
         expect(screen.getByTestId('setup-modal')).toBeDefined();

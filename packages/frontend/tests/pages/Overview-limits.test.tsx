@@ -72,6 +72,8 @@ vi.mock("../../src/components/Select.jsx", () => ({
 
 vi.mock("../../src/services/recent-agents.js", () => ({
   isRecentlyCreated: () => false,
+  isSetupPending: () => false,
+  clearSetupPending: vi.fn(),
 }));
 
 import Overview from "../../src/pages/Overview";

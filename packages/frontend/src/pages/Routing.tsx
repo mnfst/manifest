@@ -15,7 +15,7 @@ import ResponseModeModal from '../components/ResponseModeModal.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import SetupModal from '../components/SetupModal.jsx';
-import { isRecentlyCreated } from '../services/recent-agents.js';
+import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
@@ -60,10 +60,13 @@ const Routing: Component = () => {
   const agentName = () => decodeURIComponent(params.agentName);
 
   // Newly created agents land on this tab; show the setup modal here too (it
-  // used to live only on Overview). Opens for a freshly-created agent unless
-  // already completed/dismissed.
+  // used to live only on Overview). The open gate keys off a persistent
+  // "setup pending" flag (localStorage) so the modal reliably reopens after a
+  // page refresh until the user dismisses or completes it. The in-memory
+  // `isRecentlyCreated` is kept as an in-session OR but is not required to
+  // survive reloads.
   const [setupOpen, setSetupOpen] = createSignal(
-    isRecentlyCreated(agentName()) &&
+    (isSetupPending(agentName()) || isRecentlyCreated(agentName())) &&
       !localStorage.getItem(`setup_completed_${params.agentName}`) &&
       !localStorage.getItem(`setup_dismissed_${params.agentName}`),
   );
@@ -774,10 +777,12 @@ const Routing: Component = () => {
         agentCategory={agentCategory()}
         onClose={() => {
           localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
+          clearSetupPending(agentName());
           setSetupOpen(false);
         }}
         onDone={() => {
           localStorage.setItem(`setup_completed_${params.agentName}`, '1');
+          clearSetupPending(agentName());
           setSetupOpen(false);
         }}
       />

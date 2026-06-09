@@ -90,7 +90,14 @@ vi.mock("../../src/components/FeedbackModal.jsx", () => ({
 
 vi.mock("../../src/components/SetupModal.jsx", () => ({
   default: (props: any) => (
-    <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} data-agent={props.agentName ?? ""} data-api-key={props.apiKey ?? ""}>
+    <div
+      data-testid="setup-modal"
+      data-open={props.open ? "true" : "false"}
+      data-agent={props.agentName ?? ""}
+      data-api-key={props.apiKey ?? ""}
+      data-platform={props.agentPlatform ?? ""}
+      data-category={props.agentCategory ?? ""}
+    >
       <button data-testid="setup-close" onClick={() => props.onClose?.()}>Close</button>
       <button data-testid="setup-done" onClick={() => props.onDone?.()}>Done</button>
       <button data-testid="setup-go-routing" onClick={() => props.onGoToRouting?.()}>Go to routing</button>
@@ -111,8 +118,12 @@ vi.mock("../../src/components/Select.jsx", () => ({
 }));
 
 const mockIsRecentlyCreated = vi.fn(() => false);
+const mockIsSetupPending = vi.fn(() => false);
+const mockClearSetupPending = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   isRecentlyCreated: (...args: unknown[]) => mockIsRecentlyCreated(...args),
+  isSetupPending: (...args: unknown[]) => mockIsSetupPending(...args),
+  clearSetupPending: (...args: unknown[]) => mockClearSetupPending(...args),
 }));
 
 import Overview from "../../src/pages/Overview";
@@ -157,6 +168,8 @@ describe("Overview", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    mockIsRecentlyCreated.mockReturnValue(false);
+    mockIsSetupPending.mockReturnValue(false);
     mockAgentName = "test-agent";
     mockLocationState = null;
     mockGetCustomProviders.mockResolvedValue([]);
@@ -486,6 +499,7 @@ describe("Overview", () => {
         const modal = container.querySelector('[data-testid="setup-modal"]');
         expect(modal?.getAttribute("data-open")).toBe("false");
       });
+      expect(mockClearSetupPending).toHaveBeenCalledWith("test-agent");
     });
 
     it("marks setup as completed when onDone is called", async () => {
@@ -502,6 +516,57 @@ describe("Overview", () => {
       await vi.waitFor(() => {
         expect(localStorage.getItem("setup_completed_test-agent")).toBe("1");
       });
+      expect(mockClearSetupPending).toHaveBeenCalledWith("test-agent");
+    });
+
+    it("opens the setup modal on mount when setup is pending (survives a refresh)", async () => {
+      // has_data true → showEmptyState() is false, so the empty-state effect
+      // does NOT open the modal. The persistent pending flag is the only thing
+      // that opens it here, proving the gate survives a refresh.
+      mockIsSetupPending.mockReturnValue(true);
+      mockGetOverview.mockResolvedValue({
+        ...overviewData,
+        has_data: true,
+        has_providers: true,
+      });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        const modal = container.querySelector('[data-testid="setup-modal"]');
+        expect(modal?.getAttribute("data-open")).toBe("true");
+      });
+      expect(mockIsSetupPending).toHaveBeenCalledWith("test-agent");
+    });
+
+    it("keeps the setup modal closed on mount when pending but already dismissed", async () => {
+      mockIsSetupPending.mockReturnValue(true);
+      localStorage.setItem("setup_dismissed_test-agent", "1");
+      mockGetOverview.mockResolvedValue({
+        ...overviewData,
+        has_data: true,
+        has_providers: true,
+      });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
+      });
+      const modal = container.querySelector('[data-testid="setup-modal"]');
+      expect(modal?.getAttribute("data-open")).toBe("false");
+    });
+
+    it("keeps the setup modal closed on mount when pending but already completed", async () => {
+      mockIsSetupPending.mockReturnValue(true);
+      localStorage.setItem("setup_completed_test-agent", "1");
+      mockGetOverview.mockResolvedValue({
+        ...overviewData,
+        has_data: true,
+        has_providers: true,
+      });
+      const { container } = render(() => <Overview />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="setup-modal"]')).not.toBeNull();
+      });
+      const modal = container.querySelector('[data-testid="setup-modal"]');
+      expect(modal?.getAttribute("data-open")).toBe("false");
     });
   });
 

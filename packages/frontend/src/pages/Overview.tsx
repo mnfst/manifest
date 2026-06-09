@@ -28,7 +28,7 @@ import {
   type CustomProviderData,
 } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
-import { isRecentlyCreated } from '../services/recent-agents.js';
+import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
 import { messagePing } from '../services/sse.js';
 import {
   RANGE_STORAGE_KEY,
@@ -104,8 +104,15 @@ const Overview: Component = () => {
   const [savingsTimeseries, setSavingsTimeseries] = createSignal<
     Array<{ date?: string; hour?: string; actual_cost: number; baseline_cost: number }>
   >([]);
+  // Open gate keys off a persistent "setup pending" flag (localStorage) so the
+  // modal reliably reopens after a page refresh until the user dismisses or
+  // completes it; `isRecentlyCreated` is an in-session OR that need not survive
+  // reloads. The completed/dismissed flags are the backstop against re-opening.
   const [setupOpen, setSetupOpen] = createSignal(
-    isRecentlyCreated(decodeURIComponent(params.agentName)),
+    (isSetupPending(decodeURIComponent(params.agentName)) ||
+      isRecentlyCreated(decodeURIComponent(params.agentName))) &&
+      !localStorage.getItem(`setup_completed_${params.agentName}`) &&
+      !localStorage.getItem(`setup_dismissed_${params.agentName}`),
   );
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -408,10 +415,12 @@ const Overview: Component = () => {
           agentCategory={agentCategory()}
           onClose={() => {
             localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
+            clearSetupPending(decodeURIComponent(params.agentName));
             setSetupOpen(false);
           }}
           onDone={() => {
             localStorage.setItem(`setup_completed_${params.agentName}`, '1');
+            clearSetupPending(decodeURIComponent(params.agentName));
             setSetupCompleted(true);
           }}
           onGoToRouting={() => {

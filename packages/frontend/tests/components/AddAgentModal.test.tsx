@@ -18,8 +18,10 @@ vi.mock("../../src/services/toast-store.js", () => ({
 }));
 
 const mockMarkAgentCreated = vi.fn();
+const mockMarkSetupPending = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+  markSetupPending: (...args: unknown[]) => mockMarkSetupPending(...args),
 }));
 
 vi.mock("../../src/components/AgentTypeSelect.jsx", () => ({
@@ -99,6 +101,8 @@ describe("AddAgentModal", () => {
       });
     });
     expect(mockMarkAgentCreated).toHaveBeenCalledWith("new-agent");
+    // Persistent flag set so the setup modal survives a refresh on landing.
+    expect(mockMarkSetupPending).toHaveBeenCalledWith("new-agent");
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -145,6 +149,7 @@ describe("AddAgentModal", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockMarkAgentCreated).toHaveBeenCalledWith("Typed Name");
+      expect(mockMarkSetupPending).toHaveBeenCalledWith("Typed Name");
       expect(mockNavigate).toHaveBeenCalledWith(
         `/harnesses/${encodeURIComponent("Typed Name")}/routing`,
         expect.anything(),
@@ -208,6 +213,7 @@ describe("AddAgentModal", () => {
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockMarkAgentCreated).not.toHaveBeenCalled();
+    expect(mockMarkSetupPending).not.toHaveBeenCalled();
     expect(mockGetGlobalProviders).not.toHaveBeenCalled();
   });
 
@@ -228,6 +234,7 @@ describe("AddAgentModal", () => {
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockMarkAgentCreated).not.toHaveBeenCalled();
+    expect(mockMarkSetupPending).not.toHaveBeenCalled();
   });
 
   it("does not navigate if dismissed during the providers lookup", async () => {
@@ -275,6 +282,7 @@ describe("AddAgentModal", () => {
       expect(mockCreateAgent).toHaveBeenCalled();
     });
     expect(mockMarkAgentCreated).not.toHaveBeenCalled();
+    expect(mockMarkSetupPending).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
