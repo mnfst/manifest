@@ -113,51 +113,24 @@ const Sidebar: Component<SidebarProps> = (props) => {
         Local
       </A>
 
-      {/* Harnesses — collapsible section with a + create button */}
-      <div
-        class="sidebar__section-label sidebar__section-label--interactive"
-        onClick={() => setAgentsCollapsed(!agentsCollapsed())}
-      >
-        <div class="sidebar__section-label-left">
-          <span>HARNESSES</span>
-          <button
-            type="button"
-            class="sidebar__section-add"
-            title="Create new harness"
-            aria-label="Create new harness"
-            onClick={(e) => {
-              e.stopPropagation();
-              setAddModalOpen(true);
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" />
-            </svg>
-          </button>
-        </div>
+      {/* Harnesses — collapsible section with a + create button.
+          The collapse toggle and the create button are sibling buttons (never
+          nested) so both are independently keyboard-operable. */}
+      <div class="sidebar__section-header">
         <button
           type="button"
           class="sidebar__section-caret"
-          onClick={(e) => {
-            e.stopPropagation();
-            setAgentsCollapsed(!agentsCollapsed());
-          }}
+          onClick={() => setAgentsCollapsed(!agentsCollapsed())}
           aria-expanded={!agentsCollapsed()}
-          aria-label={agentsCollapsed() ? 'Expand harnesses' : 'Collapse harnesses'}
         >
+          <span>HARNESSES</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="12"
             height="12"
             fill="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
             style={{
               transition: 'transform 150ms',
               transform: agentsCollapsed() ? 'rotate(-90deg)' : 'rotate(0deg)',
@@ -166,13 +139,35 @@ const Sidebar: Component<SidebarProps> = (props) => {
             <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
           </svg>
         </button>
+        <button
+          type="button"
+          class="sidebar__section-add"
+          title="Create new harness"
+          aria-label="Create new harness"
+          onClick={() => setAddModalOpen(true)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" />
+          </svg>
+        </button>
       </div>
 
       <Show when={!agentsCollapsed()}>
         <div class="sidebar__agents-list">
           <For
             each={agents() ?? []}
-            fallback={<div class="sidebar__agents-empty">No harnesses yet</div>}
+            fallback={
+              <Show when={!agents.loading}>
+                <div class="sidebar__agents-empty">No harnesses yet</div>
+              </Show>
+            }
           >
             {(agent) => {
               const name = () => agent.agent_name;

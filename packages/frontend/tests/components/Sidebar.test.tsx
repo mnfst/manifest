@@ -278,9 +278,21 @@ describe("Sidebar — harness switcher list", () => {
     });
   });
 
-  it("renders the empty state when there are no harnesses", async () => {
-    mockGetAgents.mockResolvedValue({ agents: [] });
+  it("renders the empty state only once the resource resolves empty (not while loading)", async () => {
+    // Hold the resource in its loading state with a promise we resolve manually.
+    let resolveAgents!: (v: unknown) => void;
+    mockGetAgents.mockReturnValue(
+      new Promise((res) => {
+        resolveAgents = res;
+      }),
+    );
     const { container } = render(() => <Sidebar />);
+    // The section is expanded, but while loading the empty state must NOT flash.
+    expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
+    expect(container.querySelector(".sidebar__agents-empty")).toBeNull();
+
+    // Resolve to an empty list → empty state appears now that loading is done.
+    resolveAgents({ agents: [] });
     await waitFor(() => {
       expect(container.querySelector(".sidebar__agents-empty")).not.toBeNull();
     });
@@ -309,7 +321,17 @@ describe("Sidebar — harness switcher list", () => {
 });
 
 describe("Sidebar — collapse toggle", () => {
-  it("hides the harness list when the caret is clicked, and re-shows on toggle back", async () => {
+  it("the collapse toggle is a real button labelled HARNESSES with aria-expanded", async () => {
+    const { container } = render(() => <Sidebar />);
+    const caret = container.querySelector(".sidebar__section-caret");
+    // Keyboard-operable: it is a <button> (native keyboard semantics), not a div.
+    expect(caret?.tagName).toBe("BUTTON");
+    expect((caret as HTMLButtonElement).type).toBe("button");
+    expect(caret?.textContent).toContain("HARNESSES");
+    expect(caret?.getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it("hides the harness list when the toggle is clicked, and re-shows on toggle back", async () => {
     const { container } = render(() => <Sidebar />);
     await waitFor(() => {
       expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
@@ -321,26 +343,43 @@ describe("Sidebar — collapse toggle", () => {
     await fireEvent.click(caret);
     expect(container.querySelector(".sidebar__agents-list")).toBeNull();
     expect(caret.getAttribute("aria-expanded")).toBe("false");
-    expect(caret.getAttribute("aria-label")).toBe("Expand harnesses");
 
     await fireEvent.click(caret);
     expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
     expect(caret.getAttribute("aria-expanded")).toBe("true");
-    expect(caret.getAttribute("aria-label")).toBe("Collapse harnesses");
   });
 
-  it("toggles collapse when the section label itself is clicked", async () => {
+  it("the section toggle and the + create button are sibling buttons (not nested)", () => {
     const { container } = render(() => <Sidebar />);
-    await waitFor(() => {
-      expect(container.querySelector(".sidebar__agents-list")).not.toBeNull();
-    });
-    const label = container.querySelector(".sidebar__section-label--interactive") as HTMLElement;
-    await fireEvent.click(label);
-    expect(container.querySelector(".sidebar__agents-list")).toBeNull();
+    const caret = container.querySelector(".sidebar__section-caret");
+    const add = container.querySelector(".sidebar__section-add");
+    expect(caret?.tagName).toBe("BUTTON");
+    expect(add?.tagName).toBe("BUTTON");
+    // A button must never contain another button.
+    expect(caret?.querySelector("button")).toBeNull();
+    expect(add?.querySelector("button")).toBeNull();
+    // They share the same parent — true siblings.
+    expect(add?.parentElement).toBe(caret?.parentElement);
+    // No interactive <div> remains for the section header.
+    expect(container.querySelector("div.sidebar__section-label--interactive")).toBeNull();
   });
 });
 
 describe("Sidebar — create-harness modal", () => {
+  it("the + create button is always in the DOM and focusable (not hover-gated)", () => {
+    const { container } = render(() => <Sidebar />);
+    const addBtn = container.querySelector(".sidebar__section-add") as HTMLButtonElement;
+    // Always rendered (not conditionally mounted on hover) and a real button,
+    // so it is reachable by keyboard focus and touch.
+    expect(addBtn).not.toBeNull();
+    expect(addBtn.tagName).toBe("BUTTON");
+    expect(addBtn.type).toBe("button");
+    expect(addBtn.getAttribute("aria-label")).toBe("Create new harness");
+    // It is focusable: focusing it makes it the active element.
+    addBtn.focus();
+    expect(document.activeElement).toBe(addBtn);
+  });
+
   it("opens the AddAgentModal when the + button is clicked", async () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('[data-testid="add-agent-modal"]')).toBeNull();
