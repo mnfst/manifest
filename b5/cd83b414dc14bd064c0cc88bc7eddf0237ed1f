@@ -1,0 +1,73 @@
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 5,87,115,149
+packages/backend/src/playground/playground.service.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 18,41,78-82
+packages/frontend/tests/services/api/playground.test.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 375-391,405,409,413,416,425,429
+packages/backend/src/playground/playground.controller.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 1,8,10,17,20-29,40-41,50
+packages/backend/src/playground/playground-agent.service.spec.ts
+  s_8f7bd68edeeec2::t_83a0aa35ec2410 1-250
+packages/backend/src/playground/playground.service.spec.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 6,160,188,222,640,654,667,681
+packages/backend/src/playground/playground-agent.service.ts
+  s_8f7bd68edeeec2::t_7e5fb6a299042b 1-62
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 178-180
+packages/backend/src/analytics/services/agent-lifecycle.service.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 80,135
+packages/backend/src/telemetry/payload-builder.service.ts
+  s_8f7bd68edeeec2::t_201db1739a48b7 143-144
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 53,125,135-142
+packages/backend/src/analytics/services/agent-lifecycle.service.spec.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 409-449
+packages/frontend/src/pages/Playground.tsx
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 3,14,19,133-134,143-146,176,180,196,213,231-232,234,237,239-240,262-263,265,289,295,312,317,339-340,344,358,369,383,399,407,409,441,476,489,496,502,516,539-540,542-544
+packages/frontend/src/services/api/playground.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 134-135,138-143
+packages/backend/src/playground/playground.module.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 4,16,20-24,26,34
+packages/backend/src/entities/agent.entity.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 36-40
+packages/backend/src/database/migrations/1791400000000-SeedPlaygroundAgents.ts
+  s_8f7bd68edeeec2::t_8ca469fc3f0caa 14
+  s_8f7bd68edeeec2::t_d56a564603e9bf 1-13,15-57
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_8f7bd68edeeec2::t_d56a564603e9bf 1-102
+packages/backend/src/playground/playground.controller.spec.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 6,16,25,33,43-46,76,78,95,97,105
+packages/backend/src/telemetry/payload-builder.service.spec.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 48-54,56-59,68-73,90,98,102,403-431
+  s_8f7bd68edeeec2::t_90fe51aa929780 432
+packages/frontend/tests/pages/Playground.test.tsx
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 9,19,357-359,371,576,871,879
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 30,68-70,183-185
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_8f7bd68edeeec2::t_a0df131c140775 252-266
+packages/backend/src/database/database.module.ts
+  s_8f7bd68edeeec2::t_9faea5c6c3db56 118,235
+packages/backend/test/playground-flow.e2e-spec.ts
+  s_8f7bd68edeeec2::t_b6431c15a4ec18 230-243
+  s_8f7bd68edeeec2::t_342c9c25894e4d 176-178,180-182,184-185,196
+packages/backend/src/common/constants/playground.constants.ts
+  s_8f7bd68edeeec2::t_9b9acae6cb9042 1,4-7
+  s_8f7bd68edeeec2::t_44f1cf00d837cf 2-3,8
+  s_8f7bd68edeeec2::t_2e6f5ce2420614 9-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "b5cd83b414dc14bd064c0cc88bc7eddf0237ed1f",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
