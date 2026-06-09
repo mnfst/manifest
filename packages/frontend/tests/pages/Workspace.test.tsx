@@ -425,8 +425,8 @@ describe("Workspace", () => {
     await vi.waitFor(() => {
       expect(container.querySelector(".modal-card__input")).not.toBeNull();
     });
-    // The deep-link param is cleared so a refresh/back doesn't re-open it.
-    expect(mockSetSearchParams).toHaveBeenCalledWith({ add: undefined });
+    // The deep-link param is cleared (replace, so a refresh/back doesn't re-open it).
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ add: undefined }, { replace: true });
   });
 
   it("does not auto-open the modal without the ?add deep-link", async () => {

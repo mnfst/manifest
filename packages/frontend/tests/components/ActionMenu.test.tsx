@@ -102,7 +102,11 @@ describe("ActionMenu", () => {
 
   it("removes the document listeners on unmount", () => {
     const removeSpy = vi.spyOn(document, "removeEventListener");
-    const { unmount } = render(() => <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />);
+    const { container, unmount } = render(() => (
+      <ActionMenu items={[{ label: "Edit", onClick: () => {} }]} />
+    ));
+    // Listeners attach only while open, so open the menu before unmounting.
+    fireEvent.click(container.querySelector(".action-menu__trigger")!);
     unmount();
     expect(removeSpy).toHaveBeenCalledWith("click", expect.any(Function));
     expect(removeSpy).toHaveBeenCalledWith("keydown", expect.any(Function));

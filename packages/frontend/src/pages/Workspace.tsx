@@ -1,4 +1,4 @@
-import { createResource, createSignal, Show, For, type Component } from 'solid-js';
+import { createResource, createSignal, createEffect, Show, For, type Component } from 'solid-js';
 import { A, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
@@ -73,12 +73,15 @@ const Workspace: Component = () => {
   // onboarding surfaces can route a user straight into creating an agent. We
   // clear the param so a refresh or back-navigation doesn't re-trigger it.
   const [searchParams, setSearchParams] = useSearchParams();
-  if (searchParams.add === 'true') {
-    queueMicrotask(() => {
-      setSearchParams({ add: undefined });
+  // React to the deep-link on every navigation, not just initial mount: opening
+  // /agents?add=true while Workspace is already mounted still opens the modal. We
+  // clear the param (replace) so a refresh or back-nav doesn't re-trigger it.
+  createEffect(() => {
+    if (searchParams.add === 'true') {
       setModalOpen(true);
-    });
-  }
+      setSearchParams({ add: undefined }, { replace: true });
+    }
+  });
   const [duplicateSource, setDuplicateSource] = createSignal<string | null>(null);
   const [deleteTarget, setDeleteTarget] = createSignal<string | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = createSignal('');

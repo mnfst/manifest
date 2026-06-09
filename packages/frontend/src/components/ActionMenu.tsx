@@ -1,4 +1,12 @@
-import { createSignal, For, onCleanup, onMount, Show, type JSX, type Component } from 'solid-js';
+import {
+  createSignal,
+  createEffect,
+  For,
+  onCleanup,
+  Show,
+  type JSX,
+  type Component,
+} from 'solid-js';
 
 interface MenuItem {
   label: string;
@@ -37,13 +45,18 @@ const ActionMenu: Component<ActionMenuProps> = (props) => {
     if (e.key === 'Escape') setOpen(false);
   };
 
-  onMount(() => {
+  // Listen on the document only while the menu is open. Cards render one menu
+  // each, so always-on listeners would scale with the grid; gating keeps it to
+  // at most the open menu's pair. onCleanup inside the effect removes them when
+  // the menu closes or the component unmounts.
+  createEffect(() => {
+    if (!open()) return;
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown);
-  });
-  onCleanup(() => {
-    document.removeEventListener('click', handleClickOutside);
-    document.removeEventListener('keydown', handleKeyDown);
+    onCleanup(() => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    });
   });
 
   return (
