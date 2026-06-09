@@ -1,0 +1,53 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_80cf8785f1107d::t_a0993587efd666 51,68-80,82
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_80cf8785f1107d::t_99a8ce5c8a2735 316,319-325
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_80cf8785f1107d::t_b7e16441c339bf 154-186
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_80cf8785f1107d::t_881e20aaf15720 99,344-348,351-353,373-446
+  s_80cf8785f1107d::t_2e814f909f84f7 79-81
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_80cf8785f1107d::t_31e12c95e61f15 212,215,366
+packages/backend/src/common/constants/subscription-clients.ts
+  s_80cf8785f1107d::t_ca3067fc9c1e1e 20-36
+  s_80cf8785f1107d::t_cb60b74c5930ff 37-81
+.changeset/claude-code-subscription-routing.md
+  s_80cf8785f1107d::t_28abc98f6ce406 1-4
+  s_80cf8785f1107d::t_722c742c61550c 5
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.config.ts
+  s_80cf8785f1107d::t_60485e94d4d476 10-11,16
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_80cf8785f1107d::t_35a54580fd4edd 69,71-72,77
+  s_80cf8785f1107d::t_ae8f76feed1497 8,70
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_80cf8785f1107d::t_430c14513d7d89 10,640
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_80cf8785f1107d::t_4ad75b2c679eb0 1337,1345,1351,1354-1359,1363,1371-1376
+packages/backend/src/routing/oauth/core/oauth-pending-flow.store.ts
+  s_80cf8785f1107d::t_869758b613be04 67,78-79,174-184
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_80cf8785f1107d::t_398220c3e40b3d 1281,1295-1298,1302-1303
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_80cf8785f1107d::t_a822bc406cc453 103,157-163,167
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_80cf8785f1107d::t_64d66c50b6a698 41
+packages/backend/src/routing/oauth/core/oauth-pending-flow.store.spec.ts
+  s_80cf8785f1107d::t_428fa5cd0b3ce8 76-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "00870bf52774ab87172261ff05a66ca4023b15ca",
+  "prompts": {},
+  "sessions": {
+    "s_80cf8785f1107d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eab7f-4df9-7370-80af-71513a01f137",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
