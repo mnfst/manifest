@@ -475,6 +475,25 @@ describe('TimeseriesQueriesService', () => {
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
     });
+
+    it('scopes the aggregate timeseries to a connection label when provided', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries(
+        '24h',
+        'u1',
+        true,
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+      );
+      const labelCall = mockTurnQb.andWhere.mock.calls.find(
+        (c) => c[0] === "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      );
+      expect(labelCall![1]).toEqual({ keyLabel: 'Work' });
+    });
   });
 
   describe('per-agent pivoted timeseries (hourly)', () => {
@@ -525,6 +544,39 @@ describe('TimeseriesQueriesService', () => {
       const out = await service.getPerAgentCostTimeseries('7d', 'u1', false);
       expect(out.agents).toEqual(['alpha']);
       expect(out.timeseries).toEqual([{ date: '2026-01-01', alpha: 2.5 }]);
+    });
+
+    const labelClause = "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)";
+
+    it('scopes each per-agent timeseries to a connection label when provided', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getPerAgentTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai', 'Work');
+      await service.getPerAgentMessageTimeseries(
+        '24h',
+        'u1',
+        true,
+        't1',
+        'api_key',
+        'openai',
+        'Work',
+      );
+      await service.getPerAgentCostTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai', 'Work');
+      const labelCalls = mockTurnQb.andWhere.mock.calls.filter((c) => c[0] === labelClause);
+      expect(labelCalls).toHaveLength(3);
+      for (const call of labelCalls) expect(call[1]).toEqual({ keyLabel: 'Work' });
+    });
+
+    it('treats a legacy empty connection label as Default in the per-agent filter', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getPerAgentTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai', '');
+      const labelCall = mockTurnQb.andWhere.mock.calls.find((c) => c[0] === labelClause);
+      expect(labelCall![1]).toEqual({ keyLabel: 'Default' });
+    });
+
+    it('omits the label filter when no label is given', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getPerAgentTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai');
+      expect(mockTurnQb.andWhere.mock.calls.some((c) => c[0] === labelClause)).toBe(false);
     });
   });
 

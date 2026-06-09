@@ -4,7 +4,12 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, selectMessageRowColumns, excludeSystemAgents } from './query-helpers';
+import {
+  addTenantFilter,
+  selectMessageRowColumns,
+  excludeSystemAgents,
+  filterByKeyLabel,
+} from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   computeCutoff,
@@ -42,6 +47,7 @@ export class TimeseriesQueriesService {
     authType?: string,
     provider?: string,
     excludeSystem = false,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -60,6 +66,9 @@ export class TimeseriesQueriesService {
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
     if (excludeSystem) excludeSystemAgents(qb);
+    // Connection-scoped label filter: keep sibling keys (same provider+auth_type,
+    // different label) out of this connection's aggregate chart. NULL → 'Default'.
+    if (label !== undefined) filterByKeyLabel(qb, label);
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {
@@ -288,6 +297,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     authType?: string,
     provider?: string,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -308,6 +318,10 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    // Scope to a single connection (provider+auth_type+label). Without the label
+    // filter two keys that share provider+auth_type but differ by label merge
+    // into one connection's chart. Legacy NULL provider_key_label → 'Default'.
+    if (label !== undefined) filterByKeyLabel(qb, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -325,6 +339,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     authType?: string,
     provider?: string,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -343,6 +358,8 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    // Connection-scoped label filter (see getPerAgentTimeseries).
+    if (label !== undefined) filterByKeyLabel(qb, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -360,6 +377,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     authType?: string,
     provider?: string,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -379,6 +397,8 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    // Connection-scoped label filter (see getPerAgentTimeseries).
+    if (label !== undefined) filterByKeyLabel(qb, label);
 
     const rows = await qb
       .groupBy(bucketAlias)

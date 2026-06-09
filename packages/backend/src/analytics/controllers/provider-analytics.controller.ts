@@ -38,6 +38,7 @@ export class ProviderAnalyticsController {
     @Query('range') range?: string,
     @Query('agent_name') agentName?: string,
     @Query('provider') provider?: string,
+    @Query('label') label?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -55,6 +56,7 @@ export class ProviderAnalyticsController {
         authType,
         provider,
         true,
+        label,
       ),
       this.timeseries.getTimeseries(
         validRange,
@@ -65,6 +67,7 @@ export class ProviderAnalyticsController {
         authType,
         provider,
         true,
+        label,
       ),
     ]);
 
@@ -84,6 +87,7 @@ export class ProviderAnalyticsController {
     @Query('auth_type') authType?: string,
     @Query('provider') provider?: string,
     @Query('range') range?: string,
+    @Query('label') label?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -96,6 +100,7 @@ export class ProviderAnalyticsController {
       tenantId,
       authType,
       provider,
+      label,
     );
   }
 
@@ -105,6 +110,7 @@ export class ProviderAnalyticsController {
     @Query('auth_type') authType?: string,
     @Query('provider') provider?: string,
     @Query('range') range?: string,
+    @Query('label') label?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -117,6 +123,7 @@ export class ProviderAnalyticsController {
       tenantId,
       authType,
       provider,
+      label,
     );
   }
 
@@ -126,6 +133,7 @@ export class ProviderAnalyticsController {
     @Query('auth_type') authType?: string,
     @Query('provider') provider?: string,
     @Query('range') range?: string,
+    @Query('label') label?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -138,6 +146,7 @@ export class ProviderAnalyticsController {
       tenantId,
       authType,
       provider,
+      label,
     );
   }
 

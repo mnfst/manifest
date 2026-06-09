@@ -1,4 +1,4 @@
-import { createSignal, onMount, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, onMount, Show, type Component } from 'solid-js';
 import { normalizeProviderName } from 'manifest-shared';
 import { PROVIDERS, type ProviderDef } from '../services/providers.js';
 import {
@@ -40,6 +40,11 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
 
   const deepLink = props.providerDeepLink;
   const deepLinkProv = deepLink ? PROVIDERS.find((p) => p.id === deepLink.providerId) : null;
+  // A `custom:<id>` deep link can't resolve to a standard PROVIDERS entry; it
+  // targets a custom provider whose editor we open directly (see onMount below).
+  const deepLinkCustomId = deepLink?.providerId.startsWith('custom:')
+    ? deepLink.providerId.slice('custom:'.length)
+    : null;
 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
     'subscription',
@@ -48,6 +53,21 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   onMount(async () => {
     setIsSelfHosted(await checkIsSelfHosted());
   });
+  // Custom-provider deep link: open the custom editor for the matching id
+  // instead of leaving the modal on the provider list (which can't resolve a
+  // `custom:` id). An effect (not onMount) covers custom providers that load
+  // asynchronously after the modal opens; the guard fires it at most once.
+  let customDeepLinkOpened = false;
+  if (deepLinkCustomId) {
+    createEffect(() => {
+      if (customDeepLinkOpened) return;
+      const cp = (props.customProviders ?? []).find((c) => c.id === deepLinkCustomId);
+      if (cp) {
+        customDeepLinkOpened = true;
+        openEditCustom(cp);
+      }
+    });
+  }
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(
     deepLinkProv ? deepLinkProv.id : null,
   );

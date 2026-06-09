@@ -533,7 +533,8 @@ describe('GlobalOverview (analytics)', () => {
   });
 
   it('updates grouping, range, and harness filter controls', async () => {
-    sessionStorage.setItem('global-agent-filter', JSON.stringify(['demo-agent']));
+    // Selection is scoped per grouping; seed the harness-grouping key.
+    sessionStorage.setItem('global-agent-filter:agent', JSON.stringify(['demo-agent']));
     render(() => <GlobalOverview />);
 
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
@@ -549,10 +550,10 @@ describe('GlobalOverview (analytics)', () => {
     await waitFor(() => expect(screen.getByText('1 of 2 harnesses')).toBeDefined());
     fireEvent.click(screen.getByText('1 of 2 harnesses'));
     fireEvent.click(screen.getByText('Select all'));
-    expect(sessionStorage.getItem('global-agent-filter')).toContain('demo-agent');
+    expect(sessionStorage.getItem('global-agent-filter:agent')).toContain('demo-agent');
 
     fireEvent.click(screen.getByText('Unselect all'));
-    expect(sessionStorage.getItem('global-agent-filter')).toBe('[]');
+    expect(sessionStorage.getItem('global-agent-filter:agent')).toBe('[]');
 
     // With nothing selected the filter treats all harnesses as on; toggling
     // one off persists the remaining selection.
@@ -560,11 +561,59 @@ describe('GlobalOverview (analytics)', () => {
       .getAllByText('worker-agent')
       .find((el) => el.closest('.agent-filter-select'));
     fireEvent.click(toggle!);
-    const saved = sessionStorage.getItem('global-agent-filter')!;
+    const saved = sessionStorage.getItem('global-agent-filter:agent')!;
     expect(saved).toContain('demo-agent');
     expect(saved).not.toContain('worker-agent');
 
     fireEvent.keyDown(document, { key: 'Escape' });
+  });
+
+  it('keeps series visible when switching groupings (selection scoped per group)', async () => {
+    // Provider mode: deselect everything except 'openai'. That persisted set
+    // must NOT bleed into harness mode (which lists demo-agent/worker-agent) —
+    // otherwise the intersection is empty and the chart blanks out.
+    render(() => <GlobalOverview />);
+    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
+
+    // In provider grouping the series list is the provider timeseries agents.
+    await waitFor(() => expect(screen.getByText('All providers (2)')).toBeDefined());
+    fireEvent.click(screen.getByText('All providers (2)'));
+    // Toggle 'openai' off (from the all-selected set) so only 'anthropic'
+    // remains — a partial provider-mode selection that must persist per group.
+    const openaiToggle = screen
+      .getAllByText('openai')
+      .find((el) => el.closest('.agent-filter-select'));
+    fireEvent.click(openaiToggle!);
+    expect(sessionStorage.getItem('global-agent-filter:provider')).toContain('anthropic');
+    expect(sessionStorage.getItem('global-agent-filter:provider')).not.toContain('openai');
+
+    // Switch to harness grouping. The harness selection is independent and
+    // defaults to all selected, so the chart still shows every harness series.
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0]!, { target: { value: 'agent' } });
+    await waitFor(() => expect(screen.getByText('All harnesses (2)')).toBeDefined());
+    // The chart card receives both harness series (not blanked out).
+    expect(screen.getByTestId('ts-agents').textContent).toContain('demo-agent');
+    expect(screen.getByTestId('ts-agents').textContent).toContain('worker-agent');
+
+    // Switch back to provider grouping: the earlier provider selection is
+    // restored (only anthropic), proving per-group isolation.
+    fireEvent.change(selects[0]!, { target: { value: 'provider' } });
+    await waitFor(() => expect(screen.getByText('1 of 2 providers')).toBeDefined());
+    expect(screen.getByTestId('ts-agents').textContent).toBe('anthropic');
+  });
+
+  it('defaults to all-selected when a persisted selection no longer intersects', async () => {
+    // A stale selection (e.g. left over from another grouping) that shares no
+    // members with the current series must fall back to "all selected" rather
+    // than blanking the chart.
+    sessionStorage.setItem('global-agent-filter:provider', JSON.stringify(['ghost-series']));
+    render(() => <GlobalOverview />);
+    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('All providers (2)')).toBeDefined());
+    // Both providers still render despite the stale persisted set.
+    expect(screen.getByTestId('ts-agents').textContent).toContain('openai');
+    expect(screen.getByTestId('ts-agents').textContent).toContain('anthropic');
   });
 
   it('shows the empty state when there are no harnesses and no providers', async () => {
@@ -584,7 +633,7 @@ describe('GlobalOverview (analytics)', () => {
 
   it('adds a harness back to a partial selection via the filter toggle', async () => {
     localStorage.setItem('manifest_global_group', 'agent');
-    sessionStorage.setItem('global-agent-filter', JSON.stringify(['demo-agent']));
+    sessionStorage.setItem('global-agent-filter:agent', JSON.stringify(['demo-agent']));
     render(() => <GlobalOverview />);
 
     await waitFor(() => expect(screen.getByText('1 of 2 harnesses')).toBeDefined());
@@ -594,7 +643,7 @@ describe('GlobalOverview (analytics)', () => {
       .getAllByText('worker-agent')
       .find((el) => el.closest('.agent-filter-select'));
     fireEvent.click(toggle!);
-    const saved = sessionStorage.getItem('global-agent-filter')!;
+    const saved = sessionStorage.getItem('global-agent-filter:agent')!;
     expect(saved).toContain('demo-agent');
     expect(saved).toContain('worker-agent');
   });
@@ -794,6 +843,44 @@ describe('ConnectionDetail (analytics)', () => {
 
     resolveDetail(connectionDetail);
     await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+  });
+
+  it('shows a not-found state for a missing/deleted connection (P3)', async () => {
+    // A resolved-but-null connection must render not-found, never spin on the
+    // loading fallback forever.
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      connection: null,
+      agents: [],
+      model_usage: [],
+      recent_messages: [],
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Connection not found')).toBeDefined());
+    expect(screen.queryByText('Loading...')).toBeNull();
+    expect(screen.getByText('Back to overview')).toBeDefined();
+  });
+
+  it('scopes every chart query to the connection label (P2)', async () => {
+    // The detail page must pass the connection's label to all chart/summary
+    // queries so two connections sharing provider+auth_type but differing by
+    // label don't show each other's usage.
+    routerState.params = { connectionId: 'conn-work' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: { ...connectionDetail.connection, id: 'conn-work', label: 'Work' },
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Work').length).toBeGreaterThan(0));
+
+    // analytics summary/timeseries: getProviderAnalytics(authType, range, agent, provider, label)
+    const analyticsCall = apiMocks.getProviderAnalytics.mock.calls.at(-1)!;
+    expect(analyticsCall[4]).toBe('Work');
+    // per-agent token/message/cost fetchers: (...args, range, label)
+    expect(apiMocks.getPerAgentTimeseries.mock.calls.at(-1)![3]).toBe('Work');
+    expect(apiMocks.getPerAgentMessageTimeseries.mock.calls.at(-1)![3]).toBe('Work');
+    expect(apiMocks.getPerAgentCostTimeseries.mock.calls.at(-1)![3]).toBe('Work');
   });
 
   it('passes the resolved custom provider into the management modal', async () => {

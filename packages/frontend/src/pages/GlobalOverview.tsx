@@ -235,17 +235,33 @@ const GlobalOverview: Component = () => {
   );
 
   // ── Harness filter state (sessionStorage) ────────────────────────────
-  const storageKey = 'global-agent-filter';
-  const loadSavedAgents = (): Set<string> => {
+  // Scope the persisted selection by groupBy(): the provider grouping and the
+  // harness grouping list completely different series, so a single shared set
+  // would carry harness names into provider mode (and vice versa), filtering
+  // out every series and blanking the chart. A per-grouping key keeps each
+  // mode's selection independent.
+  const storageKey = () => `global-agent-filter:${groupBy()}`;
+  const loadSavedAgents = (key: string): Set<string> => {
     try {
-      const saved = sessionStorage.getItem(storageKey);
+      const saved = sessionStorage.getItem(key);
       if (saved) return new Set(JSON.parse(saved) as string[]);
     } catch {
       /* ignore */
     }
     return new Set();
   };
-  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(loadSavedAgents());
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(
+    loadSavedAgents(storageKey()),
+  );
+  // When the grouping changes, reload the selection persisted for that grouping
+  // (defaulting to "all selected" when none was saved for it).
+  createEffect(
+    on(
+      () => groupBy(),
+      () => setSelectedAgents(loadSavedAgents(storageKey())),
+      { defer: true },
+    ),
+  );
   const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
   let agentFilterRef: HTMLDivElement | undefined;
 
@@ -284,8 +300,15 @@ const GlobalOverview: Component = () => {
 
   const effectiveSelected = () => {
     const sel = selectedAgents();
-    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
-    return sel;
+    const all = allAgents();
+    if (all.length === 0) return sel;
+    // Prune the persisted selection against the series actually present for the
+    // current grouping. If nothing intersects (e.g. a stale set left over from
+    // the other grouping, or an empty selection), fall back to "all selected"
+    // so the chart never renders blank.
+    const pruned = new Set(all.filter((a) => sel.has(a)));
+    if (pruned.size === 0) return new Set(all);
+    return pruned;
   };
 
   const selectedAgentCount = () => effectiveSelected().size;
@@ -300,7 +323,7 @@ const GlobalOverview: Component = () => {
     }
     setSelectedAgents(next);
     try {
-      sessionStorage.setItem(storageKey, JSON.stringify([...next]));
+      sessionStorage.setItem(storageKey(), JSON.stringify([...next]));
     } catch {
       /* ignore */
     }
@@ -460,7 +483,7 @@ const GlobalOverview: Component = () => {
                         onClick={() => {
                           setSelectedAgents(new Set(allAgents()));
                           try {
-                            sessionStorage.setItem(storageKey, JSON.stringify([...allAgents()]));
+                            sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
                           } catch {
                             /* ignore */
                           }
@@ -475,7 +498,7 @@ const GlobalOverview: Component = () => {
                         onClick={() => {
                           setSelectedAgents(new Set<string>());
                           try {
-                            sessionStorage.setItem(storageKey, JSON.stringify([]));
+                            sessionStorage.setItem(storageKey(), JSON.stringify([]));
                           } catch {
                             /* ignore */
                           }

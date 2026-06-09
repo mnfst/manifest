@@ -10,12 +10,14 @@ export function getProviderAnalytics(
   range = '24h',
   agentName?: string,
   provider?: string,
+  label?: string,
 ) {
   return fetchJson('/provider-analytics', {
     auth_type: authType,
     range,
     ...(agentName ? { agent_name: agentName } : {}),
     ...(provider ? { provider } : {}),
+    ...(label !== undefined ? { label } : {}),
   });
 }
 
@@ -29,11 +31,13 @@ export function getPerAgentTimeseries(
   authType: string,
   provider: string,
   range = '24h',
+  label?: string,
 ): PivotedTimeseries {
   return fetchJson('/provider-analytics/per-agent-timeseries', {
     auth_type: authType,
     provider,
     range,
+    ...(label !== undefined ? { label } : {}),
   }) as PivotedTimeseries;
 }
 
@@ -41,11 +45,13 @@ export function getPerAgentMessageTimeseries(
   authType: string,
   provider: string,
   range = '24h',
+  label?: string,
 ): PivotedTimeseries {
   return fetchJson('/provider-analytics/per-agent-message-timeseries', {
     auth_type: authType,
     provider,
     range,
+    ...(label !== undefined ? { label } : {}),
   }) as PivotedTimeseries;
 }
 
@@ -53,11 +59,13 @@ export function getPerAgentCostTimeseries(
   authType: string,
   provider: string,
   range = '24h',
+  label?: string,
 ): PivotedTimeseries {
   return fetchJson('/provider-analytics/per-agent-cost-timeseries', {
     auth_type: authType,
     provider,
     range,
+    ...(label !== undefined ? { label } : {}),
   }) as PivotedTimeseries;
 }
 

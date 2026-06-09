@@ -100,6 +100,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '24h',
@@ -110,6 +111,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
       );
       expect(out.summary.messages).toEqual({ value: 5 });
       expect(out.token_usage).toEqual([{ hour: '01' }]);
@@ -126,6 +128,7 @@ describe('ProviderAnalyticsController', () => {
         'api_key',
         'openai',
         true,
+        undefined,
       );
     });
 
@@ -139,6 +142,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         undefined,
         true,
+        undefined,
       );
     });
 
@@ -154,6 +158,32 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
+      );
+    });
+
+    it('scopes summary + timeseries to a connection label', async () => {
+      await controller.getAnalytics(user, 'api_key', '7d', undefined, 'openai', 'Work');
+      expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+      );
+      expect(timeseries.getTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
       );
     });
   });
@@ -168,6 +198,7 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'subscription',
         'openai',
+        undefined,
       );
       expect(out).toEqual({ agents: ['a'], timeseries: [] });
     });
@@ -181,6 +212,7 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'subscription',
         'openai',
+        undefined,
       );
     });
 
@@ -193,6 +225,40 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'api_key',
         'anthropic',
+        undefined,
+      );
+    });
+
+    it('forwards the connection label to every per-agent timeseries query', async () => {
+      await controller.getPerAgentTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentMessageTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentCostTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      expect(timeseries.getPerAgentTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+      );
+      expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+      );
+      expect(timeseries.getPerAgentCostTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
       );
     });
   });

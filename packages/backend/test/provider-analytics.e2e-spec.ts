@@ -212,6 +212,63 @@ describe('GET /api/v1/provider-analytics', () => {
       .expect(200);
   });
 
+  it('scopes per-agent timeseries to a single connection label (P2)', async () => {
+    // Work and Personal share provider=anthropic, auth_type=api_key. Without the
+    // label filter the per-agent chart for either connection would merge both
+    // (666 tokens). With it, Work sees only its 222 tokens.
+    const merged = await request(app.getHttpServer())
+      .get('/api/v1/provider-analytics/per-agent-timeseries?auth_type=api_key&provider=anthropic')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const mergedTotal = merged.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(mergedTotal).toBe(666);
+
+    const work = await request(app.getHttpServer())
+      .get(
+        '/api/v1/provider-analytics/per-agent-timeseries?auth_type=api_key&provider=anthropic&label=Work',
+      )
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const workTotal = work.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(workTotal).toBe(222);
+  });
+
+  it('scopes the summary + message timeseries to a connection label (P2)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/provider-analytics?auth_type=api_key&provider=anthropic&label=Personal&range=24h')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    // Personal key: one message, 444 tokens — Work's 222 must not leak in.
+    expect(res.body.summary.messages.value).toBe(1);
+    expect(res.body.summary.tokens.value).toBe(444);
+
+    const msg = await request(app.getHttpServer())
+      .get(
+        '/api/v1/provider-analytics/per-agent-message-timeseries?auth_type=api_key&provider=anthropic&label=Personal',
+      )
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const personalMessages = msg.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(personalMessages).toBe(1);
+
+    const cost = await request(app.getHttpServer())
+      .get(
+        '/api/v1/provider-analytics/per-agent-cost-timeseries?auth_type=api_key&provider=anthropic&label=Work',
+      )
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    expect(cost.body.agents).toContain('test-agent');
+  });
+
   it('returns connection detail for an owned connection', async () => {
     const res = await request(app.getHttpServer())
       .get(`/api/v1/provider-analytics/connection-detail?connection_id=${connectionId}`)

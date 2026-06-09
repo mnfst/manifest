@@ -194,6 +194,10 @@ const ConnectionDetail: Component = () => {
         agent: chartAgent(),
         authType: c.auth_type,
         provider: c.provider,
+        // Scope every chart/summary query to this exact connection
+        // (provider+auth_type+label). Without the label, two connections that
+        // share provider+auth_type but differ by label show each other's usage.
+        label: c.label,
       };
     },
     (p) => {
@@ -203,6 +207,7 @@ const ConnectionDetail: Component = () => {
         p.range,
         p.agent || undefined,
         p.provider,
+        p.label,
       ) as Promise<AnalyticsResponse>;
     },
   );
@@ -216,11 +221,11 @@ const ConnectionDetail: Component = () => {
     () => {
       const c = conn();
       if (!c) return null;
-      return { range: chartRange(), authType: c.auth_type, provider: c.provider };
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
     },
     (p) => {
       if (!p) return null;
-      return getPerAgentTimeseries(p.authType, p.provider, p.range);
+      return getPerAgentTimeseries(p.authType, p.provider, p.range, p.label);
     },
   );
 
@@ -228,11 +233,11 @@ const ConnectionDetail: Component = () => {
     () => {
       const c = conn();
       if (!c) return null;
-      return { range: chartRange(), authType: c.auth_type, provider: c.provider };
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
     },
     (p) => {
       if (!p) return null;
-      return getPerAgentMessageTimeseries(p.authType, p.provider, p.range);
+      return getPerAgentMessageTimeseries(p.authType, p.provider, p.range, p.label);
     },
   );
 
@@ -242,11 +247,11 @@ const ConnectionDetail: Component = () => {
     () => {
       const c = conn();
       if (!c || c.auth_type !== 'api_key') return null;
-      return { range: chartRange(), authType: c.auth_type, provider: c.provider };
+      return { range: chartRange(), authType: c.auth_type, provider: c.provider, label: c.label };
     },
     (p) => {
       if (!p) return null;
-      return getPerAgentCostTimeseries(p.authType, p.provider, p.range);
+      return getPerAgentCostTimeseries(p.authType, p.provider, p.range, p.label);
     },
   );
 
@@ -400,14 +405,35 @@ const ConnectionDetail: Component = () => {
     },
   );
 
+  // A resolved-but-null connection means the id is unknown / the connection
+  // was deleted. Branch on the resource so this renders a not-found state
+  // instead of the loading fallback spinning forever.
+  const notFound = () => !detail.loading && detail() !== undefined && conn() === null;
+
   return (
     <div class="container--lg">
-      <Show
-        when={detail() && conn()}
-        fallback={
-          <div style="padding: 48px 0; text-align: center; color: hsl(var(--muted-foreground));">
-            Loading...
+      <Show when={notFound()}>
+        <Title>Connection not found | Manifest</Title>
+        <div style="padding: 48px 0; text-align: center;">
+          <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 8px;">
+            Connection not found
           </div>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 16px;">
+            This connection no longer exists or you don't have access to it.
+          </div>
+          <A href="/" class="btn btn--outline btn--sm" style="text-decoration: none;">
+            Back to overview
+          </A>
+        </div>
+      </Show>
+      <Show
+        when={!notFound() && detail() && conn()}
+        fallback={
+          <Show when={!notFound()}>
+            <div style="padding: 48px 0; text-align: center; color: hsl(var(--muted-foreground));">
+              Loading...
+            </div>
+          </Show>
         }
       >
         {(() => {
