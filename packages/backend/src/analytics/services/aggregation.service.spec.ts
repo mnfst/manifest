@@ -30,6 +30,10 @@ describe('AggregationService', () => {
       getMany: jest.fn().mockResolvedValue([]),
       getOne: jest.fn().mockResolvedValue(null),
     };
+    // excludeSystemAgents() inspects existing joins via expressionMap.
+    (mockQb as unknown as { expressionMap: { joinAttributes: unknown[] } }).expressionMap = {
+      joinAttributes: [],
+    };
 
     const chainableMethods = [
       'select',
@@ -203,6 +207,43 @@ describe('AggregationService', () => {
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
       expect(clauses).toContain('at.auth_type = :authType');
       expect(clauses).toContain('at.provider = :provider');
+    });
+
+    it('excludes the system Playground agent from both windows when excludeSystem=true', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics(
+        '24h',
+        'u1',
+        'tenant-123',
+        undefined,
+        undefined,
+        undefined,
+        true,
+      );
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      // Both the current and previous window builders add the guard, so it must
+      // appear (the join is also issued).
+      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(mockQb.leftJoin).toHaveBeenCalledWith(
+        'agents',
+        'a',
+        'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
+      );
+    });
+
+    it('does not exclude system agents by default (excludeSystem omitted)', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain('(a.is_system IS NULL OR a.is_system = false)');
     });
   });
 });

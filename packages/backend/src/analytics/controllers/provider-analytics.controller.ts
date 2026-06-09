@@ -9,7 +9,7 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Tenant } from '../../entities/tenant.entity';
-import { selectMessageRowColumns } from '../services/query-helpers';
+import { selectMessageRowColumns, filterByKeyLabel } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
 import { sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
@@ -41,7 +41,17 @@ export class ProviderAnalyticsController {
     const agent = agentName || undefined;
 
     const [summary, ts] = await Promise.all([
-      this.aggregation.getSummaryMetrics(validRange, user.id, tenantId, agent, authType, provider),
+      // excludeSystem=true: Playground (is_system) usage must not pollute
+      // provider analytics aggregates.
+      this.aggregation.getSummaryMetrics(
+        validRange,
+        user.id,
+        tenantId,
+        agent,
+        authType,
+        provider,
+        true,
+      ),
       this.timeseries.getTimeseries(
         validRange,
         user.id,
@@ -50,6 +60,7 @@ export class ProviderAnalyticsController {
         agent,
         authType,
         provider,
+        true,
       ),
     ]);
 
@@ -171,14 +182,22 @@ export class ProviderAnalyticsController {
     const cutoff30d = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
+    // A connection is identified by (tenant, provider, auth_type, label). The
+    // label filter is mandatory: two keys sharing provider+auth_type but
+    // differing by label must not merge into one connection's detail. Legacy
+    // NULL provider_key_label collapses to 'Default'.
+    const connLabel = conn.label;
+
     // Global last_used_at for this connection (all time, not just 30d)
-    const lastUsedRow = await this.messageRepo
-      .createQueryBuilder('at')
-      .select('MAX(at.timestamp)', 'last_used_at')
-      .where('at.tenant_id = :tid', { tid: tenant.id })
-      .andWhere('at.provider = :provider', { provider: conn.provider })
-      .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
-      .getRawOne();
+    const lastUsedRow = await filterByKeyLabel(
+      this.messageRepo
+        .createQueryBuilder('at')
+        .select('MAX(at.timestamp)', 'last_used_at')
+        .where('at.tenant_id = :tid', { tid: tenant.id })
+        .andWhere('at.provider = :provider', { provider: conn.provider })
+        .andWhere('at.auth_type = :authType', { authType: conn.auth_type }),
+      connLabel,
+    ).getRawOne();
     const lastUsedAt =
       lastUsedRow?.last_used_at instanceof Date
         ? lastUsedRow.last_used_at.toISOString()
@@ -187,7 +206,7 @@ export class ProviderAnalyticsController {
           : null;
 
     // Agents using this provider (with platform from agents table)
-    const agentRows = await this.messageRepo
+    const agentQb = this.messageRepo
       .createQueryBuilder('at')
       .select('at.agent_name', 'agent_name')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -202,13 +221,12 @@ export class ProviderAnalyticsController {
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
       .andWhere('at.agent_name IS NOT NULL')
       // Exclude the reserved Playground (is_system) agent from the breakdown.
-      .andWhere('(a.is_system IS NULL OR a.is_system = false)')
-      .groupBy('at.agent_name')
-      .orderBy('tokens', 'DESC')
-      .getRawMany();
+      .andWhere('(a.is_system IS NULL OR a.is_system = false)');
+    filterByKeyLabel(agentQb, connLabel);
+    const agentRows = await agentQb.groupBy('at.agent_name').orderBy('tokens', 'DESC').getRawMany();
 
     // Model usage (30d)
-    const modelRows = await this.messageRepo
+    const modelQb = this.messageRepo
       .createQueryBuilder('at')
       .select('at.model', 'model')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -218,10 +236,9 @@ export class ProviderAnalyticsController {
       .andWhere('at.provider = :provider', { provider: conn.provider })
       .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
-      .andWhere('at.model IS NOT NULL')
-      .groupBy('at.model')
-      .orderBy('tokens', 'DESC')
-      .getRawMany();
+      .andWhere('at.model IS NOT NULL');
+    filterByKeyLabel(modelQb, connLabel);
+    const modelRows = await modelQb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
 
     const totalModelTokens = modelRows.reduce(
       (sum: number, r: Record<string, unknown>) => sum + Number(r['tokens'] ?? 0),
@@ -232,10 +249,9 @@ export class ProviderAnalyticsController {
     const msgQb = selectMessageRowColumns(this.messageRepo.createQueryBuilder('at'), costExpr)
       .where('at.tenant_id = :tid', { tid: tenant.id })
       .andWhere('at.provider = :provider', { provider: conn.provider })
-      .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
-      .orderBy('at.timestamp', 'DESC')
-      .limit(5);
-    const recentMessages = await msgQb.getRawMany();
+      .andWhere('at.auth_type = :authType', { authType: conn.auth_type });
+    filterByKeyLabel(msgQb, connLabel);
+    const recentMessages = await msgQb.orderBy('at.timestamp', 'DESC').limit(5).getRawMany();
 
     return {
       connection: {

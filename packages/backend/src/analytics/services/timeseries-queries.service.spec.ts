@@ -61,6 +61,10 @@ describe('TimeseriesQueriesService', () => {
       getRawOne: jest.fn().mockResolvedValue({}),
       getMany: mockGetMany,
     };
+    // excludeSystemAgents() inspects existing joins via expressionMap.
+    (mockTurnQb as unknown as { expressionMap: { joinAttributes: unknown[] } }).expressionMap = {
+      joinAttributes: [],
+    };
 
     mockAgentQb = {
       select: jest.fn().mockReturnThis(),
@@ -449,6 +453,34 @@ describe('TimeseriesQueriesService', () => {
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).toContain('at.auth_type = :authType');
       expect(clauses).toContain('at.provider = :provider');
+    });
+
+    it('excludes the system Playground agent when excludeSystem=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries(
+        '24h',
+        'u1',
+        true,
+        'tenant-1',
+        undefined,
+        undefined,
+        undefined,
+        true,
+      );
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+        'agents',
+        'a',
+        'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
+      );
+    });
+
+    it('does not exclude system agents by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries('24h', 'u1', true, 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).not.toContain('(a.is_system IS NULL OR a.is_system = false)');
     });
   });
 

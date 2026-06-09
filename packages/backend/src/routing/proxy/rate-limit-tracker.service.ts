@@ -24,7 +24,9 @@ export interface RateLimitEntry {
   resetsAt: string | null; // ISO timestamp
 }
 
-// In-memory cache: userId:provider -> latest snapshot
+// In-memory cache keyed by connection identity (user, provider, auth_type,
+// key_label) -> latest snapshot. Keying on userId:provider alone collapsed
+// distinct auth types / labels for the same provider into one entry.
 const TTL_MS = 60_000;
 const MAX_CACHE = 2_000;
 
@@ -34,6 +36,34 @@ interface CachedSnapshot {
 }
 
 const cache = new Map<string, CachedSnapshot>();
+
+// Delimiter for the composite cache key. userId is a UUID, so a space can't
+// alias one tuple onto another.
+const KEY_SEP = ' ';
+
+/** Canonical label for a connection — a legacy missing label collapses to 'Default'. */
+function canonicalLabel(keyLabel?: string | null): string {
+  return keyLabel && keyLabel.length > 0 ? keyLabel : 'Default';
+}
+
+/**
+ * Composite cache key identifying a connection by
+ * (user, provider, auth_type, key_label). Keying on userId:provider alone
+ * collapsed distinct auth types / labels for one provider into a single entry.
+ */
+function connectionCacheKey(
+  userId: string,
+  provider: string,
+  authType: string,
+  keyLabel?: string | null,
+): string {
+  return [userId, provider, authType, canonicalLabel(keyLabel)].join(KEY_SEP);
+}
+
+/** Per-user prefix used to scan the cache for one user's connections. */
+function userCachePrefix(userId: string): string {
+  return `${userId}${KEY_SEP}`;
+}
 
 /**
  * Extract rate-limit headers from OpenAI and Anthropic responses.
@@ -170,8 +200,9 @@ export class RateLimitTrackerService {
         limits: entries,
       };
 
-      // Update in-memory cache immediately
-      const cacheKey = `${userId}:${provider}`;
+      // Update in-memory cache immediately. Keyed by the full connection tuple
+      // so distinct auth types / labels for one provider stay separate.
+      const cacheKey = connectionCacheKey(userId, provider, authType, keyLabel);
       if (cache.size >= MAX_CACHE && !cache.has(cacheKey)) {
         const firstKey = cache.keys().next().value;
         if (firstKey !== undefined) cache.delete(firstKey);
@@ -188,49 +219,57 @@ export class RateLimitTrackerService {
   }
 
   /**
-   * Get the latest rate limit state for all providers of a user.
+   * Get the latest rate limit state for all of a user's provider connections.
    */
   async getRateLimits(userId: string): Promise<RateLimitSnapshot[]> {
     // Check in-memory cache first
     const snapshots: RateLimitSnapshot[] = [];
-    const uncachedProviders = new Set<string>();
+    const prefix = userCachePrefix(userId);
 
-    // Collect cached entries
+    // Collect live cached entries; drop expired ones.
     for (const [key, entry] of cache) {
-      if (!key.startsWith(`${userId}:`)) continue;
+      if (!key.startsWith(prefix)) continue;
       if (entry.expiresAt > Date.now()) {
         snapshots.push(entry.data);
       } else {
         cache.delete(key);
-        uncachedProviders.add(key.split(':')[1]);
       }
     }
 
-    // Fetch from DB for any that weren't cached
+    // Fetch the latest row per (provider, auth_type, key_label, limit_type)
+    // tuple from the DB — the lookup must key on the full connection identity,
+    // not just provider, or distinct labels/auth types would collapse.
     const dbRows = await this.rateLimitRepo
       .createQueryBuilder('rl')
       .where('rl.user_id = :userId', { userId })
       .andWhere(
-        'rl.captured_at = (SELECT MAX(rl2.captured_at) FROM provider_rate_limits rl2 WHERE rl2.user_id = rl.user_id AND rl2.provider = rl.provider AND rl2.limit_type = rl.limit_type)',
+        `rl.captured_at = (
+          SELECT MAX(rl2.captured_at) FROM provider_rate_limits rl2
+          WHERE rl2.user_id = rl.user_id
+            AND rl2.provider = rl.provider
+            AND rl2.auth_type = rl.auth_type
+            AND COALESCE(rl2.key_label, 'Default') = COALESCE(rl.key_label, 'Default')
+            AND rl2.limit_type = rl.limit_type
+        )`,
       )
       .getMany();
 
-    // Group DB rows by provider
-    const byProvider = new Map<string, ProviderRateLimit[]>();
+    // Group DB rows by connection identity (provider, auth_type, key_label).
+    const byConnection = new Map<string, ProviderRateLimit[]>();
     for (const row of dbRows) {
-      const existing = byProvider.get(row.provider) ?? [];
+      const key = connectionCacheKey(userId, row.provider, row.auth_type, row.key_label);
+      const existing = byConnection.get(key) ?? [];
       existing.push(row);
-      byProvider.set(row.provider, existing);
+      byConnection.set(key, existing);
     }
 
-    // Build snapshots for uncached providers
-    for (const [provider, rows] of byProvider) {
-      const cacheKey = `${userId}:${provider}`;
+    // Build snapshots for connections not already served from the cache.
+    for (const [cacheKey, rows] of byConnection) {
       if (cache.has(cacheKey) && cache.get(cacheKey)!.expiresAt > Date.now()) continue;
 
       const snapshot: RateLimitSnapshot = {
         userId,
-        provider,
+        provider: rows[0].provider,
         authType: rows[0].auth_type,
         keyLabel: rows[0].key_label ?? undefined,
         limits: rows.map((r) => ({

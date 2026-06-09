@@ -22,13 +22,17 @@ export class AddProviderRateLimits1791500000000 implements MigrationInterface {
         CONSTRAINT "PK_provider_rate_limits" PRIMARY KEY ("id")
       )
     `);
+    // The "latest snapshot" lookup keys on the full connection identity
+    // (user, provider, auth_type, key_label, limit_type) ordered by capture
+    // time, so the index must carry that whole tuple — keying on
+    // (user, provider) alone collapsed distinct auth types / labels.
     await queryRunner.query(
-      `CREATE INDEX "IDX_rate_limits_user_provider" ON "provider_rate_limits" ("user_id", "provider", "captured_at" DESC)`,
+      `CREATE INDEX "IDX_rate_limits_connection_latest" ON "provider_rate_limits" ("user_id", "provider", "auth_type", "key_label", "limit_type", "captured_at" DESC)`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_rate_limits_user_provider"`);
+    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_rate_limits_connection_latest"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "provider_rate_limits"`);
   }
 }

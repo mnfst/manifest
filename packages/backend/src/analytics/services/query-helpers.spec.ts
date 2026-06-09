@@ -4,6 +4,8 @@ import {
   formatTimestamp,
   addTenantFilter,
   selectMessageRowColumns,
+  excludeSystemAgents,
+  filterByKeyLabel,
   MESSAGE_ROW_SELECT_ALIASES,
 } from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
@@ -177,6 +179,86 @@ describe('addTenantFilter', () => {
     addTenantFilter(qb, 'user-123', 'my-agent', 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('excludeSystemAgents', () => {
+  function makeMockQb(existingJoinAliases: string[] = []) {
+    const mockAndWhere = jest.fn();
+    const mockLeftJoin = jest.fn();
+    const qb = {
+      expressionMap: {
+        joinAttributes: existingJoinAliases.map((name) => ({ alias: { name } })),
+      },
+      leftJoin: mockLeftJoin.mockImplementation(() => qb),
+      andWhere: mockAndWhere.mockImplementation(() => qb),
+    };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere, mockLeftJoin };
+  }
+
+  it('joins the agents table and excludes is_system rows when no agents join exists', () => {
+    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb([]);
+    excludeSystemAgents(qb);
+
+    expect(mockLeftJoin).toHaveBeenCalledWith(
+      'agents',
+      'a',
+      'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
+    );
+    expect(mockAndWhere).toHaveBeenCalledWith('(a.is_system IS NULL OR a.is_system = false)');
+  });
+
+  it('reuses an existing "a" join instead of joining agents twice', () => {
+    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb(['a']);
+    excludeSystemAgents(qb);
+
+    expect(mockLeftJoin).not.toHaveBeenCalled();
+    expect(mockAndWhere).toHaveBeenCalledWith('(a.is_system IS NULL OR a.is_system = false)');
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb([]);
+    expect(excludeSystemAgents(qb)).toBe(qb);
+  });
+});
+
+describe('filterByKeyLabel', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('matches the label case-insensitively', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Work' },
+    );
+  });
+
+  it('collapses a null label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, null);
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('collapses an empty-string label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, '');
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('collapses an undefined label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, undefined);
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(filterByKeyLabel(qb, 'x')).toBe(qb);
   });
 });
 

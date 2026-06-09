@@ -165,6 +165,7 @@ export class ProxyFallbackService {
       provider: string;
       fallbackIndex: number;
       authType?: AuthType;
+      keyLabel?: string;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -315,7 +316,14 @@ export class ProxyFallbackService {
 
       if (forward.response.ok) {
         return {
-          success: { forward, model, provider, fallbackIndex: i, authType },
+          success: {
+            forward,
+            model,
+            provider,
+            fallbackIndex: i,
+            authType,
+            keyLabel: providerKeyLabel,
+          },
           failures,
         };
       }

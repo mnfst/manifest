@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, selectMessageRowColumns } from './query-helpers';
+import { addTenantFilter, selectMessageRowColumns, excludeSystemAgents } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   computeCutoff,
@@ -41,6 +41,7 @@ export class TimeseriesQueriesService {
     agentName?: string,
     authType?: string,
     provider?: string,
+    excludeSystem = false,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -58,6 +59,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, agentName, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    if (excludeSystem) excludeSystemAgents(qb);
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {

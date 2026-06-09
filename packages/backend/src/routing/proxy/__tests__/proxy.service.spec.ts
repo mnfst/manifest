@@ -680,6 +680,65 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.primaryProvider).toBe('openai');
     });
 
+    it("captures the fallback success response's rate-limit headers", async () => {
+      // The failed primary still gets a capture call; this proves the WINNING
+      // fallback connection's limits are also captured (provider/auth/label
+      // matching the fallback, not the primary).
+      const fallbackOk = okResponse();
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { response: fallbackOk, isGoogle: false, isAnthropic: true, isChatGpt: false },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'subscription',
+          keyLabel: 'Work',
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      // One capture for the failed primary, one for the fallback success.
+      const fallbackCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === fallbackOk,
+      );
+      expect(fallbackCapture).toBeDefined();
+      expect(fallbackCapture).toEqual([fallbackOk, 'user-1', 'anthropic', 'subscription', 'Work']);
+    });
+
+    it('passes empty auth_type to the fallback capture when the success has no authType', async () => {
+      const fallbackOk = okResponse();
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { response: fallbackOk, isGoogle: false, isAnthropic: true, isChatGpt: false },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      const fallbackCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === fallbackOk,
+      );
+      expect(fallbackCapture).toEqual([fallbackOk, 'user-1', 'anthropic', '', undefined]);
+    });
+
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {
       // Mixed-auth chain: primary openai/api_key fails, fallback
       // anthropic/subscription succeeds. The recorder reads meta.auth_type to

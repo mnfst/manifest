@@ -90,6 +90,8 @@ describe('ProviderAnalyticsController', () => {
   describe('getAnalytics', () => {
     it('returns summary + timeseries for default range (24h, hourly)', async () => {
       const out = await controller.getAnalytics(user, 'subscription');
+      // Final `true` arg = excludeSystem: Playground usage must not pollute
+      // provider analytics aggregates.
       expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
         '24h',
         'u1',
@@ -97,6 +99,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         'subscription',
         undefined,
+        true,
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '24h',
@@ -106,6 +109,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         'subscription',
         undefined,
+        true,
       );
       expect(out.summary.messages).toEqual({ value: 5 });
       expect(out.token_usage).toEqual([{ hour: '01' }]);
@@ -121,6 +125,7 @@ describe('ProviderAnalyticsController', () => {
         'agent-x',
         'api_key',
         'openai',
+        true,
       );
     });
 
@@ -133,6 +138,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         undefined,
         undefined,
+        true,
       );
     });
 
@@ -147,6 +153,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         'subscription',
         undefined,
+        true,
       );
     });
   });
@@ -357,6 +364,75 @@ describe('ProviderAnalyticsController', () => {
       expect(out.agents[0].pct_of_total).toBe(0);
       expect(out.agents[0].last_used).toBeNull();
       expect(out.model_usage[0].pct_of_total).toBe(0);
+    });
+
+    it('filters every usage query by the connection label (case-insensitive, NULL->Default)', async () => {
+      // Two keys share provider+auth_type but differ by label. The detail for
+      // the "Work" connection must filter every usage query by that label so a
+      // sibling "Personal" key's usage never bleeds in.
+      providerRepo.findOne.mockResolvedValue({
+        id: 'c1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        cached_models: [],
+        key_prefix: 'sk',
+        connected_at: '2026-01-01',
+        is_active: true,
+      });
+      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+
+      const qbs = [
+        makeQb({ rawOne: { last_used_at: null } }),
+        makeQb({ rawMany: [] }),
+        makeQb({ rawMany: [] }),
+        makeQb({ rawMany: [] }),
+      ];
+      messageRepo.createQueryBuilder
+        .mockReturnValueOnce(qbs[0])
+        .mockReturnValueOnce(qbs[1])
+        .mockReturnValueOnce(qbs[2])
+        .mockReturnValueOnce(qbs[3]);
+
+      await controller.getConnectionDetail(user, 'c1');
+
+      // Every one of the four usage builders must carry the label predicate
+      // with the connection's label bound case-insensitively.
+      for (const qb of qbs) {
+        const labelCall = qb.andWhere.mock.calls.find((c) =>
+          String(c[0]).includes("LOWER(COALESCE(at.provider_key_label, 'Default'))"),
+        );
+        expect(labelCall).toBeDefined();
+        expect(labelCall![1]).toEqual({ keyLabel: 'Work' });
+      }
+    });
+
+    it('treats a legacy NULL connection label as Default in the usage filter', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'c1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: null,
+        cached_models: [],
+        key_prefix: 'sk',
+        connected_at: '2026-01-01',
+        is_active: true,
+      });
+      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+
+      const firstQb = makeQb({ rawOne: { last_used_at: null } });
+      messageRepo.createQueryBuilder
+        .mockReturnValueOnce(firstQb)
+        .mockReturnValueOnce(makeQb({ rawMany: [] }))
+        .mockReturnValueOnce(makeQb({ rawMany: [] }))
+        .mockReturnValueOnce(makeQb({ rawMany: [] }));
+
+      await controller.getConnectionDetail(user, 'c1');
+
+      const labelCall = firstQb.andWhere.mock.calls.find((c) =>
+        String(c[0]).includes("LOWER(COALESCE(at.provider_key_label, 'Default'))"),
+      );
+      expect(labelCall![1]).toEqual({ keyLabel: 'Default' });
     });
 
     it('returns null last_used_at when no rows have ever been recorded', async () => {

@@ -306,6 +306,81 @@ describe('RateLimitTrackerService', () => {
       expect(out[0].keyLabel).toBe('k');
     });
 
+    it('keeps same-provider connections separate by auth_type and label (cache)', async () => {
+      const userId = nextUser();
+      const res = () =>
+        new Response(null, {
+          headers: makeHeaders({
+            'x-ratelimit-limit-requests': '100',
+            'x-ratelimit-remaining-requests': '90',
+          }),
+        });
+
+      // Same provider, three distinct connections: differing auth_type and label.
+      service.captureFromResponse(res(), userId, 'openai', 'api_key', 'work');
+      service.captureFromResponse(res(), userId, 'openai', 'api_key', 'personal');
+      service.captureFromResponse(res(), userId, 'openai', 'subscription', 'work');
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const out = await service.getRateLimits(userId);
+      expect(out).toHaveLength(3);
+      const ids = out.map((s) => `${s.provider}|${s.authType}|${s.keyLabel}`).sort();
+      expect(ids).toEqual([
+        'openai|api_key|personal',
+        'openai|api_key|work',
+        'openai|subscription|work',
+      ]);
+    });
+
+    it('groups DB rows by full connection tuple, not just provider', async () => {
+      const userId = nextUser();
+      const mk = (auth: string, label: string | null, limitType: string): FakeRow => ({
+        provider: 'openai',
+        auth_type: auth,
+        key_label: label,
+        limit_type: limitType,
+        period: 'minute',
+        limit_value: '100',
+        remaining_value: '50',
+        used_value: '50',
+        resets_at: null,
+      });
+      // Two distinct connections for the same provider plus a second limit_type
+      // on the first connection. Must yield two snapshots; the first carries
+      // both its limit rows.
+      getManyRows = [
+        mk('api_key', 'work', 'requests'),
+        mk('api_key', 'work', 'tokens'),
+        mk('subscription', 'personal', 'requests'),
+      ] as unknown as ProviderRateLimit[];
+
+      const out = await service.getRateLimits(userId);
+      expect(out).toHaveLength(2);
+      const work = out.find((s) => s.authType === 'api_key' && s.keyLabel === 'work');
+      const personal = out.find((s) => s.authType === 'subscription' && s.keyLabel === 'personal');
+      expect(work?.limits).toHaveLength(2);
+      expect(personal?.limits).toHaveLength(1);
+    });
+
+    it('matches the latest-snapshot subquery on the full connection identity', async () => {
+      const userId = nextUser();
+      getManyRows = [];
+      await service.getRateLimits(userId);
+      // The correlated subquery must constrain auth_type, key_label and
+      // limit_type (collapsing NULL labels to 'Default'), not just provider.
+      const subqueryCall = qb.andWhere.mock.calls.find((c) =>
+        String(c[0]).includes('MAX(rl2.captured_at)'),
+      );
+      expect(subqueryCall).toBeDefined();
+      const sql = String(subqueryCall![0]);
+      expect(sql).toContain('rl2.auth_type = rl.auth_type');
+      expect(sql).toContain(
+        "COALESCE(rl2.key_label, 'Default') = COALESCE(rl.key_label, 'Default')",
+      );
+      expect(sql).toContain('rl2.limit_type = rl.limit_type');
+    });
+
     it('expires stale cache entries and falls back to DB', async () => {
       const userId = nextUser();
       const realNow = Date.now;

@@ -595,6 +595,17 @@ export class ProxyService {
         modelParams: fallbackModelParams,
         specs: fallbackSpecs,
       });
+      // Capture the fallback provider's rate-limit headers too — only the
+      // failed primary was tracked before, so a fallback-served request left
+      // the winning connection's limits unrecorded. Fire-and-forget: the
+      // tracker swallows its own errors and never throws into the proxy path.
+      this.rateLimitTracker.captureFromResponse(
+        success.forward.response,
+        userId,
+        success.provider,
+        success.authType ?? '',
+        success.keyLabel,
+      );
       return {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {

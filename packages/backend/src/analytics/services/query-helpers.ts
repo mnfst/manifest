@@ -70,6 +70,39 @@ export function addTenantFilter<T extends ObjectLiteral>(
 }
 
 /**
+ * Exclude the reserved Playground (`is_system`) agent from a message
+ * aggregate. Joins the `agents` table on (name, tenant_id) and keeps only
+ * rows whose agent is non-system (or has no matching agent row at all, e.g.
+ * legacy telemetry where the agent was deleted). Assumes the query builder
+ * aliases `agent_messages` as `at`. The join alias `a` is reused by callers
+ * that already reference `a.*`, so it must stay `a`.
+ */
+export function excludeSystemAgents<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+): SelectQueryBuilder<T> {
+  if (!qb.expressionMap.joinAttributes.some((j) => j.alias.name === 'a')) {
+    qb.leftJoin('agents', 'a', 'a.name = at.agent_name AND a.tenant_id = at.tenant_id');
+  }
+  return qb.andWhere('(a.is_system IS NULL OR a.is_system = false)');
+}
+
+/**
+ * Match a connection's key label case-insensitively, treating a legacy NULL
+ * `provider_key_label` as the canonical `'Default'`. A connection is identified
+ * by (tenant, provider, auth_type, label); without the label filter two keys
+ * that share provider+auth_type but differ by label merge into one. Assumes the
+ * query builder aliases `agent_messages` as `at`.
+ */
+export function filterByKeyLabel<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  label: string | null | undefined,
+): SelectQueryBuilder<T> {
+  return qb.andWhere("LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)", {
+    keyLabel: label && label.length > 0 ? label : 'Default',
+  });
+}
+
+/**
  * Single source of truth for the columns projected by any endpoint that
  * returns rows rendered by the frontend `MessageTable` / `ModelCell` component.
  * The frontend `MessageRow` type (packages/frontend/src/components/message-table-types.ts)

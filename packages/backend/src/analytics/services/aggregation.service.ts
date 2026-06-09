@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { rangeToInterval, rangeToPreviousInterval } from '../../common/utils/range.util';
-import { MetricWithTrend, computeTrend, addTenantFilter } from './query-helpers';
+import {
+  MetricWithTrend,
+  computeTrend,
+  addTenantFilter,
+  excludeSystemAgents,
+} from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
@@ -56,6 +61,7 @@ export class AggregationService {
     agentName?: string,
     authType?: string,
     provider?: string,
+    excludeSystem = false,
   ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
@@ -70,6 +76,7 @@ export class AggregationService {
     addTenantFilter(currentQb, userId, agentName, tenantId);
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
     if (provider) currentQb.andWhere('at.provider = :provider', { provider });
+    if (excludeSystem) excludeSystemAgents(currentQb);
 
     const prevQb = this.buildPreviousWindowQuery(
       userId,
@@ -79,6 +86,7 @@ export class AggregationService {
       prevCutoff,
       authType,
       provider,
+      excludeSystem,
     )
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -125,6 +133,7 @@ export class AggregationService {
     prevCutoff: string,
     authType?: string,
     provider?: string,
+    excludeSystem = false,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -133,6 +142,7 @@ export class AggregationService {
     addTenantFilter(qb, userId, agentName, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    if (excludeSystem) excludeSystemAgents(qb);
     return qb;
   }
 }
