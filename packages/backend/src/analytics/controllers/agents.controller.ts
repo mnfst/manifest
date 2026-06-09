@@ -48,8 +48,14 @@ export class AgentsController {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  private agentListCacheKey(userId: string): string {
-    return `${userId}:/api/v1/agents`;
+  private async invalidateAgentListCache(userId: string): Promise<void> {
+    // GET /agents is cached per (user, originalUrl). The Messages filter hits the
+    // ?includeSystem=true variant, which is a distinct cache entry, so a single
+    // del() would leave it stale after a create/rename/delete. Clear both.
+    await Promise.all([
+      this.cacheManager.del(`${userId}:/api/v1/agents`),
+      this.cacheManager.del(`${userId}:/api/v1/agents?includeSystem=true`),
+    ]);
   }
 
   @Get('agents')
@@ -91,7 +97,7 @@ export class AgentsController {
     // inherits every usable provider the user already connected, with its
     // auto-assigned routes calculated from that model set.
     await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return {
       agent: {
@@ -138,7 +144,7 @@ export class AgentsController {
       }
       throw error;
     }
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return {
       agent: {
@@ -225,7 +231,7 @@ export class AgentsController {
       result['record_messages'] = body.record_messages;
     }
 
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return result;
   }
@@ -233,7 +239,7 @@ export class AgentsController {
   @Delete('agents/:agentName')
   async deleteAgent(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
     await this.lifecycle.deleteAgent(user.id, agentName);
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return { deleted: true };
   }

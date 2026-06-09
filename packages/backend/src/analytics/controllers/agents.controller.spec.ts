@@ -247,6 +247,9 @@ describe('AgentsController', () => {
     expect(result).toEqual({ renamed: true, name: 'bot-renamed', display_name: 'Bot Renamed' });
     expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed', 'Bot Renamed');
     expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+    // The Messages-filter variant (?includeSystem=true) is a distinct cache
+    // entry and must also be cleared so it never goes stale after a rename.
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents?includeSystem=true');
   });
 
   it('rejects rename with empty slug', async () => {
