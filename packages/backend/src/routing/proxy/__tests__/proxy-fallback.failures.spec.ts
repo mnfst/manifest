@@ -187,11 +187,11 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
   it('evicts an active cooldown when the cooldown cache is full', async () => {
     const cooldowns = (service as unknown as { rateLimitCooldowns: Map<string, number> })
       .rateLimitCooldowns;
-    const now = Date.now();
+    const farFuture = Date.now() + 60_000;
     for (let i = 0; i < 2_000; i += 1) {
       cooldowns.set(
         `agent-1\u0000anthropic\u0000subscription\u0000Key ${i}\u0000model-${i}`,
-        now + i + 1,
+        farFuture + i,
       );
     }
 
