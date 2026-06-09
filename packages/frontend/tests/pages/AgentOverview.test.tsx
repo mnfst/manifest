@@ -8,7 +8,7 @@ import { render } from "@solidjs/testing-library";
 
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: "test-agent" }),
-  useLocation: () => ({ pathname: "/agents/test-agent", state: null }),
+  useLocation: () => ({ pathname: "/harnesses/test-agent", state: null }),
   useNavigate: () => vi.fn(),
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));

@@ -6,7 +6,7 @@ let mockLocationState: any = null;
 const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
-  useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: mockLocationState }),
+  useLocation: () => ({ pathname: `/harnesses/${mockAgentName}`, state: mockLocationState }),
   useNavigate: () => mockNavigate,
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
 }));
@@ -368,7 +368,7 @@ describe("Overview", () => {
     await vi.waitFor(() => {
       const link = container.querySelector('a.view-more-link') as HTMLAnchorElement;
       expect(link).not.toBeNull();
-      expect(link.getAttribute("href")).toBe("/agents/test-agent/messages");
+      expect(link.getAttribute("href")).toBe("/harnesses/test-agent/messages");
     });
   });
 
@@ -564,16 +564,16 @@ describe("Overview", () => {
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/test-agent/routing",
+      "/harnesses/test-agent/routing",
       { state: { openProviders: true } },
     );
   });
 
-  it("shows Set up agent button when not setupCompleted and no providers", async () => {
+  it("shows Set up harness button when not setupCompleted and no providers", async () => {
     mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Set up agent");
+      expect(container.textContent).toContain("Set up harness");
       expect(container.textContent).not.toContain("Enable routing");
       expect(container.textContent).not.toContain("Connect provider");
     });
@@ -610,7 +610,7 @@ describe("Overview", () => {
       });
       fireEvent.click(screen.getByTestId("setup-go-routing"));
       expect(mockNavigate).toHaveBeenCalledWith(
-        "/agents/test-agent/routing",
+        "/harnesses/test-agent/routing",
         { state: { openProviders: true } },
       );
     });

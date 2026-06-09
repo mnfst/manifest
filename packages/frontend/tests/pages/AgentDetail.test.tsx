@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@solidjs/testing-library";
 
 // Hoisted mutable state so individual tests can override pathname
-let mockPathname = "/agents/my-agent";
+let mockPathname = "/harnesses/my-agent";
 const mockParams = { agentName: "my-agent" };
 
 vi.mock("@solidjs/router", () => ({
@@ -40,7 +40,7 @@ import AgentDetail from "../../src/pages/AgentDetail";
 
 describe("AgentDetail", () => {
   beforeEach(() => {
-    mockPathname = "/agents/my-agent";
+    mockPathname = "/harnesses/my-agent";
     mockParams.agentName = "my-agent";
     mockAgentDisplayName = null;
   });
@@ -50,11 +50,11 @@ describe("AgentDetail", () => {
     expect(container.querySelector("title")?.textContent).toBe("my-agent | Manifest");
   });
 
-  it("renders a back-link to /agents", () => {
+  it("renders a back-link to /harnesses", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
-    const backLink = container.querySelector('a[href="/agents"]') as HTMLAnchorElement;
+    const backLink = container.querySelector('a[href="/harnesses"]') as HTMLAnchorElement;
     expect(backLink).not.toBeNull();
-    expect(backLink.textContent).toContain("Agents");
+    expect(backLink.textContent).toContain("Harnesses");
   });
 
   it("renders an H1 with the agent name", () => {
@@ -80,35 +80,35 @@ describe("AgentDetail", () => {
   it("Overview tab links to the agent root path", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[0].getAttribute("href")).toBe("/agents/my-agent");
+    expect(tabs[0].getAttribute("href")).toBe("/harnesses/my-agent");
   });
 
-  it("Routing tab links to /agents/:name/routing", () => {
+  it("Routing tab links to /harnesses/:name/routing", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[1].getAttribute("href")).toBe("/agents/my-agent/routing");
+    expect(tabs[1].getAttribute("href")).toBe("/harnesses/my-agent/routing");
   });
 
-  it("Providers tab links to /agents/:name/providers", () => {
+  it("Providers tab links to /harnesses/:name/providers", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[2].getAttribute("href")).toBe("/agents/my-agent/providers");
+    expect(tabs[2].getAttribute("href")).toBe("/harnesses/my-agent/providers");
   });
 
-  it("Limits tab links to /agents/:name/guardrails", () => {
+  it("Limits tab links to /harnesses/:name/guardrails", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[3].getAttribute("href")).toBe("/agents/my-agent/guardrails");
+    expect(tabs[3].getAttribute("href")).toBe("/harnesses/my-agent/guardrails");
   });
 
-  it("Settings tab links to /agents/:name/settings", () => {
+  it("Settings tab links to /harnesses/:name/settings", () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
-    expect(tabs[4].getAttribute("href")).toBe("/agents/my-agent/settings");
+    expect(tabs[4].getAttribute("href")).toBe("/harnesses/my-agent/settings");
   });
 
   it("marks Overview tab active when pathname is the agent root", () => {
-    mockPathname = "/agents/my-agent";
+    mockPathname = "/harnesses/my-agent";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]') as NodeListOf<HTMLAnchorElement>;
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
@@ -119,14 +119,14 @@ describe("AgentDetail", () => {
   });
 
   it("marks Overview tab active when pathname is /overview", () => {
-    mockPathname = "/agents/my-agent/overview";
+    mockPathname = "/harnesses/my-agent/overview";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
   });
 
   it("marks Routing tab active when pathname is /routing", () => {
-    mockPathname = "/agents/my-agent/routing";
+    mockPathname = "/harnesses/my-agent/routing";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[0].getAttribute("aria-selected")).toBe("false");
@@ -134,21 +134,21 @@ describe("AgentDetail", () => {
   });
 
   it("marks Limits tab active when pathname is /guardrails", () => {
-    mockPathname = "/agents/my-agent/guardrails";
+    mockPathname = "/harnesses/my-agent/guardrails";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[3].getAttribute("aria-selected")).toBe("true");
   });
 
   it("marks Providers tab active when pathname is /providers", () => {
-    mockPathname = "/agents/my-agent/providers";
+    mockPathname = "/harnesses/my-agent/providers";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[2].getAttribute("aria-selected")).toBe("true");
   });
 
   it("marks Settings tab active when pathname starts with /settings", () => {
-    mockPathname = "/agents/my-agent/settings/advanced";
+    mockPathname = "/harnesses/my-agent/settings/advanced";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[4].getAttribute("aria-selected")).toBe("true");
@@ -165,7 +165,7 @@ describe("AgentDetail", () => {
 
   it("decodes URL-encoded agent names in title", () => {
     mockParams.agentName = "my%20agent";
-    mockPathname = "/agents/my%20agent";
+    mockPathname = "/harnesses/my%20agent";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector("title")?.textContent).toBe("my agent | Manifest");
     expect(container.querySelector("h1")?.textContent?.trim()).toBe("my agent");
@@ -177,7 +177,7 @@ describe("AgentDetail", () => {
   });
 
   it("applies panel__tab--active class to the active tab", () => {
-    mockPathname = "/agents/my-agent/routing";
+    mockPathname = "/harnesses/my-agent/routing";
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     const tabs = container.querySelectorAll('[role="tab"]');
     expect(tabs[1].className).toContain("panel__tab--active");
@@ -223,7 +223,7 @@ describe("AgentDetail with platform icon", () => {
     }));
     vi.doMock("@solidjs/router", () => ({
       useParams: () => ({ agentName: "my-agent" }),
-      useLocation: () => ({ pathname: "/agents/my-agent" }),
+      useLocation: () => ({ pathname: "/harnesses/my-agent" }),
       A: (props: any) => <a href={props.href} role={props.role}>{props.children}</a>,
     }));
     vi.doMock("@solidjs/meta", () => ({

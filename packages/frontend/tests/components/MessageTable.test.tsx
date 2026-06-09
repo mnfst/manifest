@@ -515,7 +515,7 @@ describe('MessageTable', () => {
       ));
       const link = container.querySelector('a');
       expect(link).not.toBeNull();
-      expect(link!.getAttribute('href')).toContain('/agents/my-agent/limits');
+      expect(link!.getAttribute('href')).toContain('/harnesses/my-agent/limits');
     });
 
     it('renders error tooltip for error messages', () => {
@@ -994,7 +994,7 @@ describe('MessageTable', () => {
         />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers[0]!.textContent).toContain('Agent');
+      expect(headers[0]!.textContent).toContain('Harness');
       expect(headers[1]!.textContent).toContain('Date');
     });
 

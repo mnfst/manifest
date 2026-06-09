@@ -218,7 +218,7 @@ describe("GlobalOverview", () => {
     const { container } = render(() => <GlobalOverview />);
     await vi.waitFor(() => {
       expect(container.querySelector("[data-testid='setup-modal']")).toBeNull();
-      expect(container.textContent).not.toContain("Set up agent");
+      expect(container.textContent).not.toContain("Set up harness");
     });
   });
 
@@ -239,11 +239,11 @@ describe("GlobalOverview", () => {
       });
     });
 
-    it("shows CTA link to /agents in empty state", async () => {
+    it("shows CTA link to /harnesses in empty state", async () => {
       mockGetOverview.mockResolvedValue(emptyOverviewData);
       const { container } = render(() => <GlobalOverview />);
       await vi.waitFor(() => {
-        const agentsLink = container.querySelector('a[href="/agents"]');
+        const agentsLink = container.querySelector('a[href="/harnesses"]');
         expect(agentsLink).not.toBeNull();
       });
     });

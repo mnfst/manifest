@@ -88,7 +88,7 @@ import Workspace from "../../src/pages/Workspace";
 
 const openModal = () => {
   const result = render(() => <Workspace />);
-  fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+  fireEvent.click(screen.getAllByText("Connect Harness")[0]);
   const input = result.container.querySelector(".modal-card__input") as HTMLInputElement;
   const createBtn = Array.from(
     result.container.querySelectorAll<HTMLButtonElement>(".modal-card button.btn--primary"),
@@ -150,7 +150,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     expect(createBtn.disabled).toBe(false);
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/weird%2Fname/routing", expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/weird%2Fname/routing", expect.anything());
     });
   });
 
@@ -160,7 +160,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     fireEvent.input(input, { target: { value: "100%cool" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/100%25cool/routing", expect.anything());
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/100%25cool/routing", expect.anything());
     });
   });
 
@@ -171,7 +171,7 @@ describe("Workspace AddAgentModal - name validation", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("bot-🚀")}/routing`,
+        `/harnesses/${encodeURIComponent("bot-🚀")}/routing`,
         expect.anything(),
       );
     });
@@ -253,7 +253,7 @@ describe("Workspace AddAgentModal - exact createAgent payload", () => {
     fireEvent.input(input, { target: { value: "Demo Agent" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/demo-agent-1/routing", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/demo-agent-1/routing", {
         state: { newApiKey: "key-xyz" },
       });
     });
@@ -267,7 +267,7 @@ describe("Workspace AddAgentModal - exact createAgent payload", () => {
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("Fallback Agent")}/routing`,
+        `/harnesses/${encodeURIComponent("Fallback Agent")}/routing`,
         { state: { newApiKey: "k" } },
       );
     });

@@ -113,7 +113,7 @@ describe('StatusCell without agentName (global mode)', () => {
     const { container } = render(() => <table><tbody><tr>{StatusCell(row, 'my-agent')}</tr></tbody></table>);
     const link = container.querySelector('a');
     expect(link).not.toBeNull();
-    expect(link!.getAttribute('href')).toContain('/agents/my-agent/limits');
+    expect(link!.getAttribute('href')).toContain('/harnesses/my-agent/limits');
   });
 });
 

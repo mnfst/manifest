@@ -68,8 +68,8 @@ describe("AddAgentModal", () => {
 
   it("renders the dialog title and description when open", () => {
     const { container } = renderOpen();
-    expect(container.textContent).toContain("Connect Agent");
-    expect(container.textContent).toContain("Name your agent to start tracking");
+    expect(container.textContent).toContain("Connect Harness");
+    expect(container.textContent).toContain("Name your harness to start tracking");
   });
 
   it("keeps Create disabled until a non-blank name is entered", () => {
@@ -94,7 +94,7 @@ describe("AddAgentModal", () => {
     fireEvent.input(input, { target: { value: "agent-a" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/new-agent/routing", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/new-agent/routing", {
         state: { newApiKey: "key-1" },
       });
     });
@@ -108,7 +108,7 @@ describe("AddAgentModal", () => {
     fireEvent.input(input, { target: { value: "agent-b" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/new-agent/routing", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/new-agent/routing", {
         state: { newApiKey: "key-1", openProviders: true },
       });
     });
@@ -120,7 +120,7 @@ describe("AddAgentModal", () => {
     fireEvent.input(input, { target: { value: "agent-c" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/new-agent/routing", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/new-agent/routing", {
         state: { newApiKey: "key-1", openProviders: true },
       });
     });
@@ -132,7 +132,7 @@ describe("AddAgentModal", () => {
     fireEvent.input(input, { target: { value: "agent-d" } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/agents/new-agent/routing", {
+      expect(mockNavigate).toHaveBeenCalledWith("/harnesses/new-agent/routing", {
         state: { newApiKey: "key-1", openProviders: true },
       });
     });
@@ -146,7 +146,7 @@ describe("AddAgentModal", () => {
     await vi.waitFor(() => {
       expect(mockMarkAgentCreated).toHaveBeenCalledWith("Typed Name");
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/agents/${encodeURIComponent("Typed Name")}/routing`,
+        `/harnesses/${encodeURIComponent("Typed Name")}/routing`,
         expect.anything(),
       );
     });

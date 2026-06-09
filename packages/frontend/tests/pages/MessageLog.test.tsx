@@ -575,7 +575,7 @@ describe("MessageLog", () => {
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/test-agent/routing",
+      "/harnesses/test-agent/routing",
       { state: { openProviders: true } },
     );
   });
@@ -591,11 +591,11 @@ describe("MessageLog", () => {
     });
   });
 
-  it("shows Set up agent when no setupCompleted and no providers", async () => {
+  it("shows Set up harness when no setupCompleted and no providers", async () => {
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Set up agent");
+      expect(container.textContent).toContain("Set up harness");
       expect(container.textContent).not.toContain("Enable routing");
       expect(container.textContent).not.toContain("Connect provider");
     });
@@ -1291,7 +1291,7 @@ describe("MessageLog", () => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         // agent filter is the first select in global mode
         expect(selects.length).toBeGreaterThanOrEqual(1);
-        expect(selects[0].textContent).toContain("All agents");
+        expect(selects[0].textContent).toContain("All harnesses");
       });
     });
 
@@ -1321,8 +1321,8 @@ describe("MessageLog", () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
-        // In agent mode, first select is provider filter (no "All agents" option)
-        expect(selects[0].textContent).not.toContain("All agents");
+        // In agent mode, first select is provider filter (no "All harnesses" option)
+        expect(selects[0].textContent).not.toContain("All harnesses");
         expect(selects[0].textContent).toContain("All providers");
       });
     });
@@ -1346,7 +1346,7 @@ describe("MessageLog", () => {
       });
     });
 
-    it("omits agent_name query param when 'All agents' is selected", async () => {
+    it("omits agent_name query param when 'All harnesses' is selected", async () => {
       mockAgentName = "";
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
@@ -1363,7 +1363,7 @@ describe("MessageLog", () => {
         expect(calls.some((c: any[]) => c[0]?.agent_name === "agent-alpha")).toBe(true);
       });
       mockGetMessages.mockClear();
-      // Then go back to "All agents"
+      // Then go back to "All harnesses"
       fireEvent.change(agentSelect, { target: { value: "" } });
       await vi.waitFor(() => {
         const calls = mockGetMessages.mock.calls;
@@ -1430,7 +1430,7 @@ describe("MessageLog", () => {
         expect(mockGetAgents).toHaveBeenCalled();
         const selects = container.querySelectorAll('[data-testid="select"]');
         // Agent filter still renders gracefully (agentList() ?? [] = [])
-        expect(selects[0].textContent).toContain("All agents");
+        expect(selects[0].textContent).toContain("All harnesses");
         expect(selects[0].textContent).not.toContain("agent-alpha");
       });
       // Unmount and reset before the rejection can leak into the next test.
@@ -1465,9 +1465,9 @@ describe("MessageLog", () => {
       });
     });
 
-    it("renders 'Agent' column header in the message table when in global mode", async () => {
+    it("renders 'Harness' column header in the message table when in global mode", async () => {
       // Fix: columns() now inserts 'agent' before 'model' when !params.agentName.
-      // This test asserts the Agent column header actually appears in the DOM,
+      // This test asserts the Harness column header actually appears in the DOM,
       // not just that the component receives the columns array.
       mockAgentName = "";
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1477,10 +1477,10 @@ describe("MessageLog", () => {
       });
       const headers = Array.from(container.querySelectorAll("thead th"));
       const headerTexts = headers.map((th) => th.textContent?.trim());
-      expect(headerTexts).toContain("Agent");
+      expect(headerTexts).toContain("Harness");
     });
 
-    it("does NOT render 'Agent' column header in agent-scoped mode", async () => {
+    it("does NOT render 'Harness' column header in agent-scoped mode", async () => {
       // mockAgentName is "test-agent" from beforeEach — agent-scoped mode.
       // columns() returns DETAILED_COLUMNS unchanged (no 'agent' key).
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1490,7 +1490,7 @@ describe("MessageLog", () => {
       });
       const headers = Array.from(container.querySelectorAll("thead th"));
       const headerTexts = headers.map((th) => th.textContent?.trim());
-      expect(headerTexts).not.toContain("Agent");
+      expect(headerTexts).not.toContain("Harness");
     });
 
     it("renders agent_name values in the Agent column cells in global mode", async () => {
@@ -1549,30 +1549,30 @@ describe("MessageLog", () => {
       });
     });
 
-    it("shows 'Go to Agents' link (not SetupModal CTA) in the empty state in global mode", async () => {
+    it("shows 'Go to Harnesses' link (not SetupModal CTA) in the empty state in global mode", async () => {
       mockAgentName = "";
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No messages yet");
-        // Global empty state guides to /agents, not set-up-agent modal
-        const link = container.querySelector('a[href="/agents"]') as HTMLAnchorElement;
+        // Global empty state guides to /harnesses, not set-up-agent modal
+        const link = container.querySelector('a[href="/harnesses"]') as HTMLAnchorElement;
         expect(link).not.toBeNull();
-        expect(link.textContent).toContain("Go to Agents");
-        // No "Set up agent" button in global mode
-        expect(container.textContent).not.toContain("Set up agent");
+        expect(link.textContent).toContain("Go to Harnesses");
+        // No "Set up harness" button in global mode
+        expect(container.textContent).not.toContain("Set up harness");
       });
     });
 
-    it("does not navigate to /agents/undefined/routing in global mode", async () => {
+    it("does not navigate to /harnesses/undefined/routing in global mode", async () => {
       mockAgentName = "";
       mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("No messages yet");
       });
-      // Clicking the "Go to Agents" link should use the href attribute, not navigate()
-      // Verify no button triggers mockNavigate with "/agents/undefined/routing"
+      // Clicking the "Go to Harnesses" link should use the href attribute, not navigate()
+      // Verify no button triggers mockNavigate with "/harnesses/undefined/routing"
       expect(mockNavigate).not.toHaveBeenCalledWith(
         expect.stringContaining("undefined"),
         expect.anything(),

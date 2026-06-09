@@ -5,7 +5,7 @@ const mockFetch = vi.fn();
 
 beforeEach(() => {
   vi.stubGlobal('fetch', mockFetch);
-  vi.stubGlobal('location', { origin: 'http://localhost:3000', pathname: '/agents/test' });
+  vi.stubGlobal('location', { origin: 'http://localhost:3000', pathname: '/harnesses/test' });
   mockFetch.mockReset();
 });
 

@@ -359,13 +359,13 @@ describe("AgentTypeSelect", () => {
     ));
     expect(
       blankContainer.querySelector(".agent-type-select__trigger")!.getAttribute("aria-label"),
-    ).toBe("Agent type: Select");
+    ).toBe("Harness type: Select");
 
     const { container: pickedContainer } = render(() => (
       <AgentTypeSelect {...defaultProps} category="coding" platform="claude-code" />
     ));
     expect(
       pickedContainer.querySelector(".agent-type-select__trigger")!.getAttribute("aria-label"),
-    ).toBe("Agent type: Claude Code");
+    ).toBe("Harness type: Claude Code");
   });
 });

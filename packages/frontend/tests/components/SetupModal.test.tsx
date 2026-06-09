@@ -50,7 +50,7 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="my-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Set up agent:");
+    expect(container.textContent).toContain("Set up harness:");
     expect(container.textContent).toContain("my-agent");
   });
 
@@ -105,7 +105,7 @@ describe("SetupModal", () => {
     const { container } = render(() => (
       <SetupModal open={true} agentName="test-agent" onClose={onClose} />
     ));
-    expect(container.textContent).toContain("Connect your agent to Manifest");
+    expect(container.textContent).toContain("Connect your harness to Manifest");
   });
 
   it("closes on overlay click", () => {

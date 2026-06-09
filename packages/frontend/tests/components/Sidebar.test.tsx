@@ -30,7 +30,7 @@ beforeEach(() => {
 
 describe("Sidebar — global nav (agent route)", () => {
   beforeEach(() => {
-    mockPathname = "/agents/test-agent";
+    mockPathname = "/harnesses/test-agent";
   });
 
   it("renders Overview link", () => {
@@ -43,9 +43,9 @@ describe("Sidebar — global nav (agent route)", () => {
     expect(screen.getByText("Messages")).toBeDefined();
   });
 
-  it("renders Agents link", () => {
+  it("renders Harnesses link", () => {
     render(() => <Sidebar />);
-    expect(screen.getByText("Agents")).toBeDefined();
+    expect(screen.getByText("Harnesses")).toBeDefined();
   });
 
   it("renders provider section links", () => {
@@ -78,19 +78,19 @@ describe("Sidebar — global nav (agent route)", () => {
     expect(container.querySelector('a[href="/providers/subscriptions"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/byok"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull();
-    expect(container.querySelector('a[href="/agents"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/harnesses"]')).not.toBeNull();
   });
 
-  it("marks Agents link active on /agents/:name path", () => {
+  it("marks Harnesses link active on /harnesses/:name path", () => {
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/agents"]');
+    const agentsLink = container.querySelector('a[href="/harnesses"]');
     expect(agentsLink?.getAttribute("aria-current")).toBe("page");
   });
 
-  it("marks Agents link active on /agents/:name/routing sub-path", () => {
-    mockPathname = "/agents/test-agent/routing";
+  it("marks Harnesses link active on /harnesses/:name/routing sub-path", () => {
+    mockPathname = "/harnesses/test-agent/routing";
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/agents"]');
+    const agentsLink = container.querySelector('a[href="/harnesses"]');
     expect(agentsLink?.getAttribute("aria-current")).toBe("page");
   });
 });
@@ -106,11 +106,11 @@ describe("Sidebar — global nav (global route)", () => {
     expect(screen.getByText("Messages")).toBeDefined();
   });
 
-  it("renders Agents link pointing to /agents", () => {
+  it("renders Harnesses link pointing to /harnesses", () => {
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/agents"]');
+    const agentsLink = container.querySelector('a[href="/harnesses"]');
     expect(agentsLink).not.toBeNull();
-    expect(agentsLink?.textContent).toContain("Agents");
+    expect(agentsLink?.textContent).toContain("Harnesses");
   });
 
   it("marks provider links active on provider pages", () => {
@@ -138,10 +138,10 @@ describe("Sidebar — global nav (global route)", () => {
     expect(messagesLink?.getAttribute("aria-current")).toBe("page");
   });
 
-  it("marks Agents link active on /agents path", () => {
-    mockPathname = "/agents";
+  it("marks Harnesses link active on /harnesses path", () => {
+    mockPathname = "/harnesses";
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/agents"]');
+    const agentsLink = container.querySelector('a[href="/harnesses"]');
     expect(agentsLink?.getAttribute("aria-current")).toBe("page");
   });
 
@@ -154,14 +154,14 @@ describe("Sidebar — global nav (global route)", () => {
 });
 
 describe("Sidebar — identical in agent and global mode", () => {
-  it("renders the same links on /overview and /agents/:name", () => {
+  it("renders the same links on /overview and /harnesses/:name", () => {
     mockPathname = "/overview";
     const { container: globalContainer } = render(() => <Sidebar />);
     const globalLinks = Array.from(globalContainer.querySelectorAll("a.sidebar__link")).map(
       (a) => a.getAttribute("href"),
     );
 
-    mockPathname = "/agents/test-agent";
+    mockPathname = "/harnesses/test-agent";
     const { container: agentContainer } = render(() => <Sidebar />);
     const agentLinks = Array.from(agentContainer.querySelectorAll("a.sidebar__link")).map(
       (a) => a.getAttribute("href"),
@@ -174,7 +174,7 @@ describe("Sidebar — identical in agent and global mode", () => {
       "/providers/subscriptions",
       "/providers/byok",
       "/providers/local",
-      "/agents",
+      "/harnesses",
       "/playground",
     ]);
   });
@@ -185,7 +185,7 @@ describe("Sidebar — structure and interaction", () => {
     const { container } = render(() => <Sidebar />);
     const nav = container.querySelector("nav.sidebar");
     expect(nav).not.toBeNull();
-    expect(nav?.getAttribute("aria-label")).toBe("Agent navigation");
+    expect(nav?.getAttribute("aria-label")).toBe("Navigation");
   });
 
   it("applies the mobile open class", () => {
@@ -227,22 +227,22 @@ describe("Sidebar — structure and interaction", () => {
 });
 
 describe("Sidebar — active state via isGlobalActive prefix matching", () => {
-  it("marks /agents active on /agents sub-path /agents/foo/routing", () => {
-    mockPathname = "/agents/foo/routing";
+  it("marks /harnesses active on /harnesses sub-path /harnesses/foo/routing", () => {
+    mockPathname = "/harnesses/foo/routing";
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/agents"]');
+    const agentsLink = container.querySelector('a[href="/harnesses"]');
     expect(agentsLink?.getAttribute("aria-current")).toBe("page");
   });
 
-  it("marks /agents active on /agents/foo (no trailing slash)", () => {
-    mockPathname = "/agents/foo";
+  it("marks /harnesses active on /harnesses/foo (no trailing slash)", () => {
+    mockPathname = "/harnesses/foo";
     const { container } = render(() => <Sidebar />);
-    const agentsLink = container.querySelector('a[href="/agents"]');
+    const agentsLink = container.querySelector('a[href="/harnesses"]');
     expect(agentsLink?.getAttribute("aria-current")).toBe("page");
   });
 
-  it("does not mark /overview active when on /agents", () => {
-    mockPathname = "/agents";
+  it("does not mark /overview active when on /harnesses", () => {
+    mockPathname = "/harnesses";
     const { container } = render(() => <Sidebar />);
     const overviewLink = container.querySelector('a[href="/overview"]');
     expect(overviewLink?.getAttribute("aria-current")).not.toBe("page");

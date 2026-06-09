@@ -117,7 +117,7 @@ describe('DuplicateAgentModal', () => {
     });
 
     const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Duplicate agent',
+      (b) => b.textContent?.trim() === 'Duplicate harness',
     ) as HTMLButtonElement;
     fireEvent.click(btn);
 
@@ -127,7 +127,7 @@ describe('DuplicateAgentModal', () => {
     await waitFor(() => {
       expect(mockToastSuccess).toHaveBeenCalled();
       expect(mockMarkAgentCreated).toHaveBeenCalledWith('my-agent-copy');
-      expect(mockNavigate).toHaveBeenCalledWith('/agents/my-agent-copy', {
+      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/my-agent-copy', {
         state: { newApiKey: 'mnfst_xyz' },
       });
       expect(onClose).toHaveBeenCalled();
@@ -145,7 +145,7 @@ describe('DuplicateAgentModal', () => {
 
     await waitFor(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.trim() === 'Duplicate agent',
+        (b) => b.textContent?.trim() === 'Duplicate harness',
       ) as HTMLButtonElement;
       expect(btn.hasAttribute('disabled')).toBe(true);
     });
@@ -209,7 +209,7 @@ describe('DuplicateAgentModal', () => {
     });
 
     const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Duplicate agent',
+      (b) => b.textContent?.trim() === 'Duplicate harness',
     ) as HTMLButtonElement;
     fireEvent.click(btn);
 
@@ -286,7 +286,7 @@ describe('DuplicateAgentModal', () => {
     });
 
     const duplicateBtn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Duplicate agent',
+      (b) => b.textContent?.trim() === 'Duplicate harness',
     ) as HTMLButtonElement;
     fireEvent.click(duplicateBtn);
 
