@@ -175,6 +175,7 @@ describe("Sidebar — identical in agent and global mode", () => {
       "/providers/byok",
       "/providers/local",
       "/agents",
+      "/playground",
     ]);
   });
 });

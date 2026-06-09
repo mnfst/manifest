@@ -85,6 +85,16 @@ const Sidebar: Component<SidebarProps> = (props) => {
         Agents
       </A>
 
+      <div class="sidebar__section-label">TOOLS</div>
+      <A
+        href="/playground"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/playground') }}
+        aria-current={isGlobalActive('/playground') ? 'page' : undefined}
+      >
+        Playground
+      </A>
+
       <div class="sidebar__spacer" />
 
       <a
