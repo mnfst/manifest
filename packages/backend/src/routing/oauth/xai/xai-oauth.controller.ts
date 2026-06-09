@@ -21,6 +21,7 @@ import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { oauthDoneHtml, type OAuthTokenBlob } from '../core';
 import { optionalTrimmedStringQuery } from '../query-params';
+import { resolveOAuthConnectionScope } from '../oauth-scope';
 import { XaiOauthService } from './xai-oauth.service';
 
 @Controller('api/v1/oauth/xai')
@@ -37,18 +38,20 @@ export class XaiOauthController {
 
   @Get('authorize')
   async authorize(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
     @Req() req: Request,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
     const trustedBackendUrl = this.configService.get<string>('BETTER_AUTH_URL');
     const backendUrl = trustedBackendUrl || `${req.protocol}://${req.get('host')}`;
     try {
-      const url = await this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
+      const url = await this.oauthService.generateAuthorizationUrl(
+        scope.type === 'agent' ? scope.agentId : scope,
+        user.id,
+        backendUrl,
+      );
       return { url };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start OAuth callback server';
@@ -78,16 +81,17 @@ export class XaiOauthController {
 
   @Post('revoke')
   async revoke(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @Query('label') label: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(agent.id, 'xai', 'subscription');
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
+    const keys =
+      scope.type === 'agent'
+        ? await this.providerKeyService.getProviderKeys(scope.agentId, 'xai', 'subscription')
+        : await this.providerService.getProviderKeysForConnection(scope, 'xai', 'subscription');
     const keysToRevoke = keyLabel
       ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
       : keys;
@@ -103,12 +107,15 @@ export class XaiOauthController {
       }
     }
 
-    const { notifications } = await this.providerService.removeProvider(
-      agent.id,
-      'xai',
-      'subscription',
-      keyLabel,
-    );
+    const { notifications } =
+      scope.type === 'agent'
+        ? await this.providerService.removeProvider(scope.agentId, 'xai', 'subscription', keyLabel)
+        : await this.providerService.removeProviderForConnection(
+            scope,
+            'xai',
+            'subscription',
+            keyLabel,
+          );
 
     return { ok: true, notifications };
   }

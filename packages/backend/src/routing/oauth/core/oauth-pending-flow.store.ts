@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 export interface OAuthPendingFlowInput {
   state: string;
   verifier: string;
-  agentId: string;
+  agentId: string | null;
   userId: string;
 }
 
@@ -18,7 +18,7 @@ interface RawOAuthPendingFlow {
   provider: string;
   state: string;
   code_verifier: string;
-  agent_id: string;
+  agent_id: string | null;
   user_id: string;
   expires_at: Date | string;
 }
@@ -41,7 +41,7 @@ export class OAuthPendingFlowStore {
       `
         DELETE FROM "oauth_pending_flows"
         WHERE "provider" = $1
-          AND "agent_id" = $2
+          AND ("agent_id" = $2 OR ("agent_id" IS NULL AND $2::varchar IS NULL))
           AND "user_id" = $3
       `,
       [provider, input.agentId, input.userId],
@@ -61,7 +61,7 @@ export class OAuthPendingFlowStore {
   async consume(
     provider: string,
     state: string,
-    agentId: string,
+    agentId: string | null,
     userId: string,
   ): Promise<OAuthPendingFlowRecord | null> {
     const result = await this.dataSource.query(
@@ -69,7 +69,7 @@ export class OAuthPendingFlowStore {
         DELETE FROM "oauth_pending_flows"
         WHERE "provider" = $1
           AND "state" = $2
-          AND "agent_id" = $3
+          AND ("agent_id" = $3 OR ("agent_id" IS NULL AND $3::varchar IS NULL))
           AND "user_id" = $4
           AND "expires_at" > NOW()
         RETURNING "provider", "state", "code_verifier", "agent_id", "user_id", "expires_at"
@@ -83,7 +83,7 @@ export class OAuthPendingFlowStore {
 
   async findLatestForAgent(
     provider: string,
-    agentId: string,
+    agentId: string | null,
     userId: string,
   ): Promise<OAuthPendingFlowRecord | null> {
     await this.cleanupExpired(provider);
@@ -92,7 +92,7 @@ export class OAuthPendingFlowStore {
         SELECT "provider", "state", "code_verifier", "agent_id", "user_id", "expires_at"
         FROM "oauth_pending_flows"
         WHERE "provider" = $1
-          AND "agent_id" = $2
+          AND ("agent_id" = $2 OR ("agent_id" IS NULL AND $2::varchar IS NULL))
           AND "user_id" = $3
           AND "expires_at" > NOW()
         ORDER BY "created_at" DESC

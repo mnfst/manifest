@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../entities/user-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
@@ -257,7 +257,7 @@ export class ModelDiscoveryService {
     await this.providerRepo.save(provider);
     // The agent's effective model list just changed on disk — drop the cache
     // so getModelsForAgent() reassembles it on the next read.
-    this.invalidate(provider.agent_id);
+    if (provider.agent_id) this.invalidate(provider.agent_id);
 
     this.logger.log(
       `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
@@ -327,6 +327,68 @@ export class ModelDiscoveryService {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(
         `Per-provider refresh failed for ${provider.provider} (agent ${agentId}): ${message}`,
+      );
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: message,
+      };
+    }
+  }
+
+  async refreshGlobalProvider(
+    userId: string,
+    providerId: string,
+    authType?: AuthType,
+  ): Promise<{
+    ok: boolean;
+    model_count: number;
+    last_fetched_at: string | null;
+    error: string | null;
+  }> {
+    const where: {
+      user_id: string;
+      agent_id: ReturnType<typeof IsNull>;
+      provider: string;
+      is_active: true;
+      auth_type?: AuthType;
+    } = {
+      user_id: userId,
+      agent_id: IsNull(),
+      provider: providerId,
+      is_active: true,
+    };
+    if (authType) where.auth_type = authType;
+    const provider = await this.providerRepo.findOne({ where });
+    if (!provider) {
+      return { ok: false, model_count: 0, last_fetched_at: null, error: 'Provider not found' };
+    }
+
+    const previousCount = Array.isArray(provider.cached_models) ? provider.cached_models.length : 0;
+    const previousFetchedAt = provider.models_fetched_at;
+
+    if (provider.provider.startsWith('custom:')) {
+      return {
+        ok: false,
+        model_count: previousCount,
+        last_fetched_at: previousFetchedAt,
+        error: 'Custom providers are managed manually — edit the provider to update its model list',
+      };
+    }
+
+    try {
+      const models = await this.discoverModels(provider);
+      return {
+        ok: models.length > 0,
+        model_count: models.length,
+        last_fetched_at: provider.models_fetched_at,
+        error: models.length === 0 ? 'Provider returned no models' : null,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `Per-provider refresh failed for global ${provider.provider} (user ${userId}): ${message}`,
       );
       return {
         ok: false,

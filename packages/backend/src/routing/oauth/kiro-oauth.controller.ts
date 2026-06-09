@@ -5,6 +5,7 @@ import { KiroOauthService } from './kiro-oauth.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { optionalTrimmedStringQuery } from './query-params';
+import { resolveOAuthConnectionScope } from './oauth-scope';
 
 @Controller('api/v1/oauth/kiro')
 export class KiroOauthController {
@@ -15,13 +16,17 @@ export class KiroOauthController {
   ) {}
 
   @Post('start')
-  async start(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+  async start(
+    @Query('agentName') agentName: string | string[] | undefined,
+    @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
+  ) {
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
     try {
-      return await this.oauthService.startAuthorization(agent.id, user.id);
+      return await this.oauthService.startAuthorization(
+        scope.type === 'agent' ? scope.agentId : scope,
+        user.id,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start Kiro login';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
@@ -43,21 +48,22 @@ export class KiroOauthController {
 
   @Post('revoke')
   async revoke(
-    @Query('agentName') agentName: string,
+    @Query('agentName') agentName: string | string[] | undefined,
     @Query('label') label: string | string[] | undefined,
     @CurrentUser() user: AuthUser,
+    @Query('scope') scopeValue?: string | string[],
   ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const { notifications } = await this.providerService.removeProvider(
-      agent.id,
-      'kiro',
-      'subscription',
-      keyLabel,
-    );
+    const scope = await resolveOAuthConnectionScope(this.resolveAgent, user, agentName, scopeValue);
+    const { notifications } =
+      scope.type === 'agent'
+        ? await this.providerService.removeProvider(scope.agentId, 'kiro', 'subscription', keyLabel)
+        : await this.providerService.removeProviderForConnection(
+            scope,
+            'kiro',
+            'subscription',
+            keyLabel,
+          );
     return { ok: true, notifications };
   }
 }

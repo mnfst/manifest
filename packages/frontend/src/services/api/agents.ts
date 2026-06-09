@@ -61,6 +61,7 @@ export interface CreateAgentParams {
   name: string;
   agent_category?: string;
   agent_platform?: string;
+  global_provider_ids?: string[];
 }
 
 export interface DuplicateAgentPreview {

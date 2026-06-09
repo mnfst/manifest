@@ -12,6 +12,7 @@ import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
 
 describe('AgentsController', () => {
   let controller: AgentsController;
@@ -26,6 +27,8 @@ describe('AgentsController', () => {
   let mockDuplicate: jest.Mock;
   let mockGetCopySummary: jest.Mock;
   let mockSuggestName: jest.Mock;
+  let mockAssertGlobalProvidersSelectable: jest.Mock;
+  let mockCopyGlobalProvidersToAgent: jest.Mock;
 
   beforeEach(async () => {
     mockGetAgentList = jest.fn().mockResolvedValue([
@@ -59,6 +62,8 @@ describe('AgentsController', () => {
       modelParams: 0,
     });
     mockSuggestName = jest.fn().mockResolvedValue('bot-copy');
+    mockAssertGlobalProvidersSelectable = jest.fn().mockResolvedValue(undefined);
+    mockCopyGlobalProvidersToAgent = jest.fn().mockResolvedValue(0);
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
@@ -98,6 +103,13 @@ describe('AgentsController', () => {
             onboardAgent: jest.fn(),
             getKeyForAgent: mockGetKeyForAgent,
             rotateKey: mockRotateKey,
+          },
+        },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: mockAssertGlobalProvidersSelectable,
+            copyGlobalProvidersToAgent: mockCopyGlobalProvidersToAgent,
           },
         },
         {
@@ -254,6 +266,11 @@ describe('AgentsController', () => {
       agentId: 'a1',
       apiKey: 'mnfst_key',
     });
+    const providerService = {
+      assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+      copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(1),
+    };
+    const globalProviderIds = ['11111111-1111-4111-8111-111111111111'];
     const module: TestingModule = await Test.createTestingModule({
       imports: [CacheModule.register()],
       controllers: [AgentsController],
@@ -272,6 +289,10 @@ describe('AgentsController', () => {
         {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: providerService,
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
@@ -297,14 +318,24 @@ describe('AgentsController', () => {
         name: 'My Agent',
         agent_category: 'personal',
         agent_platform: 'openclaw',
+        global_provider_ids: globalProviderIds,
       } as never,
     );
 
+    expect(providerService.assertGlobalProvidersSelectable).toHaveBeenCalledWith(
+      'user-123',
+      globalProviderIds,
+    );
     expect(mockOnboard).toHaveBeenCalledWith(
       expect.objectContaining({
         agentCategory: 'personal',
         agentPlatform: 'openclaw',
       }),
+    );
+    expect(providerService.copyGlobalProvidersToAgent).toHaveBeenCalledWith(
+      'user-123',
+      'a1',
+      globalProviderIds,
     );
     expect(result.agent.agent_category).toBe('personal');
     expect(result.agent.agent_platform).toBe('openclaw');
@@ -334,6 +365,13 @@ describe('AgentsController', () => {
         {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+            copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0),
+          },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
@@ -395,6 +433,13 @@ describe('AgentsController', () => {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: jest.fn(), getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+            copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0),
+          },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn() } },
         { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
@@ -445,6 +490,13 @@ describe('AgentsController', () => {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+            copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0),
+          },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
         { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
@@ -490,6 +542,13 @@ describe('AgentsController', () => {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
         },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+            copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0),
+          },
+        },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
         { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
@@ -533,6 +592,13 @@ describe('AgentsController', () => {
         {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+            copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0),
+          },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
@@ -635,6 +701,13 @@ describe('AgentsController', () => {
         {
           provide: ApiKeyGeneratorService,
           useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: {
+            assertGlobalProvidersSelectable: jest.fn().mockResolvedValue(undefined),
+            copyGlobalProvidersToAgent: jest.fn().mockResolvedValue(0),
+          },
         },
         { provide: ConfigService, useValue: { get: jest.fn() } },
         { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },

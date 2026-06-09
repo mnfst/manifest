@@ -4,6 +4,7 @@ import { Router, Route } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
+import TenantWorkspaceLayout from './layouts/TenantWorkspaceLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
@@ -30,6 +31,10 @@ const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
 const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
+const GlobalProviders = lazyReload(() => import('./pages/GlobalProviders.jsx'));
+const GlobalProviderSubscriptions = lazyReload(() => import('./pages/providers/Subscriptions.jsx'));
+const GlobalProviderByok = lazyReload(() => import('./pages/providers/Byok.jsx'));
+const GlobalProviderLocal = lazyReload(() => import('./pages/providers/Local.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -57,7 +62,13 @@ render(
       <ToastContainer />
       <Router>
         <Route path="/" component={App}>
-          <Route path="/" component={Workspace} />
+          <Route path="/" component={TenantWorkspaceLayout}>
+            <Route path="/" component={Workspace} />
+            <Route path="/providers" component={GlobalProviders} />
+            <Route path="/providers/subscriptions" component={GlobalProviderSubscriptions} />
+            <Route path="/providers/byok" component={GlobalProviderByok} />
+            <Route path="/providers/local" component={GlobalProviderLocal} />
+          </Route>
           <Route path="/agents/:agentName" component={AgentGuard}>
             <Route path="/" component={Overview} />
             <Route path="/messages" component={MessageLog} />

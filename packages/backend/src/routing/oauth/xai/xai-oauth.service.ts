@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createServer, IncomingMessage, Server, ServerResponse } from 'http';
-import { ProviderService } from '../../routing-core/provider.service';
+import { ProviderService, type ProviderConnectionScope } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
@@ -18,8 +18,7 @@ import {
 
 interface PendingXaiOAuth {
   verifier: string;
-  agentId: string;
-  userId: string;
+  scope: ProviderConnectionScope;
   backendUrl: string;
   expiresAt: number;
 }
@@ -32,6 +31,10 @@ const SCOPE = 'openid profile email offline_access grok-cli:access api:access';
 const CALLBACK_PORT = 56121;
 const REDIRECT_URI = `http://127.0.0.1:${CALLBACK_PORT}/callback`;
 const STATE_TTL_MS = 10 * 60 * 1000;
+
+function scopeLogLabel(scope: ProviderConnectionScope): string {
+  return scope.type === 'agent' ? `agent=${scope.agentId}` : `global user=${scope.userId}`;
+}
 
 @Injectable()
 export class XaiOauthService {
@@ -53,18 +56,21 @@ export class XaiOauthService {
   }
 
   async generateAuthorizationUrl(
-    agentId: string,
+    scopeOrAgentId: ProviderConnectionScope | string,
     userId: string,
     backendUrl?: string,
   ): Promise<string> {
+    const scope: ProviderConnectionScope =
+      typeof scopeOrAgentId === 'string'
+        ? { type: 'agent', agentId: scopeOrAgentId, userId }
+        : scopeOrAgentId;
     const state = generateState();
     const nonce = generateState(16);
     const { verifier, challenge } = generatePkce();
     const safeBackendUrl = backendUrl && this.isAllowedRedirectOrigin(backendUrl) ? backendUrl : '';
     this.pending.set(state, {
       verifier,
-      agentId,
-      userId,
+      scope,
       backendUrl: safeBackendUrl,
     });
     if (this.useCallbackServer) {
@@ -122,10 +128,9 @@ export class XaiOauthService {
       r: data.refresh_token,
       e: Date.now() + data.expires_in * 1000,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'xai');
-    const { provider: savedProvider } = await this.providerService.upsertProvider(
-      pending.agentId,
-      pending.userId,
+    const label = await this.providerService.nextOAuthLabelForConnection(pending.scope, 'xai');
+    const { provider: savedProvider } = await this.providerService.upsertProviderForConnection(
+      pending.scope,
       'xai',
       serializeOAuthTokenBlob(blob),
       'subscription',
@@ -134,11 +139,13 @@ export class XaiOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      if (pending.scope.type === 'agent') {
+        await this.providerService.recalculateTiers(pending.scope.agentId);
+      }
     } catch (err) {
       this.logger.warn(`Model discovery after xAI OAuth failed: ${err}`);
     }
-    this.logger.log(`xAI OAuth token stored for agent=${pending.agentId}`);
+    this.logger.log(`xAI OAuth token stored for ${scopeLogLabel(pending.scope)}`);
     this.shutdownCallbackServerIfIdle();
   }
 

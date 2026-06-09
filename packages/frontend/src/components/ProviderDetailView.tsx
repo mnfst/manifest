@@ -10,8 +10,11 @@ import {
 import { PROVIDERS } from '../services/providers.js';
 import { providerIcon } from './ProviderIcon.js';
 import {
+  connectGlobalProvider,
   connectProvider,
+  disconnectGlobalProvider,
   disconnectProvider,
+  refreshGlobalProviderModels,
   refreshProviderModels,
   type RoutingProvider,
   type AuthType,
@@ -43,10 +46,37 @@ export interface ProviderDetailViewProps {
   onPollProviders?: () => void | Promise<void>;
   onClose: () => void;
   initialAddKey?: boolean;
+  connectionScope?: 'agent' | 'global';
 }
 
 const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const provDef = PROVIDERS.find((p) => p.id === props.provId)!;
+  const isGlobalScope = () => props.connectionScope === 'global';
+
+  const connectCurrentProvider = (data: {
+    provider: string;
+    apiKey?: string;
+    authType?: AuthType;
+    label?: string;
+    region?: string;
+  }) => {
+    if (isGlobalScope()) return connectGlobalProvider(data);
+    return connectProvider(props.agentName, data);
+  };
+
+  const disconnectCurrentProvider = (label?: string) => {
+    if (isGlobalScope()) {
+      return disconnectGlobalProvider(props.provId, props.selectedAuthType(), label);
+    }
+    return disconnectProvider(props.agentName, props.provId, props.selectedAuthType(), label);
+  };
+
+  const refreshCurrentProviderModels = () => {
+    if (isGlobalScope()) {
+      return refreshGlobalProviderModels(props.provId, props.selectedAuthType());
+    }
+    return refreshProviderModels(props.agentName, props.provId, props.selectedAuthType());
+  };
 
   const getProviderByAuth = (authType: AuthType) =>
     props.providers.find((p) => p.provider === props.provId && p.auth_type === authType);
@@ -71,6 +101,11 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     return !!p && p.is_active && !!provDef.noKeyRequired;
   };
 
+  const isLocalConnected = (): boolean => {
+    const p = getProviderByAuth('local');
+    return !!p && p.is_active;
+  };
+
   const getKeyPrefixDisplay = (authType: AuthType): string => {
     const p = getProviderByAuth(authType);
     if (p?.key_prefix) return `${p.key_prefix}${'•'.repeat(8)}`;
@@ -89,13 +124,15 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
     !provDef.subscriptionKeyPlaceholder &&
     !subscriptionAuthMode();
   const connected = () =>
-    isSubMode()
-      ? isCommandOnly()
-        ? isSubscriptionConnected()
-        : subscriptionAuthMode() === 'token'
-          ? isSubscriptionWithToken()
-          : isSubscriptionConnected()
-      : isConnectedApiKey() || isNoKeyConnected();
+    props.selectedAuthType() === 'local'
+      ? isLocalConnected()
+      : isSubMode()
+        ? isCommandOnly()
+          ? isSubscriptionConnected()
+          : subscriptionAuthMode() === 'token'
+            ? isSubscriptionWithToken()
+            : isSubscriptionConnected()
+        : isConnectedApiKey() || isNoKeyConnected();
   const isOllama = provDef.noKeyRequired;
 
   const [addKeyOpen, setAddKeyOpen] = createSignal(false);
@@ -125,7 +162,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleOllamaConnect = async () => {
     props.setBusy(true);
     try {
-      await connectProvider(props.agentName, {
+      await connectCurrentProvider({
         provider: props.provId,
         authType: props.selectedAuthType(),
       });
@@ -147,11 +184,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleRefreshModels = async () => {
     setRefreshing(true);
     try {
-      const result = await refreshProviderModels(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-      );
+      const result = await refreshCurrentProviderModels();
       if (result.ok) {
         toast.success(
           `${provDef.name}: refreshed ${result.model_count} model${result.model_count === 1 ? '' : 's'}`,
@@ -170,11 +203,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   const handleDisconnect = async () => {
     props.setBusy(true);
     try {
-      const result = await disconnectProvider(
-        props.agentName,
-        props.provId,
-        props.selectedAuthType(),
-      );
+      const result = await disconnectCurrentProvider();
       if (result?.notifications?.length) {
         for (const msg of result.notifications) {
           toast.error(msg);
@@ -401,6 +430,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}
           activeKeys={activeKeys}
+          connectionScope={props.connectionScope}
         />
       </Show>
 
@@ -420,6 +450,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}
           activeKeys={activeKeys}
+          connectionScope={props.connectionScope}
         />
       </Show>
 
@@ -439,6 +470,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           addKeyOpen={addKeyOpen}
           setAddKeyOpen={setAddKeyOpen}
           activeKeys={activeKeys}
+          connectionScope={props.connectionScope}
         />
       </Show>
 
@@ -513,6 +545,7 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
           setAddKeyOpen={setAddKeyOpen}
           onBack={props.onBack}
           onUpdate={props.onUpdate}
+          connectionScope={props.connectionScope}
         />
       </Show>
     </div>

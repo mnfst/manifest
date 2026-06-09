@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomUUID } from 'crypto';
-import { ProviderService } from '../routing-core/provider.service';
+import { ProviderService, type ProviderConnectionScope } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { coordinateOAuthRefresh, oauthRefreshKey } from './core';
@@ -37,11 +37,14 @@ const DEFAULT_CLIENT_ID = '78257093-7e40-4613-99e0-527b14b39113';
 const SCOPE = 'group_id profile model.completion';
 const USER_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:user_code';
 
+function scopeLogLabel(scope: ProviderConnectionScope): string {
+  return scope.type === 'agent' ? `agent=${scope.agentId}` : `global user=${scope.userId}`;
+}
+
 interface PendingMinimaxOAuth {
   verifier: string;
   userCode: string;
-  agentId: string;
-  userId: string;
+  scope: ProviderConnectionScope;
   baseUrl: string;
   resourceUrl: string;
   expiresAt: number;
@@ -96,10 +99,14 @@ export class MinimaxOauthService {
   }
 
   async startAuthorization(
-    agentId: string,
+    scopeOrAgentId: ProviderConnectionScope | string,
     userId: string,
     region: MinimaxRegion = DEFAULT_REGION,
   ): Promise<MinimaxOAuthStartResult> {
+    const scope: ProviderConnectionScope =
+      typeof scopeOrAgentId === 'string'
+        ? { type: 'agent', agentId: scopeOrAgentId, userId }
+        : scopeOrAgentId;
     this.cleanupExpired();
     const verifier = randomBytes(32).toString('base64url');
     const challenge = createHash('sha256').update(verifier).digest('base64url');
@@ -140,8 +147,7 @@ export class MinimaxOauthService {
     this.pending.set(flowId, {
       verifier,
       userCode: payload.user_code,
-      agentId,
-      userId,
+      scope,
       baseUrl,
       resourceUrl,
       expiresAt,
@@ -162,7 +168,7 @@ export class MinimaxOauthService {
     if (!pending) {
       return { status: 'error', message: 'MiniMax login expired. Start again.' };
     }
-    if (pending.userId !== userId) {
+    if (pending.scope.userId !== userId) {
       return { status: 'error', message: 'MiniMax login session does not match the current user.' };
     }
     if (Date.now() >= pending.expiresAt) {
@@ -216,10 +222,9 @@ export class MinimaxOauthService {
       e: toAbsoluteExpiryTimestamp(payload.expired_in),
       u: resourceUrl,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'minimax');
-    const { provider: savedProvider } = await this.providerService.upsertProvider(
-      pending.agentId,
-      pending.userId,
+    const label = await this.providerService.nextOAuthLabelForConnection(pending.scope, 'minimax');
+    const { provider: savedProvider } = await this.providerService.upsertProviderForConnection(
+      pending.scope,
       'minimax',
       JSON.stringify(blob),
       'subscription',
@@ -228,11 +233,13 @@ export class MinimaxOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      if (pending.scope.type === 'agent') {
+        await this.providerService.recalculateTiers(pending.scope.agentId);
+      }
     } catch (err) {
       this.logger.warn(`Model discovery after MiniMax OAuth failed: ${err}`);
     }
-    this.logger.log(`MiniMax OAuth token stored for agent=${pending.agentId}`);
+    this.logger.log(`MiniMax OAuth token stored for ${scopeLogLabel(pending.scope)}`);
     return { status: 'success' };
   }
 

@@ -14,6 +14,7 @@ import { ModelController } from './model.controller';
 import { CopilotController } from './copilot.controller';
 import { SpecificityController } from './specificity.controller';
 import { ModelParamsController } from './model-params.controller';
+import { GlobalProvidersController } from './global-providers.controller';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
@@ -37,6 +38,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     CopilotController,
     SpecificityController,
     ModelParamsController,
+    GlobalProvidersController,
   ],
   providers: [OllamaSyncService],
   exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],

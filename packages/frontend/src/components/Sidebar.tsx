@@ -32,17 +32,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
         }
       }}
     >
-      <Show when={!getAgentName()}>
-        <A
-          href="/"
-          class="sidebar__link"
-          classList={{ active: location.pathname === '/' }}
-          aria-current={location.pathname === '/' ? 'page' : undefined}
-        >
-          Agents
-        </A>
-      </Show>
-
       <Show when={getAgentName()}>
         <div class="sidebar__section-label">MONITORING</div>
         <A
@@ -79,6 +68,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         >
           Playground
         </A>
+
         <A
           href={path('/limits')}
           class="sidebar__link"

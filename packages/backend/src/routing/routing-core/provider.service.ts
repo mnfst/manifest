@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, FindOptionsWhere } from 'typeorm';
+import { Repository, In, FindOptionsWhere, IsNull } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -25,6 +25,19 @@ import {
 const MAX_KEYS_PER_PROVIDER = 5;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
+
+type ProviderScope = { type: 'agent'; agentId: string } | { type: 'global'; userId: string };
+export type ProviderConnectionScope =
+  | { type: 'agent'; agentId: string; userId: string }
+  | { type: 'global'; userId: string };
+
+export interface DecryptedProviderKey {
+  id: string;
+  label: string;
+  priority: number;
+  apiKey: string | null;
+  region: string | null;
+}
 
 @Injectable()
 export class ProviderService {
@@ -60,6 +73,111 @@ export class ProviderService {
     );
     this.routingCache.setProviders(agentId, providers);
     return providers;
+  }
+
+  async getGlobalProviders(userId: string): Promise<UserProvider[]> {
+    const providers = await this.providerRepo.find({
+      where: this.scopeWhere({ type: 'global', userId }),
+    });
+    return providers.filter(isManifestUsableProvider);
+  }
+
+  async assertGlobalProvidersSelectable(userId: string, providerIds: string[]): Promise<void> {
+    if (providerIds.length === 0) return;
+    const uniqueIds = [...new Set(providerIds)];
+    const rows = await this.findSelectableGlobalProviders(userId, providerIds);
+    if (rows.length !== uniqueIds.length) {
+      throw new BadRequestException(
+        'One or more selected global providers are no longer available',
+      );
+    }
+  }
+
+  async copyGlobalProvidersToAgent(
+    userId: string,
+    agentId: string,
+    providerIds: string[],
+  ): Promise<number> {
+    if (providerIds.length === 0) return 0;
+    const rows = await this.findSelectableGlobalProviders(userId, providerIds);
+    if (rows.length === 0) return 0;
+
+    const now = new Date().toISOString();
+    const copies = rows.map((row) =>
+      Object.assign(new UserProvider(), {
+        id: randomUUID(),
+        user_id: userId,
+        agent_id: agentId,
+        provider: row.provider,
+        api_key_encrypted: row.api_key_encrypted,
+        key_prefix: row.key_prefix,
+        auth_type: row.auth_type,
+        label: row.label,
+        priority: row.priority,
+        region: row.region,
+        is_active: true,
+        connected_at: now,
+        updated_at: now,
+        cached_models: row.cached_models,
+        models_fetched_at: row.models_fetched_at,
+      }),
+    );
+
+    await this.providerRepo.insert(copies);
+    await this.afterProviderInsert(agentId);
+    return copies.length;
+  }
+
+  private async findSelectableGlobalProviders(
+    userId: string,
+    providerIds: string[],
+  ): Promise<UserProvider[]> {
+    const uniqueIds = [...new Set(providerIds)];
+    if (uniqueIds.length === 0) return [];
+    const rows = await this.providerRepo.find({
+      where: {
+        id: In(uniqueIds),
+        user_id: userId,
+        agent_id: IsNull(),
+        is_active: true,
+      },
+    });
+    const usableRows = rows.filter(isManifestUsableProvider);
+    const byId = new Map(usableRows.map((row) => [row.id, row]));
+    return uniqueIds.flatMap((id) => {
+      const row = byId.get(id);
+      return row ? [row] : [];
+    });
+  }
+
+  private scopeWhere(
+    scope: ProviderScope,
+    extra?: FindOptionsWhere<UserProvider>,
+  ): FindOptionsWhere<UserProvider> {
+    const where: FindOptionsWhere<UserProvider> = { ...(extra ?? {}) };
+    if (scope.type === 'agent') {
+      where.agent_id = scope.agentId;
+    } else {
+      where.agent_id = IsNull();
+      where.user_id = scope.userId;
+    }
+    return where;
+  }
+
+  private scopeAgentId(scope: ProviderScope): string | null {
+    return scope.type === 'agent' ? scope.agentId : null;
+  }
+
+  private providerScopeFromConnection(scope: ProviderConnectionScope): ProviderScope {
+    return scope.type === 'agent'
+      ? { type: 'agent', agentId: scope.agentId }
+      : { type: 'global', userId: scope.userId };
+  }
+
+  private async afterScopedProviderChange(scope: ProviderScope): Promise<void> {
+    if (scope.type !== 'agent') return;
+    await this.autoAssign.recalculate(scope.agentId);
+    this.routingCache.invalidateAgent(scope.agentId);
   }
 
   /**
@@ -101,12 +219,70 @@ export class ProviderService {
     region?: string,
     label?: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
+    return this.upsertProviderInScope(
+      { type: 'agent', agentId },
+      userId,
+      provider,
+      apiKey,
+      authType,
+      region,
+      label,
+    );
+  }
+
+  async upsertGlobalProvider(
+    userId: string,
+    provider: string,
+    apiKey?: string,
+    authType?: AuthType,
+    region?: string,
+    label?: string,
+  ): Promise<{ provider: UserProvider; isNew: boolean }> {
+    return this.upsertProviderInScope(
+      { type: 'global', userId },
+      userId,
+      provider,
+      apiKey,
+      authType,
+      region,
+      label,
+    );
+  }
+
+  async upsertProviderForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+    apiKey?: string,
+    authType?: AuthType,
+    region?: string,
+    label?: string,
+  ): Promise<{ provider: UserProvider; isNew: boolean }> {
+    return this.upsertProviderInScope(
+      this.providerScopeFromConnection(scope),
+      scope.userId,
+      provider,
+      apiKey,
+      authType,
+      region,
+      label,
+    );
+  }
+
+  private async upsertProviderInScope(
+    scope: ProviderScope,
+    userId: string,
+    provider: string,
+    apiKey?: string,
+    authType?: AuthType,
+    region?: string,
+    label?: string,
+  ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
     const trimmedLabel = this.normalizeLabel(label, effectiveAuthType);
 
     if (trimmedLabel) {
       return this.upsertProviderWithLabel(
-        agentId,
+        scope,
         userId,
         provider,
         apiKey,
@@ -123,7 +299,11 @@ export class ProviderService {
     // this lookup is unambiguous (the unique index guarantees at most one
     // 'Default' row per tuple).
     const existing = await this.providerRepo.findOne({
-      where: { agent_id: agentId, provider, auth_type: effectiveAuthType, label: DEFAULT_LABEL },
+      where: this.scopeWhere(scope, {
+        provider,
+        auth_type: effectiveAuthType,
+        label: DEFAULT_LABEL,
+      }),
     });
     const resolvedRegion = await this.resolveProviderRegion(
       provider,
@@ -144,14 +324,14 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
-      await this.afterProviderInsert(agentId);
+      await this.afterScopedProviderChange(scope);
       return { provider: existing, isNew: false };
     }
 
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: agentId,
+      agent_id: this.scopeAgentId(scope),
       provider,
       auth_type: effectiveAuthType,
       label: DEFAULT_LABEL,
@@ -165,12 +345,12 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderInsert(agentId);
+    await this.afterScopedProviderChange(scope);
     return { provider: record, isNew: true };
   }
 
   private async upsertProviderWithLabel(
-    agentId: string,
+    scope: ProviderScope,
     userId: string,
     provider: string,
     apiKey: string | undefined,
@@ -179,7 +359,7 @@ export class ProviderService {
     label: string,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const existingRows = await this.providerRepo.find({
-      where: { agent_id: agentId, provider, auth_type: authType },
+      where: this.scopeWhere(scope, { provider, auth_type: authType }),
     });
     const existing =
       existingRows.find((r) => r.label.toLowerCase() === label.toLowerCase()) ?? null;
@@ -202,7 +382,7 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await this.providerRepo.save(existing);
-      await this.afterProviderInsert(agentId);
+      await this.afterScopedProviderChange(scope);
       return { provider: existing, isNew: false };
     }
 
@@ -234,7 +414,7 @@ export class ProviderService {
     const record: UserProvider = Object.assign(new UserProvider(), {
       id: randomUUID(),
       user_id: userId,
-      agent_id: agentId,
+      agent_id: this.scopeAgentId(scope),
       provider,
       auth_type: authType,
       label,
@@ -248,7 +428,7 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    await this.afterProviderInsert(agentId);
+    await this.afterScopedProviderChange(scope);
     return { provider: record, isNew: true };
   }
 
@@ -259,11 +439,43 @@ export class ProviderService {
     currentLabel: string,
     newLabel: string,
   ): Promise<UserProvider> {
+    return this.renameKeyInScope(
+      { type: 'agent', agentId },
+      provider,
+      authType,
+      currentLabel,
+      newLabel,
+    );
+  }
+
+  async renameGlobalKey(
+    userId: string,
+    provider: string,
+    authType: AuthType,
+    currentLabel: string,
+    newLabel: string,
+  ): Promise<UserProvider> {
+    return this.renameKeyInScope(
+      { type: 'global', userId },
+      provider,
+      authType,
+      currentLabel,
+      newLabel,
+    );
+  }
+
+  private async renameKeyInScope(
+    scope: ProviderScope,
+    provider: string,
+    authType: AuthType,
+    currentLabel: string,
+    newLabel: string,
+  ): Promise<UserProvider> {
     const trimmed = newLabel.trim();
     this.assertLabelLooksValid(trimmed);
 
     const rows = await this.providerRepo.find({
-      where: { agent_id: agentId, provider, auth_type: authType },
+      where: this.scopeWhere(scope, { provider, auth_type: authType }),
     });
     const target = rows.find((r) => r.label.toLowerCase() === currentLabel.toLowerCase());
     if (!target) throw new NotFoundException('Provider key not found');
@@ -275,8 +487,10 @@ export class ProviderService {
     target.label = trimmed;
     target.updated_at = new Date().toISOString();
     await this.providerRepo.save(target);
-    await this.relabelOverrides(agentId, provider, authType, previousLabel, trimmed);
-    this.routingCache.invalidateAgent(agentId);
+    if (scope.type === 'agent') {
+      await this.relabelOverrides(scope.agentId, provider, authType, previousLabel, trimmed);
+      this.routingCache.invalidateAgent(scope.agentId);
+    }
     return target;
   }
 
@@ -286,8 +500,26 @@ export class ProviderService {
     authType: AuthType,
     orderedLabels: string[],
   ): Promise<UserProvider[]> {
+    return this.reorderKeysInScope({ type: 'agent', agentId }, provider, authType, orderedLabels);
+  }
+
+  async reorderGlobalKeys(
+    userId: string,
+    provider: string,
+    authType: AuthType,
+    orderedLabels: string[],
+  ): Promise<UserProvider[]> {
+    return this.reorderKeysInScope({ type: 'global', userId }, provider, authType, orderedLabels);
+  }
+
+  private async reorderKeysInScope(
+    scope: ProviderScope,
+    provider: string,
+    authType: AuthType,
+    orderedLabels: string[],
+  ): Promise<UserProvider[]> {
     const allRows = await this.providerRepo.find({
-      where: { agent_id: agentId, provider, auth_type: authType },
+      where: this.scopeWhere(scope, { provider, auth_type: authType }),
     });
     const rows = allRows.filter((r) => r.is_active);
     if (rows.length === 0) throw new NotFoundException('Provider not found');
@@ -319,7 +551,7 @@ export class ProviderService {
       updated.push(row);
     }
     await this.providerRepo.save(updated);
-    this.routingCache.invalidateAgent(agentId);
+    if (scope.type === 'agent') this.routingCache.invalidateAgent(scope.agentId);
     return updated;
   }
 
@@ -557,6 +789,86 @@ export class ProviderService {
     return { notifications };
   }
 
+  async removeGlobalProvider(
+    userId: string,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+  ): Promise<{ notifications: string[] }> {
+    if (label) {
+      if (!authType) {
+        throw new BadRequestException('authType is required when deleting a labeled provider key');
+      }
+      return this.removeGlobalKeyByLabel(userId, provider, authType, label);
+    }
+
+    const scope: ProviderScope = { type: 'global', userId };
+    const where = this.scopeWhere(scope, { provider, is_active: true });
+    if (authType) where.auth_type = authType;
+    const activeRows = await this.providerRepo.find({ where });
+
+    if (activeRows.length === 0) {
+      const fallbackWhere = this.scopeWhere(scope, { provider });
+      if (authType) fallbackWhere.auth_type = authType;
+      const any = await this.providerRepo.findOne({ where: fallbackWhere });
+      if (!any) throw new NotFoundException('Provider not found');
+    } else {
+      const now = new Date().toISOString();
+      for (const row of activeRows) {
+        row.is_active = false;
+        row.updated_at = now;
+      }
+      await this.providerRepo.save(activeRows);
+    }
+
+    return { notifications: [] };
+  }
+
+  async removeProviderForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+  ): Promise<{ notifications: string[] }> {
+    if (scope.type === 'agent') {
+      return this.removeProvider(scope.agentId, provider, authType, label);
+    }
+    return this.removeGlobalProvider(scope.userId, provider, authType, label);
+  }
+
+  async getProviderKeysForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+    authType?: AuthType,
+  ): Promise<DecryptedProviderKey[]> {
+    const where = this.scopeWhere(this.providerScopeFromConnection(scope), {
+      provider,
+      is_active: true,
+    });
+    if (authType) where.auth_type = authType;
+    const rows = await this.providerRepo.find({ where, order: { priority: 'ASC' } });
+    return rows
+      .map((record) => {
+        if (!record.api_key_encrypted) {
+          return {
+            id: record.id,
+            label: record.label,
+            priority: record.priority,
+            apiKey: null,
+            region: record.region,
+          };
+        }
+        return {
+          id: record.id,
+          label: record.label,
+          priority: record.priority,
+          apiKey: this.decryptOrNull(record.api_key_encrypted),
+          region: record.region,
+        };
+      })
+      .filter((record) => record.apiKey !== null || authType === 'local');
+  }
+
   /**
    * Delete a single labeled key from a provider's chain. If it was the last
    * key for the (agent, provider, auth_type) tuple, falls through to the
@@ -591,6 +903,33 @@ export class ProviderService {
     await this.relabelOverrides(agentId, provider, target.auth_type, target.label, null);
     await this.renumberPriorities(agentId, provider, target.auth_type);
     this.routingCache.invalidateAgent(agentId);
+    return { notifications: [] };
+  }
+
+  private async removeGlobalKeyByLabel(
+    userId: string,
+    provider: string,
+    authType: AuthType | undefined,
+    label: string,
+  ): Promise<{ notifications: string[] }> {
+    const scope: ProviderScope = { type: 'global', userId };
+    const where = this.scopeWhere(scope, { provider });
+    if (authType) where.auth_type = authType;
+    const matching = await this.providerRepo.find({ where });
+    if (matching.length === 0) throw new NotFoundException('Provider not found');
+
+    const target = matching.find((r) => r.label.toLowerCase() === label.toLowerCase());
+    if (!target) throw new NotFoundException('Provider key not found');
+
+    const stillHasOtherKeys = matching.some(
+      (r) => r.id !== target.id && r.is_active && isManifestUsableProvider(r),
+    );
+    if (!stillHasOtherKeys) {
+      return this.removeGlobalProvider(userId, provider, target.auth_type);
+    }
+
+    await this.providerRepo.remove(target);
+    await this.renumberPrioritiesInScope(scope, provider, target.auth_type);
     return { notifications: [] };
   }
 
@@ -890,8 +1229,16 @@ export class ProviderService {
     provider: string,
     authType: AuthType,
   ): Promise<void> {
+    await this.renumberPrioritiesInScope({ type: 'agent', agentId }, provider, authType);
+  }
+
+  private async renumberPrioritiesInScope(
+    scope: ProviderScope,
+    provider: string,
+    authType: AuthType,
+  ): Promise<void> {
     const allRows = await this.providerRepo.find({
-      where: { agent_id: agentId, provider, auth_type: authType },
+      where: this.scopeWhere(scope, { provider, auth_type: authType }),
       order: { priority: 'ASC' },
     });
     // Only contiguous-renumber active rows. Inactive rows are deactivated
@@ -957,13 +1304,19 @@ export class ProviderService {
    * a "Default" row already exists, returns "Key 2", "Key 3", etc.
    */
   async nextOAuthLabel(agentId: string, provider: string): Promise<string | undefined> {
+    return this.nextOAuthLabelForConnection({ type: 'agent', agentId, userId: '' }, provider);
+  }
+
+  async nextOAuthLabelForConnection(
+    scope: ProviderConnectionScope,
+    provider: string,
+  ): Promise<string | undefined> {
     const existing = await this.providerRepo.find({
-      where: {
-        agent_id: agentId,
+      where: this.scopeWhere(this.providerScopeFromConnection(scope), {
         provider,
         auth_type: 'subscription' as AuthType,
         is_active: true,
-      },
+      }),
     });
     if (existing.length === 0) return undefined;
     const lower = new Set(existing.map((r) => r.label.toLowerCase()));

@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { ProviderService } from '../../routing-core/provider.service';
+import { ProviderService, type ProviderConnectionScope } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import {
@@ -42,6 +42,23 @@ const ANTHROPIC_OAUTH_TOKEN_HEADERS = {
   'User-Agent': 'anthropic',
 } as const;
 
+function toConnectionScope(
+  scopeOrAgentId: ProviderConnectionScope | string,
+  userId: string,
+): ProviderConnectionScope {
+  return typeof scopeOrAgentId === 'string'
+    ? { type: 'agent', agentId: scopeOrAgentId, userId }
+    : scopeOrAgentId;
+}
+
+function scopeAgentId(scope: ProviderConnectionScope): string | null {
+  return scope.type === 'agent' ? scope.agentId : null;
+}
+
+function scopeLogLabel(scope: ProviderConnectionScope): string {
+  return scope.type === 'agent' ? `agent=${scope.agentId}` : `global user=${scope.userId}`;
+}
+
 /**
  * Splits Anthropic's pasted authorization payload. The redirect page renders
  * `<code>#<state>` for users to copy verbatim, but tolerant clients should
@@ -71,13 +88,17 @@ export class AnthropicOauthService {
    * Build the authorize URL the user opens in a new tab. The state is also
    * returned so the SPA can pre-fill it on the paste-code step.
    */
-  async generateAuthorizationUrl(agentId: string, userId: string): Promise<AuthorizeResult> {
+  async generateAuthorizationUrl(
+    scopeOrAgentId: ProviderConnectionScope | string,
+    userId: string,
+  ): Promise<AuthorizeResult> {
+    const scope = toConnectionScope(scopeOrAgentId, userId);
     const { verifier, challenge } = generatePkce();
     // Claude Code's Anthropic OAuth flow uses the PKCE verifier as state.
     const state = verifier;
     await this.pendingFlows.create(
       PROVIDER,
-      { state, verifier, agentId, userId },
+      { state, verifier, agentId: scopeAgentId(scope), userId },
       ANTHROPIC_OAUTH.STATE_TTL_MS,
     );
 
@@ -102,9 +123,11 @@ export class AnthropicOauthService {
   async exchangeCode(
     payload: string,
     fallbackState: string | undefined,
-    agentId: string,
+    scopeOrAgentId: ProviderConnectionScope | string,
     userId: string,
   ): Promise<void> {
+    const scope = toConnectionScope(scopeOrAgentId, userId);
+    const agentId = scopeAgentId(scope);
     const { code, state: extractedState } = splitAnthropicAuthPayload(payload);
     let state = extractedState ?? fallbackState?.trim();
     if (!code) throw new Error('Missing authorization code');
@@ -149,10 +172,9 @@ export class AnthropicOauthService {
       e: Date.now() + data.expires_in * 1000,
     };
 
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, PROVIDER);
-    const { provider: savedProvider } = await this.providerService.upsertProvider(
-      pending.agentId,
-      pending.userId,
+    const label = await this.providerService.nextOAuthLabelForConnection(scope, PROVIDER);
+    const { provider: savedProvider } = await this.providerService.upsertProviderForConnection(
+      scope,
       PROVIDER,
       serializeOAuthTokenBlob(blob),
       'subscription',
@@ -161,11 +183,13 @@ export class AnthropicOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
+      if (scope.type === 'agent') {
+        await this.providerService.recalculateTiers(scope.agentId);
+      }
     } catch (err) {
       this.logger.warn(`Model discovery after Anthropic OAuth failed: ${err}`);
     }
-    this.logger.log(`Anthropic OAuth token stored for agent=${pending.agentId}`);
+    this.logger.log(`Anthropic OAuth token stored for ${scopeLogLabel(scope)}`);
   }
 
   async refreshAccessToken(refreshToken: string): Promise<OAuthTokenBlob> {
@@ -261,6 +285,18 @@ export class AnthropicOauthService {
    */
   async findPendingForAgent(agentId: string, userId: string): Promise<{ state: string } | null> {
     const pending = await this.pendingFlows.findLatestForAgent(PROVIDER, agentId, userId);
+    return pending ? { state: pending.state } : null;
+  }
+
+  async findPendingForConnection(
+    scope: ProviderConnectionScope,
+    userId: string,
+  ): Promise<{ state: string } | null> {
+    const pending = await this.pendingFlows.findLatestForAgent(
+      PROVIDER,
+      scopeAgentId(scope),
+      userId,
+    );
     return pending ? { state: pending.state } : null;
   }
 }
