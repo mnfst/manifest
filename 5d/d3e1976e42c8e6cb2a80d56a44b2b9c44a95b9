@@ -1,0 +1,43 @@
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_8f7bd68edeeec2::t_e288dd11dde44c 203
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_8f7bd68edeeec2::t_211591d1feed60 512-513
+  s_8f7bd68edeeec2::t_5ee6e824ac1f81 303-307
+  s_8f7bd68edeeec2::t_16d5e9ce4567fc 576-577
+  s_8f7bd68edeeec2::t_dd34f02d136398 478-480
+  s_8f7bd68edeeec2::t_6e9c57e1f1cb5d 340-342
+  s_8f7bd68edeeec2::t_f0a5d3cda0b503 411-413
+  s_8f7bd68edeeec2::t_045707e2b27fa1 376-378
+  s_8f7bd68edeeec2::t_2f64a6d00f243e 545-546
+  s_8f7bd68edeeec2::t_97e8e54d1397bb 596-600
+  s_8f7bd68edeeec2::t_6a6b0b877bb342 445-446
+packages/backend/src/analytics/services/query-helpers.ts
+  s_8f7bd68edeeec2::t_4f42e5866f4c3d 74-86,92
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_8f7bd68edeeec2::t_3069d6836d3dea 231
+packages/backend/test/provider-analytics.e2e-spec.ts
+  s_8f7bd68edeeec2::t_6f5353f2c20e39 53-64
+  s_8f7bd68edeeec2::t_2b4d6bdf72d35e 156-170
+  s_8f7bd68edeeec2::t_4cf1c90ce64505 275-295
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_8f7bd68edeeec2::t_a95e616e5efdb9 568-571
+  s_8f7bd68edeeec2::t_06bf40212a504b 509-517
+  s_8f7bd68edeeec2::t_b4f49965b6068a 472
+  s_8f7bd68edeeec2::t_7cfaaa393270e5 543-548
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5dd3e1976e42c8e6cb2a80d56a44b2b9c44a95b9",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
