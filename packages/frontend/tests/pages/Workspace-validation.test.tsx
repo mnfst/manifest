@@ -71,6 +71,7 @@ vi.mock("../../src/components/AgentTypeSelect.jsx", () => ({
 const mockMarkAgentCreated = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+  markSetupPending: vi.fn(),
 }));
 
 vi.mock("manifest-shared", () => ({
