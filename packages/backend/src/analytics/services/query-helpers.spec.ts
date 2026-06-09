@@ -5,6 +5,7 @@ import {
   addTenantFilter,
   selectMessageRowColumns,
   excludeSystemAgents,
+  EXCLUDE_SYSTEM_AGENTS_PREDICATE,
   filterByKeyLabel,
   MESSAGE_ROW_SELECT_ALIASES,
 } from './query-helpers';
@@ -183,37 +184,39 @@ describe('addTenantFilter', () => {
 });
 
 describe('excludeSystemAgents', () => {
-  function makeMockQb(existingJoinAliases: string[] = []) {
+  function makeMockQb() {
     const mockAndWhere = jest.fn();
     const mockLeftJoin = jest.fn();
     const qb = {
-      expressionMap: {
-        joinAttributes: existingJoinAliases.map((name) => ({ alias: { name } })),
-      },
       leftJoin: mockLeftJoin.mockImplementation(() => qb),
       andWhere: mockAndWhere.mockImplementation(() => qb),
     };
     return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere, mockLeftJoin };
   }
 
-  it('joins the agents table and excludes is_system rows when no agents join exists', () => {
-    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb([]);
+  it('excludes system agents via a NOT EXISTS semi-join (no join added)', () => {
+    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb();
     excludeSystemAgents(qb);
 
-    expect(mockLeftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
-    expect(mockAndWhere).toHaveBeenCalledWith('(a.is_system IS NULL OR a.is_system = false)');
+    // Semi-join only: never adds a LEFT JOIN of its own.
+    expect(mockLeftJoin).not.toHaveBeenCalled();
+    expect(mockAndWhere).toHaveBeenCalledWith(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
   });
 
-  it('reuses an existing "a" join instead of joining agents twice', () => {
-    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb(['a']);
-    excludeSystemAgents(qb);
-
-    expect(mockLeftJoin).not.toHaveBeenCalled();
-    expect(mockAndWhere).toHaveBeenCalledWith('(a.is_system IS NULL OR a.is_system = false)');
+  it('matches the system agent by id OR name and never multiplies rows', () => {
+    // The predicate is a pure existence test (cannot duplicate fact rows) and
+    // matches on either agent_id OR agent_name (so a Playground row carrying
+    // only agent_name, NULL agent_id, is still excluded).
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('NOT EXISTS');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.is_system = true');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.tenant_id = at.tenant_id');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain(
+      'sysag.id = at.agent_id OR sysag.name = at.agent_name',
+    );
   });
 
   it('returns the query builder for chaining', () => {
-    const { qb } = makeMockQb([]);
+    const { qb } = makeMockQb();
     expect(excludeSystemAgents(qb)).toBe(qb);
   });
 });

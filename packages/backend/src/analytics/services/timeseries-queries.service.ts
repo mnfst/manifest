@@ -301,9 +301,9 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
-    // Join on agent identity (a.id = at.agent_id), not name+tenant: a soft-
-    // deleted agent sharing a slug with a live one would otherwise match
-    // multiple `a` rows and multiply the per-agent SUM.
+    // Drop the reserved Playground (is_system) agent. The NOT EXISTS semi-join
+    // matches by id OR name (so name-only Playground rows are excluded too) and
+    // can't multiply the per-agent SUM the way a name-based LEFT JOIN would.
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
@@ -338,7 +338,7 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
-    // Identity-based join (see getPerAgentTimeseries) to avoid double-counting.
+    // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
@@ -374,7 +374,7 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
-    // Identity-based join (see getPerAgentTimeseries) to avoid double-counting.
+    // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
@@ -409,7 +409,7 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
     // Exclude the reserved Playground (is_system) agent so per-provider totals
-    // stay consistent with the per-agent / summary endpoints (identity join).
+    // stay consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
@@ -442,7 +442,7 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (identity join).
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
@@ -476,7 +476,7 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
     // Exclude the reserved Playground (is_system) agent so per-model totals stay
-    // consistent with the per-agent / summary endpoints (identity join).
+    // consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
@@ -509,7 +509,7 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (identity join).
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
@@ -542,7 +542,7 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (identity join).
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
@@ -573,7 +573,7 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (identity join).
+    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
@@ -593,15 +593,12 @@ export class TimeseriesQueriesService {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .select('DISTINCT at.agent_name', 'agent_name')
-      // Identity-based join (a.id = at.agent_id) so a soft-deleted agent that
-      // shares a slug with a live one can't match multiple `a` rows. DISTINCT
-      // already collapses duplicates here, but keeping the join consistent with
-      // excludeSystemAgents avoids a future SUM/COUNT inheriting the bug.
-      .leftJoin('agents', 'a', 'a.id = at.agent_id')
       .where('at.auth_type = :authType', { authType })
-      .andWhere('at.agent_name IS NOT NULL')
-      // Exclude the reserved Playground (is_system) agent.
-      .andWhere('(a.is_system IS NULL OR a.is_system = false)');
+      .andWhere('at.agent_name IS NOT NULL');
+    // Exclude the reserved Playground (is_system) agent. The NOT EXISTS semi-join
+    // matches by id OR name, so a Playground row carrying only agent_name (NULL
+    // agent_id) is still dropped, and it can't multiply rows.
+    excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
     const rows = await qb.orderBy('at.agent_name', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => String(r['agent_name']));

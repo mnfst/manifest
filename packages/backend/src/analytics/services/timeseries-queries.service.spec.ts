@@ -4,7 +4,7 @@ import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
-import { MESSAGE_ROW_SELECT_ALIASES } from './query-helpers';
+import { MESSAGE_ROW_SELECT_ALIASES, EXCLUDE_SYSTEM_AGENTS_PREDICATE } from './query-helpers';
 
 describe('TimeseriesQueriesService', () => {
   let service: TimeseriesQueriesService;
@@ -60,10 +60,6 @@ describe('TimeseriesQueriesService', () => {
       getRawMany: mockGetRawMany,
       getRawOne: jest.fn().mockResolvedValue({}),
       getMany: mockGetMany,
-    };
-    // excludeSystemAgents() inspects existing joins via expressionMap.
-    (mockTurnQb as unknown as { expressionMap: { joinAttributes: unknown[] } }).expressionMap = {
-      joinAttributes: [],
     };
 
     mockAgentQb = {
@@ -468,15 +464,16 @@ describe('TimeseriesQueriesService', () => {
         true,
       );
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
-      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
+      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      // Semi-join exclusion adds no LEFT JOIN of its own.
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
 
     it('does not exclude system agents by default', async () => {
       mockGetRawMany.mockResolvedValue([]);
       await service.getTimeseries('24h', 'u1', true, 'tenant-1');
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).not.toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
     });
   });
 
@@ -503,17 +500,17 @@ describe('TimeseriesQueriesService', () => {
         { hour: '02', alpha: 3, bravo: 0 },
       ]);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
       expect(clauses).toContain('at.auth_type = :authType');
       expect(clauses).toContain('at.provider = :provider');
-      // Identity-based join (a.id = at.agent_id) — a soft-deleted agent that
-      // shares a slug with a live one must NOT match multiple `a` rows and
-      // double-count the per-agent SUM.
-      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
-      expect(mockTurnQb.leftJoin).not.toHaveBeenCalledWith(
-        'agents',
-        'a',
-        'a.name = at.agent_name AND a.tenant_id = at.tenant_id',
+      // The NOT EXISTS semi-join matches a system agent by id OR name and is a
+      // pure existence test, so a soft-deleted agent sharing a slug with a live
+      // one can never multiply the per-agent SUM. It adds no LEFT JOIN.
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
+      // Matching by name (not just id) means a Playground row carrying only
+      // agent_name (NULL agent_id) is excluded too — no leak.
+      expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain(
+        'sysag.id = at.agent_id OR sysag.name = at.agent_name',
       );
     });
 
@@ -543,9 +540,9 @@ describe('TimeseriesQueriesService', () => {
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).toContain('at.agent_name = :agentName');
       // Playground (is_system) usage must be excluded from per-provider totals,
-      // via the same identity-based agents join as the per-agent endpoints.
-      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
-      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
+      // via the same NOT EXISTS semi-join as the per-agent endpoints (no join).
+      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
 
     it('getPerProviderMessageTimeseries pivots message counts', async () => {
@@ -567,8 +564,8 @@ describe('TimeseriesQueriesService', () => {
       expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 9 }]);
       // Playground (is_system) usage must be excluded from per-model totals.
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
-      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
+      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
 
     it('getPerModelMessageTimeseries pivots message counts', async () => {
@@ -596,8 +593,10 @@ describe('TimeseriesQueriesService', () => {
       const out = await service.getAgentNamesByAuthType('subscription', 'u1', 'tenant-1');
       expect(out).toEqual(['a', 'b']);
       expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
-        '(a.is_system IS NULL OR a.is_system = false)',
+        EXCLUDE_SYSTEM_AGENTS_PREDICATE,
       );
+      // No LEFT JOIN on agents anymore — exclusion is a pure semi-join.
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
   });
 });

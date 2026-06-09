@@ -76,6 +76,17 @@ beforeAll(async () => {
     [uuid(), TEST_TENANT_ID, playgroundAgentId, now, TEST_USER_ID],
   );
 
+  // P2 leak case: an ORPHAN Playground message with a NULL agent_id but
+  // agent_name = 'Playground'. The previous id-only exclusion join left this
+  // row's `is_system` NULL and wrongly INCLUDED it. The NOT EXISTS semi-join
+  // matches the reserved Playground agent by NAME too, so this row is excluded
+  // from every aggregate, timeseries and the connection breakdown.
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+     VALUES ($1,$2,NULL,$3,'ok','gpt-4o','openai','subscription','My OpenAI',7000,7000,0,0,0.77,'msg','agent','Playground',$4)`,
+    [uuid(), TEST_TENANT_ID, now, TEST_USER_ID],
+  );
+
   // Finding 2: two connections sharing provider+auth_type but differing by
   // label. Each has one message tagged with its provider_key_label; the
   // connection-detail endpoint must keep their usage separate.
@@ -127,11 +138,29 @@ describe('GET /api/v1/provider-analytics', () => {
       .get('/api/v1/provider-analytics?auth_type=subscription&provider=openai&range=24h')
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
-    // Real openai subscription usage is 2 messages / 1800 tokens. The
-    // Playground message (18000 tokens, 2 messages-worth of pollution) must be
-    // excluded, so the summary reflects only the non-system rows.
+    // Real openai subscription usage is 2 messages / 1800 tokens. Both the
+    // Playground message with a matching agent_id (18000 tokens) AND the orphan
+    // Playground message with a NULL agent_id but agent_name 'Playground'
+    // (14000 tokens) must be excluded, so the summary reflects only the
+    // non-system rows. The orphan is the P2 leak case the name-based NOT EXISTS
+    // exclusion fixes — an id-only join would have counted it.
     expect(res.body.summary.messages.value).toBe(2);
     expect(res.body.summary.tokens.value).toBe(1800);
+  });
+
+  it('excludes an orphan Playground row (NULL agent_id, name only) from per-agent timeseries (P2)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/provider-analytics/per-agent-timeseries?auth_type=subscription&provider=openai')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    // The orphan carries agent_name 'Playground'; the id-or-name semi-join drops
+    // it, so no 'Playground' column appears and test-agent stays at 1800.
+    expect(res.body.agents).not.toContain('Playground');
+    const total = res.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(total).toBe(1800);
   });
 
   it('supports the agents endpoint', async () => {
@@ -214,6 +243,21 @@ describe('GET /api/v1/provider-analytics', () => {
       0,
     );
     expect(agentTokens).toBe(modelTokens);
+    // P2 leak guard: the orphan Playground row (NULL agent_id, name 'Playground',
+    // label 'My OpenAI') also carries this connection's label, so without the
+    // name-based exclusion it would inflate both breakdowns by 14000 tokens and
+    // push a 'Playground' agent row into the list. Real usage is 1800 tokens.
+    expect(agentTokens).toBe(1800);
+    expect(modelTokens).toBe(1800);
+    expect(
+      res.body.agents.some((a: { agent_name: string }) => a.agent_name === 'Playground'),
+    ).toBe(false);
+    // The orphan also must not surface in recent messages.
+    expect(
+      res.body.recent_messages.some(
+        (m: { agent_name: string }) => m.agent_name === 'Playground',
+      ),
+    ).toBe(false);
   });
 
   it('keeps same-provider/auth connections separate by label in connection-detail', async () => {
@@ -287,10 +331,12 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
   });
 
   it('excludes the Playground (is_system) agent from per-provider and per-model timeseries (Finding 2)', async () => {
-    // The Playground agent logged 18000 openai/gpt-4o tokens. Real openai usage
-    // is 1800 tokens (gpt-4o 1500 + gpt-4o-mini 300). Before the fix these
-    // endpoints had no is_system filter, so openai would have read 19800 and
-    // gpt-4o 19500. After the fix the Playground rows are excluded.
+    // The Playground agent logged 18000 openai/gpt-4o tokens (agent_id set), and
+    // an orphan Playground row logged 14000 more (NULL agent_id, name only).
+    // Real openai usage is 1800 tokens (gpt-4o 1500 + gpt-4o-mini 300). Before
+    // the fix these endpoints either had no is_system filter or used an id-only
+    // join that missed the orphan. After the name-based NOT EXISTS exclusion
+    // BOTH Playground rows are dropped from every per-* timeseries.
     const sumKey = (rows: Array<Record<string, number>>, key: string): number =>
       rows.reduce((sum, row) => sum + (row[key] ?? 0), 0);
 

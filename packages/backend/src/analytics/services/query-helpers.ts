@@ -71,27 +71,38 @@ export function addTenantFilter<T extends ObjectLiteral>(
 
 /**
  * Exclude the reserved Playground (`is_system`) agent from a message
- * aggregate. Joins the `agents` table on **agent identity** (`a.id =
- * at.agent_id`) and keeps only rows whose agent is non-system (or has no
- * matching agent row at all, e.g. legacy telemetry where the agent was
- * deleted → `is_system` is NULL → included).
+ * aggregate. A row is dropped iff it belongs to a system agent of the same
+ * tenant by EITHER `agent_id` OR `agent_name`; every other row (including
+ * orphan telemetry with a NULL/unmatched `agent_id` and a non-system name)
+ * stays included.
  *
- * The join is on `agent_id`, not `(name, tenant_id)`, on purpose: a soft-
- * deleted agent and a live agent can share a slug, so a name-based join is
- * one-to-many and multiplies fact rows, inflating any SUM/COUNT downstream.
- * Joining on the immutable id is one-to-(zero-or-one), so no duplication.
+ * Implemented as a `NOT EXISTS` semi-join rather than a LEFT JOIN. Two
+ * properties matter and only the semi-join satisfies both:
  *
- * Assumes the query builder aliases `agent_messages` as `at` (so `at.agent_id`
- * is the fact-table column). The join alias `a` is reused by callers that
- * already reference `a.*`, so it must stay `a`.
+ *  1. No duplication — a semi-join is a pure existence test, so it can never
+ *     multiply fact rows even when a soft-deleted agent and a live agent share
+ *     a slug (which a name-based LEFT JOIN would, inflating any SUM/COUNT).
+ *  2. No leak — matching on `id` OR `name` means a Playground message that
+ *     carries only `agent_name = 'Playground'` (NULL or unmatched `agent_id`)
+ *     is still excluded. An id-only LEFT JOIN left those rows with a NULL
+ *     `is_system` and wrongly counted them.
+ *
+ * Assumes the query builder aliases `agent_messages` as `at`. This helper adds
+ * no join, so callers that need agent columns must add their own `agents` join
+ * (one-to-(0/1) on `a.id = at.agent_id`) independently.
  */
+/**
+ * The exact `NOT EXISTS` predicate `excludeSystemAgents` appends. Exported so
+ * call sites and tests reference one string instead of duplicating (and
+ * drifting on) the SQL.
+ */
+export const EXCLUDE_SYSTEM_AGENTS_PREDICATE =
+  'NOT EXISTS (SELECT 1 FROM agents sysag WHERE sysag.tenant_id = at.tenant_id AND sysag.is_system = true AND (sysag.id = at.agent_id OR sysag.name = at.agent_name))';
+
 export function excludeSystemAgents<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
 ): SelectQueryBuilder<T> {
-  if (!qb.expressionMap.joinAttributes.some((j) => j.alias.name === 'a')) {
-    qb.leftJoin('agents', 'a', 'a.id = at.agent_id');
-  }
-  return qb.andWhere('(a.is_system IS NULL OR a.is_system = false)');
+  return qb.andWhere(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
 }
 
 /**

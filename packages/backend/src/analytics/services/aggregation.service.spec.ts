@@ -4,6 +4,7 @@ import { Brackets } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { EXCLUDE_SYSTEM_AGENTS_PREDICATE } from './query-helpers';
 
 describe('AggregationService', () => {
   let service: AggregationService;
@@ -30,11 +31,6 @@ describe('AggregationService', () => {
       getMany: jest.fn().mockResolvedValue([]),
       getOne: jest.fn().mockResolvedValue(null),
     };
-    // excludeSystemAgents() inspects existing joins via expressionMap.
-    (mockQb as unknown as { expressionMap: { joinAttributes: unknown[] } }).expressionMap = {
-      joinAttributes: [],
-    };
-
     const chainableMethods = [
       'select',
       'addSelect',
@@ -225,10 +221,10 @@ describe('AggregationService', () => {
       );
 
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
-      // Both the current and previous window builders add the guard, so it must
-      // appear (the join is also issued).
-      expect(clauses).toContain('(a.is_system IS NULL OR a.is_system = false)');
-      expect(mockQb.leftJoin).toHaveBeenCalledWith('agents', 'a', 'a.id = at.agent_id');
+      // Both the current and previous window builders add the semi-join guard.
+      // It adds no join of its own (pure NOT EXISTS existence test).
+      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(mockQb.leftJoin).not.toHaveBeenCalled();
     });
 
     it('does not exclude system agents by default (excludeSystem omitted)', async () => {
@@ -239,7 +235,7 @@ describe('AggregationService', () => {
       await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
 
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
-      expect(clauses).not.toContain('(a.is_system IS NULL OR a.is_system = false)');
+      expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
     });
   });
 });
