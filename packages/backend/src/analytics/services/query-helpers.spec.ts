@@ -7,6 +7,7 @@ import {
   excludeSystemAgents,
   EXCLUDE_SYSTEM_AGENTS_PREDICATE,
   filterByKeyLabel,
+  filterByLiveAgentName,
   MESSAGE_ROW_SELECT_ALIASES,
 } from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
@@ -167,6 +168,19 @@ describe('addTenantFilter', () => {
     addTenantFilter(qb, 'user-123');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
+  });
+
+  it('filterByLiveAgentName constrains to the live agent id and returns the builder', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    const result = filterByLiveAgentName(qb, 'my-agent');
+
+    expect(result).toBe(qb);
+    expect(mockAndWhere).toHaveBeenCalledTimes(1);
+    const call = mockAndWhere.mock.calls[0];
+    expect(call[0]).toContain('at.agent_id = (');
+    expect(call[0]).toContain('FROM agents');
+    expect(call[0]).toContain('deleted_at IS NULL');
+    expect(call[1]).toEqual({ agentName: 'my-agent' });
   });
 
   it('returns the query builder for chaining', () => {

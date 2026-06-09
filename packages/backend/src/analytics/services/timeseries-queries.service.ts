@@ -4,7 +4,13 @@ import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
-import { addTenantFilter, selectMessageRowColumns, excludeSystemAgents } from './query-helpers';
+import {
+  addTenantFilter,
+  selectMessageRowColumns,
+  excludeSystemAgents,
+  filterByKeyLabel,
+  filterByLiveAgentName,
+} from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   computeCutoff,
@@ -42,6 +48,7 @@ export class TimeseriesQueriesService {
     authType?: string,
     provider?: string,
     excludeSystem = false,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -60,6 +67,9 @@ export class TimeseriesQueriesService {
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
     if (excludeSystem) excludeSystemAgents(qb);
+    // Connection-scoped label filter: keep sibling keys (same provider+auth_type,
+    // different label) out of this connection's aggregate chart. NULL → 'Default'.
+    if (label !== undefined) filterByKeyLabel(qb, label);
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {
@@ -288,6 +298,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     authType?: string,
     provider?: string,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -308,6 +319,10 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    // Scope to a single connection (provider+auth_type+label). Without the label
+    // filter two keys that share provider+auth_type but differ by label merge
+    // into one connection's chart. Legacy NULL provider_key_label → 'Default'.
+    if (label !== undefined) filterByKeyLabel(qb, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -325,6 +340,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     authType?: string,
     provider?: string,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -343,6 +359,8 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    // Connection-scoped label filter (see getPerAgentTimeseries).
+    if (label !== undefined) filterByKeyLabel(qb, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -360,6 +378,7 @@ export class TimeseriesQueriesService {
     tenantId?: string,
     authType?: string,
     provider?: string,
+    label?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -379,6 +398,8 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
+    // Connection-scoped label filter (see getPerAgentTimeseries).
+    if (label !== undefined) filterByKeyLabel(qb, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -412,7 +433,9 @@ export class TimeseriesQueriesService {
     // stay consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
-    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
+    // agent sharing the name doesn't leak its old rows into this chart.
+    if (agentName) filterByLiveAgentName(qb, agentName);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -445,7 +468,9 @@ export class TimeseriesQueriesService {
     // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
-    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
+    // agent sharing the name doesn't leak its old rows into this chart.
+    if (agentName) filterByLiveAgentName(qb, agentName);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -479,7 +504,9 @@ export class TimeseriesQueriesService {
     // consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
-    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
+    // agent sharing the name doesn't leak its old rows into this chart.
+    if (agentName) filterByLiveAgentName(qb, agentName);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -512,7 +539,9 @@ export class TimeseriesQueriesService {
     // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
-    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
+    // agent sharing the name doesn't leak its old rows into this chart.
+    if (agentName) filterByLiveAgentName(qb, agentName);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -545,7 +574,9 @@ export class TimeseriesQueriesService {
     // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
-    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
+    // agent sharing the name doesn't leak its old rows into this chart.
+    if (agentName) filterByLiveAgentName(qb, agentName);
     const rows = await qb
       .groupBy(bucketAlias)
       .addGroupBy('at.provider')
@@ -576,7 +607,9 @@ export class TimeseriesQueriesService {
     // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
     excludeSystemAgents(qb);
     addTenantFilter(qb, userId, undefined, tenantId);
-    if (agentName) qb.andWhere('at.agent_name = :agentName', { agentName });
+    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
+    // agent sharing the name doesn't leak its old rows into this chart.
+    if (agentName) filterByLiveAgentName(qb, agentName);
     const rows = await qb
       .groupBy(bucketAlias)
       .addGroupBy('at.model')

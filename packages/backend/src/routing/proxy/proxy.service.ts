@@ -13,7 +13,7 @@ import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
-import { RateLimitTrackerService } from './rate-limit-tracker.service';
+import { RateLimitTrackerService, canonicalConnectionLabel } from './rate-limit-tracker.service';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type {
   AuthType,
@@ -269,13 +269,16 @@ export class ProxyService {
       paramMergeContext,
     });
 
-    // Capture rate limit headers (fire-and-forget, never blocks proxy)
+    // Capture rate limit headers (fire-and-forget, never blocks proxy).
+    // Attribute to the canonical connection label so an unlabeled key is
+    // recorded under the stored 'Default' connection rather than a NULL that
+    // could collide with a real 'Default' connection on read.
     this.rateLimitTracker.captureFromResponse(
       forward.response,
       userId,
       route.provider,
       route.authType,
-      route.keyLabel ?? undefined,
+      canonicalConnectionLabel(route.keyLabel),
     );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
@@ -604,7 +607,9 @@ export class ProxyService {
         userId,
         success.provider,
         success.authType ?? '',
-        success.keyLabel,
+        // Mirror the primary path: a fallback success with no explicit keyLabel
+        // is recorded under the canonical 'Default' connection, not NULL.
+        canonicalConnectionLabel(success.keyLabel),
       );
       return {
         forward: success.forward,

@@ -237,5 +237,40 @@ describe('AggregationService', () => {
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
       expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
     });
+
+    const labelClause = "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)";
+
+    it('scopes both windows to a connection label when provided', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics(
+        '24h',
+        'u1',
+        'tenant-123',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+      );
+
+      const labelCalls = mockQb.andWhere.mock.calls.filter((c: unknown[]) => c[0] === labelClause);
+      // Current + previous window builders each add the label predicate.
+      expect(labelCalls).toHaveLength(2);
+      for (const call of labelCalls) expect(call[1]).toEqual({ keyLabel: 'Work' });
+    });
+
+    it('does not add the label filter when no label is given', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain(labelClause);
+    });
   });
 });

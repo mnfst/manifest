@@ -41,8 +41,16 @@ const cache = new Map<string, CachedSnapshot>();
 // alias one tuple onto another.
 const KEY_SEP = ' ';
 
-/** Canonical label for a connection — a legacy missing label collapses to 'Default'. */
-function canonicalLabel(keyLabel?: string | null): string {
+/**
+ * Canonical label for a connection — a legacy missing label collapses to the
+ * stored `'Default'` connection (the value `provider.service` persists for an
+ * unlabeled key, and the value the analytics layer's `filterByKeyLabel`
+ * collapses NULL/empty to). Exported so the proxy capture path attributes a
+ * response to the SAME label the connection is keyed under, instead of leaving
+ * it NULL and relying on read-time coercion (which fabricated a 'Default' that
+ * could collide with a real 'Default' connection).
+ */
+export function canonicalConnectionLabel(keyLabel?: string | null): string {
   return keyLabel && keyLabel.length > 0 ? keyLabel : 'Default';
 }
 
@@ -57,12 +65,26 @@ function connectionCacheKey(
   authType: string,
   keyLabel?: string | null,
 ): string {
-  return [userId, provider, authType, canonicalLabel(keyLabel)].join(KEY_SEP);
+  return [userId, provider, authType, canonicalConnectionLabel(keyLabel)].join(KEY_SEP);
 }
 
 /** Per-user prefix used to scan the cache for one user's connections. */
 function userCachePrefix(userId: string): string {
   return `${userId}${KEY_SEP}`;
+}
+
+/**
+ * Insert/refresh a cache entry while enforcing MAX_CACHE. When the cache is at
+ * capacity and the key is new, evict the oldest (insertion-ordered) entry first
+ * so the in-memory cache can never grow unbounded — applies to BOTH the
+ * header-capture and the DB-repopulation paths.
+ */
+function setCapped(cacheKey: string, snapshot: RateLimitSnapshot): void {
+  if (cache.size >= MAX_CACHE && !cache.has(cacheKey)) {
+    const firstKey = cache.keys().next().value;
+    if (firstKey !== undefined) cache.delete(firstKey);
+  }
+  cache.set(cacheKey, { data: snapshot, expiresAt: Date.now() + TTL_MS });
 }
 
 /**
@@ -192,22 +214,26 @@ export class RateLimitTrackerService {
       const entries = extractRateLimitHeaders(response.headers, provider);
       if (!entries) return;
 
+      // Attribute the headers to the canonical connection label. An unlabeled
+      // key (NULL/empty) maps to the stored 'Default' connection rather than
+      // being persisted as NULL and relying on read-time coercion — that kept
+      // the cache key and the persisted row consistent with how the analytics
+      // layer keys connections, and stops a fabricated NULL→'Default' from
+      // ambiguously merging with a real 'Default' connection.
+      const label = canonicalConnectionLabel(keyLabel);
+
       const snapshot: RateLimitSnapshot = {
         userId,
         provider,
         authType,
-        keyLabel,
+        keyLabel: label,
         limits: entries,
       };
 
       // Update in-memory cache immediately. Keyed by the full connection tuple
       // so distinct auth types / labels for one provider stay separate.
-      const cacheKey = connectionCacheKey(userId, provider, authType, keyLabel);
-      if (cache.size >= MAX_CACHE && !cache.has(cacheKey)) {
-        const firstKey = cache.keys().next().value;
-        if (firstKey !== undefined) cache.delete(firstKey);
-      }
-      cache.set(cacheKey, { data: snapshot, expiresAt: Date.now() + TTL_MS });
+      const cacheKey = connectionCacheKey(userId, provider, authType, label);
+      setCapped(cacheKey, snapshot);
 
       // Persist async (fire-and-forget)
       this.persistSnapshot(snapshot).catch(() => {
@@ -283,8 +309,9 @@ export class RateLimitTrackerService {
       };
       snapshots.push(snapshot);
 
-      // Populate cache
-      cache.set(cacheKey, { data: snapshot, expiresAt: Date.now() + TTL_MS });
+      // Populate cache — capped like the header-capture path so DB
+      // repopulation can't grow the in-memory cache past MAX_CACHE.
+      setCapped(cacheKey, snapshot);
     }
 
     return snapshots;

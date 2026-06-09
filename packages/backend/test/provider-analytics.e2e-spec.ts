@@ -62,6 +62,16 @@ beforeAll(async () => {
     [ghostAgentId, TEST_TENANT_ID, now],
   );
 
+  // Finding 4: a message owned by the SOFT-DELETED `test-agent` (ghost id) on a
+  // distinct provider/model. A per-provider/per-model timeseries scoped to the
+  // live `test-agent` must NOT include this dead namesake's row — the agent
+  // filter has to resolve to the live agent's id, not match by slug.
+  await ds.query(
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+     VALUES ($1,$2,$3,$4,'ok','ghost-model','ghostprovider','api_key',5000,5000,0,0,0.5,'msg','agent','test-agent',$5)`,
+    [uuid(), TEST_TENANT_ID, ghostAgentId, now, TEST_USER_ID],
+  );
+
   // Finding 1: a reserved Playground (is_system) agent whose usage must NOT
   // pollute provider analytics aggregates or the connection breakdown.
   const playgroundAgentId = uuid();
@@ -212,6 +222,63 @@ describe('GET /api/v1/provider-analytics', () => {
       .expect(200);
   });
 
+  it('scopes per-agent timeseries to a single connection label (P2)', async () => {
+    // Work and Personal share provider=anthropic, auth_type=api_key. Without the
+    // label filter the per-agent chart for either connection would merge both
+    // (666 tokens). With it, Work sees only its 222 tokens.
+    const merged = await request(app.getHttpServer())
+      .get('/api/v1/provider-analytics/per-agent-timeseries?auth_type=api_key&provider=anthropic')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const mergedTotal = merged.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(mergedTotal).toBe(666);
+
+    const work = await request(app.getHttpServer())
+      .get(
+        '/api/v1/provider-analytics/per-agent-timeseries?auth_type=api_key&provider=anthropic&label=Work',
+      )
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const workTotal = work.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(workTotal).toBe(222);
+  });
+
+  it('scopes the summary + message timeseries to a connection label (P2)', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/provider-analytics?auth_type=api_key&provider=anthropic&label=Personal&range=24h')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    // Personal key: one message, 444 tokens — Work's 222 must not leak in.
+    expect(res.body.summary.messages.value).toBe(1);
+    expect(res.body.summary.tokens.value).toBe(444);
+
+    const msg = await request(app.getHttpServer())
+      .get(
+        '/api/v1/provider-analytics/per-agent-message-timeseries?auth_type=api_key&provider=anthropic&label=Personal',
+      )
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    const personalMessages = msg.body.timeseries.reduce(
+      (sum: number, row: Record<string, number>) => sum + (row['test-agent'] ?? 0),
+      0,
+    );
+    expect(personalMessages).toBe(1);
+
+    const cost = await request(app.getHttpServer())
+      .get(
+        '/api/v1/provider-analytics/per-agent-cost-timeseries?auth_type=api_key&provider=anthropic&label=Work',
+      )
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    expect(cost.body.agents).toContain('test-agent');
+  });
+
   it('returns connection detail for an owned connection', async () => {
     const res = await request(app.getHttpServer())
       .get(`/api/v1/provider-analytics/connection-detail?connection_id=${connectionId}`)
@@ -295,7 +362,8 @@ describe('GET /api/v1/provider-analytics', () => {
       .get('/api/v1/provider-analytics/connection-detail')
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
-    expect(res.body).toEqual({ connection: null, agents: [], recent_messages: [] });
+    // Every branch returns the same shape, including model_usage.
+    expect(res.body).toEqual({ connection: null, agents: [], model_usage: [], recent_messages: [] });
   });
 
   it('returns an empty shape for a connection that does not belong to the user', async () => {
@@ -351,6 +419,24 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
     expect(sumKey(model.body.timeseries, 'gpt-4o')).toBe(1500);
+  });
+
+  it('scopes per-provider/per-model timeseries to the LIVE agent, excluding a soft-deleted namesake (Finding 4)', async () => {
+    // A soft-deleted `test-agent` logged 10000 ghostprovider/ghost-model tokens.
+    // Scoping the per-provider/per-model timeseries to the live `test-agent`
+    // must resolve to the live agent's id, so the dead namesake's rows never
+    // appear in the agent-scoped chart.
+    const provider = await request(app.getHttpServer())
+      .get('/api/v1/overview/per-provider-timeseries?range=24h&agent_name=test-agent')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    expect(provider.body.agents).not.toContain('ghostprovider');
+
+    const model = await request(app.getHttpServer())
+      .get('/api/v1/overview/per-model-timeseries?range=24h&agent_name=test-agent')
+      .set('x-api-key', TEST_API_KEY)
+      .expect(200);
+    expect(model.body.agents).not.toContain('ghost-model');
   });
 });
 

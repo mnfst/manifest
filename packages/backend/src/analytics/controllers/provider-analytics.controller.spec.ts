@@ -5,7 +5,6 @@ import type { TenantCacheService } from '../../common/services/tenant-cache.serv
 import type { Repository } from 'typeorm';
 import type { UserProvider } from '../../entities/user-provider.entity';
 import type { AgentMessage } from '../../entities/agent-message.entity';
-import type { Tenant } from '../../entities/tenant.entity';
 import type { AuthUser } from '../../auth/auth.instance';
 
 const user = { id: 'u1' } as AuthUser;
@@ -53,7 +52,6 @@ describe('ProviderAnalyticsController', () => {
   let tenantCache: { resolve: jest.Mock };
   let providerRepo: { findOne: jest.Mock };
   let messageRepo: { createQueryBuilder: jest.Mock };
-  let tenantRepo: { findOne: jest.Mock };
   let controller: ProviderAnalyticsController;
 
   beforeEach(() => {
@@ -75,7 +73,6 @@ describe('ProviderAnalyticsController', () => {
     tenantCache = { resolve: jest.fn().mockResolvedValue('tenant-1') };
     providerRepo = { findOne: jest.fn() };
     messageRepo = { createQueryBuilder: jest.fn() };
-    tenantRepo = { findOne: jest.fn() };
 
     controller = new ProviderAnalyticsController(
       aggregation as unknown as AggregationService,
@@ -83,7 +80,6 @@ describe('ProviderAnalyticsController', () => {
       tenantCache as unknown as TenantCacheService,
       providerRepo as unknown as Repository<UserProvider>,
       messageRepo as unknown as Repository<AgentMessage>,
-      tenantRepo as unknown as Repository<Tenant>,
     );
   });
 
@@ -100,6 +96,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '24h',
@@ -110,6 +107,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
       );
       expect(out.summary.messages).toEqual({ value: 5 });
       expect(out.token_usage).toEqual([{ hour: '01' }]);
@@ -126,6 +124,7 @@ describe('ProviderAnalyticsController', () => {
         'api_key',
         'openai',
         true,
+        undefined,
       );
     });
 
@@ -139,6 +138,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         undefined,
         true,
+        undefined,
       );
     });
 
@@ -154,6 +154,32 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
+      );
+    });
+
+    it('scopes summary + timeseries to a connection label', async () => {
+      await controller.getAnalytics(user, 'api_key', '7d', undefined, 'openai', 'Work');
+      expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+      );
+      expect(timeseries.getTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
       );
     });
   });
@@ -168,6 +194,7 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'subscription',
         'openai',
+        undefined,
       );
       expect(out).toEqual({ agents: ['a'], timeseries: [] });
     });
@@ -181,6 +208,7 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'subscription',
         'openai',
+        undefined,
       );
     });
 
@@ -193,6 +221,40 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'api_key',
         'anthropic',
+        undefined,
+      );
+    });
+
+    it('forwards the connection label to every per-agent timeseries query', async () => {
+      await controller.getPerAgentTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentMessageTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentCostTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      expect(timeseries.getPerAgentTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+      );
+      expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+      );
+      expect(timeseries.getPerAgentCostTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
       );
     });
   });
@@ -215,18 +277,39 @@ describe('ProviderAnalyticsController', () => {
   });
 
   describe('getConnectionDetail', () => {
-    it('returns empty shape when connection_id is missing', async () => {
+    it('returns empty shape (incl. model_usage) when connection_id is missing', async () => {
       const out = await controller.getConnectionDetail(user, undefined);
-      expect(out).toEqual({ connection: null, agents: [], recent_messages: [] });
+      expect(out).toEqual({ connection: null, agents: [], model_usage: [], recent_messages: [] });
     });
 
-    it('returns empty shape when the connection is not found / not owned', async () => {
+    it('returns empty shape (incl. model_usage) when the connection is not found / not owned', async () => {
       providerRepo.findOne.mockResolvedValue(null);
       const out = await controller.getConnectionDetail(user, 'c1');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
         where: { id: 'c1', user_id: 'u1' },
       });
-      expect(out).toEqual({ connection: null, agents: [], recent_messages: [] });
+      expect(out).toEqual({ connection: null, agents: [], model_usage: [], recent_messages: [] });
+    });
+
+    it('resolves the tenant via TenantCacheService, not a per-request tenant query', async () => {
+      providerRepo.findOne.mockResolvedValue({
+        id: 'c1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'My OpenAI',
+        cached_models: null,
+        key_prefix: 'sk-abc',
+        connected_at: '2026-01-01',
+        is_active: true,
+      });
+      messageRepo.createQueryBuilder
+        .mockReturnValueOnce(makeQb({ rawOne: { last_used_at: null } }))
+        .mockReturnValueOnce(makeQb({ rawMany: [] }))
+        .mockReturnValueOnce(makeQb({ rawMany: [] }))
+        .mockReturnValueOnce(makeQb({ rawMany: [] }));
+
+      await controller.getConnectionDetail(user, 'c1');
+      expect(tenantCache.resolve).toHaveBeenCalledWith('u1');
     });
 
     it('returns connection-only shape when tenant is missing', async () => {
@@ -239,7 +322,7 @@ describe('ProviderAnalyticsController', () => {
         key_prefix: 'sk-abc',
         connected_at: '2026-01-01',
       });
-      tenantRepo.findOne.mockResolvedValue(null);
+      tenantCache.resolve.mockResolvedValue(null);
 
       const out = (await controller.getConnectionDetail(
         user,
@@ -262,7 +345,7 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       const lastUsedDate = new Date('2026-02-01T10:00:00Z');
       // Query order in controller: lastUsed, agentRows, modelRows, recentMessages
@@ -341,7 +424,7 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: false,
       });
-      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       messageRepo.createQueryBuilder
         // last_used_at as a raw string (not a Date)
@@ -380,7 +463,7 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       const qbs = [
         makeQb({ rawOne: { last_used_at: null } }),
@@ -418,7 +501,7 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       const firstQb = makeQb({ rawOne: { last_used_at: null } });
       messageRepo.createQueryBuilder
@@ -446,7 +529,7 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantRepo.findOne.mockResolvedValue({ id: 'tenant-1' });
+      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       messageRepo.createQueryBuilder
         .mockReturnValueOnce(makeQb({ rawOne: { last_used_at: null } }))

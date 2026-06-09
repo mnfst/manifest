@@ -103,6 +103,33 @@ describe('RateLimitTrackerService', () => {
       expect(saved.used_value).toBe('0'); // null used -> '0'
       expect(saved.remaining_value).toBeNull();
     });
+
+    it('persists an unlabeled key under the canonical Default connection label', async () => {
+      const userId = nextUser();
+      const res = new Response(null, {
+        headers: makeHeaders({ 'x-ratelimit-limit-requests': '10' }),
+      });
+      // No keyLabel passed: the row must store an explicit 'Default', not NULL,
+      // so it matches the analytics layer's NULL→'Default' connection keying.
+      service.captureFromResponse(res, userId, 'openai', 'api_key');
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(repo.save.mock.calls[0][0].key_label).toBe('Default');
+
+      const out = await service.getRateLimits(userId);
+      expect(out[0].keyLabel).toBe('Default');
+    });
+
+    it('persists an empty-string key label under the canonical Default connection', async () => {
+      const userId = nextUser();
+      const res = new Response(null, {
+        headers: makeHeaders({ 'x-ratelimit-limit-requests': '10' }),
+      });
+      service.captureFromResponse(res, userId, 'openai', 'api_key', '');
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(repo.save.mock.calls[0][0].key_label).toBe('Default');
+    });
   });
 
   describe('captureFromResponse — Anthropic headers', () => {
@@ -232,6 +259,43 @@ describe('RateLimitTrackerService', () => {
       const out = await service.getRateLimits('evict-0');
       // DB returns nothing for that user, so the evicted in-memory entry is gone.
       expect(out).toEqual([]);
+    });
+
+    it('enforces MAX_CACHE on the DB-repopulation path', async () => {
+      // Fill the cache to exactly MAX_CACHE via captures.
+      const res = new Response(null, {
+        headers: makeHeaders({ 'x-ratelimit-limit-requests': '1' }),
+      });
+      for (let i = 0; i < 2000; i++) {
+        service.captureFromResponse(res.clone(), `repop-${i}`, 'openai', 'api_key');
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // A getRateLimits for a brand-new user whose DB returns a fresh
+      // connection forces a repopulation cache.set. With the cache already at
+      // capacity, the repopulation must evict the oldest entry (repop-0)
+      // instead of growing past MAX_CACHE.
+      const row: FakeRow = {
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        key_label: 'team',
+        limit_type: 'tokens',
+        period: 'minute',
+        limit_value: '1000',
+        remaining_value: '400',
+        used_value: '600',
+        resets_at: null,
+      };
+      getManyRows = [row as unknown as ProviderRateLimit];
+      const fresh = await service.getRateLimits('repop-new');
+      expect(fresh).toHaveLength(1);
+
+      // The oldest captured connection was evicted by the capped repopulation;
+      // its in-memory entry is gone and its DB lookup returns nothing.
+      getManyRows = [];
+      const evicted = await service.getRateLimits('repop-0');
+      expect(evicted).toEqual([]);
     });
   });
 
