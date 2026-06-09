@@ -1,0 +1,32 @@
+packages/backend/src/common/interceptors/agent-list-cache.interceptor.ts
+  s_8f7bd68edeeec2::t_886a44130c1247 1-29
+packages/backend/src/common/interceptors/agent-list-cache.interceptor.spec.ts
+  s_8f7bd68edeeec2::t_0b9e0f9399d666 1-34,38-75
+  s_8f7bd68edeeec2::t_da84b531982ded 35-37
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_8f7bd68edeeec2::t_c386876c52cab0 29
+  s_8f7bd68edeeec2::t_da84b531982ded 30
+  s_8f7bd68edeeec2::t_967355e573d088 52-54,56-57,62
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_8f7bd68edeeec2::t_e4a5fd791ae999 283-286
+  s_8f7bd68edeeec2::t_a1980a4091c8d0 249-250,252
+  s_8f7bd68edeeec2::t_09e480c8f3566c 511,633
+packages/backend/src/common/constants/cache.constants.ts
+  s_8f7bd68edeeec2::t_b1198778b6d82d 6-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "4bf085b0f6d54dbc30b7defbed4db77eb2c6e8be",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
