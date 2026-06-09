@@ -246,10 +246,10 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ renamed: true, name: 'bot-renamed', display_name: 'Bot Renamed' });
     expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed', 'Bot Renamed');
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
-    // The Messages-filter variant (?includeSystem=true) is a distinct cache
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=false');
+    // The Messages-filter variant (system agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a rename.
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents?includeSystem=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=true');
   });
 
   it('rejects rename with empty slug', async () => {
@@ -280,7 +280,10 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ deleted: true });
     expect(mockDeleteAgent).toHaveBeenCalledWith('u1', 'bot-1');
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+    // Both canonical variants are cleared so neither the Workspace list nor the
+    // Messages filter (system agents included) goes stale after a delete.
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=true');
   });
 
   it('passes agent_category and agent_platform to onboardAgent', async () => {
@@ -505,7 +508,7 @@ describe('AgentsController', () => {
     const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
 
     expect(result.agent.name).toBe('my-agent');
-    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents');
+    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:system=false');
   });
 
   it('rejects createAgent with empty slug', async () => {
@@ -627,7 +630,7 @@ describe('AgentsController', () => {
       name: 'bot-copy',
       displayName: 'Bot Copy',
     });
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=false');
   });
 
   it('rejects duplicateAgent with empty slug', async () => {
