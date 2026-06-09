@@ -291,6 +291,65 @@ describe('Anthropic Adapter', () => {
       expect(content[1]).toEqual({ type: 'text', text: 'Second' });
     });
 
+    it('converts OpenAI image_url content blocks to Anthropic image blocks', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Look at these.' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' },
+              },
+              {
+                type: 'image_url',
+                image_url: { url: 'https://example.com/image.webp' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+      expect(messages[0].content).toEqual([
+        { type: 'text', text: 'Look at these.' },
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/png', data: 'iVBORw0KGgo=' },
+        },
+        {
+          type: 'image',
+          source: { type: 'url', url: 'https://example.com/image.webp' },
+        },
+      ]);
+    });
+
+    it('converts Responses input_image content blocks to Anthropic image blocks', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'input_text', text: 'What is in this image?' },
+              { type: 'input_image', image_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==' },
+            ],
+          },
+        ],
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+
+      const messages = result.messages as Array<{ content: Array<Record<string, unknown>> }>;
+      expect(messages[0].content).toEqual([
+        { type: 'text', text: 'What is in this image?' },
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: '/9j/4AAQSkZJRg==' },
+        },
+      ]);
+    });
+
     it('handles system message with array content', () => {
       const body = {
         messages: [

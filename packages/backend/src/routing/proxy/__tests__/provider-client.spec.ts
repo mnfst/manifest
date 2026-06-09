@@ -428,6 +428,52 @@ describe('ProviderClient', () => {
       expect(sent.tools[0]).toMatchObject({ name: 'lookup', input_schema: { type: 'object' } });
     });
 
+    it('forwards Responses image inputs to Anthropic image content blocks', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: {
+          input: [
+            {
+              role: 'user',
+              content: [
+                { type: 'input_text', text: 'What is in this image?' },
+                { type: 'input_image', image_url: 'data:image/png;base64,iVBORw0KGgo=' },
+              ],
+            },
+          ],
+          stream: false,
+        },
+        chatBody: {
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'What is in this image?' },
+                { type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } },
+              ],
+            },
+          ],
+          stream: false,
+        },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.input).toBeUndefined();
+      expect(sent.messages[0].content).toEqual([
+        { type: 'text', text: 'What is in this image?' },
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/png', data: 'iVBORw0KGgo=' },
+        },
+      ]);
+    });
+
     it('strips Codex-unsupported params on the subscription Responses path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
