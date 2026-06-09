@@ -1,0 +1,59 @@
+packages/backend/src/routing/custom-provider/custom-provider.service.edge-cases.spec.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 104,114,116,174-175,184,199,213,226,228-230,237,240
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_8f7bd68edeeec2::t_1f6b28d606ae5d 285
+  s_8f7bd68edeeec2::t_ff95cece17abb4 210,279,354,422,427,510
+packages/backend/src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel.spec.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 1-65
+packages/backend/src/analytics/services/agent-duplication.service.ts
+  s_8f7bd68edeeec2::t_24becce23d5e14 136-141,146-151,153
+  s_8f7bd68edeeec2::t_4b2eaff86ffc6a 218-220
+  s_8f7bd68edeeec2::t_6416f456c734ff 3
+  s_8f7bd68edeeec2::t_67eea7a71cf3da 59-69,71
+packages/backend/src/database/database.module.ts
+  s_8f7bd68edeeec2::t_3d722c3d2837cf 117
+  s_8f7bd68edeeec2::t_797f48ceed1b7f 233
+packages/backend/test/custom-providers-lift-migrations.e2e-spec.ts
+  s_8f7bd68edeeec2::t_d96ab42f42c7c0 1-63
+packages/backend/src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 1-84
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 42,47,80,83,130,145,155,169,178,185,198,216,227,239,252,261,273,275-276,296-307,313,318,321,325,339,341,351,353,363,365,377,385,391,408,437,467,491-493,497,499-503,505-521,527-528,531,534,547,554,556,565,568-570,574-575,578,588,595-623,625,635,654,659-660,663-664,668,672,674-675,679,681-682,686,688,693-694,697,709,716,726,730,732-733,741,744
+packages/backend/src/analytics/services/agent-duplication.service.spec.ts
+  s_8f7bd68edeeec2::t_3d833c1fd873ce 205-208,260,282,302,308,312,319-320,357-358,378-380
+packages/backend/src/entities/custom-provider.entity.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 1,15
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_8f7bd68edeeec2::t_745a80ec2be74c 133,138,143,162,177-178,181-182,186-191,193,216-221,223,238-239,246-252,254,276-286,301,311,313,320-321,323,329-330,337-338,340
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_8f7bd68edeeec2::t_db8cde7213e00b 164
+  s_8f7bd68edeeec2::t_48aba927684438 232
+  s_8f7bd68edeeec2::t_8d39706b40f7ea 201
+packages/backend/src/routing/model.controller.ts
+  s_8f7bd68edeeec2::t_f4c3e1b3186c84 93-94
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_8f7bd68edeeec2::t_b36f2c2a3517bc 72-73
+  s_8f7bd68edeeec2::t_d5eed2efa515b8 97-98
+  s_8f7bd68edeeec2::t_3effc367bf3e36 24-26,28
+  s_8f7bd68edeeec2::t_ed520ae2e65f32 121-122
+packages/backend/test/agent-duplication.e2e-spec.ts
+  s_8f7bd68edeeec2::t_3e0f9f645ecfce 163-165,167-169
+  s_8f7bd68edeeec2::t_187fc6c7db0186 25,118,127,185-188,209,220,237,268,274-275,279,283,287-295
+  s_8f7bd68edeeec2::t_ef02635619b1f0 280-282,284-286
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "b410ecd493b7b304e53ddb59d22a1c9e832bfa6f",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
