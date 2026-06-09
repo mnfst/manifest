@@ -374,6 +374,10 @@ const Routing: Component = () => {
     await refetchAll();
   };
 
+  const handleProviderPoll = async () => {
+    await refetchProviders();
+  };
+
   const handleSpecificityOverride = async (
     category: string,
     model: string,
@@ -442,7 +446,7 @@ const Routing: Component = () => {
             request
           </span>
         </div>
-        <Show when={!connectedProviders.loading}>
+        <Show when={connectedProviders.state !== 'pending'}>
           <div style="display: flex; gap: 8px;">
             <Show when={isEnabled()}>
               <button
@@ -472,7 +476,7 @@ const Routing: Component = () => {
         </Show>
       </div>
 
-      <Show when={!connectedProviders.loading} fallback={<RoutingLoadingSkeleton />}>
+      <Show when={connectedProviders.state !== 'pending'} fallback={<RoutingLoadingSkeleton />}>
         <Show
           when={hasProviders()}
           fallback={
@@ -546,7 +550,7 @@ const Routing: Component = () => {
                   customProviders={() => customProviders() ?? []}
                   activeProviders={activeProviders}
                   connectedProviders={() => connectedProviders() ?? []}
-                  tiersLoading={tiers.loading}
+                  tiersLoading={tiers.state === 'pending'}
                   changingTier={actions.changingTier}
                   resettingTier={actions.resettingTier}
                   resettingAll={actions.resettingAll}
@@ -740,6 +744,7 @@ const Routing: Component = () => {
         onOverride={handleOverride}
         onAddFallback={handleAddFallback}
         onProviderUpdate={handleProviderUpdate}
+        onProviderPoll={handleProviderPoll}
         onOpenProviderModal={openProviderModal}
       />
     </div>

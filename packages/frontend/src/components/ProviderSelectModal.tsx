@@ -11,6 +11,7 @@ interface Props {
   providerDeepLink?: ProviderDeepLink | null;
   onClose: () => void;
   onUpdate: () => void | Promise<void>;
+  onPollProviders?: () => void | Promise<void>;
 }
 
 const ProviderSelectModal: Component<Props> = (props) => {
@@ -38,6 +39,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
           customProviderPrefill={props.customProviderPrefill}
           providerDeepLink={props.providerDeepLink}
           onUpdate={props.onUpdate}
+          onPollProviders={props.onPollProviders}
           onClose={props.onClose}
         />
       </div>
