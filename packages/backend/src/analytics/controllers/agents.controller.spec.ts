@@ -144,7 +144,7 @@ describe('AgentsController', () => {
 
     expect(result.agents).toHaveLength(2);
     expect(result.agents[0].agent_name).toBe('bot-1');
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123');
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123', false);
   });
 
   it('passes undefined tenantId when tenant not found', async () => {
@@ -152,7 +152,14 @@ describe('AgentsController', () => {
     const user = { id: 'u1' };
     await controller.getAgents(user as never);
 
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined);
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined, false);
+  });
+
+  it('passes includeSystem=true through to getAgentList (Messages filter)', async () => {
+    const user = { id: 'u1' };
+    await controller.getAgents(user as never, 'true');
+
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123', true);
   });
 
   it('GET /agents/:agentName returns metadata for an existing agent', async () => {

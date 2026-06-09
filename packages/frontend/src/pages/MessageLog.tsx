@@ -80,7 +80,9 @@ const MessageLog: Component = () => {
     () => !params.agentName,
     async (isGlobal) => {
       if (!isGlobal) return [] as string[];
-      const data = (await getAgents()) as
+      // includeSystem=true so the reserved Playground agent appears in the
+      // filter and the log can be narrowed to Playground runs.
+      const data = (await getAgents(true)) as
         | { agents?: Array<{ agent_name: string }> }
         | Array<{ agent_name: string }>;
       const list = (Array.isArray(data) ? data : (data?.agents ?? [])) as Array<{

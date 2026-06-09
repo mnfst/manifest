@@ -10,6 +10,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseInterceptors,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
@@ -54,9 +55,9 @@ export class AgentsController {
   @Get('agents')
   @UseInterceptors(UserCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
-  async getAgents(@CurrentUser() user: AuthUser) {
+  async getAgents(@CurrentUser() user: AuthUser, @Query('includeSystem') includeSystem?: string) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
-    const agents = await this.timeseries.getAgentList(user.id, tenantId);
+    const agents = await this.timeseries.getAgentList(user.id, tenantId, includeSystem === 'true');
     return { agents };
   }
 

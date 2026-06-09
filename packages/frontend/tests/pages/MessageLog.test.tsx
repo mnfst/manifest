@@ -1306,6 +1306,15 @@ describe("MessageLog", () => {
       });
     });
 
+    it("requests system agents so the reserved Playground agent appears in the filter", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(mockGetAgents).toHaveBeenCalledWith(true);
+      });
+    });
+
     it("does NOT render agent filter dropdown in agent-scoped mode", async () => {
       // mockAgentName is "test-agent" from beforeEach
       mockGetMessages.mockResolvedValue(messagesData);

@@ -27,6 +27,18 @@ describe('TimeseriesQueriesService', () => {
     getRawOne: jest.Mock;
     getMany: jest.Mock;
   };
+  let mockAgentQb: {
+    select: jest.Mock;
+    addSelect: jest.Mock;
+    leftJoin: jest.Mock;
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    orWhere: jest.Mock;
+    groupBy: jest.Mock;
+    orderBy: jest.Mock;
+    getMany: jest.Mock;
+    getRawMany: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockGetRawMany = jest.fn().mockResolvedValue([]);
@@ -50,7 +62,7 @@ describe('TimeseriesQueriesService', () => {
       getMany: mockGetMany,
     };
 
-    const mockAgentQb = {
+    mockAgentQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
@@ -318,6 +330,18 @@ describe('TimeseriesQueriesService', () => {
   describe('getAgentList', () => {
     const recentIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const oldIso = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString();
+
+    it('excludes the reserved system (Playground) agent by default', async () => {
+      await service.getAgentList('u1');
+      const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain('a.is_system = false');
+    });
+
+    it('includes system agents when includeSystem is true (Messages filter)', async () => {
+      await service.getAgentList('u1', undefined, true);
+      const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain('a.is_system = false');
+    });
 
     it('returns agents with sparkline data and display_name', async () => {
       mockGetMany.mockResolvedValueOnce([

@@ -31,6 +31,14 @@ describe('agents API client', () => {
     expect(out).toEqual([{ agent_name: 'a' }]);
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/agents');
+    expect(url).not.toContain('includeSystem');
+  });
+
+  it('getAgents(true) requests includeSystem so the Playground agent is listed', async () => {
+    const fetchMock = setupFetch([{ agent_name: 'a' }]);
+    await agents.getAgents(true);
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/agents?includeSystem=true');
   });
 
   it('getAgentInfo unwraps the { agent } envelope', async () => {

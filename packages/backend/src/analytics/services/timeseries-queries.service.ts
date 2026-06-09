@@ -165,7 +165,7 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getAgentList(userId: string, tenantId?: string) {
+  async getAgentList(userId: string, tenantId?: string, includeSystem = false) {
     const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
 
     const agentQb = this.agentRepo.createQueryBuilder('a');
@@ -175,9 +175,12 @@ export class TimeseriesQueriesService {
       agentQb.leftJoin('a.tenant', 't').where('t.name = :userId', { userId });
     }
     agentQb.andWhere('a.deleted_at IS NULL');
-    // The reserved Playground agent is a system agent — never list it in the
-    // Workspace grid / agent switcher.
-    agentQb.andWhere('a.is_system = false');
+    // The reserved Playground agent is a system agent. Hidden from the
+    // Workspace grid / agent switcher by default; the Messages filter opts in
+    // via includeSystem so users can filter the log to Playground runs.
+    if (!includeSystem) {
+      agentQb.andWhere('a.is_system = false');
+    }
 
     const statsCutoff = computeCutoff('30 days');
     const sparkCutoff = computeCutoff('7 days');
