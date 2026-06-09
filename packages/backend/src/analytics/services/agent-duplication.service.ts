@@ -1,11 +1,12 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { UserProvider } from '../../entities/user-provider.entity';
+import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -69,7 +70,11 @@ export class AgentDuplicationService {
 
     const [providers, customProviders, tierAssignments, specificityAssignments, modelParams] =
       await Promise.all([
-        this.dataSource.getRepository(UserProvider).count({ where: { agent_id: source.id } }),
+        // Providers are user-global; access is the agent_provider_access grant,
+        // so the copyable unit is the grant count, not the credential rows.
+        this.dataSource
+          .getRepository(AgentProviderAccess)
+          .count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(CustomProvider).count({ where: { agent_id: source.id } }),
         this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
         this.dataSource
@@ -165,29 +170,56 @@ export class AgentDuplicationService {
         await manager.getRepository(CustomProvider).insert(newCustomProviders);
       }
 
-      const providers = await manager
-        .getRepository(UserProvider)
+      // Providers are user-global and shared across agents via the
+      // agent_provider_access junction. Cloning the credential rows under the
+      // new agent_id would duplicate a (user_id, provider, auth_type, label)
+      // tuple and violate the user-scoped unique index — so instead we copy
+      // the source agent's GRANTS. Custom providers stay agent-scoped, so their
+      // companion user_providers row IS cloned (its `custom:<id>` key is unique
+      // to the freshly-cloned custom provider) and re-granted to the new agent.
+      const sourceGrants = await manager
+        .getRepository(AgentProviderAccess)
         .find({ where: { agent_id: source.id } });
-      if (providers.length > 0) {
-        await manager.getRepository(UserProvider).insert(
-          providers.map((p) => ({
-            id: uuidv4(),
-            user_id: p.user_id,
-            agent_id: newAgentId,
-            provider: this.remapCustomProviderRef(p.provider, customProviderIdMap),
-            api_key_encrypted: p.api_key_encrypted,
-            key_prefix: p.key_prefix,
-            auth_type: p.auth_type,
-            label: p.label,
-            priority: p.priority,
-            region: p.region,
-            is_active: p.is_active,
-            connected_at: now,
-            updated_at: now,
-            cached_models: p.cached_models,
-            models_fetched_at: p.models_fetched_at,
-          })),
-        );
+      let providerGrants = 0;
+      if (sourceGrants.length > 0) {
+        const grantedProviders = await manager
+          .getRepository(UserProvider)
+          .find({ where: { id: In(sourceGrants.map((g) => g.user_provider_id)) } });
+        const newGrants: { agent_id: string; user_provider_id: string }[] = [];
+        for (const p of grantedProviders) {
+          if (p.provider.startsWith(AgentDuplicationService.CUSTOM_PREFIX)) {
+            const oldId = p.provider.slice(AgentDuplicationService.CUSTOM_PREFIX.length);
+            const newCustomId = customProviderIdMap.get(oldId);
+            // A grant to a custom provider the source no longer owns can't be
+            // remapped — skip rather than point the copy at a stale id.
+            if (!newCustomId) continue;
+            const newUpId = uuidv4();
+            await manager.getRepository(UserProvider).insert({
+              id: newUpId,
+              user_id: p.user_id,
+              agent_id: newAgentId,
+              provider: `${AgentDuplicationService.CUSTOM_PREFIX}${newCustomId}`,
+              api_key_encrypted: p.api_key_encrypted,
+              key_prefix: p.key_prefix,
+              auth_type: p.auth_type,
+              label: p.label,
+              priority: p.priority,
+              region: p.region,
+              is_active: p.is_active,
+              connected_at: now,
+              updated_at: now,
+              cached_models: p.cached_models,
+              models_fetched_at: p.models_fetched_at,
+            });
+            newGrants.push({ agent_id: newAgentId, user_provider_id: newUpId });
+          } else {
+            newGrants.push({ agent_id: newAgentId, user_provider_id: p.id });
+          }
+        }
+        if (newGrants.length > 0) {
+          await manager.getRepository(AgentProviderAccess).insert(newGrants);
+        }
+        providerGrants = newGrants.length;
       }
 
       const tiers = await manager
@@ -270,7 +302,7 @@ export class AgentDuplicationService {
       }
 
       return {
-        providers: providers.length,
+        providers: providerGrants,
         customProviders: customProviders.length,
         tierAssignments: tiers.length,
         specificityAssignments: specificity.length,

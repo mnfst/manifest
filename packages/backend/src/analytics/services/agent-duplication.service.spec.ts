@@ -57,6 +57,7 @@ describe('AgentDuplicationService', () => {
       const tierRepo = makeRepoMock('TierAssignment');
       const specRepo = makeRepoMock('SpecificityAssignment');
       const modelParamsRepo = makeRepoMock('AgentModelParams');
+      const agentProviderAccessRepo = makeRepoMock('AgentProviderAccess');
       const manager = {
         getRepository: (entity: { name: string }) => {
           switch (entity.name) {
@@ -74,6 +75,8 @@ describe('AgentDuplicationService', () => {
               return specRepo;
             case 'AgentModelParams':
               return modelParamsRepo;
+            case 'AgentProviderAccess':
+              return agentProviderAccessRepo;
             default:
               throw new Error(`Unexpected entity ${entity.name}`);
           }
@@ -128,10 +131,10 @@ describe('AgentDuplicationService', () => {
   });
 
   describe('getCopySummary', () => {
-    it('returns counts of copyable rows for the source agent', async () => {
+    it('returns grant count for providers and counts of other copyable rows for the source agent', async () => {
       mockAgentGetOne.mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1' });
       repoCounts = {
-        UserProvider: 3,
+        AgentProviderAccess: 3,
         CustomProvider: 1,
         TierAssignment: 4,
         SpecificityAssignment: 2,
@@ -207,7 +210,11 @@ describe('AgentDuplicationService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it('duplicates the agent, api key, and all config rows in a transaction', async () => {
+    it('copies global provider access as a grant (no new credential row) and clones custom companion rows', async () => {
+      // The main correctness test: a global provider (anthropic) must produce
+      // an AgentProviderAccess grant pointing at the SAME user_providers row,
+      // NOT a new cloned credential row.  A custom companion row IS cloned with
+      // a remapped `custom:<newId>` and also gets a grant.
       mockAgentGetOne
         .mockResolvedValueOnce({
           id: 'src-1',
@@ -220,21 +227,42 @@ describe('AgentDuplicationService', () => {
         })
         .mockResolvedValueOnce(null);
 
+      // The source has two grants: one to a global provider, one to a custom companion.
       repoRows = {
+        AgentProviderAccess: [
+          { agent_id: 'src-1', user_provider_id: 'up-global' },
+          { agent_id: 'src-1', user_provider_id: 'up-custom' },
+        ],
+        // UserProvider rows that are loaded by the In() query.
         UserProvider: [
           {
-            id: 'up1',
+            id: 'up-global',
             user_id: 'u1',
-            agent_id: 'src-1',
+            agent_id: null,
             provider: 'anthropic',
             api_key_encrypted: 'enc',
-            key_prefix: 'sk-',
+            key_prefix: 'sk-ant',
             auth_type: 'api_key',
             label: 'Research key',
             priority: 2,
             region: null,
             is_active: true,
             cached_models: [{ id: 'm' }],
+            models_fetched_at: null,
+          },
+          {
+            id: 'up-custom',
+            user_id: 'u1',
+            agent_id: 'src-1',
+            provider: 'custom:cp1',
+            api_key_encrypted: null,
+            key_prefix: null,
+            auth_type: 'local',
+            label: null,
+            priority: 0,
+            region: null,
+            is_active: true,
+            cached_models: null,
             models_fetched_at: null,
           },
         ],
@@ -255,11 +283,9 @@ describe('AgentDuplicationService', () => {
             user_id: 'u1',
             agent_id: 'src-1',
             tier: 'standard',
-            override_model: 'm',
-            override_provider: 'anthropic',
-            override_auth_type: 'api_key',
-            auto_assigned_model: null,
-            fallback_models: ['x'],
+            override_route: null,
+            auto_assigned_route: null,
+            fallback_routes: ['x'],
           },
         ],
         SpecificityAssignment: [
@@ -269,11 +295,9 @@ describe('AgentDuplicationService', () => {
             agent_id: 'src-1',
             category: 'coding',
             is_active: true,
-            override_model: null,
-            override_provider: null,
-            override_auth_type: null,
-            auto_assigned_model: 'auto',
-            fallback_models: null,
+            override_route: null,
+            auto_assigned_route: 'auto',
+            fallback_routes: null,
           },
         ],
         AgentModelParams: [
@@ -287,9 +311,7 @@ describe('AgentDuplicationService', () => {
             scope_key: 'tier:default',
             params: { thinking: { type: 'disabled' } },
           },
-          // Custom-provider-keyed row exercises the remap path so a route
-          // pointing to `custom:<old-uuid>` lands on the new agent's custom
-          // provider id instead of dangling on the source's.
+          // custom-provider-keyed row exercises the remap path
           {
             id: 'mp2',
             user_id: 'u1',
@@ -311,8 +333,9 @@ describe('AgentDuplicationService', () => {
       expect(mockTransaction).toHaveBeenCalledTimes(1);
       expect(result.agentName).toBe('source-copy');
       expect(result.apiKey).toMatch(/^mnfst_/);
+      // 2 grants: 1 for global (anthropic) + 1 for custom companion
       expect(result.copied).toEqual({
-        providers: 1,
+        providers: 2,
         customProviders: 1,
         tierAssignments: 1,
         specificityAssignments: 1,
@@ -331,29 +354,39 @@ describe('AgentDuplicationService', () => {
       expect(apiKeyRow['agent_id']).toBe(agentRow['id']);
       expect(apiKeyRow['label']).toContain('source-copy');
 
-      const userProviderRow = (insertedRows['UserProvider'] as Array<Record<string, unknown>>)[0];
-      expect(userProviderRow['agent_id']).toBe(agentRow['id']);
-      expect(userProviderRow['api_key_encrypted']).toBe('enc');
-      expect(userProviderRow['label']).toBe('Research key');
-      expect(userProviderRow['priority']).toBe(2);
-      expect(userProviderRow['id']).not.toBe('up1');
-
-      // Per-route model params travel with the agent. The deepseek row
-      // copies verbatim; the `custom:cp1` row is remapped onto the new
-      // agent's custom provider id (same `custom:<uuid>` remap used for
-      // user_providers / tier_assignments / specificity_assignments).
-      const mpRows = insertedRows['AgentModelParams'] as Array<Record<string, unknown>>;
-      expect(mpRows).toHaveLength(2);
-      const newCustomId = (insertedRows['CustomProvider'] as Array<Record<string, unknown>>)[0][
+      // Global provider: no new UserProvider row was cloned for 'anthropic'
+      const newCpId = (insertedRows['CustomProvider'] as Array<Record<string, unknown>>)[0][
         'id'
       ] as string;
+      const upRows = insertedRows['UserProvider'] as Array<Record<string, unknown>>;
+      // Only one UserProvider row should be inserted: the custom companion clone
+      expect(upRows).toHaveLength(1);
+      expect(upRows[0]['provider']).toBe(`custom:${newCpId}`);
+      expect(upRows[0]['agent_id']).toBe(agentRow['id']);
+
+      // Two grants must be inserted: one pointing at the global row's original
+      // id, and one pointing at the freshly-cloned custom companion row.
+      const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
+      expect(grants).toHaveLength(2);
+      const globalGrant = grants.find((g) => g['user_provider_id'] === 'up-global');
+      expect(globalGrant).toBeDefined();
+      expect(globalGrant!['agent_id']).toBe(agentRow['id']);
+      const customGrant = grants.find((g) => g['user_provider_id'] !== 'up-global');
+      expect(customGrant).toBeDefined();
+      expect(customGrant!['agent_id']).toBe(agentRow['id']);
+      // The custom grant points at the new companion row (not the old up-custom id)
+      expect(customGrant!['user_provider_id']).not.toBe('up-custom');
+
+      // Per-route model params: deepseek row copies verbatim, custom:cp1 remaps
+      const mpRows = insertedRows['AgentModelParams'] as Array<Record<string, unknown>>;
+      expect(mpRows).toHaveLength(2);
       const deepseekRow = mpRows.find((r) => r['provider'] === 'deepseek')!;
       expect(deepseekRow['agent_id']).toBe(agentRow['id']);
       expect(deepseekRow['model_name']).toBe('deepseek-v4');
       expect(deepseekRow['params']).toEqual({ thinking: { type: 'disabled' } });
-      const customRow = mpRows.find((r) => String(r['provider']).startsWith('custom:'))!;
-      expect(customRow['provider']).toBe(`custom:${newCustomId}`);
-      expect(customRow['agent_id']).toBe(agentRow['id']);
+      const customMpRow = mpRows.find((r) => String(r['provider']).startsWith('custom:'))!;
+      expect(customMpRow['provider']).toBe(`custom:${newCpId}`);
+      expect(customMpRow['agent_id']).toBe(agentRow['id']);
 
       expect(mockInvalidateAgent).toHaveBeenCalledWith(agentRow['id']);
     });
@@ -387,11 +420,15 @@ describe('AgentDuplicationService', () => {
     });
 
     it('remaps custom:<uuid> references in user providers to new custom provider IDs', async () => {
+      // Source has a grant to a custom companion row.  After duplication the
+      // new agent should receive a NEW cloned companion row with
+      // provider = custom:<newId>, and a grant to that new row.
       mockAgentGetOne
         .mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1', name: 'source' })
         .mockResolvedValueOnce(null);
 
       repoRows = {
+        AgentProviderAccess: [{ agent_id: 'src-1', user_provider_id: 'up1' }],
         CustomProvider: [
           {
             id: 'old-cp-uuid',
@@ -429,36 +466,40 @@ describe('AgentDuplicationService', () => {
       const newCpId = cpRow['id'] as string;
       expect(newCpId).not.toBe('old-cp-uuid');
 
+      // Custom companion row is cloned with remapped provider key
       const upRow = (insertedRows['UserProvider'] as Array<Record<string, unknown>>)[0];
       expect(upRow['provider']).toBe(`custom:${newCpId}`);
       expect(upRow['auth_type']).toBe('local');
+
+      // A grant is created for the new custom companion row
+      const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
+      expect(grants).toHaveLength(1);
+      expect(grants[0]['user_provider_id']).toBe(upRow['id']);
     });
 
-    it('duplicates canonical local providers (ollama, lmstudio) as-is', async () => {
+    it('skips a custom companion grant when the custom provider id is not in the map', async () => {
+      // This covers the `if (!newCustomId) continue;` branch: the source agent
+      // has a grant to a custom: user_providers row whose custom provider ID
+      // does NOT appear in customProviderIdMap (orphaned grant).  The copy must
+      // skip it without crashing.
+      // Also covers the fallback branch of remapCustomProviderRef (returns the
+      // original provider string when the custom id is not in the map) via a
+      // model_params row that references the same orphaned custom id.
       mockAgentGetOne
         .mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1', name: 'source' })
         .mockResolvedValueOnce(null);
 
       repoRows = {
+        AgentProviderAccess: [{ agent_id: 'src-1', user_provider_id: 'up-orphan' }],
+        // No CustomProvider rows — so customProviderIdMap is empty
+        CustomProvider: [],
         UserProvider: [
           {
-            id: 'up-ollama',
+            id: 'up-orphan',
             user_id: 'u1',
             agent_id: 'src-1',
-            provider: 'ollama',
-            api_key_encrypted: null,
-            key_prefix: null,
-            auth_type: 'local',
-            region: null,
-            is_active: true,
-            cached_models: [{ id: 'llama3' }],
-            models_fetched_at: '2025-01-01',
-          },
-          {
-            id: 'up-lmstudio',
-            user_id: 'u1',
-            agent_id: 'src-1',
-            provider: 'lmstudio',
+            // Provider references a custom id that no longer exists in custom_providers
+            provider: 'custom:deleted-cp-id',
             api_key_encrypted: null,
             key_prefix: null,
             auth_type: 'local',
@@ -468,6 +509,20 @@ describe('AgentDuplicationService', () => {
             models_fetched_at: null,
           },
         ],
+        // A model_params row referencing the same orphaned custom id exercises the
+        // fallback arm of remapCustomProviderRef (newId not found → return original).
+        AgentModelParams: [
+          {
+            id: 'mp-orphan',
+            user_id: 'u1',
+            agent_id: 'src-1',
+            provider: 'custom:deleted-cp-id',
+            auth_type: 'local',
+            model_name: 'some-model',
+            scope_key: 'tier:default',
+            params: {},
+          },
+        ],
       };
 
       const result = await service.duplicate('user-1', 'source', {
@@ -475,44 +530,56 @@ describe('AgentDuplicationService', () => {
         displayName: 'copy',
       });
 
-      expect(result.copied.providers).toBe(2);
-      const ups = insertedRows['UserProvider'] as Array<Record<string, unknown>>;
-      expect(ups).toHaveLength(2);
-      expect(ups[0]['provider']).toBe('ollama');
-      expect(ups[0]['auth_type']).toBe('local');
-      expect(ups[0]['cached_models']).toEqual([{ id: 'llama3' }]);
-      expect(ups[1]['provider']).toBe('lmstudio');
-      expect(ups[1]['auth_type']).toBe('local');
+      // The orphaned grant is skipped: no UserProvider cloned, no grant inserted
+      expect(insertedRows['UserProvider']).toBeUndefined();
+      expect(insertedRows['AgentProviderAccess']).toBeUndefined();
+      // providers count = number of newGrants created = 0 (skipped)
+      expect(result.copied.providers).toBe(0);
+
+      // The model_params row is still copied but with the original (unmapped)
+      // provider string because remapCustomProviderRef falls back gracefully.
+      const mpRows = insertedRows['AgentModelParams'] as Array<Record<string, unknown>>;
+      expect(mpRows).toHaveLength(1);
+      expect(mpRows[0]['provider']).toBe('custom:deleted-cp-id');
     });
 
-    it('duplicates subscription providers alongside api_key providers', async () => {
+    it('copies global (non-custom) providers as grants pointing at the same user_providers id', async () => {
+      // Covers the `else` branch (global provider): grant points at original row id.
       mockAgentGetOne
         .mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1', name: 'source' })
         .mockResolvedValueOnce(null);
 
       repoRows = {
+        AgentProviderAccess: [
+          { agent_id: 'src-1', user_provider_id: 'up-openai' },
+          { agent_id: 'src-1', user_provider_id: 'up-anthropic' },
+        ],
         UserProvider: [
           {
-            id: 'up-sub',
+            id: 'up-openai',
             user_id: 'u1',
-            agent_id: 'src-1',
-            provider: 'anthropic',
-            api_key_encrypted: 'enc-sub',
-            key_prefix: null,
-            auth_type: 'subscription',
-            region: null,
-            is_active: true,
-            cached_models: null,
-            models_fetched_at: null,
-          },
-          {
-            id: 'up-key',
-            user_id: 'u1',
-            agent_id: 'src-1',
+            agent_id: null,
             provider: 'openai',
-            api_key_encrypted: 'enc-key',
+            api_key_encrypted: 'enc-openai',
             key_prefix: 'sk-',
             auth_type: 'api_key',
+            label: null,
+            priority: 0,
+            region: null,
+            is_active: true,
+            cached_models: null,
+            models_fetched_at: null,
+          },
+          {
+            id: 'up-anthropic',
+            user_id: 'u1',
+            agent_id: null,
+            provider: 'anthropic',
+            api_key_encrypted: 'enc-anth',
+            key_prefix: 'sk-ant',
+            auth_type: 'subscription',
+            label: null,
+            priority: 0,
             region: null,
             is_active: true,
             cached_models: null,
@@ -526,15 +593,51 @@ describe('AgentDuplicationService', () => {
         displayName: 'copy',
       });
 
+      // No new UserProvider rows — global credentials are shared
+      expect(insertedRows['UserProvider']).toBeUndefined();
+
+      // Two grants inserted, pointing at the original ids
+      const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
+      expect(grants).toHaveLength(2);
+      const upIds = grants.map((g) => g['user_provider_id']);
+      expect(upIds).toContain('up-openai');
+      expect(upIds).toContain('up-anthropic');
+
       expect(result.copied.providers).toBe(2);
-      const ups = insertedRows['UserProvider'] as Array<Record<string, unknown>>;
-      expect(ups).toHaveLength(2);
-      const sub = ups.find((u) => u['auth_type'] === 'subscription');
-      const key = ups.find((u) => u['auth_type'] === 'api_key');
-      expect(sub!['provider']).toBe('anthropic');
-      expect(sub!['api_key_encrypted']).toBe('enc-sub');
-      expect(key!['provider']).toBe('openai');
-      expect(key!['api_key_encrypted']).toBe('enc-key');
+    });
+
+    it('skips insert batches when source has no grants or rows', async () => {
+      // Covers the `sourceGrants.length === 0` branch and empty-row branches.
+      mockAgentGetOne
+        .mockResolvedValueOnce({
+          id: 'src-1',
+          tenant_id: 't1',
+          name: 'source',
+          description: null,
+          agent_category: null,
+          agent_platform: null,
+        })
+        .mockResolvedValueOnce(null);
+
+      // All repoRows default to [] via makeRepoMock — no explicit setup needed
+      const result = await service.duplicate('user-1', 'source', {
+        name: 'source-copy',
+        displayName: 'source-copy',
+      });
+
+      expect(result.copied).toEqual({
+        providers: 0,
+        customProviders: 0,
+        tierAssignments: 0,
+        specificityAssignments: 0,
+        modelParams: 0,
+      });
+      expect(insertedRows['UserProvider']).toBeUndefined();
+      expect(insertedRows['CustomProvider']).toBeUndefined();
+      expect(insertedRows['TierAssignment']).toBeUndefined();
+      expect(insertedRows['SpecificityAssignment']).toBeUndefined();
+      expect(insertedRows['AgentModelParams']).toBeUndefined();
+      expect(insertedRows['AgentProviderAccess']).toBeUndefined();
     });
 
     it('remaps multiple custom providers correctly', async () => {
@@ -543,6 +646,11 @@ describe('AgentDuplicationService', () => {
         .mockResolvedValueOnce(null);
 
       repoRows = {
+        AgentProviderAccess: [
+          { agent_id: 'src-1', user_provider_id: 'up1' },
+          { agent_id: 'src-1', user_provider_id: 'up2' },
+          { agent_id: 'src-1', user_provider_id: 'up3' },
+        ],
         CustomProvider: [
           {
             id: 'cp-lms',
@@ -606,61 +714,38 @@ describe('AgentDuplicationService', () => {
         ],
       };
 
-      await service.duplicate('user-1', 'source', {
+      const result = await service.duplicate('user-1', 'source', {
         name: 'copy',
         displayName: 'copy',
       });
 
+      // Two custom providers cloned
       const cps = insertedRows['CustomProvider'] as Array<Record<string, unknown>>;
       expect(cps).toHaveLength(2);
-      const lmsNewId = cps.find((c) => c['name'] === 'LM Studio')!['id'];
-      const llamaNewId = cps.find((c) => c['name'] === 'llama.cpp')!['id'];
+      const lmsNewId = cps.find((c) => c['name'] === 'LM Studio')!['id'] as string;
+      const llamaNewId = cps.find((c) => c['name'] === 'llama.cpp')!['id'] as string;
 
+      // Two UserProvider companion rows cloned (only custom ones); global anthropic is NOT cloned
       const ups = insertedRows['UserProvider'] as Array<Record<string, unknown>>;
-      expect(ups).toHaveLength(3);
+      expect(ups).toHaveLength(2);
 
-      const lmsUp = ups.find((u) => (u['provider'] as string).includes(lmsNewId as string));
+      const lmsUp = ups.find((u) => (u['provider'] as string).includes(lmsNewId));
       expect(lmsUp).toBeDefined();
       expect(lmsUp!['provider']).toBe(`custom:${lmsNewId}`);
 
-      const llamaUp = ups.find((u) => (u['provider'] as string).includes(llamaNewId as string));
+      const llamaUp = ups.find((u) => (u['provider'] as string).includes(llamaNewId));
       expect(llamaUp).toBeDefined();
       expect(llamaUp!['provider']).toBe(`custom:${llamaNewId}`);
 
-      const anthUp = ups.find((u) => u['provider'] === 'anthropic');
-      expect(anthUp).toBeDefined();
-      expect(anthUp!['provider']).toBe('anthropic');
-    });
+      // Three grants inserted: two for custom companions, one for global anthropic
+      const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
+      expect(grants).toHaveLength(3);
 
-    it('skips insert batches when source has no rows', async () => {
-      mockAgentGetOne
-        .mockResolvedValueOnce({
-          id: 'src-1',
-          tenant_id: 't1',
-          name: 'source',
-          description: null,
-          agent_category: null,
-          agent_platform: null,
-        })
-        .mockResolvedValueOnce(null);
+      // The anthropic grant points at the original user_provider id (up3)
+      const anthGrant = grants.find((g) => g['user_provider_id'] === 'up3');
+      expect(anthGrant).toBeDefined();
 
-      const result = await service.duplicate('user-1', 'source', {
-        name: 'source-copy',
-        displayName: 'source-copy',
-      });
-
-      expect(result.copied).toEqual({
-        providers: 0,
-        customProviders: 0,
-        tierAssignments: 0,
-        specificityAssignments: 0,
-        modelParams: 0,
-      });
-      expect(insertedRows['UserProvider']).toBeUndefined();
-      expect(insertedRows['CustomProvider']).toBeUndefined();
-      expect(insertedRows['TierAssignment']).toBeUndefined();
-      expect(insertedRows['SpecificityAssignment']).toBeUndefined();
-      expect(insertedRows['AgentModelParams']).toBeUndefined();
+      expect(result.copied.providers).toBe(3);
     });
   });
 });
