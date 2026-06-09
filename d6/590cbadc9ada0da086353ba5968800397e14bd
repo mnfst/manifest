@@ -1,0 +1,44 @@
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 9,124-126,162-166,177-181
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 26-28
+packages/backend/src/routing/routing-core/resolve-agent.service.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 15-23,34,40-48,56-59
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 5,648-674
+  s_8f7bd68edeeec2::t_118256b2af5150 675-676
+packages/backend/src/playground/playground-agent.service.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 3,17-21,29,47,49-61
+packages/backend/src/routing/routing-core/resolve-agent.service.spec.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 48,64,76-77,95,107,133-174
+  s_8f7bd68edeeec2::t_20f7da3e42f73f 108-132
+packages/backend/src/routing/tier.controller.spec.ts
+  s_8f7bd68edeeec2::t_0eeee2e30f05ca 141
+  s_8f7bd68edeeec2::t_6bdd736665e39b 1,131-140
+packages/backend/src/routing/model.controller.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 90-94
+packages/backend/src/playground/playground-agent.service.spec.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 2,32-33,37-50,62-66,74,91,97,102,113,135-139,141-146,152-166,175,180-181,186-190,198-199,202,207-209,217,222-224,234-236,239-241,246
+packages/backend/src/routing/provider.controller.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 79-83
+packages/frontend/src/pages/Playground.tsx
+  s_8f7bd68edeeec2::t_6bdd736665e39b 134-140,142-149,151,155-157
+packages/backend/src/routing/provider.controller.spec.ts
+  s_8f7bd68edeeec2::t_6bdd736665e39b 660-665
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d6590cbadc9ada0da086353ba5968800397e14bd",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
