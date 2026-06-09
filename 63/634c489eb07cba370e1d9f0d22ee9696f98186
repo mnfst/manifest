@@ -1,0 +1,87 @@
+packages/frontend/src/pages/Settings.tsx
+  s_8f7bd68edeeec2::t_f34db0ef0135a8 231
+  s_8f7bd68edeeec2::t_6de838ffd4eccd 139,198,200,207,232,282,380,418,420,432,489,520,576,621,623
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 140,155
+  s_8f7bd68edeeec2::t_c5f5e3d69e56be 194
+packages/frontend/src/components/Sidebar.tsx
+  s_8f7bd68edeeec2::t_6ec39541e0fb79 11
+  s_8f7bd68edeeec2::t_ef2b98ec222490 29
+  s_8f7bd68edeeec2::t_05b5ffd593572d 78,80,82-83,85
+packages/frontend/src/components/message-table-cells.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 367
+  s_8f7bd68edeeec2::t_6680ca132537f2 135
+packages/frontend/src/components/AgentTypeSelect.tsx
+  s_8f7bd68edeeec2::t_2126e4c37a3fa5 69
+packages/frontend/src/components/RoutingInstructionModal.tsx
+  s_8f7bd68edeeec2::t_9f334f7b9ccce4 73,95,105,109,115
+packages/frontend/src/pages/Login.tsx
+  s_8f7bd68edeeec2::t_3aa227410039af 104,107
+packages/frontend/src/components/AddAgentModal.tsx
+  s_8f7bd68edeeec2::t_08fa1b8cd0ed27 43,108,111,127,134
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 62
+  s_8f7bd68edeeec2::t_01239a0a53a2df 10
+packages/frontend/src/components/MessageDetails.tsx
+  s_8f7bd68edeeec2::t_fd9e5d3a08fc9f 136
+  s_8f7bd68edeeec2::t_da0baf54daeada 288
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_8f7bd68edeeec2::t_8d51e4c3d6a41f 111,117
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 112-116
+packages/frontend/src/components/DuplicateAgentModal.tsx
+  s_8f7bd68edeeec2::t_0ce8fe5843258b 123,128,194
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 87
+packages/frontend/src/pages/Overview.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 302,373,418
+  s_8f7bd68edeeec2::t_986f9ba3946b81 262,276,282
+packages/frontend/src/components/Header.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 137,175
+  s_8f7bd68edeeec2::t_deebe04be7bf20 214
+  s_8f7bd68edeeec2::t_fce39e895fb680 156
+packages/frontend/src/pages/Register.tsx
+  s_8f7bd68edeeec2::t_bbe17024e4f2c2 113
+  s_8f7bd68edeeec2::t_354be8f47592ee 105
+packages/frontend/src/pages/FreeModels.tsx
+  s_8f7bd68edeeec2::t_0205e432311eb1 153
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 107,109
+packages/frontend/src/components/SetupModal.tsx
+  s_8f7bd68edeeec2::t_b6f776c21e031d 64,84-86,94
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_8f7bd68edeeec2::t_311764a8f79383 47,49,51,53,58,102
+packages/frontend/src/pages/AgentProviders.tsx
+  s_8f7bd68edeeec2::t_d4f7564c160241 140
+  s_8f7bd68edeeec2::t_7275c434cfce56 264
+packages/frontend/src/pages/Limits.tsx
+  s_8f7bd68edeeec2::t_12839732182778 182
+packages/frontend/src/pages/Workspace.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 72,77,187-190
+  s_8f7bd68edeeec2::t_b8709d9fc83668 101,113,116,120-121,138,169-172,178,283,316
+packages/frontend/src/pages/ConnectProvider.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 35
+  s_8f7bd68edeeec2::t_957142621eb3cc 71,73
+packages/frontend/src/pages/AgentDetail.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 11,39
+  s_8f7bd68edeeec2::t_72db5b922a9de9 42
+packages/frontend/src/pages/MessageLog.tsx
+  s_8f7bd68edeeec2::t_ee9c1258b7af08 482,518
+  s_8f7bd68edeeec2::t_a3cf294e69dd26 491,497
+  s_8f7bd68edeeec2::t_d0cf076c5451f7 74
+  s_8f7bd68edeeec2::t_eb895967f85a31 396
+  s_8f7bd68edeeec2::t_3b1e31c6bd633d 95
+  s_8f7bd68edeeec2::t_4db3c8a1b16bc1 347
+  s_8f7bd68edeeec2::t_91a1ca70b8b733 480,486
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "63634c489eb07cba370e1d9f0d22ee9696f98186",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
