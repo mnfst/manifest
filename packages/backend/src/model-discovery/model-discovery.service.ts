@@ -220,7 +220,11 @@ export class ModelDiscoveryService {
     // (e.g. Pro = haiku only, Team = haiku + sonnet). Probe one model per
     // family to filter out inaccessible models before showing them to the user.
     if (lowerProvider === 'anthropic' && provider.auth_type === 'subscription' && apiKey) {
-      raw = await filterBySubscriptionAccess(raw, apiKey);
+      try {
+        raw = await filterBySubscriptionAccess(raw, apiKey);
+      } catch (err) {
+        this.logger.warn(`Anthropic subscription probe failed, keeping all models: ${err}`);
+      }
     }
 
     // Preserve the full AuthType union (api_key / subscription / local) —

@@ -87,13 +87,14 @@ describe('filterBySubscriptionAccess', () => {
             }),
         });
       }
+      // Simulate a genuine tier restriction (permission_error), not invalid_request_error
       return Promise.resolve({
         ok: false,
-        status: 400,
+        status: 403,
         json: () =>
           Promise.resolve({
             type: 'error',
-            error: { type: 'invalid_request_error', message: 'Error' },
+            error: { type: 'permission_error', message: 'Your subscription does not include this model' },
           }),
       });
     });
@@ -175,6 +176,67 @@ describe('filterBySubscriptionAccess', () => {
     const models = [makeModel('claude-sonnet-4-6'), makeModel('claude-opus-4-6')];
     const result = await filterBySubscriptionAccess(models, 'test-key');
     expect(result).toHaveLength(2);
+  });
+
+  it('keeps models when probe gets invalid_request_error (format issue, not tier restriction)', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: () =>
+        Promise.resolve({
+          type: 'error',
+          error: { type: 'invalid_request_error', message: 'Error' },
+        }),
+    });
+
+    const models = [
+      makeModel('claude-sonnet-4-6'),
+      makeModel('claude-opus-4-6'),
+      makeModel('claude-haiku-4-5-20251001'),
+    ];
+    const result = await filterBySubscriptionAccess(models, 'test-key');
+    expect(result).toHaveLength(3);
+  });
+
+  it('removes models when probe gets permission_error (genuine tier restriction)', async () => {
+    global.fetch = jest.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      const body = JSON.parse(init?.body as string);
+      const model = body.model as string;
+      const family = extractFamily(model);
+
+      if (family === 'haiku') {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) });
+      }
+      return Promise.resolve({
+        ok: false,
+        status: 403,
+        json: () =>
+          Promise.resolve({
+            type: 'error',
+            error: { type: 'permission_error', message: 'Not available on your plan' },
+          }),
+      });
+    });
+
+    const models = [
+      makeModel('claude-haiku-4-5-20251001'),
+      makeModel('claude-sonnet-4-6'),
+      makeModel('claude-opus-4-6'),
+    ];
+    const result = await filterBySubscriptionAccess(models, 'test-key');
+    expect(result.map((m) => m.id)).toEqual(['claude-haiku-4-5-20251001']);
+  });
+
+  it('keeps models when error body cannot be parsed', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: () => Promise.reject(new Error('not JSON')),
+    });
+
+    const models = [makeModel('claude-sonnet-4-6')];
+    const result = await filterBySubscriptionAccess(models, 'test-key');
+    expect(result).toHaveLength(1);
   });
 
   it('keeps models on non-400 errors like 429 rate limit', async () => {
