@@ -508,7 +508,10 @@ describe('AgentsController', () => {
     const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
 
     expect(result.agent.name).toBe('my-agent');
+    // Both canonical variants are cleared so neither the Workspace list nor the
+    // Messages filter (system agents included) goes stale after a create.
     expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:system=false');
+    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:system=true');
   });
 
   it('rejects createAgent with empty slug', async () => {
