@@ -435,7 +435,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
     // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName);
+    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -470,7 +470,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
     // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName);
+    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -506,7 +506,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
     // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName);
+    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -541,7 +541,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
     // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName);
+    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -576,7 +576,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
     // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName);
+    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
     const rows = await qb
       .groupBy(bucketAlias)
       .addGroupBy('at.provider')
@@ -609,7 +609,7 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, userId, undefined, tenantId);
     // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
     // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName);
+    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
     const rows = await qb
       .groupBy(bucketAlias)
       .addGroupBy('at.model')
