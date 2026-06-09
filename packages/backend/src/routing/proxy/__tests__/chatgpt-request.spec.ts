@@ -16,6 +16,16 @@ describe('ChatGPT Adapter – toResponsesRequest', () => {
     expect(result.instructions).toBe('You are a helpful assistant.');
   });
 
+  it('honors an explicit non-streaming upstream option', () => {
+    const body = {
+      messages: [{ role: 'user', content: 'Hello world' }],
+    };
+
+    const result = toResponsesRequest(body, 'gpt-5', { stream: false });
+
+    expect(result.stream).toBe(false);
+  });
+
   it('extracts system message as instructions', () => {
     const body = {
       messages: [

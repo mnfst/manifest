@@ -37,6 +37,8 @@ import { ProxyExceptionFilter, isChatRenderingClient } from './proxy-exception.f
 import { sendFriendlyResponse } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
+import { ResponsesSseError } from './chatgpt-adapter';
+import { sanitizeProviderError } from './proxy-error-sanitizer';
 
 const MAX_SEEN_USERS = 10_000;
 const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -256,11 +258,17 @@ export class ProxyController {
     }
 
     const message = err instanceof Error ? err.message : String(err);
-    const status = err instanceof HttpException ? err.getStatus() : 500;
+    const status =
+      err instanceof ResponsesSseError
+        ? err.status
+        : err instanceof HttpException
+          ? err.getStatus()
+          : 500;
+    const providerErrorBody = err instanceof ResponsesSseError ? err.body : message;
     this.logger.error(`Proxy error: ${message}`);
 
     this.recorder
-      .recordProviderError(req.ingestionContext, status, message, {
+      .recordProviderError(req.ingestionContext, status, providerErrorBody, {
         traceId,
         callerAttribution,
         requestHeaders,
@@ -269,6 +277,17 @@ export class ProxyController {
 
     if (headersSent) {
       if (!res.writableEnded) res.end();
+      return;
+    }
+
+    if (err instanceof ResponsesSseError) {
+      res.status(err.status).json({
+        error: {
+          message: sanitizeProviderError(err.status, err.body, process.env.NODE_ENV),
+          type: 'upstream_error',
+          status: err.status,
+        },
+      });
       return;
     }
 

@@ -6,6 +6,7 @@ import { IngestEventBusService } from '../../../common/services/ingest-event-bus
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
 import { ReasoningContentCache } from '../reasoning-content-cache';
+import { ResponsesSseError } from '../chatgpt-adapter';
 
 /**
  * Flush enough microtasks for the recorder's fire-and-forget chain to
@@ -847,6 +848,36 @@ describe('ProxyController', () => {
         }),
       }),
     );
+  });
+
+  it('should surface collected Responses SSE failures as upstream errors', async () => {
+    proxyService.proxyRequest.mockRejectedValue(
+      new ResponsesSseError(
+        'Model unavailable',
+        404,
+        JSON.stringify({
+          error: {
+            message: 'Model unavailable',
+            code: 'model_not_found',
+            type: 'invalid_request_error',
+          },
+        }),
+      ),
+    );
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      error: {
+        message: 'Model unavailable',
+        type: 'upstream_error',
+        status: 404,
+      },
+    });
   });
 
   it('should forward HttpException as friendly chat message', async () => {
