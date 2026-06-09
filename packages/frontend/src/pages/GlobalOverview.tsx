@@ -1,179 +1,1295 @@
-import { Meta, Title } from '@solidjs/meta';
-import { A } from '@solidjs/router';
-import { createMemo, createResource, createSignal, Show, type Component } from 'solid-js';
-import ChartCard from '../components/ChartCard.jsx';
-import CostByModelTable from '../components/CostByModelTable.jsx';
-import ErrorState from '../components/ErrorState.jsx';
-import MessageTable from '../components/MessageTable.jsx';
-import OverviewSkeleton from '../components/OverviewSkeleton.jsx';
+import { Title } from '@solidjs/meta';
+import { A, useNavigate } from '@solidjs/router';
+import {
+  createResource,
+  createSignal,
+  createMemo,
+  createEffect,
+  on,
+  For,
+  Show,
+  onCleanup,
+  type Component,
+} from 'solid-js';
+import AddAgentModal from '../components/AddAgentModal.jsx';
+import { getAgents, getCustomProviders, getGlobalProviders } from '../services/api.js';
+import { customProviderColor } from '../services/formatters.js';
+import { customProviderLogo } from '../components/ProviderIcon.jsx';
+import {
+  getOverview,
+  getGlobalPerAgentTimeseries,
+  getGlobalPerAgentMessageTimeseries,
+  getGlobalPerProviderTimeseries,
+  getGlobalPerProviderMessageTimeseries,
+  getGlobalPerAgentCostTimeseries,
+  getGlobalPerProviderCostTimeseries,
+} from '../services/api/analytics.js';
+import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
+import { providerIcon } from '../components/ProviderIcon.jsx';
+import { PROVIDERS } from '../services/providers.js';
+import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
+import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import Sparkline from '../components/Sparkline.jsx';
 import Select from '../components/Select.jsx';
-import { type MessageRow } from '../components/message-table-types.js';
-import { getOverview } from '../services/api.js';
-import { preloadModelDisplayNames } from '../services/model-display.js';
-import { messagePing } from '../services/sse.js';
-import { useOverviewColumns, useOverviewRange } from '../services/use-overview-range.js';
+import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
+import { platformIcon } from 'manifest-shared';
+import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
+import { agentPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+import '../styles/charts.css';
+import '../styles/analytics-overview.css';
 
-interface GlobalOverviewData {
+interface ProviderGroup {
+  provider: string;
+  auth_type: string;
+  connection_count: number;
+  connections: Array<{ id: string; label: string; is_active: boolean }>;
+  total_models: number;
+  consumption_tokens: number;
+  consumption_messages: number;
+  consumption_cost: number;
+  last_used_at: string | null;
+  sparkline_7d: number[];
+}
+
+interface CostByModelRow {
+  model: string;
+  display_name: string;
+  tokens: number;
+  share_pct: number;
+  estimated_cost: number;
+  auth_type: string | null;
+  provider: string | null;
+}
+
+interface RecentActivityRow {
+  timestamp: string;
+  agent_name: string;
+  model: string;
+  total_tokens: number;
+  status?: string;
+  provider?: string;
+  auth_type?: string;
+  description?: string;
+  first_message?: string;
+  cost_usd?: number;
+}
+
+interface OverviewResponse {
   summary: {
-    tokens_today: {
-      value: number;
-      trend_pct: number;
-      sub_values?: { input: number; output: number };
-    };
+    tokens_today: { value: number; trend_pct: number };
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
-    services_hit: { total: number; healthy: number; issues: number };
   };
-  token_usage: Array<{
-    hour?: string;
-    date?: string;
-    input_tokens: number;
-    output_tokens: number;
-  }>;
-  cost_usage: Array<{ hour?: string; date?: string; cost: number }>;
+  token_usage: Array<{ hour?: string; date?: string; input_tokens: number; output_tokens: number }>;
   message_usage: Array<{ hour?: string; date?: string; count: number }>;
-  cost_by_model: Array<{
-    model: string;
-    display_name?: string;
-    tokens: number;
-    share_pct: number;
-    estimated_cost: number;
-    auth_type: string | null;
-    provider?: string | null;
-  }>;
-  recent_activity: MessageRow[];
-  has_data?: boolean;
-  has_providers?: boolean;
+  cost_by_model: CostByModelRow[];
+  recent_activity: RecentActivityRow[];
+  has_data: boolean;
+  has_providers: boolean;
+}
+
+interface AgentRow {
+  agent_name: string;
+  display_name: string;
+  agent_category: string | null;
+  agent_platform: string | null;
+  message_count: number;
+  total_tokens: number;
+  sparkline: number[];
+}
+
+const RANGE_OPTIONS = [
+  { label: 'Last 24 hours', value: '24h' },
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+];
+
+const GROUP_OPTIONS = [
+  { label: 'By provider', value: 'provider' },
+  { label: 'By harness', value: 'agent' },
+];
+
+const RANGE_STORAGE_KEY = 'manifest_global_range';
+const GROUP_STORAGE_KEY = 'manifest_global_group';
+
+function loadRange(): string {
+  try {
+    const v = localStorage.getItem(RANGE_STORAGE_KEY);
+    if (v === '24h' || v === '7d' || v === '30d') return v;
+  } catch {
+    /* ignore */
+  }
+  return '7d';
 }
 
 const GlobalOverview: Component = () => {
-  preloadModelDisplayNames();
-  const { columns } = useOverviewColumns();
-  const { range, handleRangeChange } = useOverviewRange();
+  const navigate = useNavigate();
 
-  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages' | 'savings'>(
-    'messages',
-  );
-
-  // Global overview: no agentName → tenant-wide aggregation
-  const [data, { refetch }] = createResource(
-    () => ({ range: range(), _ping: messagePing() }),
-    (p) => getOverview(p.range) as Promise<GlobalOverviewData>,
-  );
-
-  // Empty state is keyed off has_data, NOT has_providers.
-  // has_providers is always false in global mode (overview.controller.ts:63-64).
-  const showEmptyState = () => {
-    const d = data();
-    return !!d && d.has_data === false;
+  // ── Range state (persisted in localStorage) ──────────────────────────
+  const [chartRange, setChartRangeRaw] = createSignal(loadRange());
+  const setChartRange = (v: string) => {
+    setChartRangeRaw(v);
+    try {
+      localStorage.setItem(RANGE_STORAGE_KEY, v);
+    } catch {
+      /* ignore */
+    }
   };
 
-  const showDashboard = () => {
-    const d = data();
-    return !!d && d.has_data !== false;
+  // ── Group by state (persisted in localStorage) ───────────────────────
+  const loadGroup = (): string => {
+    try {
+      const v = localStorage.getItem(GROUP_STORAGE_KEY);
+      if (v === 'provider' || v === 'agent') return v;
+    } catch {
+      /* ignore */
+    }
+    return 'provider';
   };
+  const [groupBy, setGroupByRaw] = createSignal(loadGroup());
+  const setGroupBy = (v: string) => {
+    setGroupByRaw(v);
+    try {
+      localStorage.setItem(GROUP_STORAGE_KEY, v);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // ── Chart view state ─────────────────────────────────────────────────
+  const [chartView, setChartView] = createSignal<'messages' | 'tokens' | 'cost'>('tokens');
+
+  // ── Data resources (5 parallel) ──────────────────────────────────────
+  const [overview] = createResource(
+    () => chartRange(),
+    (range) => getOverview(range) as Promise<OverviewResponse>,
+  );
+
+  const [agents] = createResource(
+    () => agentPing(),
+    async () => {
+      try {
+        const data = await getAgents();
+        return ((data as any)?.agents ?? data ?? []) as AgentRow[];
+      } catch {
+        return [] as AgentRow[];
+      }
+    },
+  );
+
+  const [providers] = createResource(
+    () => messagePing(),
+    async () => {
+      try {
+        const res = await getGlobalProviders();
+        return (res?.providers ?? []) as unknown as ProviderGroup[];
+      } catch {
+        return [] as ProviderGroup[];
+      }
+    },
+  );
+
+  // Custom providers for name resolution
+  const firstAgent = () => ((agents() ?? []) as AgentRow[])[0]?.agent_name ?? '';
+  const [customProviderData] = createResource(
+    () => firstAgent(),
+    (name) => (name ? getCustomProviders(name).catch(() => []) : Promise.resolve([])),
+  );
+  const resolveCustomName = (providerId: string) => {
+    if (!providerId.startsWith('custom:')) return null;
+    const uuid = providerId.replace('custom:', '');
+    const cp = (customProviderData() ?? []).find((c: any) => c.id === uuid);
+    return cp ? (cp as any).name : null;
+  };
+
+  type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
+  const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider') return getGlobalPerProviderTimeseries(range) as Promise<TSResult>;
+    return getGlobalPerAgentTimeseries(range) as Promise<TSResult>;
+  };
+  const msgFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider')
+      return getGlobalPerProviderMessageTimeseries(range) as Promise<TSResult>;
+    return getGlobalPerAgentMessageTimeseries(range) as Promise<TSResult>;
+  };
+
+  const [agentTimeseries] = createResource(
+    () => ({ range: chartRange(), group: groupBy() }),
+    (p) => tokenFetcher(p.range, p.group),
+  );
+
+  const [agentMessageTimeseries] = createResource(
+    () => ({ range: chartRange(), group: groupBy() }),
+    (p) => msgFetcher(p.range, p.group),
+  );
+
+  const costFetcher = (range: string, group: string): Promise<TSResult> => {
+    if (group === 'provider') return getGlobalPerProviderCostTimeseries(range) as Promise<TSResult>;
+    return getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>;
+  };
+
+  const [agentCostTimeseries] = createResource(
+    () => ({ range: chartRange(), group: groupBy() }),
+    (p) => costFetcher(p.range, p.group),
+  );
+
+  // ── Harness filter state (sessionStorage) ────────────────────────────
+  const storageKey = 'global-agent-filter';
+  const loadSavedAgents = (): Set<string> => {
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) return new Set(JSON.parse(saved) as string[]);
+    } catch {
+      /* ignore */
+    }
+    return new Set();
+  };
+  const [selectedAgents, setSelectedAgents] = createSignal<Set<string>>(loadSavedAgents());
+  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
+  let agentFilterRef: HTMLDivElement | undefined;
+
+  if (typeof document !== 'undefined') {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
+        setAgentFilterOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAgentFilterOpen(false);
+    };
+    document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    onCleanup(() => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    });
+  }
+
+  const allAgents = createMemo(() => {
+    const tokenAgents = agentTimeseries()?.agents ?? [];
+    const msgAgents = agentMessageTimeseries()?.agents ?? [];
+    const set = new Set([...tokenAgents, ...msgAgents]);
+    return [...set].sort();
+  });
+
+  const agentColorMap = createMemo(() => {
+    const map: Record<string, string> = {};
+    const list = allAgents();
+    for (let i = 0; i < list.length; i++) {
+      map[list[i]!] = AGENT_COLORS[i % AGENT_COLORS.length]!;
+    }
+    return map;
+  });
+
+  const effectiveSelected = () => {
+    const sel = selectedAgents();
+    if (sel.size === 0 && allAgents().length > 0) return new Set(allAgents());
+    return sel;
+  };
+
+  const selectedAgentCount = () => effectiveSelected().size;
+
+  const toggleAgent = (agent: string) => {
+    const current = effectiveSelected();
+    const next = new Set(current);
+    if (next.has(agent)) {
+      next.delete(agent);
+    } else {
+      next.add(agent);
+    }
+    setSelectedAgents(next);
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify([...next]));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const filteredAgentTimeseries = createMemo(() => {
+    const raw = agentTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
+  const filteredAgentMessageTimeseries = createMemo(() => {
+    const raw = agentMessageTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a) => sel.has(a));
+    const timeseries = raw.timeseries.map((row) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
+  const filteredAgentCostTimeseries = createMemo(() => {
+    const raw = agentCostTimeseries();
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    const filtered_agents = raw.agents.filter((a: string) => sel.has(a));
+    const timeseries = raw.timeseries.map((row: Record<string, number | string>) => {
+      const filtered: Record<string, number | string> = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (k === 'hour' || k === 'date' || sel.has(k)) filtered[k] = v;
+      }
+      return filtered;
+    });
+    return { agents: filtered_agents, timeseries };
+  });
+
+  // ── Derived data ─────────────────────────────────────────────────────
+  const agentList = () => (agents() ?? []) as AgentRow[];
+  const providerList = () => (providers() ?? []) as ProviderGroup[];
 
   const messageChartData = createMemo(() => {
-    const src = data()?.message_usage;
+    const src = overview()?.message_usage;
     return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
   });
 
+  const sortedAgents = createMemo(() => {
+    return [...agentList()].sort((a, b) => (b.total_tokens ?? 0) - (a.total_tokens ?? 0));
+  });
+
+  // Onboarding: detect empty states
+  const hasNoAgents = () => agents() !== undefined && agentList().length === 0;
+  const hasNoProviders = () => providers() !== undefined && providerList().length === 0;
+
+  // Auto-open the Create Harness modal for first-time users (once per session)
+  const ONBOARDING_DISMISSED_KEY = 'overview_onboarding_dismissed';
+  const [addAgentOpen, setAddAgentOpen] = createSignal(false);
+  const dismissAddAgent = () => {
+    setAddAgentOpen(false);
+    try {
+      sessionStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  };
+  createEffect(
+    on(
+      () => hasNoAgents(),
+      (empty) => {
+        if (empty && !sessionStorage.getItem(ONBOARDING_DISMISSED_KEY)) {
+          setAddAgentOpen(true);
+        }
+      },
+      { defer: true },
+    ),
+  );
+
   return (
     <div class="container--lg">
-      <Title>Overview - Manifest</Title>
-      <Meta name="description" content="Tenant-wide overview — costs, tokens, and activity." />
-      <div class="page-header">
+      <Title>Overview | Manifest</Title>
+
+      {/* Add Harness Modal */}
+      <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
+
+      {/* ── 1. Page Header ──────────────────────────────────────────── */}
+      <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
-          <h1>Overview</h1>
-          <span class="breadcrumb">Real-time summary of spending, tokens, and messages</span>
+          <h1 class="page-header__title">Overview</h1>
+          <p class="page-header__subtitle">All your harnesses and providers</p>
         </div>
-        <div class="header-controls">
-          <Show when={showDashboard()}>
-            <Select
-              value={range()}
-              onChange={handleRangeChange}
-              options={[
-                { label: 'Last 24 hours', value: '24h' },
-                { label: 'Last 7 days', value: '7d' },
-                { label: 'Last 30 days', value: '30d' },
-              ]}
-            />
-          </Show>
-        </div>
+        <Show when={!hasNoAgents() || !hasNoProviders()}>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
+            <Show when={allAgents().length > 1}>
+              <div class="agent-filter-select" ref={agentFilterRef}>
+                <button
+                  class="agent-filter-select__trigger"
+                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
+                  type="button"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                  </svg>
+                  {(() => {
+                    const label = groupBy() === 'provider' ? 'providers' : 'harnesses';
+                    return selectedAgentCount() === allAgents().length
+                      ? `All ${label} (${allAgents().length})`
+                      : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
+                  })()}
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                <Show when={agentFilterOpen()}>
+                  <div class="agent-filter-select__dropdown">
+                    <div class="agent-filter-select__actions">
+                      <button
+                        class="agent-filter-select__action-btn"
+                        type="button"
+                        disabled={selectedAgentCount() === allAgents().length}
+                        onClick={() => {
+                          setSelectedAgents(new Set(allAgents()));
+                          try {
+                            sessionStorage.setItem(storageKey, JSON.stringify([...allAgents()]));
+                          } catch {
+                            /* ignore */
+                          }
+                        }}
+                      >
+                        Select all
+                      </button>
+                      <button
+                        class="agent-filter-select__action-btn"
+                        type="button"
+                        disabled={selectedAgentCount() === 0}
+                        onClick={() => {
+                          setSelectedAgents(new Set<string>());
+                          try {
+                            sessionStorage.setItem(storageKey, JSON.stringify([]));
+                          } catch {
+                            /* ignore */
+                          }
+                        }}
+                      >
+                        Unselect all
+                      </button>
+                    </div>
+                    <For each={allAgents()}>
+                      {(agent) => {
+                        const isOn = () => effectiveSelected().has(agent);
+                        return (
+                          <button
+                            class="agent-filter-select__item"
+                            onClick={() => toggleAgent(agent)}
+                            type="button"
+                          >
+                            <span
+                              class="agent-filter-select__swatch"
+                              style={{ background: agentColorMap()[agent] }}
+                            />
+                            <span class="agent-filter-select__name">{agent}</span>
+                            <span
+                              class="agent-filter-select__toggle"
+                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                            >
+                              <span class="agent-filter-select__toggle-thumb" />
+                            </span>
+                          </button>
+                        );
+                      }}
+                    </For>
+                  </div>
+                </Show>
+              </div>
+            </Show>
+            <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
+          </div>
+        </Show>
       </div>
 
-      <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
-        <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
-          <Show when={showEmptyState()}>
-            <div class="empty-state">
-              <div class="empty-state__title">No activity yet</div>
-              <p>Create a harness and send a message. Usage data shows up here.</p>
-              <A
-                href="/harnesses"
-                class="btn btn--primary btn--sm"
-                style="margin-top: var(--gap-md);"
-              >
-                Go to Harnesses
-              </A>
-              <div class="empty-state__img-wrapper">
-                <img
-                  src="/example-overview.svg"
-                  alt="Example dashboard overview showing cost and token charts"
-                  class="empty-state__img"
-                  loading="lazy"
-                />
+      {/* Onboarding empty state: replaces all dashboard content */}
+      <Show when={hasNoAgents() && hasNoProviders()}>
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="color: hsl(var(--muted-foreground)); margin-bottom: 4px;"
+            aria-hidden="true"
+          >
+            <path d="M4 2H2v19c0 .55.45 1 1 1h19v-2H4z" />
+            <path d="M11 18c.55 0 1-.45 1-1V6c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1zm-1-2H8v-2h2zm0-9v5H8V7zm9 11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1zm-1-2h-2v-6h2zM16 4h2v4h-2z" />
+          </svg>
+          <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+            No activity yet
+          </div>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+            Set up your harness and connect at least one provider. Once your harness sends requests,
+            data will appear here.
+          </div>
+          <button class="btn btn--primary btn--sm" onClick={() => setAddAgentOpen(true)}>
+            Set up harness
+          </button>
+        </div>
+      </Show>
+
+      <Show when={!hasNoAgents() && hasNoProviders()}>
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            style="color: hsl(var(--muted-foreground)); margin-bottom: 4px;"
+            aria-hidden="true"
+          >
+            <path d="M4 2H2v19c0 .55.45 1 1 1h19v-2H4z" />
+            <path d="M11 18c.55 0 1-.45 1-1V6c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v11c0 .55.45 1 1 1zm-1-2H8v-2h2zm0-9v5H8V7zm9 11c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v14c0 .55.45 1 1 1zm-1-2h-2v-6h2zM16 4h2v4h-2z" />
+          </svg>
+          <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground));">
+            No providers connected
+          </div>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+            Connect a model provider to start routing your harnesses' LLM calls.
+          </div>
+          <A
+            href="/providers/subscriptions?add=true"
+            class="btn btn--primary btn--sm"
+            style="text-decoration: none;"
+          >
+            Connect provider
+          </A>
+        </div>
+      </Show>
+
+      {/* Dashboard content: hidden when fully empty */}
+      <Show
+        when={
+          !hasNoAgents() &&
+          !hasNoProviders() &&
+          overview() !== undefined &&
+          agents() !== undefined &&
+          providers() !== undefined
+        }
+        fallback={
+          <Show when={!hasNoAgents() && !hasNoProviders()}>
+            <GlobalOverviewSkeleton />
+          </Show>
+        }
+      >
+        {/* ── 2. Chart Card ───────────────────────────────────────────── */}
+        <div style="margin-bottom: 24px;">
+          {(() => {
+            // The enclosing Show guarantees overview() is defined here.
+            const o = () => overview()!;
+            return (
+              <ProviderChartCard
+                activeView={chartView()}
+                onViewChange={setChartView}
+                messagesValue={o().summary.messages.value}
+                messagesTrendPct={o().summary.messages.trend_pct}
+                tokensValue={o().summary.tokens_today.value}
+                tokensTrendPct={o().summary.tokens_today.trend_pct}
+                costValue={o().summary.cost_today.value}
+                costTrendPct={o().summary.cost_today.trend_pct}
+                costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                tokenUsage={o().token_usage}
+                messageChartData={messageChartData()}
+                range={chartRange()}
+                agentTimeseries={filteredAgentTimeseries() ?? undefined}
+                agentMessageTimeseries={filteredAgentMessageTimeseries() ?? undefined}
+                agentCostTimeseries={filteredAgentCostTimeseries() ?? undefined}
+                colorMap={agentColorMap()}
+              />
+            );
+          })()}
+        </div>
+
+        {/* ── 3. Summary Stat Cards (4 columns) ────────────────────── */}
+        {(() => {
+          const subs = () => providerList().filter((g) => g.auth_type === 'subscription');
+          const byok = () => providerList().filter((g) => g.auth_type === 'api_key');
+          const local = () => providerList().filter((g) => g.auth_type === 'local');
+          const totalConns = (list: ProviderGroup[]) =>
+            list.reduce((s, g) => s + g.connections.length, 0);
+          const connList = (groups: ProviderGroup[]) => {
+            const items: Array<{
+              id: string;
+              icon: string;
+              name: string;
+              label: string;
+              isCustom: boolean;
+            }> = [];
+            for (const g of groups) {
+              for (const c of g.connections.slice(0, 5 - items.length)) {
+                const prov = PROVIDERS.find((p) => p.id === g.provider);
+                const customName = resolveCustomName(g.provider);
+                const isCustom = g.provider.startsWith('custom:');
+                items.push({
+                  id: c.id,
+                  icon: g.provider,
+                  name: prov?.name ?? customName ?? g.provider,
+                  label: c.label,
+                  isCustom,
+                });
+                if (items.length >= 5) break;
+              }
+              if (items.length >= 5) break;
+            }
+            return items;
+          };
+          const cardStyle = 'display: flex; flex-direction: column; padding: 20px;';
+          return (
+            <div
+              class="overview-stats"
+              style="grid-template-columns: repeat(4, 1fr); align-items: stretch;"
+            >
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <span class="overview-stat-card__label">Subscriptions</span>
+                  <A
+                    href="/providers/subscriptions?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
+                </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {totalConns(subs())}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={connList(subs())}>
+                    {(item) => (
+                      <A
+                        href={`/providers/connections/${item.id}`}
+                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                      >
+                        <span style="flex-shrink: 0; display: flex; align-items: center;">
+                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '14px',
+                                height: '14px',
+                                'border-radius': '3px',
+                                'font-size': '9px',
+                                'font-weight': '600',
+                                color: 'white',
+                                background: customProviderColor(item.name),
+                              }}
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {item.name}
+                        </span>
+                        <Show when={item.isCustom}>
+                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                            custom
+                          </span>
+                        </Show>
+                        <Show when={item.label !== 'Default'}>
+                          <span>{item.label}</span>
+                        </Show>
+                      </A>
+                    )}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/providers/subscriptions" class="view-more-link">
+                    View more
+                  </A>
+                </div>
+              </div>
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <span class="overview-stat-card__label">BYOK</span>
+                  <A
+                    href="/providers/byok?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
+                </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {totalConns(byok())}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={connList(byok())}>
+                    {(item) => (
+                      <A
+                        href={`/providers/connections/${item.id}`}
+                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                      >
+                        <span style="flex-shrink: 0; display: flex; align-items: center;">
+                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '14px',
+                                height: '14px',
+                                'border-radius': '3px',
+                                'font-size': '9px',
+                                'font-weight': '600',
+                                color: 'white',
+                                background: customProviderColor(item.name),
+                              }}
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {item.name}
+                        </span>
+                        <Show when={item.isCustom}>
+                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                            custom
+                          </span>
+                        </Show>
+                        <Show when={item.label !== 'Default'}>
+                          <span>{item.label}</span>
+                        </Show>
+                      </A>
+                    )}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/providers/byok" class="view-more-link">
+                    View more
+                  </A>
+                </div>
+              </div>
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <span class="overview-stat-card__label">Local</span>
+                  <A
+                    href="/providers/local?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
+                </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {totalConns(local())}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={connList(local())}>
+                    {(item) => (
+                      <A
+                        href={`/providers/connections/${item.id}`}
+                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                      >
+                        <span style="flex-shrink: 0; display: flex; align-items: center;">
+                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '14px',
+                                height: '14px',
+                                'border-radius': '3px',
+                                'font-size': '9px',
+                                'font-weight': '600',
+                                color: 'white',
+                                background: customProviderColor(item.name),
+                              }}
+                            >
+                              {item.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </span>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {item.name}
+                        </span>
+                        <Show when={item.isCustom}>
+                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                            custom
+                          </span>
+                        </Show>
+                        <Show when={item.label !== 'Default'}>
+                          <span>{item.label}</span>
+                        </Show>
+                      </A>
+                    )}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/providers/local" class="view-more-link">
+                    View more
+                  </A>
+                </div>
+              </div>
+              <div class="overview-stat-card" style={cardStyle}>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <span class="overview-stat-card__label">Harnesses</span>
+                  <A
+                    href="/harnesses?add=true"
+                    class="btn btn--outline btn--sm"
+                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                  >
+                    + Add
+                  </A>
+                </div>
+                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                  {agentList().length}
+                </span>
+                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                  <For each={sortedAgents().slice(0, 5)}>
+                    {(agent) => {
+                      const icon = platformIcon(agent.agent_platform, agent.agent_category);
+                      return (
+                        <A
+                          href={`/harnesses/${agent.agent_name}`}
+                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                        >
+                          <Show when={icon}>
+                            <img
+                              src={icon!}
+                              alt=""
+                              width="14"
+                              height="14"
+                              style="flex-shrink: 0;"
+                            />
+                          </Show>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {agent.display_name || agent.agent_name}
+                          </span>
+                        </A>
+                      );
+                    }}
+                  </For>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                  <A href="/harnesses" class="view-more-link">
+                    View more
+                  </A>
+                </div>
               </div>
             </div>
-          </Show>
-          <Show when={showDashboard()}>
-            {(_) => {
-              const d = () => data() as GlobalOverviewData;
-              return (
-                <>
-                  <ChartCard
-                    activeView={activeView()}
-                    onViewChange={setActiveView}
-                    costValue={d().summary?.cost_today?.value ?? 0}
-                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                    tokensValue={d().summary?.tokens_today?.value ?? 0}
-                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                    messagesValue={d().summary?.messages?.value ?? 0}
-                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                    costUsage={d().cost_usage}
-                    tokenUsage={d().token_usage}
-                    messageChartData={messageChartData()}
-                    range={range()}
-                  />
+          );
+        })()}
 
-                  {/* Recent Messages */}
-                  <div class="panel">
-                    <div
-                      class="panel__title"
-                      style="display: flex; justify-content: space-between; align-items: center;"
-                    >
-                      Recent Messages
-                      <A href="/messages" class="view-more-link">
-                        View more
-                      </A>
-                    </div>
-                    <MessageTable
-                      items={d().recent_activity?.slice(0, 5) ?? []}
-                      columns={columns()}
-                      agentName=""
-                      customProviderName={() => undefined}
-                    />
-                  </div>
-
-                  <CostByModelTable
-                    rows={d().cost_by_model ?? []}
-                    customProviderName={() => undefined}
-                  />
-                </>
-              );
+        {/* ── 4. Recent Messages (full width) ──────────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div
+            class="panel__title"
+            style="display: flex; justify-content: space-between; align-items: center;"
+          >
+            Recent Messages
+            <A href="/messages" class="view-more-link">
+              View more
+            </A>
+          </div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
             }}
-          </Show>
-        </Show>
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Harness</th>
+                  <th>Model</th>
+                  <th>Message</th>
+                  <th style="text-align: right;">Cost</th>
+                  <th style="text-align: right;">Tokens</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={overview()?.recent_activity ?? []}>
+                  {(row) => (
+                    <tr>
+                      <td style="white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                        {formatTimeAgo(row.timestamp) ?? '—'}
+                      </td>
+                      <td>
+                        {(() => {
+                          const s = (row.status ?? 'ok').toLowerCase();
+                          if (s === 'ok' || s === 'success')
+                            return (
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success) / 0.1); color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500;">
+                                Success
+                              </span>
+                            );
+                          if (s === 'retry')
+                            return (
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(38 92% 50% / 0.15); color: hsl(38 92% 40%); font-size: var(--font-size-xs); font-weight: 500;">
+                                Retried
+                              </span>
+                            );
+                          return (
+                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); font-size: var(--font-size-xs); font-weight: 500;">
+                              Failed
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td>
+                        <span style="font-weight: 500; color: hsl(var(--foreground));">
+                          {row.agent_name}
+                        </span>
+                      </td>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <Show when={row.provider}>
+                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                              {providerIcon(row.provider!, 16)}
+                              {authBadgeFor(row.auth_type ?? null, 12)}
+                            </span>
+                          </Show>
+                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                            {row.model || '—'}
+                          </span>
+                        </div>
+                      </td>
+                      <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
+                        {row.description || row.first_message || '—'}
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground));">
+                        {formatCost(Number(row.cost_usd ?? 0)) ?? '—'}
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                        {formatNumber(Number(row.total_tokens ?? 0))}
+                      </td>
+                    </tr>
+                  )}
+                </For>
+                <Show when={(overview()?.recent_activity ?? []).length === 0}>
+                  <tr>
+                    <td
+                      colspan="7"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No messages yet
+                    </td>
+                  </tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── 5. Model usage (full width) ────────────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div class="panel__title">Model usage</div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th style="text-align: right;">Tokens</th>
+                  <th style="text-align: right;">Share</th>
+                  <th style="text-align: right;">Est. cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={(overview()?.cost_by_model ?? []).slice(0, 10)}>
+                  {(row) => (
+                    <tr>
+                      <td>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <Show when={row.provider}>
+                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                              {providerIcon(row.provider!, 16)}
+                              {authBadgeFor(row.auth_type, 12)}
+                            </span>
+                          </Show>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {row.display_name || row.model}
+                          </span>
+                        </div>
+                      </td>
+                      <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                        {formatNumber(row.tokens)}
+                      </td>
+                      <td style="text-align: right;">
+                        <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                          <div style="width: 60px; height: 6px; background: hsl(var(--muted)); border-radius: 3px; overflow: hidden;">
+                            <div
+                              style={{
+                                width: `${row.share_pct}%`,
+                                height: '100%',
+                                background: 'hsl(var(--success))',
+                                'border-radius': '3px',
+                              }}
+                            />
+                          </div>
+                          <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                            {row.share_pct}%
+                          </span>
+                        </div>
+                      </td>
+                      <td style="text-align: right; font-weight: 600; font-variant-numeric: tabular-nums;">
+                        {formatCost(row.estimated_cost) ?? '$0.00'}
+                      </td>
+                    </tr>
+                  )}
+                </For>
+                <Show when={(overview()?.cost_by_model ?? []).length === 0}>
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No model data yet
+                    </td>
+                  </tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── 6. Provider connections (full width) ────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div class="panel__title">Provider connections</div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th>Type</th>
+                  <th>Usage (30d)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={providerList()}>
+                  {(group) => {
+                    const firstId = () => group.connections[0]?.id;
+                    const isActive = () => group.connections.some((c) => c.is_active);
+                    return (
+                      <tr
+                        style="cursor: pointer;"
+                        onClick={() => {
+                          const id = firstId();
+                          if (id) navigate(`/providers/connections/${id}`);
+                        }}
+                      >
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            {(() => {
+                              const isCustom = group.provider.startsWith('custom:');
+                              const customName = isCustom
+                                ? resolveCustomName(group.provider)
+                                : null;
+                              const prov = PROVIDERS.find((p) => p.id === group.provider);
+                              const displayName = prov?.name ?? customName ?? group.provider;
+                              return (
+                                <>
+                                  <span style="flex-shrink: 0; display: flex; align-items: center;">
+                                    {providerIcon(group.provider, 20) ??
+                                      (isCustom
+                                        ? customProviderLogo(customName ?? '', 20)
+                                        : null) ??
+                                      (isCustom ? (
+                                        <span
+                                          style={{
+                                            display: 'inline-flex',
+                                            'align-items': 'center',
+                                            'justify-content': 'center',
+                                            width: '20px',
+                                            height: '20px',
+                                            'border-radius': '4px',
+                                            'font-size': '11px',
+                                            'font-weight': '600',
+                                            color: 'white',
+                                            background: customProviderColor(customName ?? ''),
+                                          }}
+                                        >
+                                          {(customName ?? displayName).charAt(0).toUpperCase()}
+                                        </span>
+                                      ) : null)}
+                                  </span>
+                                  <span style="font-weight: 500; color: hsl(var(--foreground));">
+                                    {displayName}
+                                  </span>
+                                  {isCustom && (
+                                    <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                                      custom
+                                    </span>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              'font-size': 'var(--font-size-xs)',
+                              'font-weight': '500',
+                              color: 'hsl(var(--muted-foreground))',
+                            }}
+                          >
+                            {authLabel(group.auth_type)}
+                          </span>
+                        </td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={group.sparkline_7d.length > 0}>
+                              <span style="flex-shrink: 0;">
+                                <Sparkline data={group.sparkline_7d} width={60} height={24} />
+                              </span>
+                            </Show>
+                            <span style="font-variant-numeric: tabular-nums;">
+                              {formatNumber(group.consumption_tokens)} tokens
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <Show
+                            when={isActive()}
+                            fallback={
+                              <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+                                Inactive
+                              </span>
+                            }
+                          >
+                            <span style="display: inline-flex; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+                              Active
+                            </span>
+                          </Show>
+                        </td>
+                      </tr>
+                    );
+                  }}
+                </For>
+                <Show when={providerList().length === 0}>
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No connections yet
+                    </td>
+                  </tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── 7. Harnesses (full width) ──────────────────────────────── */}
+        <div class="panel scroll-panel" style="margin-bottom: 24px;">
+          <div class="panel__title">Harnesses</div>
+          <div
+            class="scroll-panel__body"
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
+              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
+            }}
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Harness</th>
+                  <th>Usage (30d)</th>
+                  <th style="text-align: right;">Messages</th>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={sortedAgents()}>
+                  {(agent) => {
+                    const icon = platformIcon(agent.agent_platform, agent.agent_category);
+                    return (
+                      <tr
+                        style="cursor: pointer;"
+                        onClick={() => navigate(`/harnesses/${agent.agent_name}`)}
+                      >
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={icon}>
+                              <img
+                                src={icon!}
+                                alt=""
+                                width="20"
+                                height="20"
+                                style="flex-shrink: 0;"
+                              />
+                            </Show>
+                            <span style="font-weight: 500; color: hsl(var(--foreground));">
+                              {agent.display_name || agent.agent_name}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <Show when={(agent.sparkline ?? []).length > 0}>
+                              <span style="flex-shrink: 0;">
+                                <Sparkline data={agent.sparkline} width={60} height={24} />
+                              </span>
+                            </Show>
+                            <span style="font-variant-numeric: tabular-nums;">
+                              {formatNumber(agent.total_tokens ?? 0)} tokens
+                            </span>
+                          </div>
+                        </td>
+                        <td style="text-align: right; font-variant-numeric: tabular-nums;">
+                          {formatNumber(agent.message_count ?? 0)}
+                        </td>
+                      </tr>
+                    );
+                  }}
+                </For>
+                <Show when={agentList().length === 0}>
+                  <tr>
+                    <td
+                      colspan="4"
+                      style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
+                    >
+                      No harnesses yet
+                    </td>
+                  </tr>
+                </Show>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Show>
     </div>
   );
