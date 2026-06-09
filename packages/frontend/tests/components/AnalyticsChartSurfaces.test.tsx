@@ -1,0 +1,352 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen } from '@solidjs/testing-library';
+
+let capturedLifecycleOpts: any = null;
+let capturedChartOpts: any = null;
+let capturedChartData: any = null;
+
+vi.mock('uplot', () => ({
+  default: class MockUPlot {
+    static paths = {
+      bars: () => vi.fn(),
+    };
+
+    bbox = { width: 800 };
+    cursor = { idx: 0 };
+    data: number[][] = [];
+
+    constructor(opts: any, data: any) {
+      capturedChartOpts = opts;
+      capturedChartData = data;
+      this.data = data;
+    }
+
+    posToIdx = () => 0;
+    valToPos = () => 120;
+    destroy = vi.fn();
+  },
+}));
+
+vi.mock('../../src/services/theme.js', () => ({
+  getHsl: (name: string) => `hsl(var(${name}))`,
+  getHslA: (name: string, alpha: number) => `hsla(var(${name}), ${alpha})`,
+}));
+
+vi.mock('../../src/services/chart-utils.js', () => ({
+  useChartLifecycle: (opts: any) => {
+    capturedLifecycleOpts = opts;
+  },
+  createBaseAxes: (axisColor: string, gridColor: string) => [
+    { stroke: axisColor, grid: { stroke: gridColor } },
+    { stroke: axisColor, grid: { stroke: gridColor } },
+  ],
+  parseTimestamps: (rows: unknown[]) => rows.map((_, i) => 1_700_000_000 + i * 3600),
+  createTimeScaleRange: () => vi.fn(),
+  createFormatLegendTimestamp: () => vi.fn(),
+  formatLegendTokens: (_u: unknown, value: number) => String(value),
+  isMultiDayRange: (range: string) => range !== '24h',
+  fillDailyGaps: (
+    rows: unknown[],
+    _range: string,
+    key: string,
+    buildMissing: (bucket: string) => unknown,
+  ) => (rows.length ? rows : [buildMissing(key === 'date' ? '2026-06-04' : '2026-06-04 00:00:00')]),
+}));
+
+vi.mock('../../src/components/InfoTooltip.jsx', () => ({
+  default: (props: { text: string }) => <span data-testid="info-tooltip">{props.text}</span>,
+}));
+
+import GlobalOverviewSkeleton from '../../src/components/GlobalOverviewSkeleton';
+import MultiAgentTokenChart from '../../src/components/MultiAgentTokenChart';
+import ProviderChartCard from '../../src/components/ProviderChartCard';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  capturedLifecycleOpts = null;
+  capturedChartOpts = null;
+  capturedChartData = null;
+});
+
+const buildCapturedChart = () => {
+  const el = capturedLifecycleOpts.el();
+  Object.defineProperty(el, 'clientWidth', { value: 800, configurable: true });
+  capturedLifecycleOpts.buildChart();
+};
+
+describe('analytics chart surface components', () => {
+  it('renders the global overview skeleton placeholders', () => {
+    const { container } = render(() => <GlobalOverviewSkeleton />);
+    expect(container.querySelectorAll('.overview-stat-card')).toHaveLength(4);
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(10);
+  });
+
+  it('renders ProviderChartCard views and changes active view on click', () => {
+    const onViewChange = vi.fn();
+
+    render(() => (
+      <ProviderChartCard
+        activeView="tokens"
+        onViewChange={onViewChange}
+        messagesValue={12}
+        messagesTrendPct={10}
+        tokensValue={1234}
+        tokensTrendPct={5}
+        costValue={4.56}
+        costTrendPct={-2}
+        costInfoTooltip="API key cost only"
+        tokenUsage={[{ hour: '2026-06-04 10:00:00', input_tokens: 800, output_tokens: 400 }]}
+        messageChartData={[{ time: '2026-06-04 10:00:00', value: 12 }]}
+        range="24h"
+        agentTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200 }],
+        }}
+        agentMessageTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 12 }],
+        }}
+        agentCostTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 4.56 }],
+        }}
+        colorMap={{ openai: '#111111' }}
+      />
+    ));
+
+    expect(screen.getByText('Cost')).toBeDefined();
+    expect(screen.getByText('Messages')).toBeDefined();
+    expect(screen.getByText('Token usage')).toBeDefined();
+    expect(screen.getByTestId('info-tooltip')).toBeDefined();
+    buildCapturedChart();
+
+    fireEvent.click(screen.getByText('Messages'));
+    expect(onViewChange).toHaveBeenCalledWith('messages');
+    fireEvent.click(screen.getByText('Token usage'));
+    expect(onViewChange).toHaveBeenCalledWith('tokens');
+    fireEvent.click(screen.getByText('Cost'));
+    expect(onViewChange).toHaveBeenCalledWith('cost');
+  });
+
+  it('renders ProviderChartCard message and cost chart branches', () => {
+    const onViewChange = vi.fn();
+
+    const { unmount } = render(() => (
+      <ProviderChartCard
+        activeView="messages"
+        onViewChange={onViewChange}
+        messagesValue={12}
+        messagesTrendPct={0}
+        tokensValue={1234}
+        tokensTrendPct={0}
+        costValue={4.56}
+        costTrendPct={0}
+        tokenUsage={[]}
+        messageChartData={[{ time: '2026-06-04 10:00:00', value: 12 }]}
+        range="24h"
+        agentTimeseries={{ agents: ['openai'], timeseries: [] }}
+        agentMessageTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 12 }],
+        }}
+        agentCostTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 4.56 }],
+        }}
+        colorMap={{ openai: '#111111' }}
+      />
+    ));
+
+    expect(screen.getByText('Messages')).toBeDefined();
+    buildCapturedChart();
+    unmount();
+
+    render(() => (
+      <ProviderChartCard
+        activeView="cost"
+        onViewChange={onViewChange}
+        messagesValue={12}
+        messagesTrendPct={0}
+        tokensValue={1234}
+        tokensTrendPct={0}
+        costValue={4.56}
+        costTrendPct={0}
+        tokenUsage={[]}
+        messageChartData={[]}
+        range="24h"
+        agentTimeseries={{ agents: ['openai'], timeseries: [] }}
+        agentMessageTimeseries={{ agents: ['openai'], timeseries: [] }}
+        agentCostTimeseries={{
+          agents: ['openai'],
+          timeseries: [{ hour: '2026-06-04 10:00:00', openai: 4.56 }],
+        }}
+        colorMap={{ openai: '#111111' }}
+      />
+    ));
+
+    expect(screen.getByText('Cost')).toBeDefined();
+    buildCapturedChart();
+  });
+
+  it('renders ProviderChartCard empty states and hides cost when missing', () => {
+    const { unmount } = render(() => (
+      <ProviderChartCard
+        activeView="messages"
+        onViewChange={vi.fn()}
+        messagesValue={0}
+        messagesTrendPct={0}
+        tokensValue={0}
+        tokensTrendPct={0}
+        tokenUsage={[]}
+        messageChartData={[]}
+        range="24h"
+        agentTimeseries={{ agents: [], timeseries: [] }}
+        agentMessageTimeseries={{ agents: [], timeseries: [] }}
+        agentCostTimeseries={{ agents: [], timeseries: [] }}
+      />
+    ));
+
+    expect(screen.getByText('No message data for this time range')).toBeDefined();
+    expect(screen.queryByText('Cost')).toBeNull();
+    unmount();
+
+    const tokenEmpty = render(() => (
+      <ProviderChartCard
+        activeView="tokens"
+        onViewChange={vi.fn()}
+        messagesValue={0}
+        messagesTrendPct={0}
+        tokensValue={0}
+        tokensTrendPct={0}
+        tokenUsage={[]}
+        messageChartData={[]}
+        range="24h"
+        agentTimeseries={{ agents: [], timeseries: [] }}
+        agentMessageTimeseries={{ agents: [], timeseries: [] }}
+        agentCostTimeseries={{ agents: [], timeseries: [] }}
+      />
+    ));
+
+    expect(screen.getByText('No token data for this time range')).toBeDefined();
+    tokenEmpty.unmount();
+
+    render(() => (
+      <ProviderChartCard
+        activeView="cost"
+        onViewChange={vi.fn()}
+        messagesValue={0}
+        messagesTrendPct={0}
+        tokensValue={0}
+        tokensTrendPct={0}
+        costValue={0}
+        costTrendPct={0}
+        tokenUsage={[]}
+        messageChartData={[]}
+        range="24h"
+        agentTimeseries={{ agents: [], timeseries: [] }}
+        agentMessageTimeseries={{ agents: [], timeseries: [] }}
+        agentCostTimeseries={{ agents: [], timeseries: [] }}
+      />
+    ));
+
+    expect(screen.getByText('No cost data for this time range')).toBeDefined();
+  });
+
+  it('builds stacked data for the multi-agent token chart', () => {
+    const hover = vi.fn();
+
+    render(() => (
+      <MultiAgentTokenChart
+        agents={['openai', 'anthropic']}
+        timeseries={[{ hour: '2026-06-04 10:00:00', openai: 10, anthropic: 5 }]}
+        range="24h"
+        colorMap={{ openai: '#111111', anthropic: '#222222' }}
+        onHoverValues={hover}
+      />
+    ));
+
+    buildCapturedChart();
+    expect(capturedChartData).toHaveLength(3);
+    expect(capturedChartOpts.series).toHaveLength(3);
+
+    capturedChartOpts.hooks.setCursor[0]({
+      cursor: { idx: 0 },
+      data: capturedChartData,
+      bbox: { width: 800 },
+      valToPos: () => 120,
+    });
+    expect(hover).toHaveBeenCalledWith({ openai: 10, anthropic: 5 });
+
+    // Tooltip rows render after a hover with non-zero values.
+    expect(screen.getByText('openai')).toBeDefined();
+    expect(screen.getByText('Total')).toBeDefined();
+  });
+
+  it('formats token y-axis values and snaps the cursor for token charts', () => {
+    render(() => (
+      <MultiAgentTokenChart
+        agents={['openai']}
+        timeseries={[{ hour: '2026-06-04 10:00:00', openai: 1234 }]}
+        range="24h"
+        colorMap={{ openai: '#111111' }}
+      />
+    ));
+
+    buildCapturedChart();
+    // Token axis uses formatLegendTokens (mocked to String()).
+    expect(capturedChartOpts.axes[1].values({}, [1234])).toEqual(['1234']);
+    expect(
+      capturedChartOpts.cursor.move({ posToIdx: () => 0, data: [[1700000000]], valToPos: () => 5 }, 7, 3),
+    ).toEqual([5, 3]);
+  });
+
+  it('builds empty and cost multi-day chart states', () => {
+    const hover = vi.fn();
+
+    const { container } = render(() => (
+      <MultiAgentTokenChart
+        agents={['openai']}
+        timeseries={[]}
+        range="30d"
+        colorMap={{ openai: '#111111' }}
+        onHoverValues={hover}
+        label="Cost"
+      />
+    ));
+
+    buildCapturedChart();
+    expect(capturedChartData[1][0]).toBe(0);
+    expect(capturedChartOpts.axes[1].values({}, [1.23])).toEqual(['$1.23']);
+    expect(
+      capturedChartOpts.cursor.move({ posToIdx: () => null, data: [[]], valToPos: () => 0 }, 42, 9),
+    ).toEqual([42, 9]);
+
+    capturedChartOpts.hooks.setCursor[0]({ cursor: { idx: -1 } });
+    expect(hover).toHaveBeenCalledWith(null);
+
+    fireEvent.mouseLeave(container.firstElementChild!);
+    expect(hover).toHaveBeenLastCalledWith(null);
+  });
+
+  it('falls back to default colors when no colorMap entry exists', () => {
+    const hover = vi.fn();
+
+    render(() => (
+      <MultiAgentTokenChart
+        agents={['openai', 'anthropic']}
+        timeseries={[{ hour: '2026-06-04 10:00:00', openai: 10, anthropic: 5 }]}
+        range="24h"
+        onHoverValues={hover}
+      />
+    ));
+
+    buildCapturedChart();
+    capturedChartOpts.hooks.setCursor[0]({
+      cursor: { idx: 0 },
+      data: capturedChartData,
+      bbox: { width: 800 },
+      valToPos: () => 700,
+    });
+    expect(hover).toHaveBeenCalledWith({ openai: 10, anthropic: 5 });
+  });
+});
