@@ -1,0 +1,21 @@
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_8f7bd68edeeec2::t_1a34fa1125015b 1-32,34,36-37,39-40,42-78,80,84,86-123,127-215,217-219,222-224,227-229,232-246,248-359,362,366-396,399-405,407-408,410-589,591-594,621-890,893-990,992-999,1001-1009,1011-1292
+  s_8f7bd68edeeec2::t_bc1bb5801ce10e 595-618
+  s_8f7bd68edeeec2::t_0051de2eabfbd0 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "bf9503a7de53cf906990e13024fa2be083fa9ed3",
+  "prompts": {},
+  "sessions": {
+    "s_8f7bd68edeeec2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de07a663-933d-498e-addb-eae626f52506",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
