@@ -1,0 +1,28 @@
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_cd68a57c9c12bc::t_080b5efda1f74b 578,580,592
+  s_cd68a57c9c12bc::t_ff1bcdbc706d19 471,473,486
+  s_cd68a57c9c12bc::t_c42fffd849fd2a 13-14,16
+  s_cd68a57c9c12bc::t_e9225e54ffa809 154,161,170
+  s_cd68a57c9c12bc::t_dd78d78411f0ee 187
+  s_cd68a57c9c12bc::t_17cbf4b90d95a0 434,436,450
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_cd68a57c9c12bc::t_b262df6abec1c4 7-13
+  s_cd68a57c9c12bc::t_a24ce94cbb77eb 659-692
+  s_cd68a57c9c12bc::t_f910d203e4da90 206-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6acf3fd85f56d53cf16afea60b982108a6f39c23",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
