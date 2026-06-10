@@ -346,12 +346,26 @@ export function extractThinkingBlocksFromMessagesResponse(
  * - Replay cached extended-thinking blocks at the head of assistant turns
  *   whose first content block is a `tool_use`.
  */
+/**
+ * Fields that clients may send on the Anthropic Messages API but that Anthropic
+ * rejects as "extra inputs not permitted" when the required beta header is
+ * absent.  `context_management` is a valid Anthropic parameter for compaction
+ * (beta `compact-2026-01-12`), but Manifest does not forward that beta header,
+ * so the field must be stripped before forwarding.
+ */
+const ANTHROPIC_UNSUPPORTED_FIELDS = new Set(['context_management']);
+
 export function applyAnthropicMessagesMutations(
   body: Record<string, unknown>,
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
   const shouldCache = options?.injectCacheControl !== false;
   const result: Record<string, unknown> = { ...body };
+
+  // Strip fields that Anthropic rejects under the standard version header.
+  for (const key of ANTHROPIC_UNSUPPORTED_FIELDS) {
+    delete result[key];
+  }
 
   // Normalize `system` to a content-block array so cache_control + identity
   // injection have a uniform target. Anthropic accepts either a bare string
