@@ -1,0 +1,25 @@
+packages/frontend/tests/components/CostByModelTable.test.tsx
+  s_cd68a57c9c12bc::t_373e15307777e1 1
+  s_cd68a57c9c12bc::t_0377c5bce4e99e 74,80-81,90-93,96,99-106,112-113
+  s_cd68a57c9c12bc::t_64a7bb93f31845 19,46,68
+packages/frontend/src/components/CostByModelTable.tsx
+  s_cd68a57c9c12bc::t_57ecdf0262c9b9 77
+  s_cd68a57c9c12bc::t_9d299eecff1018 22
+  s_cd68a57c9c12bc::t_8540ef2c005180 121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8c5cd6278780391702a779bc6574cbf365a3c0eb",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
