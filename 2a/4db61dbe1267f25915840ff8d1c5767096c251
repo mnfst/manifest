@@ -1,0 +1,142 @@
+packages/frontend/src/components/AddAgentModal.tsx
+  s_9692c10a102925::t_99fc8ccff21fd8 13-14
+packages/backend/src/routing/copilot.controller.ts
+  s_9692c10a102925::t_f4dc91c3b978a6 35
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_9692c10a102925::t_90442e05a9c247 772
+  s_9692c10a102925::t_e72ef8fbb5ba53 790,812-813,817,827,829-831,836
+  s_9692c10a102925::t_417b59dce9481e 64-68,75-76,113,119-120,127-128,133,135
+  s_9692c10a102925::t_1fbe24ed7400af 1-7,35-41
+  s_9692c10a102925::t_5a3549bab8d9f1 609-611,624,636,638,641
+  s_9692c10a102925::t_4878404fad91ef 246,329,531
+  s_9692c10a102925::t_801080219125e1 656,658-703,705-725,728-771,773-784
+packages/frontend/src/components/RoutingModals.tsx
+  s_9692c10a102925::t_269c724031b0ce 210
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_9692c10a102925::t_5389f19a3ba405 318-319,322,332-333
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_9692c10a102925::t_8a4428dc1374c5 201
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_9692c10a102925::t_1399c0f8aad556 152
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_9692c10a102925::t_b5194d9101e77a 1455
+packages/frontend/tests/pages/RoutingTierCard.test.tsx
+  s_9692c10a102925::t_c140fa9f9946dd 326,333,994,997-1002,1026-1027,1032-1033,1036-1041,1064-1066,1069-1074,1086-1091,1131-1136,1200,1203-1208
+packages/backend/src/routing/routing-core/route-helpers.ts
+  s_9692c10a102925::t_ecb0c6fffbf339 28
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_9692c10a102925::t_8370561443134f 89,97,175,177,179,182-185
+packages/backend/src/routing/agent-provider-access.controller.ts
+  s_9692c10a102925::t_f791e533ace8d5 1-10,20-21,38-41,78-81,104,118-150,192-196
+  s_9692c10a102925::t_0a39faf5a6549e 96-98
+packages/backend/src/routing/oauth/openai-oauth.service.spec.ts
+  s_9692c10a102925::t_76fb3ffd1e3e95 159-160,165,175-176
+packages/backend/src/routing/routing-core/__tests__/route-helpers.spec.ts
+  s_9692c10a102925::t_fea282f62dbc99 80,84
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_9692c10a102925::t_fa5d9eb40aaa65 359-361,363-364
+  s_9692c10a102925::t_915c9f4654471e 128,336-337,350,353
+packages/frontend/src/pages/RoutingActions.tsx
+  s_9692c10a102925::t_ba9ffea07628b7 102-103,112,145,160
+packages/backend/src/routing/oauth/minimax-oauth.service.spec.ts
+  s_9692c10a102925::t_b75b7529f9dfa2 261-262,266,280-281
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_9692c10a102925::t_f6a821581432af 257
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_9692c10a102925::t_5cb4de40872c7b 169,173
+packages/backend/src/routing/model.controller.spec.ts
+  s_9692c10a102925::t_3531a5102516fc 175,207
+packages/backend/src/routing/provider.controller.ts
+  s_9692c10a102925::t_95bc36982e0159 141,162-164
+packages/backend/src/routing/routing.module.ts
+  s_9692c10a102925::t_09aaadc1a3aee5 28-29,40-41
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_9692c10a102925::t_941aec7714b7f8 97
+packages/backend/src/routing/provider.controller.spec.ts
+  s_9692c10a102925::t_cb06aabc7ab816 301-303,315-316,320-322,334-335
+packages/backend/src/routing/oauth/minimax-oauth.service.ts
+  s_9692c10a102925::t_186ba5644c0776 220
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_9692c10a102925::t_627db473259256 585,600,607-610,613,618-619,633,758,761,765-771
+packages/frontend/tests/pages/Routing.test.tsx
+  s_9692c10a102925::t_e01629f643de4d 1099,1116-1117
+  s_9692c10a102925::t_19b59dc2ca4284 748
+packages/frontend/src/components/ResponseModeModal.tsx
+  s_9692c10a102925::t_c4ff1f1e04752c 48
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_9692c10a102925::t_1ea8866f585dc5 464-465,522,535-536,744,762,811,815-816
+packages/backend/src/routing/agent-provider-access.controller.spec.ts
+  s_9692c10a102925::t_76fcbfdac12aed 216-218
+  s_9692c10a102925::t_af7986b66f7224 475,498-500,502-504,507,514,530,532-538,541,548,564-566,568-569,572,579,597,601,608,626-627,630,637,653-655,657-658,661,673,691,695,705,721-723,725-726
+  s_9692c10a102925::t_a0b83b1d16080d 422,462
+  s_9692c10a102925::t_ac6146dd5125bd 6-7,51-60,74-75,83-84
+packages/backend/src/routing/routing-core/routing-invalidation.service.ts
+  s_9692c10a102925::t_d45188f022d4ef 63-65
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_9692c10a102925::t_8929ddb3cd3195 235-236,240,249-250
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_9692c10a102925::t_7fb8fe4f74b59b 126
+packages/backend/src/common/utils/baseline-cost.ts
+  s_9692c10a102925::t_3d383ee55a2069 36,41
+packages/frontend/tests/components/ResponseModeModal.test.tsx
+  s_9692c10a102925::t_0fdbe7d1892d44 54,136,175,205,223,244,379,397,420
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_9692c10a102925::t_e87fa65bd26491 190
+  s_9692c10a102925::t_789e82b6d4f727 31,227,267,283
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_9692c10a102925::t_ab680114b8e1f4 158,195,216,232
+packages/frontend/src/services/routing-utils.ts
+  s_9692c10a102925::t_a5c8d4488f4cba 15-16,33
+packages/backend/src/routing/model.controller.ts
+  s_9692c10a102925::t_f3c7d1825183b6 57,68
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_9692c10a102925::t_fea282f62dbc99 447,463,478,487
+packages/frontend/src/pages/Routing.tsx
+  s_9692c10a102925::t_481094ca4319fc 299,431
+packages/frontend/tests/pages/RoutingActions.test.ts
+  s_9692c10a102925::t_e552dc561f9ace 208,232,369,373,377-390
+packages/backend/src/routing/oauth/gemini-oauth.service.spec.ts
+  s_9692c10a102925::t_e0f51b36102dbe 253
+packages/frontend/tests/services/routing-utils.test.ts
+  s_9692c10a102925::t_48b8a513a931b9 270
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_9692c10a102925::t_4efc1dc17277a4 455,467
+packages/frontend/src/pages/RoutingTierCard.tsx
+  s_9692c10a102925::t_44f20b27c4f1ad 726-727,730
+packages/backend/src/routing/copilot.controller.spec.ts
+  s_9692c10a102925::t_195ca6c4aa54a8 112,128,132,147-148
+packages/backend/src/routing/routing-core/__tests__/routing-invalidation.service.spec.ts
+  s_9692c10a102925::t_9d72c22e1db3bd 36,122,149-150
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_9692c10a102925::t_8118be1988d5e8 146-147,151,161-162
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_9692c10a102925::t_0e77610a8173c1 292-293,343-344
+  s_9692c10a102925::t_e10aea97eabd09 228-233
+  s_9692c10a102925::t_d3e239d0ca806d 348-351
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_9692c10a102925::t_1ea8866f585dc5 51-52,145-146
+packages/backend/src/routing/oauth/redirect-pkce-oauth.base.ts
+  s_9692c10a102925::t_049cb28629a999 193
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_9692c10a102925::t_7bbb8f61567e36 82-84,86-93,98,103,105-108,111-112,114-121,126,131,133-136,139-140,142-149,160,162-165,168-169,171-183,185-186,188,190-193,196-197,202-203,205-206,210-211,215,217,219-225,228-229,231,233,235-236,238,244,247-248,250-253
+  s_9692c10a102925::t_e4e88eeec7c0a1 368,403-405,407-408,438-449,466-468,470-471
+  s_9692c10a102925::t_9e404e40d9dd5c 305-319,326-346,348-354,356
+  s_9692c10a102925::t_e6c0bef818dfc1 489
+  s_9692c10a102925::t_93ecd98da6a0b2 902,914,916,934,939-940,945,947,955-956,962,968-969
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "2a4db61dbe1267f25915840ff8d1c5767096c251",
+  "prompts": {},
+  "sessions": {
+    "s_9692c10a102925": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eb066-560f-7b52-8480-dd6e0a6bd0bc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
