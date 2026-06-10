@@ -290,6 +290,7 @@ describe('supportsSubscriptionProvider', () => {
 describe('getSubscriptionKnownModels', () => {
   it('returns known models for anthropic', () => {
     const models = getSubscriptionKnownModels('anthropic');
+    expect(models).toContain('claude-fable-5');
     expect(models).toContain('claude-opus-4');
     expect(models).toContain('claude-sonnet-4');
   });

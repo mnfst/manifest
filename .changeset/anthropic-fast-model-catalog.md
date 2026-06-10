@@ -2,4 +2,4 @@
 "manifest": patch
 ---
 
-Stop offering Anthropic `claude-*-fast` models in the subscription catalog. Those ids come from the pricing cache but 404 at `api.anthropic.com` — fast mode is an `anthropic-beta` header on the base Opus model, not a model id. Routing to them returned "model not found"; they're now filtered out via a per-provider `knownModelsExclude`.
+Fix the Anthropic subscription model catalog. Drop the `claude-*-fast` ids it pulled from the pricing cache — those 404 at `api.anthropic.com` because fast mode is an `anthropic-beta` header on the base Opus model, not a model id. Also add `claude-fable-5` (Claude Fable 5), a new subscription model that didn't match the existing `claude-*-4` prefixes.
