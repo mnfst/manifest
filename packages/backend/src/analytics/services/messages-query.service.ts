@@ -110,9 +110,7 @@ export class MessagesQueryService {
    * filter dropdown can label them. Deleted providers simply have no entry
    * and fall back to the raw id in the UI.
    */
-  private async resolveCustomProviderLabels(
-    providers: string[],
-  ): Promise<Record<string, string>> {
+  private async resolveCustomProviderLabels(providers: string[]): Promise<Record<string, string>> {
     const uuids = providers
       .filter((p) => p.startsWith('custom:'))
       .map((p) => p.slice('custom:'.length));

@@ -377,9 +377,7 @@ const Overview: Component = () => {
                       />
                     </div>
 
-                    <CostByModelTable
-                      rows={d().cost_by_model ?? []}
-                    />
+                    <CostByModelTable rows={d().cost_by_model ?? []} />
                   </>
                 );
               }}
