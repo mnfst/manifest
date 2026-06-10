@@ -33,8 +33,6 @@ import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
-import { SavingsController } from './controllers/savings.controller';
-import { SavingsQueryService } from './services/savings-query.service';
 import { RateLimitsController } from './controllers/rate-limits.controller';
 import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 import { ProxyModule } from '../routing/proxy/proxy.module';
@@ -69,7 +67,6 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
     MessagesController,
     AgentsController,
     AgentAnalyticsController,
-    SavingsController,
     RateLimitsController,
     ProviderAnalyticsController,
   ],
@@ -84,7 +81,6 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
     MessageRecordingService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
-    SavingsQueryService,
   ],
   exports: [SpecificityFeedbackService, MessageRecordingService],
 })
