@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Brackets } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 /**
@@ -76,6 +77,10 @@ describe('MessagesQueryService — cost filter edge cases', () => {
         {
           provide: getRepositoryToken(AgentMessage),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
+        },
+        {
+          provide: getRepositoryToken(CustomProvider),
+          useValue: { find: jest.fn().mockResolvedValue([]) },
         },
         {
           provide: TenantCacheService,
