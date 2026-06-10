@@ -3,11 +3,12 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 const mockSignOut = vi.fn().mockResolvedValue(undefined);
 const mockNavigate = vi.fn();
+let mockPathname = "/";
 
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: "/" }),
+  useLocation: () => ({ pathname: mockPathname }),
 }));
 
 vi.mock("../../src/services/auth-client.js", () => ({
@@ -53,6 +54,7 @@ import Header from "../../src/components/Header";
 beforeEach(() => {
   vi.restoreAllMocks();
   sessionStorage.clear();
+  mockPathname = "/";
   mockAgentName = null;
   mockAgentDisplayName = null;
   mockCheckIsSelfHosted.mockReset();
@@ -304,6 +306,53 @@ describe("Header - breadcrumb", () => {
       "my-agent",
     );
     expect(container.querySelectorAll(".header__separator").length).toBe(1);
+  });
+});
+
+describe("Header - docs link", () => {
+  const docsHref = (container: HTMLElement) =>
+    container.querySelector(".header__docs-link")?.getAttribute("href");
+
+  it("links agent routing pages to routing docs", () => {
+    mockPathname = "/harnesses/my-agent/routing";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/routing");
+  });
+
+  it("links the current Limits route to limits docs", () => {
+    mockPathname = "/harnesses/my-agent/guardrails";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/set-limits");
+  });
+
+  it("keeps the legacy Limits route mapped to limits docs", () => {
+    mockPathname = "/harnesses/my-agent/limits";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/set-limits");
+  });
+
+  it("links provider pages to matching provider docs", () => {
+    mockPathname = "/providers/subscriptions";
+    const subscriptions = render(() => <Header />);
+    expect(docsHref(subscriptions.container)).toBe(
+      "https://manifest.build/docs/providers/subscription-based-providers",
+    );
+
+    mockPathname = "/providers/byok";
+    const byok = render(() => <Header />);
+    expect(docsHref(byok.container)).toBe(
+      "https://manifest.build/docs/providers/api-key-providers",
+    );
+
+    mockPathname = "/providers/local";
+    const local = render(() => <Header />);
+    expect(docsHref(local.container)).toBe("https://manifest.build/docs/providers/local-models");
+  });
+
+  it("falls back to introduction docs for unmapped pages", () => {
+    mockPathname = "/messages";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/introduction");
   });
 });
 

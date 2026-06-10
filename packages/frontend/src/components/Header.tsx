@@ -12,6 +12,7 @@ const STAR_DISMISSED_KEY = 'github-star-dismissed';
 const STAR_CACHE_KEY = 'github-star-count';
 const STAR_CACHE_TS_KEY = 'github-star-ts';
 const STAR_CACHE_TTL = 3600000; // 1 hour
+const DOCS_BASE_URL = 'https://manifest.build/docs';
 
 interface HeaderProps {
   showMobileNavToggle?: boolean;
@@ -70,9 +71,15 @@ const Header: Component<HeaderProps> = (props) => {
   const effectiveName = () => user()?.name ?? 'User';
   const docsUrl = () => {
     const p = location.pathname;
-    if (p.includes('/limits')) return 'https://manifest.build/docs/set-limits';
-    if (p.includes('/routing')) return 'https://manifest.build/docs/routing';
-    return 'https://manifest.build/docs/introduction';
+    if (p.includes('/guardrails') || p.includes('/limits')) return `${DOCS_BASE_URL}/set-limits`;
+    if (p.includes('/routing')) return `${DOCS_BASE_URL}/routing`;
+    if (p.startsWith('/providers/subscriptions')) {
+      return `${DOCS_BASE_URL}/providers/subscription-based-providers`;
+    }
+    if (p.startsWith('/providers/byok')) return `${DOCS_BASE_URL}/providers/api-key-providers`;
+    if (p.startsWith('/providers/local')) return `${DOCS_BASE_URL}/providers/local-models`;
+    if (p.includes('/providers')) return `${DOCS_BASE_URL}/providers/api-key-providers`;
+    return `${DOCS_BASE_URL}/introduction`;
   };
 
   const initials = () => {
