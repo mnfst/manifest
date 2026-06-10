@@ -86,13 +86,11 @@ export class AgentProviderAccessController {
       if (routeBelongsToDisabledProvider(tier.override_route)) {
         affected.push({ tier: tier.tier, model: tier.override_route!.model, position: 'primary' });
       }
-      if (routeBelongsToDisabledProvider(tier.auto_assigned_route)) {
-        affected.push({
-          tier: tier.tier,
-          model: tier.auto_assigned_route!.model,
-          position: 'auto-assigned',
-        });
-      }
+      // auto_assigned_route is the system's automatic pick, NOT a user-authored
+      // assignment. Disabling the provider clears it and recomputes (see disable()
+      // + recalculateTiers), so it must NOT block the disable — otherwise a
+      // provider auto-assigned to a tier can never be turned off even after the
+      // user has manually routed that tier elsewhere.
       for (const [i, fb] of (tier.fallback_routes ?? []).entries()) {
         if (routeBelongsToDisabledProvider(fb)) {
           affected.push({ tier: tier.tier, model: fb.model, position: `fallback ${i + 1}` });

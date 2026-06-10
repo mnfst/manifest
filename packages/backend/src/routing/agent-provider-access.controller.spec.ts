@@ -197,52 +197,16 @@ describe('AgentProviderAccessController', () => {
       expect(result).toEqual({ affected_tiers: [] });
     });
 
-    it('reports auto_assigned_route by provider identity even with no cached models', async () => {
-      // Regression: the preview used to early-return [] when cached_models was
-      // empty and ignored auto_assigned_route entirely. The disable handler
-      // matches by provider name/authType, so the preview must too.
+    it('ignores auto_assigned_route — it is recomputed on disable and never blocks', async () => {
+      // auto_assigned_route is the system's automatic pick, not a user-authored
+      // assignment. disable() clears it and recalculateTiers() recomputes it, so
+      // the impact preview must NOT report it — otherwise a provider auto-assigned
+      // to a tier could never be disabled even after the user routed it elsewhere.
       const tiers: Partial<TierAssignment>[] = [
         {
           tier: 'standard',
           override_route: null,
           auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
-          fallback_routes: null,
-        },
-      ];
-      const { controller } = makeController({
-        userProviderRepo: {
-          findOne: jest.fn().mockResolvedValue({
-            id: PROVIDER_ID,
-            user_id: USER_ID,
-            provider: 'openai',
-            auth_type: 'api_key',
-            label: 'Default',
-            cached_models: [],
-          } as Partial<UserProvider>),
-        },
-        tierRepo: {
-          find: jest.fn().mockResolvedValue(tiers),
-          save: jest.fn().mockResolvedValue(undefined),
-        },
-      });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
-      expect(result.affected_tiers).toEqual([
-        { tier: 'standard', model: 'gpt-4o', position: 'auto-assigned' },
-      ]);
-    });
-
-    it('reports auto_assigned_route matched only by cached model id (no route.provider)', async () => {
-      // Covers the providerModels.has(route.model) branch of the predicate for
-      // an auto-assigned route that carries no provider field.
-      const tiers: Partial<TierAssignment>[] = [
-        {
-          tier: 'complex',
-          override_route: null,
-          auto_assigned_route: { provider: '', authType: 'api_key', model: 'gpt-4o' },
           fallback_routes: null,
         },
       ];
@@ -267,8 +231,43 @@ describe('AgentProviderAccessController', () => {
         'my-agent',
         PROVIDER_ID,
       );
+      expect(result.affected_tiers).toEqual([]);
+    });
+
+    it('matches a fallback route only by cached model id (no route.provider)', async () => {
+      // Covers the providerModels.has(route.model) branch of the predicate for a
+      // route that carries no provider field.
+      const tiers: Partial<TierAssignment>[] = [
+        {
+          tier: 'complex',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: [{ provider: '', authType: 'api_key', model: 'gpt-4o' }],
+        },
+      ];
+      const { controller } = makeController({
+        userProviderRepo: {
+          findOne: jest.fn().mockResolvedValue({
+            id: PROVIDER_ID,
+            user_id: USER_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
+            cached_models: [{ id: 'gpt-4o' }],
+          } as Partial<UserProvider>),
+        },
+        tierRepo: {
+          find: jest.fn().mockResolvedValue(tiers),
+          save: jest.fn().mockResolvedValue(undefined),
+        },
+      });
+      const result = await controller.getDisableImpact(
+        { id: USER_ID } as never,
+        'my-agent',
+        PROVIDER_ID,
+      );
       expect(result.affected_tiers).toEqual([
-        { tier: 'complex', model: 'gpt-4o', position: 'auto-assigned' },
+        { tier: 'complex', model: 'gpt-4o', position: 'fallback 1' },
       ]);
     });
 
@@ -279,13 +278,10 @@ describe('AgentProviderAccessController', () => {
         {
           tier: 'simple',
           override_route: { provider: 'openai', authType: 'subscription', model: 'gpt-4o' },
-          auto_assigned_route: {
-            provider: 'openai',
-            authType: 'api_key',
-            model: 'gpt-4o',
-            keyLabel: 'Other',
-          },
-          fallback_routes: null,
+          auto_assigned_route: null,
+          fallback_routes: [
+            { provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Other' },
+          ],
         },
       ];
       const { controller } = makeController({
