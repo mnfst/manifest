@@ -515,6 +515,18 @@ export function sanitizeOpenAiBody(
   if (isDeepSeekReasoningModel(endpointKey, model) && 'tool_choice' in cleaned) {
     delete cleaned.tool_choice;
   }
+  // Strip non-function tools for OpenAI-compatible providers that don't support Responses API custom tool types.
+  if (Array.isArray(cleaned.tools)) {
+    const filtered = (cleaned.tools as any[]).filter(
+      (tool: any) => tool && tool.type === 'function',
+    );
+    if (filtered.length === 0) {
+      delete cleaned.tools;
+      delete cleaned.tool_choice;
+    } else {
+      cleaned.tools = filtered;
+    }
+  }
   // A tool_choice without a non-empty tools array is rejected by OpenAI /
   // Anthropic / Copilot ("tools are required when tool choice is specified").
   // This happens e.g. on codex compaction requests that carry tool_choice but
