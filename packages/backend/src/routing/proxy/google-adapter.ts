@@ -294,7 +294,28 @@ export function toGoogleRequest(
     if (content) contents.push(content);
   }
 
-  const result: Record<string, unknown> = { contents };
+  // Merge consecutive user-role turns that contain only functionResponse parts
+  // into a single turn. Gemini requires that N functionCall parts in a model
+  // turn be answered by exactly N functionResponse parts in one user turn —
+  // separate turns trigger "number of function response parts is not equal".
+  const merged: GeminiContent[] = [];
+  for (const content of contents) {
+    const prev = merged[merged.length - 1];
+    const allFunctionResponses =
+      content.role === 'user' && content.parts.every((p) => p.functionResponse);
+    if (
+      allFunctionResponses &&
+      prev &&
+      prev.role === 'user' &&
+      prev.parts.every((p) => p.functionResponse)
+    ) {
+      prev.parts.push(...content.parts);
+    } else {
+      merged.push(content);
+    }
+  }
+
+  const result: Record<string, unknown> = { contents: merged };
 
   if (systemText) {
     result.systemInstruction = {
