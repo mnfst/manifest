@@ -250,20 +250,17 @@ const Overview: Component = () => {
   }
 
   const tsKey = () => ({ range: range(), agent: params.agentName, _ping: messagePing() });
-  const [providerTokenTs] = createResource(tsKey, (p) =>
-    p.agent
-      ? (getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>)
-      : undefined,
+  const [providerTokenTs] = createResource(
+    tsKey,
+    (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
-  const [providerMessageTs] = createResource(tsKey, (p) =>
-    p.agent
-      ? (getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>)
-      : undefined,
+  const [providerMessageTs] = createResource(
+    tsKey,
+    (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
-  const [providerCostTs] = createResource(tsKey, (p) =>
-    p.agent
-      ? (getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>)
-      : undefined,
+  const [providerCostTs] = createResource(
+    tsKey,
+    (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
   const allProviders = createMemo(() => {

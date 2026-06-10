@@ -89,6 +89,8 @@ vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
     <div
       data-testid="multi-agent-chart"
       data-series={((props.agents ?? []) as string[]).join(',')}
+      data-range={props.range}
+      data-colors={Object.keys(props.colorMap ?? {}).length}
     />
   ),
 }));
@@ -440,6 +442,13 @@ describe('Overview', () => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Messages');
     });
+
+    fireEvent.click(stats[2]); // tokens — renders the token-view chart
+    await vi.waitFor(() => {
+      const active = container.querySelector('.chart-card__stat--active');
+      expect(active?.textContent).toContain('Token usage');
+      expect(container.querySelector('[data-testid="multi-agent-chart"]')).not.toBeNull();
+    });
   });
 
   it('renders the provider multiselect and filters chart series', async () => {
@@ -476,6 +485,63 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('All providers (2)');
     });
+  });
+
+  it('re-adds a provider when toggled back on, and closes the dropdown on Escape', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['anthropic', 'openai'],
+      timeseries: [{ hour: '1', anthropic: 3, openai: 5 }],
+    });
+    const { container, getByText } = render(() => <Overview />);
+    await vi.waitFor(() => expect(container.textContent).toContain('All providers (2)'));
+
+    fireEvent.click(container.querySelector('.agent-filter-select__trigger')!);
+    // Toggle anthropic off (delete branch), then on again (add branch).
+    fireEvent.click(getByText('Anthropic'));
+    await vi.waitFor(() => {
+      expect(
+        container.querySelector('[data-testid="multi-agent-chart"]')?.getAttribute('data-series'),
+      ).toBe('openai');
+    });
+    fireEvent.click(getByText('Anthropic'));
+    await vi.waitFor(() => {
+      expect(
+        container.querySelector('[data-testid="multi-agent-chart"]')?.getAttribute('data-series'),
+      ).toBe('anthropic,openai');
+    });
+
+    // Escape closes the open dropdown.
+    expect(container.querySelector('.agent-filter-select__dropdown')).not.toBeNull();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await vi.waitFor(() => {
+      expect(container.querySelector('.agent-filter-select__dropdown')).toBeNull();
+    });
+  });
+
+  it('survives sessionStorage failures when loading and persisting the provider filter', async () => {
+    // Corrupt saved value → load catch; setItem throwing → persist catch.
+    sessionStorage.setItem('agent-overview-providers:test-agent', 'not-json{');
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['anthropic', 'openai'],
+      timeseries: [{ hour: '1', anthropic: 3, openai: 5 }],
+    });
+    const { container, getByText } = render(() => <Overview />);
+    await vi.waitFor(() => expect(container.textContent).toContain('All providers (2)'));
+
+    // Toggling persists → setItem throws → caught, no crash, filter still applies.
+    fireEvent.click(container.querySelector('.agent-filter-select__trigger')!);
+    fireEvent.click(getByText('Anthropic'));
+    await vi.waitFor(() => {
+      expect(
+        container.querySelector('[data-testid="multi-agent-chart"]')?.getAttribute('data-series'),
+      ).toBe('openai');
+    });
+    setItemSpy.mockRestore();
   });
 
   it('shows View more link to messages page', async () => {
