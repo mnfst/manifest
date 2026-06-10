@@ -1,12 +1,24 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { fromNodeHeaders } from 'better-auth/node';
 import { createHash } from 'crypto';
+import type { IncomingHttpHeaders } from 'http';
 import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import { isLoopbackPeer } from '../common/utils/local-ip';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
+
+// Lazy-load better-auth/node to avoid requiring an ESM-only module at import time.
+// NestJS compiles to CommonJS; better-auth 1.6+ distributes only .mjs files which
+// cannot be loaded via require(). Dynamic import works in both CJS and ESM contexts.
+let _fromNodeHeaders: ((nodeHeaders: IncomingHttpHeaders) => Headers) | undefined;
+async function getFromNodeHeaders(): Promise<(nodeHeaders: IncomingHttpHeaders) => Headers> {
+  if (_fromNodeHeaders) return _fromNodeHeaders;
+  const mod: { fromNodeHeaders: (nodeHeaders: IncomingHttpHeaders) => Headers } =
+    await import('better-auth/node');
+  _fromNodeHeaders = mod.fromNodeHeaders;
+  return _fromNodeHeaders;
+}
 
 interface CachedSession {
   user: unknown;
@@ -69,7 +81,7 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
 
     try {
       const session = await auth.api.getSession({
-        headers: fromNodeHeaders(request.headers),
+        headers: (await getFromNodeHeaders())(request.headers),
       });
 
       if (session) {
