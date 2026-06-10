@@ -1,5 +1,6 @@
 import {
   applyAnthropicMessagesMutations,
+  applySubscriptionBilling,
   extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
   fromAnthropicResponse,
@@ -603,13 +604,14 @@ describe('Anthropic Adapter', () => {
         text: string;
         cache_control?: unknown;
       }>;
-      expect(system).toHaveLength(2);
-      expect(system[0].text).toContain('Claude agent');
-      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
-      expect(system[1].text).toBe('You are helpful.');
+      expect(system).toHaveLength(3);
+      expect(system[0].text).toMatch(/^x-anthropic-billing-header:/);
+      expect(system[1].text).toContain('Claude agent');
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
+      expect(system[2].text).toBe('You are helpful.');
     });
 
-    it('adds subscription identity as sole system block when no user system prompt', () => {
+    it('adds subscription identity plus billing block when no user system prompt', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
       };
@@ -617,8 +619,9 @@ describe('Anthropic Adapter', () => {
         injectSubscriptionIdentity: true,
       });
       const system = result.system as Array<{ type: string; text: string }>;
-      expect(system).toHaveLength(1);
-      expect(system[0].text).toContain('Claude agent');
+      expect(system).toHaveLength(2);
+      expect(system[0].text).toMatch(/^x-anthropic-billing-header:/);
+      expect(system[1].text).toContain('Claude agent');
     });
 
     it('does not inject subscription identity when option is false', () => {
@@ -2122,9 +2125,10 @@ describe('Anthropic Adapter', () => {
         { injectSubscriptionIdentity: true, injectCacheControl: false },
       );
       const system = result.system as Array<Record<string, unknown>>;
-      expect(system).toHaveLength(2);
-      expect(system[0].text).toMatch(/Claude agent/);
-      expect(system[1].text).toBe('You are Manifest.');
+      expect(system).toHaveLength(3);
+      expect(system[0].text).toMatch(/^x-anthropic-billing-header:/);
+      expect(system[1].text).toMatch(/Claude agent/);
+      expect(system[2].text).toBe('You are Manifest.');
     });
 
     it('creates a system from scratch when subscription identity is requested and no system exists', () => {
@@ -2133,8 +2137,9 @@ describe('Anthropic Adapter', () => {
         { injectSubscriptionIdentity: true, injectCacheControl: false },
       );
       const system = result.system as Array<Record<string, unknown>>;
-      expect(system).toHaveLength(1);
-      expect(system[0].text).toMatch(/Claude agent/);
+      expect(system).toHaveLength(2);
+      expect(system[0].text).toMatch(/^x-anthropic-billing-header:/);
+      expect(system[1].text).toMatch(/Claude agent/);
     });
 
     it('drops system when input has none and no mutations need it', () => {
@@ -2303,6 +2308,66 @@ describe('Anthropic Adapter', () => {
         metadata: { user_id: 'u' },
         tool_choice: { type: 'auto' },
       });
+    });
+  });
+
+  describe('applySubscriptionBilling', () => {
+    const BILLING_RE =
+      /^x-anthropic-billing-header: cc_version=\d+\.\d+\.\d+\.[0-9a-f]{3}; cc_entrypoint=sdk-cli; cch=[0-9a-f]{5};$/;
+
+    it('prepends a billing-header block and stamps a synthetic metadata.user_id', () => {
+      const result: Record<string, unknown> = {
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [{ type: 'text', text: 'identity' }],
+      };
+      applySubscriptionBilling(result);
+
+      const system = result.system as Array<{ type: string; text: string }>;
+      expect(system).toHaveLength(2);
+      expect(system[0].text).toMatch(BILLING_RE);
+      expect(system[1].text).toBe('identity');
+
+      const userId = JSON.parse((result.metadata as { user_id: string }).user_id) as Record<
+        string,
+        string
+      >;
+      expect(userId.device_id).toMatch(/^[0-9a-f]{64}$/);
+      expect(userId.account_uuid).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
+      expect(userId.session_id).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
+    });
+
+    it('creates a system array when the body has none', () => {
+      const result: Record<string, unknown> = { messages: [] };
+      applySubscriptionBilling(result);
+      const system = result.system as Array<{ text: string }>;
+      expect(system).toHaveLength(1);
+      expect(system[0].text).toMatch(BILLING_RE);
+    });
+
+    it('is idempotent — does not double-stamp the billing block', () => {
+      const result: Record<string, unknown> = { messages: [{ role: 'user', content: 'hi' }] };
+      applySubscriptionBilling(result);
+      const firstUserId = (result.metadata as { user_id: string }).user_id;
+      applySubscriptionBilling(result);
+      const system = result.system as Array<{ text: string }>;
+      expect(system.filter((b) => b.text.startsWith('x-anthropic-billing-header:'))).toHaveLength(
+        1,
+      );
+      // existing metadata.user_id is preserved on the second pass
+      expect((result.metadata as { user_id: string }).user_id).toBe(firstUserId);
+    });
+
+    it('preserves a caller-supplied metadata.user_id', () => {
+      const result: Record<string, unknown> = {
+        messages: [],
+        metadata: { user_id: 'real-user', other: 'keep' },
+      };
+      applySubscriptionBilling(result);
+      expect(result.metadata).toEqual({ user_id: 'real-user', other: 'keep' });
     });
   });
 

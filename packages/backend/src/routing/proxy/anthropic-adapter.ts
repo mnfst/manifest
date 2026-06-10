@@ -3,8 +3,12 @@
  * Auto-injects cache_control breakpoints on system prompts and tool definitions
  * so Anthropic prompt caching works transparently through the proxy.
  */
-import { randomUUID } from 'crypto';
+import { createHash, randomBytes, randomUUID } from 'crypto';
 
+import {
+  CLAUDE_CODE_ENTRYPOINT,
+  CLAUDE_CODE_VERSION,
+} from '../../common/constants/subscription-clients';
 import { OpenAIMessage, ThinkingBlockLookup } from './proxy-types';
 import type { ThinkingBlock } from './thinking-block-cache';
 
@@ -68,6 +72,65 @@ const SUBSCRIPTION_IDENTITY_BLOCK: ContentBlock = {
   text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
   cache_control: { type: 'ephemeral' },
 };
+
+const BILLING_HEADER_PREFIX = 'x-anthropic-billing-header:';
+
+/**
+ * Build the `x-anthropic-billing-header` text that Claude Code 2.x emits as its
+ * first system block. Anthropic reads this marker to attribute the request to
+ * the Pro/Max subscription quota; without it an OAuth-authenticated request is
+ * metered as standard pay-as-you-go API usage even though it authenticates
+ * fine. `cc_entrypoint=sdk-cli` matches the Claude Agent SDK CLI identity we
+ * already send; `cch` is a short request fingerprint and the build suffix is
+ * synthetic (Anthropic validates the format, not the values).
+ */
+function buildBillingHeaderBlock(fingerprintSource: unknown): ContentBlock {
+  const cch = createHash('sha256')
+    .update(JSON.stringify(fingerprintSource ?? null))
+    .digest('hex')
+    .slice(0, 5);
+  const build = randomBytes(2).toString('hex').slice(0, 3);
+  return {
+    type: 'text',
+    text: `${BILLING_HEADER_PREFIX} cc_version=${CLAUDE_CODE_VERSION}.${build}; cc_entrypoint=${CLAUDE_CODE_ENTRYPOINT}; cch=${cch};`,
+  };
+}
+
+/**
+ * Synthetic Claude Code device/account/session identity, JSON-encoded the way
+ * the real client stamps `metadata.user_id`. Part of the subscription
+ * fingerprint that lets Anthropic recognise the caller as Claude Code.
+ */
+function buildSubscriptionUserId(): string {
+  return JSON.stringify({
+    device_id: randomBytes(32).toString('hex'),
+    account_uuid: randomUUID(),
+    session_id: randomUUID(),
+  });
+}
+
+/**
+ * Stamp the Claude Code subscription billing fingerprint onto an
+ * already-assembled Anthropic request body: prepend the billing-header system
+ * block (idempotent — skipped when one is already present) and add a synthetic
+ * `metadata.user_id` when the caller didn't supply one. Mutates `result`.
+ *
+ * Exported for unit coverage; production callers reach it through
+ * `toAnthropicRequest` / `applyAnthropicMessagesMutations` under the
+ * `injectSubscriptionIdentity` option.
+ */
+export function applySubscriptionBilling(result: Record<string, unknown>): void {
+  const system = Array.isArray(result.system) ? (result.system as ContentBlock[]) : [];
+  const alreadyStamped =
+    typeof system[0]?.text === 'string' && system[0].text.startsWith(BILLING_HEADER_PREFIX);
+  if (!alreadyStamped) {
+    result.system = [buildBillingHeaderBlock(result.messages ?? null), ...system];
+  }
+  const metadata = (result.metadata as Record<string, unknown> | undefined) ?? {};
+  if (metadata.user_id === undefined) {
+    result.metadata = { ...metadata, user_id: buildSubscriptionUserId() };
+  }
+}
 
 function safeParseArgs(args: string | undefined): unknown {
   try {
@@ -240,7 +303,13 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
 export interface AnthropicRequestOptions {
   /** When false, cache_control fields are omitted from the request. Defaults to true. */
   injectCacheControl?: boolean;
-  /** When true, prepends the Claude Code agent system prompt required for subscription OAuth tokens. */
+  /**
+   * When true, applies the full Claude Code subscription fingerprint required
+   * for Pro/Max OAuth tokens: prepends the agent identity system prompt (unlocks
+   * sonnet/opus) plus the `x-anthropic-billing-header` block and synthetic
+   * `metadata.user_id` (so Anthropic bills the subscription quota instead of
+   * metering it as pay-as-you-go API usage).
+   */
   injectSubscriptionIdentity?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
   thinkingLookup?: ThinkingBlockLookup;
@@ -300,6 +369,9 @@ export function toAnthropicRequest(
   } else if (typeof body.stop === 'string' && body.stop) {
     result.stop_sequences = [body.stop];
   }
+  if (options?.injectSubscriptionIdentity) {
+    applySubscriptionBilling(result);
+  }
   return result;
 }
 
@@ -341,7 +413,8 @@ export function extractThinkingBlocksFromMessagesResponse(
  * through a chat-completions stencil. Mutations:
  *
  * - Default `max_tokens` to 4096 if unset.
- * - Inject the subscription-identity system block for OAuth tokens.
+ * - Inject the subscription-identity system block, billing-header block, and
+ *   synthetic `metadata.user_id` for OAuth tokens (see `applySubscriptionBilling`).
  * - Place a `cache_control` breakpoint on the last system block and last tool.
  * - Replay cached extended-thinking blocks at the head of assistant turns
  *   whose first content block is a `tool_use`.
@@ -415,6 +488,9 @@ export function applyAnthropicMessagesMutations(
     });
   }
 
+  if (options?.injectSubscriptionIdentity) {
+    applySubscriptionBilling(result);
+  }
   return result;
 }
 

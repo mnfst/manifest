@@ -11,13 +11,22 @@
  * Copilot (`https://api.githubcopilot.com/...`): GitHub validates the
  * `Editor-Version` and `Editor-Plugin-Version` headers; both are bumped
  * together when GitHub deprecates an older pair.
+ *
+ * Claude Code (`https://api.anthropic.com/v1/messages` with Pro/Max OAuth):
+ * `CLAUDE_CODE_VERSION` feeds both the `user-agent` and the
+ * `x-anthropic-billing-header` system block (see `anthropic-adapter.ts`) that
+ * makes Anthropic bill the request against the subscription quota rather than
+ * metering it as pay-as-you-go API usage. Keep it in lockstep with the CLI
+ * release whose billing format we mirror.
  */
 
 export const CODEX_CLI_VERSION = '0.128.0';
 export const CODEX_CLI_ORIGINATOR = 'codex_cli_rs';
 export const CODEX_CLI_USER_AGENT = 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unknown';
 
-export const CLAUDE_CODE_USER_AGENT = 'claude-cli/2.1.92 (external, sdk-cli)';
+export const CLAUDE_CODE_VERSION = '2.1.92';
+export const CLAUDE_CODE_ENTRYPOINT = 'sdk-cli';
+export const CLAUDE_CODE_USER_AGENT = `claude-cli/${CLAUDE_CODE_VERSION} (external, ${CLAUDE_CODE_ENTRYPOINT})`;
 export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.80.0';
 export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v24.14.0';
 export const CLAUDE_CODE_BETA_FLAGS = ['claude-code-20250219', 'oauth-2025-04-20'].join(',');
