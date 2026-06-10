@@ -34,11 +34,18 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
   `);
 
     // 2. Backfill each old agent-scoped provider row as an explicit attachment.
+    //    Skip rows whose agent_id references an agent that no longer exists:
+    //    user_providers.agent_id was never FK-enforced, so production accumulated
+    //    orphaned rows (hard-deleted agents — verified ~413 across 169 agents on
+    //    a prod snapshot). Without this guard the new FK_agent_provider_access_agent
+    //    constraint rejects the backfill and the whole migration aborts on boot.
+    //    Orphans correctly get no grant (they point at a dead agent).
     await queryRunner.query(`
     INSERT INTO "agent_provider_access" ("agent_id", "user_provider_id")
     SELECT "agent_id", "id"
     FROM "user_providers"
     WHERE "agent_id" IS NOT NULL
+      AND EXISTS (SELECT 1 FROM "agents" a WHERE a."id" = "user_providers"."agent_id")
     ON CONFLICT DO NOTHING
   `);
 
