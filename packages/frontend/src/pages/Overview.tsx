@@ -19,11 +19,7 @@ import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
-import {
-  agentPlatform,
-  agentCategory,
-  agentPlatformIcon,
-} from '../services/agent-platform-store.js';
+import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
   getCustomProviders,
   getOverview,
@@ -249,22 +245,6 @@ const Overview: Component = () => {
           content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
         />
         <div class="page-header">
-          <div>
-            <h1 style="display: flex; align-items: center; gap: 10px;">
-              <Show when={agentPlatformIcon()}>
-                <img
-                  src={agentPlatformIcon()}
-                  alt=""
-                  width="28"
-                  height="28"
-                  class="overview__platform-icon"
-                  style="border-radius: 4px;"
-                />
-              </Show>
-              {agentDisplayName() ?? decodeURIComponent(params.agentName)} Overview
-            </h1>
-            <span class="breadcrumb">Real-time summary of spending, tokens, and messages</span>
-          </div>
           <div class="header-controls">
             <Show when={showDashboard()}>
               <Select

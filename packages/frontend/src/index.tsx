@@ -17,7 +17,10 @@ import './styles/theme.css';
 clearReloadFlag();
 
 const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
-const Overview = lazyReload(() => import('./pages/Overview.jsx'));
+const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
+const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
+const AgentLimitsRedirect = lazyReload(() => import('./pages/AgentLimitsRedirect.jsx'));
+const AgentMessagesRedirect = lazyReload(() => import('./pages/AgentMessagesRedirect.jsx'));
 const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
 const Routing = lazyReload(() => import('./pages/Routing.jsx'));
@@ -64,15 +67,23 @@ render(
           <Route path="/messages" component={MessageLog} />
           <Route path="/agents" component={Workspace} />
           <Route path="/agents/:agentName" component={AgentGuard}>
-            <Route path="/" component={Overview} />
-            <Route path="/messages" component={MessageLog} />
-            <Route path="/settings/*" component={Settings} />
-            <Route path="/routing" component={Routing} />
+            {/* Redirects: /limits → /guardrails, /messages → global /messages */}
+            <Route path="/limits" component={AgentLimitsRedirect} />
+            <Route path="/messages" component={AgentMessagesRedirect} />
+
+            {/* Tabbed shell wraps Overview / Routing / Limits / Settings */}
+            <Route path="/" component={AgentDetail}>
+              <Route path="/" component={AgentOverview} />
+              <Route path="/overview" component={AgentOverview} />
+              <Route path="/routing" component={Routing} />
+              <Route path="/guardrails" component={Limits} />
+              <Route path="/settings/*" component={Settings} />
+            </Route>
+
+            {/* Non-tab agent routes: kept reachable but not primary tabs */}
             <Route path="/playground" component={Playground} />
-            <Route path="/limits" component={Limits} />
             <Route path="/model-prices" component={ModelPrices} />
             <Route path="/free-models" component={FreeModels} />
-
             <Route path="/help" component={Help} />
           </Route>
           <Route path="/connect-provider" component={ConnectProvider} />

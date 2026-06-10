@@ -138,9 +138,9 @@ describe("Settings", () => {
     mockUpdateAgent.mockResolvedValue({});
   });
 
-  it("renders Settings heading", () => {
-    render(() => <Settings />);
-    expect(screen.getByText("Settings")).toBeDefined();
+  it("does not render a duplicate page heading", () => {
+    const { container } = render(() => <Settings />);
+    expect(container.querySelector("h1")).toBeNull();
   });
 
   it("renders agent name input with value", () => {
@@ -330,9 +330,8 @@ describe("Settings", () => {
     });
   });
 
-  it("shows breadcrumb with agent name", () => {
+  it("shows settings description without duplicating the agent heading", () => {
     const { container } = render(() => <Settings />);
-    expect(container.textContent).toContain("test-agent");
     expect(container.textContent).toContain("Rename your agent");
   });
 
