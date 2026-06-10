@@ -477,7 +477,28 @@ export class ProviderClient {
     },
   ): Promise<ForwardResult> {
     const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+
+    // Fallback for AbortSignal.any (introduced in Node 20) for older versions (Node 18/19)
+    let fetchSignal: AbortSignal;
+    if (signal) {
+      if (typeof AbortSignal.any === 'function') {
+        fetchSignal = AbortSignal.any([timeoutSignal, signal]);
+      } else {
+        const controller = new AbortController();
+        const onAbort = () => {
+          controller.abort(signal.reason || timeoutSignal.reason);
+        };
+        if (signal.aborted || timeoutSignal.aborted) {
+          controller.abort(signal.reason || timeoutSignal.reason);
+        } else {
+          signal.addEventListener('abort', onAbort, { once: true });
+          timeoutSignal.addEventListener('abort', onAbort, { once: true });
+        }
+        fetchSignal = controller.signal;
+      }
+    } else {
+      fetchSignal = timeoutSignal;
+    }
 
     let response: Response;
     try {
