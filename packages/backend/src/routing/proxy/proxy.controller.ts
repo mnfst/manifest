@@ -39,6 +39,7 @@ import { formatManifestError } from '../../common/errors/error-codes';
 import type { ProxyApiMode } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { sanitizeProviderError } from './proxy-error-sanitizer';
+import { redactInlineImageDataUrls } from './inline-image-redaction';
 
 const MAX_SEEN_USERS = 10_000;
 const SEEN_USER_TTL_MS = 24 * 60 * 60 * 1000;
@@ -117,6 +118,7 @@ export class ProxyController {
     const callerAttribution = classifyCaller(req.headers);
     const requestHeaders = sanitizeRequestHeaders(req.headers);
     const isStream = body.stream === true;
+    let routingBody = body;
     let headersSent = false;
     let slotAcquired = false;
 
@@ -132,11 +134,13 @@ export class ProxyController {
       this.rateLimiter.checkIpLimit(req.ip ?? '');
       this.rateLimiter.acquireSlot(userId);
       slotAcquired = true;
+      routingBody = redactInlineImageDataUrls(body);
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
         userId,
         body,
+        routingBody,
         sessionKey,
         tenantId: req.ingestionContext.tenantId,
         agentName: req.ingestionContext.agentName,
@@ -224,7 +228,7 @@ export class ProxyController {
         startTime,
         callerAttribution,
         requestHeaders,
-        capture ? { capture, requestBody: body } : undefined,
+        capture ? { capture, requestBody: routingBody } : undefined,
       );
     } catch (err: unknown) {
       this.handleProxyError(

@@ -212,6 +212,31 @@ describe('ProxyService — orchestration', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
       expect(result.forward.response.status).toBeGreaterThanOrEqual(200);
     });
+
+    it('replaces null content on the forwarded body when routing uses a redacted copy', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const body = { messages: [{ role: 'user', content: null }] };
+      const routingBody = { messages: [{ role: 'user', content: null }] };
+
+      await svc.proxyRequest(baseOpts({ body, routingBody } as never));
+
+      expect(body.messages[0].content).toBe('');
+      expect(routingBody.messages[0].content).toBe('');
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
   });
 
   describe('limit enforcement', () => {
@@ -288,6 +313,58 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('happy path forward', () => {
+    it('uses the redacted routing body for scoring while forwarding the original body', async () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,aGVsbG8=' },
+              },
+            ],
+          },
+        ],
+        stream: false,
+      };
+      const routingBody = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this image' },
+              {
+                type: 'image_url',
+                image_url: { url: '[inline image: image/png, 5 bytes, 8 base64 chars]' },
+              },
+            ],
+          },
+        ],
+        stream: false,
+      };
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts({ body, routingBody }));
+
+      expect(resolveService.resolve.mock.calls[0][1]).toEqual(routingBody.messages);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
+    });
+
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
