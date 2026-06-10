@@ -30,8 +30,14 @@ interface GeminiFunctionResponse {
   id?: string;
 }
 
+interface GeminiInlineData {
+  mimeType: string;
+  data: string;
+}
+
 interface GeminiPart {
   text?: string;
+  inlineData?: GeminiInlineData;
   functionCall?: GeminiFunctionCall;
   functionResponse?: GeminiFunctionResponse;
   // Google attaches thoughtSignature at the Part level (sibling of functionCall),
@@ -73,8 +79,20 @@ const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   'default',
   'const',
   'title',
+  // Gemini's OpenAPI subset rejects these JSON-Schema keywords. Codex
+  // Desktop's tool catalogue includes `uniqueItems` on array params, which
+  // would otherwise fail with `Invalid JSON payload: Unknown name
+  // "uniqueItems"`. Strip the rest defensively too.
+  'uniqueItems',
   'exclusiveMinimum',
   'exclusiveMaximum',
+  'multipleOf',
+  'minProperties',
+  'maxProperties',
+  'contains',
+  'minContains',
+  'maxContains',
+  'propertyNames',
 ]);
 
 function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {
@@ -153,6 +171,25 @@ function messageToContent(
     for (const block of msg.content as Array<Record<string, unknown>>) {
       if (block.type === 'text' && typeof block.text === 'string') {
         parts.push({ text: block.text });
+      } else if (
+        block.type === 'image_url' &&
+        block.image_url &&
+        typeof block.image_url === 'object'
+      ) {
+        const url = (block.image_url as Record<string, any>).url;
+        if (typeof url === 'string') {
+          if (url.startsWith('data:')) {
+            const match = url.match(/^data:([^;]+);base64,(.+)$/);
+            if (match) {
+              parts.push({
+                inlineData: {
+                  mimeType: match[1],
+                  data: match[2],
+                },
+              });
+            }
+          }
+        }
       }
     }
   }

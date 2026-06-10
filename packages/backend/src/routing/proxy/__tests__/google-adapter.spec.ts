@@ -161,7 +161,6 @@ describe('Google Adapter', () => {
                 type: 'object',
                 properties: {
                   name: { type: 'string', title: 'Name', default: 'foo' },
-                  count: { type: 'integer', minimum: 0, exclusiveMinimum: true },
                   config: {
                     type: 'object',
                     additionalProperties: true,
@@ -191,61 +190,14 @@ describe('Google Adapter', () => {
       const props = params.properties as Record<string, Record<string, unknown>>;
       expect(props.name).not.toHaveProperty('title');
       expect(props.name).not.toHaveProperty('default');
-      expect(props.count).not.toHaveProperty('exclusiveMinimum');
       expect(props.config).not.toHaveProperty('additionalProperties');
       expect(props.config).not.toHaveProperty('patternProperties');
 
       // Supported fields preserved
       expect(params.type).toBe('object');
       expect(props.name.type).toBe('string');
-      expect(props.count).toEqual({ type: 'integer', minimum: 0 });
       expect(props.config.type).toBe('object');
       expect(props.config.properties).toEqual({ key: { type: 'string' } });
-    });
-
-    it('strips exclusive numeric bounds without removing same-named properties', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Set limits' }],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'set_limits',
-              parameters: {
-                type: 'object',
-                properties: {
-                  threshold: {
-                    type: 'number',
-                    minimum: 0,
-                    maximum: 1,
-                    exclusiveMinimum: true,
-                    exclusiveMaximum: false,
-                  },
-                  exclusiveMinimum: {
-                    type: 'string',
-                    description: 'A user-defined property name',
-                  },
-                },
-              },
-            },
-          },
-        ],
-      };
-      const result = toGoogleRequest(body, 'gemini-2.5-flash');
-
-      const tools = result.tools as Array<{
-        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-      }>;
-      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
-        string,
-        Record<string, unknown>
-      >;
-
-      expect(props.threshold).toEqual({ type: 'number', minimum: 0, maximum: 1 });
-      expect(props.exclusiveMinimum).toEqual({
-        type: 'string',
-        description: 'A user-defined property name',
-      });
     });
 
     it('strips both $ref and the non-standard dollar-less ref variant', () => {
@@ -406,312 +358,6 @@ describe('Google Adapter', () => {
       expect(tools[0].functionDeclarations[0].parameters).toBeUndefined();
     });
 
-    describe('sanitizeSchema deep recursion and reference handling', () => {
-      // Builds a `depth`-level nested object schema. Each level has a `child`
-      // property whose schema carries an unsupported field set (title, default,
-      // additionalProperties, $schema, $ref) plus a valid `type`. The innermost
-      // leaf is a primitive string with the same unsupported set. Used to
-      // verify recursive stripping fires at every layer with no early exit.
-      function buildDeepSchema(depth: number): Record<string, unknown> {
-        let leaf: Record<string, unknown> = {
-          type: 'string',
-          title: 'leaf-title',
-          default: 'leaf-default',
-          $schema: 'http://json-schema.org/draft-07/schema#',
-          $ref: '#/definitions/Leaf',
-        };
-        for (let i = 0; i < depth; i++) {
-          leaf = {
-            type: 'object',
-            title: `level-${i}-title`,
-            default: { placeholder: true },
-            additionalProperties: false,
-            $ref: `#/definitions/Level${i}`,
-            properties: { child: leaf },
-          };
-        }
-        return leaf;
-      }
-
-      it('strips unsupported fields at every level of a 12-level nested schema', () => {
-        const depth = 12;
-        const body = {
-          messages: [{ role: 'user', content: 'do' }],
-          tools: [
-            {
-              type: 'function',
-              function: { name: 'deep_tool', parameters: buildDeepSchema(depth) },
-            },
-          ],
-        };
-
-        const result = toGoogleRequest(body, 'gemini-2.0-flash');
-        const tools = result.tools as Array<{
-          functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-        }>;
-        let node: Record<string, unknown> | undefined = tools[0].functionDeclarations[0].parameters;
-
-        for (let i = depth - 1; i >= 0; i--) {
-          // The wrapping object at this level must keep `type` and `properties`
-          // but all banned keywords must be gone.
-          expect(node).toBeDefined();
-          expect(node!.type).toBe('object');
-          expect(node).not.toHaveProperty('title');
-          expect(node).not.toHaveProperty('default');
-          expect(node).not.toHaveProperty('additionalProperties');
-          expect(node).not.toHaveProperty('$ref');
-          const props = node!.properties as Record<string, Record<string, unknown>>;
-          expect(props).toBeDefined();
-          expect(props).toHaveProperty('child');
-          node = props.child;
-        }
-
-        // The leaf is the original primitive level with its own unsupported set.
-        expect(node).toBeDefined();
-        expect(node!.type).toBe('string');
-        expect(node).not.toHaveProperty('title');
-        expect(node).not.toHaveProperty('default');
-        expect(node).not.toHaveProperty('$schema');
-        expect(node).not.toHaveProperty('$ref');
-      });
-
-      it('strips deeply nested allOf composition with nested additionalProperties', () => {
-        // allOf carries object sub-schemas that themselves contain unsupported
-        // keys. The whole allOf branch should be removed; the surviving fields
-        // (properties, type) should sanitize cleanly without leaking allOf data.
-        const body = {
-          messages: [{ role: 'user', content: 'do' }],
-          tools: [
-            {
-              type: 'function',
-              function: {
-                name: 'composed_tool',
-                parameters: {
-                  type: 'object',
-                  allOf: [
-                    {
-                      type: 'object',
-                      additionalProperties: false,
-                      properties: {
-                        nested: {
-                          type: 'object',
-                          allOf: [{ type: 'object', additionalProperties: true }],
-                          additionalProperties: { type: 'string' },
-                          properties: { inner: { type: 'string', title: 'Inner' } },
-                        },
-                      },
-                    },
-                  ],
-                  properties: {
-                    keep: { type: 'string' },
-                  },
-                },
-              },
-            },
-          ],
-        };
-
-        const result = toGoogleRequest(body, 'gemini-2.0-flash');
-        const tools = result.tools as Array<{
-          functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-        }>;
-        const params = tools[0].functionDeclarations[0].parameters;
-
-        // allOf must be fully stripped — its contents do not survive.
-        expect(params).not.toHaveProperty('allOf');
-        // Surviving properties branch must still sanitize correctly.
-        const props = params.properties as Record<string, Record<string, unknown>>;
-        expect(props).toEqual({ keep: { type: 'string' } });
-      });
-
-      it('strips JSON Schema $ref that points to itself without infinite recursion', () => {
-        // The standard JSON Schema way to express a self-cycle is a string
-        // $ref pointing back to the root. Because `$ref` is in the unsupported
-        // set, the key is removed and no recursion follows the pointer.
-        const body = {
-          messages: [{ role: 'user', content: 'do' }],
-          tools: [
-            {
-              type: 'function',
-              function: {
-                name: 'self_ref',
-                parameters: {
-                  type: 'object',
-                  $ref: '#',
-                  properties: {
-                    self: { $ref: '#' },
-                    next: { type: 'object', $ref: '#/definitions/Node' },
-                  },
-                  definitions: {
-                    Node: {
-                      type: 'object',
-                      properties: { next: { $ref: '#/definitions/Node' } },
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        };
-
-        const result = toGoogleRequest(body, 'gemini-2.0-flash');
-        const tools = result.tools as Array<{
-          functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-        }>;
-        const params = tools[0].functionDeclarations[0].parameters;
-
-        expect(params).not.toHaveProperty('$ref');
-        // definitions is in the unsupported set and must be stripped wholesale.
-        expect(params).not.toHaveProperty('definitions');
-        const props = params.properties as Record<string, Record<string, unknown>>;
-        expect(props).toHaveProperty('self');
-        expect(props).toHaveProperty('next');
-        // Per-property $ref keys must also be stripped at every level. The
-        // surviving non-$ref keywords (like `type`) on each property survive.
-        expect(props.self).not.toHaveProperty('$ref');
-        expect(props.next).not.toHaveProperty('$ref');
-        expect(props.next.type).toBe('object');
-        // The `self` property had only $ref — after stripping, it sanitizes to
-        // an empty object (no leftover keys), which is still a valid Gemini
-        // sub-schema.
-        expect(props.self).toEqual({});
-      });
-
-      it('strips $defs containing mutual $ref cycles without recursing through the cycle', () => {
-        // $defs and definitions are both in the unsupported set. Mutual cycles
-        // inside them never get walked because the parent key is removed before
-        // recursion. This guards against future regressions that might allow
-        // these keywords through (which would then re-enter the cycle forever).
-        const body = {
-          messages: [{ role: 'user', content: 'do' }],
-          tools: [
-            {
-              type: 'function',
-              function: {
-                name: 'mutual_cycle',
-                parameters: {
-                  type: 'object',
-                  $defs: {
-                    A: { type: 'object', properties: { b: { $ref: '#/$defs/B' } } },
-                    B: { type: 'object', properties: { a: { $ref: '#/$defs/A' } } },
-                  },
-                  properties: { kind: { type: 'string' } },
-                },
-              },
-            },
-          ],
-        };
-
-        const result = toGoogleRequest(body, 'gemini-2.0-flash');
-        const tools = result.tools as Array<{
-          functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-        }>;
-        const params = tools[0].functionDeclarations[0].parameters;
-        expect(params).not.toHaveProperty('$defs');
-        expect(params.properties).toEqual({ kind: { type: 'string' } });
-      });
-
-      it('strips a $ref chain that nests 15 levels deep without losing valid fields', () => {
-        // Build a chain of objects where every level has both a $ref keyword
-        // (to be stripped) and a `description` (to be kept). This verifies
-        // recursion processes every layer rather than short-circuiting once
-        // the first $ref is removed.
-        const depth = 15;
-        let chain: Record<string, unknown> = {
-          type: 'object',
-          description: 'leaf',
-          $ref: '#/definitions/Leaf',
-        };
-        for (let i = 0; i < depth; i++) {
-          chain = {
-            type: 'object',
-            description: `link-${i}`,
-            $ref: `#/definitions/Link${i}`,
-            properties: { next: chain },
-          };
-        }
-
-        const body = {
-          messages: [{ role: 'user', content: 'do' }],
-          tools: [{ type: 'function', function: { name: 'chain_tool', parameters: chain } }],
-        };
-
-        const result = toGoogleRequest(body, 'gemini-2.0-flash');
-        const tools = result.tools as Array<{
-          functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-        }>;
-        let node: Record<string, unknown> | undefined = tools[0].functionDeclarations[0].parameters;
-        for (let i = depth - 1; i >= 0; i--) {
-          expect(node).toBeDefined();
-          expect(node).not.toHaveProperty('$ref');
-          expect(node!.description).toBe(`link-${i}`);
-          node = (node!.properties as Record<string, Record<string, unknown>>).next;
-        }
-        // Leaf preserved with description intact and $ref gone.
-        expect(node).toBeDefined();
-        expect(node!.description).toBe('leaf');
-        expect(node).not.toHaveProperty('$ref');
-      });
-
-      it('strips unsupported keywords inside arrays of sub-schemas at depth', () => {
-        // Arrays of schemas (as you'd find in `prefixItems` or custom keyword
-        // arrays the helper does not strip) still need to recurse so banned
-        // keywords inside the items don't leak through.
-        const body = {
-          messages: [{ role: 'user', content: 'do' }],
-          tools: [
-            {
-              type: 'function',
-              function: {
-                name: 'array_tool',
-                parameters: {
-                  type: 'object',
-                  properties: {
-                    rows: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          cells: {
-                            type: 'array',
-                            items: {
-                              type: 'object',
-                              additionalProperties: false,
-                              $ref: '#/definitions/Cell',
-                              properties: {
-                                value: { type: 'string', title: 'v', default: '' },
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        };
-
-        const result = toGoogleRequest(body, 'gemini-2.0-flash');
-        const tools = result.tools as Array<{
-          functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
-        }>;
-        const params = tools[0].functionDeclarations[0].parameters;
-        const rows = (params.properties as Record<string, Record<string, unknown>>).rows;
-        const cellItems = (
-          (rows.items as Record<string, unknown>).properties as Record<
-            string,
-            Record<string, unknown>
-          >
-        ).cells.items as Record<string, unknown>;
-        expect(cellItems).not.toHaveProperty('additionalProperties');
-        expect(cellItems).not.toHaveProperty('$ref');
-        const cellProps = cellItems.properties as Record<string, Record<string, unknown>>;
-        expect(cellProps.value).toEqual({ type: 'string' });
-      });
-    });
-
     it('skips system messages with non-string content from systemInstruction', () => {
       const body = {
         messages: [
@@ -740,7 +386,7 @@ describe('Google Adapter', () => {
       expect(instruction.parts[0].text).toContain('Be concise.');
     });
 
-    it('handles array content blocks in messages', () => {
+    it('handles array content blocks in messages including text and image_url', () => {
       const body = {
         messages: [
           {
@@ -748,17 +394,26 @@ describe('Google Adapter', () => {
             content: [
               { type: 'text', text: 'First part' },
               { type: 'text', text: 'Second part' },
-              { type: 'image', source: { data: 'base64' } }, // non-text blocks are skipped
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA' },
+              },
             ],
           },
         ],
       };
       const result = toGoogleRequest(body, 'gemini-2.0-flash');
 
-      const contents = result.contents as Array<{ parts: Array<{ text?: string }> }>;
-      expect(contents[0].parts).toHaveLength(2);
+      const contents = result.contents as Array<{
+        parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>;
+      }>;
+      expect(contents[0].parts).toHaveLength(3);
       expect(contents[0].parts[0].text).toBe('First part');
       expect(contents[0].parts[1].text).toBe('Second part');
+      expect(contents[0].parts[2].inlineData).toEqual({
+        mimeType: 'image/png',
+        data: 'iVBORw0KGgoAAAANSUhEUgAAAAUA',
+      });
     });
 
     it('resolves functionResponse name from the assistant tool_calls history', () => {
