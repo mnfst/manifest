@@ -181,9 +181,18 @@ const MessageLog: Component = () => {
     setFeedbackModalOpen(false);
   };
 
-  const [customProviders] = createResource(
-    () => params.agentName,
-    (name) => getCustomProviders(decodeURIComponent(name)),
+  // Custom providers are user-global, so any agent name returns the full set.
+  // On the scoped log use the route agent; on the global ("All harnesses") log
+  // there is no route agent, so fall back to the first available agent —
+  // otherwise the resource source is undefined, the fetcher never runs, and
+  // custom:<uuid> models render as `custom:Custom/…` with no provider icon.
+  // Mirrors GlobalOverview's firstAgent() pattern.
+  const customProviderAgent = () =>
+    params.agentName
+      ? decodeURIComponent(params.agentName)
+      : ((agentListRaw() ?? [])[0]?.agent_name ?? '');
+  const [customProviders] = createResource(customProviderAgent, (name) =>
+    name ? getCustomProviders(name).catch(() => []) : Promise.resolve([]),
   );
 
   const [routingStatus] = createResource(

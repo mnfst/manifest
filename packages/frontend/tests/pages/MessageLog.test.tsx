@@ -652,6 +652,24 @@ describe("MessageLog", () => {
         expect(container.textContent).toContain("my-llama");
       });
     });
+
+    it("resolves custom provider name + icon in global mode via the first agent", async () => {
+      // Global ("All harnesses") log has no route agent. Custom providers are
+      // user-global, so the resource must fall back to the first agent —
+      // otherwise the source is undefined, the fetcher never runs, and
+      // custom:<uuid> models render as `custom:Custom/…` with no provider icon.
+      mockAgentName = undefined;
+      mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }] });
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
+      mockGetMessages.mockResolvedValue(customMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
+        expect(container.textContent).not.toContain("custom:abc-123/");
+      });
+      // Resolved via the first available agent, not an undefined route param.
+      expect(mockGetCustomProviders).toHaveBeenCalledWith("agent-alpha");
+    });
   });
 
   describe("clear filters", () => {
