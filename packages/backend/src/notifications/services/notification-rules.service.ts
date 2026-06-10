@@ -123,12 +123,18 @@ export class NotificationRulesService {
       .select(expr, 'total')
       .where('at.tenant_id = :tenantId', { tenantId })
       .andWhere(
-        `at.agent_id = (
-          SELECT id FROM agents
-          WHERE tenant_id = at.tenant_id
-            AND name = :agentName
-            AND deleted_at IS NULL
-          LIMIT 1
+        `(
+          at.agent_id = (
+            SELECT id FROM agents
+            WHERE tenant_id = at.tenant_id
+              AND name = :agentName
+              AND deleted_at IS NULL
+            LIMIT 1
+          )
+          OR (
+            at.agent_id IS NULL
+            AND at.agent_name = :agentName
+          )
         )`,
         { agentName },
       )

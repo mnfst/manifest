@@ -185,6 +185,26 @@ describe('NotificationRulesService.getConsumption', () => {
     expect(andWhereCalls.some((sql) => sql.includes('deleted_at IS NULL'))).toBe(true);
   });
 
+  it('counts legacy rows that only have agent_name when agent_id is missing', async () => {
+    const qb = makeQb({ total: '42' });
+    messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
+
+    const result = await service.getConsumption(
+      'tenant-A',
+      'agent-1',
+      'tokens',
+      '2026-02-01 00:00:00',
+      '2026-02-17 14:00:00',
+    );
+
+    expect(result).toBe(42);
+    const agentFilter = qb.andWhere.mock.calls
+      .map((c) => String(c[0]))
+      .find((sql) => sql.includes('at.agent_id ='));
+    expect(agentFilter).toContain('at.agent_id IS NULL');
+    expect(agentFilter).toContain('at.agent_name = :agentName');
+  });
+
   it('passes the period boundaries as inclusive-start, exclusive-end', async () => {
     const qb = makeQb({ total: '0' });
     messageRepo.createQueryBuilder.mockReturnValueOnce(qb);
