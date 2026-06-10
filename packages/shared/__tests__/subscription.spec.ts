@@ -242,6 +242,11 @@ describe('getSubscriptionProviderConfig', () => {
     expect(getSubscriptionProviderConfig('OpenAI')).not.toBeNull();
   });
 
+  it('resolves provider aliases to subscription configs', () => {
+    expect(getSubscriptionProviderConfig('google')).toBe(getSubscriptionProviderConfig('gemini'));
+    expect(getSubscriptionProviderConfig('Google')).toBe(getSubscriptionProviderConfig('gemini'));
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionProviderConfig('unknown')).toBeNull();
   });
@@ -267,6 +272,11 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('opencode-go')).toBe(true);
     expect(supportsSubscriptionProvider('gemini')).toBe(true);
     expect(supportsSubscriptionProvider('xai')).toBe(true);
+  });
+
+  it('returns true for aliases of supported providers', () => {
+    expect(supportsSubscriptionProvider('google')).toBe(true);
+    expect(supportsSubscriptionProvider('Google')).toBe(true);
   });
 
   it('returns false for unsupported providers', () => {

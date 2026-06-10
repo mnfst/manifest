@@ -1,8 +1,15 @@
 import type { SubscriptionCapabilities, SubscriptionProviderConfig } from './types';
 import { SUBSCRIPTION_PROVIDER_CONFIGS } from './configs';
+import { normalizeProviderName, SHARED_PROVIDER_BY_ID_OR_ALIAS } from '../providers';
 
 function normalizeProviderId(providerId: string): string {
-  return String(providerId || '').toLowerCase();
+  const lower = String(providerId || '')
+    .trim()
+    .toLowerCase();
+  const entry =
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(lower) ??
+    SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalizeProviderName(lower));
+  return entry?.id ?? lower;
 }
 
 export function getSubscriptionProviderConfig(
