@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
+import { Brackets, In, Repository, SelectQueryBuilder } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { addTenantFilter, formatTimestamp, selectMessageRowColumns } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -31,6 +32,8 @@ export class MessagesQueryService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
+    @InjectRepository(CustomProvider)
+    private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly tenantCache: TenantCacheService,
   ) {}
 
@@ -91,13 +94,31 @@ export class MessagesQueryService {
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore && lastItem ? this.encodeCursor(lastItem) : null;
     const providers = this.deriveProviders(distinctRows.models, distinctRows.providers);
+    const providerLabels = await this.resolveCustomProviderLabels(providers);
 
     return {
       items,
       next_cursor: nextCursor,
       total_count: totalCount,
       providers,
+      provider_labels: providerLabels,
     };
+  }
+
+  /**
+   * Map `custom:<uuid>` provider ids to their display names so the Messages
+   * filter dropdown can label them. Deleted providers simply have no entry
+   * and fall back to the raw id in the UI.
+   */
+  private async resolveCustomProviderLabels(
+    providers: string[],
+  ): Promise<Record<string, string>> {
+    const uuids = providers
+      .filter((p) => p.startsWith('custom:'))
+      .map((p) => p.slice('custom:'.length));
+    if (uuids.length === 0) return {};
+    const rows = await this.customProviderRepo.find({ where: { id: In(uuids) } });
+    return Object.fromEntries(rows.map((cp) => [`custom:${cp.id}`, cp.name]));
   }
 
   private async buildBaseMessageQuery(
