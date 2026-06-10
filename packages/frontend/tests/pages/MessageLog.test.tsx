@@ -1526,6 +1526,28 @@ describe("MessageLog", () => {
         expect(container.textContent).toContain("beta-bot");
       });
     });
+
+    it("renders harness platform icons in global Harness column cells", async () => {
+      mockAgentName = "";
+      mockGetAgents.mockResolvedValue({
+        agents: [
+          {
+            agent_name: "alpha-bot",
+            agent_platform: "openclaw",
+            agent_category: "personal",
+          },
+        ],
+      });
+      mockGetMessages.mockResolvedValue({
+        ...messagesData,
+        items: [{ ...messagesData.items[0], agent_name: "alpha-bot" }],
+      });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("alpha-bot");
+        expect(container.querySelector('td img[src="/icons/openclaw.png"]')).not.toBeNull();
+      });
+    });
   });
 
   describe("global mode title and CTA (Bug 2 + Bug 3)", () => {
