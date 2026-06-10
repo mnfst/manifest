@@ -109,7 +109,7 @@ describe('CopilotController', () => {
       );
     });
 
-    it('should discover then recalc ALL owned agents when the copilot provider is NEW', async () => {
+    it('discovers models without routing agents when the copilot provider is new', async () => {
       const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
       mockCopilotAuth.pollForToken.mockResolvedValue({
         status: 'complete',
@@ -125,11 +125,11 @@ describe('CopilotController', () => {
       } as never);
 
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
-      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
     });
 
-    it('should recalc ONLY the connecting agent on an existing-row copilot reconnect', async () => {
+    it('discovers models without routing agents on an existing-row copilot reconnect', async () => {
       const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
       mockCopilotAuth.pollForToken.mockResolvedValue({
         status: 'complete',
@@ -144,7 +144,8 @@ describe('CopilotController', () => {
         deviceCode: 'dc_abc',
       } as never);
 
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
     });
 

@@ -1,4 +1,13 @@
-import { Controller, Delete, Get, HttpException, HttpStatus, Param, Put } from '@nestjs/common';
+import {
+  ConflictException,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Put,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -8,6 +17,8 @@ import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { UserProvider } from '../entities/user-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import { HeaderTier } from '../entities/header-tier.entity';
 import { ProviderService } from './routing-core/provider.service';
 import type { ModelRoute } from 'manifest-shared';
 
@@ -24,6 +35,10 @@ export class AgentProviderAccessController {
     private readonly userProviderRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
+    @InjectRepository(SpecificityAssignment)
+    private readonly specificityRepo: Repository<SpecificityAssignment>,
+    @InjectRepository(HeaderTier)
+    private readonly headerTierRepo: Repository<HeaderTier>,
     private readonly providerService: ProviderService,
   ) {}
 
@@ -60,6 +75,10 @@ export class AgentProviderAccessController {
     });
     if (!provider) return { affected_tiers: [] };
 
+    return { affected_tiers: await this.findAffectedRoutes(agent.id, provider) };
+  }
+
+  private async findAffectedRoutes(agentId: string, provider: UserProvider) {
     const providerModels = new Set(
       (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
     );
@@ -74,23 +93,21 @@ export class AgentProviderAccessController {
         if (route.keyLabel && providerLabel && route.keyLabel.toLowerCase() !== providerLabel) {
           return false;
         }
+        if (!route.keyLabel && provider.priority !== 0 && providerLabel !== 'default') {
+          return false;
+        }
         return true;
       }
       return providerModels.has(route.model);
     };
 
-    const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
+    const tiers = await this.tierRepo.find({ where: { agent_id: agentId } });
     const affected: Array<{ tier: string; model: string; position: string }> = [];
 
     for (const tier of tiers) {
       if (routeBelongsToDisabledProvider(tier.override_route)) {
         affected.push({ tier: tier.tier, model: tier.override_route!.model, position: 'primary' });
       }
-      // auto_assigned_route is the system's automatic pick, NOT a user-authored
-      // assignment. Disabling the provider clears it and recomputes (see disable()
-      // + recalculateTiers), so it must NOT block the disable — otherwise a
-      // provider auto-assigned to a tier can never be turned off even after the
-      // user has manually routed that tier elsewhere.
       for (const [i, fb] of (tier.fallback_routes ?? []).entries()) {
         if (routeBelongsToDisabledProvider(fb)) {
           affected.push({ tier: tier.tier, model: fb.model, position: `fallback ${i + 1}` });
@@ -98,7 +115,39 @@ export class AgentProviderAccessController {
       }
     }
 
-    return { affected_tiers: affected };
+    const specificityRows = await this.specificityRepo.find({ where: { agent_id: agentId } });
+    for (const assignment of specificityRows) {
+      if (routeBelongsToDisabledProvider(assignment.override_route)) {
+        affected.push({
+          tier: assignment.category,
+          model: assignment.override_route!.model,
+          position: 'primary',
+        });
+      }
+      for (const [i, fb] of (assignment.fallback_routes ?? []).entries()) {
+        if (routeBelongsToDisabledProvider(fb)) {
+          affected.push({
+            tier: assignment.category,
+            model: fb.model,
+            position: `fallback ${i + 1}`,
+          });
+        }
+      }
+    }
+
+    const headerTiers = await this.headerTierRepo.find({ where: { agent_id: agentId } });
+    for (const tier of headerTiers) {
+      if (routeBelongsToDisabledProvider(tier.override_route)) {
+        affected.push({ tier: tier.name, model: tier.override_route!.model, position: 'primary' });
+      }
+      for (const [i, fb] of (tier.fallback_routes ?? []).entries()) {
+        if (routeBelongsToDisabledProvider(fb)) {
+          affected.push({ tier: tier.name, model: fb.model, position: `fallback ${i + 1}` });
+        }
+      }
+    }
+
+    return affected;
   }
 
   @Put(':userProviderId')
@@ -140,43 +189,11 @@ export class AgentProviderAccessController {
       where: { id: userProviderId, user_id: user.id },
     });
     if (provider) {
-      const providerModels = new Set(
-        (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
-      );
-      const providerName = provider.provider.toLowerCase();
-      const providerAuthType = provider.auth_type;
-      const providerLabel = provider.label?.toLowerCase();
-      const routeBelongsToDisabledProvider = (route: ModelRoute | null): boolean => {
-        if (!route) return false;
-        if (route.provider) {
-          if (route.provider.toLowerCase() !== providerName) return false;
-          if (route.authType && route.authType !== providerAuthType) return false;
-          if (route.keyLabel && providerLabel && route.keyLabel.toLowerCase() !== providerLabel) {
-            return false;
-          }
-          return true;
-        }
-        return providerModels.has(route.model);
-      };
-
-      const tiers = await this.tierRepo.find({ where: { agent_id: agent.id } });
-      for (const tier of tiers) {
-        let changed = false;
-        if (routeBelongsToDisabledProvider(tier.override_route)) {
-          tier.override_route = null;
-          changed = true;
-        }
-        if (routeBelongsToDisabledProvider(tier.auto_assigned_route)) {
-          tier.auto_assigned_route = null;
-          changed = true;
-        }
-        const fallbacks = tier.fallback_routes ?? [];
-        const filtered = fallbacks.filter((fb) => !routeBelongsToDisabledProvider(fb));
-        if (filtered.length !== fallbacks.length) {
-          tier.fallback_routes = filtered.length > 0 ? filtered : null;
-          changed = true;
-        }
-        if (changed) await this.tierRepo.save(tier);
+      const affected = await this.findAffectedRoutes(agent.id, provider);
+      if (affected.length > 0) {
+        throw new ConflictException(
+          "Can't disable provider while its models are assigned to this harness's routing. Update routing first.",
+        );
       }
     }
 

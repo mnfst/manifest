@@ -1446,14 +1446,13 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       setCustomProviders: jest.fn(),
       invalidateAgent: jest.fn(),
     } as never;
-    const autoAssign = { recalculate: jest.fn() } as never;
 
     const customProviders = new CustomProviderService(
       customProviderRepo,
       providerService,
       routingCache,
-      autoAssign,
       pricingCache,
+      eventBus,
     );
 
     const mockProviderService = { getProviders: jest.fn().mockResolvedValue([]) } as never;

@@ -48,8 +48,8 @@ const route = (provider: string, authType: ModelRoute['authType'], model: string
 const fallbackTierAssignment = (): TierAssignment =>
   ({
     tier: 'standard',
-    override_route: null,
-    auto_assigned_route: route('openai', 'api_key', 'fallback'),
+    override_route: route('openai', 'api_key', 'fallback'),
+    auto_assigned_route: null,
     fallback_routes: null,
   }) as TierAssignment;
 
@@ -142,8 +142,8 @@ describe('ResolveService — edge cases', () => {
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'standard',
-          override_route: null,
-          auto_assigned_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
           fallback_routes: null,
         } as TierAssignment,
       ]);

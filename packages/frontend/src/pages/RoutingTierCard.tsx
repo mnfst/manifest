@@ -132,8 +132,7 @@ export interface RoutingTierCardProps {
 
 const effectiveRoute = (
   t: TierAssignment,
-): { provider: string; authType: AuthType; model: string } | null =>
-  t.override_route ?? t.auto_assigned_route;
+): { provider: string; authType: AuthType; model: string } | null => t.override_route;
 
 const effectiveModel = (t: TierAssignment): string | null => effectiveRoute(t)?.model ?? null;
 
@@ -724,12 +723,11 @@ const PrimaryKeyChip: Component<PrimaryKeyChipProps> = (props) => {
       .sort((a, b) => a.priority - b.priority);
   };
 
-  // The pinned key label now lives inside the route's `keyLabel` field,
-  // sitting on whichever route is effective (override > auto). When no
-  // pin is set, fall back to the first connected key.
+  // The pinned key label lives inside the explicit primary route's `keyLabel`
+  // field. When no pin is set, fall back to the first connected key.
   const pinned = () => {
     const t = props.tier();
-    const effective = t?.override_route ?? t?.auto_assigned_route ?? null;
+    const effective = t?.override_route ?? null;
     return effective?.keyLabel ?? null;
   };
 

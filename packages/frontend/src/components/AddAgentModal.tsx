@@ -10,8 +10,8 @@ import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'm
  * "Connect Harness" modal extracted from Workspace so it can be reused by other
  * onboarding surfaces (e.g. an empty-state CTA or a deep-link).
  *
- * Onboarding navigation: a freshly created agent inherits every connected
- * provider with auto-assigned routes, so Routing is the most useful first stop.
+ * Onboarding navigation: a freshly created agent inherits access to every
+ * connected provider, so Routing is the most useful first stop.
  * If the tenant has *no* providers yet, we additionally pass
  * `state.openProviders` so Routing opens the provider-connect flow immediately —
  * the new user's very next action is to connect their first provider.

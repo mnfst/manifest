@@ -51,7 +51,7 @@ function makeTier(overrides?: Partial<TierAssignment>): TierAssignment {
     agent_id: 'a1',
     tier: 'simple',
     override_route: null,
-    auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+    auto_assigned_route: null,
     fallback_routes: null,
     updated_at: '2025-01-01',
     ...overrides,
@@ -133,7 +133,7 @@ describe('ResponseModeModal', () => {
     const [mode] = createSignal<'buffered' | 'stream'>('buffered');
     const onChange = vi.fn();
     const tier = makeTier({
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
     });
     const { container } = render(() => (
       <ResponseModeModal
@@ -172,7 +172,7 @@ describe('ResponseModeModal', () => {
     const [mode] = createSignal<'buffered' | 'stream'>('buffered');
     const tier = makeTier({
       tier: 'simple',
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
       fallback_routes: [{ provider: 'openai', authType: 'api_key', model: 'o1-preview' }],
     });
     const { container } = render(() => (
@@ -202,7 +202,7 @@ describe('ResponseModeModal', () => {
   it('shows singular copy when exactly one model is incompatible', () => {
     const [mode] = createSignal<'buffered' | 'stream'>('buffered');
     const tier = makeTier({
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
     });
     const { container } = render(() => (
       <ResponseModeModal
@@ -220,7 +220,7 @@ describe('ResponseModeModal', () => {
   it('shows plural copy when multiple models are incompatible', () => {
     const [mode] = createSignal<'buffered' | 'stream'>('buffered');
     const tier = makeTier({
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
       fallback_routes: [{ provider: 'openai', authType: 'api_key', model: 'o1-preview' }],
     });
     const { container } = render(() => (
@@ -241,7 +241,7 @@ describe('ResponseModeModal', () => {
     const onReplace = vi.fn();
     const tier = makeTier({
       tier: 'complex',
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
     });
     const { container } = render(() => (
       <ResponseModeModal
@@ -376,7 +376,7 @@ describe('ResponseModeModal', () => {
   it('does not show blocker section when in stream mode even if models lack streaming', () => {
     const [mode] = createSignal<'buffered' | 'stream'>('stream');
     const tier = makeTier({
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
     });
     const { container } = render(() => (
       <ResponseModeModal
@@ -394,7 +394,7 @@ describe('ResponseModeModal', () => {
     const [mode] = createSignal<'buffered' | 'stream'>('buffered');
     const tier = makeTier({
       tier: 'unknown-tier',
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'o1-preview' },
     });
     const { container } = render(() => (
       <ResponseModeModal
@@ -417,7 +417,7 @@ describe('ResponseModeModal', () => {
       capabilities: undefined,
     };
     const tier = makeTier({
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'mystery-model' },
+      override_route: { provider: 'openai', authType: 'api_key', model: 'mystery-model' },
     });
     const { container } = render(() => (
       <ResponseModeModal
