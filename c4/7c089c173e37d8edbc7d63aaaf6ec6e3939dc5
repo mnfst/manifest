@@ -1,0 +1,29 @@
+.changeset/limits-local-time-boundaries.md
+  s_0f26b79708a7d8::t_7c202dd321a2d1 1-5
+packages/backend/src/common/utils/period.util.spec.ts
+  s_0f26b79708a7d8::t_ffc03e7472f578 3-6,14,17-21,24,27-30,33,35-37,39,42,45-48,60,64-82,91,93-97,100,102-113,117,119-123,127,129,131,134-135,147
+packages/backend/src/common/utils/period.util.ts
+  s_0f26b79708a7d8::t_ffc03e7472f578 1,8-15,22,25,28-30,34,37,41,44-46,53,56,59,61,65,68,71
+packages/backend/src/common/utils/postgres-sql.spec.ts
+  s_0f26b79708a7d8::t_ffc03e7472f578 12,117-143
+packages/backend/src/notifications/services/notification-cron.service.edge-cases.spec.ts
+  s_0f26b79708a7d8::t_ffc03e7472f578 29-45,135-136,154-155,183-190
+packages/backend/src/common/utils/postgres-sql.ts
+  s_0f26b79708a7d8::t_ffc03e7472f578 82-90,96-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "c47c089c173e37d8edbc7d63aaaf6ec6e3939dc5",
+  "prompts": {},
+  "sessions": {
+    "s_0f26b79708a7d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7c1832c-75cd-4d4c-b526-6374e99b0e66",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
