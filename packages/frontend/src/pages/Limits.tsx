@@ -122,7 +122,7 @@ const Limits: Component = () => {
   };
 
   return (
-    <div class="container--sm">
+    <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Limits - Manifest</Title>
       <Meta
         name="description"

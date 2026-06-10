@@ -12,6 +12,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { toast } from '../services/toast-store.js';
 import { customProviderColor } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
 import '../styles/routing.css';
 
 const AUTH_BADGES: Record<string, string> = {
@@ -147,19 +148,7 @@ const AgentProviders: Component = () => {
         while its models are assigned to this harness's routing — update routing first.
       </p>
 
-      <Show
-        when={connections().length > 0}
-        fallback={
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
-            <p style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin: 0;">
-              No providers connected
-            </p>
-            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0;">
-              Connect providers in the Subscriptions, BYOK, or Local pages first.
-            </p>
-          </div>
-        }
-      >
+      <Show when={connections().length > 0} fallback={<NoConnectionsPrompt />}>
         <div class="panel" style="padding: 0; overflow-x: auto;">
           <table class="data-table" style="min-width: 600px; table-layout: fixed;">
             <colgroup>

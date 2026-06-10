@@ -11,6 +11,7 @@ import {
   getProviders as getGlobalProviders,
   type UserProviderSummary,
 } from '../../services/api/providers.js';
+import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
 import { PROVIDERS, type ProviderDef } from '../../services/providers.js';
@@ -22,6 +23,7 @@ import {
 } from '../../services/formatters.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
+import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import '../../styles/routing.css';
@@ -92,11 +94,11 @@ const PAGE_COPY: Record<
     activePlural: 'keys',
   },
   local: {
-    title: 'Local Providers | Manifest',
-    heading: 'Local Providers',
+    title: 'Local | Manifest',
+    heading: 'Local',
     subtitle: 'Connect to LLM servers running on your machine.',
     addLabel: 'Add local provider',
-    connectedHeading: 'My Local Providers',
+    connectedHeading: 'My local connections',
     supportedHeading: 'Supported local providers',
     authType: 'local',
     metricLabel: 'Estimated savings (30d)',
@@ -211,8 +213,64 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const [deepLink, setDeepLink] = createSignal<ProviderDeepLink | null>(null);
   const [customProviderPrefill, setCustomProviderPrefill] =
     createSignal<CustomProviderPrefill | null>(null);
-  const [viewMode, setViewMode] = createSignal<ViewMode>('list');
+  const [viewMode, setViewMode] = createSignal<ViewMode>('grid');
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Inline rename state
+  const [renamingId, setRenamingId] = createSignal<string | null>(null);
+  const [renameValue, setRenameValue] = createSignal('');
+  const [renameError, setRenameError] = createSignal('');
+  const [renameBusy, setRenameBusy] = createSignal(false);
+
+  const startRename = (connectionId: string, currentLabel: string, e: Event) => {
+    e.stopPropagation();
+    setRenamingId(connectionId);
+    setRenameValue(currentLabel);
+    setRenameError('');
+  };
+
+  const cancelRename = (e?: Event) => {
+    e?.stopPropagation();
+    setRenamingId(null);
+    setRenameError('');
+  };
+
+  const submitRename = async (
+    provider: string,
+    currentLabel: string,
+    authType: string,
+    e?: Event,
+  ) => {
+    e?.stopPropagation();
+    const newLabel = renameValue().trim();
+    if (!newLabel) {
+      setRenameError('Name cannot be empty');
+      return;
+    }
+    if (newLabel === currentLabel) {
+      cancelRename();
+      return;
+    }
+    if (!firstAgentName()) return;
+    setRenameBusy(true);
+    setRenameError('');
+    try {
+      await renameProviderKey(
+        firstAgentName(),
+        provider,
+        currentLabel,
+        newLabel,
+        authType as AuthType,
+      );
+      toast.success('Connection renamed');
+      setRenamingId(null);
+      refetchGlobalProviders();
+    } catch (err: any) {
+      setRenameError(err?.message ?? 'Failed to rename');
+    } finally {
+      setRenameBusy(false);
+    }
+  };
 
   const [data, { refetch: refetchGlobalProviders }] = createResource(async () => {
     try {
@@ -405,26 +463,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <h1 class="page-header__title">{copy().heading}</h1>
           <p class="page-header__subtitle">{copy().subtitle}</p>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-          <Show when={copy().customAddLabel}>
-            <button
-              class="btn btn--outline btn--sm"
-              disabled={!firstAgentName()}
-              onClick={openCustomProvider}
-              style="display: inline-flex; align-items: center; gap: 6px;"
-            >
-              <CustomProviderIcon />
-              {copy().customAddLabel}
-            </button>
-          </Show>
-          <button
-            class="btn btn--primary btn--sm"
-            disabled={!firstAgentName()}
-            onClick={() => openModal()}
-          >
-            {copy().addLabel}
-          </button>
-        </div>
       </div>
 
       <Show when={showMetricCard()}>
@@ -493,7 +531,86 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </Show>
                       </span>
                     </td>
-                    <td style="color: hsl(var(--muted-foreground));">{row.connection.label}</td>
+                    <td
+                      style="color: hsl(var(--muted-foreground));"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Show
+                        when={renamingId() === row.connection.id}
+                        fallback={
+                          <span
+                            style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
+                            class="connection-label-cell"
+                          >
+                            {row.connection.label}
+                            <button
+                              type="button"
+                              class="connection-label-cell__edit"
+                              onClick={(e) =>
+                                startRename(row.connection.id, row.connection.label, e)
+                              }
+                              aria-label={`Rename ${row.connection.label}`}
+                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s;"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                              </svg>
+                            </button>
+                          </span>
+                        }
+                      >
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <input
+                            type="text"
+                            class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                            value={renameValue()}
+                            onInput={(e) => {
+                              setRenameValue(e.currentTarget.value);
+                              setRenameError('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter')
+                                submitRename(
+                                  row.summary.provider,
+                                  row.connection.label,
+                                  row.summary.auth_type ?? copy().authType,
+                                  e,
+                                );
+                              if (e.key === 'Escape') cancelRename(e);
+                            }}
+                            style="width: 120px;"
+                            ref={(el) => requestAnimationFrame(() => el.focus())}
+                          />
+                          <button
+                            class="btn btn--primary btn--sm"
+                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                            disabled={renameBusy()}
+                            onClick={(e) =>
+                              submitRename(
+                                row.summary.provider,
+                                row.connection.label,
+                                row.summary.auth_type ?? copy().authType,
+                                e,
+                              )
+                            }
+                          >
+                            Save
+                          </button>
+                          <button
+                            class="btn btn--outline btn--sm"
+                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                            onClick={cancelRename}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <Show when={renameError()}>
+                          <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
+                            {renameError()}
+                          </div>
+                        </Show>
+                      </Show>
+                    </td>
                     <td>{row.connection.cached_model_count || row.summary.total_models || '-'}</td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 8px;">
@@ -541,17 +658,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         <div class="panel__tabs" role="tablist" style="height: 30px;">
           <button
             role="tab"
-            aria-selected={viewMode() === 'list'}
-            class="panel__tab"
-            classList={{ 'panel__tab--active': viewMode() === 'list' }}
-            onClick={() => setViewMode('list')}
-            aria-label="List view"
-            style="padding: 0 8px;"
-          >
-            <ListIcon />
-          </button>
-          <button
-            role="tab"
             aria-selected={viewMode() === 'grid'}
             class="panel__tab"
             classList={{ 'panel__tab--active': viewMode() === 'grid' }}
@@ -560,6 +666,17 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             style="padding: 0 8px;"
           >
             <GridIcon />
+          </button>
+          <button
+            role="tab"
+            aria-selected={viewMode() === 'list'}
+            class="panel__tab"
+            classList={{ 'panel__tab--active': viewMode() === 'list' }}
+            onClick={() => setViewMode('list')}
+            aria-label="List view"
+            style="padding: 0 8px;"
+          >
+            <ListIcon />
           </button>
         </div>
       </div>

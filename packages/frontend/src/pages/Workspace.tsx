@@ -109,7 +109,7 @@ const Workspace: Component = () => {
   };
 
   return (
-    <div class="container--md">
+    <div class="container--lg">
       <Title>My Harnesses - Manifest</Title>
       <Meta
         name="description"

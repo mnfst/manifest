@@ -6,7 +6,6 @@ import KeyPickerModal from './KeyPickerModal.js';
 // open). Lazy-load them so the heavy model picker and the ~130 kB
 // provider-select chunk stay out of the Routing route's initial bundle.
 const ModelPickerModal = lazy(() => import('./ModelPickerModal.js'));
-const ProviderSelectModal = lazy(() => import('./ProviderSelectModal.js'));
 import { PROVIDERS } from '../services/providers.js';
 import type {
   TierAssignment,
@@ -314,19 +313,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
         )}
       </Show>
 
-      <Show when={props.showProviderModal()}>
-        <Suspense fallback={null}>
-          <ProviderSelectModal
-            agentName={props.agentName()}
-            providers={props.connectedProviders()}
-            customProviders={props.customProviders()}
-            customProviderPrefill={props.customProviderPrefill}
-            providerDeepLink={props.providerDeepLink}
-            onClose={props.onProviderModalClose}
-            onUpdate={props.onProviderUpdate}
-          />
-        </Suspense>
-      </Show>
+      {/* ProviderSelectModal removed — provider connection now via sidebar pages */}
 
       <RoutingInstructionModal
         open={props.instructionModal() !== null}

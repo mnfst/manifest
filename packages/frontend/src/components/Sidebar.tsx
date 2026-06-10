@@ -87,7 +87,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         Messages
       </A>
-      <div class="sidebar__section-label">PROVIDERS</div>
+      <div class="sidebar__section-label">PROVIDER CONNECTIONS</div>
       <A
         href="/providers/subscriptions"
         class="sidebar__link"

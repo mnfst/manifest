@@ -4,11 +4,9 @@ import {
   createResource,
   createSignal,
   For,
-  lazy,
   on,
   onCleanup,
   Show,
-  Suspense,
   type Component,
 } from 'solid-js';
 import { useSearchParams } from '@solidjs/router';
@@ -42,10 +40,6 @@ import RequestHeadersPopover, {
 } from '../components/playground/RequestHeadersPopover.jsx';
 import { CodeIcon } from '../components/playground/icons.jsx';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
-
-// The provider-select modal is a ~130 kB chunk gated behind a `<Show>`. Lazy
-// it out of the Playground route bundle so it only loads when opened.
-const ProviderSelectModal = lazy(() => import('../components/ProviderSelectModal.jsx'));
 
 // Route-scoped styles (kept out of the global theme bundle). routing.css is
 // needed here because the shared ModelPickerModal / ProviderSelectModal use
@@ -180,7 +174,6 @@ const Playground: Component = () => {
   >(null);
   const [headerEntries, setHeaderEntries] = createSignal<HeaderEntry[]>(loadStoredHeaders());
   const [headersOpen, setHeadersOpen] = createSignal(false);
-  const [showProviderModal, setShowProviderModal] = createSignal(false);
   // Best pick for a run shown read-only as an overlay (store isn't loaded in
   // that path, so its best state is tracked separately).
   const [overlayBestId, setOverlayBestId] = createSignal<string | null>(null);
@@ -467,20 +460,18 @@ const Playground: Component = () => {
             Send one prompt to multiple models and compare cost, speed, and quality.
           </p>
         </div>
-        <button
-          type="button"
-          class="btn btn--primary btn--sm"
-          onClick={() => setShowProviderModal(true)}
-        >
-          Connect providers
-        </button>
+        {/* Provider connection now handled via sidebar provider pages */}
       </header>
 
       <Show
         when={(available() && providers() && hasConnectedProviders()) || viewingHistory()}
         fallback={
           <Show when={available() && providers()}>
-            <PlaygroundEmptyState onConnect={() => setShowProviderModal(true)} />
+            <PlaygroundEmptyState
+              onConnect={() => {
+                /* Will be replaced with cards in follow-up */
+              }}
+            />
           </Show>
         }
       >
@@ -536,13 +527,6 @@ const Playground: Component = () => {
             <div class="playground-prompt-wrapper">
               <div class="playground-prompt playground-prompt--info">
                 <span class="playground-prompt__info-text">Connect a provider to get started</span>
-                <button
-                  type="button"
-                  class="btn btn--primary btn--sm"
-                  onClick={() => setShowProviderModal(true)}
-                >
-                  Connect provider
-                </button>
               </div>
             </div>
           }
@@ -611,21 +595,6 @@ const Playground: Component = () => {
           onSelect={handleAddModel}
           onClose={() => setShowAddPicker(false)}
         />
-      </Show>
-
-      <Show when={showProviderModal()}>
-        <Suspense fallback={null}>
-          <ProviderSelectModal
-            agentName={agentName()}
-            providers={providers() ?? []}
-            customProviders={customProviders() ?? []}
-            onClose={() => {
-              setShowProviderModal(false);
-              refetchAllProviders();
-            }}
-            onUpdate={refetchAllProviders}
-          />
-        </Suspense>
       </Show>
     </div>
   );

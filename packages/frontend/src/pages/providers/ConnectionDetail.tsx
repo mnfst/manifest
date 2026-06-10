@@ -1,5 +1,5 @@
 import { Title } from '@solidjs/meta';
-import { A, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
@@ -27,19 +27,25 @@ import {
   customProviderColor,
 } from '../../services/formatters.js';
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
-import { getProviders as getAgentProviders } from '../../services/api/routing.js';
+import {
+  getProviders as getAgentProviders,
+  renameProviderKey,
+  disconnectProvider,
+  refreshModels,
+} from '../../services/api/routing.js';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
-import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import Select from '../../components/Select.jsx';
 import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-store.js';
+import { toast } from '../../services/toast-store.js';
 import '../../styles/charts.css';
 import '../../styles/analytics-overview.css';
+import '../../styles/routing.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
   subscription: 'Subscriptions',
-  api_key: 'Bring your own key',
-  local: 'Local Providers',
+  api_key: 'BYOK',
+  local: 'Local',
 };
 
 const BACK_LINKS: Record<string, string> = {
@@ -96,6 +102,7 @@ interface AnalyticsResponse {
 
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
+  const navigate = useNavigate();
 
   const [detail, { refetch: refetchDetail }] = createResource(
     () => params.connectionId,
@@ -358,9 +365,12 @@ const ConnectionDetail: Component = () => {
   const filteredAgentMessageTimeseries = createMemo(() => filterSeries(agentMessageTimeseries()));
   const filteredAgentCostTimeseries = createMemo(() => filterSeries(agentCostTimeseries()));
 
-  // Provider management modal (rename / disconnect / refresh models all live
-  // inside ProviderSelectModal). The "Manage" button opens it directly.
-  const [showProviderModal, setShowProviderModal] = createSignal(false);
+  // Manage modal state
+  const [showManageModal, setShowManageModal] = createSignal(false);
+  const [renameValue, setRenameValue] = createSignal('');
+  const [renaming, setRenaming] = createSignal(false);
+  const [renameError, setRenameError] = createSignal('');
+  const [refreshingModels, setRefreshingModels] = createSignal(false);
   const [agents] = createResource(async () => {
     try {
       const res = await getAgents();
@@ -370,17 +380,77 @@ const ConnectionDetail: Component = () => {
     }
   });
   const firstAgentName = () => (agents() ?? [])[0]?.agent_name ?? '';
-  const [modalProviders, { refetch: refetchModalProviders }] = createResource(
-    () => firstAgentName(),
-    async (name) => {
-      if (!name) return [];
-      try {
-        return await getAgentProviders(name);
-      } catch {
-        return [];
-      }
-    },
-  );
+
+  const openManageModal = () => {
+    const c = conn();
+    if (c) setRenameValue(c.label);
+    setRenameError('');
+    setShowManageModal(true);
+  };
+
+  const handleRename = async () => {
+    const c = conn();
+    if (!c) return;
+    if (!firstAgentName()) {
+      toast.error('Create at least one harness first.');
+      return;
+    }
+    const newLabel = renameValue().trim();
+    if (!newLabel) {
+      setRenameError('Name cannot be empty');
+      return;
+    }
+    if (newLabel === c.label) {
+      setShowManageModal(false);
+      return;
+    }
+    setRenaming(true);
+    setRenameError('');
+    try {
+      await renameProviderKey(firstAgentName(), c.provider, c.label, newLabel, c.auth_type as any);
+      toast.success('Connection renamed');
+      setShowManageModal(false);
+      refetchDetail();
+    } catch (e: any) {
+      setRenameError(e?.message ?? 'Failed to rename');
+    } finally {
+      setRenaming(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    const c = conn();
+    if (!c) return;
+    const agent = firstAgentName();
+    if (!agent) {
+      toast.error('Create at least one harness before disconnecting a provider.');
+      return;
+    }
+    try {
+      await disconnectProvider(agent, c.provider, c.auth_type as any, c.label);
+      toast.success('Connection removed');
+      navigate(backLink());
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Failed to disconnect');
+    }
+  };
+
+  const handleRefreshModels = async () => {
+    if (!firstAgentName()) {
+      toast.error('Create at least one harness first.');
+      return;
+    }
+    setRefreshingModels(true);
+    try {
+      await refreshModels(firstAgentName());
+      toast.success('Models refreshed');
+      refetchDetail();
+    } catch {
+      toast.error('Failed to refresh models');
+    } finally {
+      setRefreshingModels(false);
+    }
+  };
 
   // A resolved-but-null connection means the id is unknown / the connection
   // was deleted. Branch on the resource so this renders a not-found state
@@ -608,10 +678,7 @@ const ConnectionDetail: Component = () => {
                     ]}
                   />
                   <Show when={c.is_active}>
-                    <button
-                      class="btn btn--outline btn--sm"
-                      onClick={() => setShowProviderModal(true)}
-                    >
+                    <button class="btn btn--outline btn--sm" onClick={openManageModal}>
                       Manage
                     </button>
                   </Show>
@@ -865,25 +932,125 @@ const ConnectionDetail: Component = () => {
                   </div>
                 </Show>
               </div>
-              {/* Provider management modal (rename, change key, disconnect, refresh models). */}
-              <Show when={showProviderModal() && firstAgentName()}>
-                <ProviderSelectModal
-                  agentName={firstAgentName()}
-                  providers={modalProviders() ?? []}
-                  customProviders={customProviderData() ? [customProviderData()] : []}
-                  providerDeepLink={{
-                    providerId: c.provider,
-                    authType: c.auth_type as 'subscription' | 'api_key' | 'local',
+              {/* Manage connection modal */}
+              <Show when={showManageModal()}>
+                <div
+                  class="modal-overlay"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setShowManageModal(false);
                   }}
-                  onUpdate={async () => {
-                    refetchDetail();
-                    refetchModalProviders();
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setShowManageModal(false);
                   }}
-                  onClose={() => {
-                    setShowProviderModal(false);
-                    refetchDetail();
-                  }}
-                />
+                >
+                  <div
+                    class="modal-card"
+                    style="max-width: 420px; padding: 24px;"
+                    role="dialog"
+                    aria-modal="true"
+                  >
+                    {/* Header with provider name and close button */}
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="display: flex; align-items: center; width: 28px; height: 28px;">
+                          <Show
+                            when={provDef()}
+                            fallback={
+                              <span style="width: 28px; height: 28px; border-radius: 50%; background: hsl(var(--muted)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: hsl(var(--muted-foreground));">
+                                {providerDisplayName().charAt(0)}
+                              </span>
+                            }
+                          >
+                            {providerIcon(provDef()!.id, 28)}
+                          </Show>
+                        </span>
+                        <span style="font-size: var(--font-size-lg); font-weight: 600; color: hsl(var(--foreground));">
+                          {providerDisplayName()}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowManageModal(false)}
+                        style="background: none; border: none; cursor: pointer; padding: 4px; color: hsl(var(--muted-foreground)); font-size: 18px; line-height: 1;"
+                        aria-label="Close"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Connection name */}
+                    <div style="margin-bottom: 16px;">
+                      <label style="display: block; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground)); margin-bottom: 6px;">
+                        Connection name
+                      </label>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <input
+                          type="text"
+                          class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                          value={renameValue()}
+                          onInput={(e) => {
+                            setRenameValue(e.currentTarget.value);
+                            setRenameError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleRename();
+                          }}
+                          style="flex: 1;"
+                        />
+                        <button
+                          class="btn btn--primary btn--sm"
+                          disabled={renaming() || renameValue().trim() === conn()?.label}
+                          onClick={handleRename}
+                        >
+                          {renaming() ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                      <Show when={renameError()}>
+                        <div style="color: hsl(var(--destructive)); font-size: var(--font-size-sm); margin-top: 4px;">
+                          {renameError()}
+                        </div>
+                      </Show>
+                    </div>
+
+                    {/* Models */}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
+                      <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                        {c.cached_model_count ?? 0} models
+                      </span>
+                      <button
+                        class="btn btn--outline btn--sm"
+                        disabled={refreshingModels()}
+                        onClick={handleRefreshModels}
+                        style="display: inline-flex; align-items: center; gap: 6px;"
+                      >
+                        {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                      </button>
+                    </div>
+
+                    {/* Connection info */}
+                    <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                      Connected via{' '}
+                      {c.auth_type === 'subscription'
+                        ? c.auth_type
+                        : c.auth_type === 'api_key'
+                          ? 'API key'
+                          : 'local server'}
+                    </div>
+
+                    {/* Actions */}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
+                      <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
+                        Disconnect
+                      </button>
+                      <button
+                        class="btn btn--outline btn--sm"
+                        onClick={() => setShowManageModal(false)}
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </Show>
             </>
           );
