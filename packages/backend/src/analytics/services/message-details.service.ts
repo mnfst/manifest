@@ -125,12 +125,23 @@ export class MessageDetailsService {
       .orderBy('lc.call_index', 'ASC')
       .addOrderBy('lc.timestamp', 'ASC');
 
-    const logsQb = message.trace_id
-      ? this.logRepo
-          .createQueryBuilder('al')
-          .where('al.trace_id = :traceId', { traceId: message.trace_id })
-          .orderBy('al.timestamp', 'ASC')
-      : null;
+    const logsQb = (() => {
+      if (!message.trace_id || (!message.tenant_id && !message.agent_id)) {
+        return null;
+      }
+
+      // trace_id can be supplied by callers via traceparent, so it is not an isolation boundary.
+      const qb = this.logRepo
+        .createQueryBuilder('al')
+        .where('al.trace_id = :traceId', { traceId: message.trace_id });
+      if (message.tenant_id) {
+        qb.andWhere('al.tenant_id = :logTenantId', { logTenantId: message.tenant_id });
+      }
+      if (message.agent_id) {
+        qb.andWhere('al.agent_id = :logAgentId', { logAgentId: message.agent_id });
+      }
+      return qb.orderBy('al.timestamp', 'ASC');
+    })();
 
     const recordingPromise = message.recorded
       ? this.recordingRepo.findOne({ where: { message_id: message.id } })
