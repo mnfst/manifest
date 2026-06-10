@@ -15,15 +15,12 @@ import { agentListCacheKey } from '../constants/cache.constants';
 @Injectable()
 export class AgentListCacheInterceptor extends UserCacheInterceptor {
   protected trackBy(context: ExecutionContext): string | undefined {
-    const request = context.switchToHttp().getRequest<Request>();
-    if (request.method !== 'GET') return undefined;
-    const user = (request as unknown as Record<string, unknown>).user as
-      | { id?: string }
-      | undefined;
-    if (!user?.id) return undefined;
+    const userId = this.resolveUserId(context);
+    if (!userId) return undefined;
 
+    const request = context.switchToHttp().getRequest<Request>();
     const includeSystem =
       (request.query as { includeSystem?: string } | undefined)?.includeSystem === 'true';
-    return agentListCacheKey(user.id, includeSystem);
+    return agentListCacheKey(userId, includeSystem);
   }
 }

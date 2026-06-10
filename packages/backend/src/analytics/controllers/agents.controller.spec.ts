@@ -634,6 +634,9 @@ describe('AgentsController', () => {
       displayName: 'Bot Copy',
     });
     expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=false');
+    // The Messages-filter variant (system agents included) is a distinct cache
+    // entry and must also be cleared so it never goes stale after a duplicate.
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:system=true');
   });
 
   it('rejects duplicateAgent with empty slug', async () => {
