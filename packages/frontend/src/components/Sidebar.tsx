@@ -2,6 +2,7 @@ import { A, useLocation } from '@solidjs/router';
 import { Show, For, createSignal, createResource, type Component } from 'solid-js';
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import AddAgentModal from './AddAgentModal.jsx';
@@ -35,6 +36,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const getAgentName = useAgentName();
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
+  // Local providers only exist on self-hosted installs — a cloud backend
+  // can't reach the user's localhost, so the Local entry is hidden there.
+  const [selfHosted] = createResource(checkIsSelfHosted);
 
   // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
   // fires (create/delete/rename). Uses the DEFAULT getAgents() — system agents
@@ -104,14 +108,16 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         BYOK
       </A>
-      <A
-        href="/providers/local"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/local') }}
-        aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
-      >
-        Local
-      </A>
+      <Show when={selfHosted()}>
+        <A
+          href="/providers/local"
+          class="sidebar__link"
+          classList={{ active: isGlobalActive('/providers/local') }}
+          aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
+        >
+          Local
+        </A>
+      </Show>
 
       {/* Harnesses — collapsible section with a + create button.
           The collapse toggle and the create button are sibling buttons (never

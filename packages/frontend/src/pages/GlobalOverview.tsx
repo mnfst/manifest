@@ -13,6 +13,7 @@ import {
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
 import { getAgents, getGlobalProviders } from '../services/api.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { customProviderColor } from '../services/formatters.js';
 import { customProviderLogo } from '../components/ProviderIcon.jsx';
 import { stripCustomPrefix } from '../services/routing-utils.js';
@@ -163,6 +164,10 @@ const GlobalOverview: Component = () => {
 
   // ── Chart view state ─────────────────────────────────────────────────
   const [chartView, setChartView] = createSignal<'messages' | 'tokens' | 'cost'>('tokens');
+
+  // Local providers only exist on self-hosted installs; cloud hides the
+  // Local stat card and drops the stats grid to three columns.
+  const [selfHosted] = createResource(checkIsSelfHosted);
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
@@ -662,7 +667,7 @@ const GlobalOverview: Component = () => {
           return (
             <div
               class="overview-stats"
-              style="grid-template-columns: repeat(4, 1fr); align-items: stretch;"
+              style={`grid-template-columns: repeat(${selfHosted() ? 4 : 3}, 1fr); align-items: stretch;`}
             >
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
@@ -788,68 +793,70 @@ const GlobalOverview: Component = () => {
                   </A>
                 </div>
               </div>
-              <div class="overview-stat-card" style={cardStyle}>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <span class="overview-stat-card__label">Local</span>
-                  <A
-                    href="/providers/local?add=true"
-                    class="btn btn--outline btn--sm"
-                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                  >
-                    + Add
-                  </A>
-                </div>
-                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                  {totalConns(local())}
-                </span>
-                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                  <For each={connList(local())}>
-                    {(item) => (
-                      <A
-                        href={`/providers/connections/${item.id}`}
-                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                      >
-                        <span style="flex-shrink: 0; display: flex; align-items: center;">
-                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                'align-items': 'center',
-                                'justify-content': 'center',
-                                width: '14px',
-                                height: '14px',
-                                'border-radius': '3px',
-                                'font-size': '9px',
-                                'font-weight': '600',
-                                color: 'white',
-                                background: customProviderColor(item.name),
-                              }}
-                            >
-                              {item.name.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </span>
-                        <span style="font-weight: 500; color: hsl(var(--foreground));">
-                          {item.name}
-                        </span>
-                        <Show when={item.isCustom}>
-                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                            custom
+              <Show when={selfHosted()}>
+                <div class="overview-stat-card" style={cardStyle}>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="overview-stat-card__label">Local</span>
+                    <A
+                      href="/providers/local?add=true"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                    >
+                      + Add
+                    </A>
+                  </div>
+                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                    {totalConns(local())}
+                  </span>
+                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                    <For each={connList(local())}>
+                      {(item) => (
+                        <A
+                          href={`/providers/connections/${item.id}`}
+                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                        >
+                          <span style="flex-shrink: 0; display: flex; align-items: center;">
+                            {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  'align-items': 'center',
+                                  'justify-content': 'center',
+                                  width: '14px',
+                                  height: '14px',
+                                  'border-radius': '3px',
+                                  'font-size': '9px',
+                                  'font-weight': '600',
+                                  color: 'white',
+                                  background: customProviderColor(item.name),
+                                }}
+                              >
+                                {item.name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
                           </span>
-                        </Show>
-                        <Show when={item.label !== 'Default'}>
-                          <span>{item.label}</span>
-                        </Show>
-                      </A>
-                    )}
-                  </For>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {item.name}
+                          </span>
+                          <Show when={item.isCustom}>
+                            <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                              custom
+                            </span>
+                          </Show>
+                          <Show when={item.label !== 'Default'}>
+                            <span>{item.label}</span>
+                          </Show>
+                        </A>
+                      )}
+                    </For>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                    <A href="/providers/local" class="view-more-link">
+                      View more
+                    </A>
+                  </div>
                 </div>
-                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                  <A href="/providers/local" class="view-more-link">
-                    View more
-                  </A>
-                </div>
-              </div>
+              </Show>
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Harnesses</span>

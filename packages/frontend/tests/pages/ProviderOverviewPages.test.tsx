@@ -221,6 +221,14 @@ vi.mock('manifest-shared', () => ({
   inferProviderFromModel: (m: string) => (m.startsWith('custom:') ? 'custom' : null),
 }));
 
+// Local providers only exist on self-hosted installs; GlobalOverview hides
+// the Local stat card in cloud. Default to self-hosted so the dashboard
+// tests keep covering the card; cloud tests flip the flag.
+let mockIsSelfHosted = true;
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: () => Promise.resolve(mockIsSelfHosted),
+}));
+
 import GlobalOverview from '../../src/pages/GlobalOverview';
 import ConnectionDetail from '../../src/pages/providers/ConnectionDetail';
 
@@ -490,6 +498,7 @@ beforeEach(() => {
   sessionStorage.clear();
   routerState.navigate.mockReset();
   routerState.params = { connectionId: 'conn-openai' };
+  mockIsSelfHosted = true;
 
   apiMocks.getAgents.mockResolvedValue(agentsResponse);
   apiMocks.getCustomProviders.mockResolvedValue([
@@ -520,6 +529,34 @@ afterEach(() => {
 });
 
 describe('GlobalOverview (analytics)', () => {
+  it('shows the Local stat card with a 4-column grid when self-hosted', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => {
+      const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
+        (el) => el.textContent,
+      );
+      expect(labels).toContain('Local');
+    });
+    expect(container.querySelector('.overview-stats')?.getAttribute('style')).toContain(
+      'repeat(4, 1fr)',
+    );
+  });
+
+  it('hides the Local stat card and drops to a 3-column grid in cloud', async () => {
+    mockIsSelfHosted = false;
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => {
+      expect(container.querySelector('.overview-stats')?.getAttribute('style')).toContain(
+        'repeat(3, 1fr)',
+      );
+    });
+    const labels = Array.from(container.querySelectorAll('.overview-stat-card__label')).map(
+      (el) => el.textContent,
+    );
+    expect(labels).not.toContain('Local');
+    expect(labels).toContain('Subscriptions');
+  });
+
   it('renders the dashboard with harness and provider data', async () => {
     const { container } = render(() => <GlobalOverview />);
 
