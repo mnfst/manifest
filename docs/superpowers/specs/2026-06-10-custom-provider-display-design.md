@@ -57,8 +57,8 @@ and over write-time denormalization, which goes stale on rename.)
 - Per-provider timeseries (token + message variants, agent-scoped and global):
   series keys of the form `custom:<uuid>` are resolved to the provider's name
   in the pivoted output, so chart legends arrive pre-resolved. Unresolvable
-  uuids (deleted provider) keep a stable fallback label derived from the model
-  (never the literal `custom:<uuid>`).
+  uuids (deleted provider) get the stable fallback label `Deleted provider` —
+  never the literal `custom:<uuid>`.
 - The pinned alias test `query-helpers.spec.ts` is updated to include
   `custom_provider_name`.
 
