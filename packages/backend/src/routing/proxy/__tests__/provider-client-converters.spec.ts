@@ -342,6 +342,8 @@ describe('provider-client-converters', () => {
               },
             ],
           },
+          // tool result must follow so enforceToolCallPairing keeps the tool_call
+          { role: 'tool', tool_call_id: 'call_1', content: 'result' },
         ],
       };
 

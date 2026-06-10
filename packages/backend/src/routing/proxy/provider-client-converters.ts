@@ -111,6 +111,116 @@ const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 /**
+ * DeepSeek reasoning models whose API rejects `tool_choice` when
+ * thinking/reasoning mode is active. Strip the field before forwarding.
+ */
+const DEEPSEEK_REASONING_MODEL_RE = /^(deepseek-(?:v4-pro|reasoner|r1))/i;
+
+/**
+ * Endpoints that enforce strict tool-call / tool-result pairing.
+ * DeepSeek (all variants) rejects a request when an assistant message
+ * contains `tool_calls` that are not ALL answered by subsequent `tool`
+ * messages.  Strip any un-answered tool_call entries from the assistant
+ * message so the conversation stays coherent rather than crashing.
+ */
+const STRICT_TOOL_PAIRING_ENDPOINTS = new Set(['deepseek']);
+
+/**
+ * Endpoints whose OpenAI-compatible /v1/chat/completions backend supports
+ * the `developer` message role in addition to `system`.
+ *
+ * The `developer` role was added by OpenAI alongside the existing `system`
+ * role. Most OpenAI-compatible providers (DeepSeek, Groq, xAI, Mistral,
+ * etc.) have not adopted it and reject messages with role='developer'.
+ * For those providers we silently remap `developer` → `system`.
+ */
+const SUPPORTS_DEVELOPER_ROLE = new Set([
+  'openai',
+  'openai-subscription',
+  'openai-responses',
+  'openrouter',
+  'copilot',
+  'copilot-responses',
+]);
+
+/**
+ * Returns true for endpoints that require every tool_call id in an
+ * assistant message to be followed by a matching tool-role message.
+ * Applies to native deepseek and to any custom/aggregator endpoint
+ * whose model slug belongs to the DeepSeek family.
+ */
+function requiresStrictToolPairing(endpointKey: string, model: string): boolean {
+  const key = endpointKey.startsWith('custom:') ? 'custom' : endpointKey.toLowerCase();
+  if (STRICT_TOOL_PAIRING_ENDPOINTS.has(key)) return true;
+  // OpenRouter or custom providers routing to a DeepSeek model
+  if (key === 'openrouter' || key === 'custom') {
+    const bare = model.toLowerCase().split('/').pop() ?? '';
+    return bare.startsWith('deepseek');
+  }
+  return false;
+}
+
+/**
+ * Returns true for DeepSeek reasoning models whose API rejects `tool_choice`
+ * when thinking/reasoning mode is active. Stripping the field is safe because
+ * these models can still call tools automatically without an explicit choice.
+ */
+function isDeepSeekReasoningModel(endpointKey: string, model: string): boolean {
+  const key = endpointKey.startsWith('custom:') ? 'custom' : endpointKey.toLowerCase();
+  if (key === 'deepseek' || key === 'custom') {
+    const bare = model.toLowerCase().split('/').pop() ?? '';
+    return DEEPSEEK_REASONING_MODEL_RE.test(bare);
+  }
+  return false;
+}
+
+/**
+ * Collect the set of all tool_call_ids that have a matching `tool` response
+ * message somewhere later in the array.
+ */
+function buildAnsweredToolCallIds(messages: unknown[]): Set<string> {
+  const answered = new Set<string>();
+  for (const msg of messages) {
+    if (!msg || typeof msg !== 'object' || Array.isArray(msg)) continue;
+    const m = msg as Record<string, unknown>;
+    if (m.role === 'tool' && typeof m.tool_call_id === 'string') {
+      answered.add(m.tool_call_id);
+    }
+  }
+  return answered;
+}
+
+/**
+ * For strict-pairing endpoints: strip tool_call entries from assistant
+ * messages when the corresponding tool-result message is missing.
+ * If ALL tool_calls end up stripped, remove the tool_calls field entirely
+ * so the message looks like a plain assistant turn.
+ */
+function enforceToolCallPairing(messages: unknown[]): unknown[] {
+  const answered = buildAnsweredToolCallIds(messages);
+  return messages.map((msg) => {
+    if (!msg || typeof msg !== 'object' || Array.isArray(msg)) return msg;
+    const m = msg as Record<string, unknown>;
+    if (m.role !== 'assistant' || !Array.isArray(m.tool_calls)) return msg;
+
+    const kept = m.tool_calls.filter((tc) => {
+      if (!tc || typeof tc !== 'object' || Array.isArray(tc)) return true;
+      const id = (tc as Record<string, unknown>).id;
+      return typeof id !== 'string' || answered.has(id);
+    });
+
+    if (kept.length === m.tool_calls.length) return msg; // nothing changed
+    const patched = { ...m };
+    if (kept.length === 0) {
+      delete patched.tool_calls;
+    } else {
+      patched.tool_calls = kept;
+    }
+    return patched;
+  });
+}
+
+/**
  * OpenAI models that require `max_completion_tokens` instead of `max_tokens`.
  * All o-series reasoning models and GPT-5+ models use the new parameter.
  */
@@ -215,6 +325,14 @@ function sanitizeOpenAiMessages(
 ): unknown {
   if (!Array.isArray(messages)) return messages;
 
+  // For strict-pairing endpoints (DeepSeek family), strip un-answered
+  // tool_call entries before any other transformation to prevent the
+  // "insufficient tool messages following tool_calls message" error.
+  const processedMessages = requiresStrictToolPairing(endpointKey, model)
+    ? enforceToolCallPairing(messages)
+    : messages;
+
+  const supportsDeveloper = SUPPORTS_DEVELOPER_ROLE.has(endpointKey);
   const preserveReasoningContent = supportsReasoningContent(endpointKey, model);
   const preserveReasoningDetails = supportsReasoningDetails(endpointKey);
   const isMistral = endpointKey === 'mistral';
@@ -274,7 +392,7 @@ function sanitizeOpenAiMessages(
     return rewritten;
   };
 
-  return messages.map((message) => {
+  return processedMessages.map((message) => {
     if (!message || typeof message !== 'object' || Array.isArray(message)) {
       return message;
     }
@@ -285,6 +403,11 @@ function sanitizeOpenAiMessages(
     }
     if (!preserveReasoningDetails) {
       delete cleaned.reasoning_details;
+    }
+
+    // Map developer → system for providers that don't support 'developer' role
+    if (cleaned.role === 'developer' && !supportsDeveloper) {
+      cleaned.role = 'system';
     }
 
     if (
@@ -389,5 +512,18 @@ export function sanitizeOpenAiBody(
     cleaned[key] = value;
   }
   if (endpointKey === 'deepseek') normalizeDeepSeekMaxTokens(cleaned);
+  if (isDeepSeekReasoningModel(endpointKey, model) && 'tool_choice' in cleaned) {
+    delete cleaned.tool_choice;
+  }
+  // A tool_choice without a non-empty tools array is rejected by OpenAI /
+  // Anthropic / Copilot ("tools are required when tool choice is specified").
+  // This happens e.g. on codex compaction requests that carry tool_choice but
+  // no tools. Strip it defensively for every provider.
+  if ('tool_choice' in cleaned) {
+    const toolsVal = cleaned['tools'];
+    if (!Array.isArray(toolsVal) || toolsVal.length === 0) {
+      delete cleaned.tool_choice;
+    }
+  }
   return cleaned;
 }
