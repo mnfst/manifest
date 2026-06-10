@@ -8,6 +8,12 @@ import { auth } from './auth/auth.instance';
 import { SpaFallbackFilter } from './common/filters/spa-fallback.filter';
 import { httpErrorLogger } from './common/middleware/http-error-logger.middleware';
 import {
+  API_BODY_LIMIT,
+  PROXY_BODY_LIMIT,
+  bodyParserErrorHandler,
+  createProxyBodyBudgetMiddleware,
+} from './common/middleware/body-parser-limits';
+import {
   applyPrivateNetworkAllow,
   buildDevAllowedOrigins,
   buildFrameSrc,
@@ -186,9 +192,15 @@ export async function bootstrap() {
   const { toNodeHandler } = await import('better-auth/node');
   expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
-  // Re-add body parsing for NestJS routes
-  expressApp.use(express.json({ limit: '1mb' }));
-  expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // Re-add body parsing for NestJS routes. The OpenAI-compatible proxy has a
+  // separate parser because clients may legitimately send large inline image
+  // payloads. Regular Manifest API/auth routes stay small.
+  expressApp.use('/v1', createProxyBodyBudgetMiddleware());
+  expressApp.use('/v1', express.json({ limit: PROXY_BODY_LIMIT }));
+  expressApp.use('/v1', express.urlencoded({ extended: true, limit: PROXY_BODY_LIMIT }));
+  expressApp.use(express.json({ limit: API_BODY_LIMIT }));
+  expressApp.use(express.urlencoded({ extended: true, limit: API_BODY_LIMIT }));
+  expressApp.use(bodyParserErrorHandler);
 
   const port = Number(process.env['PORT'] ?? 3001);
   const host = process.env['BIND_ADDRESS'] ?? '127.0.0.1';

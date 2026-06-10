@@ -164,14 +164,23 @@ export class ProxyService {
     const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
       opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
+    const routingSource = opts.routingBody ?? body;
     const chatBody =
       apiMode === 'responses'
         ? toChatCompletionsRequest(body)
         : apiMode === 'messages'
           ? messagesToChatCompletionsRequest(body)
           : undefined;
-    const routingBody = chatBody ?? body;
-    this.validatePayload(routingBody);
+    const forwardingBody = chatBody ?? body;
+    const routingChatBody =
+      apiMode === 'responses'
+        ? toChatCompletionsRequest(routingSource)
+        : apiMode === 'messages'
+          ? messagesToChatCompletionsRequest(routingSource)
+          : undefined;
+    const routingBody = routingChatBody ?? routingSource;
+    this.validatePayload(forwardingBody);
+    if (routingBody !== forwardingBody) this.validatePayload(routingBody);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {
