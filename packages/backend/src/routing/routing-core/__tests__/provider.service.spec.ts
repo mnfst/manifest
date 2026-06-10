@@ -476,6 +476,60 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(saved[0].override_route?.keyLabel).toBe('Renamed');
     });
 
+    it('relabels pinned routes on every agent of the user, not just the renaming one', async () => {
+      const pin = (keyLabel: string) => ({
+        provider: 'openai',
+        authType: 'api_key' as const,
+        model: 'gpt-4o',
+        keyLabel,
+      });
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'target',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Key 2',
+          is_active: true,
+        },
+      ]);
+      tierRepo.find.mockResolvedValue([
+        {
+          id: 't1',
+          agent_id: 'agent-1',
+          override_route: pin('Key 2'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+        {
+          id: 't2',
+          agent_id: 'agent-2',
+          override_route: pin('Key 2'),
+          fallback_routes: [pin('Key 2')],
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([
+        {
+          id: 's1',
+          agent_id: 'agent-3',
+          override_route: pin('Key 2'),
+          fallback_routes: null,
+        } as unknown as SpecificityAssignment,
+      ]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await svc.renameKey('agent-1', 'user-1', 'openai', 'api_key', 'Key 2', 'Renamed');
+
+      expect(tierRepo.find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
+      const savedTiers = tierRepo.save.mock.calls[0][0] as TierAssignment[];
+      expect(savedTiers.map((t) => t.override_route?.keyLabel)).toEqual(['Renamed', 'Renamed']);
+      expect(savedTiers[1].fallback_routes?.[0]?.keyLabel).toBe('Renamed');
+      const savedSpecs = specRepo.save.mock.calls[0][0] as SpecificityAssignment[];
+      expect(savedSpecs[0].override_route?.keyLabel).toBe('Renamed');
+      // Per-agent tier caches must be flushed for every mutated agent.
+      for (const id of ['agent-1', 'agent-2', 'agent-3']) {
+        expect(routingCache.invalidateAgent).toHaveBeenCalledWith(id);
+      }
+    });
+
     it('blocks full provider disconnect while header tiers route to it', async () => {
       providerRepo.find.mockResolvedValue([
         {

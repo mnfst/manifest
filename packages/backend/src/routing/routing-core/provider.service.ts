@@ -355,7 +355,7 @@ export class ProviderService {
     target.label = trimmed;
     target.updated_at = new Date().toISOString();
     await this.providerRepo.save(target);
-    await this.relabelOverrides(agentId, provider, authType, previousLabel, trimmed);
+    await this.relabelOverrides(userId, provider, authType, previousLabel, trimmed);
     this.routingCache.invalidateAgent(agentId);
     this.routingCache.invalidateUser(userId);
     return target;
@@ -891,7 +891,7 @@ export class ProviderService {
    * the new primary key).
    */
   private async relabelOverrides(
-    agentId: string,
+    userId: string,
     provider: string,
     authType: AuthType,
     previousLabel: string,
@@ -916,7 +916,11 @@ export class ProviderService {
       keyLabel: nextLabel ?? null,
     });
 
-    const tiers = await this.tierRepo.find({ where: { agent_id: agentId } });
+    // Keys are user-global: a rename must rewrite pinned routes on every
+    // agent the user owns, not just the one whose page triggered it. Stale
+    // labels make the proxy silently fall back to the first key by priority.
+    const mutatedAgentIds = new Set<string>();
+    const tiers = await this.tierRepo.find({ where: { user_id: userId } });
     const tiersToSave: TierAssignment[] = [];
     const now = new Date().toISOString();
     for (const t of tiers) {
@@ -934,6 +938,7 @@ export class ProviderService {
       if (mutated) {
         t.updated_at = now;
         tiersToSave.push(t);
+        mutatedAgentIds.add(t.agent_id);
       }
     }
     if (tiersToSave.length > 0) await this.tierRepo.save(tiersToSave);
@@ -942,7 +947,7 @@ export class ProviderService {
     // fallback_routes. Cubic flagged P2: skipping specificity fallbacks left
     // stale key-label pins behind, which then misrouted next time the
     // specificity rule fired.
-    const specs = await this.specificityRepo.find({ where: { agent_id: agentId } });
+    const specs = await this.specificityRepo.find({ where: { user_id: userId } });
     const specsToSave: SpecificityAssignment[] = [];
     for (const s of specs) {
       let mutated = false;
@@ -959,6 +964,7 @@ export class ProviderService {
       if (mutated) {
         s.updated_at = now;
         specsToSave.push(s);
+        mutatedAgentIds.add(s.agent_id);
       }
     }
     if (specsToSave.length > 0) await this.specificityRepo.save(specsToSave);
@@ -967,7 +973,7 @@ export class ProviderService {
     // omitted here originally, so disconnecting one account out of several
     // (or renaming a key) left header-tier routes pinned to a label that no
     // longer exists — the account chip then renders blank. Relabel them too.
-    const headerTiers = await this.headerTierRepo.find({ where: { agent_id: agentId } });
+    const headerTiers = await this.headerTierRepo.find({ where: { user_id: userId } });
     const headerTiersToSave: HeaderTier[] = [];
     for (const h of headerTiers) {
       let mutated = false;
@@ -984,9 +990,14 @@ export class ProviderService {
       if (mutated) {
         h.updated_at = now;
         headerTiersToSave.push(h);
+        mutatedAgentIds.add(h.agent_id);
       }
     }
     if (headerTiersToSave.length > 0) await this.headerTierRepo.save(headerTiersToSave);
+
+    // invalidateUser() doesn't clear per-agent tier caches, so flush every
+    // agent whose rows were rewritten or stale routes would keep serving.
+    for (const id of mutatedAgentIds) this.routingCache.invalidateAgent(id);
   }
 
   private async renumberPriorities(
