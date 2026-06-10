@@ -7,6 +7,7 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const SALT_LENGTH = 16;
 const KEY_LENGTH = 32;
+const AUTH_TAG_LENGTH = 16;
 // Cheap scrypt fingerprint for cache indexing only — N=2 keeps it ~10µs while
 // remaining the same approved KDF family as the actual derivation below.
 const FINGERPRINT_LENGTH = 16;
@@ -76,7 +77,7 @@ export function encrypt(plaintext: string, secret: string): string {
   const salt = randomBytes(SALT_LENGTH);
   const key = deriveKey(secret, salt);
   const iv = randomBytes(IV_LENGTH);
-  const cipher = createCipheriv(ALGORITHM, key, iv);
+  const cipher = createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
   const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
   return [
@@ -97,8 +98,11 @@ export function decrypt(ciphertext: string, secret: string): string {
   const iv = Buffer.from(ivB64, 'base64');
   const tag = Buffer.from(tagB64, 'base64');
   const encrypted = Buffer.from(encryptedB64, 'base64');
+  if (tag.length !== AUTH_TAG_LENGTH) {
+    throw new Error('Invalid authentication tag length');
+  }
   const key = deriveKey(secret, salt);
-  const decipher = createDecipheriv(ALGORITHM, key, iv);
+  const decipher = createDecipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
   decipher.setAuthTag(tag);
   const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
   return decrypted.toString('utf8');

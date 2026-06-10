@@ -90,6 +90,15 @@ describe('encrypt / decrypt', () => {
     expect(() => decrypt(parts.join(':'), secret)).toThrow();
   });
 
+  it('decrypt throws on truncated authentication tags', () => {
+    const ciphertext = encrypt('secret data', secret);
+    const parts = ciphertext.split(':');
+    const tag = Buffer.from(parts[2], 'base64');
+    parts[2] = tag.subarray(0, 8).toString('base64');
+
+    expect(() => decrypt(parts.join(':'), secret)).toThrow('Invalid authentication tag length');
+  });
+
   it('decrypt throws when the wrong secret is used', () => {
     const ciphertext = encrypt('payload', secret);
     const wrongSecret = 'different-secret-also-long-enough-for-scrypt';
