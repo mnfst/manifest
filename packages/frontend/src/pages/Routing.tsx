@@ -435,13 +435,7 @@ const Routing: Component = () => {
       />
 
       <div class="page-header routing-page-header">
-        <div>
-          <h1>Routing</h1>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Pick which model handles each type of
-            request
-          </span>
-        </div>
+        <span class="breadcrumb">Pick which model handles each type of request</span>
         <Show when={!connectedProviders.loading}>
           <div style="display: flex; gap: 8px;">
             <Show when={isEnabled()}>
