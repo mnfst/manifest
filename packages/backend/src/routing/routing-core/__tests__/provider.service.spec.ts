@@ -337,6 +337,8 @@ describe('ProviderService — route-only cleanup paths', () => {
       ).resolves.toEqual({ notifications: [] });
 
       expect(providerRepo.remove).toHaveBeenCalledWith(target);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
     });
   });
 
