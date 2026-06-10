@@ -32,6 +32,8 @@ interface GeminiFunctionResponse {
 
 interface GeminiPart {
   text?: string;
+  inlineData?: { mimeType: string; data: string };
+  fileData?: { fileUri: string };
   functionCall?: GeminiFunctionCall;
   functionResponse?: GeminiFunctionResponse;
   // Google attaches thoughtSignature at the Part level (sibling of functionCall),
@@ -39,6 +41,8 @@ interface GeminiPart {
   // that don't round-trip this field.
   thoughtSignature?: string;
 }
+
+const DATA_IMAGE_URL_RE = /^data:([^;,]+)(?:;[^,]*)?;base64,(.*)$/is;
 
 /**
  * JSON Schema fields not supported by the Gemini API.
@@ -121,6 +125,26 @@ function mapRole(role: string): string {
   return 'user';
 }
 
+function extractImageUrl(imageUrl: unknown): string | null {
+  if (typeof imageUrl === 'string') return imageUrl;
+  if (!isRecord(imageUrl) || typeof imageUrl.url !== 'string') return null;
+  return imageUrl.url;
+}
+
+function imageUrlToGooglePart(imageUrl: unknown): GeminiPart | null {
+  const url = extractImageUrl(imageUrl);
+  if (!url) return null;
+
+  const dataUrl = DATA_IMAGE_URL_RE.exec(url);
+  if (dataUrl) {
+    const mimeType = dataUrl[1] || 'image/png';
+    if (!mimeType.toLowerCase().startsWith('image/')) return null;
+    return { inlineData: { mimeType, data: dataUrl[2] } };
+  }
+
+  return { fileData: { fileUri: url } };
+}
+
 /**
  * Scan the message list for assistant tool_calls and build a map from
  * tool_call_id to function name. Needed because OpenAI's tool-response
@@ -151,8 +175,14 @@ function messageToContent(
     parts.push({ text: msg.content });
   } else if (Array.isArray(msg.content)) {
     for (const block of msg.content as Array<Record<string, unknown>>) {
-      if (block.type === 'text' && typeof block.text === 'string') {
+      if (
+        typeof block.text === 'string' &&
+        (block.type === 'text' || block.type === 'input_text' || block.type === 'output_text')
+      ) {
         parts.push({ text: block.text });
+      } else if (block.type === 'image_url' || block.type === 'input_image') {
+        const imagePart = imageUrlToGooglePart(block.image_url);
+        if (imagePart) parts.push(imagePart);
       }
     }
   }
