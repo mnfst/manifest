@@ -1,0 +1,19 @@
+packages/frontend/tests/components/Header.test.tsx
+  s_4ebc4b4acf3bc6::t_8360e8f2f04ccb 299,301-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "ac85fc142a7a1a79b76685139e7649f7b0fbefc5",
+  "prompts": {},
+  "sessions": {
+    "s_4ebc4b4acf3bc6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eb0a1-8602-7dc1-8ee5-d9865b9b9443",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
