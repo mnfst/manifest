@@ -155,7 +155,7 @@ export class SpecificityService {
       assertStreamableResponseMode(
         responseMode,
         `task-specific tier "${category}"`,
-        existing.override_route ?? existing.auto_assigned_route,
+        existing.override_route,
         existing.fallback_routes,
       );
       existing.response_mode = responseMode;
@@ -192,7 +192,7 @@ export class SpecificityService {
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
-      existing.auto_assigned_route,
+      null,
       null,
     );
     existing.updated_at = new Date().toISOString();
@@ -213,7 +213,7 @@ export class SpecificityService {
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       fallbackRoutes,
     );
     existing.fallback_routes = fallbackRoutes;
@@ -229,7 +229,7 @@ export class SpecificityService {
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       null,
     );
     existing.fallback_routes = null;

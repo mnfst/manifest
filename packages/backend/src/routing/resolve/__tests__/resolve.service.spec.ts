@@ -461,8 +461,8 @@ describe('ResolveService', () => {
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'default',
-          override_route: null,
-          auto_assigned_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
           fallback_routes: null,
         } as TierAssignment,
       ]);
@@ -519,7 +519,7 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('scored');
     });
 
-    it('uses auto_assigned_route when there is no override', async () => {
+    it('ignores auto_assigned_route when there is no override', async () => {
       specificityService.getActiveAssignments.mockResolvedValue([
         {
           category: 'coding',
@@ -532,8 +532,8 @@ describe('ResolveService', () => {
       mockedScan.mockReturnValue({ category: 'coding', confidence: 0.9 } as never);
 
       const result = await svc.resolve('agent-1', 'user-1', messages);
-      expect(result.reason).toBe('specificity');
-      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.reason).not.toBe('specificity');
+      expect(result.route).toBeNull();
     });
 
     it('returns null when neither override nor auto are set', async () => {
@@ -741,7 +741,7 @@ describe('ResolveService', () => {
       expect(result.fallback_routes).toEqual([route('anthropic', 'api_key', 'fallback-1')]);
     });
 
-    it('falls through to auto when override is orphaned but auto is set', async () => {
+    it('returns no route when override is orphaned even if auto is set', async () => {
       mockedScore.mockReturnValue({
         tier: 'standard',
         confidence: 0.7,
@@ -759,7 +759,7 @@ describe('ResolveService', () => {
       providerKeyService.isModelAvailable.mockResolvedValue(false);
 
       const result = await svc.resolve('agent-1', 'user-1', messages);
-      expect(result.route).toEqual(route('openai', 'api_key', 'auto'));
+      expect(result.route).toBeNull();
     });
 
     it('passes momentum input when recentTiers is non-empty', async () => {
@@ -808,12 +808,12 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('heartbeat');
     });
 
-    it('returns the assigned route when present', async () => {
+    it('returns the override route when present', async () => {
       tierService.getTiers.mockResolvedValue([
         {
           tier: 'simple',
-          override_route: null,
-          auto_assigned_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+          auto_assigned_route: null,
           fallback_routes: [route('anthropic', 'api_key', 'haiku')],
         } as unknown as TierAssignment,
       ]);

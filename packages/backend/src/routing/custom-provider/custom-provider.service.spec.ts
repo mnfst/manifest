@@ -582,7 +582,7 @@ describe('CustomProviderService', () => {
       );
     });
 
-    it('rewrites models (defaulting context_window) and recalculates tiers when the api key is not touched', async () => {
+    it('rewrites models without recalculating routes when the api key is not touched', async () => {
       const existing = { id: 'cp1', name: 'n' } as CustomProvider;
       const { svc, recalculateTiersForUser, upsertProvider, reloadPricing } = makeDeps({
         findOneResults: [existing],
@@ -597,26 +597,26 @@ describe('CustomProviderService', () => {
         ],
       });
       expect(existing.models[0].context_window).toBe(128_000);
-      expect(recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(recalculateTiersForUser).not.toHaveBeenCalled();
       expect(upsertProvider).not.toHaveBeenCalled();
       // Edited prices must flow into the shared pricing cache so the next
       // proxied message picks up the new per-token cost.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
-    it('persists the custom provider row (repo.save) before recalculating tiers in update()', async () => {
-      // Regression guard: tier recalculation must see the NEW model list, not
-      // the stale one. The only way to guarantee that is for repo.save to be
-      // called before recalculateTiersForUser / upsertProvider.
+    it('persists the custom provider row before reloading pricing in update()', async () => {
+      // Regression guard: pricing reload must see the NEW model list, not the
+      // stale one. The only way to guarantee that is for repo.save to be called
+      // before reloadPricing.
       const existing = { id: 'cp1', name: 'n' } as CustomProvider;
       const callOrder: string[] = [];
-      const { svc, save, recalculateTiersForUser } = makeDeps({ findOneResults: [existing] });
+      const { svc, save, reloadPricing } = makeDeps({ findOneResults: [existing] });
       save.mockImplementation(() => {
         callOrder.push('save');
         return Promise.resolve(undefined);
       });
-      recalculateTiersForUser.mockImplementation(() => {
-        callOrder.push('recalc');
+      reloadPricing.mockImplementation(() => {
+        callOrder.push('reload');
         return Promise.resolve(undefined);
       });
 
@@ -630,7 +630,7 @@ describe('CustomProviderService', () => {
         ],
       });
 
-      expect(callOrder.indexOf('save')).toBeLessThan(callOrder.indexOf('recalc'));
+      expect(callOrder.indexOf('save')).toBeLessThan(callOrder.indexOf('reload'));
     });
 
     it('fills missing model update prices from models.dev using the current provider name', async () => {
@@ -755,12 +755,20 @@ describe('CustomProviderService', () => {
       expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
-    it('swallows errors from provider removal (partial-state cleanup)', async () => {
+    it('swallows NotFound from provider removal when it is already unlinked', async () => {
       const cp = { id: 'cp1' } as CustomProvider;
       const { svc, removeProvider, remove } = makeDeps({ findOneResults: [cp] });
-      removeProvider.mockRejectedValue(new Error('not linked'));
+      removeProvider.mockRejectedValue(new NotFoundException('not linked'));
       await expect(svc.remove('user-1', 'cp1')).resolves.toBeUndefined();
       expect(remove).toHaveBeenCalledWith(cp);
+    });
+
+    it('rethrows provider removal conflicts so routed providers stay protected', async () => {
+      const cp = { id: 'cp1' } as CustomProvider;
+      const { svc, removeProvider, remove } = makeDeps({ findOneResults: [cp] });
+      removeProvider.mockRejectedValue(new Error('provider is routed'));
+      await expect(svc.remove('user-1', 'cp1')).rejects.toThrow('provider is routed');
+      expect(remove).not.toHaveBeenCalled();
     });
   });
 

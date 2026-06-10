@@ -77,11 +77,11 @@ describe('route-helpers', () => {
         effectiveRoute({ override_route: o, auto_assigned_route: a, fallback_routes: null }),
       ).toEqual(o);
     });
-    it('falls through to auto when override is null', () => {
+    it('returns null when override is null even if an auto route is present', () => {
       const a = route('gemini', 'api_key', 'gemini-2.5-pro');
       expect(
         effectiveRoute({ override_route: null, auto_assigned_route: a, fallback_routes: null }),
-      ).toEqual(a);
+      ).toBeNull();
     });
     it('returns null when neither is set', () => {
       expect(

@@ -315,10 +315,11 @@ describe('KiroOauthService', () => {
         region: 'us-east-1',
       });
       expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
     });
 
-    it('recalcs ALL owned agents after discovery when the provider row is NEW', async () => {
+    it('does not route agents after discovery when the provider row is new', async () => {
       provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
       const service = makeService();
       const flowId = await startAndGetFlowId(service);
@@ -328,7 +329,8 @@ describe('KiroOauthService', () => {
 
       await service.pollAuthorization(flowId, 'user-1');
 
-      expect(provider.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 

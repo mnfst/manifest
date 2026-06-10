@@ -452,7 +452,7 @@ describe('ModelPickerModal', () => {
     expect(modelButtons[0].textContent).toContain('GPT-4o mini');
   });
 
-  it('renders the recommendation tag for the auto-assigned route', () => {
+  it('does not render a recommendation tag for a legacy auto-assigned route', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
@@ -464,7 +464,7 @@ describe('ModelPickerModal', () => {
       />
     ));
     const recommended = container.querySelector('.routing-modal__recommended');
-    expect(recommended?.textContent).toContain('recommended');
+    expect(recommended).toBeNull();
   });
 
   it("tags the primary model with 'Primary' when override_route matches", () => {

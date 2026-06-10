@@ -246,21 +246,6 @@ const ModelPickerModal: Component<Props> = (props) => {
     return groups;
   };
 
-  const isRecommended = (modelName: string, providerId?: string, authType?: AuthType): boolean => {
-    const t = props.tiers.find((r) => r.tier === props.tierId);
-    if (!t) return false;
-    const route = t.auto_assigned_route;
-    if (!route) return false;
-    if (providerId && authType) {
-      return (
-        route.model === modelName &&
-        route.provider.toLowerCase() === providerId.toLowerCase() &&
-        route.authType === authType
-      );
-    }
-    return route.model === modelName;
-  };
-
   /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
   const modelRole = (
     modelName: string,
@@ -269,7 +254,7 @@ const ModelPickerModal: Component<Props> = (props) => {
   ): string | null => {
     const t = props.tiers.find((r) => r.tier === props.tierId);
     if (!t) return null;
-    const primaryRoute = t.override_route ?? t.auto_assigned_route ?? null;
+    const primaryRoute = t.override_route ?? null;
     if (primaryRoute) {
       const matches =
         providerId && authType
@@ -618,9 +603,6 @@ const ModelPickerModal: Component<Props> = (props) => {
                         <span class="routing-modal__model-left">
                           <span class="routing-modal__model-label">
                             {model.label}
-                            <Show when={isRecommended(model.value, group.provId, activeTab())}>
-                              <span class="routing-modal__recommended"> (recommended)</span>
-                            </Show>
                             <Show when={modelRole(model.value, group.provId, activeTab())}>
                               {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                             </Show>

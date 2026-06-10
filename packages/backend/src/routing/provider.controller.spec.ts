@@ -298,11 +298,9 @@ describe('ProviderController', () => {
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
     });
 
-    it('should recalc ALL owned agents after discovery when the provider is NEW', async () => {
-      // A brand-new provider is global + ON for every owned agent, so sibling
-      // agents must be recalced against the post-discovery model set — not just
-      // the connecting agent (otherwise siblings show the provider enabled but
-      // route to a stale model set that excludes it).
+    it('discovers models without routing agents when the provider is new', async () => {
+      // A brand-new provider is global + ON for every owned agent, but routes
+      // remain user-controlled after discovery.
       const providerResult = { id: 'p1', provider: 'openai', is_active: true };
       mockProviderService.upsertProvider.mockResolvedValue({
         provider: providerResult,
@@ -314,13 +312,14 @@ describe('ProviderController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(mockProviderService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
     });
 
-    it('should recalc ONLY the connecting agent after discovery on an existing-row reconnect', async () => {
-      // Reconnecting an existing provider row must not fan out — it preserves
-      // each sibling agent's per-agent disable state.
+    it('discovers models without routing agents on an existing-row reconnect', async () => {
+      // Reconnecting an existing provider row still preserves each sibling
+      // agent's per-agent disable state.
       const providerResult = { id: 'p1', provider: 'openai', is_active: true };
       mockProviderService.upsertProvider.mockResolvedValue({
         provider: providerResult,
@@ -332,7 +331,8 @@ describe('ProviderController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
     });
 

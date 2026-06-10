@@ -156,12 +156,13 @@ describe('OpenaiOauthService', () => {
         undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
+      expect(providerService.recalculateTiersForUser).not.toHaveBeenCalled();
       // State is one-time-use.
       expect(svc.getPendingCount()).toBe(0);
     });
 
-    it('recalcs ALL owned agents after discovery when the provider row is NEW', async () => {
+    it('does not route agents after discovery when the provider row is new', async () => {
       providerService.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
@@ -171,7 +172,8 @@ describe('OpenaiOauthService', () => {
 
       await svc.exchangeCode(state, 'auth-code');
 
-      expect(providerService.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(providerService.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(providerService.recalculateTiers).not.toHaveBeenCalled();
     });
 

@@ -94,8 +94,7 @@ export class AgentsController {
       throw error;
     }
     // Providers are global + ON by default: a brand-new agent immediately
-    // inherits every usable provider the user already connected, with its
-    // auto-assigned routes calculated from that model set.
+    // inherits access to every usable provider the user already connected.
     await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
     await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
