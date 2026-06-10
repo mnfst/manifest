@@ -1,0 +1,49 @@
+packages/backend/src/common/middleware/body-parser-limits.ts
+  s_c44af2c7b9a4e7::t_c073a4d764f6e3 1-30,43-119
+  s_c44af2c7b9a4e7::t_b9d34ae7423239 31-42
+.changeset/proxy-inline-image-body-limit.md
+  s_c44af2c7b9a4e7::t_45a247ae789bb7 1,3-5
+  s_c44af2c7b9a4e7::t_8b2df1a59206d6 2
+packages/backend/src/routing/proxy/__tests__/inline-image-redaction.spec.ts
+  s_c44af2c7b9a4e7::t_651062917b66ad 3-11,57
+  s_c44af2c7b9a4e7::t_c3ed38b3fee022 87-104
+  s_c44af2c7b9a4e7::t_80086739d260f6 1-2,12-56,58-86,105
+packages/backend/src/routing/proxy/inline-image-redaction.ts
+  s_c44af2c7b9a4e7::t_497cbdc43fac06 2-3,5-6,13,16-17,19,23,35-36,38,40-43,48-59
+  s_c44af2c7b9a4e7::t_70970714926248 1,4,7-12,14-15,18,20-22,24-34,37,39,44-47
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_c44af2c7b9a4e7::t_284ed3c0540942 167,175-176
+  s_c44af2c7b9a4e7::t_4e18c6ba598d1b 160,168-174
+packages/backend/src/main.ts
+  s_c44af2c7b9a4e7::t_b43e04494a5ad0 195-203
+  s_c44af2c7b9a4e7::t_56ec726d0a6cfe 11-15
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_c44af2c7b9a4e7::t_9ee39b37cfcc30 73-74
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_c44af2c7b9a4e7::t_887cd889e727e6 42,143,231
+  s_c44af2c7b9a4e7::t_c2b0336f6bbcbb 121,137
+packages/backend/src/common/middleware/body-parser-limits.spec.ts
+  s_c44af2c7b9a4e7::t_949547881f80d7 16-17
+  s_c44af2c7b9a4e7::t_551dca2ca46c96 3-6,8-15,19-20,22-26,34-39,44-62,119-121
+  s_c44af2c7b9a4e7::t_59a6358e2fe58c 1,18,21
+  s_c44af2c7b9a4e7::t_e1e1c17a5710c7 2,7,27-33,40-43,63-118
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_c44af2c7b9a4e7::t_7717430e517533 215-239
+  s_c44af2c7b9a4e7::t_dd06aacff1fbeb 316-367
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d023194d7eac40b647362ce4d13eaf53a7aa0405",
+  "prompts": {},
+  "sessions": {
+    "s_c44af2c7b9a4e7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eb035-5cc4-7140-ac0b-328f74e4b8b6",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
