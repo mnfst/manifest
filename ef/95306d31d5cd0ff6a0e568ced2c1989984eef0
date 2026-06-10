@@ -1,0 +1,25 @@
+packages/shared/src/subscription/configs.ts
+  s_a7d7f6ffbf0781::t_074c2f46ea5ff2 13-18
+packages/shared/__tests__/subscription.spec.ts
+  s_a7d7f6ffbf0781::t_e5e1c5573eb9e7 293
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_a7d7f6ffbf0781::t_b8ae1190215584 303-312
+.changeset/anthropic-fast-model-catalog.md
+  s_a7d7f6ffbf0781::t_f195600df55638 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "ef95306d31d5cd0ff6a0e568ced2c1989984eef0",
+  "prompts": {},
+  "sessions": {
+    "s_a7d7f6ffbf0781": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a31f807-8a4f-42e8-af85-a4cfa7d196e0",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
