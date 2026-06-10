@@ -12,9 +12,10 @@ import {
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
-import { getAgents, getCustomProviders, getGlobalProviders } from '../services/api.js';
+import { getAgents, getGlobalProviders } from '../services/api.js';
 import { customProviderColor } from '../services/formatters.js';
 import { customProviderLogo } from '../components/ProviderIcon.jsx';
+import { stripCustomPrefix } from '../services/routing-utils.js';
 import {
   getOverview,
   getGlobalPerAgentTimeseries,
@@ -42,6 +43,8 @@ import '../styles/analytics-overview.css';
 interface ProviderGroup {
   provider: string;
   auth_type: string;
+  /** Backend-resolved name for `custom:<uuid>` groups; null for built-ins. */
+  display_name?: string | null;
   connection_count: number;
   connections: Array<{ id: string; label: string; is_active: boolean }>;
   total_models: number;
@@ -60,6 +63,7 @@ interface CostByModelRow {
   estimated_cost: number;
   auth_type: string | null;
   provider: string | null;
+  custom_provider_name?: string | null;
 }
 
 interface RecentActivityRow {
@@ -189,19 +193,6 @@ const GlobalOverview: Component = () => {
       }
     },
   );
-
-  // Custom providers for name resolution
-  const firstAgent = () => ((agents() ?? []) as AgentRow[])[0]?.agent_name ?? '';
-  const [customProviderData] = createResource(
-    () => firstAgent(),
-    (name) => (name ? getCustomProviders(name).catch(() => []) : Promise.resolve([])),
-  );
-  const resolveCustomName = (providerId: string) => {
-    if (!providerId.startsWith('custom:')) return null;
-    const uuid = providerId.replace('custom:', '');
-    const cp = (customProviderData() ?? []).find((c: any) => c.id === uuid);
-    return cp ? (cp as any).name : null;
-  };
 
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
   const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
@@ -652,7 +643,7 @@ const GlobalOverview: Component = () => {
             for (const g of groups) {
               for (const c of g.connections.slice(0, 5 - items.length)) {
                 const prov = PROVIDERS.find((p) => p.id === g.provider);
-                const customName = resolveCustomName(g.provider);
+                const customName = g.display_name ?? null;
                 const isCustom = g.provider.startsWith('custom:');
                 items.push({
                   id: c.id,
@@ -1040,14 +1031,40 @@ const GlobalOverview: Component = () => {
                     <tr>
                       <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                          <Show when={row.provider}>
-                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
-                              {providerIcon(row.provider!, 16)}
-                              {authBadgeFor(row.auth_type, 12)}
-                            </span>
-                          </Show>
+                          {(() => {
+                            const isCustom = row.provider?.startsWith('custom:') === true;
+                            if (isCustom) {
+                              const name = row.custom_provider_name ?? undefined;
+                              return (
+                                customProviderLogo(name ?? '', 16, undefined, row.model) ?? (
+                                  <span
+                                    class="provider-card__logo-letter"
+                                    title={name}
+                                    style={{
+                                      background: customProviderColor(name ?? ''),
+                                      width: '16px',
+                                      height: '16px',
+                                      'font-size': '9px',
+                                      'flex-shrink': '0',
+                                      'border-radius': '50%',
+                                    }}
+                                  >
+                                    {(name ?? stripCustomPrefix(row.model)).charAt(0).toUpperCase()}
+                                  </span>
+                                )
+                              );
+                            }
+                            return row.provider ? (
+                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                                {providerIcon(row.provider, 16)}
+                                {authBadgeFor(row.auth_type, 12)}
+                              </span>
+                            ) : null;
+                          })()}
                           <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {row.display_name || row.model}
+                            {row.model.startsWith('custom:')
+                              ? stripCustomPrefix(row.model)
+                              : row.display_name || row.model}
                           </span>
                         </div>
                       </td>
@@ -1129,9 +1146,7 @@ const GlobalOverview: Component = () => {
                           <div style="display: flex; align-items: center; gap: 8px;">
                             {(() => {
                               const isCustom = group.provider.startsWith('custom:');
-                              const customName = isCustom
-                                ? resolveCustomName(group.provider)
-                                : null;
+                              const customName = isCustom ? (group.display_name ?? null) : null;
                               const prov = PROVIDERS.find((p) => p.id === group.provider);
                               const displayName = prov?.name ?? customName ?? group.provider;
                               return (

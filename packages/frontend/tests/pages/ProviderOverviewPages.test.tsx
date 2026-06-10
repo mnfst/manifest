@@ -215,6 +215,10 @@ vi.mock('../../src/services/connection-breadcrumb-store.js', () => ({
 vi.mock('manifest-shared', () => ({
   platformIcon: () => 'robot',
   PLATFORM_LABELS: { codex: 'Codex' },
+  // routing-utils (imported by GlobalOverview for stripCustomPrefix) reads
+  // these at module scope.
+  SHARED_PROVIDERS: [],
+  inferProviderFromModel: (m: string) => (m.startsWith('custom:') ? 'custom' : null),
 }));
 
 import GlobalOverview from '../../src/pages/GlobalOverview';
@@ -237,6 +241,39 @@ const overviewResponse = {
       estimated_cost: 1.23,
       auth_type: 'api_key',
       provider: 'openai',
+    },
+    {
+      // Custom provider row with a backend-resolved name → letter avatar +
+      // stripped model text (the literal `custom:` prefix must never render).
+      model: 'custom:cp-1/llama-local',
+      display_name: 'custom:cp-1/llama-local',
+      tokens: 300,
+      share_pct: 19,
+      estimated_cost: 0.44,
+      auth_type: 'api_key',
+      provider: 'custom:cp-1',
+      custom_provider_name: 'Custom Provider',
+    },
+    {
+      // Deleted custom provider (NULL name) → letter falls back to the model.
+      model: 'custom:cp-gone/zeta-model',
+      display_name: 'custom:cp-gone/zeta-model',
+      tokens: 100,
+      share_pct: 6,
+      estimated_cost: 0.1,
+      auth_type: 'api_key',
+      provider: 'custom:cp-gone',
+      custom_provider_name: null,
+    },
+    {
+      // Legacy row with no stored provider → no icon, plain display name.
+      model: 'orphan-model',
+      display_name: 'Orphan Model',
+      tokens: 10,
+      share_pct: 1,
+      estimated_cost: 0.01,
+      auth_type: null,
+      provider: null,
     },
   ],
   recent_activity: [
@@ -316,6 +353,8 @@ const providersResponse = {
     {
       provider: 'custom:cp-1',
       auth_type: 'api_key',
+      // Backend-resolved custom provider name (LEFT JOIN on custom_providers).
+      display_name: 'Custom Provider',
       connection_count: 1,
       connections: [{ id: 'conn-custom', label: 'My custom key', is_active: true }],
       total_models: 2,
@@ -328,6 +367,7 @@ const providersResponse = {
     {
       provider: 'custom:cp-2',
       auth_type: 'subscription',
+      display_name: 'Sub Custom',
       connection_count: 1,
       connections: [{ id: 'conn-custom-sub', label: 'Default', is_active: true }],
       total_models: 1,
@@ -495,6 +535,13 @@ describe('GlobalOverview (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Custom Provider').length).toBeGreaterThan(0));
     // model usage + provider connection rows render
     expect(screen.getByText('GPT-5')).toBeDefined();
+    // custom cost-by-model rows show the stripped model text (no `custom:`),
+    // with a letter avatar from the provider name — or from the model when
+    // the provider was deleted (NULL custom_provider_name).
+    expect(screen.getByText('llama-local')).toBeDefined();
+    expect(screen.getByText('zeta-model')).toBeDefined();
+    expect(container.textContent).not.toContain('custom:cp-1/');
+    expect(container.textContent).not.toContain('custom:cp-gone/');
 
     fireEvent.click(screen.getByText('Messages chart'));
     expect(screen.getByTestId('provider-chart-card').getAttribute('data-active-view')).toBe(
