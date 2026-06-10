@@ -354,6 +354,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     );
   };
 
+  const connectionLastUsedAt = (summary: UserProviderSummary) =>
+    summary.connections.length === 1 ? summary.last_used_at : null;
+
   const showMetricCard = () =>
     props.kind === 'subscriptions' || connectedRows().length > 0 || pageMetricTotal() > 0;
 
@@ -470,6 +473,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                   <tr
                     style="cursor: pointer;"
                     onClick={() => navigate(`/providers/connections/${row.connection.id}`)}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        navigate(`/providers/connections/${row.connection.id}`);
+                      }
+                    }}
+                    tabindex="0"
                   >
                     <td>
                       <span style="display: flex; align-items: center; gap: 10px;">
@@ -499,7 +510,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       <StatusBadge active={row.connection.is_active} />
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                      {row.summary.last_used_at ? formatTimeAgo(row.summary.last_used_at) : '-'}
+                      {connectionLastUsedAt(row.summary)
+                        ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                        : '-'}
                     </td>
                     <td style="text-align: right;">
                       <button
