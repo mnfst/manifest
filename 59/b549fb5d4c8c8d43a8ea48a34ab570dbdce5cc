@@ -1,0 +1,29 @@
+node_modules
+  s_cd68a57c9c12bc::t_ad45d09a063f44 1
+packages/frontend/tests/pages/Overview.test.tsx
+  s_cd68a57c9c12bc::t_6cb5ec99177a4f 339,344
+packages/frontend/src/pages/Overview.tsx
+  s_cd68a57c9c12bc::t_dab7d47e8850bf 89,214-238,240,242-247,250,254,256,267-291,293-320,322-331,333-345,347-350,353,355-376,378-382
+packages/frontend/src/components/ChartCard.tsx
+  s_cd68a57c9c12bc::t_e85db690e6d16b 1,13
+packages/backend/node_modules
+  s_cd68a57c9c12bc::t_ad45d09a063f44 1
+.changeset/remove-subscription-savings.md
+  s_cd68a57c9c12bc::t_c591a69ad29cf2 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "59b549fb5d4c8c8d43a8ea48a34ab570dbdce5cc",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
