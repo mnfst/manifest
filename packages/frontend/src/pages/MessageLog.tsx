@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta';
-import { A, useNavigate, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams, useSearchParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
@@ -59,6 +59,7 @@ const HEADER_TIER_FILTER_PREFIX = 'header:';
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const [searchParams] = useSearchParams<{ agent?: string }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
@@ -75,7 +76,11 @@ const MessageLog: Component = () => {
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
-  const [agentFilter, setAgentFilter] = createSignal('');
+  // Seed the agent filter from ?agent= so the "View more" link on a harness's
+  // Recent Messages opens the global log pre-scoped to that harness.
+  const [agentFilter, setAgentFilter] = createSignal(
+    typeof searchParams.agent === 'string' ? searchParams.agent : '',
+  );
   const [agentList] = createResource(
     () => !params.agentName,
     async (isGlobal) => {

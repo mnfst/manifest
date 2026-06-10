@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 let mockAgentName = "test-agent";
+let mockSearchParams: Record<string, string | undefined> = {};
 const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
+  useSearchParams: () => [mockSearchParams, vi.fn()],
   useNavigate: () => mockNavigate,
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
@@ -134,6 +136,7 @@ describe("MessageLog", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = "test-agent";
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }, { agent_name: "agent-beta" }] });
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
@@ -1343,6 +1346,18 @@ describe("MessageLog", () => {
         const calls = mockGetMessages.mock.calls;
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.agent_name).toBe("agent-alpha");
+      });
+    });
+
+    it("pre-seeds the agent filter from the ?agent= query param (View more deep-link)", async () => {
+      mockAgentName = "";
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-beta");
       });
     });
 
