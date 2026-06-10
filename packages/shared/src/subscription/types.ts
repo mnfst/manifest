@@ -22,5 +22,13 @@ export interface SubscriptionProviderConfig {
    *     strict whitelist (Gemini CodeAssist 404s on suffixed variants).
    */
   knownModelsMatch?: 'prefix' | 'exact';
+  /**
+   * Case-insensitive substrings that disqualify a model id from the curated
+   * subscription catalog, even when it matches `knownModels`. Used to drop
+   * pricing-cache entries that look like real models but 404 at the
+   * subscription endpoint — e.g. Anthropic's `claude-*-fast` ids, where "fast
+   * mode" is an `anthropic-beta` header on the base model, not a model id.
+   */
+  knownModelsExclude?: readonly string[];
   subscriptionCapabilities?: Readonly<SubscriptionCapabilities>;
 }

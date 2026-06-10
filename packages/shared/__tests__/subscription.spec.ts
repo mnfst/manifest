@@ -5,6 +5,7 @@ import {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
+  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from '../src/subscription';
 
@@ -411,6 +412,20 @@ describe('getSubscriptionKnownModelsMatch', () => {
   it('is case-insensitive', () => {
     expect(getSubscriptionKnownModelsMatch('GEMINI')).toBe('exact');
     expect(getSubscriptionKnownModelsMatch('Anthropic')).toBe('prefix');
+  });
+});
+
+describe('getSubscriptionExcludedModels', () => {
+  it('returns the -fast exclusion for anthropic', () => {
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  });
+
+  it('returns an empty array for providers with no exclusion configured', () => {
+    expect(getSubscriptionExcludedModels('gemini')).toEqual([]);
+  });
+
+  it('returns an empty array for unknown providers', () => {
+    expect(getSubscriptionExcludedModels('unknown')).toEqual([]);
   });
 });
 
