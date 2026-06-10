@@ -1,5 +1,9 @@
 import { computePeriodBoundaries, computePeriodResetDate } from './period.util';
 
+// Parse a local-time `YYYY-MM-DD HH:MM:SS` string (no tz suffix) back into a
+// Date using the same local-timezone interpretation the formatter used.
+const parseLocal = (s: string) => new Date(s.replace(' ', 'T'));
+
 describe('computePeriodBoundaries', () => {
   it('returns periodStart and periodEnd as formatted strings', () => {
     const { periodStart, periodEnd } = computePeriodBoundaries('day');
@@ -7,41 +11,41 @@ describe('computePeriodBoundaries', () => {
     expect(periodEnd).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
   });
 
-  it('hour: start is 1 hour before current hour', () => {
+  it('hour: start is 1 hour before the current local hour', () => {
     const now = new Date();
     const { periodStart } = computePeriodBoundaries('hour');
-    const start = new Date(periodStart.replace(' ', 'T') + 'Z');
-    const expectedHour = now.getUTCHours() - 1;
-    expect(start.getUTCHours()).toBe(expectedHour < 0 ? expectedHour + 24 : expectedHour);
-    expect(start.getUTCMinutes()).toBe(0);
-    expect(start.getUTCSeconds()).toBe(0);
+    const start = parseLocal(periodStart);
+    const expectedHour = now.getHours() - 1;
+    expect(start.getHours()).toBe(expectedHour < 0 ? expectedHour + 24 : expectedHour);
+    expect(start.getMinutes()).toBe(0);
+    expect(start.getSeconds()).toBe(0);
   });
 
-  it('day: start is midnight UTC today', () => {
+  it('day: start is local midnight today', () => {
     const now = new Date();
     const { periodStart } = computePeriodBoundaries('day');
-    const start = new Date(periodStart.replace(' ', 'T') + 'Z');
-    expect(start.getUTCHours()).toBe(0);
-    expect(start.getUTCMinutes()).toBe(0);
-    expect(start.getUTCDate()).toBe(now.getUTCDate());
+    const start = parseLocal(periodStart);
+    expect(start.getHours()).toBe(0);
+    expect(start.getMinutes()).toBe(0);
+    expect(start.getDate()).toBe(now.getDate());
   });
 
-  it('week: start is Monday at midnight UTC', () => {
+  it('week: start is Monday at local midnight', () => {
     const { periodStart } = computePeriodBoundaries('week');
-    const start = new Date(periodStart.replace(' ', 'T') + 'Z');
-    expect(start.getUTCHours()).toBe(0);
-    expect(start.getUTCMinutes()).toBe(0);
+    const start = parseLocal(periodStart);
+    expect(start.getHours()).toBe(0);
+    expect(start.getMinutes()).toBe(0);
     // Monday is day 1
-    expect(start.getUTCDay()).toBe(1);
+    expect(start.getDay()).toBe(1);
   });
 
-  it('month: start is first of month at midnight UTC', () => {
+  it('month: start is first of month at local midnight', () => {
     const now = new Date();
     const { periodStart } = computePeriodBoundaries('month');
-    const start = new Date(periodStart.replace(' ', 'T') + 'Z');
-    expect(start.getUTCDate()).toBe(1);
-    expect(start.getUTCHours()).toBe(0);
-    expect(start.getUTCMonth()).toBe(now.getUTCMonth());
+    const start = parseLocal(periodStart);
+    expect(start.getDate()).toBe(1);
+    expect(start.getHours()).toBe(0);
+    expect(start.getMonth()).toBe(now.getMonth());
   });
 
   it('unknown period: defaults to hour-like behavior', () => {
@@ -53,9 +57,28 @@ describe('computePeriodBoundaries', () => {
     const before = Date.now();
     const { periodEnd } = computePeriodBoundaries('day');
     const after = Date.now();
-    const end = new Date(periodEnd.replace(' ', 'T') + 'Z').getTime();
+    const end = parseLocal(periodEnd).getTime();
     expect(end).toBeGreaterThanOrEqual(before - 1000);
     expect(end).toBeLessThanOrEqual(after + 1000);
+  });
+
+  // Regression: the boundaries must be expressed in the process's LOCAL
+  // timezone, not UTC. `agent_messages.timestamp` rows are stored as local-time
+  // `timestamp without time zone`, so a UTC `periodEnd` (the old code formatted
+  // via toISOString) sits behind the stored rows by the process TZ offset and
+  // the consumption SUM silently reads ~0 — meaning token/cost limits never
+  // trip. We assert that periodEnd, interpreted as a local-time string,
+  // round-trips back to the real instant. With the old UTC formatting this only
+  // holds when the host TZ is UTC; on any other zone (every broken real-world
+  // deployment, and this CI host when run under TZ!=UTC) it fails.
+  it('formats periodEnd in local wall-clock so it round-trips to the real instant', () => {
+    const instant = new Date('2026-06-10T11:16:00.000Z');
+    jest.useFakeTimers().setSystemTime(instant);
+
+    const { periodEnd } = computePeriodBoundaries('day');
+    expect(parseLocal(periodEnd).getTime()).toBe(instant.getTime());
+
+    jest.useRealTimers();
   });
 });
 
@@ -65,59 +88,51 @@ describe('computePeriodResetDate', () => {
     expect(result).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
   });
 
-  it('hour: returns start of next hour UTC', () => {
+  it('hour: returns start of the next local hour', () => {
     const now = new Date();
-    const result = computePeriodResetDate('hour');
-    const reset = new Date(result.replace(' ', 'T') + 'Z');
-    const expectedHour = (now.getUTCHours() + 1) % 24;
-    expect(reset.getUTCHours()).toBe(expectedHour);
-    expect(reset.getUTCMinutes()).toBe(0);
-    expect(reset.getUTCSeconds()).toBe(0);
+    const reset = parseLocal(computePeriodResetDate('hour'));
+    const expectedHour = (now.getHours() + 1) % 24;
+    expect(reset.getHours()).toBe(expectedHour);
+    expect(reset.getMinutes()).toBe(0);
+    expect(reset.getSeconds()).toBe(0);
   });
 
-  it('day: returns midnight UTC next day', () => {
+  it('day: returns local midnight next day', () => {
     const now = new Date();
-    const result = computePeriodResetDate('day');
-    const reset = new Date(result.replace(' ', 'T') + 'Z');
-    expect(reset.getUTCHours()).toBe(0);
-    expect(reset.getUTCMinutes()).toBe(0);
-    const expectedDate = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
-    );
-    expect(reset.getUTCDate()).toBe(expectedDate.getUTCDate());
+    const reset = parseLocal(computePeriodResetDate('day'));
+    expect(reset.getHours()).toBe(0);
+    expect(reset.getMinutes()).toBe(0);
+    const expectedDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    expect(reset.getDate()).toBe(expectedDate.getDate());
   });
 
-  it('week: returns next Monday at midnight UTC', () => {
-    const result = computePeriodResetDate('week');
-    const reset = new Date(result.replace(' ', 'T') + 'Z');
-    expect(reset.getUTCDay()).toBe(1); // Monday
-    expect(reset.getUTCHours()).toBe(0);
-    expect(reset.getUTCMinutes()).toBe(0);
+  it('week: returns next Monday at local midnight', () => {
+    const reset = parseLocal(computePeriodResetDate('week'));
+    expect(reset.getDay()).toBe(1); // Monday
+    expect(reset.getHours()).toBe(0);
+    expect(reset.getMinutes()).toBe(0);
     expect(reset.getTime()).toBeGreaterThan(Date.now());
   });
 
-  it('month: returns first of next month UTC', () => {
+  it('month: returns first of next month', () => {
     const now = new Date();
-    const result = computePeriodResetDate('month');
-    const reset = new Date(result.replace(' ', 'T') + 'Z');
-    expect(reset.getUTCDate()).toBe(1);
-    expect(reset.getUTCHours()).toBe(0);
-    const expectedMonth = (now.getUTCMonth() + 1) % 12;
-    expect(reset.getUTCMonth()).toBe(expectedMonth);
+    const reset = parseLocal(computePeriodResetDate('month'));
+    expect(reset.getDate()).toBe(1);
+    expect(reset.getHours()).toBe(0);
+    const expectedMonth = (now.getMonth() + 1) % 12;
+    expect(reset.getMonth()).toBe(expectedMonth);
   });
 
   it('week on a Monday: daysUntilMonday falls back to 7', () => {
-    // 2026-03-02 is a Monday (UTC day = 1)
-    const monday = new Date(Date.UTC(2026, 2, 2, 12, 0, 0));
+    // 2026-03-02 is a Monday — pin local noon so the local day is Monday.
     jest.useFakeTimers();
-    jest.setSystemTime(monday);
+    jest.setSystemTime(new Date(2026, 2, 2, 12, 0, 0));
 
-    const result = computePeriodResetDate('week');
-    const reset = new Date(result.replace(' ', 'T') + 'Z');
+    const reset = parseLocal(computePeriodResetDate('week'));
 
     // Should be next Monday, exactly 7 days later
-    expect(reset.getUTCDay()).toBe(1);
-    expect(reset.getUTCDate()).toBe(monday.getUTCDate() + 7);
+    expect(reset.getDay()).toBe(1);
+    expect(reset.getDate()).toBe(9);
 
     jest.useRealTimers();
   });
@@ -129,8 +144,7 @@ describe('computePeriodResetDate', () => {
 
   it('reset date is always in the future', () => {
     for (const period of ['hour', 'day', 'week', 'month']) {
-      const result = computePeriodResetDate(period);
-      const reset = new Date(result.replace(' ', 'T') + 'Z');
+      const reset = parseLocal(computePeriodResetDate(period));
       expect(reset.getTime()).toBeGreaterThan(Date.now() - 1000);
     }
   });

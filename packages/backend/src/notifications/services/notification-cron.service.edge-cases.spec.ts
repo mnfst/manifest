@@ -26,6 +26,23 @@ const baseRule = {
   period: 'day' as const,
 };
 
+// computePeriodBoundaries emits boundaries in the process's LOCAL timezone (to
+// match how agent_messages.timestamp is stored). These helpers rebuild the
+// expected start from the pinned instant the same way, so the assertions hold
+// regardless of the timezone CI runs under (UTC) vs a developer's machine.
+const pad = (n: number) => String(n).padStart(2, '0');
+const fmtLocal = (d: Date) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+  `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+const localDayStart = (iso: string) => {
+  const d = new Date(iso);
+  return fmtLocal(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+};
+const localHourStart = (iso: string) => {
+  const d = new Date(iso);
+  return fmtLocal(new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours() - 1));
+};
+
 describe('NotificationCronService — edge cases', () => {
   let service: NotificationCronService;
   let mockGetAllActiveRules: jest.Mock;
@@ -115,8 +132,8 @@ describe('NotificationCronService — edge cases', () => {
 
       expect(dedupPeriodStart).toBe(consumptionPeriodStart);
       expect(insertedPeriodStart).toBe(consumptionPeriodStart);
-      // Day period: midnight UTC. Fixed expectation.
-      expect(consumptionPeriodStart).toBe('2026-06-15 00:00:00');
+      // Day period: local midnight.
+      expect(consumptionPeriodStart).toBe(localDayStart('2026-06-15T12:00:00Z'));
     });
 
     it('emits an "hour" period that recomputes consistently within the same tick', async () => {
@@ -134,8 +151,8 @@ describe('NotificationCronService — edge cases', () => {
 
       const consumptionPeriodStart = mockGetConsumption.mock.calls[0][3];
       const dedupPeriodStart = mockHasAlreadySent.mock.calls[0][1];
-      // hour period: previous hour boundary (UTC).
-      expect(consumptionPeriodStart).toBe('2026-06-15 11:00:00');
+      // hour period: previous local-hour boundary.
+      expect(consumptionPeriodStart).toBe(localHourStart('2026-06-15T12:30:00Z'));
       expect(dedupPeriodStart).toBe(consumptionPeriodStart);
     });
 
@@ -163,14 +180,14 @@ describe('NotificationCronService — edge cases', () => {
       const insertedPeriodStart = mockInsertLog.mock.calls[0][0].periodStart;
 
       // The drift is real and observable: consumption was measured against the
-      // 10:00 start, but the dedup key + log row were written under the 11:00 start.
-      // This documents the current behaviour. When the source is refactored to
-      // capture periodStart once (e.g. pass it from checkThresholds into
-      // evaluateRule, or use a fixed epoch-modulo derivation), update these
-      // expectations to equality.
-      expect(consumptionPeriodStart).toBe('2026-06-15 10:00:00');
-      expect(dedupPeriodStart).toBe('2026-06-15 11:00:00');
-      expect(insertedPeriodStart).toBe('2026-06-15 11:00:00');
+      // earlier hour start, but the dedup key + log row were written under the
+      // next hour start (one hour later). This documents the current behaviour.
+      // When the source is refactored to capture periodStart once (e.g. pass it
+      // from checkThresholds into evaluateRule, or use a fixed epoch-modulo
+      // derivation), update these expectations to equality.
+      expect(consumptionPeriodStart).toBe(localHourStart('2026-06-15T11:59:59Z'));
+      expect(dedupPeriodStart).toBe(localHourStart('2026-06-15T12:00:01Z'));
+      expect(insertedPeriodStart).toBe(localHourStart('2026-06-15T12:00:01Z'));
       expect(dedupPeriodStart).not.toBe(consumptionPeriodStart);
     });
   });
