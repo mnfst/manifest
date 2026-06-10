@@ -186,9 +186,36 @@ export async function bootstrap() {
   const { toNodeHandler } = await import('better-auth/node');
   expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
-  // Re-add body parsing for NestJS routes
-  expressApp.use(express.json({ limit: '1mb' }));
-  expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // Re-add body parsing for NestJS routes.
+  // Limit is sized to fit a full LLM turn (large conversation history + tool
+  // outputs can legitimately reach several MB); actual growth stays bounded by
+  // the upstream agent's context window / compaction, not by this transport cap.
+  expressApp.use(express.json({ limit: '10mb' }));
+  expressApp.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // Surface oversized bodies as a proper 413 instead of falling through to a
+  // generic 404 ("Cannot POST ...") that hides the real cause.
+  expressApp.use(
+    (
+      err: { type?: string; status?: number; statusCode?: number },
+      _req: express.Request,
+      res: express.Response,
+      next: express.NextFunction,
+    ) => {
+      if (
+        err &&
+        (err.type === 'entity.too.large' || err.status === 413 || err.statusCode === 413)
+      ) {
+        res.status(413).json({
+          statusCode: 413,
+          error: 'Payload Too Large',
+          message: 'Request body exceeds the configured size limit',
+        });
+        return;
+      }
+      next(err);
+    },
+  );
 
   const port = Number(process.env['PORT'] ?? 3001);
   const host = process.env['BIND_ADDRESS'] ?? '127.0.0.1';
