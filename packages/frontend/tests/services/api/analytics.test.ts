@@ -135,6 +135,7 @@ describe('analytics API client', () => {
     const fns: Array<[(a: string, r?: string) => unknown, string]> = [
       [analytics.getPerProviderTimeseries, 'per-provider-timeseries'],
       [analytics.getPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
+      [analytics.getPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
     ];
     for (const [fn, path] of fns) {
       const fetchMock = setupFetch({ agents: [], timeseries: [] });
