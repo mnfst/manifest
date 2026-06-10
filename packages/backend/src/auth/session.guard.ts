@@ -1,12 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { fromNodeHeaders } from 'better-auth/node';
 import { createHash } from 'crypto';
 import { auth } from './auth.instance';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
 import { isLoopbackPeer } from '../common/utils/local-ip';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
+
+let fromNodeHeadersFn: ((headers: any) => any) | null = null;
 
 interface CachedSession {
   user: unknown;
@@ -68,8 +69,12 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
     }
 
     try {
+      if (!fromNodeHeadersFn) {
+        const { fromNodeHeaders } = await import('better-auth/node');
+        fromNodeHeadersFn = fromNodeHeaders;
+      }
       const session = await auth.api.getSession({
-        headers: fromNodeHeaders(request.headers),
+        headers: fromNodeHeadersFn(request.headers),
       });
 
       if (session) {
