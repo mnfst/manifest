@@ -41,6 +41,15 @@ vi.mock('../../src/services/formatters.js', () => ({
   customProviderColor: () => '#123456',
 }));
 
+const mockToastError = vi.fn();
+vi.mock('../../src/services/toast-store.js', () => ({
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: vi.fn(),
+    warning: vi.fn(),
+  },
+}));
+
 import AgentProviders from '../../src/pages/AgentProviders';
 
 const providersResponse = {
@@ -169,7 +178,7 @@ describe('AgentProviders', () => {
     });
   });
 
-  it('shows disable impact before disabling with DELETE', async () => {
+  it('blocks disabling with an error toast when the provider has routed models', async () => {
     render(() => <AgentProviders />);
 
     await waitFor(() => {
@@ -179,14 +188,24 @@ describe('AgentProviders', () => {
 
     await waitFor(() => {
       expect(mockGetAgentProviderDisableImpact).toHaveBeenCalledWith('demo-agent', 'up-openai');
-      expect(screen.getByText('Disable provider')).toBeDefined();
-      expect(screen.getByText('gpt-4o')).toBeDefined();
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("Can't disable OpenAI"));
     });
+    expect(mockDisableAgentProviderAccess).not.toHaveBeenCalled();
+  });
 
-    fireEvent.click(screen.getByText('Disable'));
+  it('disables directly with DELETE when no models are routed', async () => {
+    mockGetAgentProviderDisableImpact.mockResolvedValue({ affected_tiers: [] });
+    render(() => <AgentProviders />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Disable OpenAI Work')).toBeDefined();
+    });
+    fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
+
     await waitFor(() => {
       expect(mockDisableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
     });
+    expect(mockToastError).not.toHaveBeenCalled();
   });
 
   it('renders an empty state when no active providers exist', async () => {
@@ -210,7 +229,7 @@ describe('AgentProviders', () => {
     });
   });
 
-  it('still opens the disable dialog when impact lookup fails', async () => {
+  it('shows an error toast and aborts when the impact check fails', async () => {
     mockGetAgentProviderDisableImpact.mockRejectedValue(new Error('impact failed'));
     render(() => <AgentProviders />);
 
@@ -220,42 +239,14 @@ describe('AgentProviders', () => {
     fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
 
     await waitFor(() => {
-      expect(screen.getByText('Disable provider')).toBeDefined();
+      expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("Couldn't check"));
     });
-    expect(screen.queryByText('The following routing assignments will be removed:')).toBeNull();
-  });
-
-  it('closes the disable dialog with Escape and confirms with Enter', async () => {
-    render(() => <AgentProviders />);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Disable OpenAI Work')).toBeDefined();
-    });
-    fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
-    await waitFor(() => {
-      expect(screen.getByText('Disable provider')).toBeDefined();
-    });
-
-    const overlay = screen.getByText('Disable provider').closest('.modal-overlay')!;
-    fireEvent.keyDown(overlay, { key: 'Escape' });
-    await waitFor(() => {
-      expect(screen.queryByText('Disable provider')).toBeNull();
-    });
-
-    fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
-    await waitFor(() => {
-      expect(screen.getByText('Disable provider')).toBeDefined();
-    });
-    fireEvent.keyDown(screen.getByText('Disable provider').closest('.modal-overlay')!, {
-      key: 'Enter',
-    });
-    await waitFor(() => {
-      expect(mockDisableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
-    });
+    expect(mockDisableAgentProviderAccess).not.toHaveBeenCalled();
   });
 
   it('clears busy state when enable or disable calls fail', async () => {
     mockEnableAgentProviderAccess.mockRejectedValueOnce(new Error('enable failed'));
+    mockGetAgentProviderDisableImpact.mockResolvedValue({ affected_tiers: [] });
     mockDisableAgentProviderAccess.mockRejectedValueOnce(new Error('disable failed'));
     render(() => <AgentProviders />);
 
@@ -271,11 +262,12 @@ describe('AgentProviders', () => {
 
     fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
     await waitFor(() => {
-      expect(screen.getByText('Disable provider')).toBeDefined();
+      expect(mockDisableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
     });
-    fireEvent.click(screen.getByText('Disable'));
     await waitFor(() => {
-      expect(screen.queryByText('Disable provider')).toBeNull();
+      expect((screen.getByLabelText('Disable OpenAI Work') as HTMLButtonElement).disabled).toBe(
+        false,
+      );
     });
   });
 });
