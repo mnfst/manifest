@@ -1,12 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 
 let mockAgentName = "test-agent";
 let mockSearchParams: Record<string, string | undefined> = {};
+let mockSearchAgentAccessor: (() => string | undefined) | null = null;
 const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
-  useSearchParams: () => [mockSearchParams, vi.fn()],
+  useSearchParams: () => [
+    {
+      get agent() {
+        return mockSearchAgentAccessor ? mockSearchAgentAccessor() : mockSearchParams.agent;
+      },
+    },
+    vi.fn(),
+  ],
   useNavigate: () => mockNavigate,
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
@@ -137,6 +146,7 @@ describe("MessageLog", () => {
     localStorage.clear();
     mockAgentName = "test-agent";
     mockSearchParams = {};
+    mockSearchAgentAccessor = null;
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }, { agent_name: "agent-beta" }] });
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
@@ -1359,6 +1369,30 @@ describe("MessageLog", () => {
         const lastQ = calls[calls.length - 1]?.[0] ?? {};
         expect(lastQ.agent_name).toBe("agent-beta");
       });
+    });
+
+    it("updates the agent filter when the ?agent= query param changes", async () => {
+      mockAgentName = "";
+      const [searchAgent, setSearchAgent] = createSignal<string | undefined>();
+      mockSearchAgentAccessor = searchAgent;
+      mockGetMessages.mockResolvedValue(messagesData);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-beta");
+      });
+
+      mockGetMessages.mockClear();
+      setSearchAgent("agent-beta");
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-beta");
+      });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      expect(agentSelect.value).toBe("agent-beta");
     });
 
     it("omits agent_name query param when 'All harnesses' is selected", async () => {
