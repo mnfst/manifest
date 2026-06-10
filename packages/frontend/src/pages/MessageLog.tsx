@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta';
-import { A, useNavigate, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams, useSearchParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
@@ -54,11 +54,18 @@ interface MessagesData {
   providers: string[];
 }
 
+interface AgentFilterOption {
+  agent_name: string;
+  agent_platform?: string | null;
+  agent_category?: string | null;
+}
+
 const SPECIFICITY_FILTER_PREFIX = 'specificity:';
 const HEADER_TIER_FILTER_PREFIX = 'header:';
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const [searchParams] = useSearchParams<{ agent?: string }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
@@ -75,22 +82,34 @@ const MessageLog: Component = () => {
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
-  const [agentFilter, setAgentFilter] = createSignal('');
-  const [agentList] = createResource(
+  // Seed the agent filter from ?agent= so the "View more" link on a harness's
+  // Recent Messages opens the global log pre-scoped to that harness.
+  const [agentFilter, setAgentFilter] = createSignal(
+    typeof searchParams.agent === 'string' ? searchParams.agent : '',
+  );
+  const [agentListRaw] = createResource(
     () => !params.agentName,
     async (isGlobal) => {
-      if (!isGlobal) return [] as string[];
+      if (!isGlobal) return [] as AgentFilterOption[];
       // includeSystem=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
-        | { agents?: Array<{ agent_name: string }> }
-        | Array<{ agent_name: string }>;
-      const list = (Array.isArray(data) ? data : (data?.agents ?? [])) as Array<{
-        agent_name: string;
-      }>;
-      return list.map((a) => a.agent_name).sort();
+        | { agents?: AgentFilterOption[] }
+        | AgentFilterOption[];
+      return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
     },
   );
+  const agentList = createMemo(() => (agentListRaw() ?? []).map((a) => a.agent_name).sort());
+  const agentPlatformMap = createMemo(() => {
+    const map = new Map<string, { platform: string | null; category: string | null }>();
+    for (const a of agentListRaw() ?? []) {
+      map.set(a.agent_name, {
+        platform: a.agent_platform ?? null,
+        category: a.agent_category ?? null,
+      });
+    }
+    return map;
+  });
   const agentFilterOptions = createMemo(() => [
     { label: 'All harnesses', value: '' },
     ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
@@ -576,6 +595,7 @@ const MessageLog: Component = () => {
                   columns={columns()}
                   agentName={params.agentName}
                   customProviderName={customProviderName}
+                  agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
