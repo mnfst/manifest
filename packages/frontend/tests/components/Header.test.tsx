@@ -296,10 +296,14 @@ describe("Header - breadcrumb", () => {
     expect(logoLink.getAttribute("href")).toBe("/");
   });
 
-  it("shows Workspace breadcrumb when agent is active", () => {
+  it("shows only the active agent breadcrumb when agent is active", () => {
     mockAgentName = "my-agent";
-    render(() => <Header />);
-    expect(screen.getByText("Workspace")).toBeDefined();
+    const { container } = render(() => <Header />);
+    expect(screen.queryByText("Workspace")).toBeNull();
+    expect(container.querySelector(".header__breadcrumb-current")?.textContent).toContain(
+      "my-agent",
+    );
+    expect(container.querySelectorAll(".header__separator").length).toBe(1);
   });
 });
 

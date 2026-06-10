@@ -134,10 +134,6 @@ const Header: Component<HeaderProps> = (props) => {
         )}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A href="/harnesses" class="header__breadcrumb-link">
-            Workspace
-          </A>
-          <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">
             <Show when={agentPlatformIcon()}>
               <img
