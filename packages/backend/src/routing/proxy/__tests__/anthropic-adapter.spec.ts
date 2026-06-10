@@ -2304,6 +2304,21 @@ describe('Anthropic Adapter', () => {
         tool_choice: { type: 'auto' },
       });
     });
+
+    it('strips context_management (compaction field that requires a beta header)', () => {
+      const result = applyAnthropicMessagesMutations({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'hi' }],
+        context_management: { edits: [{ type: 'compact_20260112' }] },
+      });
+      expect(result).not.toHaveProperty('context_management');
+      expect(result).toMatchObject({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+    });
   });
 
   describe('extractThinkingBlocksFromMessagesResponse', () => {
