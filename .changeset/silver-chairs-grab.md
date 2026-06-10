@@ -2,12 +2,14 @@
 "manifest": patch
 ---
 
-fix: strip additional unsupported JSON Schema keywords from Gemini tool declarations
+fix: Gemini adapter — strip unsupported schema keywords and merge parallel tool responses
 
-Gemini's `function_declarations` parameter schema accepts only a restricted
-OpenAPI subset and hard-rejects unknown keywords with
-`Unknown name "<field>" ... Cannot find field`. The sanitizer now also strips
-`propertyNames`, `uniqueItems`, `multipleOf`, `contains`/`minContains`/`maxContains`,
-`prefixItems`, `additionalItems`, `readOnly`, `writeOnly`, `deprecated`, and the
-`$comment`/`$anchor`/`$dynamicRef`/`$dynamicAnchor`/`$vocabulary` meta-keywords,
-preventing 400 errors when tools carry these common JSON Schema fields.
+The Gemini adapter now strips additional JSON Schema keywords that Google's
+`function_declarations` parameter schema rejects (`propertyNames`,
+`uniqueItems`, `multipleOf`, `contains`/`minContains`/`maxContains`,
+`prefixItems`, `additionalItems`, `readOnly`, `writeOnly`, `deprecated`,
+and `$comment`/`$anchor`/`$dynamicRef`/`$dynamicAnchor`/`$vocabulary`).
+
+It also merges consecutive parallel tool responses into a single Gemini
+user turn, matching Google's requirement that N functionCall parts be
+answered by exactly N functionResponse parts in one turn.

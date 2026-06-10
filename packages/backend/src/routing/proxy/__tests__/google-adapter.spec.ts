@@ -2037,14 +2037,18 @@ describe('Google Adapter', () => {
         args: { q: 'cats' },
       });
 
-      // call_2 response resolved to `search` and keeps its id.
+      // call_2 and call_1 responses are merged into a single user turn with
+      // both functionResponse parts — Gemini requires N functionCall parts to be
+      // answered by exactly N functionResponse parts in one user turn.
+      expect(contents).toHaveLength(3);
+      expect(contents[2].role).toBe('user');
+      expect(contents[2].parts).toHaveLength(2);
       expect(contents[2].parts[0].functionResponse).toEqual({
         id: 'call_2',
         name: 'search',
         response: { result: '{"results":[]}' },
       });
-      // call_1 response resolved to `weather` and keeps its id.
-      expect(contents[3].parts[0].functionResponse).toEqual({
+      expect(contents[2].parts[1].functionResponse).toEqual({
         id: 'call_1',
         name: 'weather',
         response: { result: '{"temp":72}' },
