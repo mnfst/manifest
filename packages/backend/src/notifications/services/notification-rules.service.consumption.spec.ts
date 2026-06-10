@@ -201,8 +201,8 @@ describe('NotificationRulesService.getConsumption', () => {
     const agentFilter = qb.andWhere.mock.calls
       .map((c) => String(c[0]))
       .find((sql) => sql.includes('at.agent_id ='));
-    expect(agentFilter).toContain('at.agent_id IS NULL');
-    expect(agentFilter).toContain('at.agent_name = :agentName');
+    expect(agentFilter).toEqual(expect.stringContaining('at.agent_id IS NULL'));
+    expect(agentFilter).toEqual(expect.stringContaining('at.agent_name = :agentName'));
   });
 
   it('passes the period boundaries as inclusive-start, exclusive-end', async () => {
