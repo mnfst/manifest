@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta';
-import { A, useNavigate, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams, useSearchParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
@@ -74,7 +74,13 @@ const MessageLog: Component = () => {
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
-  const [agentFilter, setAgentFilter] = createSignal('');
+  const [searchParams] = useSearchParams<{ agent?: string }>();
+  // Seed from ?agent= (set by AgentMessagesRedirect) so "View more" on a
+  // harness overview lands pre-filtered; only meaningful in global mode —
+  // when the route itself carries an agent, that param scopes the query.
+  const [agentFilter, setAgentFilter] = createSignal(
+    !params.agentName && typeof searchParams.agent === 'string' ? searchParams.agent : '',
+  );
   const [agentList] = createResource(
     () => !params.agentName,
     async (isGlobal) => {

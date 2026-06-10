@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 let mockAgentName = "test-agent";
+let mockSearchParams: { agent?: string } = {};
 const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams, vi.fn()],
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
 
@@ -134,6 +136,7 @@ describe("MessageLog", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = "test-agent";
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }, { agent_name: "agent-beta" }] });
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
@@ -1327,6 +1330,28 @@ describe("MessageLog", () => {
       render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(mockGetAgents).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it("seeds the agent filter from the ?agent= search param (View more redirect)", async () => {
+      mockAgentName = "";
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const lastCall = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+        expect(lastCall.agent_name).toBe("agent-beta");
+      });
+    });
+
+    it("ignores the ?agent= search param in agent-scoped mode (route param wins)", async () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const lastCall = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+        expect(lastCall.agent_name).toBe("test-agent");
       });
     });
 
