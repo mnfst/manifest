@@ -769,7 +769,7 @@ export class ProviderService {
 
       const routeLabel = route.keyLabel?.toLowerCase();
       if (routeLabel) return routeLabel === rowLabel;
-      return row.priority === 0 || rowLabel === DEFAULT_LABEL.toLowerCase();
+      return row.priority === 0;
     }
 
     const model = route.model.toLowerCase();

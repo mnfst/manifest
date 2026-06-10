@@ -87,6 +87,13 @@ const MessageLog: Component = () => {
   const [agentFilter, setAgentFilter] = createSignal(
     typeof searchParams.agent === 'string' ? searchParams.agent : '',
   );
+  createEffect(
+    on(
+      () => searchParams.agent,
+      (agent) => setAgentFilter(typeof agent === 'string' ? agent : ''),
+      { defer: true },
+    ),
+  );
   const [agentListRaw] = createResource(
     () => !params.agentName,
     async (isGlobal) => {
