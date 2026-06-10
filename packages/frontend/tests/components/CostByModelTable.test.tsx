@@ -2,6 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import CostByModelTable from '../../src/components/CostByModelTable';
 
+vi.mock('@solidjs/router', () => ({
+	useLocation: () => ({ search: '' }),
+	useNavigate: () => vi.fn(),
+}));
+
 function row(overrides: Record<string, unknown> = {}) {
   return {
     model: 'gpt-5',
