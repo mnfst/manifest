@@ -1,0 +1,27 @@
+.changeset/google-image-parts.md
+  s_c44af2c7b9a4e7::t_de1417b7f73233 1,3-5
+packages/backend/src/routing/proxy/__tests__/google-adapter.spec.ts
+  s_c44af2c7b9a4e7::t_c37abeebf7bcca 806
+  s_c44af2c7b9a4e7::t_82cd00d23ca3d1 764-805,807-834
+packages/backend/src/routing/proxy/google-adapter.ts
+  s_c44af2c7b9a4e7::t_0f7bff679c94c0 35-36,45-46,128-145,183-185
+  s_c44af2c7b9a4e7::t_8f09de65529f4e 178-181
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_c44af2c7b9a4e7::t_ccc8acb9ac8067 51-80,805-834
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "8cbc0da3320a2d9f7c65b31fdfcf19e62aa48703",
+  "prompts": {},
+  "sessions": {
+    "s_c44af2c7b9a4e7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019eb035-5cc4-7140-ac0b-328f74e4b8b6",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
