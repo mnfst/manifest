@@ -1,0 +1,25 @@
+packages/backend/src/routing/user-providers.controller.ts
+  s_cd68a57c9c12bc::t_c5170a9def50b5 180-183,194-196
+  s_cd68a57c9c12bc::t_1792c668ed7f3e 26
+  s_cd68a57c9c12bc::t_5692f4971f496a 10
+packages/backend/src/routing/user-providers.controller.spec.ts
+  s_cd68a57c9c12bc::t_9ea84c8bd77fab 132
+  s_cd68a57c9c12bc::t_1ca0551639be9c 182-230
+  s_cd68a57c9c12bc::t_2e1d995994ae84 39,71,108,172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "d40345b57eab2c537580d27f42fff9186a639d68",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
