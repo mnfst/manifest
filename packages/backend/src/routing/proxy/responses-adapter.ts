@@ -117,8 +117,12 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
 }
 
 function toChatTools(tools: unknown[]): JsonRecord[] {
-  return tools.filter(isRecord).map((tool) => {
-    if (tool.type !== 'function') return tool;
+  return tools.filter(isRecord).flatMap((tool) => {
+    // Responses API built-in tools (computer_use, web_search, etc.) use
+    // type !== 'function'.  These cannot be forwarded to chat-completions-only
+    // providers (DeepSeek, Gemini, etc.) — skip them entirely rather than
+    // passing a type they don't understand and crashing the request.
+    if (tool.type !== 'function') return [];
     return {
       type: 'function',
       function: {
