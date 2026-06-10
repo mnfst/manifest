@@ -1,0 +1,19 @@
+docs/superpowers/specs/2026-06-10-custom-provider-display-design.md
+  s_cd68a57c9c12bc::t_5bc2e90b69a468 1-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5385d28913718ac4c5efa590858e4f008af0dee1",
+  "prompts": {},
+  "sessions": {
+    "s_cd68a57c9c12bc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ccc1e29-2639-470b-b21e-8a27c2c4ce1a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
