@@ -5,6 +5,7 @@ import {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
+  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from '../src/subscription';
 
@@ -289,6 +290,7 @@ describe('supportsSubscriptionProvider', () => {
 describe('getSubscriptionKnownModels', () => {
   it('returns known models for anthropic', () => {
     const models = getSubscriptionKnownModels('anthropic');
+    expect(models).toContain('claude-fable-5');
     expect(models).toContain('claude-opus-4');
     expect(models).toContain('claude-sonnet-4');
   });
@@ -411,6 +413,20 @@ describe('getSubscriptionKnownModelsMatch', () => {
   it('is case-insensitive', () => {
     expect(getSubscriptionKnownModelsMatch('GEMINI')).toBe('exact');
     expect(getSubscriptionKnownModelsMatch('Anthropic')).toBe('prefix');
+  });
+});
+
+describe('getSubscriptionExcludedModels', () => {
+  it('returns the -fast exclusion for anthropic', () => {
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  });
+
+  it('returns an empty array for providers with no exclusion configured', () => {
+    expect(getSubscriptionExcludedModels('gemini')).toEqual([]);
+  });
+
+  it('returns an empty array for unknown providers', () => {
+    expect(getSubscriptionExcludedModels('unknown')).toEqual([]);
   });
 });
 

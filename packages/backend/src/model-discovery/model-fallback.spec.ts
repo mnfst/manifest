@@ -280,6 +280,36 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result.length).toBeGreaterThanOrEqual(1);
   });
 
+  it('excludes Anthropic claude-*-fast pseudo-models that 404 at the API', () => {
+    const cache = new Map([
+      [
+        'anthropic/claude-opus-4-8',
+        { input: 0.015, output: 0.075, displayName: 'Claude Opus 4.8' },
+      ],
+      [
+        'anthropic/claude-opus-4.8-fast',
+        { input: 0.015, output: 0.075, displayName: 'Claude Opus 4.8 (fast)' },
+      ],
+    ]);
+
+    const ids = buildSubscriptionFallbackModels(makePricingSync(cache), 'anthropic').map(
+      (m) => m.id,
+    );
+
+    expect(ids).toContain('claude-opus-4-8');
+    expect(ids.some((id) => id.includes('-fast'))).toBe(false);
+  });
+
+  it('surfaces claude-fable-5 even when the pricing cache lacks it', () => {
+    // claude-fable-5 is a valid Anthropic subscription model with no pricing
+    // cache entry; the knownModels fallback must still offer it.
+    const ids = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'anthropic').map(
+      (m) => m.id,
+    );
+
+    expect(ids).toContain('claude-fable-5');
+  });
+
   it('returns [] for opencode-go because its catalog is fetched dynamically', () => {
     // OpenCode Go has no hardcoded knownModels. The fallback path must stay empty
     // so we do not fabricate stale entries when the live catalog is unreachable.
