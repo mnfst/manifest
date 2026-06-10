@@ -126,10 +126,7 @@ export function getPerProviderMessageTimeseries(
   }) as PivotedTimeseries;
 }
 
-export function getPerProviderCostTimeseries(
-  agentName: string,
-  range = '24h',
-): PivotedTimeseries {
+export function getPerProviderCostTimeseries(agentName: string, range = '24h'): PivotedTimeseries {
   return fetchJson('/overview/per-provider-cost-timeseries', {
     agent_name: agentName,
     range,

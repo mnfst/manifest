@@ -5,11 +5,14 @@ import {
   createMemo,
   createResource,
   createSignal,
+  For,
   on,
+  onCleanup,
   Show,
   type Component,
 } from 'solid-js';
-import ChartCard from '../components/ChartCard.jsx';
+import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import FeedbackModal from '../components/FeedbackModal.jsx';
@@ -20,7 +23,13 @@ import SetupModal from '../components/SetupModal.jsx';
 import { type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
+import { PROVIDERS } from '../services/providers.js';
 import { getOverview, setMessageFeedback, clearMessageFeedback } from '../services/api.js';
+import {
+  getPerProviderTimeseries,
+  getPerProviderMessageTimeseries,
+  getPerProviderCostTimeseries,
+} from '../services/api/analytics.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
 import { messagePing } from '../services/sse.js';
@@ -31,6 +40,7 @@ import {
   useOverviewRange,
 } from '../services/use-overview-range.js';
 import '../styles/overview.css';
+import '../styles/charts.css';
 
 interface OverviewData {
   summary: {
@@ -71,6 +81,11 @@ interface OverviewData {
   has_data?: boolean;
   has_providers?: boolean;
 }
+
+type PivotedTimeseries = {
+  agents: string[];
+  timeseries: Array<Record<string, number | string>>;
+};
 
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
@@ -204,10 +219,114 @@ const Overview: Component = () => {
     ),
   );
 
-  const messageChartData = createMemo(() => {
-    const src = data()?.message_usage;
-    return src?.map((d) => ({ time: d.hour ?? d.date ?? '', value: d.count })) ?? [];
+  // ── Provider breakdown (per-agent, grouped by provider) ─────────────
+  const providerFilterKey = () => `agent-overview-providers:${params.agentName}`;
+  const loadSavedProviders = (): Set<string> => {
+    try {
+      const saved = sessionStorage.getItem(providerFilterKey());
+      if (saved) return new Set(JSON.parse(saved) as string[]);
+    } catch {
+      /* ignore */
+    }
+    return new Set();
+  };
+  const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(loadSavedProviders());
+  const [providerFilterOpen, setProviderFilterOpen] = createSignal(false);
+  let providerFilterRef: HTMLDivElement | undefined;
+  if (typeof document !== 'undefined') {
+    const onClickOutside = (e: MouseEvent) => {
+      if (providerFilterRef && !providerFilterRef.contains(e.target as Node))
+        setProviderFilterOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setProviderFilterOpen(false);
+    };
+    document.addEventListener('click', onClickOutside);
+    document.addEventListener('keydown', onKeyDown);
+    onCleanup(() => {
+      document.removeEventListener('click', onClickOutside);
+      document.removeEventListener('keydown', onKeyDown);
+    });
+  }
+
+  const tsKey = () => ({ range: range(), agent: params.agentName, _ping: messagePing() });
+  const [providerTokenTs] = createResource(tsKey, (p) =>
+    p.agent
+      ? (getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>)
+      : undefined,
+  );
+  const [providerMessageTs] = createResource(tsKey, (p) =>
+    p.agent
+      ? (getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>)
+      : undefined,
+  );
+  const [providerCostTs] = createResource(tsKey, (p) =>
+    p.agent
+      ? (getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>)
+      : undefined,
+  );
+
+  const allProviders = createMemo(() => {
+    const set = new Set<string>([
+      ...(providerTokenTs()?.agents ?? []),
+      ...(providerMessageTs()?.agents ?? []),
+      ...(providerCostTs()?.agents ?? []),
+    ]);
+    return [...set].sort();
   });
+
+  const providerColorMap = createMemo(() => {
+    const map: Record<string, string> = {};
+    const list = allProviders();
+    for (let i = 0; i < list.length; i++) map[list[i]!] = AGENT_COLORS[i % AGENT_COLORS.length]!;
+    return map;
+  });
+
+  const effectiveSelected = () => {
+    const sel = selectedProviders();
+    if (sel.size === 0 && allProviders().length > 0) return new Set(allProviders());
+    return sel;
+  };
+  const selectedProviderCount = () => effectiveSelected().size;
+
+  const persistProviders = (next: Set<string>) => {
+    setSelectedProviders(next);
+    try {
+      sessionStorage.setItem(providerFilterKey(), JSON.stringify([...next]));
+    } catch {
+      /* ignore */
+    }
+  };
+  const toggleProvider = (provider: string) => {
+    const next = new Set(effectiveSelected());
+    if (next.has(provider)) next.delete(provider);
+    else next.add(provider);
+    persistProviders(next);
+  };
+  const setAllProviders = (on: boolean) =>
+    persistProviders(on ? new Set(allProviders()) : new Set<string>());
+
+  const filterTs = (raw: PivotedTimeseries | undefined): PivotedTimeseries | undefined => {
+    if (!raw) return undefined;
+    const sel = effectiveSelected();
+    if (sel.size === 0) return raw;
+    return {
+      agents: raw.agents.filter((a) => sel.has(a)),
+      timeseries: raw.timeseries.map((row) => {
+        const out: Record<string, number | string> = {};
+        for (const [k, v] of Object.entries(row)) {
+          if (k === 'hour' || k === 'date' || sel.has(k)) out[k] = v;
+        }
+        return out;
+      }),
+    };
+  };
+  const filteredTokenTs = createMemo(() => filterTs(providerTokenTs()));
+  const filteredMessageTs = createMemo(() => filterTs(providerMessageTs()));
+  const filteredCostTs = createMemo(() => filterTs(providerCostTs()));
+
+  const providerDisplayName = (provId: string): string =>
+    PROVIDERS.find((p) => p.id === provId)?.name ?? provId;
 
   return (
     <div class="container--lg">
@@ -218,8 +337,95 @@ const Overview: Component = () => {
         name="description"
         content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
       />
-      <div class="page-header">
+      <div class="page-header" style="justify-content: flex-end;">
         <div class="header-controls">
+          <Show when={showDashboard() && allProviders().length > 1}>
+            <div class="agent-filter-select" ref={providerFilterRef}>
+              <button
+                class="agent-filter-select__trigger"
+                onClick={() => setProviderFilterOpen(!providerFilterOpen())}
+                type="button"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                </svg>
+                {selectedProviderCount() === allProviders().length
+                  ? `All providers (${allProviders().length})`
+                  : `${selectedProviderCount()} of ${allProviders().length} providers`}
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <Show when={providerFilterOpen()}>
+                <div class="agent-filter-select__dropdown">
+                  <div class="agent-filter-select__actions">
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedProviderCount() === allProviders().length}
+                      onClick={() => setAllProviders(true)}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      class="agent-filter-select__action-btn"
+                      type="button"
+                      disabled={selectedProviderCount() === 0}
+                      onClick={() => setAllProviders(false)}
+                    >
+                      Unselect all
+                    </button>
+                  </div>
+                  <For each={allProviders()}>
+                    {(provider) => {
+                      const isOn = () => effectiveSelected().has(provider);
+                      return (
+                        <button
+                          class="agent-filter-select__item"
+                          onClick={() => toggleProvider(provider)}
+                          type="button"
+                        >
+                          <span
+                            class="agent-filter-select__swatch"
+                            style={{ background: providerColorMap()[provider] }}
+                          />
+                          <span class="agent-filter-select__name">
+                            {providerDisplayName(provider)}
+                          </span>
+                          <span
+                            class="agent-filter-select__toggle"
+                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
+                          >
+                            <span class="agent-filter-select__toggle-thumb" />
+                          </span>
+                        </button>
+                      );
+                    }}
+                  </For>
+                </div>
+              </Show>
+            </div>
+          </Show>
           <Show when={showDashboard()}>
             <Select
               value={range()}
@@ -304,7 +510,7 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  <ChartCard
+                  <ProviderChartCard
                     activeView={activeView()}
                     onViewChange={setActiveView}
                     costValue={d().summary?.cost_today?.value ?? 0}
@@ -313,10 +519,12 @@ const Overview: Component = () => {
                     tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
                     messagesValue={d().summary?.messages?.value ?? 0}
                     messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                    costUsage={d().cost_usage}
-                    tokenUsage={d().token_usage}
-                    messageChartData={messageChartData()}
+                    costInfoTooltip="Actual API key costs only. Subscription usage is not included."
                     range={range()}
+                    agentTimeseries={filteredTokenTs() ?? undefined}
+                    agentMessageTimeseries={filteredMessageTs() ?? undefined}
+                    agentCostTimeseries={filteredCostTs() ?? undefined}
+                    colorMap={providerColorMap()}
                   />
 
                   {/* Recent Messages */}
