@@ -1,0 +1,23 @@
+packages/backend/src/common/interceptors/agent-list-cache.interceptor.ts
+  s_50f99dfb6cac5e::t_9e3b5f378ba293 18-19,21,24
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_50f99dfb6cac5e::t_f972dfa2f64673 637-639
+packages/backend/src/common/interceptors/user-cache.interceptor.ts
+  s_50f99dfb6cac5e::t_6e106b2fe236e2 12-18,24-25,27-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "7dab973874c6c2a9d8151929262492d2acb9d27f",
+  "prompts": {},
+  "sessions": {
+    "s_50f99dfb6cac5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ce481f2-d274-4efd-8b45-0c6ea3d48858",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
