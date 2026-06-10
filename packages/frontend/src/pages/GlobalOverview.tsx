@@ -26,6 +26,7 @@ import {
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
@@ -125,6 +126,7 @@ function loadRange(): string {
 
 const GlobalOverview: Component = () => {
   const navigate = useNavigate();
+  preloadModelDisplayNames();
 
   // ── Range state (persisted in localStorage) ──────────────────────────
   const [chartRange, setChartRangeRaw] = createSignal(loadRange());
@@ -234,6 +236,29 @@ const GlobalOverview: Component = () => {
     (p) => costFetcher(p.range, p.group),
   );
 
+  // Provider-grouped series key custom providers as 'custom:<uuid>'. Remap
+  // those keys to the provider's display name so the filter, legend, and
+  // tooltip read like every other provider. Reactive to customProviderData,
+  // so names fill in once that resource resolves.
+  const displaySeriesName = (key: string) => {
+    const name = resolveCustomName(key);
+    // 'hour'/'date' are the row's bucket columns — never let a custom
+    // provider named like them clobber the axis.
+    return name && name !== 'hour' && name !== 'date' ? name : key;
+  };
+  const remapCustomSeries = (raw: TSResult | undefined): TSResult | undefined => {
+    if (!raw || !raw.agents.some((a) => a.startsWith('custom:'))) return raw;
+    return {
+      agents: raw.agents.map(displaySeriesName),
+      timeseries: raw.timeseries.map((row) =>
+        Object.fromEntries(Object.entries(row).map(([k, v]) => [displaySeriesName(k), v])),
+      ),
+    };
+  };
+  const tokenSeries = createMemo(() => remapCustomSeries(agentTimeseries()));
+  const messageSeries = createMemo(() => remapCustomSeries(agentMessageTimeseries()));
+  const costSeries = createMemo(() => remapCustomSeries(agentCostTimeseries()));
+
   // ── Harness filter state (sessionStorage) ────────────────────────────
   // Scope the persisted selection by groupBy(): the provider grouping and the
   // harness grouping list completely different series, so a single shared set
@@ -283,8 +308,8 @@ const GlobalOverview: Component = () => {
   }
 
   const allAgents = createMemo(() => {
-    const tokenAgents = agentTimeseries()?.agents ?? [];
-    const msgAgents = agentMessageTimeseries()?.agents ?? [];
+    const tokenAgents = tokenSeries()?.agents ?? [];
+    const msgAgents = messageSeries()?.agents ?? [];
     const set = new Set([...tokenAgents, ...msgAgents]);
     return [...set].sort();
   });
@@ -330,7 +355,7 @@ const GlobalOverview: Component = () => {
   };
 
   const filteredAgentTimeseries = createMemo(() => {
-    const raw = agentTimeseries();
+    const raw = tokenSeries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -346,7 +371,7 @@ const GlobalOverview: Component = () => {
   });
 
   const filteredAgentMessageTimeseries = createMemo(() => {
-    const raw = agentMessageTimeseries();
+    const raw = messageSeries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -362,7 +387,7 @@ const GlobalOverview: Component = () => {
   });
 
   const filteredAgentCostTimeseries = createMemo(() => {
-    const raw = agentCostTimeseries();
+    const raw = costSeries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -983,7 +1008,7 @@ const GlobalOverview: Component = () => {
                             </span>
                           </Show>
                           <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                            {row.model || '—'}
+                            {row.model ? getModelDisplayName(row.model) : '—'}
                           </span>
                         </div>
                       </td>
@@ -1047,7 +1072,7 @@ const GlobalOverview: Component = () => {
                             </span>
                           </Show>
                           <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {row.display_name || row.model}
+                            {row.display_name || getModelDisplayName(row.model)}
                           </span>
                         </div>
                       </td>
