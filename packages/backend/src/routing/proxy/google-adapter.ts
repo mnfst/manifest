@@ -50,7 +50,15 @@ const DATA_IMAGE_URL_RE = /^data:([^;,]+)(?:;[^,]*)?;base64,(.*)$/is;
  */
 const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   'patternProperties',
+  'propertyNames',
   'additionalProperties',
+  'additionalItems',
+  'prefixItems',
+  'uniqueItems',
+  'multipleOf',
+  'contains',
+  'minContains',
+  'maxContains',
   '$schema',
   '$id',
   '$ref',
@@ -79,6 +87,14 @@ const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   'title',
   'exclusiveMinimum',
   'exclusiveMaximum',
+  'readOnly',
+  'writeOnly',
+  'deprecated',
+  '$comment',
+  '$anchor',
+  '$dynamicRef',
+  '$dynamicAnchor',
+  '$vocabulary',
 ]);
 
 function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {
