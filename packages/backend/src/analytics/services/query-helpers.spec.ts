@@ -6,11 +6,14 @@ import {
   selectMessageRowColumns,
   excludeSystemAgents,
   EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  PROVIDER_SERIES_KEY_EXPR,
   filterByKeyLabel,
   filterByLiveAgentName,
   MESSAGE_ROW_SELECT_ALIASES,
 } from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 describe('computeTrend', () => {
   it('returns positive trend when current exceeds previous', () => {
@@ -297,6 +300,7 @@ describe('selectMessageRowColumns', () => {
   function makeMockQb() {
     const selectCalls: Array<[string, string]> = [];
     const addSelectCalls: Array<[string, string]> = [];
+    const leftJoinCalls: Array<[unknown, string, string]> = [];
     const qb = {
       select: jest.fn().mockImplementation((expr: string, alias: string) => {
         selectCalls.push([expr, alias]);
@@ -306,8 +310,19 @@ describe('selectMessageRowColumns', () => {
         addSelectCalls.push([expr, alias]);
         return qb;
       }),
+      leftJoin: jest
+        .fn()
+        .mockImplementation((entity: unknown, alias: string, condition: string) => {
+          leftJoinCalls.push([entity, alias, condition]);
+          return qb;
+        }),
     };
-    return { qb: qb as unknown as SelectQueryBuilder<never>, selectCalls, addSelectCalls };
+    return {
+      qb: qb as unknown as SelectQueryBuilder<never>,
+      selectCalls,
+      addSelectCalls,
+      leftJoinCalls,
+    };
   }
 
   it('projects exactly the columns declared in MESSAGE_ROW_SELECT_ALIASES', () => {
@@ -358,5 +373,29 @@ describe('selectMessageRowColumns', () => {
     const { qb } = makeMockQb();
     const result = selectMessageRowColumns(qb, 'cost');
     expect(result).toBe(qb);
+  });
+
+  it('left-joins custom_providers and projects custom_provider_name', () => {
+    const { qb, addSelectCalls, leftJoinCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    expect(leftJoinCalls).toHaveLength(1);
+    const [entity, alias, condition] = leftJoinCalls[0]!;
+    expect(entity).toBe(CustomProvider);
+    expect(alias).toBe('cp');
+    expect(condition).toBe(CUSTOM_PROVIDER_JOIN_CONDITION);
+
+    const nameCall = addSelectCalls.find(([, a]) => a === 'custom_provider_name');
+    expect(nameCall).toEqual(['cp.name', 'custom_provider_name']);
+  });
+
+  it('keys the join on the custom:-prefixed provider id', () => {
+    expect(CUSTOM_PROVIDER_JOIN_CONDITION).toBe("at.provider = 'custom:' || cp.id");
+  });
+
+  it('resolves custom series keys to the provider name with a deleted-provider fallback', () => {
+    expect(PROVIDER_SERIES_KEY_EXPR).toBe(
+      "CASE WHEN at.provider LIKE 'custom:%' THEN COALESCE(cp.name, 'Deleted provider') ELSE at.provider END",
+    );
   });
 });
