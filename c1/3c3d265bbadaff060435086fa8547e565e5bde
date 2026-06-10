@@ -1,0 +1,29 @@
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_50f99dfb6cac5e::t_33f12effd25adf 139
+  s_50f99dfb6cac5e::t_07cab518b31448 1352-1363
+  s_50f99dfb6cac5e::t_3dc42b7fc2af63 5,9
+packages/frontend/src/pages/AgentMessagesRedirect.tsx
+  s_50f99dfb6cac5e::t_76c65a0cfff44b 1,5-8,10-13
+packages/frontend/tests/pages/AgentMessagesRedirect.test.tsx
+  s_50f99dfb6cac5e::t_2c4982f850b92d 1-26
+packages/frontend/src/pages/MessageLog.tsx
+  s_50f99dfb6cac5e::t_05166261430a71 62
+  s_50f99dfb6cac5e::t_f726d8e0da1e26 2
+  s_50f99dfb6cac5e::t_c68577f7d46086 79-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "c13c3d265bbadaff060435086fa8547e565e5bde",
+  "prompts": {},
+  "sessions": {
+    "s_50f99dfb6cac5e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7ce481f2-d274-4efd-8b45-0c6ea3d48858",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
