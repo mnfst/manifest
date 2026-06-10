@@ -61,14 +61,13 @@ describe("Limits page", () => {
     mockRoutingStatus = { enabled: false };
   });
 
-  it("renders page title", () => {
-    render(() => <Limits />);
-    expect(screen.getByText(/Get notified or block requests when token or cost thresholds are exceeded/)).toBeDefined();
+  it("does not render a duplicate page heading", () => {
+    const { container } = render(() => <Limits />);
+    expect(container.querySelector("h1")).toBeNull();
   });
 
-  it("renders breadcrumb with agent name", () => {
+  it("renders page description without duplicating the agent heading", () => {
     const { container } = render(() => <Limits />);
-    expect(container.textContent).toContain("test-agent");
     expect(container.textContent).toContain("Get notified or block requests when token or cost thresholds are exceeded");
   });
 
