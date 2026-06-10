@@ -20,13 +20,7 @@ import SetupModal from '../components/SetupModal.jsx';
 import { type MessageRow } from '../components/message-table-types.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
-import {
-  getCustomProviders,
-  getOverview,
-  setMessageFeedback,
-  clearMessageFeedback,
-  type CustomProviderData,
-} from '../services/api.js';
+import { getOverview, setMessageFeedback, clearMessageFeedback } from '../services/api.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
 import { messagePing } from '../services/sse.js';
@@ -117,18 +111,6 @@ const Overview: Component = () => {
   const [setupCompleted, setSetupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
-  const [customProviders] = createResource(
-    () => params.agentName,
-    (name) => getCustomProviders(decodeURIComponent(name)),
-  );
-
-  const customProviderName = (model: string): string | undefined => {
-    const match = model.match(/^custom:([^/]+)\//);
-    if (!match) return undefined;
-    const id = match[1];
-    return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
-  };
-
   const [feedbackModalOpen, setFeedbackModalOpen] = createSignal(false);
   const [feedbackMessageId, setFeedbackMessageId] = createSignal('');
   const [feedbackOverrides, setFeedbackOverrides] = createSignal<Record<string, string | null>>({});
@@ -389,7 +371,6 @@ const Overview: Component = () => {
                         }
                         columns={columns()}
                         agentName={params.agentName}
-                        customProviderName={customProviderName}
                         onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                         onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                         onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
@@ -398,7 +379,6 @@ const Overview: Component = () => {
 
                     <CostByModelTable
                       rows={d().cost_by_model ?? []}
-                      customProviderName={customProviderName}
                     />
                   </>
                 );

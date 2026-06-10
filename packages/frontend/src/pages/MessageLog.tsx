@@ -24,14 +24,12 @@ import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
   getAgents,
-  getCustomProviders,
   getSpecificityAssignments,
   getMessages,
   getRoutingStatus,
   listHeaderTiers,
   setMessageFeedback,
   clearMessageFeedback,
-  type CustomProviderData,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -52,6 +50,7 @@ interface MessagesData {
   next_cursor: string | null;
   total_count: number;
   providers: string[];
+  provider_labels?: Record<string, string>;
 }
 
 const SPECIFICITY_FILTER_PREFIX = 'specificity:';
@@ -155,11 +154,6 @@ const MessageLog: Component = () => {
     setFeedbackModalOpen(false);
   };
 
-  const [customProviders] = createResource(
-    () => params.agentName,
-    (name) => getCustomProviders(decodeURIComponent(name)),
-  );
-
   const [routingStatus] = createResource(
     () => params.agentName,
     (name) => getRoutingStatus(decodeURIComponent(name)),
@@ -176,14 +170,6 @@ const MessageLog: Component = () => {
   );
 
   const hasProviders = () => routingStatus()?.enabled === true;
-
-  /** Map custom:<uuid> → provider display name */
-  const customProviderName = (model: string): string | undefined => {
-    const match = model.match(/^custom:([^/]+)\//);
-    if (!match) return undefined;
-    const id = match[1];
-    return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
-  };
 
   const pager = createCursorPagination(50);
 
@@ -309,7 +295,10 @@ const MessageLog: Component = () => {
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
     const prov = PROVIDERS.find((p) => p.id === id);
-    return prov?.name ?? id;
+    if (prov) return prov.name;
+    // Custom providers arrive as `custom:<uuid>` — the backend ships a label
+    // map alongside the provider list so the dropdown can show their names.
+    return data()?.provider_labels?.[id] ?? id;
   };
 
   const providerOptions = createMemo(() => [
@@ -575,7 +564,6 @@ const MessageLog: Component = () => {
                   items={displayedItems()}
                   columns={columns()}
                   agentName={params.agentName}
-                  customProviderName={customProviderName}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}

@@ -431,18 +431,19 @@ describe("Overview", () => {
   });
 
   describe("custom provider models", () => {
+    // The backend resolves the custom provider's name into each row
+    // (`custom_provider_name`); the page no longer fetches the list itself.
     const customOverview = {
       ...overviewData,
       recent_activity: [
-        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
+        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", provider: "custom:abc-123", custom_provider_name: "Cerebras", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
       ],
       cost_by_model: [
-        { model: "custom:abc-123/my-llama", tokens: 30000, share_pct: 100, estimated_cost: 2.1, auth_type: "api_key" },
+        { model: "custom:abc-123/my-llama", provider: "custom:abc-123", custom_provider_name: "Cerebras", tokens: 30000, share_pct: 100, estimated_cost: 2.1, auth_type: "api_key" },
       ],
     };
 
     it("renders custom provider icon in recent messages", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
@@ -452,7 +453,6 @@ describe("Overview", () => {
     });
 
     it("strips custom prefix from model name display", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
@@ -462,7 +462,6 @@ describe("Overview", () => {
     });
 
     it("renders custom provider icon in cost by model table", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetOverview.mockResolvedValue(customOverview);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
@@ -472,12 +471,21 @@ describe("Overview", () => {
       });
     });
 
-    it("falls back to model prefix when custom provider not found", async () => {
-      mockGetCustomProviders.mockResolvedValue([]);
-      mockGetOverview.mockResolvedValue(customOverview);
+    it("falls back to model prefix when custom provider was deleted", async () => {
+      const deletedProvider = {
+        ...customOverview,
+        recent_activity: [
+          { ...customOverview.recent_activity[0], custom_provider_name: null },
+        ],
+        cost_by_model: [
+          { ...customOverview.cost_by_model[0], custom_provider_name: null },
+        ],
+      };
+      mockGetOverview.mockResolvedValue(deletedProvider);
       const { container } = render(() => <Overview />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("my-llama");
+        expect(container.textContent).not.toContain("custom:abc-123/");
       });
     });
   });
