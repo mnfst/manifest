@@ -36,6 +36,7 @@ describe('UserProvidersController', () => {
       {} as never,
       { findOne: jest.fn().mockResolvedValue(null) } as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
     );
 
     const result = await controller.listProviders({ id: 'user-1' } as never);
@@ -67,6 +68,7 @@ describe('UserProvidersController', () => {
       {} as never,
       { findOne: jest.fn().mockResolvedValue(null) } as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
     );
 
     const result = await controller.listProviders({ id: 'user-1' } as never);
@@ -103,6 +105,7 @@ describe('UserProvidersController', () => {
       {} as never,
       { findOne: jest.fn().mockResolvedValue(null) } as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
     );
 
     const result = await controller.listProviders({ id: 'user-1' } as never);
@@ -126,6 +129,7 @@ describe('UserProvidersController', () => {
           { provider: 'Anthropic', model_name: 'claude-3-5-sonnet' },
         ]),
       } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
     );
 
     const result = await controller.listProviders({ id: 'user-1' } as never);
@@ -165,6 +169,7 @@ describe('UserProvidersController', () => {
       messageRepo as never,
       { findOne: jest.fn().mockResolvedValue({ id: tenantId }) } as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
     );
 
     const result = await controller.listProviders({ id: 'user-1' } as never);
@@ -173,5 +178,54 @@ describe('UserProvidersController', () => {
     expect(result.providers[0].consumption_messages).toBe(10);
     expect(result.providers[0].consumption_cost).toBe(0.05);
     expect(result.providers[0].last_used_at).toBe('2026-01-15T00:00:00.000Z');
+  });
+
+  it('resolves display_name for custom provider groups', async () => {
+    const providerRepo = {
+      find: jest
+        .fn()
+        .mockResolvedValue([{ ...makeProvider('p1', 'Default'), provider: 'custom:u-9' }]),
+    };
+    const customProviderService = {
+      list: jest.fn().mockResolvedValue([{ id: 'u-9', name: 'MyLLM' }]),
+    };
+    const controller = new UserProvidersController(
+      providerRepo as never,
+      {} as never,
+      { findOne: jest.fn().mockResolvedValue(null) } as never,
+      { getAll: jest.fn().mockReturnValue([]) } as never,
+      customProviderService as never,
+    );
+
+    const result = await controller.listProviders({ id: 'user-1' } as never);
+
+    expect(customProviderService.list).toHaveBeenCalledWith('user-1');
+    expect(result.providers[0]).toMatchObject({
+      provider: 'custom:u-9',
+      display_name: 'MyLLM',
+    });
+  });
+
+  it('returns null display_name for built-in groups and deleted custom providers', async () => {
+    const providerRepo = {
+      find: jest
+        .fn()
+        .mockResolvedValue([
+          makeProvider('p1', 'Default'),
+          { ...makeProvider('p2', 'Gone'), provider: 'custom:gone' },
+        ]),
+    };
+    const controller = new UserProvidersController(
+      providerRepo as never,
+      {} as never,
+      { findOne: jest.fn().mockResolvedValue(null) } as never,
+      { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
+    );
+
+    const result = await controller.listProviders({ id: 'user-1' } as never);
+
+    expect(result.providers.find((p) => p.provider === 'openai')!.display_name).toBeNull();
+    expect(result.providers.find((p) => p.provider === 'custom:gone')!.display_name).toBeNull();
   });
 });
