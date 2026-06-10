@@ -299,6 +299,45 @@ describe('ProviderService — route-only cleanup paths', () => {
         svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'secondary'),
       ).rejects.toThrow('Provider key not found');
     });
+
+    it('does not block removing a non-primary Default-labeled key used only by an unlabeled route', async () => {
+      const target = {
+        id: 'target',
+        agent_id: 'agent-1',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        priority: 1,
+        is_active: true,
+      } as unknown as UserProvider;
+      providerRepo.find.mockResolvedValue([
+        target,
+        {
+          id: 'primary',
+          agent_id: 'agent-1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Work',
+          priority: 0,
+          is_active: true,
+        } as unknown as UserProvider,
+      ]);
+      tierRepo.find.mockResolvedValue([
+        {
+          tier: 'standard',
+          override_route: route('openai', 'gpt-4o'),
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await expect(
+        svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'Default'),
+      ).resolves.toEqual({ notifications: [] });
+
+      expect(providerRepo.remove).toHaveBeenCalledWith(target);
+    });
   });
 
   describe('deactivateAllProviders', () => {
