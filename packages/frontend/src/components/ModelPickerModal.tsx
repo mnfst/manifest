@@ -691,7 +691,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   style="margin-top: 12px;"
                   onClick={() => props.onConnectProviders?.()}
                 >
-                  Connect providers
+                  Connect provider
                 </button>
               </Show>
             </div>

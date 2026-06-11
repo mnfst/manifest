@@ -44,7 +44,7 @@ import '../../styles/routing.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
   subscription: 'Subscriptions',
-  api_key: 'BYOK',
+  api_key: 'Usage-based',
   local: 'Local',
 };
 
@@ -486,7 +486,7 @@ const ConnectionDetail: Component = () => {
           return (
             <>
               <Title>
-                {providerDisplayName()} — {c.label} | Manifest
+                {providerDisplayName()} / {c.label} | Manifest
               </Title>
 
               {/* Back link */}
@@ -500,7 +500,7 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                 <div>
                   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                     <span style="display: flex; align-items: center; width: 32px; height: 32px;">
@@ -675,11 +675,9 @@ const ConnectionDetail: Component = () => {
                       { label: 'Last 30 days', value: '30d' },
                     ]}
                   />
-                  <Show when={c.is_active}>
-                    <button class="btn btn--outline btn--sm" onClick={openManageModal}>
-                      Manage
-                    </button>
-                  </Show>
+                  <button class="btn btn--outline btn--sm" onClick={openManageModal}>
+                    Manage
+                  </button>
                 </div>
               </div>
 
@@ -1010,43 +1008,56 @@ const ConnectionDetail: Component = () => {
                       </Show>
                     </div>
 
-                    {/* Models */}
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
-                      <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                        {c.cached_model_count ?? 0} models
-                      </span>
-                      <button
-                        class="btn btn--outline btn--sm"
-                        disabled={refreshingModels()}
-                        onClick={handleRefreshModels}
-                        style="display: inline-flex; align-items: center; gap: 6px;"
-                      >
-                        {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
-                      </button>
-                    </div>
+                    <Show when={c.is_active}>
+                      {/* Models */}
+                      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
+                        <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                          {c.cached_model_count ?? 0} models
+                        </span>
+                        <button
+                          class="btn btn--outline btn--sm"
+                          disabled={refreshingModels()}
+                          onClick={handleRefreshModels}
+                          style="display: inline-flex; align-items: center; gap: 6px;"
+                        >
+                          {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                        </button>
+                      </div>
 
-                    {/* Connection info */}
-                    <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                      Connected via{' '}
-                      {c.auth_type === 'subscription'
-                        ? c.auth_type
-                        : c.auth_type === 'api_key'
-                          ? 'API key'
-                          : 'local server'}
-                    </div>
+                      {/* Connection info */}
+                      <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                        Connected via{' '}
+                        {c.auth_type === 'subscription'
+                          ? c.auth_type
+                          : c.auth_type === 'api_key'
+                            ? 'API key'
+                            : 'local server'}
+                      </div>
 
-                    {/* Actions */}
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
-                      <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
-                        Disconnect
-                      </button>
-                      <button
-                        class="btn btn--outline btn--sm"
-                        onClick={() => setShowManageModal(false)}
-                      >
-                        Done
-                      </button>
-                    </div>
+                      {/* Actions */}
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
+                        <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
+                          Disconnect
+                        </button>
+                        <button
+                          class="btn btn--outline btn--sm"
+                          onClick={() => setShowManageModal(false)}
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </Show>
+
+                    <Show when={!c.is_active}>
+                      <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
+                        <button
+                          class="btn btn--outline btn--sm"
+                          onClick={() => setShowManageModal(false)}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </Show>
                   </div>
                 </div>
               </Show>

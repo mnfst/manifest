@@ -87,7 +87,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
       >
         Messages
       </A>
-      <div class="sidebar__section-label">PROVIDER CONNECTIONS</div>
+      <div class="sidebar__section-label">PROVIDERS</div>
       <A
         href="/providers/subscriptions"
         class="sidebar__link"
@@ -102,7 +102,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/providers/byok') }}
         aria-current={isGlobalActive('/providers/byok') ? 'page' : undefined}
       >
-        BYOK
+        Usage-based
       </A>
       <A
         href="/providers/local"

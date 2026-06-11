@@ -134,7 +134,7 @@ const EmailProviderModal: Component<Props> = (props) => {
       const result = await testEmailProvider(testData);
 
       if (!result.success) {
-        toast.error(result.error ?? 'Email test failed — check your credentials');
+        toast.error(result.error ?? 'Email test failed. Check your credentials');
         return false;
       }
       return true;
@@ -156,7 +156,7 @@ const EmailProviderModal: Component<Props> = (props) => {
     try {
       const result = await testSavedEmailProvider(recipient);
       if (!result.success) {
-        toast.error(result.error ?? 'Email test failed — check your credentials');
+        toast.error(result.error ?? 'Email test failed. Check your credentials');
         return false;
       }
       return true;

@@ -67,10 +67,10 @@ const PAGE_COPY: Record<
   subscriptions: {
     title: 'Subscriptions | Manifest',
     heading: 'Subscriptions',
-    subtitle: 'Connect flat-rate subscriptions to route through your existing plans.',
-    addLabel: 'Add subscription',
-    connectedHeading: 'My Subscriptions',
-    supportedHeading: 'Supported subscriptions',
+    subtitle: 'Use your current plans with any supported provider.',
+    addLabel: 'Connect',
+    connectedHeading: 'My subscription connections',
+    supportedHeading: 'Supported subscription providers',
     authType: 'subscription',
     metricLabel: 'Estimated savings (30d)',
     metricTooltip: 'Equivalent API cost you saved by using subscriptions instead of pay-per-use.',
@@ -79,13 +79,13 @@ const PAGE_COPY: Record<
     activePlural: 'connections',
   },
   byok: {
-    title: 'BYOK | Manifest',
-    heading: 'BYOK',
-    subtitle: 'Connect provider API keys managed at the workspace level.',
-    addLabel: 'Add API key',
+    title: 'Usage-based | Manifest',
+    heading: 'Usage-based',
+    subtitle: 'Connect providers you pay per token or per usage with your own API keys.',
+    addLabel: 'Connect',
     customAddLabel: 'Add custom provider',
-    connectedHeading: 'My API Keys',
-    supportedHeading: 'Supported API key providers',
+    connectedHeading: 'My usage-based connections',
+    supportedHeading: 'Supported usage-based providers',
     authType: 'api_key',
     metricLabel: 'Total API cost (30d)',
     metricTooltip: 'Sum of all API key usage costs across your connected providers.',
@@ -97,7 +97,7 @@ const PAGE_COPY: Record<
     title: 'Local | Manifest',
     heading: 'Local',
     subtitle: 'Connect to LLM servers running on your machine.',
-    addLabel: 'Add local provider',
+    addLabel: 'Connect',
     connectedHeading: 'My local connections',
     supportedHeading: 'Supported local providers',
     authType: 'local',
@@ -482,22 +482,20 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           {copy().connectedHeading}
         </h3>
         <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
-          <table class="data-table" style="min-width: 860px;">
+          <table class="data-table" style="min-width: 860px; width: 100%;">
             <colgroup>
               <col style="width: 214px;" />
-              <col style="width: 120px;" />
-              <col style="width: 70px;" />
+              <col style="width: 140px;" />
               <col />
-              <col style="width: 110px;" />
+              <col style="width: 130px;" />
               <col style="width: 90px;" />
-              <col style="width: 90px;" />
+              <col style="width: 100px;" />
               <col style="width: 110px;" />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
                 <th>Connection</th>
-                <th>Models</th>
                 <th>Usage (30d)</th>
                 <th>{copy().rowMetricHeading}</th>
                 <th>Status</th>
@@ -550,10 +548,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                                 startRename(row.connection.id, row.connection.label, e)
                               }
                               aria-label={`Rename ${row.connection.label}`}
-                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s;"
+                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
                               </svg>
                             </button>
                           </span>
@@ -611,7 +610,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         </Show>
                       </Show>
                     </td>
-                    <td>{row.connection.cached_model_count || row.summary.total_models || '-'}</td>
                     <td>
                       <div style="display: flex; align-items: center; gap: 8px;">
                         <Show when={row.summary.sparkline_7d?.length}>
@@ -683,16 +681,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
 
       <Show when={viewMode() === 'list'}>
         <div class="panel" style="padding: 0; overflow-x: auto;">
-          <table class="data-table" style="min-width: 520px;">
+          <table class="data-table" style="min-width: 520px; width: 100%;">
             <colgroup>
-              <col style="width: 240px;" />
-              <col style="width: 100px;" />
               <col />
+              <col style="width: 160px;" />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
-                <th>Models</th>
                 <th />
               </tr>
             </thead>
@@ -707,9 +703,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                           <ProviderMark providerId={provider.id} name={provider.name} />
                           <span style="font-weight: 500;">{provider.name}</span>
                         </span>
-                      </td>
-                      <td style="color: hsl(var(--muted-foreground));">
-                        {modelCount(provider.id) ?? '-'}
                       </td>
                       <td style="text-align: right;">
                         <span style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px;">
@@ -763,9 +756,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         {provider.name}
                       </span>
                     </div>
-                    <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); white-space: nowrap;">
-                      {modelCount(provider.id) ?? 0} models
-                    </span>
                   </div>
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                     <Show when={activeCount() > 0} fallback={<span />}>

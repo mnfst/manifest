@@ -136,7 +136,7 @@ function MiscategorizeControl(props: {
       title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this harness."
       aria-pressed={flagged()}
     >
-      {flagged() ? 'Flagged as miscategorized — undo' : 'Wrong category?'}
+      {flagged() ? 'Flagged as miscategorized (undo)' : 'Wrong category?'}
     </button>
   );
 }

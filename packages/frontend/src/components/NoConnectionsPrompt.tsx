@@ -57,9 +57,9 @@ const CARDS = [
     icon: <SubscriptionIcon />,
   },
   {
-    title: 'BYOK',
+    title: 'Usage-based',
     href: '/providers/byok',
-    description: 'Connect provider API keys managed at the workspace level.',
+    description: 'Connect providers you pay per token or per usage with your own API keys.',
     icon: <ApiKeyIcon />,
   },
   {

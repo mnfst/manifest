@@ -126,7 +126,7 @@ const AgentProviders: Component = () => {
     if (affectedTiers.length > 0) {
       setBusy(null);
       toast.error(
-        `Can't disable ${providerName(connection.provider)} — its models are assigned to this harness's routing. Update routing to stop using them first.`,
+        `Can't disable ${providerName(connection.provider)}. Its models are assigned to this harness's routing. Update routing to stop using them first.`,
       );
       return;
     }
@@ -145,7 +145,7 @@ const AgentProviders: Component = () => {
     <div>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
         Enable the global provider connections this harness may use. A provider can't be turned off
-        while its models are assigned to this harness's routing — update routing first.
+        while its models are assigned to this harness's routing. Update routing first to remove it.
       </p>
 
       <Show when={connections().length > 0} fallback={<NoConnectionsPrompt />}>
