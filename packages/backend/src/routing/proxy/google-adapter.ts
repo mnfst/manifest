@@ -221,7 +221,14 @@ function messageToContent(
       const echoed = (tc as Record<string, unknown>).thought_signature;
       const cached = hasId && signatureLookup ? signatureLookup(tc.id) : null;
       const signature = typeof echoed === 'string' ? echoed : cached;
-      if (signature) part.thoughtSignature = signature;
+      // Gemini 3.x requires a thoughtSignature on every functionCall part.
+      // When the history comes from another model (fallback) or the cache has
+      // expired, inject the documented dummy signature so the request isn't
+      // rejected with "Function call is missing a thought_signature".
+      part.thoughtSignature =
+        typeof signature === 'string' && signature !== ''
+          ? signature
+          : 'context_engineering_is_the_way_to_go';
       parts.push(part);
     }
   }

@@ -1135,7 +1135,7 @@ describe('Google Adapter', () => {
       expect(contents[0].parts[0].thoughtSignature).toBe('from_client');
     });
 
-    it('omits thoughtSignature when neither client nor cache provides one', () => {
+    it('injects a dummy thoughtSignature when neither client nor cache provides one', () => {
       const body = {
         messages: [
           {
@@ -1155,8 +1155,8 @@ describe('Google Adapter', () => {
       const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
       expect(contents[0].parts[0]).toEqual({
         functionCall: { id: 'call_1', name: 'noop', args: {} },
+        thoughtSignature: 'context_engineering_is_the_way_to_go',
       });
-      expect(contents[0].parts[0].thoughtSignature).toBeUndefined();
     });
   });
 
