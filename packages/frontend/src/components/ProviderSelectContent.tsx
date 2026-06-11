@@ -25,6 +25,7 @@ export interface ProviderSelectContentProps {
   customProviders?: CustomProviderData[];
   customProviderPrefill?: CustomProviderPrefill | null;
   providerDeepLink?: ProviderDeepLink | null;
+  initialTab?: 'subscription' | 'api_key' | 'local';
   onUpdate: () => void | Promise<void>;
   onClose?: () => void;
   showHeader?: boolean;
@@ -47,7 +48,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     : null;
 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
-    'subscription',
+    deepLink?.authType ?? props.initialTab ?? 'subscription',
   );
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(async () => {
