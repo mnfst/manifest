@@ -317,6 +317,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const showMetricCard = () =>
     !!copy().metricLabel && (connectedRows().length > 0 || totalApiCost() > 0);
 
+  // Model counts come from discovery for subscription/BYOK providers and are
+  // unreliable there (discovery may be partial or stale); only the local page
+  // shows them, where the count is read straight from the local server.
+  const showModels = () => props.kind === 'local';
+
   const activeLabel = (count: number) => {
     if (props.kind === 'local') return 'Connected';
     return `${count} active ${count === 1 ? copy().activeSingular : copy().activePlural}`;
@@ -405,7 +410,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             <colgroup>
               <col style="width: 214px;" />
               <col style="width: 120px;" />
-              <col style="width: 70px;" />
+              <Show when={showModels()}>
+                <col style="width: 70px;" />
+              </Show>
               <col />
               <Show when={copy().rowMetricHeading}>
                 <col style="width: 110px;" />
@@ -418,7 +425,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               <tr>
                 <th>Provider</th>
                 <th>Connection</th>
-                <th>Models</th>
+                <Show when={showModels()}>
+                  <th>Models</th>
+                </Show>
                 <th>Usage (30d)</th>
                 <Show when={copy().rowMetricHeading}>
                   <th>{copy().rowMetricHeading}</th>
@@ -455,7 +464,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </span>
                     </td>
                     <td style="color: hsl(var(--muted-foreground));">{row.connection.label}</td>
-                    <td>{row.connection.cached_model_count || row.summary.total_models || '-'}</td>
+                    <Show when={showModels()}>
+                      <td>
+                        {row.connection.cached_model_count || row.summary.total_models || '-'}
+                      </td>
+                    </Show>
                     <td>
                       <div style="display: flex; align-items: center; gap: 8px;">
                         <Show when={row.summary.sparkline_7d?.length}>
@@ -532,13 +545,17 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <table class="data-table" style="min-width: 520px;">
             <colgroup>
               <col style="width: 240px;" />
-              <col style="width: 100px;" />
+              <Show when={showModels()}>
+                <col style="width: 100px;" />
+              </Show>
               <col />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
-                <th>Models</th>
+                <Show when={showModels()}>
+                  <th>Models</th>
+                </Show>
                 <th />
               </tr>
             </thead>
@@ -554,9 +571,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                           <span style="font-weight: 500;">{provider.name}</span>
                         </span>
                       </td>
-                      <td style="color: hsl(var(--muted-foreground));">
-                        {modelCount(provider.id) ?? '-'}
-                      </td>
+                      <Show when={showModels()}>
+                        <td style="color: hsl(var(--muted-foreground));">
+                          {modelCount(provider.id) ?? '-'}
+                        </td>
+                      </Show>
                       <td style="text-align: right;">
                         <span style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px;">
                           <Show when={activeCount() > 0}>
@@ -609,9 +628,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         {provider.name}
                       </span>
                     </div>
-                    <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); white-space: nowrap;">
-                      {modelCount(provider.id) ?? 0} models
-                    </span>
+                    <Show when={showModels()}>
+                      <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); white-space: nowrap;">
+                        {modelCount(provider.id) ?? 0} models
+                      </span>
+                    </Show>
                   </div>
                   <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                     <Show when={activeCount() > 0} fallback={<span />}>
