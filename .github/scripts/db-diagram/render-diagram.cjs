@@ -166,12 +166,12 @@ function buildMermaid(headSnap, baseSnap, added, modMap, dropped) {
             pkChangedCols,
           })
         : '';
-      lines.push(`        ${safeType} ${col.name}${pk}${fk}${note}`);
+      lines.push(`        ${col.name} ${safeType}${pk}${fk}${note}`);
     }
     // Columns removed by this PR no longer exist in the head snapshot, so render
     // them as trailing rows (with their pre-drop type) flagged 🔴 removed.
     for (const c of droppedCols) {
-      lines.push(`        ${sanitizeMermaidType(c.type)} ${c.column} "🔴 removed"`);
+      lines.push(`        ${c.column} ${sanitizeMermaidType(c.type)} "🔴 removed"`);
     }
     lines.push('    }');
     rendered.add(name);
