@@ -155,7 +155,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 aria-selected={activeAgent() === 'hermes'}
               >
                 <img
-                  src="/icons/hermes.png"
+                  src="/icons/hermes.svg"
                   alt=""
                   class="panel__tab-icon"
                   width="16"
