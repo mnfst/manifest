@@ -19,32 +19,32 @@ Showing only changed tables. 🟢 added, 🟡 modified, 🔴 removed. Changed co
 ```mermaid
 erDiagram
     agent_api_keys["🟡 agent_api_keys (modified)"] {
-        varchar id PK
-        varchar agent_id FK "🟡 FK added"
-        varchar_64_ key
+        id varchar PK
+        agent_id varchar FK "🟡 FK added"
+        key varchar_64_
     }
     agents["🟡 agents (modified)"] {
-        varchar id PK
-        varchar name "🟡 modified"
-        varchar tenant_id FK
-        varchar_255_ display_name "🟢 added"
-        boolean legacy_flag "🔴 removed"
+        id varchar PK
+        name varchar "🟡 modified"
+        tenant_id varchar FK
+        display_name varchar_255_ "🟢 added"
+        legacy_flag boolean "🔴 removed"
     }
     legacy_metrics["🔴 legacy_metrics (removed)"] {
-        varchar id PK
-        integer value
+        id varchar PK
+        value integer
     }
     provider_keys["🟡 provider_keys (modified)"] {
-        varchar id PK
-        varchar agent_id "🟡 FK removed"
-        varchar region PK "🟡 PK changed"
+        id varchar PK
+        agent_id varchar "🟡 FK removed"
+        region varchar PK "🟡 PK changed"
     }
     routing_tiers["🟢 routing_tiers (added)"] {
-        uuid id PK
-        varchar agent_id FK
-        varchar tier
-        varchar model
-        numeric_15_6_ max_cost
+        id uuid PK
+        agent_id varchar FK
+        tier varchar
+        model varchar
+        max_cost numeric_15_6_
     }
     agent_api_keys }o--|| agents : "agent_id"
     routing_tiers }o--|| agents : "agent_id"
