@@ -922,10 +922,6 @@ h6 {
   flex-shrink: 0;
 }
 
-.dark .sidebar__agent-icon {
-  filter: invert(1);
-}
-
 .sidebar__agent-item-name {
   overflow: hidden;
   text-overflow: ellipsis;
