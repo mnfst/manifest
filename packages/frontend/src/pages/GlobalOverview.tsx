@@ -8,7 +8,6 @@ import {
   on,
   For,
   Show,
-  onCleanup,
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
@@ -32,6 +31,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
 import Sparkline from '../components/Sparkline.jsx';
+import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
@@ -258,26 +258,6 @@ const GlobalOverview: Component = () => {
       { defer: true },
     ),
   );
-  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
-  let agentFilterRef: HTMLDivElement | undefined;
-
-  if (typeof document !== 'undefined') {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
-        setAgentFilterOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAgentFilterOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  }
-
   const allAgents = createMemo(() => {
     const tokenAgents = agentTimeseries()?.agents ?? [];
     const msgAgents = agentMessageTimeseries()?.agents ?? [];
@@ -306,8 +286,6 @@ const GlobalOverview: Component = () => {
     if (pruned.size === 0) return new Set(all);
     return pruned;
   };
-
-  const selectedAgentCount = () => effectiveSelected().size;
 
   const toggleAgent = (agent: string) => {
     const current = effectiveSelected();
@@ -425,106 +403,29 @@ const GlobalOverview: Component = () => {
           <div style="display: flex; align-items: center; gap: 8px;">
             <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
             <Show when={allAgents().length > 1}>
-              <div class="agent-filter-select" ref={agentFilterRef}>
-                <button
-                  class="agent-filter-select__trigger"
-                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                  type="button"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                  </svg>
-                  {(() => {
-                    const label = groupBy() === 'provider' ? 'providers' : 'harnesses';
-                    return selectedAgentCount() === allAgents().length
-                      ? `All ${label} (${allAgents().length})`
-                      : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
-                  })()}
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-                <Show when={agentFilterOpen()}>
-                  <div class="agent-filter-select__dropdown">
-                    <div class="agent-filter-select__actions">
-                      <button
-                        class="agent-filter-select__action-btn"
-                        type="button"
-                        disabled={selectedAgentCount() === allAgents().length}
-                        onClick={() => {
-                          setSelectedAgents(new Set(allAgents()));
-                          try {
-                            sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                      >
-                        Select all
-                      </button>
-                      <button
-                        class="agent-filter-select__action-btn"
-                        type="button"
-                        disabled={selectedAgentCount() === 0}
-                        onClick={() => {
-                          setSelectedAgents(new Set<string>());
-                          try {
-                            sessionStorage.setItem(storageKey(), JSON.stringify([]));
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                      >
-                        Unselect all
-                      </button>
-                    </div>
-                    <For each={allAgents()}>
-                      {(agent) => {
-                        const isOn = () => effectiveSelected().has(agent);
-                        return (
-                          <button
-                            class="agent-filter-select__item"
-                            onClick={() => toggleAgent(agent)}
-                            type="button"
-                          >
-                            <span
-                              class="agent-filter-select__swatch"
-                              style={{ background: agentColorMap()[agent] }}
-                            />
-                            <span class="agent-filter-select__name">{agent}</span>
-                            <span
-                              class="agent-filter-select__toggle"
-                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                            >
-                              <span class="agent-filter-select__toggle-thumb" />
-                            </span>
-                          </button>
-                        );
-                      }}
-                    </For>
-                  </div>
-                </Show>
-              </div>
+              <FilterSelect
+                noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                items={allAgents()}
+                selected={effectiveSelected()}
+                colorMap={agentColorMap()}
+                onToggle={toggleAgent}
+                onSelectAll={() => {
+                  setSelectedAgents(new Set(allAgents()));
+                  try {
+                    sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+                onUnselectAll={() => {
+                  setSelectedAgents(new Set<string>());
+                  try {
+                    sessionStorage.setItem(storageKey(), JSON.stringify([]));
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+              />
             </Show>
             <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
           </div>
