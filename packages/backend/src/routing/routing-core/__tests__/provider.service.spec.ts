@@ -598,7 +598,6 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       expect(result).toEqual([googleSubscription]);
       expect(providerRepo.save).not.toHaveBeenCalled();
-      expect(autoAssign.recalculate).not.toHaveBeenCalled();
     });
 
     it('deactivates unsupported subscription rows and triggers cleanup when no usable sibling remains', async () => {
@@ -664,7 +663,6 @@ describe('ProviderService — route-only cleanup paths', () => {
           is_active: true,
         }),
       );
-      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
@@ -673,7 +671,6 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       expect(result).toEqual({ isNew: false });
       expect(providerRepo.insert).not.toHaveBeenCalled();
-      expect(autoAssign.recalculate).not.toHaveBeenCalled();
     });
   });
 

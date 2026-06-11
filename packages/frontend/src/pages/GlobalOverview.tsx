@@ -239,7 +239,9 @@ const GlobalOverview: Component = () => {
   // tooltip read like every other provider. Reactive to customProviderData,
   // so names fill in once that resource resolves.
   const displaySeriesName = (key: string) => {
-    const name = resolveCustomName(key);
+    const name = key.startsWith('custom:')
+      ? (providers()?.find((g) => g.provider === key)?.display_name ?? null)
+      : null;
     // 'hour'/'date' are the row's bucket columns — never let a custom
     // provider named like them clobber the axis.
     return name && name !== 'hour' && name !== 'date' ? name : key;

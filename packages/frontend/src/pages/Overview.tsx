@@ -452,6 +452,7 @@ const Overview: Component = () => {
                       }
                       columns={columns()}
                       agentName={params.agentName}
+                      customProviderName={() => undefined}
                       onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                       onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                       onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
