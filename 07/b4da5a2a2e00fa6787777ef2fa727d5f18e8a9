@@ -1,0 +1,11 @@
+packages/frontend/src/styles/cards.css
+  s_0dc1825d457013::t_7c69396fffdc28 214
+  s_52ab4cc32a131f::t_46a6cde256b9ef 111-119
+  8687f30dfa1974d4 1-45,47,50-110,120-125,127-163,165-213,215-227
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "07b4da5a2a2e00fa6787777ef2fa727d5f18e8a9",
+  "prompts": {}
+}
