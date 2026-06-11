@@ -761,6 +761,77 @@ describe('Google Adapter', () => {
       expect(contents[0].parts[1].text).toBe('Second part');
     });
 
+    it('maps OpenAI image_url data URLs to Gemini inlineData without decoding', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'What is this image?' },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: 'data:image/png;name=chart.png;charset=utf-8;base64,iVBORw0KGgo=',
+                },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts).toEqual([
+        { text: 'What is this image?' },
+        { inlineData: { mimeType: 'image/png', data: 'iVBORw0KGgo=' } },
+      ]);
+    });
+
+    it('maps Responses input_image data URLs to Gemini inlineData', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'input_text', text: 'Describe it.' },
+              { type: 'input_image', image_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==' },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts).toEqual([
+        { text: 'Describe it.' },
+        { inlineData: { mimeType: 'image/jpeg', data: '/9j/4AAQSkZJRg==' } },
+      ]);
+    });
+
+    it('maps OpenAI image_url HTTP URLs to Gemini fileData', () => {
+      const body = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe it.' },
+              {
+                type: 'image_url',
+                image_url: { url: 'https://example.test/image.webp' },
+              },
+            ],
+          },
+        ],
+      };
+      const result = toGoogleRequest(body, 'gemini-2.0-flash');
+
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts).toEqual([
+        { text: 'Describe it.' },
+        { fileData: { fileUri: 'https://example.test/image.webp' } },
+      ]);
+    });
+
     it('resolves functionResponse name from the assistant tool_calls history', () => {
       const body = {
         messages: [

@@ -151,6 +151,83 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(result.failures.map((f) => f.provider)).toEqual(['openai', 'anthropic']);
   });
 
+  it('cooldowns repeated 429 attempts for the same provider key and model', async () => {
+    providerClient.forward.mockResolvedValueOnce({
+      response: new Response('rate limit', {
+        status: 429,
+        headers: { 'retry-after': '120' },
+      }),
+      isGoogle: false,
+      isAnthropic: true,
+      isChatGpt: false,
+    });
+
+    const opts = {
+      provider: 'anthropic',
+      apiKey: 'sk-ant-oat-token',
+      model: 'claude-sonnet-4-6',
+      body,
+      stream: false,
+      sessionKey: 'sess-1',
+      agentId: 'agent-1',
+      providerKeyLabel: 'Claude Code',
+      authType: 'subscription',
+    };
+
+    const first = await service.tryForwardToProvider(opts);
+    const second = await service.tryForwardToProvider(opts);
+
+    expect(first.response.status).toBe(429);
+    expect(second.response.status).toBe(429);
+    expect(second.response.headers.get('retry-after')).toBe('120');
+    expect(await second.response.text()).toContain('temporarily cooling down');
+    expect(providerClient.forward).toHaveBeenCalledTimes(1);
+  });
+
+  it('evicts an active cooldown when the cooldown cache is full', async () => {
+    const cooldowns = (service as unknown as { rateLimitCooldowns: Map<string, number> })
+      .rateLimitCooldowns;
+    const farFuture = Date.now() + 60_000;
+    for (let i = 0; i < 2_000; i += 1) {
+      cooldowns.set(
+        `agent-1\u0000anthropic\u0000subscription\u0000Key ${i}\u0000model-${i}`,
+        farFuture + i,
+      );
+    }
+
+    providerClient.forward.mockResolvedValueOnce({
+      response: new Response('rate limit', {
+        status: 429,
+        headers: { 'retry-after': '120' },
+      }),
+      isGoogle: false,
+      isAnthropic: true,
+      isChatGpt: false,
+    });
+
+    await service.tryForwardToProvider({
+      provider: 'anthropic',
+      apiKey: 'sk-ant-oat-token',
+      model: 'claude-sonnet-4-6',
+      body,
+      stream: false,
+      sessionKey: 'sess-1',
+      agentId: 'agent-1',
+      providerKeyLabel: 'Claude Code',
+      authType: 'subscription',
+    });
+
+    expect(cooldowns.size).toBe(2_000);
+    expect(cooldowns.has('agent-1\u0000anthropic\u0000subscription\u0000Key 0\u0000model-0')).toBe(
+      false,
+    );
+    expect(
+      cooldowns.has(
+        'agent-1\u0000anthropic\u0000subscription\u0000Claude Code\u0000claude-sonnet-4-6',
+      ),
+    ).toBe(true);
+  });
+
   it('does NOT short-circuit on 401 auth errors — continues to next route (current contract)', async () => {
     // shouldTriggerFallback(401) === true, so an auth failure on the first
     // route keeps the loop going. This test pins that behavior: if anyone

@@ -38,6 +38,7 @@ export class AnthropicOauthExchangeError extends Error {
 const PROVIDER = 'anthropic';
 const ANTHROPIC_OAUTH_TOKEN_HEADERS = {
   'Content-Type': 'application/json',
+  Accept: 'application/json',
   'User-Agent': 'anthropic',
 } as const;
 

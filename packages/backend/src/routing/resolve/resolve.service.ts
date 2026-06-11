@@ -29,6 +29,11 @@ import type { HeaderTier } from '../../entities/header-tier.entity';
 import type { TierAssignment } from '../../entities/tier-assignment.entity';
 import type { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 
+interface ResolvedRouteChain {
+  primaryRoute: ModelRoute | null;
+  fallbackRoutes: ModelRoute[] | null;
+}
+
 /**
  * When specificity detection is below this confidence, skip specificity
  * routing and fall through to the complexity tier. Low-confidence detections
@@ -120,8 +125,17 @@ export class ResolveService {
     const outputModality = outputModalityFor(assignment);
     const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
-    const route = await this.buildResolvedRoute(agentId, userId, assignment);
-    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
+    const routeChain = await this.buildResolvedRouteChain(
+      agentId,
+      userId,
+      assignment,
+      fallbackRoutes,
+    );
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      routeChain.primaryRoute,
+      routeChain.fallbackRoutes,
+    );
     if (!effectiveRoutes.primaryRoute) {
       this.logger.warn(
         `No route resolved for agent=${agentId} tier=${result.tier} ` +
@@ -176,8 +190,17 @@ export class ResolveService {
     const outputModality = outputModalityFor(assignment);
     const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
-    const route = await this.buildResolvedRoute(agentId, userId, assignment);
-    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, fallbackRoutes);
+    const routeChain = await this.buildResolvedRouteChain(
+      agentId,
+      userId,
+      assignment,
+      fallbackRoutes,
+    );
+    const effectiveRoutes = effectiveRoutesForResponseMode(
+      responseMode,
+      routeChain.primaryRoute,
+      routeChain.fallbackRoutes,
+    );
     return {
       tier,
       route: effectiveRoutes.primaryRoute,
@@ -332,25 +355,47 @@ export class ResolveService {
   }
 
   /**
-   * Build the resolved route for a tier assignment. Validates the override
-   * still points to an available model and enriches it with the default key
-   * label when no explicit pin is present.
+   * Build the resolved route chain for a tier assignment. Validates the
+   * override still points to an available model; when an override is orphaned,
+   * walk configured fallbacks before trying the auto-assigned route. Enriches
+   * routes with the default key label when no explicit pin is present.
    */
-  private async buildResolvedRoute(
+  private async buildResolvedRouteChain(
     agentId: string,
     userId: string,
     assignment: TierAssignment | SpecificityAssignment,
-  ): Promise<ModelRoute | null> {
+    fallbackRoutes: ModelRoute[] | null,
+  ): Promise<ResolvedRouteChain> {
     const override = readOverrideRoute(assignment);
     if (override) {
       if (await this.providerKeyService.isModelAvailable(userId, override.model, agentId)) {
-        return this.enrichRouteKeyLabel(agentId, userId, override);
+        return {
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, userId, override),
+          fallbackRoutes,
+        };
       }
       this.logger.warn(
-        `Override ${override.model} unavailable for agent=${agentId} — no route selected`,
+        `Override ${override.model} unavailable for agent=${agentId} — ` +
+          `falling back to configured routes`,
       );
+      const candidates = [
+        ...(fallbackRoutes ?? []),
+        ...(assignment.auto_assigned_route ? [assignment.auto_assigned_route] : []),
+      ];
+      const [primaryRoute, ...remainingFallbacks] = candidates;
+      return {
+        primaryRoute: primaryRoute
+          ? await this.enrichRouteKeyLabel(agentId, userId, primaryRoute)
+          : null,
+        fallbackRoutes: remainingFallbacks.length > 0 ? remainingFallbacks : null,
+      };
     }
-    return null;
+    return {
+      primaryRoute: assignment.auto_assigned_route
+        ? await this.enrichRouteKeyLabel(agentId, userId, assignment.auto_assigned_route)
+        : null,
+      fallbackRoutes,
+    };
   }
 
   /**

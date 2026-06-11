@@ -66,6 +66,7 @@ interface RoutingModalsProps {
     providerKeyLabel?: string,
   ) => void;
   onProviderUpdate: () => Promise<void>;
+  onProviderPoll?: () => Promise<void>;
   onOpenProviderModal: () => void;
 }
 

@@ -5,6 +5,7 @@ import {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
+  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from '../src/subscription';
 
@@ -242,6 +243,11 @@ describe('getSubscriptionProviderConfig', () => {
     expect(getSubscriptionProviderConfig('OpenAI')).not.toBeNull();
   });
 
+  it('resolves provider aliases to subscription configs', () => {
+    expect(getSubscriptionProviderConfig('google')).toBe(getSubscriptionProviderConfig('gemini'));
+    expect(getSubscriptionProviderConfig('Google')).toBe(getSubscriptionProviderConfig('gemini'));
+  });
+
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionProviderConfig('unknown')).toBeNull();
   });
@@ -269,6 +275,11 @@ describe('supportsSubscriptionProvider', () => {
     expect(supportsSubscriptionProvider('xai')).toBe(true);
   });
 
+  it('returns true for aliases of supported providers', () => {
+    expect(supportsSubscriptionProvider('google')).toBe(true);
+    expect(supportsSubscriptionProvider('Google')).toBe(true);
+  });
+
   it('returns false for unsupported providers', () => {
     expect(supportsSubscriptionProvider('deepseek')).toBe(false);
     expect(supportsSubscriptionProvider('kilo')).toBe(false);
@@ -279,6 +290,7 @@ describe('supportsSubscriptionProvider', () => {
 describe('getSubscriptionKnownModels', () => {
   it('returns known models for anthropic', () => {
     const models = getSubscriptionKnownModels('anthropic');
+    expect(models).toContain('claude-fable-5');
     expect(models).toContain('claude-opus-4');
     expect(models).toContain('claude-sonnet-4');
   });
@@ -401,6 +413,20 @@ describe('getSubscriptionKnownModelsMatch', () => {
   it('is case-insensitive', () => {
     expect(getSubscriptionKnownModelsMatch('GEMINI')).toBe('exact');
     expect(getSubscriptionKnownModelsMatch('Anthropic')).toBe('prefix');
+  });
+});
+
+describe('getSubscriptionExcludedModels', () => {
+  it('returns the -fast exclusion for anthropic', () => {
+    expect(getSubscriptionExcludedModels('anthropic')).toEqual(['-fast']);
+  });
+
+  it('returns an empty array for providers with no exclusion configured', () => {
+    expect(getSubscriptionExcludedModels('gemini')).toEqual([]);
+  });
+
+  it('returns an empty array for unknown providers', () => {
+    expect(getSubscriptionExcludedModels('unknown')).toEqual([]);
   });
 });
 

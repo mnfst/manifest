@@ -11,6 +11,7 @@ import type { ThinkingBlock } from './thinking-block-cache';
 interface ContentBlock {
   type: string;
   text?: string;
+  source?: { type: string; media_type?: string; data?: string; url?: string };
   id?: string;
   name?: string;
   input?: unknown;
@@ -33,6 +34,7 @@ interface AnthropicTool {
 
 const CACHE = { type: 'ephemeral' } as const;
 const ANTHROPIC_PREFIX = 'anthropic/';
+const DATA_IMAGE_URL_RE = /^data:([^;,]+)(?:;[^,]*)?;base64,(.*)$/is;
 
 function bareAnthropicModel(model: string): string {
   return model.startsWith(ANTHROPIC_PREFIX) ? model.slice(ANTHROPIC_PREFIX.length) : model;
@@ -75,7 +77,20 @@ function safeParseArgs(args: string | undefined): unknown {
   }
 }
 
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
 /* ── Request helpers ── */
+
+function isTextContentPart(part: Record<string, unknown>): part is Record<string, unknown> & {
+  text: string;
+} {
+  return (
+    typeof part.text === 'string' &&
+    (part.type === 'text' || part.type === 'input_text' || part.type === 'output_text')
+  );
+}
 
 function extractSystemBlocks(messages: OpenAIMessage[]): ContentBlock[] {
   const blocks: ContentBlock[] = [];
@@ -85,7 +100,7 @@ function extractSystemBlocks(messages: OpenAIMessage[]): ContentBlock[] {
       blocks.push({ type: 'text', text: msg.content });
     } else if (Array.isArray(msg.content)) {
       for (const part of msg.content as Array<Record<string, unknown>>) {
-        if (part.type === 'text' && typeof part.text === 'string') {
+        if (isObjectRecord(part) && isTextContentPart(part)) {
           blocks.push({ type: 'text', text: part.text });
         }
       }
@@ -94,12 +109,61 @@ function extractSystemBlocks(messages: OpenAIMessage[]): ContentBlock[] {
   return blocks;
 }
 
-function toContentBlocks(content: unknown): ContentBlock[] {
+function extractOpenAiImageUrl(imageUrl: unknown): string | null {
+  if (typeof imageUrl === 'string') return imageUrl;
+  if (!isObjectRecord(imageUrl) || typeof imageUrl.url !== 'string') return null;
+  return imageUrl.url;
+}
+
+function imageUrlToAnthropicBlock(imageUrl: unknown): ContentBlock | null {
+  const url = extractOpenAiImageUrl(imageUrl);
+  if (!url) return null;
+
+  const dataUrl = DATA_IMAGE_URL_RE.exec(url);
+  if (dataUrl) {
+    const mediaType = dataUrl[1] || 'image/png';
+    if (!mediaType.toLowerCase().startsWith('image/')) return null;
+    return {
+      type: 'image',
+      source: { type: 'base64', media_type: mediaType, data: dataUrl[2] },
+    };
+  }
+
+  return { type: 'image', source: { type: 'url', url } };
+}
+
+function normalizeAnthropicImageBlock(part: Record<string, unknown>): ContentBlock | null {
+  if (part.type !== 'image' || !isObjectRecord(part.source)) return null;
+  const source = part.source;
+  if (source.type === 'base64' && typeof source.data === 'string') {
+    const mediaType = typeof source.media_type === 'string' ? source.media_type : 'image/png';
+    return { type: 'image', source: { type: 'base64', media_type: mediaType, data: source.data } };
+  }
+  if (source.type === 'url' && typeof source.url === 'string') {
+    return { type: 'image', source: { type: 'url', url: source.url } };
+  }
+  return null;
+}
+
+function toContentBlocks(content: unknown, includeImages = false): ContentBlock[] {
   if (typeof content === 'string') return content ? [{ type: 'text', text: content }] : [];
   if (Array.isArray(content)) {
-    return (content as Array<Record<string, unknown>>)
-      .filter((b) => b.type === 'text' && typeof b.text === 'string')
-      .map((b) => ({ type: 'text', text: b.text as string }));
+    const blocks: ContentBlock[] = [];
+    for (const part of content) {
+      if (!isObjectRecord(part)) continue;
+      if (isTextContentPart(part)) {
+        blocks.push({ type: 'text', text: part.text });
+      } else if (includeImages) {
+        const imageBlock =
+          part.type === 'image_url'
+            ? imageUrlToAnthropicBlock(part.image_url)
+            : part.type === 'input_image'
+              ? imageUrlToAnthropicBlock(part.image_url)
+              : normalizeAnthropicImageBlock(part);
+        if (imageBlock) blocks.push(imageBlock);
+      }
+    }
+    return blocks;
   }
   return [];
 }
@@ -155,7 +219,7 @@ function convertMessage(
     return blocks.length > 0 ? { role: 'assistant', content: blocks } : null;
   }
 
-  const blocks = toContentBlocks(msg.content);
+  const blocks = toContentBlocks(msg.content, true);
   return blocks.length > 0 ? { role: 'user', content: blocks } : null;
 }
 

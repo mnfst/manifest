@@ -399,6 +399,10 @@ const Routing: Component = () => {
     await refetchAll();
   };
 
+  const handleProviderPoll = async () => {
+    await refetchProviders();
+  };
+
   const handleSpecificityOverride = async (
     category: string,
     model: string,
@@ -730,6 +734,7 @@ const Routing: Component = () => {
         onOverride={handleOverride}
         onAddFallback={handleAddFallback}
         onProviderUpdate={handleProviderUpdate}
+        onProviderPoll={handleProviderPoll}
         onOpenProviderModal={openProviderModal}
       />
 

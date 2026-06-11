@@ -584,9 +584,39 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(routingCache.invalidateUser).not.toHaveBeenCalled();
     });
 
-    it('deactivates unsupported subscription rows and returns only usable providers', async () => {
-      // Pretend 'foobar' is an unsupported subscription provider.
-      providerRepo.find.mockResolvedValueOnce([
+    it('keeps supported subscription rows that use provider aliases', async () => {
+      const googleSubscription = {
+        id: 'p1',
+        agent_id: 'agent-1',
+        provider: 'google',
+        auth_type: 'subscription',
+        is_active: true,
+      } as UserProvider;
+      providerRepo.find.mockResolvedValue([googleSubscription]);
+
+      const result = await svc.getProviders('agent-1');
+
+      expect(result).toEqual([googleSubscription]);
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
+    });
+
+    it('deactivates unsupported subscription rows and triggers cleanup when no usable sibling remains', async () => {
+      // Pretend 'foobar' is an unsupported subscription provider — neither
+      // anthropic nor any usable sibling stays for the same provider.
+      providerRepo.find
+        .mockResolvedValueOnce([
+          {
+            id: 'p1',
+            agent_id: 'agent-1',
+            provider: 'foobar',
+            auth_type: 'subscription',
+            is_active: true,
+          },
+        ])
+        // After cleanupProviderReferences runs.
+        .mockResolvedValueOnce([]);
+      tierRepo.find.mockResolvedValue([
         {
           id: 'p1',
           agent_id: 'agent-1',
@@ -611,6 +641,39 @@ describe('ProviderService — route-only cleanup paths', () => {
       const result = await svc.getProviders('user-1');
       expect(result).toBe(cached);
       expect(providerRepo.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('registerSubscriptionProvider', () => {
+    it('registers keyless subscription providers that use provider aliases', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      const result = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'google');
+
+      expect(result).toEqual({ isNew: true });
+      expect(providerRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: 'user-1',
+          agent_id: 'agent-1',
+          provider: 'google',
+          auth_type: 'subscription',
+          label: 'Default',
+          priority: 0,
+          api_key_encrypted: null,
+          key_prefix: null,
+          is_active: true,
+        }),
+      );
+      expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+    });
+
+    it('still ignores unsupported keyless subscription providers', async () => {
+      const result = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'deepseek');
+
+      expect(result).toEqual({ isNew: false });
+      expect(providerRepo.insert).not.toHaveBeenCalled();
+      expect(autoAssign.recalculate).not.toHaveBeenCalled();
     });
   });
 

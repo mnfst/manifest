@@ -19,6 +19,17 @@ import {
 } from './chatgpt-helpers';
 import { OpenAIMessage } from './proxy-types';
 
+export class ResponsesSseError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly body: string,
+  ) {
+    super(message);
+    this.name = 'ResponsesSseError';
+  }
+}
+
 /* ── Request conversion ── */
 
 export interface ToResponsesRequestOptions {
@@ -29,6 +40,11 @@ export interface ToResponsesRequestOptions {
    * leave this disabled. API-key /responses and Copilot /responses accept it.
    */
   mapMaxOutputTokens?: boolean;
+  /**
+   * Explicit upstream streaming mode. Omit to preserve the historical
+   * ChatGPT-subscription behavior, which expects SSE collection.
+   */
+  stream?: boolean;
 }
 
 export function toResponsesRequest(
@@ -70,7 +86,7 @@ export function toResponsesRequest(
   const request: Record<string, unknown> = {
     model,
     input,
-    stream: body.stream !== false,
+    stream: options.stream ?? body.stream !== false,
     store: false,
     instructions: extractInstructions(messages),
   };
@@ -310,7 +326,9 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
     const data = safeParse(dataStr);
     if (!data) continue;
 
-    if (eventType === 'response.output_text.delta') {
+    if (eventType === 'error' || eventType === 'response.failed') {
+      throw buildResponsesSseError(data);
+    } else if (eventType === 'response.output_text.delta') {
       text += typeof data.delta === 'string' ? data.delta : '';
     } else if (eventType === 'response.output_item.added') {
       const item = isObjectRecord(data.item) ? data.item : undefined;
@@ -366,4 +384,39 @@ export function collectChatGptSseResponse(sseText: string, model: string): Recor
     ],
     usage: usage ?? { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
   };
+}
+
+function buildResponsesSseError(data: Record<string, unknown>): ResponsesSseError {
+  const response = isObjectRecord(data.response) ? data.response : undefined;
+  const error = isObjectRecord(data.error)
+    ? data.error
+    : isObjectRecord(response?.error)
+      ? response.error
+      : data;
+  const message =
+    typeof error.message === 'string' && error.message
+      ? error.message
+      : 'OpenAI Responses stream failed';
+  const code = typeof error.code === 'string' ? error.code : undefined;
+  const type = typeof error.type === 'string' ? error.type : undefined;
+  const status = statusFromResponsesError(code, type);
+  const body = JSON.stringify({
+    error: {
+      message,
+      ...(code ? { code } : {}),
+      ...(type ? { type } : {}),
+    },
+  });
+  return new ResponsesSseError(message, status, body);
+}
+
+function statusFromResponsesError(code: string | undefined, type: string | undefined): number {
+  const value = (code ?? type ?? '').toLowerCase();
+  if (value.includes('model_not_found') || value.includes('not_found')) return 404;
+  if (value.includes('rate_limit')) return 429;
+  if (value.includes('invalid') || value.includes('bad_request')) return 400;
+  if (value.includes('unauthorized') || value.includes('authentication')) return 401;
+  if (value.includes('forbidden') || value.includes('permission')) return 403;
+  if (value.includes('server')) return 500;
+  return 502;
 }

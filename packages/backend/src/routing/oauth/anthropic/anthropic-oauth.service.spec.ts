@@ -212,8 +212,10 @@ describe('AnthropicOauthService', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const [tokenUrl, init] = fetchMock.mock.calls[0];
       expect(tokenUrl).toBe(ANTHROPIC_OAUTH.TOKEN_URL);
+      expect(new URL(tokenUrl).origin).toBe('https://api.anthropic.com');
       expect(init.headers).toEqual({
         'Content-Type': 'application/json',
+        Accept: 'application/json',
         'User-Agent': 'anthropic',
       });
       const body = JSON.parse(init.body);
@@ -379,6 +381,7 @@ describe('AnthropicOauthService', () => {
       expect(blob).toEqual({ t: 'a2', r: 'r2', e: Date.now() + 1800 * 1000 });
       expect(fetchMock.mock.calls[0][1].headers).toEqual({
         'Content-Type': 'application/json',
+        Accept: 'application/json',
         'User-Agent': 'anthropic',
       });
     });

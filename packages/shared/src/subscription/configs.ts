@@ -10,7 +10,16 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionKeyPlaceholder: 'Paste your setup-token',
     subscriptionCommand: 'claude setup-token',
     subscriptionTokenPrefix: 'sk-ant-oat',
-    knownModels: Object.freeze(['claude-opus-4', 'claude-sonnet-4', 'claude-haiku-4']),
+    knownModels: Object.freeze([
+      'claude-fable-5',
+      'claude-opus-4',
+      'claude-sonnet-4',
+      'claude-haiku-4',
+    ]),
+    // `claude-*-fast` ids exist in the OpenRouter pricing cache but 404 at
+    // api.anthropic.com — fast mode is an `anthropic-beta` header on the base
+    // Opus model, not a distinct model id. Keep them out of the catalog.
+    knownModelsExclude: Object.freeze(['-fast']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       supportsPromptCaching: false,

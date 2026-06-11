@@ -48,6 +48,36 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(false);
     });
 
+    it('preserves image parts for OpenAI-compatible providers', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const imageBody = {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this.' },
+              {
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' },
+              },
+            ],
+          },
+        ],
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: imageBody,
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.messages).toEqual(imageBody.messages);
+      expect(sentBody.model).toBe('gpt-4o');
+    });
+
     it('builds correct URL for deepseek', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const result = await client.forward({
@@ -428,6 +458,52 @@ describe('ProviderClient', () => {
       expect(sent.tools[0]).toMatchObject({ name: 'lookup', input_schema: { type: 'object' } });
     });
 
+    it('forwards Responses image inputs to Anthropic image content blocks', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: {
+          input: [
+            {
+              role: 'user',
+              content: [
+                { type: 'input_text', text: 'What is in this image?' },
+                { type: 'input_image', image_url: 'data:image/png;base64,iVBORw0KGgo=' },
+              ],
+            },
+          ],
+          stream: false,
+        },
+        chatBody: {
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'What is in this image?' },
+                { type: 'image_url', image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' } },
+              ],
+            },
+          ],
+          stream: false,
+        },
+        stream: false,
+        apiMode: 'responses',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sent.input).toBeUndefined();
+      expect(sent.messages[0].content).toEqual([
+        { type: 'text', text: 'What is in this image?' },
+        {
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/png', data: 'iVBORw0KGgo=' },
+        },
+      ]);
+    });
+
     it('strips Codex-unsupported params on the subscription Responses path', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -726,6 +802,37 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBeUndefined();
       expect(sentBody.stream).toBeUndefined();
     });
+
+    it('maps image parts onto the Google request body', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'google',
+        apiKey: 'AIza-test',
+        model: 'gemini-2.0-flash',
+        body: {
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'Describe this.' },
+                {
+                  type: 'image_url',
+                  image_url: { url: 'data:image/png;base64,iVBORw0KGgo=' },
+                },
+              ],
+            },
+          ],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.contents[0].parts).toEqual([
+        { text: 'Describe this.' },
+        { inlineData: { mimeType: 'image/png', data: 'iVBORw0KGgo=' } },
+      ]);
+    });
   });
 
   describe('ChatGPT subscription provider', () => {
@@ -893,21 +1000,26 @@ describe('ProviderClient', () => {
       expect(result.isChatGpt).toBe(true);
     });
 
-    it('routes api_key + o4-mini-deep-research to /v1/responses', async () => {
-      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+    it.each(['o3-deep-research', 'o4-mini-deep-research'])(
+      'routes already-resolved api_key + %s to /v1/responses',
+      async (model) => {
+        mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-      const result = await client.forward({
-        provider: 'openai',
-        apiKey: 'sk-test',
-        model: 'o4-mini-deep-research',
-        body,
-        stream: false,
-      });
+        const result = await client.forward({
+          provider: 'openai',
+          apiKey: 'sk-test',
+          model,
+          body,
+          stream: false,
+        });
 
-      const url = mockFetch.mock.calls[0][0] as string;
-      expect(url).toBe('https://api.openai.com/v1/responses');
-      expect(result.isChatGpt).toBe(true);
-    });
+        const url = mockFetch.mock.calls[0][0] as string;
+        expect(url).toBe('https://api.openai.com/v1/responses');
+        const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+        expect(sentBody.stream).toBe(false);
+        expect(result.isChatGpt).toBe(true);
+      },
+    );
 
     it('detects Responses-only models after stripping an OpenRouter-style vendor prefix', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
@@ -926,6 +1038,24 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       // Vendor prefix is stripped before being sent to OpenAI.
       expect(sentBody.model).toBe('gpt-5.3-codex');
+    });
+
+    it('detects already-resolved o3-deep-research after stripping an OpenRouter-style vendor prefix', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'openai/o3-deep-research',
+        body,
+        stream: false,
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://api.openai.com/v1/responses');
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('o3-deep-research');
     });
 
     // Regression guard: models that DO support /v1/chat/completions must stay

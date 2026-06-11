@@ -1,6 +1,7 @@
 import {
   collectChatGptSseResponse,
   fromResponsesResponse,
+  ResponsesSseError,
   toResponsesRequest,
   transformResponsesStreamChunk,
 } from './chatgpt-adapter';
@@ -410,6 +411,35 @@ describe('chatgpt-adapter', () => {
       expect(out.usage).toEqual({ prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 });
       const choices = out.choices as Array<Record<string, unknown>>;
       expect((choices[0].message as Record<string, unknown>).content).toBeNull();
+    });
+
+    it('throws an upstream error when the Responses stream emits an error event', () => {
+      const sse =
+        'event: error\ndata: {"type":"invalid_request_error","code":"model_not_found","message":"Model unavailable"}';
+
+      expect(() => collectChatGptSseResponse(sse, 'gpt-5')).toThrow(ResponsesSseError);
+
+      try {
+        collectChatGptSseResponse(sse, 'gpt-5');
+      } catch (err) {
+        expect(err).toBeInstanceOf(ResponsesSseError);
+        expect((err as ResponsesSseError).status).toBe(404);
+        expect((err as ResponsesSseError).body).toContain('Model unavailable');
+      }
+    });
+
+    it('throws an upstream error when the Responses stream emits response.failed', () => {
+      const sse =
+        'event: response.failed\ndata: {"response":{"error":{"code":"rate_limit_exceeded","message":"Too many requests"}}}';
+
+      try {
+        collectChatGptSseResponse(sse, 'gpt-5');
+        fail('Expected ResponsesSseError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(ResponsesSseError);
+        expect((err as ResponsesSseError).status).toBe(429);
+        expect((err as ResponsesSseError).body).toContain('Too many requests');
+      }
     });
 
     it('drops function_call_arguments deltas that arrive for an unknown output_index', () => {

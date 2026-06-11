@@ -1278,7 +1278,7 @@ describe('ProviderModelFetcherService', () => {
       );
     });
 
-    it('should send bearer header + beta for subscription auth', async () => {
+    it('should send Claude Code-shaped bearer headers for subscription auth', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({ data: [] }),
@@ -1292,10 +1292,15 @@ describe('ProviderModelFetcherService', () => {
           headers: expect.objectContaining({
             'anthropic-version': '2023-06-01',
             Authorization: 'Bearer token',
-            'anthropic-beta': 'oauth-2025-04-20',
+            'anthropic-beta': expect.stringContaining('claude-code-20250219'),
+            'anthropic-dangerous-direct-browser-access': 'true',
+            'user-agent': expect.stringContaining('claude-cli/'),
+            'x-app': 'cli',
           }),
         }),
       );
+      const headers = fetchSpy.mock.calls[0][1]?.headers as Record<string, string>;
+      expect(headers['anthropic-beta']).toContain('oauth-2025-04-20');
     });
   });
 
