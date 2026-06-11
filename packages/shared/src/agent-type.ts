@@ -54,7 +54,7 @@ export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = 
   'openai-sdk': '/icons/providers/openai.svg',
   'anthropic-sdk': '/icons/providers/anthropic.svg',
   'vercel-ai-sdk': '/icons/vercel.svg',
-  langchain: '/icons/langchain.png',
+  langchain: '/icons/langchain.svg',
   other: '/icons/other.svg',
 };
 
