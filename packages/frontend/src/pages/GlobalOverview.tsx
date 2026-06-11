@@ -1,4 +1,5 @@
 import { Title } from '@solidjs/meta';
+import { toggleScrollFade } from '../services/scroll-fade.js';
 import { A, useNavigate } from '@solidjs/router';
 import {
   createResource,
@@ -819,14 +820,7 @@ const GlobalOverview: Component = () => {
               View more
             </A>
           </div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
@@ -916,14 +910,7 @@ const GlobalOverview: Component = () => {
         {/* ── 5. Model usage (full width) ────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div class="panel__title">Model usage</div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
@@ -1020,14 +1007,7 @@ const GlobalOverview: Component = () => {
         {/* ── 6. Provider connections (full width) ────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div class="panel__title">Provider connections</div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
@@ -1155,14 +1135,7 @@ const GlobalOverview: Component = () => {
         {/* ── 7. Harnesses (full width) ──────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div class="panel__title">Harnesses</div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>

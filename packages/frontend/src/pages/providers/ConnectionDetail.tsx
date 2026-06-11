@@ -1,4 +1,5 @@
 import { Title } from '@solidjs/meta';
+import { toggleScrollFade } from '../../services/scroll-fade.js';
 import { A, useParams } from '@solidjs/router';
 import {
   createEffect,
@@ -571,14 +572,7 @@ const ConnectionDetail: Component = () => {
                     </div>
                   }
                 >
-                  <div
-                    class="scroll-panel__body"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                    }}
-                  >
+                  <div class="scroll-panel__body" onScroll={toggleScrollFade}>
                     <table class="data-table">
                       <thead>
                         <tr>
@@ -624,14 +618,7 @@ const ConnectionDetail: Component = () => {
                     </div>
                   }
                 >
-                  <div
-                    class="scroll-panel__body"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                    }}
-                  >
+                  <div class="scroll-panel__body" onScroll={toggleScrollFade}>
                     <table class="data-table">
                       <thead>
                         <tr>
@@ -693,14 +680,7 @@ const ConnectionDetail: Component = () => {
                     </div>
                   }
                 >
-                  <div
-                    class="scroll-panel__body"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                    }}
-                  >
+                  <div class="scroll-panel__body" onScroll={toggleScrollFade}>
                     <table class="data-table">
                       <thead>
                         <tr>
