@@ -6,6 +6,7 @@ import {
   createResource,
   createSignal,
   For,
+  onCleanup,
   Show,
   type Component,
 } from 'solid-js';
@@ -40,6 +41,7 @@ import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-st
 import { toast } from '../../services/toast-store.js';
 import '../../styles/charts.css';
 import '../../styles/analytics-overview.css';
+import { getModelDisplayName } from '../../services/model-display.js';
 import '../../styles/routing.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
@@ -147,9 +149,10 @@ const ConnectionDetail: Component = () => {
   createEffect(() => {
     const c = conn();
     if (c) {
-      setConnectionBreadcrumb(providerDisplayName(), backLink());
+      setConnectionBreadcrumb(providerDisplayName(), backLink(), backLabel(), c.provider, c.label);
     }
   });
+  onCleanup(() => setConnectionBreadcrumb(null));
 
   // Chart state (persisted in sessionStorage)
   const rangeKey = () => `chart-range:${params.connectionId}`;
@@ -503,8 +506,14 @@ const ConnectionDetail: Component = () => {
                         {providerIcon(c.provider, 32)}
                       </Show>
                     </span>
-                    <h1 class="page-header__title" style="margin: 0;">
+                    <h1
+                      class="page-header__title"
+                      style="margin: 0; display: flex; align-items: baseline; gap: 8px;"
+                    >
                       {providerDisplayName()}
+                      <span style="font-size: var(--font-size-sm); font-weight: 400; color: hsl(var(--muted-foreground));">
+                        {c.label}
+                      </span>
                     </h1>
                     <Show when={isCustomProvider()}>
                       <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
@@ -622,9 +631,6 @@ const ConnectionDetail: Component = () => {
                   style="display: flex; justify-content: space-between; align-items: center;"
                 >
                   Recent Messages
-                  <A href={`/messages`} class="view-more-link">
-                    View more
-                  </A>
                 </div>
                 <Show
                   when={detail()!.recent_messages.length > 0}
@@ -646,7 +652,7 @@ const ConnectionDetail: Component = () => {
                       <thead>
                         <tr>
                           <th>Date</th>
-                          <th>Message</th>
+                          <th>Message ID</th>
                           <th>Model</th>
                           <th>Tokens</th>
                         </tr>
@@ -658,11 +664,22 @@ const ConnectionDetail: Component = () => {
                               <td style="white-space: nowrap;">
                                 {msg.timestamp ? formatTimeAgo(msg.timestamp) : '—'}
                               </td>
-                              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {msg.description || msg.first_message || '—'}
+                              <td style="font-family: var(--font-mono, monospace); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                                {msg.id ? msg.id.slice(0, 8) : '—'}
                               </td>
-                              <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {msg.model || '—'}
+                              <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                  {msg.model ? (
+                                    <>
+                                      <span style="display: inline-flex; flex-shrink: 0; position: relative; width: 14px; height: 14px;">
+                                        {providerIcon(msg.provider ?? c.provider, 14)}
+                                      </span>
+                                      {getModelDisplayName(msg.model)}
+                                    </>
+                                  ) : (
+                                    '—'
+                                  )}
+                                </span>
                               </td>
                               <td>
                                 {formatNumber((msg.input_tokens ?? 0) + (msg.output_tokens ?? 0))}

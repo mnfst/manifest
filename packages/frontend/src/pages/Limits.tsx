@@ -129,7 +129,7 @@ const Limits: Component = () => {
         content={`Configure limits and alerts for ${agentDisplayName() ?? agentName()}.`}
       />
 
-      <div class="page-header">
+      <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <span class="breadcrumb">
           Get notified or block requests when token or cost thresholds are exceeded
         </span>

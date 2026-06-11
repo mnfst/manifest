@@ -278,7 +278,7 @@ export function ModelCell(item: MessageRow, onOpenRecording?: (id: string) => vo
             role="img"
             aria-label={`${provName ?? provId} (${authLabel(item.auth_type)})`}
             title={`${provName ?? provId} (${authLabel(item.auth_type)})`}
-            style="display: inline-flex; flex-shrink: 0; position: relative; color: hsl(var(--foreground));"
+            style="display: inline-flex; flex-shrink: 0; position: relative; color: hsl(var(--foreground)); width: 14px; height: 14px;"
           >
             {providerIcon(provId, 14)}
             {authBadgeFor(item.auth_type, 8)}

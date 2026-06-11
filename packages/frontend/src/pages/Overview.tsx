@@ -40,6 +40,7 @@ import {
 } from '../services/use-overview-range.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
+import '../styles/routing.css';
 
 interface OverviewData {
   summary: {
@@ -314,7 +315,10 @@ const Overview: Component = () => {
         name="description"
         content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
       />
-      <div class="page-header" style="justify-content: flex-end;">
+      <div
+        class="page-header"
+        style="justify-content: flex-end; border-bottom: none; padding-bottom: 0;"
+      >
         <div class="header-controls">
           <Show when={showDashboard() && allProviders().length > 1}>
             <FilterSelect

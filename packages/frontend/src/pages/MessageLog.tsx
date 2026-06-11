@@ -34,10 +34,13 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
+import { providerIcon } from '../components/ProviderIcon.jsx';
+import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+import '../styles/routing.css';
 // The recorded-message drawer/modal styles. Only the Messages log mounts
 // RecordedMessageModal, so this CSS stays out of the global theme bundle.
 import '../styles/recording.css';
@@ -119,7 +122,19 @@ const MessageLog: Component = () => {
   });
   const agentFilterOptions = createMemo(() => [
     { label: 'All harnesses', value: '' },
-    ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
+    ...(agentList() ?? []).map((a) => {
+      const info = agentPlatformMap().get(a);
+      const iconPath = info?.platform ? platformIcon(info.platform, info.category) : null;
+      return {
+        label: a,
+        value: a,
+        icon: iconPath ? (
+          <img src={iconPath} alt="" width="14" height="14" style="border-radius: 3px;" />
+        ) : (
+          <span style="display: inline-block; width: 14px; height: 14px;" />
+        ),
+      };
+    }),
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
   const [tierFilter, setTierFilter] = createSignal('');
@@ -321,6 +336,7 @@ const MessageLog: Component = () => {
 
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
+    if (id === 'manifest') return 'Manifest';
     const prov = PROVIDERS.find((p) => p.id === id);
     if (prov) return prov.name;
     // Custom providers arrive as `custom:<uuid>` — the backend ships a label
@@ -332,6 +348,7 @@ const MessageLog: Component = () => {
     { label: 'All providers', value: '' },
     ...(data()?.providers ?? []).map((id) => ({
       label: providerDisplayName(id),
+      icon: providerIcon(id, 14) ?? undefined,
       value: id,
     })),
   ]);

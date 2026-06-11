@@ -432,18 +432,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           {copy().connectedHeading}
         </h3>
         <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
-          <table class="data-table" style="min-width: 860px; width: 100%;">
-            <colgroup>
-              <col style="width: 214px;" />
-              <col style="width: 140px;" />
-              <col />
-              <Show when={copy().rowMetricHeading}>
-                <col style="width: 130px;" />
-              </Show>
-              <col style="width: 90px;" />
-              <col style="width: 100px;" />
-              <col style="width: 110px;" />
-            </colgroup>
+          <table class="data-table" style="width: 100%;">
             <thead>
               <tr>
                 <th>Provider</th>
@@ -637,12 +626,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
 
       <Show when={viewMode() === 'list'}>
         <div class="panel" style="padding: 0; overflow-x: auto;">
-          <table class="data-table" style="min-width: 520px; width: 100%;">
-            <colgroup>
-              <col style="width: 240px;" />
-              <col />
-              <col style="width: 160px;" />
-            </colgroup>
+          <table class="data-table" style="width: 100%;">
             <thead>
               <tr>
                 <th>Provider</th>

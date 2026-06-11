@@ -41,6 +41,7 @@ import { agentPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
+import '../styles/routing.css';
 
 interface ProviderGroup {
   provider: string;
@@ -506,7 +507,7 @@ const GlobalOverview: Component = () => {
             Connect a model provider to start routing your harnesses' LLM calls.
           </div>
           <A
-            href="/providers/subscriptions?add=true"
+            href="/providers/subscriptions"
             class="btn btn--primary btn--sm"
             style="text-decoration: none;"
           >
@@ -599,7 +600,7 @@ const GlobalOverview: Component = () => {
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Subscriptions</span>
                   <A
-                    href="/providers/subscriptions?add=true"
+                    href="/providers/subscriptions"
                     class="btn btn--outline btn--sm"
                     style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                   >
@@ -659,9 +660,9 @@ const GlobalOverview: Component = () => {
               </div>
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <span class="overview-stat-card__label">BYOK</span>
+                  <span class="overview-stat-card__label">Usage-based</span>
                   <A
-                    href="/providers/byok?add=true"
+                    href="/providers/byok"
                     class="btn btn--outline btn--sm"
                     style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                   >
@@ -724,7 +725,7 @@ const GlobalOverview: Component = () => {
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <span class="overview-stat-card__label">Local</span>
                     <A
-                      href="/providers/local?add=true"
+                      href="/providers/local"
                       class="btn btn--outline btn--sm"
                       style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                     >
@@ -901,7 +902,7 @@ const GlobalOverview: Component = () => {
                       <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
                           <Show when={row.provider}>
-                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center; width: 14px; height: 14px;">
                               {providerIcon(row.provider!, 16)}
                               {authBadgeFor(row.auth_type ?? null, 12)}
                             </span>
@@ -988,7 +989,7 @@ const GlobalOverview: Component = () => {
                               );
                             }
                             return row.provider ? (
-                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center; width: 14px; height: 14px;">
                                 {providerIcon(row.provider, 16)}
                                 {authBadgeFor(row.auth_type, 12)}
                               </span>

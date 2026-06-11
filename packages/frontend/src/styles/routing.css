@@ -65,6 +65,8 @@
   align-items: center;
   position: relative;
   cursor: default;
+  width: 16px;
+  height: 16px;
 }
 
 .routing-providers-info__icon--has-tooltip {
@@ -113,7 +115,7 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
-  border: 1.5px solid hsl(var(--card));
+  border: 1px solid hsl(var(--card));
 }
 
 .provider-auth-badge--sub {
@@ -137,11 +139,11 @@
 }
 
 .provider-auth-badge--overlay {
-  width: 8px;
-  height: 8px;
-  top: -2px;
-  right: -2px;
-  border-width: 1.5px;
+  width: 10px;
+  height: 10px;
+  top: -4px;
+  right: -4px;
+  border-width: 1px;
 }
 
 /* ── Routing section ────────────────────────────────── */
@@ -738,13 +740,13 @@
   bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 4px;
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--border));
   box-shadow: 0 2px 6px hsl(var(--foreground) / 0.08);
-  font-size: 10px;
+  font-size: var(--tooltip-font-size);
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
@@ -1404,6 +1406,8 @@
   align-items: center;
   flex-shrink: 0;
   position: relative;
+  width: 14px;
+  height: 14px;
 }
 
 .routing-card__auto-tag {
@@ -1712,6 +1716,8 @@
   align-items: center;
   flex-shrink: 0;
   position: relative;
+  width: 14px;
+  height: 14px;
 }
 
 .fallback-list__model {

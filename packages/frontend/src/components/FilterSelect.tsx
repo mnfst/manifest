@@ -89,14 +89,6 @@ const FilterSelect: Component<FilterSelectProps> = (props) => {
             >
               Select all
             </button>
-            <button
-              class="agent-filter-select__action-btn"
-              type="button"
-              disabled={selectedCount() === 0}
-              onClick={() => props.onUnselectAll()}
-            >
-              Unselect all
-            </button>
           </div>
           <For each={props.items}>
             {(item) => {

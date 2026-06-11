@@ -5,6 +5,14 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import {
+  connectionBreadcrumbName,
+  connectionBreadcrumbProviderId,
+  connectionBreadcrumbLabel,
+  connectionBreadcrumbBackLink,
+  connectionBreadcrumbBackLabel,
+} from '../services/connection-breadcrumb-store.js';
+import { providerIcon } from './ProviderIcon.jsx';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
 
 const GITHUB_REPO = 'mnfst/manifest';
@@ -141,6 +149,13 @@ const Header: Component<HeaderProps> = (props) => {
         )}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
+          <A
+            href="/harnesses"
+            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
+          >
+            Harnesses
+          </A>
+          <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">
             <Show when={agentPlatformIcon()}>
               <img
@@ -219,6 +234,29 @@ const Header: Component<HeaderProps> = (props) => {
                 </div>
               </Show>
             </div>
+          </span>
+        </Show>
+        <Show when={!getAgentName() && connectionBreadcrumbName()}>
+          <span class="header__separator">/</span>
+          <A
+            href={connectionBreadcrumbBackLink()}
+            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
+          >
+            {connectionBreadcrumbBackLabel()}
+          </A>
+          <span class="header__separator">/</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground));">
+            <Show when={connectionBreadcrumbProviderId()}>
+              <span style="display: inline-flex; align-items: center; flex-shrink: 0;">
+                {providerIcon(connectionBreadcrumbProviderId()!, 14)}
+              </span>
+            </Show>
+            {connectionBreadcrumbName()}
+            <Show when={connectionBreadcrumbLabel()}>
+              <span style="color: hsl(var(--muted-foreground)); font-weight: 400;">
+                {connectionBreadcrumbLabel()}
+              </span>
+            </Show>
           </span>
         </Show>
       </div>

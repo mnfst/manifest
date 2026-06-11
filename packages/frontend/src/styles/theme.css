@@ -451,6 +451,7 @@ h6 {
 /* ── Data Table — shadcn Table style ─────────────── */
 .data-table {
   width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: var(--font-size-sm);
 }

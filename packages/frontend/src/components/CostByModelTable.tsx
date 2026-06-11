@@ -107,7 +107,7 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                         return (
                           <span
                             title={`${provName ?? provId} (${authLabel(row.auth_type)})`}
-                            style="display: inline-flex; flex-shrink: 0; position: relative;"
+                            style="display: inline-flex; flex-shrink: 0; position: relative; width: 14px; height: 14px;"
                           >
                             {providerIcon(provId, 14)}
                             {authBadgeFor(row.auth_type, 8)}
