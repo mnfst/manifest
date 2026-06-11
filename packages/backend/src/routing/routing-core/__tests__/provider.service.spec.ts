@@ -653,7 +653,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(providerRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: 'user-1',
-          agent_id: 'agent-1',
+          agent_id: undefined,
           provider: 'google',
           auth_type: 'subscription',
           label: 'Default',

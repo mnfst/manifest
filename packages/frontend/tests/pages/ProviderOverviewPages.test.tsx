@@ -56,6 +56,9 @@ vi.mock('../../src/services/api.js', () => ({
 
 vi.mock('../../src/services/api/routing.js', () => ({
   getProviders: (...args: unknown[]) => apiMocks.getAgentProviders(...args),
+  disconnectProvider: (...args: unknown[]) => apiMocks.disconnectProvider(...args),
+  renameProviderKey: vi.fn().mockResolvedValue(undefined),
+  refreshModels: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
@@ -636,11 +639,7 @@ describe('GlobalOverview (analytics)', () => {
     fireEvent.click(screen.getByText('Select all'));
     expect(sessionStorage.getItem('global-agent-filter:agent')).toContain('demo-agent');
 
-    fireEvent.click(screen.getByText('Unselect all'));
-    expect(sessionStorage.getItem('global-agent-filter:agent')).toBe('[]');
-
-    // With nothing selected the filter treats all harnesses as on; toggling
-    // one off persists the remaining selection.
+    // With all selected, toggling one off persists the remaining selection.
     const toggle = screen
       .getAllByText('worker-agent')
       .find((el) => el.closest('.agent-filter-select'));
@@ -793,14 +792,13 @@ describe('GlobalOverview (analytics)', () => {
     await waitFor(() => expect(screen.getByText('All harnesses (2)')).toBeDefined());
     fireEvent.click(screen.getByText('All harnesses (2)'));
     // Toggle one harness off → partial selection enables "Select all", letting
-    // us exercise the Select all / Unselect all persistence handlers (which
-    // swallow the thrown storage error).
+    // us exercise the Select all persistence handler (which swallows the thrown
+    // storage error).
     const toggle = screen
       .getAllByText('demo-agent')
       .find((el) => el.closest('.agent-filter-select'));
     fireEvent.click(toggle!);
     fireEvent.click(screen.getByText('Select all'));
-    fireEvent.click(screen.getByText('Unselect all'));
 
     getItem.mockRestore();
     setItem.mockRestore();
@@ -845,18 +843,19 @@ describe('ConnectionDetail (analytics)', () => {
   it('renders connection analytics, models, and harness breakdown', async () => {
     const { container } = render(() => <ConnectionDetail />);
 
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
-    expect(screen.getByText('Hi there')).toBeDefined();
+    // Recent messages table renders model and token data (description is no longer displayed).
+    expect(screen.getByText('Recent Messages')).toBeDefined();
     // BYOK connection → cost columns present
     expect(screen.getByText('Active')).toBeDefined();
 
+    // Manage opens an inline modal (not the ProviderSelectModal).
     fireEvent.click(screen.getByText('Manage'));
-    expect(screen.getByText('Provider modal')).toBeDefined();
-    fireEvent.click(screen.getByText('Modal update'));
-    fireEvent.click(screen.getByText('Modal close'));
-    await waitFor(() => expect(screen.queryByText('Provider modal')).toBeNull());
+    expect(screen.getByText('Connection name')).toBeDefined();
+    // Close the inline manage modal via the Done button.
+    fireEvent.click(screen.getByText('Done'));
 
     for (const scroller of container.querySelectorAll('.scroll-panel__body')) {
       Object.defineProperties(scroller, {
@@ -870,7 +869,7 @@ describe('ConnectionDetail (analytics)', () => {
 
   it('persists chart range/view and harness filter selection', async () => {
     render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
     fireEvent.change(screen.getByDisplayValue('Last 7 days'), { target: { value: '30d' } });
     expect(sessionStorage.getItem('chart-range:conn-openai')).toBe('30d');
@@ -879,21 +878,16 @@ describe('ConnectionDetail (analytics)', () => {
     expect(sessionStorage.getItem('chart-view:conn-openai')).toBe('messages');
 
     fireEvent.click(screen.getByText('All harnesses (2)'));
-    // Genuine "Unselect all": the empty selection must STICK (persisted as []),
-    // not be coerced back to "all selected".
-    fireEvent.click(screen.getByText('Unselect all'));
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toBe('[]');
 
     const filterToggle = () =>
       screen.getAllByText('demo-agent').find((el) => el.closest('.agent-filter-select'))!;
-    // After unselect-all the selection is genuinely empty, so toggling
-    // demo-agent ADDS it (add branch) rather than removing from an implicit all.
+    // Toggle demo-agent off from the all-selected set → partial selection.
+    fireEvent.click(filterToggle());
+    expect(sessionStorage.getItem('agent-filter:conn-openai')).not.toContain('demo-agent');
+    expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('worker-agent');
+    // Toggle demo-agent back on.
     fireEvent.click(filterToggle());
     expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('demo-agent');
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).not.toContain('worker-agent');
-    // demo-agent currently on → toggle off (remove branch) → back to empty.
-    fireEvent.click(filterToggle());
-    expect(sessionStorage.getItem('agent-filter:conn-openai')).toBe('[]');
 
     fireEvent.click(screen.getByText('Select all'));
     expect(sessionStorage.getItem('agent-filter:conn-openai')).toContain('demo-agent');
@@ -905,7 +899,7 @@ describe('ConnectionDetail (analytics)', () => {
     // No persisted preference → effectiveSelected() is all agents.
     sessionStorage.removeItem('agent-filter:conn-openai');
     const first = render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     fireEvent.click(screen.getByText('All harnesses (2)'));
     // "All harnesses (2)" label reflects all-selected by default.
     expect(screen.getAllByText('All harnesses (2)').length).toBeGreaterThan(0);
@@ -915,24 +909,19 @@ describe('ConnectionDetail (analytics)', () => {
     // selection on reload, not reset to "all selected".
     sessionStorage.setItem('agent-filter:conn-openai', '[]');
     render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     fireEvent.click(screen.getByText('0 of 2 harnesses'));
     expect(screen.getAllByText('0 of 2 harnesses').length).toBeGreaterThan(0);
   });
 
-  it('opens the provider management modal with the connection deep link', async () => {
-    apiMocks.getAgentProviders.mockResolvedValue([
-      { id: 'p1', provider: 'openai', auth_type: 'api_key' },
-    ]);
-
+  it('opens the inline manage modal from the connection detail', async () => {
     render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByText('Manage'));
-    expect(screen.getByText('Provider modal').getAttribute('data-provider')).toBe('openai');
-    fireEvent.click(screen.getByText('Modal update'));
-    fireEvent.click(screen.getByText('Modal close'));
-    await waitFor(() => expect(screen.queryByText('Provider modal')).toBeNull());
+    // The inline manage modal shows connection name, models, and disconnect.
+    expect(screen.getByText('Connection name')).toBeDefined();
+    fireEvent.click(screen.getByText('Done'));
   });
 
   it('renders inactive custom connection with reactivation copy', async () => {
@@ -974,8 +963,8 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getByText('No messages yet.')).toBeDefined();
     expect(screen.getByText('No model usage data yet.')).toBeDefined();
     expect(screen.getByText('No harnesses have used this provider yet.')).toBeDefined();
-    // inactive connections hide the Manage button (no provider modal trigger)
-    expect(screen.queryByText('Manage')).toBeNull();
+    // Manage button is present even for inactive connections.
+    expect(screen.getByText('Manage')).toBeDefined();
     // back link points to subscriptions for subscription auth type
     expect(screen.getByText(/Subscriptions/)).toBeDefined();
   });
@@ -988,11 +977,12 @@ describe('ConnectionDetail (analytics)', () => {
       }),
     );
 
-    render(() => <ConnectionDetail />);
-    expect(screen.getByText('Loading...')).toBeDefined();
+    const { container } = render(() => <ConnectionDetail />);
+    // Loading state renders a skeleton placeholder (no "Loading..." text).
+    expect(container.querySelector('[style*="skeleton-pulse"]')).not.toBeNull();
 
     resolveDetail(connectionDetail);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
   });
 
   it('shows a not-found state for a missing/deleted connection (P3)', async () => {
@@ -1033,7 +1023,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(apiMocks.getPerAgentCostTimeseries.mock.calls.at(-1)![3]).toBe('Work');
   });
 
-  it('passes the resolved custom provider into the management modal', async () => {
+  it('opens the inline manage modal for a custom provider connection', async () => {
     routerState.params = { connectionId: 'conn-custom' };
     apiMocks.getConnectionDetail.mockResolvedValue({
       ...connectionDetail,
@@ -1044,18 +1034,13 @@ describe('ConnectionDetail (analytics)', () => {
         label: 'Custom key',
       },
     });
-    apiMocks.getAgentProviders.mockResolvedValue([
-      { id: 'p1', provider: 'custom:cp-1', auth_type: 'api_key' },
-    ]);
 
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
 
     fireEvent.click(screen.getByText('Manage'));
-    await waitFor(() =>
-      expect(screen.getByTestId('modal-custom').textContent).toBe('1'),
-    );
-    fireEvent.click(screen.getByText('Modal close'));
+    expect(screen.getByText('Connection name')).toBeDefined();
+    fireEvent.click(screen.getByText('Done'));
   });
 
   it('falls back to empty data when the custom provider lookup rejects', async () => {
@@ -1081,27 +1066,25 @@ describe('ConnectionDetail (analytics)', () => {
     apiMocks.getAgents.mockRejectedValue(new Error('agents down'));
 
     render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
+    // Manage still opens the inline modal even when harness list fails.
     fireEvent.click(screen.getByText('Manage'));
-    // With no resolvable harness name the modal Show condition is false.
-    expect(screen.queryByText('Provider modal')).toBeNull();
+    expect(screen.getByText('Connection name')).toBeDefined();
+    fireEvent.click(screen.getByText('Done'));
   });
 
   it('falls back to an empty provider list when the routing call rejects', async () => {
     // Harness list loads, but the per-harness provider fetch rejects → the
-    // management modal still opens with an empty provider list.
+    // inline manage modal still opens normally.
     apiMocks.getAgentProviders.mockRejectedValue(new Error('providers down'));
 
     render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
     fireEvent.click(screen.getByText('Manage'));
-    await waitFor(() => expect(screen.getByText('Provider modal')).toBeDefined());
-    // The custom-providers span renders 0 because the openai connection is not
-    // a custom provider (and the routing list rejected to an empty array).
-    expect(screen.getByTestId('modal-custom').textContent).toBe('0');
-    fireEvent.click(screen.getByText('Modal close'));
+    expect(screen.getByText('Connection name')).toBeDefined();
+    fireEvent.click(screen.getByText('Done'));
   });
 
   it('swallows storage failures across chart and filter persistence', async () => {
@@ -1113,20 +1096,19 @@ describe('ConnectionDetail (analytics)', () => {
     });
 
     render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getByText('Default')).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
     // range + view persistence both throw and are swallowed
     fireEvent.change(screen.getByDisplayValue('Last 7 days'), { target: { value: '30d' } });
     fireEvent.click(screen.getByText('Messages chart'));
 
-    // filter persistence (toggle / select all / unselect all) all throw + swallow
+    // filter persistence (toggle / select all) all throw + swallow
     fireEvent.click(screen.getByText('All harnesses (2)'));
     const toggle = screen
       .getAllByText('demo-agent')
       .find((el) => el.closest('.agent-filter-select'));
     fireEvent.click(toggle!);
     fireEvent.click(screen.getByText('Select all'));
-    fireEvent.click(screen.getByText('Unselect all'));
 
     getItem.mockRestore();
     setItem.mockRestore();
