@@ -7,6 +7,7 @@ import { UserProvider } from '../entities/user-provider.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
+import { CustomProviderService } from './custom-provider/custom-provider.service';
 
 /**
  * User-level provider management endpoints.
@@ -22,6 +23,7 @@ export class UserProvidersController {
     @InjectRepository(Tenant)
     private readonly tenantRepo: Repository<Tenant>,
     private readonly pricingCache: ModelPricingCacheService,
+    private readonly customProviderService: CustomProviderService,
   ) {}
 
   /**
@@ -175,6 +177,10 @@ export class UserProvidersController {
       }
     }
 
+    // Resolve custom provider display names (provider key = `custom:<uuid>`).
+    const customProviders = await this.customProviderService.list(user.id);
+    const customNameById = new Map(customProviders.map((cp) => [cp.id, cp.name]));
+
     const result = Array.from(grouped.values()).map((g) => {
       const cons = consumption.get(`${g.provider}::${g.auth_type}`) ?? {
         tokens: 0,
@@ -185,6 +191,9 @@ export class UserProvidersController {
       return {
         provider: g.provider,
         auth_type: g.auth_type,
+        display_name: g.provider.startsWith('custom:')
+          ? (customNameById.get(g.provider.slice('custom:'.length)) ?? null)
+          : null,
         connection_count: g.connections.length,
         connections: g.connections,
         total_models: g.total_models,

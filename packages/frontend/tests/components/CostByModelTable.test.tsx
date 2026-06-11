@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import CostByModelTable from '../../src/components/CostByModelTable';
 
@@ -16,7 +16,7 @@ function row(overrides: Record<string, unknown> = {}) {
 describe('CostByModelTable', () => {
   it('renders a header row with Model/Tokens/% of total/Cost', () => {
     const { container } = render(() => (
-      <CostByModelTable rows={[]} customProviderName={() => undefined} />
+      <CostByModelTable rows={[]} />
     ));
     const headers = Array.from(container.querySelectorAll('th')).map((h) => h.textContent?.trim());
     expect(headers).toEqual(['Model', 'Tokens', '% of total', 'Cost']);
@@ -30,7 +30,6 @@ describe('CostByModelTable', () => {
           row({ model: 'pricey', estimated_cost: 5 }),
           row({ model: 'mid', estimated_cost: 2 }),
         ]}
-        customProviderName={() => undefined}
       />
     ));
     const firstCells = Array.from(container.querySelectorAll('tbody tr td:first-child')).map(
@@ -44,7 +43,7 @@ describe('CostByModelTable', () => {
 
   it('formats tokens and rounds the share percentage', () => {
     const { container } = render(() => (
-      <CostByModelTable rows={[row({ tokens: 12345, share_pct: 42.6 })]} customProviderName={() => undefined} />
+      <CostByModelTable rows={[row({ tokens: 12345, share_pct: 42.6 })]} />
     ));
     expect(container.textContent).toContain('12.3k');
     expect(container.textContent).toContain('43%');
@@ -54,7 +53,6 @@ describe('CostByModelTable', () => {
     const { container } = render(() => (
       <CostByModelTable
         rows={[row({ estimated_cost: 0 })]}
-        customProviderName={() => undefined}
       />
     ));
     const costCell = container.querySelector('tbody tr td:nth-child(4)');
@@ -67,52 +65,58 @@ describe('CostByModelTable', () => {
 
   it('adds a tooltip with the full cost for sub-penny amounts', () => {
     const { container } = render(() => (
-      <CostByModelTable rows={[row({ estimated_cost: 0.00123 })]} customProviderName={() => undefined} />
+      <CostByModelTable rows={[row({ estimated_cost: 0.00123 })]} />
     ));
     const costCell = container.querySelector('tbody tr td:nth-child(4)');
     expect(costCell?.getAttribute('title')).toBe('$0.001230');
   });
 
-  it('renders a custom-provider letter badge when no logo is registered', () => {
-    const customProviderName = vi.fn(() => 'My Provider');
+  it('renders a custom-provider letter badge and the stripped model text', () => {
     const { container } = render(() => (
       <CostByModelTable
         rows={[
           row({
             model: 'custom:abc123/gpt-custom',
+            provider: 'custom:abc123',
+            custom_provider_name: 'My Provider',
             auth_type: null,
           }),
         ]}
-        customProviderName={customProviderName}
       />
     ));
     const letterBadge = container.querySelector('.provider-card__logo-letter');
     expect(letterBadge).not.toBeNull();
     expect(letterBadge?.textContent).toBe('M');
-    // Full cell text should include the namespaced custom model name.
-    expect(container.textContent).toContain('custom:My Provider/gpt-custom');
-    // The component must call customProviderName with the row's model name.
-    expect(customProviderName).toHaveBeenCalledWith('custom:abc123/gpt-custom');
+    expect(letterBadge?.getAttribute('title')).toBe('My Provider');
+    // Just the raw model — no `custom:` prefix, no provider-name echo.
+    expect(container.textContent).toContain('gpt-custom');
+    expect(container.textContent).not.toContain('custom:');
   });
 
-  it('falls back to the stripped custom prefix when the provider name lookup returns nothing', () => {
+  it('falls back to the stripped custom prefix when the provider was deleted', () => {
     const { container } = render(() => (
       <CostByModelTable
-        rows={[row({ model: 'custom:abc/my-model', auth_type: null })]}
-        customProviderName={() => undefined}
+        rows={[
+          row({
+            model: 'custom:abc/my-model',
+            provider: 'custom:abc',
+            custom_provider_name: null,
+            auth_type: null,
+          }),
+        ]}
       />
     ));
     const letterBadge = container.querySelector('.provider-card__logo-letter');
     // stripCustomPrefix('custom:abc/my-model') → 'my-model' → first letter "M".
     expect(letterBadge?.textContent).toBe('M');
-    expect(container.textContent).toContain('custom:Custom/my-model');
+    expect(container.textContent).toContain('my-model');
+    expect(container.textContent).not.toContain('Custom');
   });
 
   it('renders a provider icon + auth badge for recognised model prefixes', () => {
     const { container } = render(() => (
       <CostByModelTable
         rows={[row({ model: 'claude-opus-4', auth_type: 'subscription' })]}
-        customProviderName={() => undefined}
       />
     ));
     const providerCell = container.querySelector('tbody tr td');
@@ -127,7 +131,6 @@ describe('CostByModelTable', () => {
     const { container } = render(() => (
       <CostByModelTable
         rows={[row({ model: 'minimax-chat', provider: 'ollama', auth_type: 'api_key' })]}
-        customProviderName={() => undefined}
       />
     ));
     const providerSpan = container.querySelector('tbody tr td span[title]');
@@ -138,7 +141,6 @@ describe('CostByModelTable', () => {
     const { container } = render(() => (
       <CostByModelTable
         rows={[row({ model: 'claude-opus-4', provider: null, auth_type: 'api_key' })]}
-        customProviderName={() => undefined}
       />
     ));
     const providerSpan = container.querySelector('tbody tr td span[title]');
@@ -167,7 +169,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ share_pct: 0 })]}
-          customProviderName={() => undefined}
         />
       ));
       expect(barWidthStyle(container)).toContain('width: 0%');
@@ -178,7 +179,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ share_pct: -1 })]}
-          customProviderName={() => undefined}
         />
       ));
       // The text label uses Math.round, so "-1%" is shown verbatim.
@@ -193,7 +193,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ share_pct: 150 })]}
-          customProviderName={() => undefined}
         />
       ));
       expect(shareCellOf(container)?.textContent).toContain('150%');
@@ -206,7 +205,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ share_pct: NaN })]}
-          customProviderName={() => undefined}
         />
       ));
       // Math.round(NaN) is NaN — rendered as "NaN%". The component must
@@ -221,7 +219,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ estimated_cost: -0.5 })]}
-          customProviderName={() => undefined}
         />
       ));
       const cell = costCellOf(container);
@@ -234,7 +231,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ estimated_cost: NaN })]}
-          customProviderName={() => undefined}
         />
       ));
       const cell = costCellOf(container);
@@ -252,7 +248,6 @@ describe('CostByModelTable', () => {
       const { container } = render(() => (
         <CostByModelTable
           rows={[row({ estimated_cost: Infinity })]}
-          customProviderName={() => undefined}
         />
       ));
       const cell = costCellOf(container);

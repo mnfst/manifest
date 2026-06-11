@@ -56,40 +56,6 @@ describe('analytics API client', () => {
     expect(url).toContain('/api/v1/model-prices');
   });
 
-  it('getSavings forwards range, agent_name, and baseline params', async () => {
-    const fetchMock = setupFetch({});
-    await analytics.getSavings('7d', 'demo', 'gpt-4o');
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/savings');
-    expect(url).toContain('range=7d');
-    expect(url).toContain('agent_name=demo');
-    expect(url).toContain('baseline=gpt-4o');
-  });
-
-  it('getSavings omits baseline when not provided', async () => {
-    const fetchMock = setupFetch({});
-    await analytics.getSavings('7d', 'demo');
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).not.toContain('baseline=');
-  });
-
-  it('getBaselineCandidates forwards agent_name', async () => {
-    const fetchMock = setupFetch([]);
-    await analytics.getBaselineCandidates('demo');
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/savings/baseline-candidates');
-    expect(url).toContain('agent_name=demo');
-  });
-
-  it('getSavingsTimeseries forwards range and agent_name', async () => {
-    const fetchMock = setupFetch([]);
-    await analytics.getSavingsTimeseries('30d', 'demo');
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/savings/timeseries');
-    expect(url).toContain('range=30d');
-    expect(url).toContain('agent_name=demo');
-  });
-
   it('getProviderAnalytics forwards auth_type, range and optional filters', async () => {
     const fetchMock = setupFetch({});
     await analytics.getProviderAnalytics('subscription', '7d', 'demo', 'openai');
@@ -169,6 +135,7 @@ describe('analytics API client', () => {
     const fns: Array<[(a: string, r?: string) => unknown, string]> = [
       [analytics.getPerProviderTimeseries, 'per-provider-timeseries'],
       [analytics.getPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
+      [analytics.getPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
     ];
     for (const [fn, path] of fns) {
       const fetchMock = setupFetch({ agents: [], timeseries: [] });

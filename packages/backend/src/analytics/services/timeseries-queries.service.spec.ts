@@ -4,7 +4,13 @@ import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
-import { MESSAGE_ROW_SELECT_ALIASES, EXCLUDE_SYSTEM_AGENTS_PREDICATE } from './query-helpers';
+import {
+  MESSAGE_ROW_SELECT_ALIASES,
+  EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  PROVIDER_SERIES_KEY_EXPR,
+} from './query-helpers';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 describe('TimeseriesQueriesService', () => {
   let service: TimeseriesQueriesService;
@@ -196,6 +202,49 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].share_pct).toBe(0);
       expect(result[0].auth_type).toBeNull();
       expect(result[0].provider).toBeNull();
+    });
+
+    it('resolves the custom provider display name', async () => {
+      mockGetRawMany.mockResolvedValue([
+        {
+          model: 'custom:u-1/gpt-oss-120b',
+          display_name: 'custom:u-1/gpt-oss-120b',
+          tokens: 10,
+          estimated_cost: 0.5,
+          auth_type: 'api_key',
+          provider: 'custom:u-1',
+          custom_provider_name: 'MyLLM',
+        },
+      ]);
+
+      const result = await service.getCostByModel('7d', 'u1');
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+        CustomProvider,
+        'cp',
+        CUSTOM_PROVIDER_JOIN_CONDITION,
+      );
+      expect(mockTurnQb.addSelect).toHaveBeenCalledWith('cp.name', 'custom_provider_name');
+      expect(mockTurnQb.addGroupBy).toHaveBeenCalledWith('cp.name');
+      expect(result[0]).toMatchObject({
+        provider: 'custom:u-1',
+        custom_provider_name: 'MyLLM',
+      });
+    });
+
+    it('returns null custom_provider_name for built-in and deleted custom providers', async () => {
+      mockGetRawMany.mockResolvedValue([
+        {
+          model: 'gpt-4o',
+          tokens: 5,
+          estimated_cost: 0.1,
+          auth_type: null,
+          provider: 'openai',
+          custom_provider_name: null,
+        },
+      ]);
+
+      const result = await service.getCostByModel('7d', 'u1');
+      expect(result[0].custom_provider_name).toBeNull();
     });
   });
 
@@ -607,7 +656,63 @@ describe('TimeseriesQueriesService', () => {
       // Playground (is_system) usage must be excluded from per-provider totals,
       // via the same NOT EXISTS semi-join as the per-agent endpoints (no join).
       expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
-      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
+      // Custom provider names resolve via the cp join (built-ins join to NULL).
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+        CustomProvider,
+        'cp',
+        CUSTOM_PROVIDER_JOIN_CONDITION,
+      );
+    });
+
+    it('resolves custom series keys via the CASE expression in all per-provider pivots', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { hour: '01', provider: 'MyLLM', tokens: 7 },
+        { hour: '01', provider: 'openai', tokens: 3 },
+      ]);
+      const out = await service.getPerProviderTimeseries('24h', 'u1', true);
+      expect(mockTurnQb.addSelect).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR, 'provider');
+      expect(mockTurnQb.addGroupBy).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR);
+      expect(out.agents).toEqual(['MyLLM', 'openai']);
+
+      for (const call of [
+        () => service.getPerProviderMessageTimeseries('24h', 'u1', true),
+        () => service.getPerProviderCostTimeseries('24h', 'u1', true),
+      ]) {
+        mockTurnQb.addSelect.mockClear();
+        mockTurnQb.addGroupBy.mockClear();
+        mockTurnQb.leftJoin.mockClear();
+        await call();
+        expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+          CustomProvider,
+          'cp',
+          CUSTOM_PROVIDER_JOIN_CONDITION,
+        );
+        expect(mockTurnQb.addSelect).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR, 'provider');
+        expect(mockTurnQb.addGroupBy).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR);
+      }
+    });
+
+    it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
+      await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      const liveAgentClause = clauses.find(
+        (c) =>
+          typeof c === 'string' &&
+          c.includes('at.agent_id = (') &&
+          c.includes('deleted_at IS NULL'),
+      );
+      expect(liveAgentClause).toBeDefined();
+      expect(clauses).not.toContain('at.agent_name = :agentName');
+    });
+
+    it('omits the agent filter entirely when no agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: 1 }]);
+      await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses.some((c) => typeof c === 'string' && c.includes('at.agent_id = ('))).toBe(
+        false,
+      );
     });
 
     it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {

@@ -7,7 +7,6 @@ import {
   createSignal,
   For,
   Show,
-  onCleanup,
   type Component,
 } from 'solid-js';
 import {
@@ -20,6 +19,7 @@ import {
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
+import FilterSelect from '../../components/FilterSelect.jsx';
 import {
   formatNumber,
   formatCost,
@@ -282,27 +282,6 @@ const ConnectionDetail: Component = () => {
       /* ignore */
     }
   };
-  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
-  let agentFilterRef: HTMLDivElement | undefined;
-
-  // Close agent filter dropdown on outside click / Escape
-  if (typeof document !== 'undefined') {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
-        setAgentFilterOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAgentFilterOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  }
-
   // Merge agent lists from both token and message timeseries
   const allAgents = createMemo(() => {
     const tokenAgents = agentTimeseries()?.agents ?? [];
@@ -321,10 +300,6 @@ const ConnectionDetail: Component = () => {
     return map;
   });
 
-  const selectedAgentCount = () => {
-    const sel = effectiveSelected();
-    return sel.size;
-  };
   const effectiveSelected = () => {
     const sel = selectedAgents();
     // No persisted preference (null) → default to all selected. An explicit
@@ -582,89 +557,15 @@ const ConnectionDetail: Component = () => {
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                   <Show when={allAgents().length > 1}>
-                    <div class="agent-filter-select" ref={agentFilterRef}>
-                      <button
-                        class="agent-filter-select__trigger"
-                        onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                        type="button"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                        </svg>
-                        {selectedAgentCount() === allAgents().length
-                          ? `All harnesses (${allAgents().length})`
-                          : `${selectedAgentCount()} of ${allAgents().length} harnesses`}
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                      </button>
-                      <Show when={agentFilterOpen()}>
-                        <div class="agent-filter-select__dropdown">
-                          <div class="agent-filter-select__actions">
-                            <button
-                              class="agent-filter-select__action-btn"
-                              type="button"
-                              disabled={selectedAgentCount() === allAgents().length}
-                              onClick={() => persistSelection(new Set(allAgents()))}
-                            >
-                              Select all
-                            </button>
-                            <button
-                              class="agent-filter-select__action-btn"
-                              type="button"
-                              disabled={selectedAgentCount() === 0}
-                              onClick={() => persistSelection(new Set<string>())}
-                            >
-                              Unselect all
-                            </button>
-                          </div>
-                          <For each={allAgents()}>
-                            {(agent) => {
-                              const isOn = () => effectiveSelected().has(agent);
-                              return (
-                                <button
-                                  class="agent-filter-select__item"
-                                  onClick={() => toggleAgent(agent)}
-                                  type="button"
-                                >
-                                  <span
-                                    class="agent-filter-select__swatch"
-                                    style={{ background: agentColorMap()[agent] }}
-                                  />
-                                  <span class="agent-filter-select__name">{agent}</span>
-                                  <span
-                                    class="agent-filter-select__toggle"
-                                    classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                                  >
-                                    <span class="agent-filter-select__toggle-thumb" />
-                                  </span>
-                                </button>
-                              );
-                            }}
-                          </For>
-                        </div>
-                      </Show>
-                    </div>
+                    <FilterSelect
+                      noun="harnesses"
+                      items={allAgents()}
+                      selected={effectiveSelected()}
+                      colorMap={agentColorMap()}
+                      onToggle={toggleAgent}
+                      onSelectAll={() => persistSelection(new Set(allAgents()))}
+                      onUnselectAll={() => persistSelection(new Set<string>())}
+                    />
                   </Show>
                   <Select
                     value={chartRange()}

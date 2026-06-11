@@ -10,7 +10,10 @@ import {
   excludeSystemAgents,
   filterByKeyLabel,
   filterByLiveAgentName,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   computeCutoff,
@@ -148,12 +151,14 @@ export class TimeseriesQueriesService {
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
+      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
       .select("COALESCE(at.model, 'unknown')", 'model')
       .addSelect('at.model', 'display_name')
       .addSelect('SUM(at.input_tokens + at.output_tokens)', 'tokens')
       .addSelect(`COALESCE(SUM(${sqlSanitizeCost('at.cost_usd')}), 0)`, 'estimated_cost')
       .addSelect('at.auth_type', 'auth_type')
       .addSelect('at.provider', 'provider')
+      .addSelect('cp.name', 'custom_provider_name')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
@@ -162,6 +167,7 @@ export class TimeseriesQueriesService {
       .groupBy('at.model')
       .addGroupBy('at.auth_type')
       .addGroupBy('at.provider')
+      .addGroupBy('cp.name')
       .orderBy('tokens', 'DESC')
       .getRawMany();
 
@@ -178,6 +184,7 @@ export class TimeseriesQueriesService {
       estimated_cost: Number(r['estimated_cost'] ?? 0),
       auth_type: r['auth_type'] ? String(r['auth_type']) : null,
       provider: r['provider'] ? String(r['provider']) : null,
+      custom_provider_name: r['custom_provider_name'] ? String(r['custom_provider_name']) : null,
     }));
   }
 
@@ -424,8 +431,9 @@ export class TimeseriesQueriesService {
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
+      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
       .select(bucketExpr, bucketAlias)
-      .addSelect('at.provider', 'provider')
+      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
@@ -439,7 +447,7 @@ export class TimeseriesQueriesService {
 
     const rows = await qb
       .groupBy(bucketAlias)
-      .addGroupBy('at.provider')
+      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
 
@@ -460,8 +468,9 @@ export class TimeseriesQueriesService {
 
     const qb = this.turnRepo
       .createQueryBuilder('at')
+      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
       .select(bucketExpr, bucketAlias)
-      .addSelect('at.provider', 'provider')
+      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
@@ -474,7 +483,7 @@ export class TimeseriesQueriesService {
 
     const rows = await qb
       .groupBy(bucketAlias)
-      .addGroupBy('at.provider')
+      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
 
@@ -566,8 +575,9 @@ export class TimeseriesQueriesService {
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
     const qb = this.turnRepo
       .createQueryBuilder('at')
+      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
       .select(bucketExpr, bucketAlias)
-      .addSelect('at.provider', 'provider')
+      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
@@ -579,7 +589,7 @@ export class TimeseriesQueriesService {
     if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
     const rows = await qb
       .groupBy(bucketAlias)
-      .addGroupBy('at.provider')
+      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
     return pivotByKey(rows, bucketAlias, 'provider', 'cost');

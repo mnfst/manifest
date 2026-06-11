@@ -24,14 +24,12 @@ import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
   getAgents,
-  getCustomProviders,
   getSpecificityAssignments,
   getMessages,
   getRoutingStatus,
   listHeaderTiers,
   setMessageFeedback,
   clearMessageFeedback,
-  type CustomProviderData,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -52,6 +50,7 @@ interface MessagesData {
   next_cursor: string | null;
   total_count: number;
   providers: string[];
+  provider_labels?: Record<string, string>;
 }
 
 interface AgentFilterOption {
@@ -82,10 +81,11 @@ const MessageLog: Component = () => {
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
-  // Seed the agent filter from ?agent= so the "View more" link on a harness's
-  // Recent Messages opens the global log pre-scoped to that harness.
+  // Seed from ?agent= (set by AgentMessagesRedirect) so "View more" on a
+  // harness overview lands pre-filtered; only meaningful in global mode —
+  // when the route itself carries an agent, that param scopes the query.
   const [agentFilter, setAgentFilter] = createSignal(
-    typeof searchParams.agent === 'string' ? searchParams.agent : '',
+    !params.agentName && typeof searchParams.agent === 'string' ? searchParams.agent : '',
   );
   createEffect(
     on(
@@ -181,20 +181,6 @@ const MessageLog: Component = () => {
     setFeedbackModalOpen(false);
   };
 
-  // Custom providers are user-global, so any agent name returns the full set.
-  // On the scoped log use the route agent; on the global ("All harnesses") log
-  // there is no route agent, so fall back to the first available agent —
-  // otherwise the resource source is undefined, the fetcher never runs, and
-  // custom:<uuid> models render as `custom:Custom/…` with no provider icon.
-  // Mirrors GlobalOverview's firstAgent() pattern.
-  const customProviderAgent = () =>
-    params.agentName
-      ? decodeURIComponent(params.agentName)
-      : ((agentListRaw() ?? [])[0]?.agent_name ?? '');
-  const [customProviders] = createResource(customProviderAgent, (name) =>
-    name ? getCustomProviders(name).catch(() => []) : Promise.resolve([]),
-  );
-
   const [routingStatus] = createResource(
     () => params.agentName,
     (name) => getRoutingStatus(decodeURIComponent(name)),
@@ -211,14 +197,6 @@ const MessageLog: Component = () => {
   );
 
   const hasProviders = () => routingStatus()?.enabled === true;
-
-  /** Map custom:<uuid> → provider display name */
-  const customProviderName = (model: string): string | undefined => {
-    const match = model.match(/^custom:([^/]+)\//);
-    if (!match) return undefined;
-    const id = match[1];
-    return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
-  };
 
   const pager = createCursorPagination(50);
 
@@ -344,7 +322,10 @@ const MessageLog: Component = () => {
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
     const prov = PROVIDERS.find((p) => p.id === id);
-    return prov?.name ?? id;
+    if (prov) return prov.name;
+    // Custom providers arrive as `custom:<uuid>` — the backend ships a label
+    // map alongside the provider list so the dropdown can show their names.
+    return data()?.provider_labels?.[id] ?? id;
   };
 
   const providerOptions = createMemo(() => [
@@ -610,7 +591,7 @@ const MessageLog: Component = () => {
                   items={displayedItems()}
                   columns={columns()}
                   agentName={params.agentName}
-                  customProviderName={customProviderName}
+                  customProviderName={() => undefined}
                   agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}

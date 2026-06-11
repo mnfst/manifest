@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Brackets } from 'typeorm';
+import { Brackets, In } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 describe('MessagesQueryService', () => {
@@ -10,11 +11,13 @@ describe('MessagesQueryService', () => {
   let mockGetRawOne: jest.Mock;
   let mockGetRawMany: jest.Mock;
   let mockTenantResolve: jest.Mock;
+  let mockCustomProviderFind: jest.Mock;
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
     mockGetRawMany = jest.fn().mockResolvedValue([]);
     mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
+    mockCustomProviderFind = jest.fn().mockResolvedValue([]);
 
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
@@ -65,6 +68,10 @@ describe('MessagesQueryService', () => {
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
         },
         {
+          provide: getRepositoryToken(CustomProvider),
+          useValue: { find: mockCustomProviderFind },
+        },
+        {
           provide: TenantCacheService,
           useValue: { resolve: mockTenantResolve },
         },
@@ -102,6 +109,31 @@ describe('MessagesQueryService', () => {
     expect(result.items[0]).toHaveProperty('cache_read_tokens', 500);
     expect(result.items[0]).toHaveProperty('cache_creation_tokens', 100);
     expect(result.items[0]).toHaveProperty('duration_ms', 1200);
+  });
+
+  it('returns provider_labels mapping custom provider ids to display names', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'custom:u-1/m', cost: 0 },
+    ]);
+    mockGetRawMany.mockResolvedValueOnce([{ model: 'custom:u-1/m', provider: 'custom:u-1' }]);
+    mockCustomProviderFind.mockResolvedValueOnce([{ id: 'u-1', name: 'MyLLM' }]);
+
+    const result = await service.getMessages({ range: '24h', userId: 'labels-user', limit: 10 });
+
+    expect(mockCustomProviderFind).toHaveBeenCalledWith({ where: { id: In(['u-1']) } });
+    expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
+  });
+
+  it('returns empty provider_labels without querying when no custom providers appear', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+    mockGetRawMany.mockResolvedValueOnce([]);
+    mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o', provider: 'openai' }]);
+
+    const result = await service.getMessages({ range: '24h', userId: 'no-labels-user', limit: 10 });
+
+    expect(mockCustomProviderFind).not.toHaveBeenCalled();
+    expect(result.provider_labels).toEqual({});
   });
 
   it('returns paginated messages with total count and providers list', async () => {

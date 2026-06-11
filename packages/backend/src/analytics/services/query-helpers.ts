@@ -1,4 +1,5 @@
 import { ObjectLiteral, SelectQueryBuilder } from 'typeorm';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 export interface MetricWithTrend {
   value: number;
@@ -157,6 +158,23 @@ export function filterByKeyLabel<T extends ObjectLiteral>(
  * `costExpr` (e.g. `sqlCastFloat(sqlSanitizeCost('at.cost_usd'))`) so the
  * shared helper stays agnostic to how each call site sanitises cost.
  */
+/**
+ * Join `custom_providers` to resolve a custom provider's display name from a
+ * stored `at.provider` of the form `custom:<uuid>`. `cp.id` is a varchar PK,
+ * so plain string concatenation matches without casts. Built-in providers
+ * never match (their provider ids carry no `custom:` prefix) and resolve to a
+ * NULL `cp.name`.
+ */
+export const CUSTOM_PROVIDER_JOIN_CONDITION = "at.provider = 'custom:' || cp.id";
+
+/**
+ * Series key for per-provider aggregates: custom providers surface their
+ * display name (or a stable fallback when the provider was deleted), built-in
+ * providers keep their id. Requires the `cp` join above.
+ */
+export const PROVIDER_SERIES_KEY_EXPR =
+  "CASE WHEN at.provider LIKE 'custom:%' THEN COALESCE(cp.name, 'Deleted provider') ELSE at.provider END";
+
 export const MESSAGE_ROW_SELECT_ALIASES = [
   'id',
   'timestamp',
@@ -182,6 +200,7 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'header_tier_color',
   'provider_key_label',
   'recorded',
+  'custom_provider_name',
 ] as const;
 
 export function selectMessageRowColumns<T extends ObjectLiteral>(
@@ -189,6 +208,7 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
   costExpr: string,
 ): SelectQueryBuilder<T> {
   return qb
+    .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
     .select('at.id', 'id')
     .addSelect('at.timestamp', 'timestamp')
     .addSelect('at.agent_name', 'agent_name')
@@ -212,5 +232,6 @@ export function selectMessageRowColumns<T extends ObjectLiteral>(
     .addSelect('at.header_tier_name', 'header_tier_name')
     .addSelect('at.header_tier_color', 'header_tier_color')
     .addSelect('at.provider_key_label', 'provider_key_label')
-    .addSelect('at.recorded', 'recorded');
+    .addSelect('at.recorded', 'recorded')
+    .addSelect('cp.name', 'custom_provider_name');
 }

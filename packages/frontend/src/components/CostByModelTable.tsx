@@ -19,11 +19,11 @@ interface CostByModelRow {
   estimated_cost: number;
   auth_type: string | null;
   provider?: string | null;
+  custom_provider_name?: string | null;
 }
 
 interface CostByModelTableProps {
   rows: CostByModelRow[];
-  customProviderName: (model: string) => string | undefined;
 }
 
 function resolveRowProvider(row: CostByModelRow): string | undefined {
@@ -74,7 +74,7 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                       const isCustom =
                         provId === 'custom' || provId?.startsWith('custom:') === true;
                       if (row.model && isCustom) {
-                        const provName = props.customProviderName(row.model);
+                        const provName = row.custom_provider_name ?? undefined;
                         const logo = customProviderLogo(
                           provName ?? '',
                           16,
@@ -118,7 +118,7 @@ const CostByModelTable: Component<CostByModelTableProps> = (props) => {
                     })()}
                     {row.model
                       ? row.model.startsWith('custom:')
-                        ? `custom:${props.customProviderName(row.model) ?? 'Custom'}/${stripCustomPrefix(row.model)}`
+                        ? stripCustomPrefix(row.model)
                         : row.display_name || getModelDisplayName(row.model)
                       : row.model}
                   </span>

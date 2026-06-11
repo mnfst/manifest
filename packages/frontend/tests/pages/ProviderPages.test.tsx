@@ -9,8 +9,18 @@ const mockGetAgentProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockProviderSelectModal = vi.fn();
 
+const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
   useSearchParams: () => [mockSearchParams, mockSetSearchParams],
+  useNavigate: () => mockNavigate,
+  Navigate: (props: { href: string }) => <div data-testid="navigate" data-href={props.href} />,
+}));
+
+// The Local providers page only exists on self-hosted installs; cloud
+// redirects to BYOK. Default to self-hosted so the page tests apply.
+let mockIsSelfHosted = true;
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: () => Promise.resolve(mockIsSelfHosted),
 }));
 
 vi.mock('@solidjs/meta', () => ({
@@ -46,6 +56,7 @@ vi.mock('../../src/services/providers.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   customProviderColor: () => '#654321',
   formatNumber: (value: number) => String(value),
+  formatCost: (value: number) => `$${value.toFixed(2)}`,
   formatTimeAgo: () => 'recently',
 }));
 
@@ -120,6 +131,7 @@ describe('provider pages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSearchParams = {};
+    mockIsSelfHosted = true;
     mockGetGlobalProviders.mockResolvedValue(globalProvidersResponse);
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'demo-agent' }] });
     mockGetAgentProviders.mockResolvedValue([{ id: 'route-provider' }]);
@@ -210,6 +222,18 @@ describe('provider pages', () => {
     });
   });
 
+  it('redirects the local providers page to BYOK in cloud', async () => {
+    mockIsSelfHosted = false;
+    const { container } = render(() => <LocalProviders />);
+
+    await waitFor(() => {
+      const navigate = container.querySelector('[data-testid="navigate"]');
+      expect(navigate).not.toBeNull();
+      expect(navigate?.getAttribute('data-href')).toBe('/providers/byok');
+    });
+    expect(container.textContent).not.toContain('Local Providers');
+  });
+
   it('auto-opens the modal from add=true and clears the query param', async () => {
     mockSearchParams = { add: 'true' };
     render(() => <LocalProviders />);
@@ -241,9 +265,7 @@ describe('provider pages', () => {
     await waitFor(() => {
       expect(screen.getByText('Supported subscriptions')).toBeDefined();
       expect(screen.getByText('OpenAI')).toBeDefined();
-      expect((screen.getAllByText('Add subscription')[0] as HTMLButtonElement).disabled).toBe(
-        true,
-      );
+      expect((screen.getAllByText('Add subscription')[0] as HTMLButtonElement).disabled).toBe(true);
     });
   });
 

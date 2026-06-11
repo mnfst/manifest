@@ -232,24 +232,22 @@ function resolveMessageProviderName(item: MessageRow): string | undefined {
   );
 }
 
-export function ModelCell(
-  item: MessageRow,
-  customProviderName: (m: string) => string | undefined,
-  onOpenRecording?: (id: string) => void,
-): JSX.Element {
+export function ModelCell(item: MessageRow, onOpenRecording?: (id: string) => void): JSX.Element {
   const provId = resolveMessageProvider(item);
   const provName = resolveMessageProviderName(item);
   // Custom providers are identified by either the literal 'custom' (from
   // inferProviderFromModel on a `custom:...` model name) or by a stored
   // provider column of the form `custom:<uuid>` (from resolveProviderId,
-  // which returns custom-prefixed IDs unchanged).
+  // which returns custom-prefixed IDs unchanged). Their display name arrives
+  // pre-resolved from the backend as `custom_provider_name` (null when the
+  // provider was deleted).
   const isCustomProvider = provId === 'custom' || provId?.startsWith('custom:') === true;
   return (
     <td style={MONO_XS}>
       <span style="display: inline-flex; align-items: center; gap: 4px;">
         {item.model && isCustomProvider ? (
           (() => {
-            const customName = customProviderName(item.model!);
+            const customName = item.custom_provider_name ?? undefined;
             const logo = customProviderLogo(
               customName ?? '',
               16,
@@ -288,7 +286,7 @@ export function ModelCell(
         ) : null}
         {item.model
           ? item.model.startsWith('custom:')
-            ? `custom:${customProviderName(item.model) ?? 'Custom'}/${stripCustomPrefix(item.model)}`
+            ? stripCustomPrefix(item.model)
             : getModelDisplayName(item.model)
           : '\u2014'}
         {item.header_tier_name ? (
@@ -502,7 +500,7 @@ export function renderCell(
     case 'output':
       return SmallTokenCell(item.output_tokens);
     case 'model':
-      return ModelCell(item, ctx.customProviderName, ctx.onOpenRecording);
+      return ModelCell(item, ctx.onOpenRecording);
     case 'cache':
       return CacheCell(item);
     case 'duration':

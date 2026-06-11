@@ -8,13 +8,14 @@ import {
   on,
   For,
   Show,
-  onCleanup,
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
-import { getAgents, getCustomProviders, getGlobalProviders } from '../services/api.js';
+import { getAgents, getGlobalProviders } from '../services/api.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { customProviderColor } from '../services/formatters.js';
 import { customProviderLogo } from '../components/ProviderIcon.jsx';
+import { stripCustomPrefix } from '../services/routing-utils.js';
 import {
   getOverview,
   getGlobalPerAgentTimeseries,
@@ -31,6 +32,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
 import Sparkline from '../components/Sparkline.jsx';
+import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
@@ -43,6 +45,8 @@ import '../styles/analytics-overview.css';
 interface ProviderGroup {
   provider: string;
   auth_type: string;
+  /** Backend-resolved name for `custom:<uuid>` groups; null for built-ins. */
+  display_name?: string | null;
   connection_count: number;
   connections: Array<{ id: string; label: string; is_active: boolean }>;
   total_models: number;
@@ -61,6 +65,7 @@ interface CostByModelRow {
   estimated_cost: number;
   auth_type: string | null;
   provider: string | null;
+  custom_provider_name?: string | null;
 }
 
 interface RecentActivityRow {
@@ -162,6 +167,10 @@ const GlobalOverview: Component = () => {
   // ── Chart view state ─────────────────────────────────────────────────
   const [chartView, setChartView] = createSignal<'messages' | 'tokens' | 'cost'>('tokens');
 
+  // Local providers only exist on self-hosted installs; cloud hides the
+  // Local stat card and drops the stats grid to three columns.
+  const [selfHosted] = createResource(checkIsSelfHosted);
+
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
     () => chartRange(),
@@ -191,19 +200,6 @@ const GlobalOverview: Component = () => {
       }
     },
   );
-
-  // Custom providers for name resolution
-  const firstAgent = () => ((agents() ?? []) as AgentRow[])[0]?.agent_name ?? '';
-  const [customProviderData] = createResource(
-    () => firstAgent(),
-    (name) => (name ? getCustomProviders(name).catch(() => []) : Promise.resolve([])),
-  );
-  const resolveCustomName = (providerId: string) => {
-    if (!providerId.startsWith('custom:')) return null;
-    const uuid = providerId.replace('custom:', '');
-    const cp = (customProviderData() ?? []).find((c: any) => c.id === uuid);
-    return cp ? (cp as any).name : null;
-  };
 
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
   const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
@@ -287,26 +283,6 @@ const GlobalOverview: Component = () => {
       { defer: true },
     ),
   );
-  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
-  let agentFilterRef: HTMLDivElement | undefined;
-
-  if (typeof document !== 'undefined') {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
-        setAgentFilterOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAgentFilterOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  }
-
   const allAgents = createMemo(() => {
     const tokenAgents = tokenSeries()?.agents ?? [];
     const msgAgents = messageSeries()?.agents ?? [];
@@ -335,8 +311,6 @@ const GlobalOverview: Component = () => {
     if (pruned.size === 0) return new Set(all);
     return pruned;
   };
-
-  const selectedAgentCount = () => effectiveSelected().size;
 
   const toggleAgent = (agent: string) => {
     const current = effectiveSelected();
@@ -454,106 +428,29 @@ const GlobalOverview: Component = () => {
           <div style="display: flex; align-items: center; gap: 8px;">
             <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
             <Show when={allAgents().length > 1}>
-              <div class="agent-filter-select" ref={agentFilterRef}>
-                <button
-                  class="agent-filter-select__trigger"
-                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                  type="button"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                  </svg>
-                  {(() => {
-                    const label = groupBy() === 'provider' ? 'providers' : 'harnesses';
-                    return selectedAgentCount() === allAgents().length
-                      ? `All ${label} (${allAgents().length})`
-                      : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
-                  })()}
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-                <Show when={agentFilterOpen()}>
-                  <div class="agent-filter-select__dropdown">
-                    <div class="agent-filter-select__actions">
-                      <button
-                        class="agent-filter-select__action-btn"
-                        type="button"
-                        disabled={selectedAgentCount() === allAgents().length}
-                        onClick={() => {
-                          setSelectedAgents(new Set(allAgents()));
-                          try {
-                            sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                      >
-                        Select all
-                      </button>
-                      <button
-                        class="agent-filter-select__action-btn"
-                        type="button"
-                        disabled={selectedAgentCount() === 0}
-                        onClick={() => {
-                          setSelectedAgents(new Set<string>());
-                          try {
-                            sessionStorage.setItem(storageKey(), JSON.stringify([]));
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                      >
-                        Unselect all
-                      </button>
-                    </div>
-                    <For each={allAgents()}>
-                      {(agent) => {
-                        const isOn = () => effectiveSelected().has(agent);
-                        return (
-                          <button
-                            class="agent-filter-select__item"
-                            onClick={() => toggleAgent(agent)}
-                            type="button"
-                          >
-                            <span
-                              class="agent-filter-select__swatch"
-                              style={{ background: agentColorMap()[agent] }}
-                            />
-                            <span class="agent-filter-select__name">{agent}</span>
-                            <span
-                              class="agent-filter-select__toggle"
-                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                            >
-                              <span class="agent-filter-select__toggle-thumb" />
-                            </span>
-                          </button>
-                        );
-                      }}
-                    </For>
-                  </div>
-                </Show>
-              </div>
+              <FilterSelect
+                noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                items={allAgents()}
+                selected={effectiveSelected()}
+                colorMap={agentColorMap()}
+                onToggle={toggleAgent}
+                onSelectAll={() => {
+                  setSelectedAgents(new Set(allAgents()));
+                  try {
+                    sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+                onUnselectAll={() => {
+                  setSelectedAgents(new Set<string>());
+                  try {
+                    sessionStorage.setItem(storageKey(), JSON.stringify([]));
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+              />
             </Show>
             <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
           </div>
@@ -677,7 +574,7 @@ const GlobalOverview: Component = () => {
             for (const g of groups) {
               for (const c of g.connections.slice(0, 5 - items.length)) {
                 const prov = PROVIDERS.find((p) => p.id === g.provider);
-                const customName = resolveCustomName(g.provider);
+                const customName = g.display_name ?? null;
                 const isCustom = g.provider.startsWith('custom:');
                 items.push({
                   id: c.id,
@@ -696,7 +593,7 @@ const GlobalOverview: Component = () => {
           return (
             <div
               class="overview-stats"
-              style="grid-template-columns: repeat(4, 1fr); align-items: stretch;"
+              style={`grid-template-columns: repeat(${selfHosted() ? 4 : 3}, 1fr); align-items: stretch;`}
             >
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
@@ -822,68 +719,70 @@ const GlobalOverview: Component = () => {
                   </A>
                 </div>
               </div>
-              <div class="overview-stat-card" style={cardStyle}>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <span class="overview-stat-card__label">Local</span>
-                  <A
-                    href="/providers/local?add=true"
-                    class="btn btn--outline btn--sm"
-                    style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
-                  >
-                    + Add
-                  </A>
-                </div>
-                <span class="overview-stat-card__value" style="margin-bottom: 12px;">
-                  {totalConns(local())}
-                </span>
-                <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-                  <For each={connList(local())}>
-                    {(item) => (
-                      <A
-                        href={`/providers/connections/${item.id}`}
-                        style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
-                      >
-                        <span style="flex-shrink: 0; display: flex; align-items: center;">
-                          {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                'align-items': 'center',
-                                'justify-content': 'center',
-                                width: '14px',
-                                height: '14px',
-                                'border-radius': '3px',
-                                'font-size': '9px',
-                                'font-weight': '600',
-                                color: 'white',
-                                background: customProviderColor(item.name),
-                              }}
-                            >
-                              {item.name.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </span>
-                        <span style="font-weight: 500; color: hsl(var(--foreground));">
-                          {item.name}
-                        </span>
-                        <Show when={item.isCustom}>
-                          <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
-                            custom
+              <Show when={selfHosted()}>
+                <div class="overview-stat-card" style={cardStyle}>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="overview-stat-card__label">Local</span>
+                    <A
+                      href="/providers/local?add=true"
+                      class="btn btn--outline btn--sm"
+                      style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
+                    >
+                      + Add
+                    </A>
+                  </div>
+                  <span class="overview-stat-card__value" style="margin-bottom: 12px;">
+                    {totalConns(local())}
+                  </span>
+                  <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+                    <For each={connList(local())}>
+                      {(item) => (
+                        <A
+                          href={`/providers/connections/${item.id}`}
+                          style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
+                        >
+                          <span style="flex-shrink: 0; display: flex; align-items: center;">
+                            {providerIcon(item.icon, 14) ?? customProviderLogo(item.name, 14) ?? (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  'align-items': 'center',
+                                  'justify-content': 'center',
+                                  width: '14px',
+                                  height: '14px',
+                                  'border-radius': '3px',
+                                  'font-size': '9px',
+                                  'font-weight': '600',
+                                  color: 'white',
+                                  background: customProviderColor(item.name),
+                                }}
+                              >
+                                {item.name.charAt(0).toUpperCase()}
+                              </span>
+                            )}
                           </span>
-                        </Show>
-                        <Show when={item.label !== 'Default'}>
-                          <span>{item.label}</span>
-                        </Show>
-                      </A>
-                    )}
-                  </For>
+                          <span style="font-weight: 500; color: hsl(var(--foreground));">
+                            {item.name}
+                          </span>
+                          <Show when={item.isCustom}>
+                            <span style="font-size: 10px; font-weight: 500; color: hsl(var(--muted-foreground)); background: hsl(var(--muted)); padding: 1px 6px; border-radius: var(--radius-sm);">
+                              custom
+                            </span>
+                          </Show>
+                          <Show when={item.label !== 'Default'}>
+                            <span>{item.label}</span>
+                          </Show>
+                        </A>
+                      )}
+                    </For>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                    <A href="/providers/local" class="view-more-link">
+                      View more
+                    </A>
+                  </div>
                 </div>
-                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                  <A href="/providers/local" class="view-more-link">
-                    View more
-                  </A>
-                </div>
-              </div>
+              </Show>
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Harnesses</span>
@@ -1065,14 +964,40 @@ const GlobalOverview: Component = () => {
                     <tr>
                       <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                          <Show when={row.provider}>
-                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
-                              {providerIcon(row.provider!, 16)}
-                              {authBadgeFor(row.auth_type, 12)}
-                            </span>
-                          </Show>
+                          {(() => {
+                            const isCustom = row.provider?.startsWith('custom:') === true;
+                            if (isCustom) {
+                              const name = row.custom_provider_name ?? undefined;
+                              return (
+                                customProviderLogo(name ?? '', 16, undefined, row.model) ?? (
+                                  <span
+                                    class="provider-card__logo-letter"
+                                    title={name}
+                                    style={{
+                                      background: customProviderColor(name ?? ''),
+                                      width: '16px',
+                                      height: '16px',
+                                      'font-size': '9px',
+                                      'flex-shrink': '0',
+                                      'border-radius': '50%',
+                                    }}
+                                  >
+                                    {(name ?? stripCustomPrefix(row.model)).charAt(0).toUpperCase()}
+                                  </span>
+                                )
+                              );
+                            }
+                            return row.provider ? (
+                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                                {providerIcon(row.provider, 16)}
+                                {authBadgeFor(row.auth_type, 12)}
+                              </span>
+                            ) : null;
+                          })()}
                           <span style="font-weight: 500; color: hsl(var(--foreground));">
-                            {row.display_name || getModelDisplayName(row.model)}
+                            {row.model.startsWith('custom:')
+                              ? stripCustomPrefix(row.model)
+                              : row.display_name || row.model}
                           </span>
                         </div>
                       </td>
@@ -1154,9 +1079,7 @@ const GlobalOverview: Component = () => {
                           <div style="display: flex; align-items: center; gap: 8px;">
                             {(() => {
                               const isCustom = group.provider.startsWith('custom:');
-                              const customName = isCustom
-                                ? resolveCustomName(group.provider)
-                                : null;
+                              const customName = isCustom ? (group.display_name ?? null) : null;
                               const prov = PROVIDERS.find((p) => p.id === group.provider);
                               const displayName = prov?.name ?? customName ?? group.provider;
                               return (

@@ -1,5 +1,6 @@
 import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
+import { inferProviderFromModel } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 
 interface SeedContext {
@@ -67,6 +68,7 @@ export async function seedAgentMessages(
         agent_name: ctx.agentName,
         timestamp: ts,
         model: entry.name,
+        provider: inferProviderFromModel(entry.name) ?? null,
         auth_type: entry.auth_type,
         input_tokens: inputBase,
         output_tokens: outputBase,

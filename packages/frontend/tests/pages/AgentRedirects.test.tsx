@@ -33,10 +33,28 @@ describe("AgentLimitsRedirect", () => {
 });
 
 describe("AgentMessagesRedirect", () => {
-  it("redirects /harnesses/:name/messages to global /messages", () => {
+  beforeEach(() => {
+    mockParams.agentName = "demo-agent";
+  });
+
+  it("redirects /harnesses/:name/messages to global /messages pre-filtered to the agent", () => {
     const { container } = render(() => <AgentMessagesRedirect />);
     const navigate = container.querySelector('[data-testid="navigate"]');
     expect(navigate).not.toBeNull();
-    expect(navigate?.getAttribute("data-href")).toBe("/messages");
+    expect(navigate?.getAttribute("data-href")).toBe("/messages?agent=demo-agent");
+  });
+
+  it("encodes agent names with special characters correctly", () => {
+    mockParams.agentName = "my agent";
+    const { container } = render(() => <AgentMessagesRedirect />);
+    const navigate = container.querySelector('[data-testid="navigate"]');
+    expect(navigate?.getAttribute("data-href")).toBe("/messages?agent=my%20agent");
+  });
+
+  it("normalizes an already-encoded route param instead of double-encoding", () => {
+    mockParams.agentName = "my%20agent";
+    const { container } = render(() => <AgentMessagesRedirect />);
+    const navigate = container.querySelector('[data-testid="navigate"]');
+    expect(navigate?.getAttribute("data-href")).toBe("/messages?agent=my%20agent");
   });
 });

@@ -18,10 +18,12 @@ vi.mock('../../src/services/formatters.js', () => ({
 }));
 
 vi.mock('../../src/services/routing-utils.js', () => ({
-  inferProviderFromModel: () => null,
+  // Mirror the real helpers' custom-provider behavior so ModelCell's custom
+  // branch is exercised; non-custom inputs behave exactly as before.
+  inferProviderFromModel: (m: string) => (m.startsWith('custom:') ? 'custom' : null),
   inferProviderName: (m: string) => m,
-  resolveProviderId: () => undefined,
-  stripCustomPrefix: (m: string) => m,
+  resolveProviderId: (p: string) => (p.startsWith('custom:') ? p : undefined),
+  stripCustomPrefix: (m: string) => m.replace(/^custom:[^/]+\//, ''),
 }));
 
 vi.mock('../../src/services/model-display.js', () => ({
@@ -118,14 +120,12 @@ describe('StatusCell without agentName (global mode)', () => {
 });
 
 describe('ModelCell', () => {
-  const noCustom = () => undefined;
-
   it('renders header tier badge when header_tier_name is set', () => {
     const row = baseRow({
       header_tier_name: 'My Custom Tier',
       header_tier_color: 'rose',
     });
-    const { container } = render(() => <table><tbody><tr>{ModelCell(row, noCustom)}</tr></tbody></table>);
+    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
     const badge = container.querySelector('.tier-badge--custom');
     expect(badge).not.toBeNull();
     expect(badge!.textContent).toBe('My Custom Tier');
@@ -134,9 +134,36 @@ describe('ModelCell', () => {
 
   it('uses indigo as default header tier color', () => {
     const row = baseRow({ header_tier_name: 'Tier A' });
-    const { container } = render(() => <table><tbody><tr>{ModelCell(row, noCustom)}</tr></tbody></table>);
+    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
     const badge = container.querySelector('.tier-badge--custom');
     expect(badge).not.toBeNull();
     expect(badge!.className).toContain('tier-color--indigo');
+  });
+
+  it('renders a custom row with just the model text and the provider name in the tooltip', () => {
+    const row = baseRow({
+      model: 'custom:u-1/openai/gpt-oss-120b',
+      provider: 'custom:u-1',
+      custom_provider_name: 'MyLLM',
+    });
+    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
+    expect(container.textContent).toContain('openai/gpt-oss-120b');
+    expect(container.textContent).not.toContain('custom:');
+    expect(container.textContent).not.toContain('Custom');
+    expect(container.querySelector('[title="MyLLM"]')).not.toBeNull();
+  });
+
+  it('falls back to a letter avatar from the model when the custom provider was deleted', () => {
+    const row = baseRow({
+      model: 'custom:gone/my-model',
+      provider: 'custom:gone',
+      custom_provider_name: null,
+    });
+    const { container } = render(() => <table><tbody><tr>{ModelCell(row)}</tr></tbody></table>);
+    expect(container.textContent).toContain('my-model');
+    expect(container.textContent).not.toContain('custom:');
+    const avatar = container.querySelector('.provider-card__logo-letter');
+    expect(avatar).not.toBeNull();
+    expect(avatar!.textContent).toBe('M');
   });
 });

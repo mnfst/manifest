@@ -17,6 +17,7 @@ vi.mock("@solidjs/router", () => ({
     vi.fn(),
   ],
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams, vi.fn()],
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
 
@@ -615,17 +616,20 @@ describe("MessageLog", () => {
   });
 
   describe("custom provider models", () => {
+    // The backend resolves the custom provider's name into each row
+    // (`custom_provider_name`) and ships a `provider_labels` map for the
+    // filter dropdown; the page no longer fetches the list itself.
     const customMessagesData = {
       items: [
-        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", cache_read_tokens: null, cache_creation_tokens: null, duration_ms: 800 },
+        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", provider: "custom:abc-123", custom_provider_name: "Cerebras", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", cache_read_tokens: null, cache_creation_tokens: null, duration_ms: 800 },
       ],
       next_cursor: null,
       total_count: 1,
-      providers: ["custom"],
+      providers: ["custom:abc-123"],
+      provider_labels: { "custom:abc-123": "Cerebras" },
     };
 
     it("renders custom provider icon in message rows", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -635,7 +639,6 @@ describe("MessageLog", () => {
     });
 
     it("strips custom prefix from model name display", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -644,12 +647,25 @@ describe("MessageLog", () => {
       });
     });
 
-    it("falls back to model prefix when custom provider not found", async () => {
-      mockGetCustomProviders.mockResolvedValue([]);
+    it("labels the provider filter option with the custom provider name", async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
+        expect(container.textContent).toContain("Cerebras");
+      });
+    });
+
+    it("falls back to model prefix when custom provider was deleted", async () => {
+      const deletedProvider = {
+        ...customMessagesData,
+        items: [{ ...customMessagesData.items[0], custom_provider_name: null }],
+        provider_labels: {},
+      };
+      mockGetMessages.mockResolvedValue(deletedProvider);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
         expect(container.textContent).toContain("my-llama");
+        expect(container.textContent).not.toContain("custom:abc-123/");
       });
     });
 
@@ -1343,6 +1359,28 @@ describe("MessageLog", () => {
       render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(mockGetAgents).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it("seeds the agent filter from the ?agent= search param (View more redirect)", async () => {
+      mockAgentName = "";
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const lastCall = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+        expect(lastCall.agent_name).toBe("agent-beta");
+      });
+    });
+
+    it("ignores the ?agent= search param in agent-scoped mode (route param wins)", async () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const lastCall = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+        expect(lastCall.agent_name).toBe("test-agent");
       });
     });
 

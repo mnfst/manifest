@@ -39,6 +39,14 @@ vi.mock("../../src/services/sse.js", () => ({
   agentPing: () => 0,
 }));
 
+// Local providers only exist on self-hosted installs; the Sidebar hides the
+// Local nav entry in cloud. Default to self-hosted so the legacy link
+// assertions keep applying; cloud tests flip the flag.
+let mockIsSelfHosted = true;
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsSelfHosted: () => Promise.resolve(mockIsSelfHosted),
+}));
+
 // Stub the create-harness modal so the Sidebar test stays isolated from the
 // modal's own dependency tree; we only assert that the + button opens it.
 const mockAddModal = vi.fn();
@@ -80,6 +88,7 @@ const SAMPLE_AGENTS = [
 beforeEach(() => {
   vi.clearAllMocks();
   mockPathname = "/overview";
+  mockIsSelfHosted = true;
   mockGetAgents.mockResolvedValue({ agents: SAMPLE_AGENTS });
 });
 
@@ -94,12 +103,22 @@ describe("Sidebar — global nav links", () => {
     expect(screen.getByText("Messages")).toBeDefined();
   });
 
-  it("renders provider section links", () => {
+  it("renders provider section links (Local resolves async, self-hosted)", async () => {
     render(() => <Sidebar />);
     expect(screen.getByText("PROVIDERS")).toBeDefined();
     expect(screen.getByText("Subscriptions")).toBeDefined();
     expect(screen.getByText("BYOK")).toBeDefined();
-    expect(screen.getByText("Local")).toBeDefined();
+    await waitFor(() => expect(screen.getByText("Local")).toBeDefined());
+  });
+
+  it("hides the Local link in cloud", async () => {
+    mockIsSelfHosted = false;
+    const { container } = render(() => <Sidebar />);
+    // Wait for the self-hosted resource to settle (BYOK is always present).
+    await waitFor(() => expect(screen.getByText("BYOK")).toBeDefined());
+    await Promise.resolve();
+    expect(container.querySelector('a[href="/providers/local"]')).toBeNull();
+    expect(container.textContent).not.toContain("Local");
   });
 
   it("renders the HARNESSES section label", () => {
@@ -120,18 +139,23 @@ describe("Sidebar — global nav links", () => {
     expect(container.textContent).not.toContain("RESOURCES");
   });
 
-  it("global links point to global routes", () => {
+  it("global links point to global routes", async () => {
     const { container } = render(() => <Sidebar />);
     expect(container.querySelector('a[href="/overview"]')).not.toBeNull();
     expect(container.querySelector('a[href="/messages"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/subscriptions"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/byok"]')).not.toBeNull();
-    expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull();
+    await waitFor(() =>
+      expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull(),
+    );
     expect(container.querySelector('a[href="/playground"]')).not.toBeNull();
   });
 
-  it("keeps exactly the expected sidebar__link set (no static Harnesses link)", () => {
+  it("keeps exactly the expected sidebar__link set (no static Harnesses link)", async () => {
     const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull(),
+    );
     const links = Array.from(container.querySelectorAll("a.sidebar__link")).map((a) =>
       a.getAttribute("href"),
     );
@@ -177,11 +201,13 @@ describe("Sidebar — global nav active state", () => {
     expect(link?.getAttribute("aria-current")).toBe("page");
   });
 
-  it("marks Local active on /providers/local", () => {
+  it("marks Local active on /providers/local", async () => {
     mockPathname = "/providers/local";
     const { container } = render(() => <Sidebar />);
-    const link = container.querySelector('a[href="/providers/local"]');
-    expect(link?.getAttribute("aria-current")).toBe("page");
+    await waitFor(() => {
+      const link = container.querySelector('a[href="/providers/local"]');
+      expect(link?.getAttribute("aria-current")).toBe("page");
+    });
   });
 
   it("marks Playground active on /playground", () => {

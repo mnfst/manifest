@@ -1,21 +1,6 @@
 import { onMount, onCleanup, createEffect, on } from 'solid-js';
 import type { Accessor } from 'solid-js';
 import uPlot from 'uplot';
-import { getHslA } from './theme.js';
-
-export function makeGradientFill(topColor: string, bottomColor: string): uPlot.Series.Fill {
-  return ((u: uPlot) => {
-    if (!isFinite(u.bbox.top) || !isFinite(u.bbox.height) || u.bbox.height === 0) return topColor;
-    const grad = u.ctx.createLinearGradient(0, u.bbox.top, 0, u.bbox.top + u.bbox.height);
-    grad.addColorStop(0, topColor);
-    grad.addColorStop(1, bottomColor);
-    return grad;
-  }) as uPlot.Series.Fill;
-}
-
-export function makeGradientFillFromVar(cssVar: string, alpha: number): uPlot.Series.Fill {
-  return makeGradientFill(getHslA(cssVar, alpha), 'transparent');
-}
 
 interface UseChartLifecycleOptions<T> {
   el: () => HTMLDivElement;
@@ -97,35 +82,7 @@ export function useChartLifecycle<T>(opts: UseChartLifecycleOptions<T>): void {
   });
 }
 
-export function createCursorSnap(bgColor: string, pointColor: string): uPlot.Cursor {
-  return {
-    show: true,
-    x: true,
-    y: false,
-    drag: { x: false, y: false },
-    points: { show: true, size: 8, fill: pointColor, stroke: bgColor, width: 2 },
-    move: (u: uPlot, left: number, top: number) => {
-      const idx = u.posToIdx(left);
-      const snappedLeft =
-        idx != null && u.data[0]?.[idx] != null
-          ? Math.round(u.valToPos(u.data[0][idx]!, 'x'))
-          : left;
-      return [snappedLeft, top];
-    },
-  };
-}
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-export function formatLegendTimestamp(_u: uPlot, epochSec: number): string {
-  if (epochSec == null || isNaN(epochSec)) return '';
-  const d = new Date(epochSec * 1000);
-  const mon = MONTHS[d.getMonth()]!;
-  const day = d.getDate();
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${mon} ${day}, ${hh}:${mm}`;
-}
 
 export function createFormatLegendTimestamp(
   range?: string,
@@ -141,12 +98,6 @@ export function createFormatLegendTimestamp(
     const mm = String(d.getMinutes()).padStart(2, '0');
     return `${mon} ${day}, ${hh}:${mm}`;
   };
-}
-
-export function formatLegendCost(_u: uPlot, val: number): string {
-  if (val == null || isNaN(val)) return '';
-  if (val > 0 && val < 0.01) return '< $0.01';
-  return `$${val.toFixed(2)}`;
 }
 
 export function formatLegendTokens(_u: uPlot, val: number): string {
@@ -342,16 +293,6 @@ export function parseTimestamps(
 
 const MIN_SPAN = 6 * 3600; // 6 hours in seconds
 
-export function timeScaleRange(_u: uPlot, min: number, max: number): [number, number] {
-  const now = Date.now() / 1000;
-  const clampedMax = Math.min(max, now);
-  const span = clampedMax - min;
-  if (span < MIN_SPAN) {
-    return [clampedMax - MIN_SPAN, clampedMax];
-  }
-  return [min, clampedMax];
-}
-
 export function createTimeScaleRange(
   range?: string,
   bars: boolean = false,
@@ -376,8 +317,4 @@ export function createTimeScaleRange(
     }
     return [min - halfBin, clampedMax + halfBin];
   };
-}
-
-export function sanitizeNumbers(values: number[]): (number | null)[] {
-  return values.map((v) => (Number.isFinite(v) ? v : null));
 }
