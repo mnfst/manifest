@@ -24,6 +24,7 @@ import type { ThinkingBlockCache } from '../thinking-block-cache';
 import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { RateLimitTrackerService } from '../rate-limit-tracker.service';
 
 /**
  * Stream-warmup helper is mocked because the real implementation depends on
@@ -92,6 +93,7 @@ describe('ProxyService — orchestration', () => {
   let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
+  let rateLimitTracker: { captureFromResponse: jest.Mock };
   let svc: ProxyService;
 
   beforeEach(() => {
@@ -144,6 +146,7 @@ describe('ProxyService — orchestration', () => {
       ),
       list: jest.fn().mockResolvedValue(specCatalog),
     };
+    rateLimitTracker = { captureFromResponse: jest.fn() };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -164,6 +167,7 @@ describe('ProxyService — orchestration', () => {
       reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
+      rateLimitTracker as unknown as RateLimitTrackerService,
     );
   });
 
@@ -309,6 +313,59 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.model).toBe('gpt-4o');
       expect(result.meta.provider).toBe('openai');
       expect(momentum.recordTier).toHaveBeenCalledWith('sess-1', 'standard');
+    });
+
+    it('captures primary rate-limit headers under the canonical Default label for an unlabeled key', async () => {
+      // The resolved route carries no keyLabel (unlabeled key). The capture must
+      // attribute the headers to the canonical 'Default' connection, not a NULL
+      // that could collide with a real 'Default' connection on read.
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const primaryOk = okResponse(200);
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: primaryOk,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      const primaryCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === primaryOk,
+      );
+      expect(primaryCapture).toEqual([primaryOk, 'user-1', 'openai', 'api_key', 'Default']);
+    });
+
+    it('captures primary rate-limit headers under the pinned key label', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: { ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Work' },
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const primaryOk = okResponse(200);
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: primaryOk,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      const primaryCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === primaryOk,
+      );
+      expect(primaryCapture).toEqual([primaryOk, 'user-1', 'openai', 'api_key', 'Work']);
     });
 
     it('passes the raw stored OpenAI OAuth blob alongside the unwrapped access token', async () => {
@@ -674,6 +731,67 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
       expect(result.meta.provider).toBe('anthropic');
       expect(result.meta.primaryProvider).toBe('openai');
+    });
+
+    it("captures the fallback success response's rate-limit headers", async () => {
+      // The failed primary still gets a capture call; this proves the WINNING
+      // fallback connection's limits are also captured (provider/auth/label
+      // matching the fallback, not the primary).
+      const fallbackOk = okResponse();
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { response: fallbackOk, isGoogle: false, isAnthropic: true, isChatGpt: false },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          authType: 'subscription',
+          keyLabel: 'Work',
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      // One capture for the failed primary, one for the fallback success.
+      const fallbackCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === fallbackOk,
+      );
+      expect(fallbackCapture).toBeDefined();
+      expect(fallbackCapture).toEqual([fallbackOk, 'user-1', 'anthropic', 'subscription', 'Work']);
+    });
+
+    it('records the fallback capture under the canonical Default label when the success has no keyLabel', async () => {
+      const fallbackOk = okResponse();
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response('upstream broken', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { response: fallbackOk, isGoogle: false, isAnthropic: true, isChatGpt: false },
+          model: 'claude',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+
+      await svc.proxyRequest(baseOpts());
+
+      // No explicit keyLabel on the fallback success → canonical 'Default'
+      // (mirrors the primary path), never NULL/undefined.
+      const fallbackCapture = rateLimitTracker.captureFromResponse.mock.calls.find(
+        (c) => c[0] === fallbackOk,
+      );
+      expect(fallbackCapture).toEqual([fallbackOk, 'user-1', 'anthropic', '', 'Default']);
     });
 
     it('returns the successful fallback auth_type, not the primary auth_type (#1173)', async () => {
@@ -1139,7 +1257,7 @@ describe('ProxyService — orchestration', () => {
           body: { messages: [{ role: 'user', content: 'HEARTBEAT_OK' }] },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
     });
 
@@ -1171,7 +1289,7 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
     });
 
     it('does not detect heartbeat when no user message exists', async () => {
@@ -1283,8 +1401,10 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      const [, scoringMessages] = resolveService.resolve.mock.calls[0];
-      expect(scoringMessages.every((m) => m.role === 'user')).toBe(true);
+      const [, , scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect((scoringMessages as Array<{ role: string }>).every((m) => m.role === 'user')).toBe(
+        true,
+      );
     });
   });
 });

@@ -203,27 +203,31 @@ describe('RoutingCacheService', () => {
   });
 
   describe('invalidateAgent', () => {
-    it('clears tiers, providers, custom providers, and provider key chains for agent', () => {
+    it('clears tiers and provider key chains for agent; providers remain user-scoped', () => {
       const tiers = [{ id: 'ta-1', tier: 'fast' }] as TierAssignment[];
+      // Providers and customProviders are user-scoped — stored under userId 'user-1', not agentId 'agent-1'.
       const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
       const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
 
       service.setTiers('agent-1', tiers);
-      service.setProviders('agent-1', providers);
-      service.setCustomProviders('agent-1', cps);
+      service.setProviders('user-1', providers);
+      service.setCustomProviders('user-1', cps);
       service.setProviderKeys('agent-1', 'openai', [providerKey('Default', 'sk-test')]);
 
       expect(service.getTiers('agent-1')).toEqual(tiers);
-      expect(service.getProviders('agent-1')).toEqual(providers);
-      expect(service.getCustomProviders('agent-1')).toEqual(cps);
+      expect(service.getProviders('user-1')).toEqual(providers);
+      expect(service.getCustomProviders('user-1')).toEqual(cps);
       expect(service.getProviderKeys('agent-1', 'openai')?.[0].apiKey).toBe('sk-test');
 
       service.invalidateAgent('agent-1');
 
+      // Agent-scoped caches cleared
       expect(service.getTiers('agent-1')).toBeNull();
-      expect(service.getProviders('agent-1')).toBeNull();
-      expect(service.getCustomProviders('agent-1')).toBeNull();
       expect(service.getProviderKeys('agent-1', 'openai')).toBeUndefined();
+
+      // User-scoped provider caches NOT cleared by invalidateAgent
+      expect(service.getProviders('user-1')).not.toBeNull();
+      expect(service.getCustomProviders('user-1')).not.toBeNull();
     });
 
     it('does not clear provider key chains for other agents', () => {

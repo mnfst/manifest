@@ -4,14 +4,18 @@ import {
   Controller,
   Delete,
   Get,
+  Optional,
   Param,
   Patch,
   Post,
   Put,
   Query,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
+import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { TierService } from './routing-core/tier.service';
@@ -39,12 +43,15 @@ export class ProviderController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly tierService: TierService,
     private readonly pricingSync: PricingSyncService,
+    @Optional()
+    @InjectRepository(AgentProviderAccess)
+    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
   ) {}
 
   @Get(':agentName/status')
   async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+    const providers = await this.providerService.getProviders(user.id);
     const hasActiveProvider = providers.some((p) => p.is_active);
 
     if (!hasActiveProvider) {
@@ -69,8 +76,13 @@ export class ProviderController {
 
   @Get(':agentName/providers')
   async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+    // allowSystem: true — the Playground page reads the provider list for the
+    // reserved system agent. Destructive/config mutations (rename, reorder,
+    // deactivate, remove) still reject it; only additive connect is allowed.
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
+      allowSystem: true,
+    });
+    const providers = await this.providerService.getProviders(user.id);
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
@@ -93,7 +105,11 @@ export class ProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: ConnectProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    // allowSystem: true — connecting a provider to the Playground system agent
+    // is additive and correct (grants belong to the user-global pool).
+    const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
+      allowSystem: true,
+    });
     const lowerProvider = body.provider.toLowerCase();
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
     const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(
@@ -131,18 +147,25 @@ export class ProviderController {
       body.region,
       body.label,
     );
+    // Insert a sparse access grant for this agent so per-agent filtering works.
+    // .orIgnore() is intentional — reconnect/update flows must not throw on duplicate.
+    if (this.accessRepo) {
+      await this.accessRepo
+        .createQueryBuilder()
+        .insert()
+        .into(AgentProviderAccess)
+        .values({ agent_id: agent.id, user_provider_id: result.id })
+        .orIgnore()
+        .execute();
+    }
 
-    // Discover models and recalculate tiers before returning so the
-    // frontend sees updated data immediately (typically ~1-3s).
+    // Discover models before returning so the frontend sees updated model
+    // availability immediately (typically ~1-3s). Route choices remain
+    // user-controlled and are not recalculated here.
     try {
       await this.discoveryService.discoverModels(result);
     } catch {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
-    }
-    try {
-      await this.providerService.recalculateTiers(agent.id);
-    } catch {
-      // Tier recalculation failure is non-fatal
     }
 
     return {
@@ -165,6 +188,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const updated = await this.providerService.renameKey(
       agent.id,
+      user.id,
       params.provider,
       body.authType ?? 'api_key',
       params.label,
@@ -188,6 +212,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const updated = await this.providerService.reorderKeys(
       agent.id,
+      user.id,
       params.provider,
       body.authType ?? 'api_key',
       body.labels,
@@ -204,7 +229,7 @@ export class ProviderController {
   @Post(':agentName/providers/deactivate-all')
   async deactivateAllProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.providerService.deactivateAllProviders(agent.id);
+    await this.providerService.deactivateAllProviders(agent.id, user.id);
     return { ok: true };
   }
 
@@ -217,6 +242,7 @@ export class ProviderController {
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       params.provider,
       query.authType,
       query.label,

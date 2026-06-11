@@ -1,0 +1,90 @@
+/*
+ * Analytics overview styles.
+ *
+ * Hosts the class blocks that the ported GlobalOverview / ConnectionDetail
+ * analytics surfaces depend on but that are not already defined in the base
+ * stylesheets: the multi-harness chart tooltip, the harness filter
+ * multi-select, the summary stat cards, the scrollable panels, and the
+ * page-header title/subtitle. Imported by the analytics pages only.
+ */
+
+/* ── Page header ─────────────────────────────────── */
+.page-header__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+.page-header__subtitle {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+  margin: 4px 0 0;
+}
+
+/* ── Summary stat cards ──────────────────────────── */
+.overview-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.overview-stat-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overview-stat-card__label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.overview-stat-card__value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+/* ── Scrollable panel ────────────────────────────── */
+.scroll-panel {
+  position: relative;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scroll-panel > .panel__title {
+  padding: 16px 16px 0;
+  margin-bottom: 0;
+}
+
+.scroll-panel__body {
+  max-height: 480px;
+  overflow-y: auto;
+  padding-bottom: 32px;
+}
+
+.scroll-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, hsl(var(--card)));
+  border-radius: 0 0 var(--radius) var(--radius);
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.scroll-panel--at-bottom::after {
+  opacity: 0;
+}

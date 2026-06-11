@@ -2,7 +2,7 @@ import type { Response as ExpressResponse } from 'express';
 import { PlaygroundService } from './playground.service';
 import type { ProviderClient } from '../routing/proxy/provider-client';
 import type { ProviderKeyService } from '../routing/routing-core/provider-key.service';
-import type { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import type { PlaygroundAgentService } from './playground-agent.service';
 import type { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import type { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import type { PlaygroundHistoryService } from './playground-history.service';
@@ -84,7 +84,7 @@ function mockRes(): MockRes {
 const asRes = (r: MockRes): ExpressResponse => r as unknown as ExpressResponse;
 
 interface Mocks {
-  resolveAgent: { resolve: jest.Mock };
+  playgroundAgent: { resolve: jest.Mock };
   providerKeyService: {
     hasActiveProvider: jest.Mock;
     getAuthType: jest.Mock;
@@ -112,7 +112,7 @@ interface Mocks {
 
 function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService; mocks: Mocks } {
   const full: Mocks = {
-    resolveAgent: {
+    playgroundAgent: {
       resolve: jest.fn().mockResolvedValue(AGENT),
     },
     providerKeyService: {
@@ -146,7 +146,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     ...mocks,
   };
   const service = new PlaygroundService(
-    full.resolveAgent as unknown as ResolveAgentService,
+    full.playgroundAgent as unknown as PlaygroundAgentService,
     full.providerKeyService as unknown as ProviderKeyService,
     full.providerClient as unknown as ProviderClient,
     full.openaiOauth as unknown as OpenaiOauthService,

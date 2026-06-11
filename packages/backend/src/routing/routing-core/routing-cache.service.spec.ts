@@ -96,10 +96,11 @@ describe('RoutingCacheService', () => {
   });
 
   describe('invalidateAgent', () => {
-    it('clears every cache slot for the agent, including all per-provider key chains', () => {
+    it('clears agent-scoped caches (tiers, specificity, modelParams, providerKeys); providers remain user-scoped', () => {
       svc.setTiers('a', [tier('t1')]);
-      svc.setProviders('a', [provider('p1')]);
-      svc.setCustomProviders('a', [customProvider('c1')]);
+      // Providers and customProviders are now user-scoped — stored under userId 'u1', not agentId 'a'.
+      svc.setProviders('u1', [provider('p1')]);
+      svc.setCustomProviders('u1', [customProvider('c1')]);
       svc.setSpecificity('a', [specificity('s1')]);
       svc.setModelParams('a', [modelParams('mp1')]);
       svc.setProviderKeys('a', 'openai', [providerKey('Default', 'k')]);
@@ -112,16 +113,40 @@ describe('RoutingCacheService', () => {
 
       svc.invalidateAgent('a');
 
+      // Agent-scoped caches cleared
       expect(svc.getTiers('a')).toBeNull();
-      expect(svc.getProviders('a')).toBeNull();
-      expect(svc.getCustomProviders('a')).toBeNull();
       expect(svc.getSpecificity('a')).toBeNull();
       expect(svc.getModelParams('a')).toBeNull();
       expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
       expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
 
+      // User-scoped provider caches NOT cleared by invalidateAgent
+      expect(svc.getProviders('u1')).not.toBeNull();
+      expect(svc.getCustomProviders('u1')).not.toBeNull();
+
+      // Unrelated agent entries survive
       expect(svc.getTiers('b')).not.toBeNull();
       expect(svc.getProviderKeys('b', 'openai')).toBe(bKeys);
+    });
+  });
+
+  describe('invalidateUser', () => {
+    it('clears user-scoped provider caches and user-keyed providerKeys; agent caches survive', () => {
+      svc.setProviders('u1', [provider('p1')]);
+      svc.setCustomProviders('u1', [customProvider('c1')]);
+      svc.setProviderKeys('u1', 'openai', [providerKey('Default', 'k')]);
+
+      // Agent-scoped cache should survive invalidateUser
+      svc.setTiers('agent-x', [tier('t1')]);
+
+      svc.invalidateUser('u1');
+
+      expect(svc.getProviders('u1')).toBeNull();
+      expect(svc.getCustomProviders('u1')).toBeNull();
+      expect(svc.getProviderKeys('u1', 'openai')).toBeUndefined();
+
+      // Agent tiers are untouched
+      expect(svc.getTiers('agent-x')).not.toBeNull();
     });
   });
 

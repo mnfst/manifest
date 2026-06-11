@@ -18,7 +18,7 @@ import {
   createTestApp,
   TEST_AGENT_ID,
   TEST_OTLP_KEY,
-  TEST_TENANT_ID,
+  TEST_USER_ID,
 } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
@@ -58,7 +58,7 @@ beforeAll(async () => {
      VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
     [
       'up-anthropic-1871',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'anthropic',
       'api_key',
@@ -80,6 +80,13 @@ beforeAll(async () => {
     ],
   );
 
+  // Grant the test agent access to the user-level provider (PR3 requires
+  // explicit grants in agent_provider_access for per-agent filtering).
+  await ds.query(
+    `INSERT INTO agent_provider_access (agent_id, user_provider_id) VALUES ($1,$2)`,
+    [TEST_AGENT_ID, 'up-anthropic-1871'],
+  );
+
   await ds.query(
     `INSERT INTO tier_assignments
        (id, user_id, agent_id, tier, override_route, auto_assigned_route, fallback_routes, updated_at)
@@ -89,7 +96,7 @@ beforeAll(async () => {
        fallback_routes = EXCLUDED.fallback_routes`,
     [
       'tier-default-1871',
-      TEST_TENANT_ID,
+      TEST_USER_ID,
       TEST_AGENT_ID,
       'default',
       JSON.stringify({ provider: 'anthropic', authType: 'api_key', model: MODEL }),

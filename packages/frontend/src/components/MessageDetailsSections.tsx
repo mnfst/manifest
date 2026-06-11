@@ -2,7 +2,7 @@ import { createSignal, For, Show, type JSX } from 'solid-js';
 import InfoTooltip from './InfoTooltip.jsx';
 
 const MODEL_PARAMS_TOOLTIP =
-  'Provider-specific request parameters that affected this call — e.g. ' +
+  'Provider-specific request parameters that affected this call, e.g. ' +
   "DeepSeek's `thinking` toggle. The set is curated per provider today; " +
   'support for additional models and custom user-defined parameters lands ' +
   'here as it ships.';

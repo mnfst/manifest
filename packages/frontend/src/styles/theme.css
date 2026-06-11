@@ -17,6 +17,7 @@
 @import './version-indicator.css';
 @import './skeleton.css';
 @import './agent-type-select.css';
+@import './action-menu.css';
 @import './feedback.css';
 
 /*
@@ -450,6 +451,7 @@ h6 {
 /* ── Data Table — shadcn Table style ─────────────── */
 .data-table {
   width: 100%;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: var(--font-size-sm);
 }
@@ -811,7 +813,9 @@ h6 {
   letter-spacing: 0.05em;
 }
 
-.sidebar__link {
+/* Base styling shared by global nav links and harness switcher items. */
+.sidebar__link,
+.sidebar__agent-item {
   display: flex;
   align-items: center;
   gap: var(--gap-xs);
@@ -824,7 +828,8 @@ h6 {
   transition: all var(--transition-fast);
 }
 
-.sidebar__link:hover {
+.sidebar__link:hover,
+.sidebar__agent-item:hover {
   background: hsl(var(--sidebar-accent));
   color: hsl(var(--sidebar-accent-foreground));
 }
@@ -833,6 +838,105 @@ h6 {
   background: hsl(var(--sidebar-accent));
   color: hsl(var(--sidebar-primary));
   font-weight: 500;
+}
+
+/* HARNESSES section header — a row holding the collapse toggle and + button. */
+.sidebar__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--gap-md) 0.5rem 1px;
+}
+
+/* Collapse toggle: carries the uppercased section label styling so it reads as
+   a section heading, with the caret icon trailing the text. */
+.sidebar__section-caret {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 6px var(--gap-md);
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.sidebar__section-caret:hover,
+.sidebar__section-caret:focus-visible {
+  background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-foreground));
+}
+
+.sidebar__section-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: hsl(var(--muted));
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sidebar__section-add:hover,
+.sidebar__section-add:focus-visible {
+  color: hsl(var(--sidebar-foreground));
+  background: hsl(var(--border));
+}
+
+/* Harness list items reuse the shared link base (above); these are the only
+   harness-specific overrides — a wider icon gap and a bolder label. */
+.sidebar__agents-list {
+  padding: 0;
+}
+
+.sidebar__agent-item {
+  gap: 8px;
+  font-weight: 500;
+}
+
+.sidebar__agent-item--active {
+  background: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-primary));
+  font-weight: 600;
+}
+
+.sidebar__agent-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.dark .sidebar__agent-icon {
+  filter: invert(1);
+}
+
+.sidebar__agent-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__agents-empty {
+  padding: 6px var(--gap-lg);
+  margin: 1px 0.5rem;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
 }
 
 .sidebar__spacer {

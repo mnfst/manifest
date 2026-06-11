@@ -1,10 +1,11 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
-import { Router, Route } from '@solidjs/router';
+import { Router, Route, Navigate } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
 import Workspace from './pages/Workspace.jsx';
+import RootRedirect from './components/RootRedirect.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
 import GuestGuard from './components/GuestGuard.jsx';
 import NotFound from './pages/NotFound.jsx';
@@ -15,7 +16,12 @@ import './styles/theme.css';
 
 clearReloadFlag();
 
-const Overview = lazyReload(() => import('./pages/Overview.jsx'));
+const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
+const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
+const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
+const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
+const AgentLimitsRedirect = lazyReload(() => import('./pages/AgentLimitsRedirect.jsx'));
+const AgentMessagesRedirect = lazyReload(() => import('./pages/AgentMessagesRedirect.jsx'));
 const MessageLog = lazyReload(() => import('./pages/MessageLog.jsx'));
 const Settings = lazyReload(() => import('./pages/Settings.jsx'));
 const Routing = lazyReload(() => import('./pages/Routing.jsx'));
@@ -30,6 +36,10 @@ const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
 const FreeModels = lazyReload(() => import('./pages/FreeModels.jsx'));
 const ConnectProvider = lazyReload(() => import('./pages/ConnectProvider.jsx'));
+const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.jsx'));
+const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
+const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
+const ConnectionDetail = lazyReload(() => import('./pages/providers/ConnectionDetail.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -57,19 +67,55 @@ render(
       <ToastContainer />
       <Router>
         <Route path="/" component={App}>
-          <Route path="/" component={Workspace} />
-          <Route path="/agents/:agentName" component={AgentGuard}>
-            <Route path="/" component={Overview} />
-            <Route path="/messages" component={MessageLog} />
-            <Route path="/settings/*" component={Settings} />
-            <Route path="/routing" component={Routing} />
-            <Route path="/playground" component={Playground} />
-            <Route path="/limits" component={Limits} />
+          <Route path="/" component={RootRedirect} />
+          <Route path="/overview" component={GlobalOverview} />
+          <Route path="/messages" component={MessageLog} />
+          <Route path="/harnesses" component={Workspace} />
+          <Route path="/playground" component={Playground} />
+          <Route path="/providers/subscriptions" component={Subscriptions} />
+          <Route path="/providers/byok" component={Byok} />
+          <Route path="/providers/local" component={LocalProviders} />
+          <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
+          <Route path="/harnesses/:agentName" component={AgentGuard}>
+            {/* Redirects: /limits → /guardrails, /messages → global /messages */}
+            <Route path="/limits" component={AgentLimitsRedirect} />
+            <Route path="/messages" component={AgentMessagesRedirect} />
+
+            {/* Tabbed shell wraps Overview / Routing / Limits / Settings */}
+            <Route path="/" component={AgentDetail}>
+              <Route path="/" component={AgentOverview} />
+              <Route path="/overview" component={AgentOverview} />
+              <Route path="/routing" component={Routing} />
+              <Route path="/providers" component={AgentProviders} />
+              <Route path="/guardrails" component={Limits} />
+              <Route path="/settings/*" component={Settings} />
+            </Route>
+
+            {/* Non-tab agent routes: kept reachable but not primary tabs */}
             <Route path="/model-prices" component={ModelPrices} />
             <Route path="/free-models" component={FreeModels} />
-
             <Route path="/help" component={Help} />
           </Route>
+
+          {/* Legacy /agents redirects → /harnesses (keep bookmarks alive) */}
+          <Route
+            path="/agents"
+            component={() => {
+              const { search, hash } = window.location;
+              return <Navigate href={`/harnesses${search}${hash}`} />;
+            }}
+          />
+          {/* The *rest splat matches zero trailing segments too, so this single
+              route also covers the bare /agents/:agentName path. */}
+          <Route
+            path="/agents/:agentName/*rest"
+            component={() => {
+              const { pathname, search, hash } = window.location;
+              const target = pathname.replace(/^\/agents/, '/harnesses');
+              return <Navigate href={`${target}${search}${hash}`} />;
+            }}
+          />
+
           <Route path="/connect-provider" component={ConnectProvider} />
           <Route path="/account" component={Account} />
         </Route>

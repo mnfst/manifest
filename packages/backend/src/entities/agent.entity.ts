@@ -33,6 +33,11 @@ export class Agent {
   @Column('boolean', { default: true })
   record_messages!: boolean;
 
+  // Reserved system agent (the per-tenant "Playground" agent). Hidden
+  // from the agent list / switcher / counts and not user-creatable/renamable.
+  @Column('boolean', { default: false })
+  is_system!: boolean;
+
   @Column('varchar', { nullable: true })
   savings_baseline_model!: string | null;
 

@@ -66,7 +66,7 @@ const AgentTypeSelect: Component<Props> = (props) => {
         disabled={props.disabled}
         aria-haspopup="listbox"
         aria-expanded={open()}
-        aria-label={`Agent type: ${props.platform ? PLATFORM_LABELS[props.platform] : 'Select'}`}
+        aria-label={`Harness type: ${props.platform ? PLATFORM_LABELS[props.platform] : 'Select'}`}
       >
         <Show when={selectedIcon()}>
           <img

@@ -14,6 +14,9 @@ import RoutingTabs from '../components/RoutingTabs.js';
 import ResponseModeModal from '../components/ResponseModeModal.js';
 import { toast } from '../services/toast-store.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
+import SetupModal from '../components/SetupModal.jsx';
+import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
+import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
@@ -26,6 +29,7 @@ import {
   getAvailableModels,
   getProviders,
   getCustomProviders,
+  getAgentProviderAccess,
   getSpecificityAssignments,
   setSpecificityResponseMode,
   overrideSpecificity,
@@ -47,6 +51,7 @@ import { parseCustomProviderParams, parseProviderDeepLink } from '../services/ro
 import { STAGES } from '../services/providers.js';
 // Route-scoped: keep the large routing stylesheet (and its sub-imports) out
 // of the global theme bundle so login/overview/etc. don't download it.
+import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
 import '../styles/routing.css';
 
 const Routing: Component = () => {
@@ -54,6 +59,18 @@ const Routing: Component = () => {
   const location = useLocation<{ openProviders?: boolean }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const agentName = () => decodeURIComponent(params.agentName);
+
+  // Newly created agents land on this tab; show the setup modal here too (it
+  // used to live only on Overview). The open gate keys off a persistent
+  // "setup pending" flag (localStorage) so the modal reliably reopens after a
+  // page refresh until the user dismisses or completes it. The in-memory
+  // `isRecentlyCreated` is kept as an in-session OR but is not required to
+  // survive reloads.
+  const [setupOpen, setSetupOpen] = createSignal(
+    (isSetupPending(agentName()) || isRecentlyCreated(agentName())) &&
+      !localStorage.getItem(`setup_completed_${params.agentName}`) &&
+      !localStorage.getItem(`setup_dismissed_${params.agentName}`),
+  );
 
   const customProviderPrefill = createMemo(() => parseCustomProviderParams(searchParams));
   const providerDeepLink = createMemo(() => parseProviderDeepLink(searchParams));
@@ -73,6 +90,10 @@ const Routing: Component = () => {
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
     () => agentName(),
     getCustomProviders,
+  );
+  const [agentProviderAccess, { refetch: refetchAgentProviderAccess }] = createResource(
+    () => agentName(),
+    async (name) => getAgentProviderAccess(name).catch(() => ({ enabled: [] })),
   );
   const [specificityAssignments, { refetch: refetchSpecificity, mutate: mutateSpecificity }] =
     createResource(() => agentName(), getSpecificityAssignments);
@@ -276,7 +297,7 @@ const Routing: Component = () => {
     }
     if (pricingWarningShown()) return;
     setPricingWarningShown(true);
-    toast.warning('Model pricing data is unavailable. Automatic tier defaults may be delayed.');
+    toast.warning('Model pricing data is unavailable. Model cost details may be incomplete.');
   });
 
   const refetchAll = async () => {
@@ -287,6 +308,7 @@ const Routing: Component = () => {
       refetchModels(),
       refetchSpecificity(),
       refetchHeaderTiers(),
+      refetchAgentProviderAccess(),
     ]);
   };
 
@@ -343,9 +365,12 @@ const Routing: Component = () => {
     return actions.handleAddFallback(tierId, modelName, providerId, authType, providerKeyLabel);
   };
 
-  const isEnabled = () => connectedProviders()?.some((p) => p.is_active) ?? false;
-  const activeProviders = () => connectedProviders()?.filter((p) => p.is_active) ?? [];
-  const hasProviders = () => activeProviders().length > 0 || (customProviders()?.length ?? 0) > 0;
+  const grantedProviderIds = () => new Set(agentProviderAccess()?.enabled ?? []);
+  const grantedConnectedProviders = () =>
+    (connectedProviders() ?? []).filter((provider) => grantedProviderIds().has(provider.id));
+  const isEnabled = () => grantedConnectedProviders().some((p) => p.is_active);
+  const activeProviders = () => grantedConnectedProviders().filter((p) => p.is_active);
+  const hasProviders = () => activeProviders().length > 0;
   const hasOverrides = () => tiers()?.some((t) => t.override_route !== null) ?? false;
 
   const openProviderModal = () => {
@@ -404,7 +429,7 @@ const Routing: Component = () => {
     authType?: 'api_key' | 'subscription' | 'local',
   ) => {
     const assignment = specificityAssignments()?.find((a) => a.category === category);
-    const effective = assignment?.override_route ?? assignment?.auto_assigned_route ?? null;
+    const effective = assignment?.override_route ?? null;
     const model = effective?.model;
     if (!assignment || !model || !provider) return;
     setChangingSpecificity(category);
@@ -434,88 +459,41 @@ const Routing: Component = () => {
         content={`Configure model routing for ${agentDisplayName() ?? agentName()}.`}
       />
 
-      <div class="page-header routing-page-header">
-        <div>
-          <h1>Routing</h1>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Pick which model handles each type of
-            request
-          </span>
-        </div>
-        <Show when={!connectedProviders.loading}>
-          <div style="display: flex; gap: 8px;">
+      <Show
+        when={!connectedProviders.loading && !agentProviderAccess.loading}
+        fallback={<RoutingLoadingSkeleton />}
+      >
+        <Show when={hasProviders()} fallback={<NoConnectionsPrompt />}>
+          {/* Provider icons + action buttons in a single row */}
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
             <Show when={isEnabled()}>
-              <button
-                class="btn btn--outline btn--sm"
-                disabled={refreshingModels()}
-                onClick={async () => {
-                  setRefreshingModels(true);
-                  try {
-                    await refreshModels(agentName());
-                    refetchModels();
-                    refetchTiers();
-                    toast.success('Models refreshed');
-                  } catch {
-                    toast.error('Failed to refresh models');
-                  } finally {
-                    setRefreshingModels(false);
-                  }
-                }}
-              >
-                {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
-              </button>
+              <ActiveProviderIcons
+                activeProviders={activeProviders}
+                customProviders={() => customProviders() ?? []}
+              />
             </Show>
-            <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
-              Connect providers
-            </button>
-          </div>
-        </Show>
-      </div>
-
-      <Show when={!connectedProviders.loading} fallback={<RoutingLoadingSkeleton />}>
-        <Show
-          when={hasProviders()}
-          fallback={
-            <div class="routing-no-providers">
-              <svg
-                class="routing-no-providers__icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M20 10c-.74 0-1.38.4-1.72 1H13V9h4c.55 0 1-.45 1-1V5.72c.6-.35 1-.98 1-1.72 0-1.1-.9-2-2-2s-2 .9-2 2c0 .74.4 1.38 1 1.72V7h-3V5c0-1.65-1.35-3-3-3-1.3 0-2.41.83-2.83 2.01A3.51 3.51 0 0 0 4 7.5c0 .33.05.65.14.96C2.87 9.14 2 10.49 2 12c0 1.08.43 2.09 1.17 2.83-.11.38-.17.77-.17 1.17 0 1.96 1.41 3.59 3.31 3.93C6.86 21.16 8.11 22 9.5 22c1.93 0 3.5-1.57 3.5-3.5V17h3v1.28c-.6.35-1 .98-1 1.72 0 1.1.9 2 2 2s2-.9 2-2c0-.74-.4-1.38-1-1.72V16c0-.55-.45-1-1-1h-4v-2h5.28c.35.6.98 1 1.72 1 1.1 0 2-.9 2-2s-.9-2-2-2m-9 8.5c0 .83-.67 1.5-1.5 1.5-.71 0-1.33-.5-1.47-1.2l-.21-.8H7c-1.1 0-2-.9-2-2 0-.35.08-.68.25-.98l.46-.82-.78-.51C4.35 13.31 4 12.68 4 12c0-.98.72-1.82 1.68-1.97l1.69-.26-1.06-1.35c-.2-.26-.32-.59-.32-.92 0-.83.67-1.5 1.5-1.5.11 0 .21.01.31.03l1.19.17V4.99c0-.55.45-1 1-1s1 .45 1 1v13.5Z" />
-              </svg>
-              <span class="routing-no-providers__title">No providers connected</span>
-              <span class="routing-no-providers__desc">
-                Connect a model provider to start configuring your routing rules.
-              </span>
-              <button class="btn btn--primary btn--sm" onClick={openProviderModal}>
-                Connect provider
-              </button>
-            </div>
-          }
-        >
-          <Show when={isEnabled()}>
-            <ActiveProviderIcons
-              activeProviders={activeProviders}
-              customProviders={() => customProviders() ?? []}
-            />
-          </Show>
-
-          <RoutingTabs
-            specificityEnabled={hasAnySpecificityActive}
-            customEnabled={hasCustomTiersEnabled}
-            pipelineHelp={() =>
-              buildPipelineHelp(
-                hasAnySpecificityActive(),
-                hasCustomTiersEnabled(),
-                complexityEnabled(),
-              )
-            }
-            headerRight={
+            <div style="display: flex; gap: 8px; margin-left: auto;">
+              <Show when={isEnabled()}>
+                <button
+                  class="btn btn--outline btn--sm"
+                  disabled={refreshingModels()}
+                  onClick={async () => {
+                    setRefreshingModels(true);
+                    try {
+                      await refreshModels(agentName());
+                      refetchModels();
+                      refetchTiers();
+                      toast.success('Models refreshed');
+                    } catch {
+                      toast.error('Failed to refresh models');
+                    } finally {
+                      setRefreshingModels(false);
+                    }
+                  }}
+                >
+                  {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                </button>
+              </Show>
               <button class="response-mode-btn" onClick={() => setResponseModeModalOpen(true)}>
                 <span class="response-mode-btn__icon">
                   <svg
@@ -535,6 +513,18 @@ const Routing: Component = () => {
                 </span>
                 Response mode: {defaultResponseMode() === 'stream' ? 'Stream' : 'Buffered'}
               </button>
+            </div>
+          </div>
+
+          <RoutingTabs
+            specificityEnabled={hasAnySpecificityActive}
+            customEnabled={hasCustomTiersEnabled}
+            pipelineHelp={() =>
+              buildPipelineHelp(
+                hasAnySpecificityActive(),
+                hasCustomTiersEnabled(),
+                complexityEnabled(),
+              )
             }
           >
             {{
@@ -545,7 +535,7 @@ const Routing: Component = () => {
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
                   activeProviders={activeProviders}
-                  connectedProviders={() => connectedProviders() ?? []}
+                  connectedProviders={grantedConnectedProviders}
                   tiersLoading={tiers.loading}
                   changingTier={actions.changingTier}
                   resettingTier={actions.resettingTier}
@@ -577,7 +567,7 @@ const Routing: Component = () => {
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
                   activeProviders={activeProviders}
-                  connectedProviders={() => connectedProviders() ?? []}
+                  connectedProviders={grantedConnectedProviders}
                   changingTier={changingSpecificity}
                   resettingTier={resettingSpecificity}
                   resettingAll={() => false}
@@ -624,7 +614,7 @@ const Routing: Component = () => {
                   agentName={agentName}
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
-                  connectedProviders={() => connectedProviders() ?? []}
+                  connectedProviders={grantedConnectedProviders}
                   externalTiers={() => headerTiers()}
                   externalRefetch={() => void refetchHeaderTiers()}
                   externalMutate={mutateHeaderTiers}
@@ -730,7 +720,7 @@ const Routing: Component = () => {
         tiers={() => tiers() ?? []}
         specificityAssignments={() => specificityAssignments() ?? []}
         customProviders={() => customProviders() ?? []}
-        connectedProviders={() => connectedProviders() ?? []}
+        connectedProviders={grantedConnectedProviders}
         getTier={(tierId) => {
           const generalist = actions.getTier(tierId);
           if (generalist) return generalist;
@@ -741,6 +731,24 @@ const Routing: Component = () => {
         onAddFallback={handleAddFallback}
         onProviderUpdate={handleProviderUpdate}
         onOpenProviderModal={openProviderModal}
+      />
+
+      <SetupModal
+        open={setupOpen()}
+        agentName={agentName()}
+        apiKey={(location.state as { newApiKey?: string } | undefined)?.newApiKey ?? null}
+        agentPlatform={agentPlatform()}
+        agentCategory={agentCategory()}
+        onClose={() => {
+          localStorage.setItem(`setup_dismissed_${params.agentName}`, '1');
+          clearSetupPending(agentName());
+          setSetupOpen(false);
+        }}
+        onDone={() => {
+          localStorage.setItem(`setup_completed_${params.agentName}`, '1');
+          clearSetupPending(agentName());
+          setSetupOpen(false);
+        }}
       />
     </div>
   );

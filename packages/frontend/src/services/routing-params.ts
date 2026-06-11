@@ -11,12 +11,19 @@
  *         (format: name[:inputPrice[:outputPrice]], comma-separated)
  */
 
+import type { AuthType } from './api.js';
+
 /**
  * When `provider=<id>` is a known standard provider, this prefill tells the
  * modal to jump straight to that provider's detail view.
+ *
+ * `authType` (optional) forces the connection form to open in that mode (e.g.
+ * `subscription` so an OAuth provider shows the subscription flow rather than
+ * defaulting to the API-key form for providers that support both).
  */
 export interface ProviderDeepLink {
   providerId: string;
+  authType?: AuthType;
 }
 
 export interface CustomProviderPrefill {

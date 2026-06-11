@@ -187,7 +187,7 @@ export abstract class RedirectPkceOauthBaseService {
     // `blob.u` and is preserved across refreshes by `unwrapToken`.
     const blob = await this.enrichBlob(baseBlob);
     const label = await this.providerService.nextOAuthLabel(
-      pending.agentId,
+      pending.userId,
       this.oauthConfig.providerId,
     );
     const { provider: savedProvider } = await this.providerService.upsertProvider(
@@ -201,7 +201,6 @@ export abstract class RedirectPkceOauthBaseService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after OAuth failed: ${err}`);
     }
@@ -268,11 +267,11 @@ export abstract class RedirectPkceOauthBaseService {
     const providerId = this.oauthConfig.providerId;
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey(providerId, userId, agentId, keyLabel),
+        key: oauthRefreshKey(providerId, userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, providerId, keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, providerId, keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
         persist: (refreshed) =>

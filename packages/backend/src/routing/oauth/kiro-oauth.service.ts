@@ -197,7 +197,7 @@ export class KiroOauthService {
       cs: pending.clientSecret,
       region: this.region,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'kiro');
+    const label = await this.providerService.nextOAuthLabel(pending.userId, 'kiro');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -209,7 +209,6 @@ export class KiroOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after Kiro OAuth failed: ${err}`);
     }
@@ -228,11 +227,11 @@ export class KiroOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const resolved = await coordinateOAuthRefresh<KiroOAuthTokenBlob>({
-        key: oauthRefreshKey('kiro', userId, agentId, keyLabel),
+        key: oauthRefreshKey('kiro', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'kiro', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'kiro', keyLabel),
         parse: parseKiroOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current),
         persist: (refreshed) =>

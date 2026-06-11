@@ -4,6 +4,16 @@ import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: vi.fn(),
   disconnectProvider: vi.fn().mockResolvedValue({ notifications: [] }),
+  probeCustomProvider: vi.fn().mockResolvedValue({ models: [{ model_name: 'llama-3.1-8b' }] }),
+  createCustomProvider: vi.fn().mockResolvedValue({ id: 'cp-1' }),
+  deleteCustomProvider: vi.fn().mockResolvedValue({}),
+  updateCustomProvider: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: vi.fn().mockResolvedValue(true),
+  checkIsOllamaAvailable: vi.fn().mockResolvedValue(false),
+  checkLocalLlmHost: vi.fn().mockResolvedValue('localhost'),
 }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -19,6 +29,15 @@ vi.mock('../../src/services/oauth-popup.js', () => ({
 }));
 
 import ProviderSelectContent from '../../src/components/ProviderSelectContent';
+import type { CustomProviderData } from '../../src/services/api.js';
+
+const customProvider: CustomProviderData = {
+  id: 'cp-1',
+  name: 'My Custom Endpoint',
+  base_url: 'https://api.example.com/v1',
+  api_kind: 'openai',
+  models: [{ model_name: 'my-model' }],
+} as unknown as CustomProviderData;
 
 describe('ProviderSelectContent — providerDeepLink', () => {
   const onUpdate = vi.fn();
@@ -119,5 +138,61 @@ describe('ProviderSelectContent — providerDeepLink', () => {
       />
     ));
     expect(screen.getByText('Google')).toBeDefined();
+  });
+
+  it('opens the custom-provider editor for a custom: deep link', async () => {
+    // A `custom:<id>` deep link cannot resolve to a standard provider; the modal
+    // must open the custom-provider editor for the matching custom provider.
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        customProviders={[customProvider]}
+        providerDeepLink={{ providerId: 'custom:cp-1', authType: 'api_key' }}
+        onUpdate={onUpdate}
+        onClose={vi.fn()}
+      />
+    ));
+    await waitFor(() => expect(screen.getByText('Edit custom provider')).toBeDefined());
+    // The provider list view is not shown.
+    expect(screen.queryByText('Connect providers')).toBeNull();
+  });
+
+  it('resolves a custom: deep link once its custom providers load asynchronously', async () => {
+    // The custom provider list can arrive after the modal mounts (resource still
+    // resolving). The effect-based opener fires once the matching id appears.
+    const [providersList, setProvidersList] = (await import('solid-js')).createSignal<
+      CustomProviderData[]
+    >([]);
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        customProviders={providersList()}
+        providerDeepLink={{ providerId: 'custom:cp-1' }}
+        onUpdate={onUpdate}
+        onClose={vi.fn()}
+      />
+    ));
+    // Initially no match → still on the list view.
+    expect(screen.getByText('Connect providers')).toBeDefined();
+    setProvidersList([customProvider]);
+    await waitFor(() => expect(screen.getByText('Edit custom provider')).toBeDefined());
+  });
+
+  it('stays on the list view for a custom: deep link with no matching provider', () => {
+    render(() => (
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={[]}
+        customProviders={[]}
+        providerDeepLink={{ providerId: 'custom:missing' }}
+        onUpdate={onUpdate}
+        onClose={vi.fn()}
+      />
+    ));
+    // No custom provider matches → the editor never opens.
+    expect(screen.getByText('Connect providers')).toBeDefined();
+    expect(screen.queryByText('Edit custom provider')).toBeNull();
   });
 });

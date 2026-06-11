@@ -4,9 +4,16 @@ import {
   formatTimestamp,
   addTenantFilter,
   selectMessageRowColumns,
+  excludeSystemAgents,
+  EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  PROVIDER_SERIES_KEY_EXPR,
+  filterByKeyLabel,
+  filterByLiveAgentName,
   MESSAGE_ROW_SELECT_ALIASES,
 } from './query-helpers';
 import { SelectQueryBuilder } from 'typeorm';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 describe('computeTrend', () => {
   it('returns positive trend when current exceeds previous', () => {
@@ -156,7 +163,11 @@ describe('addTenantFilter', () => {
     expect(secondCall[0]).toContain('at.agent_id = (');
     expect(secondCall[0]).toContain('FROM agents');
     expect(secondCall[0]).toContain('deleted_at IS NULL');
-    expect(secondCall[1]).toEqual({ agentName: 'my-agent' });
+    // No resolved tenant → the agent lookup is scoped via the user's tenant
+    // (tenant.name = userId), never `at.tenant_id` (which can be NULL here).
+    expect(secondCall[0]).toContain('FROM tenants');
+    expect(secondCall[0]).not.toContain('at.tenant_id');
+    expect(secondCall[1]).toEqual({ liveAgentName: 'my-agent', liveUserId: 'user-123' });
   });
 
   it('does not add agent_name filter when agentName is undefined', () => {
@@ -164,6 +175,33 @@ describe('addTenantFilter', () => {
     addTenantFilter(qb, 'user-123');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
+  });
+
+  it('filterByLiveAgentName scopes by the resolved tenant id when one is provided', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    const result = filterByLiveAgentName(qb, 'my-agent', 'user-123', 'tenant-456');
+
+    expect(result).toBe(qb);
+    expect(mockAndWhere).toHaveBeenCalledTimes(1);
+    const call = mockAndWhere.mock.calls[0];
+    expect(call[0]).toContain('at.agent_id = (');
+    expect(call[0]).toContain('FROM agents');
+    expect(call[0]).toContain('deleted_at IS NULL');
+    expect(call[0]).toContain('a.tenant_id = :liveTenantId');
+    // Must never key the lookup off the (possibly NULL) message tenant_id.
+    expect(call[0]).not.toContain('at.tenant_id');
+    expect(call[1]).toEqual({ liveAgentName: 'my-agent', liveTenantId: 'tenant-456' });
+  });
+
+  it('filterByLiveAgentName resolves the tenant from the user on the fallback path (NULL tenant_id safe)', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    const result = filterByLiveAgentName(qb, 'my-agent', 'user-123');
+
+    expect(result).toBe(qb);
+    const call = mockAndWhere.mock.calls[0];
+    expect(call[0]).toContain('FROM tenants');
+    expect(call[0]).not.toContain('at.tenant_id');
+    expect(call[1]).toEqual({ liveAgentName: 'my-agent', liveUserId: 'user-123' });
   });
 
   it('returns the query builder for chaining', () => {
@@ -180,10 +218,89 @@ describe('addTenantFilter', () => {
   });
 });
 
+describe('excludeSystemAgents', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const mockLeftJoin = jest.fn();
+    const qb = {
+      leftJoin: mockLeftJoin.mockImplementation(() => qb),
+      andWhere: mockAndWhere.mockImplementation(() => qb),
+    };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere, mockLeftJoin };
+  }
+
+  it('excludes system agents via a NOT EXISTS semi-join (no join added)', () => {
+    const { qb, mockAndWhere, mockLeftJoin } = makeMockQb();
+    excludeSystemAgents(qb);
+
+    // Semi-join only: never adds a LEFT JOIN of its own.
+    expect(mockLeftJoin).not.toHaveBeenCalled();
+    expect(mockAndWhere).toHaveBeenCalledWith(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+  });
+
+  it('matches the system agent by id OR name and never multiplies rows', () => {
+    // The predicate is a pure existence test (cannot duplicate fact rows) and
+    // matches on either agent_id OR agent_name (so a Playground row carrying
+    // only agent_name, NULL agent_id, is still excluded).
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('NOT EXISTS');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.is_system = true');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.tenant_id = at.tenant_id');
+    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain(
+      'sysag.id = at.agent_id OR sysag.name = at.agent_name',
+    );
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(excludeSystemAgents(qb)).toBe(qb);
+  });
+});
+
+describe('filterByKeyLabel', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('matches the label case-insensitively', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, 'Work');
+    expect(mockAndWhere).toHaveBeenCalledWith(
+      "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      { keyLabel: 'Work' },
+    );
+  });
+
+  it('collapses a null label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, null);
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('collapses an empty-string label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, '');
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('collapses an undefined label to Default', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    filterByKeyLabel(qb, undefined);
+    expect(mockAndWhere.mock.calls[0][1]).toEqual({ keyLabel: 'Default' });
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(filterByKeyLabel(qb, 'x')).toBe(qb);
+  });
+});
+
 describe('selectMessageRowColumns', () => {
   function makeMockQb() {
     const selectCalls: Array<[string, string]> = [];
     const addSelectCalls: Array<[string, string]> = [];
+    const leftJoinCalls: Array<[unknown, string, string]> = [];
     const qb = {
       select: jest.fn().mockImplementation((expr: string, alias: string) => {
         selectCalls.push([expr, alias]);
@@ -193,8 +310,19 @@ describe('selectMessageRowColumns', () => {
         addSelectCalls.push([expr, alias]);
         return qb;
       }),
+      leftJoin: jest
+        .fn()
+        .mockImplementation((entity: unknown, alias: string, condition: string) => {
+          leftJoinCalls.push([entity, alias, condition]);
+          return qb;
+        }),
     };
-    return { qb: qb as unknown as SelectQueryBuilder<never>, selectCalls, addSelectCalls };
+    return {
+      qb: qb as unknown as SelectQueryBuilder<never>,
+      selectCalls,
+      addSelectCalls,
+      leftJoinCalls,
+    };
   }
 
   it('projects exactly the columns declared in MESSAGE_ROW_SELECT_ALIASES', () => {
@@ -245,5 +373,29 @@ describe('selectMessageRowColumns', () => {
     const { qb } = makeMockQb();
     const result = selectMessageRowColumns(qb, 'cost');
     expect(result).toBe(qb);
+  });
+
+  it('left-joins custom_providers and projects custom_provider_name', () => {
+    const { qb, addSelectCalls, leftJoinCalls } = makeMockQb();
+    selectMessageRowColumns(qb, 'cost');
+
+    expect(leftJoinCalls).toHaveLength(1);
+    const [entity, alias, condition] = leftJoinCalls[0]!;
+    expect(entity).toBe(CustomProvider);
+    expect(alias).toBe('cp');
+    expect(condition).toBe(CUSTOM_PROVIDER_JOIN_CONDITION);
+
+    const nameCall = addSelectCalls.find(([, a]) => a === 'custom_provider_name');
+    expect(nameCall).toEqual(['cp.name', 'custom_provider_name']);
+  });
+
+  it('keys the join on the custom:-prefixed provider id', () => {
+    expect(CUSTOM_PROVIDER_JOIN_CONDITION).toBe("at.provider = 'custom:' || cp.id");
+  });
+
+  it('resolves custom series keys to the provider name with a deleted-provider fallback', () => {
+    expect(PROVIDER_SERIES_KEY_EXPR).toBe(
+      "CASE WHEN at.provider LIKE 'custom:%' THEN COALESCE(cp.name, 'Deleted provider') ELSE at.provider END",
+    );
   });
 });

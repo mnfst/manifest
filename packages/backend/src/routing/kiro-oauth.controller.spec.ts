@@ -106,6 +106,7 @@ describe('KiroOauthController', () => {
 
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
+        'user-1',
         'kiro',
         'subscription',
         'Kiro 1',

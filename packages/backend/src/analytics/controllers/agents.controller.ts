@@ -6,9 +6,11 @@ import {
   Delete,
   Get,
   Inject,
+  NotFoundException,
   Param,
   Patch,
   Post,
+  Query,
   UseInterceptors,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
@@ -24,11 +26,13 @@ import { AuthUser } from '../../auth/auth.instance';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
 import { DuplicateAgentDto } from '../../common/dto/duplicate-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
-import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
-import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { AgentListCacheInterceptor } from '../../common/interceptors/agent-list-cache.interceptor';
+import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constants/cache.constants';
 import { slugify } from '../../common/utils/slugify';
+import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -40,19 +44,26 @@ export class AgentsController {
     private readonly tenantCache: TenantCacheService,
     private readonly eventBus: IngestEventBusService,
     private readonly recordingCache: AgentRecordingCacheService,
+    private readonly providerService: ProviderService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  private agentListCacheKey(userId: string): string {
-    return `${userId}:/api/v1/agents`;
+  private async invalidateAgentListCache(userId: string): Promise<void> {
+    // GET /agents has exactly two canonical cache entries per user (system agents
+    // included or not — see AgentListCacheInterceptor). Clear both so neither the
+    // Workspace list nor the Messages filter goes stale after a mutation.
+    await Promise.all([
+      this.cacheManager.del(agentListCacheKey(userId, false)),
+      this.cacheManager.del(agentListCacheKey(userId, true)),
+    ]);
   }
 
   @Get('agents')
-  @UseInterceptors(UserCacheInterceptor)
+  @UseInterceptors(AgentListCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
-  async getAgents(@CurrentUser() user: AuthUser) {
+  async getAgents(@CurrentUser() user: AuthUser, @Query('includeSystem') includeSystem?: string) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
-    const agents = await this.timeseries.getAgentList(user.id, tenantId);
+    const agents = await this.timeseries.getAgentList(user.id, tenantId, includeSystem === 'true');
     return { agents };
   }
 
@@ -61,6 +72,9 @@ export class AgentsController {
     const slug = slugify(body.name);
     if (!slug) {
       throw new BadRequestException('Agent name produces an empty slug');
+    }
+    if (slug === PLAYGROUND_AGENT_SLUG) {
+      throw new BadRequestException('"Playground" is a reserved agent name');
     }
     const displayName = body.name.trim();
     let result: { tenantId: string; agentId: string; apiKey: string };
@@ -79,7 +93,10 @@ export class AgentsController {
       }
       throw error;
     }
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    // Providers are global + ON by default: a brand-new agent immediately
+    // inherits access to every usable provider the user already connected.
+    await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return {
       agent: {
@@ -110,6 +127,9 @@ export class AgentsController {
   ) {
     const slug = slugify(body.name);
     if (!slug) throw new BadRequestException('Agent name produces an empty slug');
+    if (slug === PLAYGROUND_AGENT_SLUG) {
+      throw new BadRequestException('"Playground" is a reserved agent name');
+    }
     const displayName = body.name.trim();
     let result;
     try {
@@ -123,7 +143,7 @@ export class AgentsController {
       }
       throw error;
     }
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return {
       agent: {
@@ -145,6 +165,11 @@ export class AgentsController {
 
   @Get('agents/:agentName/key')
   async getAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    // Guard: system agents cannot expose their API key through the user-facing
+    // key endpoint (findAgentInfo filters is_system = false and returns null for
+    // the reserved "Playground" agent, same as for any missing agent).
+    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
+    if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
     const keyData = await this.apiKeyGenerator.getKeyForAgent(user.id, agentName);
     const apiKey = keyData.fullKey ?? undefined;
     return {
@@ -155,6 +180,11 @@ export class AgentsController {
 
   @Post('agents/:agentName/rotate-key')
   async rotateAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+    // Guard: system agents cannot have their key rotated through the user-facing
+    // endpoint (findAgentInfo filters is_system = false and returns null for the
+    // reserved "Playground" agent, same as for any missing agent).
+    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
+    if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
     const result = await this.apiKeyGenerator.rotateKey(user.id, agentName);
     return { apiKey: result.apiKey };
   }
@@ -170,6 +200,9 @@ export class AgentsController {
     if (body.name) {
       const slug = slugify(body.name);
       if (!slug) throw new BadRequestException('Agent name produces an empty slug');
+      if (slug === PLAYGROUND_AGENT_SLUG) {
+        throw new BadRequestException('"Playground" is a reserved agent name');
+      }
       const displayName = body.name.trim();
       await this.lifecycle.renameAgent(user.id, agentName, slug, displayName);
       result['renamed'] = true;
@@ -197,7 +230,7 @@ export class AgentsController {
       result['record_messages'] = body.record_messages;
     }
 
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return result;
   }
@@ -205,7 +238,7 @@ export class AgentsController {
   @Delete('agents/:agentName')
   async deleteAgent(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
     await this.lifecycle.deleteAgent(user.id, agentName);
-    await this.cacheManager.del(this.agentListCacheKey(user.id));
+    await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return { deleted: true };
   }

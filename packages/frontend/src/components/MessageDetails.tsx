@@ -133,10 +133,10 @@ function MiscategorizeControl(props: {
       class="msg-detail__miscat-btn"
       onClick={toggle}
       disabled={busy()}
-      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this agent."
+      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this harness."
       aria-pressed={flagged()}
     >
-      {flagged() ? 'Flagged as miscategorized — undo' : 'Wrong category?'}
+      {flagged() ? 'Flagged as miscategorized (undo)' : 'Wrong category?'}
     </button>
   );
 }
@@ -285,7 +285,7 @@ export default function MessageDetails(props: MessageDetailsProps): JSX.Element 
               <Show when={d.agent_logs.length > 0}>
                 <div class="msg-detail__section">
                   <div class="msg-detail__section-title">
-                    Agent Logs
+                    Harness Logs
                     <span class="msg-detail__count">{d.agent_logs.length}</span>
                   </div>
                   <div class="data-table-scroll">

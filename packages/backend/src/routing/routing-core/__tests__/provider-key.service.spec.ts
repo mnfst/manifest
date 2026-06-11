@@ -444,7 +444,7 @@ describe('ProviderKeyService', () => {
       expect(await svc.getEffectiveModel('agent-1', assignment)).toBe('gpt-4o');
     });
 
-    it('falls through to auto when override is unavailable', async () => {
+    it('returns null when override is unavailable even if an auto route exists', async () => {
       const assignment = {
         agent_id: 'agent-1',
         tier: 'standard',
@@ -460,7 +460,7 @@ describe('ProviderKeyService', () => {
       providerRepo.find.mockResolvedValue([]);
 
       const result = await svc.getEffectiveModel('agent-1', assignment);
-      expect(result).toBe('auto-model');
+      expect(result).toBeNull();
     });
 
     it('returns null when both override and auto are null', async () => {
@@ -475,7 +475,7 @@ describe('ProviderKeyService', () => {
       expect(result).toBeNull();
     });
 
-    it('returns the auto model when override is null', async () => {
+    it('returns null when override is null even if an auto route exists', async () => {
       const assignment = {
         agent_id: 'agent-1',
         tier: 'standard',
@@ -484,7 +484,7 @@ describe('ProviderKeyService', () => {
       } as unknown as TierAssignment;
 
       const result = await svc.getEffectiveModel('agent-1', assignment);
-      expect(result).toBe('auto-model');
+      expect(result).toBeNull();
     });
   });
 

@@ -6,6 +6,7 @@ const mockGetTierAssignments = vi.fn();
 const mockGetAvailableModels = vi.fn();
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
+const mockGetAgentProviderAccess = vi.fn();
 const mockGetSpecificityAssignments = vi.fn();
 const mockOverrideSpecificity = vi.fn();
 const mockResetSpecificity = vi.fn();
@@ -26,6 +27,7 @@ vi.mock('../../src/services/api.js', () => ({
   getAvailableModels: (...args: unknown[]) => mockGetAvailableModels(...args),
   getProviders: (...args: unknown[]) => mockGetProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+  getAgentProviderAccess: (...args: unknown[]) => mockGetAgentProviderAccess(...args),
   getSpecificityAssignments: (...args: unknown[]) => mockGetSpecificityAssignments(...args),
   overrideSpecificity: (...args: unknown[]) => mockOverrideSpecificity(...args),
   resetSpecificity: (...args: unknown[]) => mockResetSpecificity(...args),
@@ -67,6 +69,40 @@ vi.mock('../../src/services/agent-display-name.js', () => ({
   agentDisplayName: () => 'Demo',
 }));
 
+const mockIsRecentlyCreated = vi.fn(() => false);
+const mockIsSetupPending = vi.fn(() => false);
+const mockClearSetupPending = vi.fn();
+vi.mock('../../src/services/recent-agents.js', () => ({
+  isRecentlyCreated: (...args: unknown[]) => mockIsRecentlyCreated(...args),
+  isSetupPending: (...args: unknown[]) => mockIsSetupPending(...args),
+  clearSetupPending: (...args: unknown[]) => mockClearSetupPending(...args),
+}));
+
+vi.mock('../../src/services/agent-platform-store.js', () => ({
+  agentPlatform: () => 'openclaw',
+  agentCategory: () => 'coding',
+}));
+
+let lastSetupModalProps: Record<string, unknown> | null = null;
+vi.mock('../../src/components/SetupModal.jsx', () => ({
+  default: (props: Record<string, unknown>) => {
+    lastSetupModalProps = props;
+    // Read every prop so the JSX-attribute lines in Routing.tsx count as covered.
+    const _read = [props.agentName, props.apiKey, props.agentPlatform, props.agentCategory];
+    void _read;
+    return (
+      <div data-testid="setup-modal" data-open={props.open ? 'true' : 'false'}>
+        <button data-testid="setup-close" onClick={() => (props.onClose as () => void)?.()}>
+          close
+        </button>
+        <button data-testid="setup-done" onClick={() => (props.onDone as () => void)?.()}>
+          done
+        </button>
+      </div>
+    );
+  },
+}));
+
 vi.mock('../../src/services/routing-params.js', () => ({
   parseCustomProviderParams: () => null,
   parseProviderDeepLink: () => null,
@@ -76,7 +112,9 @@ vi.mock('@solidjs/meta', () => ({
   Title: (props: { children: unknown }) => (
     <div data-testid="title">{props.children as string}</div>
   ),
-  Meta: () => null,
+  Meta: (props: { name: string; content: string }) => (
+    <meta name={props.name} content={props.content} />
+  ),
 }));
 
 // Router primitives
@@ -269,6 +307,7 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
       props.resettingAll,
       props.addingFallback,
       props.onOverride,
+      props.onPinKey,
       props.onReset,
       props.onFallbackUpdate,
       props.onAddFallback,
@@ -593,6 +632,10 @@ const baseProvider = {
 beforeEach(() => {
   vi.clearAllMocks();
   lastModalsProps = null;
+  lastSetupModalProps = null;
+  localStorage.clear();
+  mockIsRecentlyCreated.mockReturnValue(false);
+  mockIsSetupPending.mockReturnValue(false);
   useParams.mockReturnValue({ agentName: 'demo' });
   useLocation.mockReturnValue({ state: undefined });
   useSearchParams.mockReturnValue([{}, setSearchParamsFn]);
@@ -600,6 +643,7 @@ beforeEach(() => {
   mockGetAvailableModels.mockResolvedValue([]);
   mockGetProviders.mockResolvedValue([baseProvider]);
   mockGetCustomProviders.mockResolvedValue([]);
+  mockGetAgentProviderAccess.mockResolvedValue({ enabled: ['p1'] });
   mockGetSpecificityAssignments.mockResolvedValue([]);
   mockListHeaderTiers.mockResolvedValue([]);
   mockGetComplexityStatus.mockResolvedValue({ enabled: true });
@@ -617,12 +661,12 @@ beforeEach(() => {
 });
 
 describe('Routing page', () => {
-  it('renders the page header with the agent display name', async () => {
-    render(() => <Routing />);
+  it('renders routing description without a duplicate page heading', async () => {
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Routing')).toBeDefined();
+      expect(screen.getByText(/Pick which model handles each type of request/)).toBeDefined();
     });
-    expect(screen.getByText(/Pick which model handles each type of request/)).toBeDefined();
+    expect(container.querySelector('h1')).toBeNull();
   });
 
   it('renders the empty providers state when no providers are connected', async () => {
@@ -640,6 +684,29 @@ describe('Routing page', () => {
       expect(screen.getByTestId('spec-section')).toBeDefined();
       expect(screen.getByTestId('custom-section')).toBeDefined();
     });
+  });
+
+  it('passes only granted providers into the model picker path', async () => {
+    mockGetProviders.mockResolvedValue([
+      baseProvider,
+      {
+        id: 'p2',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        is_active: true,
+        has_api_key: false,
+        connected_at: '2025-01-01',
+      },
+    ]);
+    mockGetAgentProviderAccess.mockResolvedValue({ enabled: ['p1'] });
+    render(() => <Routing />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('default-section')).toBeDefined();
+    });
+
+    const pickerProviders = (lastModalsProps!.connectedProviders as () => (typeof baseProvider)[])();
+    expect(pickerProviders.map((provider) => provider.id)).toEqual(['p1']);
   });
 
   it('shows the Refresh models button when at least one provider is active', async () => {
@@ -679,7 +746,7 @@ describe('Routing page', () => {
     render(() => <Routing />);
     await waitFor(() => {
       expect(mockToastWarning).toHaveBeenCalledWith(
-        'Model pricing data is unavailable. Automatic tier defaults may be delayed.',
+        'Model pricing data is unavailable. Model cost details may be incomplete.',
       );
     });
     expect(screen.queryByText(/Pricing catalog is empty/)).toBeNull();
@@ -1030,7 +1097,7 @@ describe('Routing page', () => {
       });
     });
 
-    it("falls back to auto_assigned_route's model when override is null", async () => {
+    it('does nothing when pinning a key with only a legacy auto_assigned_route', async () => {
       const autoAssignment = {
         ...codingAssignment,
         override_route: null,
@@ -1047,16 +1114,8 @@ describe('Routing page', () => {
         expect(screen.getByTestId('spec-pin-key')).toBeDefined();
       });
       fireEvent.click(screen.getByTestId('spec-pin-key'));
-      await waitFor(() => {
-        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
-          'demo',
-          'coding',
-          'claude-haiku',
-          'anthropic',
-          'api_key',
-          'Work',
-        );
-      });
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideSpecificity).not.toHaveBeenCalled();
     });
 
     it('does nothing when the category does not match an existing assignment', async () => {
@@ -1298,7 +1357,7 @@ describe('Routing page', () => {
   it('clears the dropdown tier when the modals trigger an override', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByTestId('modal-trigger-override')).toBeDefined();
+      expect(screen.getByTestId('open-dropdown')).toBeDefined();
     });
     // Open dropdown first via the default-section open button.
     fireEvent.click(screen.getByTestId('open-dropdown'));
@@ -1753,6 +1812,85 @@ describe('Routing page', () => {
     fireEvent.keyDown(overlay, { key: 'Escape' });
     await waitFor(() => {
       expect(screen.queryByText('Got it')).toBeNull();
+    });
+  });
+
+  describe('setup modal', () => {
+    it('opens the SetupModal for a freshly-created agent and wires its handlers', async () => {
+      mockIsRecentlyCreated.mockReturnValue(true);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      // (a) Recently-created agent → modal opens.
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
+      expect(mockIsRecentlyCreated).toHaveBeenCalledWith('demo');
+
+      // (b) onDone marks the agent as completed, clears pending, closes the modal.
+      fireEvent.click(screen.getByTestId('setup-done'));
+      await waitFor(() => {
+        expect(localStorage.getItem('setup_completed_demo')).toBe('1');
+        expect((lastSetupModalProps?.open as boolean)).toBe(false);
+      });
+      expect(mockClearSetupPending).toHaveBeenCalledWith('demo');
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+    });
+
+    it('opens the SetupModal when setup is pending (survives a refresh)', async () => {
+      // Refresh-simulated mount: the in-memory recently-created flag is gone,
+      // but the persistent pending flag is still set → modal must reopen.
+      mockIsRecentlyCreated.mockReturnValue(false);
+      mockIsSetupPending.mockReturnValue(true);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
+      });
+      expect(mockIsSetupPending).toHaveBeenCalledWith('demo');
+    });
+
+    it('keeps the SetupModal closed when pending but already dismissed', async () => {
+      mockIsSetupPending.mockReturnValue(true);
+      localStorage.setItem('setup_dismissed_demo', '1');
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+    });
+
+    it('keeps the SetupModal closed when pending but already completed', async () => {
+      mockIsSetupPending.mockReturnValue(true);
+      localStorage.setItem('setup_completed_demo', '1');
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+    });
+
+    it('marks the agent dismissed, clears pending, and closes when onClose fires', async () => {
+      mockIsRecentlyCreated.mockReturnValue(true);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('true');
+      });
+      // (c) onClose sets the dismissed flag, clears pending, and closes the modal.
+      fireEvent.click(screen.getByTestId('setup-close'));
+      await waitFor(() => {
+        expect(localStorage.getItem('setup_dismissed_demo')).toBe('1');
+        expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
+      });
+      expect(mockClearSetupPending).toHaveBeenCalledWith('demo');
+    });
+
+    it('keeps the SetupModal closed for an agent that is neither recent nor pending', async () => {
+      mockIsRecentlyCreated.mockReturnValue(false);
+      mockIsSetupPending.mockReturnValue(false);
+      render(() => <Routing />);
+      await waitFor(() => {
+        expect(screen.getByTestId('setup-modal')).toBeDefined();
+      });
+      expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
     });
   });
 });

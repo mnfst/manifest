@@ -161,7 +161,7 @@ describe('CustomProviderController', () => {
         body as never,
       );
 
-      expect(mockCustomProviderService.create).toHaveBeenCalledWith('agent-001', 'user-1', body);
+      expect(mockCustomProviderService.create).toHaveBeenCalledWith('user-1', body);
       expect(result.id).toBe('cp-1');
       expect(result.name).toBe('Groq');
       expect(result.has_api_key).toBe(true);
@@ -184,6 +184,22 @@ describe('CustomProviderController', () => {
 
       expect(result.has_api_key).toBe(false);
     });
+
+    it('passes { allowSystem: true } so the Playground agent can create custom providers', async () => {
+      mockProviderService.getProviders.mockResolvedValue([]);
+
+      const body = {
+        name: 'Local LLM',
+        base_url: 'http://localhost:11434/v1',
+        models: [{ model_name: 'llama3' }],
+      };
+
+      await controller.create(mockUser, { agentName: 'Playground' } as never, body as never);
+
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'Playground', {
+        allowSystem: true,
+      });
+    });
   });
 
   /* ── update ── */
@@ -198,12 +214,7 @@ describe('CustomProviderController', () => {
 
       const result = await controller.update(mockUser, 'test-agent', 'cp-1', body as never);
 
-      expect(mockCustomProviderService.update).toHaveBeenCalledWith(
-        'agent-001',
-        'cp-1',
-        'user-1',
-        body,
-      );
+      expect(mockCustomProviderService.update).toHaveBeenCalledWith('cp-1', 'user-1', body);
       expect(result.id).toBe('cp-1');
       expect(result.name).toBe('Updated Groq');
       expect(result.has_api_key).toBe(true);
@@ -234,7 +245,7 @@ describe('CustomProviderController', () => {
     it('removes custom provider and returns ok', async () => {
       const result = await controller.remove(mockUser, 'test-agent', 'cp-1');
 
-      expect(mockCustomProviderService.remove).toHaveBeenCalledWith('agent-001', 'cp-1');
+      expect(mockCustomProviderService.remove).toHaveBeenCalledWith('user-1', 'cp-1');
       expect(result).toEqual({ ok: true });
     });
 

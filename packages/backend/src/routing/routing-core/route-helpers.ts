@@ -25,7 +25,7 @@ export function readFallbackRoutes(row: AnyOverrideRow): ModelRoute[] | null {
 }
 
 export function effectiveRoute(row: AnyOverrideRow & AnyAutoRow): ModelRoute | null {
-  return readOverrideRoute(row) ?? readAutoAssignedRoute(row);
+  return readOverrideRoute(row);
 }
 
 /**

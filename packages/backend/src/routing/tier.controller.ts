@@ -121,7 +121,7 @@ export class TierController {
   ) {
     this.validateTier(tier);
     const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setFallbacks(agent.id, tier, body.models, body.routes);
+    return this.tierService.setFallbacks(agent.id, user.id, tier, body.models, body.routes);
   }
 
   @Delete(':agentName/tiers/:tier/fallbacks')

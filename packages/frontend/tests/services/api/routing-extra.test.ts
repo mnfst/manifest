@@ -130,6 +130,19 @@ describe('routing API client (additional coverage)', () => {
     expect((init as RequestInit).method).toBe('DELETE');
   });
 
+  it('overrideTier includes providerKeyLabel in both legacy and structured payloads', async () => {
+    const fetchMock = setupFetch({ tier: 'simple' });
+    await routing.overrideTier('demo', 'simple', 'gpt-4o', 'openai', 'api_key', 'primary');
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    expect(body).toEqual({
+      model: 'gpt-4o',
+      provider: 'openai',
+      authType: 'api_key',
+      providerKeyLabel: 'primary',
+      route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'primary' },
+    });
+  });
+
   it('setTierResponseMode PATCHes the response-mode endpoint', async () => {
     const fetchMock = setupFetch({ tier: 'simple', response_mode: 'stream' });
     const out = await routing.setTierResponseMode('demo', 'simple', 'stream');
@@ -169,6 +182,61 @@ describe('routing API client (additional coverage)', () => {
     await routing.getAvailableModels('demo');
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/routing/demo/available-models');
+  });
+
+  it('refreshModels POSTs to the refresh-models endpoint', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await routing.refreshModels('demo');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/routing/demo/refresh-models');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('refreshProviderModels POSTs without authType by default', async () => {
+    const fetchMock = setupFetch({ ok: true, model_count: 12, last_fetched_at: null, error: null });
+    await routing.refreshProviderModels('demo', 'openai');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/routing/demo/providers/openai/refresh-models');
+    expect(url).not.toContain('authType=');
+    expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('refreshProviderModels appends authType when provided', async () => {
+    const fetchMock = setupFetch({ ok: true, model_count: 12, last_fetched_at: null, error: null });
+    await routing.refreshProviderModels('demo', 'openai', 'api_key');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/routing/demo/providers/openai/refresh-models?authType=api_key');
+  });
+
+  it('getAgentProviderAccess GETs enabled user provider ids', async () => {
+    const fetchMock = setupFetch({ enabled: ['up-1'] });
+    const out = await routing.getAgentProviderAccess('demo agent');
+    expect(out).toEqual({ enabled: ['up-1'] });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/agents/demo%20agent/provider-access');
+  });
+
+  it('getAgentProviderDisableImpact GETs the disable impact endpoint', async () => {
+    const fetchMock = setupFetch({ affected_tiers: [] });
+    await routing.getAgentProviderDisableImpact('demo', 'up/1');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/agents/demo/provider-access/up%2F1/impact');
+  });
+
+  it('enableAgentProviderAccess PUTs to the grant endpoint', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await routing.enableAgentProviderAccess('demo', 'up-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1');
+    expect((init as RequestInit).method).toBe('PUT');
+  });
+
+  it('disableAgentProviderAccess DELETEs the grant endpoint', async () => {
+    const fetchMock = setupFetch({ ok: true });
+    await routing.disableAgentProviderAccess('demo', 'up-1');
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1');
+    expect((init as RequestInit).method).toBe('DELETE');
   });
 
   it('getPricingHealth GETs the pricing-health endpoint', async () => {
@@ -237,6 +305,24 @@ describe('routing API client (additional coverage)', () => {
       // Next call should re-fetch
       await routing.getCustomProviders('demo');
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('deleteCustomProvider DELETEs the custom provider and invalidates its cache', async () => {
+      const fetchMock = setupFetch([]);
+      await routing.getCustomProviders('demo');
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ ok: true }),
+        text: async () => JSON.stringify({ ok: true }),
+      });
+      await routing.deleteCustomProvider('demo', 'cp/1');
+      await routing.getCustomProviders('demo');
+
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      const [url, init] = fetchMock.mock.calls[1];
+      expect(url).toContain('/api/v1/routing/demo/custom-providers/cp%2F1');
+      expect((init as RequestInit).method).toBe('DELETE');
     });
   });
 

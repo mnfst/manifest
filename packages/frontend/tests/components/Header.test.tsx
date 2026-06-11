@@ -3,11 +3,12 @@ import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 const mockSignOut = vi.fn().mockResolvedValue(undefined);
 const mockNavigate = vi.fn();
+let mockPathname = "/";
 
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: "/" }),
+  useLocation: () => ({ pathname: mockPathname }),
 }));
 
 vi.mock("../../src/services/auth-client.js", () => ({
@@ -53,6 +54,7 @@ import Header from "../../src/components/Header";
 beforeEach(() => {
   vi.restoreAllMocks();
   sessionStorage.clear();
+  mockPathname = "/";
   mockAgentName = null;
   mockAgentDisplayName = null;
   mockCheckIsSelfHosted.mockReset();
@@ -296,10 +298,61 @@ describe("Header - breadcrumb", () => {
     expect(logoLink.getAttribute("href")).toBe("/");
   });
 
-  it("shows Workspace breadcrumb when agent is active", () => {
+  it("shows only the active agent breadcrumb when agent is active", () => {
     mockAgentName = "my-agent";
-    render(() => <Header />);
-    expect(screen.getByText("Workspace")).toBeDefined();
+    const { container } = render(() => <Header />);
+    expect(screen.queryByText("Workspace")).toBeNull();
+    expect(container.querySelector(".header__breadcrumb-current")?.textContent).toContain(
+      "my-agent",
+    );
+    expect(container.querySelectorAll(".header__separator").length).toBe(1);
+  });
+});
+
+describe("Header - docs link", () => {
+  const docsHref = (container: HTMLElement) =>
+    container.querySelector(".header__docs-link")?.getAttribute("href");
+
+  it("links agent routing pages to routing docs", () => {
+    mockPathname = "/harnesses/my-agent/routing";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/routing");
+  });
+
+  it("links the current Limits route to limits docs", () => {
+    mockPathname = "/harnesses/my-agent/guardrails";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/set-limits");
+  });
+
+  it("keeps the legacy Limits route mapped to limits docs", () => {
+    mockPathname = "/harnesses/my-agent/limits";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/set-limits");
+  });
+
+  it("links provider pages to matching provider docs", () => {
+    mockPathname = "/providers/subscriptions";
+    const subscriptions = render(() => <Header />);
+    expect(docsHref(subscriptions.container)).toBe(
+      "https://manifest.build/docs/providers/subscription-based-providers",
+    );
+
+    mockPathname = "/providers/byok";
+    const byok = render(() => <Header />);
+    expect(docsHref(byok.container)).toBe(
+      "https://manifest.build/docs/providers/api-key-providers",
+    );
+
+    mockPathname = "/providers/local";
+    const local = render(() => <Header />);
+    expect(docsHref(local.container)).toBe("https://manifest.build/docs/providers/local-models");
+  });
+
+  it("falls back to introduction docs for unmapped pages", () => {
+    mockPathname = "/messages";
+    const { container } = render(() => <Header />);
+    expect(docsHref(container)).toBe("https://manifest.build/docs/introduction");
   });
 });
 
@@ -307,38 +360,38 @@ describe("Header - gear dropdown", () => {
   it("shows gear button when on an agent page", () => {
     mockAgentName = "my-agent";
     render(() => <Header />);
-    expect(screen.getByLabelText("Agent actions")).toBeDefined();
+    expect(screen.getByLabelText("Harness actions")).toBeDefined();
   });
 
   it("does not show gear button when not on an agent page", () => {
     mockAgentName = null;
     render(() => <Header />);
-    expect(screen.queryByLabelText("Agent actions")).toBeNull();
+    expect(screen.queryByLabelText("Harness actions")).toBeNull();
   });
 
   it("opens dropdown with Settings and Duplicate items", async () => {
     mockAgentName = "my-agent";
     render(() => <Header />);
-    await fireEvent.click(screen.getByLabelText("Agent actions"));
+    await fireEvent.click(screen.getByLabelText("Harness actions"));
     expect(screen.getByText("Settings")).toBeDefined();
-    expect(screen.getByText("Duplicate agent")).toBeDefined();
+    expect(screen.getByText("Duplicate harness")).toBeDefined();
   });
 
   it("Settings links to the agent settings page", async () => {
     mockAgentName = "my-agent";
     const { container } = render(() => <Header />);
-    await fireEvent.click(screen.getByLabelText("Agent actions"));
-    const settingsLink = container.querySelector('a[href="/agents/my-agent/settings"]');
+    await fireEvent.click(screen.getByLabelText("Harness actions"));
+    const settingsLink = container.querySelector('a[href="/harnesses/my-agent/settings"]');
     expect(settingsLink).not.toBeNull();
   });
 
   it("closes gear dropdown when clicking outside", async () => {
     mockAgentName = "my-agent";
     render(() => <Header />);
-    await fireEvent.click(screen.getByLabelText("Agent actions"));
+    await fireEvent.click(screen.getByLabelText("Harness actions"));
     expect(screen.getByText("Settings")).toBeDefined();
     await fireEvent.click(document.body);
-    expect(screen.queryByText("Duplicate agent")).toBeNull();
+    expect(screen.queryByText("Duplicate harness")).toBeNull();
   });
 });
 

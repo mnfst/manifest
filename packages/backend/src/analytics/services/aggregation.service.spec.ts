@@ -4,15 +4,17 @@ import { Brackets } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { EXCLUDE_SYSTEM_AGENTS_PREDICATE } from './query-helpers';
 
 describe('AggregationService', () => {
   let service: AggregationService;
   let mockGetRawOne: jest.Mock;
+  let mockQb: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
 
-    const mockQb: Record<string, jest.Mock> = {
+    mockQb = {
       select: jest.fn(),
       addSelect: jest.fn(),
       where: jest.fn(),
@@ -29,7 +31,6 @@ describe('AggregationService', () => {
       getMany: jest.fn().mockResolvedValue([]),
       getOne: jest.fn().mockResolvedValue(null),
     };
-
     const chainableMethods = [
       'select',
       'addSelect',
@@ -183,6 +184,94 @@ describe('AggregationService', () => {
       expect(result.tokens.tokens_today.trend_pct).toBe(0);
       expect(result.cost.trend_pct).toBe(0);
       expect(result.messages.trend_pct).toBe(0);
+    });
+
+    it('applies auth_type and provider filters to current + previous windows', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics(
+        '24h',
+        'u1',
+        'tenant-123',
+        undefined,
+        'subscription',
+        'openai',
+      );
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
+    });
+
+    it('excludes the system Playground agent from both windows when excludeSystem=true', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics(
+        '24h',
+        'u1',
+        'tenant-123',
+        undefined,
+        undefined,
+        undefined,
+        true,
+      );
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      // Both the current and previous window builders add the semi-join guard.
+      // It adds no join of its own (pure NOT EXISTS existence test).
+      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(mockQb.leftJoin).not.toHaveBeenCalled();
+    });
+
+    it('does not exclude system agents by default (excludeSystem omitted)', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+    });
+
+    const labelClause = "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)";
+
+    it('scopes both windows to a connection label when provided', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics(
+        '24h',
+        'u1',
+        'tenant-123',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+      );
+
+      const labelCalls = mockQb.andWhere.mock.calls.filter((c: unknown[]) => c[0] === labelClause);
+      // Current + previous window builders each add the label predicate.
+      expect(labelCalls).toHaveLength(2);
+      for (const call of labelCalls)
+        expect(call[1]).toEqual(expect.objectContaining({ keyLabel: 'Work' }));
+    });
+
+    it('does not add the label filter when no label is given', async () => {
+      mockGetRawOne
+        .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
+        .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
+
+      await service.getSummaryMetrics('24h', 'u1', 'tenant-123');
+
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain(labelClause);
     });
   });
 });

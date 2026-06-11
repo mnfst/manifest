@@ -122,21 +122,17 @@ const Limits: Component = () => {
   };
 
   return (
-    <div class="container--sm">
+    <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Limits - Manifest</Title>
       <Meta
         name="description"
         content={`Configure limits and alerts for ${agentDisplayName() ?? agentName()}.`}
       />
 
-      <div class="page-header">
-        <div>
-          <h1>Limits</h1>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Get notified or block requests when token
-            or cost thresholds are exceeded
-          </span>
-        </div>
+      <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
+        <span class="breadcrumb">
+          Get notified or block requests when token or cost thresholds are exceeded
+        </span>
         <button
           class="btn btn--primary btn--sm"
           onClick={() => {
@@ -180,7 +176,7 @@ const Limits: Component = () => {
             <line x1="12" y1="17" x2="12.01" y2="17" />
           </svg>
           <span>
-            One or more hard limits triggered. New proxy requests for this agent will be blocked
+            One or more hard limits triggered. New proxy requests for this harness will be blocked
             until the usage resets in the next period.
           </span>
         </div>

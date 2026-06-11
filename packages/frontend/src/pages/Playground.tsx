@@ -1,20 +1,20 @@
 import {
   createEffect,
+  createMemo,
   createResource,
   createSignal,
   For,
-  lazy,
   on,
   onCleanup,
   Show,
-  Suspense,
   type Component,
 } from 'solid-js';
-import { useParams, useSearchParams } from '@solidjs/router';
+import { useSearchParams } from '@solidjs/router';
 import { Meta, Title } from '@solidjs/meta';
 import type { AuthType, PlaygroundHistoryRunSummary } from '../services/api.js';
 import {
   getAvailableModels,
+  getPlaygroundAgent,
   getPlaygroundRun,
   getCustomProviders,
   getProviders,
@@ -40,10 +40,6 @@ import RequestHeadersPopover, {
 } from '../components/playground/RequestHeadersPopover.jsx';
 import { CodeIcon } from '../components/playground/icons.jsx';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
-
-// The provider-select modal is a ~130 kB chunk gated behind a `<Show>`. Lazy
-// it out of the Playground route bundle so it only loads when opened.
-const ProviderSelectModal = lazy(() => import('../components/ProviderSelectModal.jsx'));
 
 // Route-scoped styles (kept out of the global theme bundle). routing.css is
 // needed here because the shared ModelPickerModal / ProviderSelectModal use
@@ -127,18 +123,33 @@ function findWinners(columns: readonly ColumnData[]): {
 }
 
 const Playground: Component = () => {
-  const params = useParams<{ agentName: string }>();
   const [searchParams, setSearchParams] = useSearchParams<{ run?: string }>();
-  const agentName = () => decodeURIComponent(params.agentName);
+  const [agent] = createResource(getPlaygroundAgent);
+  // Only the resolved name (from the server) drives resource sources and the
+  // store key. Using `undefined` as the source keeps resources idle until
+  // getPlaygroundAgent resolves, preventing 404 fetches for models/providers
+  // before the reserved agent row is guaranteed to exist server-side.
+  const resolvedAgentName = () => agent()?.name;
+  // Display fallback for UI text that needs a name before resolution.
+  const agentName = () => resolvedAgentName() ?? 'Playground';
 
-  const [available, { refetch: refetchAvailable }] = createResource(agentName, getAvailableModels);
-  const [providers, { refetch: refetchProviders }] = createResource(agentName, getProviders);
+  const [available, { refetch: refetchAvailable }] = createResource(
+    resolvedAgentName,
+    getAvailableModels,
+  );
+  const [providers, { refetch: refetchProviders }] = createResource(
+    resolvedAgentName,
+    getProviders,
+  );
   const [customProviders, { refetch: refetchCustomProviders }] = createResource(
-    agentName,
+    resolvedAgentName,
     getCustomProviders,
   );
 
-  const store = getOrCreatePlaygroundStore(agentName());
+  // Memo so the store key updates when resolvedAgentName() settles to the
+  // actual server-assigned name ("Playground"). This ensures each test render
+  // gets an isolated store keyed by the mock-resolved name.
+  const store = createMemo(() => getOrCreatePlaygroundStore(agentName()));
   const [pickerForColumn, setPickerForColumn] = createSignal<string | null>(null);
   const [showAddPicker, setShowAddPicker] = createSignal(false);
   const [announcement, setAnnouncement] = createSignal('');
@@ -163,16 +174,15 @@ const Playground: Component = () => {
   >(null);
   const [headerEntries, setHeaderEntries] = createSignal<HeaderEntry[]>(loadStoredHeaders());
   const [headersOpen, setHeadersOpen] = createSignal(false);
-  const [showProviderModal, setShowProviderModal] = createSignal(false);
   // Best pick for a run shown read-only as an overlay (store isn't loaded in
   // that path, so its best state is tracked separately).
   const [overlayBestId, setOverlayBestId] = createSignal<string | null>(null);
 
-  const effectiveBestId = () => (viewingHistory() ? overlayBestId() : store.bestColumnId());
+  const effectiveBestId = () => (viewingHistory() ? overlayBestId() : store().bestColumnId());
 
   const handleMarkBest = (col: ColumnData) => {
     if (viewingHistory()) return; // read-only overlay
-    void store
+    void store()
       .markBest(col)
       .catch((err) =>
         toast.error(err instanceof Error ? err.message : 'Failed to set best answer'),
@@ -188,7 +198,7 @@ const Playground: Component = () => {
   const { setContent: setRightSidebar } = useRightSidebar();
 
   const handleNewPlayground = () => {
-    store.reset();
+    store().reset();
     setViewingHistory(null);
     setCompletedResults(null);
     setActiveRunId(null);
@@ -205,7 +215,7 @@ const Playground: Component = () => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        if (!store.isAnyRunning() && store.columns.length < MAX_COLUMNS && !viewingHistory()) {
+        if (!store().isAnyRunning() && store().columns.length < MAX_COLUMNS && !viewingHistory()) {
           setShowAddPicker(true);
         }
       }
@@ -223,16 +233,16 @@ const Playground: Component = () => {
   // while a playground was running -- the cached store still has state).
   createEffect(() => {
     // If store already has completed columns, snapshot them for the summary table
-    if (store.columns.length > 0 && !store.isAnyRunning() && !completedResults()) {
-      setCompletedResults([...store.columns]);
+    if (store().columns.length > 0 && !store().isAnyRunning() && !completedResults()) {
+      setCompletedResults([...store().columns]);
     }
-    if (store.columns.length > 0) return;
+    if (store().columns.length > 0) return;
     const runId = searchParams.run || sessionStorage.getItem('manifest.playground.lastRun');
     if (runId && !activeRunId()) {
-      getPlaygroundRun(runId, params.agentName)
+      getPlaygroundRun(runId)
         .then((detail) => {
-          store.loadHistoryRun(detail);
-          setCompletedResults([...store.columns]);
+          store().loadHistoryRun(detail);
+          setCompletedResults([...store().columns]);
           setActiveRunId(runId);
           setSearchParams({ run: runId });
         })
@@ -254,10 +264,10 @@ const Playground: Component = () => {
   };
 
   const handleSubmit = () => {
-    const promptText = store.prompt().trim();
-    const models = store.columns.map((c) => c.displayName ?? c.model);
+    const promptText = store().prompt().trim();
+    const models = store().columns.map((c) => c.displayName ?? c.model);
     setCompletedResults(null);
-    const runId = store.runAll({ requestHeaders: toHeaderRecord(headerEntries()) });
+    const runId = store().runAll({ requestHeaders: toHeaderRecord(headerEntries()) });
     if (!runId) return;
 
     // Add to history immediately so user sees the running playground
@@ -281,13 +291,13 @@ const Playground: Component = () => {
   };
 
   const handleRetry = (id: string) => {
-    void store.retryColumn(id, { requestHeaders: toHeaderRecord(headerEntries()) });
+    void store().retryColumn(id, { requestHeaders: toHeaderRecord(headerEntries()) });
   };
 
   const refreshHistory = async () => {
     setHistoryLoading(true);
     try {
-      setHistoryRuns(await listPlaygroundRuns(agentName()));
+      setHistoryRuns(await listPlaygroundRuns());
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load history');
     } finally {
@@ -304,12 +314,12 @@ const Playground: Component = () => {
   // refreshHistory() writes the signal it tracks.
   createEffect(
     on(
-      () => store.isAnyRunning(),
+      () => store().isAnyRunning(),
       (running, prev) => {
         if (prev === true && running === false) {
           setLiveRunId(null);
           // Snapshot completed results so the summary table survives column removals
-          setCompletedResults([...store.columns]);
+          setCompletedResults([...store().columns]);
           void refreshHistory().then(() => {
             // If user isn't viewing a past run, auto-select the latest
             if (!viewingHistory()) {
@@ -331,12 +341,12 @@ const Playground: Component = () => {
     const p = providers();
     if (!a || !p) return;
     // Don't overwrite existing columns (e.g. after navigating away and back)
-    if (store.columns.length > 0) return;
-    store.pickDefaults(a, p);
+    if (store().columns.length > 0) return;
+    store().pickDefaults(a, p);
   });
 
   createEffect(() => {
-    for (const col of store.columns) {
+    for (const col of store().columns) {
       if (col.status === 'success' && col.metrics) {
         setAnnouncement(`${col.displayName} responded in ${col.metrics.durationMs} milliseconds.`);
       }
@@ -350,7 +360,7 @@ const Playground: Component = () => {
     authType?: AuthType,
   ) => {
     const displayName = findDisplayName(available() ?? [], model);
-    store.replaceColumnModel(columnId, model, provider, authType ?? 'api_key', displayName);
+    store().replaceColumnModel(columnId, model, provider, authType ?? 'api_key', displayName);
     setPickerForColumn(null);
   };
 
@@ -361,7 +371,7 @@ const Playground: Component = () => {
     authType?: AuthType,
   ) => {
     const displayName = findDisplayName(available() ?? [], model);
-    store.addColumn(model, provider, authType ?? 'api_key', displayName);
+    store().addColumn(model, provider, authType ?? 'api_key', displayName);
     setShowAddPicker(false);
   };
 
@@ -375,7 +385,7 @@ const Playground: Component = () => {
       return;
     }
     try {
-      const detail = await getPlaygroundRun(runId, params.agentName);
+      const detail = await getPlaygroundRun(runId);
       const toReadOnlyCols = (): import('../services/playground-store.js').PlaygroundColumn[] =>
         detail.columns.map((c, i) => ({
           id: `hist-${i}`,
@@ -391,7 +401,7 @@ const Playground: Component = () => {
           columnDbId: c.id,
         }));
 
-      if (store.isAnyRunning() || !hasConnectedProviders()) {
+      if (store().isAnyRunning() || !hasConnectedProviders()) {
         // Don't touch the store -- show history as a read-only overlay
         const cols = toReadOnlyCols();
         setViewingHistory(cols);
@@ -399,9 +409,9 @@ const Playground: Component = () => {
         setOverlayBestId(detail.bestColumnId ?? null);
       } else {
         // No run in progress and providers available, safe to replace the store
-        store.loadHistoryRun(detail);
+        store().loadHistoryRun(detail);
         setViewingHistory(null);
-        setCompletedResults([...store.columns]);
+        setCompletedResults([...store().columns]);
       }
       setActiveRunId(runId);
       setSearchParams({ run: runId });
@@ -433,7 +443,7 @@ const Playground: Component = () => {
   const hasConnectedProviders = () => (providers() ?? []).some((p) => p.is_active);
   // Compute winners from whatever set is actually rendered — when a history
   // run is open its columns drive the badges, not the live store.
-  const winners = () => findWinners(viewingHistory() ?? store.columns);
+  const winners = () => findWinners(viewingHistory() ?? store().columns);
 
   return (
     <div class="playground" style={{ 'padding-bottom': `${promptHeight() + 48}px` }}>
@@ -450,25 +460,23 @@ const Playground: Component = () => {
             Send one prompt to multiple models and compare cost, speed, and quality.
           </p>
         </div>
-        <button
-          type="button"
-          class="btn btn--primary btn--sm"
-          onClick={() => setShowProviderModal(true)}
-        >
-          Connect providers
-        </button>
+        {/* Provider connection now handled via sidebar provider pages */}
       </header>
 
       <Show
         when={(available() && providers() && hasConnectedProviders()) || viewingHistory()}
         fallback={
           <Show when={available() && providers()}>
-            <PlaygroundEmptyState onConnect={() => setShowProviderModal(true)} />
+            <PlaygroundEmptyState
+              onConnect={() => {
+                /* Will be replaced with cards in follow-up */
+              }}
+            />
           </Show>
         }
       >
         <div class="playground__columns" aria-label="Model comparison columns">
-          <For each={viewingHistory() ?? store.columns}>
+          <For each={viewingHistory() ?? store().columns}>
             {(col) => (
               <PlaygroundColumn
                 column={col}
@@ -481,20 +489,20 @@ const Playground: Component = () => {
                 }
                 isBest={col.columnDbId != null && col.columnDbId === effectiveBestId()}
                 readOnly={!!viewingHistory() || !hasConnectedProviders()}
-                onRemove={viewingHistory() ? () => {} : store.removeColumn}
+                onRemove={viewingHistory() ? () => {} : store().removeColumn}
                 onChangeModel={viewingHistory() ? () => {} : setPickerForColumn}
                 onRetry={handleRetry}
                 onMarkBest={viewingHistory() ? undefined : () => handleMarkBest(col)}
               />
             )}
           </For>
-          <Show when={!viewingHistory() && store.columns.length < MAX_COLUMNS}>
+          <Show when={!viewingHistory() && store().columns.length < MAX_COLUMNS}>
             <button
               type="button"
               class="playground__add"
               onClick={() => setShowAddPicker(true)}
               aria-label="Add model column"
-              disabled={store.isAnyRunning()}
+              disabled={store().isAnyRunning()}
             >
               <span class="playground__add-plus">+</span>
               <span>Add model</span>
@@ -508,7 +516,7 @@ const Playground: Component = () => {
         </div>
 
         <PlaygroundSummaryTable
-          columns={viewingHistory() ?? completedResults() ?? store.columns}
+          columns={viewingHistory() ?? completedResults() ?? store().columns}
           bestColumnId={effectiveBestId()}
           onMarkBest={viewingHistory() ? undefined : handleMarkBest}
         />
@@ -519,24 +527,17 @@ const Playground: Component = () => {
             <div class="playground-prompt-wrapper">
               <div class="playground-prompt playground-prompt--info">
                 <span class="playground-prompt__info-text">Connect a provider to get started</span>
-                <button
-                  type="button"
-                  class="btn btn--primary btn--sm"
-                  onClick={() => setShowProviderModal(true)}
-                >
-                  Connect provider
-                </button>
               </div>
             </div>
           }
         >
           <PlaygroundPrompt
-            value={store.prompt()}
-            onChange={store.setPrompt}
+            value={store().prompt()}
+            onChange={store().setPrompt}
             onSubmit={handleSubmit}
-            onRecallPrevious={store.recallPreviousPrompt}
-            disabled={store.isAnyRunning() || store.columns.length === 0}
-            running={store.isAnyRunning()}
+            onRecallPrevious={store().recallPreviousPrompt}
+            disabled={store().isAnyRunning() || store().columns.length === 0}
+            running={store().isAnyRunning()}
             historyOpen={historyOpen()}
             onHeightChange={setPromptHeight}
             headersSlot={
@@ -594,21 +595,6 @@ const Playground: Component = () => {
           onSelect={handleAddModel}
           onClose={() => setShowAddPicker(false)}
         />
-      </Show>
-
-      <Show when={showProviderModal()}>
-        <Suspense fallback={null}>
-          <ProviderSelectModal
-            agentName={agentName()}
-            providers={providers() ?? []}
-            customProviders={customProviders() ?? []}
-            onClose={() => {
-              setShowProviderModal(false);
-              refetchAllProviders();
-            }}
-            onUpdate={refetchAllProviders}
-          />
-        </Suspense>
       </Show>
     </div>
   );

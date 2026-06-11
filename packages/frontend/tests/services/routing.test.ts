@@ -11,10 +11,10 @@ import {
 
 describe("agentPath", () => {
   it("builds path with agent name", () => {
-    expect(agentPath("my-agent", "/overview")).toBe("/agents/my-agent/overview");
+    expect(agentPath("my-agent", "/overview")).toBe("/harnesses/my-agent/overview");
   });
   it("encodes special characters in agent name", () => {
-    expect(agentPath("my agent", "/overview")).toBe("/agents/my%20agent/overview");
+    expect(agentPath("my agent", "/overview")).toBe("/harnesses/my%20agent/overview");
   });
   it("returns root when agent is null", () => {
     expect(agentPath(null, "/overview")).toBe("/");

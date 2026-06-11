@@ -3,7 +3,7 @@ import type { Response as ExpressResponse } from 'express';
 import { PlaygroundService } from './playground.service';
 import type { ProviderClient } from '../routing/proxy/provider-client';
 import type { ProviderKeyService } from '../routing/routing-core/provider-key.service';
-import type { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import type { PlaygroundAgentService } from './playground-agent.service';
 import type { OpenaiOauthService } from '../routing/oauth/openai-oauth.service';
 import type { MinimaxOauthService } from '../routing/oauth/minimax-oauth.service';
 import type { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
@@ -157,7 +157,7 @@ function errorForward(status: number, bodyText: string) {
 }
 
 interface Mocks {
-  resolveAgent: { resolve: jest.Mock };
+  playgroundAgent: { resolve: jest.Mock };
   providerKeyService: {
     hasActiveProvider: jest.Mock;
     getAuthType: jest.Mock;
@@ -185,7 +185,7 @@ interface Mocks {
 
 function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService; mocks: Mocks } {
   const full: Mocks = {
-    resolveAgent: {
+    playgroundAgent: {
       resolve: jest.fn().mockResolvedValue(AGENT),
     },
     providerKeyService: {
@@ -219,7 +219,7 @@ function buildService(mocks: Partial<Mocks> = {}): { service: PlaygroundService;
     ...mocks,
   };
   const service = new PlaygroundService(
-    full.resolveAgent as unknown as ResolveAgentService,
+    full.playgroundAgent as unknown as PlaygroundAgentService,
     full.providerKeyService as unknown as ProviderKeyService,
     full.providerClient as unknown as ProviderClient,
     full.openaiOauth as unknown as OpenaiOauthService,
@@ -507,7 +507,12 @@ describe('PlaygroundService.runStream', () => {
 
     await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
 
-    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(AGENT.id, 'openai');
+    expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(
+      USER_ID,
+      'openai',
+      undefined,
+      AGENT.id,
+    );
     // subscription auth → cost is 0, not null
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);
@@ -541,9 +546,10 @@ describe('PlaygroundService.runStream', () => {
     );
 
     expect(mocks.providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-      AGENT.id,
+      USER_ID,
       'openai',
       'subscription',
+      AGENT.id,
     );
     expect(mocks.openaiOauth.unwrapToken).toHaveBeenCalledWith(
       oauthBlob,
@@ -631,7 +637,7 @@ describe('PlaygroundService.runStream', () => {
 
   it('maps an HttpException thrown during preflight to its status', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue(new NotFoundException('agent gone')),
       },
     });
@@ -645,7 +651,7 @@ describe('PlaygroundService.runStream', () => {
 
   it('maps a non-404 HttpException during preflight to its status (e.g. 403)', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue(new ForbiddenException('nope')),
       },
     });
@@ -658,7 +664,7 @@ describe('PlaygroundService.runStream', () => {
 
   it('maps a non-HttpException preflight failure to 500', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue(new Error('boom')),
       },
     });
@@ -672,7 +678,7 @@ describe('PlaygroundService.runStream', () => {
 
   it('stringifies a non-Error preflight rejection', async () => {
     const { service } = buildService({
-      resolveAgent: {
+      playgroundAgent: {
         resolve: jest.fn().mockRejectedValue('weird-string'),
       },
     });

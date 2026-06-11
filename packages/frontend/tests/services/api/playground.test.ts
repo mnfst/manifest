@@ -372,6 +372,23 @@ describe('playground API client', () => {
     });
   });
 
+  describe('getPlaygroundAgent', () => {
+    it('GETs /playground/agent and returns the agent name', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => ({ name: 'Playground' }),
+        text: async () => JSON.stringify({ name: 'Playground' }),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+      const out = await playground.getPlaygroundAgent();
+      expect(out).toEqual({ name: 'Playground' });
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('/api/v1/playground/agent');
+    });
+  });
+
   describe('listPlaygroundRuns / getPlaygroundRun', () => {
     function setupFetch(response: unknown): ReturnType<typeof vi.fn> {
       const fetchMock = vi.fn().mockResolvedValue({
@@ -385,18 +402,18 @@ describe('playground API client', () => {
       return fetchMock;
     }
 
-    it('GETs /playground/runs with the agentName query param', async () => {
+    it('GETs /playground/runs without an agentName query param', async () => {
       const fetchMock = setupFetch([
         { id: 'r1', prompt: 'p', createdAt: 'now', modelCount: 1, models: ['m'] },
       ]);
-      const out = await playground.listPlaygroundRuns('demo');
+      const out = await playground.listPlaygroundRuns();
       expect(out).toHaveLength(1);
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('/api/v1/playground/runs');
-      expect(url).toContain('agentName=demo');
+      expect(url).not.toContain('agentName');
     });
 
-    it('GETs /playground/runs/<id> and URL-encodes the runId', async () => {
+    it('GETs /playground/runs/<id> and URL-encodes the runId without an agentName query param', async () => {
       const fetchMock = setupFetch({
         id: 'a/b',
         prompt: 'p',
@@ -405,11 +422,11 @@ describe('playground API client', () => {
         models: [],
         columns: [],
       });
-      const out = await playground.getPlaygroundRun('a/b', 'demo');
+      const out = await playground.getPlaygroundRun('a/b');
       expect(out.id).toBe('a/b');
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('/playground/runs/a%2Fb');
-      expect(url).toContain('agentName=demo');
+      expect(url).not.toContain('agentName');
     });
   });
 

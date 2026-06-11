@@ -8,6 +8,7 @@ import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
 import { Agent } from '../src/entities/agent.entity';
 import { AgentApiKey } from '../src/entities/agent-api-key.entity';
+import { AgentProviderAccess } from '../src/entities/agent-provider-access.entity';
 
 describe('Agent Duplication (e2e)', () => {
   let app: INestApplication;
@@ -20,6 +21,8 @@ describe('Agent Duplication (e2e)', () => {
     ds = app.get(DataSource);
 
     const now = new Date().toISOString();
+
+    // Seed a global UserProvider credential row.
     await ds.getRepository(UserProvider).insert({
       id: 'up-e2e-1',
       user_id: 'test-user-001',
@@ -37,9 +40,15 @@ describe('Agent Duplication (e2e)', () => {
       cached_models: null,
       models_fetched_at: null,
     });
+
+    // Grant the source agent access to the global provider via agent_provider_access.
+    await ds.getRepository(AgentProviderAccess).insert({
+      agent_id: TEST_AGENT_ID,
+      user_provider_id: 'up-e2e-1',
+    });
+
     await ds.getRepository(CustomProvider).insert({
       id: 'cp-e2e-1',
-      agent_id: TEST_AGENT_ID,
       user_id: 'test-user-001',
       name: 'custom-groq',
       base_url: 'https://api.groq.com/openai/v1',
@@ -89,9 +98,9 @@ describe('Agent Duplication (e2e)', () => {
       .set(headers)
       .expect(200);
 
+    // providers = count of agent_provider_access grants for the source agent (1 grant for up-e2e-1)
     expect(res.body.copied).toEqual({
       providers: 1,
-      customProviders: 1,
       tierAssignments: 1,
       specificityAssignments: 1,
       modelParams: 0,
@@ -106,7 +115,7 @@ describe('Agent Duplication (e2e)', () => {
       .expect(404);
   });
 
-  it('POST /agents/:name/duplicate copies all config to a new agent', async () => {
+  it('POST /agents/:name/duplicate copies grants to a new agent (providers are user-global, not cloned)', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/v1/agents/${sourceAgent}/duplicate`)
       .set(headers)
@@ -115,9 +124,9 @@ describe('Agent Duplication (e2e)', () => {
 
     expect(res.body.agent.name).toBe('test-agent-copy');
     expect(res.body.apiKey).toMatch(/^mnfst_/);
+    // providers = 1 grant copied (the global anthropic row gets a new grant, not a clone)
     expect(res.body.copied).toEqual({
       providers: 1,
-      customProviders: 1,
       tierAssignments: 1,
       specificityAssignments: 1,
       modelParams: 0,
@@ -136,20 +145,28 @@ describe('Agent Duplication (e2e)', () => {
     expect(apiKey).toBeTruthy();
     expect(apiKey!.agent_id).not.toBe(TEST_AGENT_ID);
 
-    const newProviders = await ds
+    // Global provider: the original credential row is NOT cloned under the new agent_id.
+    // Only one user_providers row exists for 'anthropic' — the original up-e2e-1.
+    const allAnthropicProviders = await ds
       .getRepository(UserProvider)
-      .find({ where: { agent_id: res.body.agent.id } });
-    expect(newProviders).toHaveLength(1);
-    expect(newProviders[0].api_key_encrypted).toBe('enc-value');
-    expect(newProviders[0].label).toBe('Research key');
-    expect(newProviders[0].priority).toBe(2);
-    expect(newProviders[0].id).not.toBe('up-e2e-1');
+      .find({ where: { provider: 'anthropic' } });
+    expect(allAnthropicProviders).toHaveLength(1);
+    expect(allAnthropicProviders[0].id).toBe('up-e2e-1');
 
-    const newCustom = await ds
-      .getRepository(CustomProvider)
+    // The new agent gets an agent_provider_access grant pointing at the original row.
+    const newGrants = await ds
+      .getRepository(AgentProviderAccess)
       .find({ where: { agent_id: res.body.agent.id } });
-    expect(newCustom).toHaveLength(1);
-    expect(newCustom[0].name).toBe('custom-groq');
+    expect(newGrants).toHaveLength(1);
+    expect(newGrants[0].user_provider_id).toBe('up-e2e-1');
+
+    // Custom providers are user-global: no new CustomProvider row was created —
+    // still exactly one for this user.
+    const allCustom = await ds
+      .getRepository(CustomProvider)
+      .find({ where: { user_id: 'test-user-001' } });
+    expect(allCustom).toHaveLength(1);
+    expect(allCustom[0].id).toBe('cp-e2e-1');
 
     const newTiers = await ds
       .getRepository(TierAssignment)
@@ -165,7 +182,10 @@ describe('Agent Duplication (e2e)', () => {
     expect(newSpec[0].category).toBe('coding');
   });
 
-  it('POST /agents/:name/duplicate remaps custom:<uuid> provider references', async () => {
+  it('POST /agents/:name/duplicate copies a custom provider grant verbatim (shared row, not re-credentialed)', async () => {
+    // Custom providers are user-global. Their agent_provider_access grant is copied
+    // verbatim pointing at the SAME user_providers row — no new CustomProvider row,
+    // no new UserProvider row.
     const now = new Date().toISOString();
     const srcAgentId = 'src-remap-agent';
     await ds.getRepository(Agent).insert({
@@ -186,9 +206,9 @@ describe('Agent Duplication (e2e)', () => {
       is_active: true,
     });
 
+    // A custom provider row (user-global in the new model).
     await ds.getRepository(CustomProvider).insert({
       id: 'cp-lmstudio-e2e',
-      agent_id: srcAgentId,
       user_id: 'test-user-001',
       name: 'LM Studio',
       base_url: 'http://localhost:1234/v1',
@@ -196,6 +216,8 @@ describe('Agent Duplication (e2e)', () => {
       models: [{ model_name: 'nvidia/nemotron' }],
       created_at: now,
     });
+
+    // UserProvider companion row for the LM Studio custom provider.
     await ds.getRepository(UserProvider).insert({
       id: 'up-lmstudio-e2e',
       user_id: 'test-user-001',
@@ -212,6 +234,7 @@ describe('Agent Duplication (e2e)', () => {
       models_fetched_at: null,
     });
 
+    // A regular global provider grant alongside the custom one.
     await ds.getRepository(UserProvider).insert({
       id: 'up-ollama-e2e',
       user_id: 'test-user-001',
@@ -228,6 +251,12 @@ describe('Agent Duplication (e2e)', () => {
       models_fetched_at: null,
     });
 
+    // Grant the source agent access to both providers.
+    await ds.getRepository(AgentProviderAccess).insert([
+      { agent_id: srcAgentId, user_provider_id: 'up-lmstudio-e2e' },
+      { agent_id: srcAgentId, user_provider_id: 'up-ollama-e2e' },
+    ]);
+
     const res = await request(app.getHttpServer())
       .post('/api/v1/agents/remap-source/duplicate')
       .set(headers)
@@ -236,28 +265,34 @@ describe('Agent Duplication (e2e)', () => {
 
     const newAgentId = res.body.agent.id;
 
-    const newCustom = await ds
-      .getRepository(CustomProvider)
+    // 2 grants copied verbatim — same user_provider_id values as the source.
+    const newGrants = await ds
+      .getRepository(AgentProviderAccess)
       .find({ where: { agent_id: newAgentId } });
-    expect(newCustom).toHaveLength(1);
-    expect(newCustom[0].name).toBe('LM Studio');
-    expect(newCustom[0].api_kind).toBe('openai');
-    expect(newCustom[0].id).not.toBe('cp-lmstudio-e2e');
+    expect(newGrants).toHaveLength(2);
 
-    const newProviders = await ds
+    const lmsGrant = newGrants.find((g) => g.user_provider_id === 'up-lmstudio-e2e');
+    expect(lmsGrant).toBeDefined();
+
+    const ollamaGrant = newGrants.find((g) => g.user_provider_id === 'up-ollama-e2e');
+    expect(ollamaGrant).toBeDefined();
+
+    // Custom providers are user-global: the original row is NOT cloned.
+    // The user still has exactly the same custom providers as before duplication.
+    const lmsCustom = await ds
+      .getRepository(CustomProvider)
+      .findOne({ where: { id: 'cp-lmstudio-e2e' } });
+    expect(lmsCustom).toBeTruthy();
+    expect(lmsCustom!.id).toBe('cp-lmstudio-e2e');
+
+    // No new UserProvider rows cloned for the new agent.
+    const newUserProviders = await ds
       .getRepository(UserProvider)
       .find({ where: { agent_id: newAgentId } });
-    expect(newProviders).toHaveLength(2);
+    expect(newUserProviders).toHaveLength(0);
 
-    const customUp = newProviders.find((p) => p.provider.startsWith('custom:'));
-    expect(customUp).toBeDefined();
-    expect(customUp!.provider).toBe(`custom:${newCustom[0].id}`);
-    expect(customUp!.provider).not.toContain('cp-lmstudio-e2e');
-    expect(customUp!.auth_type).toBe('local');
-
-    const ollamaUp = newProviders.find((p) => p.provider === 'ollama');
-    expect(ollamaUp).toBeDefined();
-    expect(ollamaUp!.auth_type).toBe('local');
+    // Summary reflects 2 grants copied.
+    expect(res.body.copied.providers).toBe(2);
   });
 
   it('POST /agents/:name/duplicate returns 409 when target name already exists', async () => {

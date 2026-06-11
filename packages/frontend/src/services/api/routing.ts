@@ -328,6 +328,47 @@ export function refreshProviderModels(agentName: string, provider: string, authT
   return fetchMutate<ProviderRefreshResult>(path, { method: 'POST' });
 }
 
+/* -- Agent Provider Access -- */
+
+export interface AgentProviderAccess {
+  enabled: string[];
+}
+
+export interface AgentProviderDisableImpact {
+  affected_tiers: Array<{ tier: string; model: string; position: string }>;
+}
+
+function agentProviderAccessPath(agentName: string, suffix = ''): string {
+  const encodedAgent = encodeURIComponent(agentName);
+  return suffix
+    ? `/agents/${encodedAgent}/provider-access${suffix.startsWith('/') ? suffix : `/${suffix}`}`
+    : `/agents/${encodedAgent}/provider-access`;
+}
+
+export function getAgentProviderAccess(agentName: string) {
+  return fetchJson<AgentProviderAccess>(agentProviderAccessPath(agentName));
+}
+
+export function getAgentProviderDisableImpact(agentName: string, userProviderId: string) {
+  return fetchJson<AgentProviderDisableImpact>(
+    agentProviderAccessPath(agentName, `${encodeURIComponent(userProviderId)}/impact`),
+  );
+}
+
+export function enableAgentProviderAccess(agentName: string, userProviderId: string) {
+  return fetchMutate<{ ok: boolean }>(
+    agentProviderAccessPath(agentName, encodeURIComponent(userProviderId)),
+    { method: 'PUT' },
+  );
+}
+
+export function disableAgentProviderAccess(agentName: string, userProviderId: string) {
+  return fetchMutate<{ ok: boolean }>(
+    agentProviderAccessPath(agentName, encodeURIComponent(userProviderId)),
+    { method: 'DELETE' },
+  );
+}
+
 /* -- Routing: Pricing cache health -- */
 
 export interface PricingHealth {
@@ -369,9 +410,11 @@ export interface CustomProviderData {
 }
 
 // Module-scoped cache so Overview / MessageLog / Routing don't each refetch
-// the same custom-providers list when mounting in sequence. Mutations below
-// (create/update/delete) invalidate the agent's entry; the routing 'routing'
-// SSE event invalidates them all.
+// the same custom-providers list when mounting in sequence. Custom providers
+// are user-global, so a create/update/delete from one agent changes the list
+// every agent sees — mutations below invalidate ALL entries, and the 'routing'
+// SSE event (emitted by the backend on those mutations) does the same for other
+// already-open clients.
 const customProvidersCache = new Map<string, Promise<CustomProviderData[]>>();
 
 export function invalidateCustomProvidersCache(agentName?: string): void {
@@ -405,7 +448,7 @@ export function createCustomProvider(
     models: CustomProviderModel[];
   },
 ) {
-  invalidateCustomProvidersCache(agentName);
+  invalidateCustomProvidersCache();
   return fetchMutate<CustomProviderData>(routingPath(agentName, 'custom-providers'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -424,7 +467,7 @@ export function updateCustomProvider(
     models?: CustomProviderModel[];
   },
 ) {
-  invalidateCustomProvidersCache(agentName);
+  invalidateCustomProvidersCache();
   return fetchMutate<CustomProviderData>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     {
@@ -458,7 +501,7 @@ export async function probeCustomProvider(
 }
 
 export function deleteCustomProvider(agentName: string, id: string) {
-  invalidateCustomProvidersCache(agentName);
+  invalidateCustomProvidersCache();
   return fetchMutate<{ ok: boolean }>(
     routingPath(agentName, `custom-providers/${encodeURIComponent(id)}`),
     { method: 'DELETE' },

@@ -45,7 +45,7 @@ describe('ResolveAgentService', () => {
   });
 
   it('returns and caches the agent on a successful lookup', async () => {
-    const agent = { id: 'agent-1', name: 'demo-agent' } as Agent;
+    const agent = { id: 'agent-1', name: 'demo-agent', is_system: false } as Agent;
     tenantResolve.mockResolvedValue('tenant-1');
     findOne.mockResolvedValue(agent);
 
@@ -61,7 +61,7 @@ describe('ResolveAgentService', () => {
   });
 
   it('re-queries the repo after the TTL expires', async () => {
-    const agent = { id: 'agent-1', name: 'demo-agent' } as Agent;
+    const agent = { id: 'agent-1', name: 'demo-agent', is_system: false } as Agent;
     tenantResolve.mockResolvedValue('tenant-1');
     findOne.mockResolvedValue(agent);
 
@@ -73,8 +73,8 @@ describe('ResolveAgentService', () => {
   });
 
   it('scopes the cache by tenant — two users with the same agent name do not collide', async () => {
-    const agentA = { id: 'a', name: 'agent' } as Agent;
-    const agentB = { id: 'b', name: 'agent' } as Agent;
+    const agentA = { id: 'a', name: 'agent', is_system: false } as Agent;
+    const agentB = { id: 'b', name: 'agent', is_system: false } as Agent;
 
     tenantResolve
       .mockResolvedValueOnce('tenant-A')
@@ -92,7 +92,7 @@ describe('ResolveAgentService', () => {
   });
 
   it('invalidate removes the cached entry so the next resolve re-queries', async () => {
-    const agent = { id: 'agent-1', name: 'demo-agent' } as Agent;
+    const agent = { id: 'agent-1', name: 'demo-agent', is_system: false } as Agent;
     tenantResolve.mockResolvedValue('tenant-1');
     findOne.mockResolvedValue(agent);
 
@@ -103,5 +103,74 @@ describe('ResolveAgentService', () => {
 
     await svc.resolve('user-1', 'demo-agent');
     expect(findOne).toHaveBeenCalledTimes(2);
+  });
+
+  it('evicts the oldest entry when the cache is at MAX_ENTRIES capacity', async () => {
+    // Fill the internal cache to MAX_ENTRIES (5000) via the private map so we
+    // can exercise the LRU eviction path without making 5000 real calls.
+    const cacheField = (svc as unknown as { cache: Map<string, unknown> }).cache;
+    for (let i = 0; i < 5000; i++) {
+      cacheField.set(`tenant-x:agent-${i}`, {
+        agent: { id: `a${i}`, name: `agent-${i}`, is_system: false } as Agent,
+        expiresAt: Date.now() + 120_000,
+      });
+    }
+    expect(cacheField.size).toBe(5000);
+
+    // The new agent to resolve — its cache key is NOT in the map yet, so the
+    // LRU eviction branch runs and the oldest entry is dropped.
+    const newAgent = { id: 'new-1', name: 'new-agent', is_system: false } as Agent;
+    tenantResolve.mockResolvedValue('tenant-1');
+    findOne.mockResolvedValue(newAgent);
+
+    const result = await svc.resolve('user-1', 'new-agent');
+    expect(result).toBe(newAgent);
+    // One entry was evicted, then the new one was added — size stays at 5000.
+    expect(cacheField.size).toBe(5000);
+    expect(cacheField.has('tenant-1:new-agent')).toBe(true);
+  });
+
+  // P1-A: system agent rejection
+  it('throws NotFoundException for a system agent when allowSystem is not set (default)', async () => {
+    const systemAgent = { id: 'sys-1', name: 'Playground', is_system: true } as Agent;
+    tenantResolve.mockResolvedValue('tenant-1');
+    findOne.mockResolvedValue(systemAgent);
+
+    await expect(svc.resolve('user-1', 'Playground')).rejects.toBeInstanceOf(NotFoundException);
+    // The error message matches the not-found shape so callers cannot distinguish
+    // a missing agent from a system agent.
+    await expect(svc.resolve('user-1', 'Playground')).rejects.toThrow(
+      'Agent "Playground" not found',
+    );
+  });
+
+  it('returns the system agent when allowSystem is true', async () => {
+    const systemAgent = { id: 'sys-1', name: 'Playground', is_system: true } as Agent;
+    tenantResolve.mockResolvedValue('tenant-1');
+    findOne.mockResolvedValue(systemAgent);
+
+    const result = await svc.resolve('user-1', 'Playground', { allowSystem: true });
+    expect(result).toBe(systemAgent);
+  });
+
+  it('caches the system agent and still enforces is_system check on cache hits', async () => {
+    const systemAgent = { id: 'sys-1', name: 'Playground', is_system: true } as Agent;
+    tenantResolve.mockResolvedValue('tenant-1');
+    findOne.mockResolvedValue(systemAgent);
+
+    // First call with allowSystem: true — agent is loaded and cached.
+    const first = await svc.resolve('user-1', 'Playground', { allowSystem: true });
+    expect(first).toBe(systemAgent);
+    expect(findOne).toHaveBeenCalledTimes(1);
+
+    // Second call without allowSystem — cache hit but is_system check rejects it.
+    await expect(svc.resolve('user-1', 'Playground')).rejects.toBeInstanceOf(NotFoundException);
+    // Repo was NOT queried again (it was a cache hit).
+    expect(findOne).toHaveBeenCalledTimes(1);
+
+    // Third call with allowSystem: true again — still cache hit, succeeds.
+    const third = await svc.resolve('user-1', 'Playground', { allowSystem: true });
+    expect(third).toBe(systemAgent);
+    expect(findOne).toHaveBeenCalledTimes(1);
   });
 });

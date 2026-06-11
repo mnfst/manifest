@@ -21,7 +21,17 @@ interface AgentsData {
 const AgentGuard: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
 
-  const [data, { refetch }] = createResource(() => getAgents() as Promise<AgentsData>);
+  // Key the fetch on the agent param so the list is re-fetched whenever the
+  // viewed agent changes. AgentGuard stays mounted across `/harnesses/:agentName`
+  // navigations (only the param updates), so a source-less resource would keep
+  // serving the list captured on first mount. That stale list omits an agent
+  // created from the always-present sidebar while another agent is open, which
+  // left `setAgentPlatform(null)` below — making the post-create setup modal
+  // render its full harness picker instead of the harness the user just chose.
+  const [data, { refetch }] = createResource(
+    () => params.agentName,
+    () => getAgents() as Promise<AgentsData>,
+  );
 
   const agentExists = createMemo(() => {
     const decoded = decodeURIComponent(params.agentName);
@@ -46,7 +56,10 @@ const AgentGuard: ParentComponent = (props) => {
   });
 
   return (
-    <Show when={!data.loading} fallback={null}>
+    // Only blank on the very first load. Once a list has resolved, keep the
+    // children mounted while a param-change refetch is in flight so switching
+    // agents (and the post-create redirect) doesn't flash an empty page.
+    <Show when={!data.loading || data() !== undefined} fallback={null}>
       <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
         <Show when={data()?.agents}>
           <Show when={agentExists()} fallback={<NotFound />}>
