@@ -1916,11 +1916,16 @@
 }
 
 .no-connections-prompt__cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 12px;
   width: 100%;
   max-width: 1400px;
+}
+
+.no-connections-prompt__cards > * {
+  flex: 0 1 320px;
 }
 
 .no-connections-prompt__card {

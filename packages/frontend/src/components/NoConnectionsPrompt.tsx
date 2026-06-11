@@ -1,5 +1,6 @@
 import { A } from '@solidjs/router';
-import type { Component } from 'solid-js';
+import { createResource, Show, type Component } from 'solid-js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 
 const SubscriptionIcon = () => (
   <svg
@@ -49,48 +50,74 @@ const LocalIcon = () => (
   </svg>
 );
 
-const CARDS = [
-  {
-    title: 'Subscriptions',
-    href: '/providers/subscriptions',
-    description: 'Use your existing paid plans. You can add several from the same provider.',
-    icon: <SubscriptionIcon />,
-  },
-  {
-    title: 'Usage-based',
-    href: '/providers/usage-based',
-    description: 'Connect providers you pay per token or per usage with your own API keys.',
-    icon: <ApiKeyIcon />,
-  },
-  {
-    title: 'Local',
-    href: '/providers/local',
-    description: 'Connect to LLM servers running on your machine.',
-    icon: <LocalIcon />,
-  },
-];
+const NoConnectionsPrompt: Component = () => {
+  const [selfHosted] = createResource(checkIsSelfHosted);
 
-const NoConnectionsPrompt: Component = () => (
-  <div class="no-connections-prompt">
-    <div class="no-connections-prompt__header">
-      <span class="no-connections-prompt__title">No providers connected</span>
-      <span class="no-connections-prompt__desc">
-        Connect a provider to start routing your requests.
-      </span>
-    </div>
-    <div class="no-connections-prompt__cards">
-      {CARDS.map((card) => (
-        <A href={card.href} class="no-connections-prompt__card" style="text-decoration: none;">
-          <span class="no-connections-prompt__card-icon">{card.icon}</span>
-          <span class="no-connections-prompt__card-title">{card.title}</span>
-          <span class="no-connections-prompt__card-desc">{card.description}</span>
+  return (
+    <div class="no-connections-prompt">
+      <div class="no-connections-prompt__header">
+        <span class="no-connections-prompt__title">No providers connected</span>
+        <span class="no-connections-prompt__desc">
+          Connect a provider to start routing your requests.
+        </span>
+      </div>
+      <div class="no-connections-prompt__cards">
+        <A
+          href="/providers/subscriptions"
+          class="no-connections-prompt__card"
+          style="text-decoration: none;"
+        >
+          <span class="no-connections-prompt__card-icon">
+            <SubscriptionIcon />
+          </span>
+          <span class="no-connections-prompt__card-title">Subscriptions</span>
+          <span class="no-connections-prompt__card-desc">
+            Use your existing paid plans. You can add several from the same provider.
+          </span>
           <button class="btn btn--primary btn--sm" style="margin-top: auto; pointer-events: none;">
             Connect provider
           </button>
         </A>
-      ))}
+        <A
+          href="/providers/usage-based"
+          class="no-connections-prompt__card"
+          style="text-decoration: none;"
+        >
+          <span class="no-connections-prompt__card-icon">
+            <ApiKeyIcon />
+          </span>
+          <span class="no-connections-prompt__card-title">Usage-based</span>
+          <span class="no-connections-prompt__card-desc">
+            Connect providers you pay per token or per usage with your own API keys.
+          </span>
+          <button class="btn btn--primary btn--sm" style="margin-top: auto; pointer-events: none;">
+            Connect provider
+          </button>
+        </A>
+        <Show when={selfHosted()}>
+          <A
+            href="/providers/local"
+            class="no-connections-prompt__card"
+            style="text-decoration: none;"
+          >
+            <span class="no-connections-prompt__card-icon">
+              <LocalIcon />
+            </span>
+            <span class="no-connections-prompt__card-title">Local</span>
+            <span class="no-connections-prompt__card-desc">
+              Connect to LLM servers running on your machine.
+            </span>
+            <button
+              class="btn btn--primary btn--sm"
+              style="margin-top: auto; pointer-events: none;"
+            >
+              Connect provider
+            </button>
+          </A>
+        </Show>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default NoConnectionsPrompt;
