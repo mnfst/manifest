@@ -38,7 +38,7 @@ export interface RoutingSlot {
 export function collectRoutedModelIds(slots: RoutingSlot[]): string[] {
   const ids = new Set<string>();
   for (const slot of slots) {
-    const primary = slot.override_route?.model ?? null;
+    const primary = slot.override_route?.model ?? slot.auto_assigned_route?.model ?? null;
     if (primary) ids.add(primary);
     if (slot.fallback_routes) {
       for (const fb of slot.fallback_routes) {
