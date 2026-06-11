@@ -220,7 +220,7 @@ function messageToContent(
       // the Part level as `thoughtSignature`, not inside functionCall.
       const echoed = (tc as Record<string, unknown>).thought_signature;
       const cached = hasId && signatureLookup ? signatureLookup(tc.id) : null;
-      const signature = typeof echoed === 'string' ? echoed : cached;
+      const signature = typeof echoed === 'string' && echoed !== '' ? echoed : cached;
       // Gemini 3.x requires a thoughtSignature on every functionCall part.
       // When the history comes from another model (fallback) or the cache has
       // expired, inject the documented dummy signature so the request isn't

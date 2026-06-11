@@ -1135,6 +1135,29 @@ describe('Google Adapter', () => {
       expect(contents[0].parts[0].thoughtSignature).toBe('from_client');
     });
 
+    it('falls back to cache when client echoes an empty string', () => {
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'noop', arguments: '{}' },
+                thought_signature: '',
+              },
+            ],
+          },
+        ],
+      };
+      const lookup = jest.fn().mockReturnValue('cached_sig');
+      const result = toGoogleRequest(body, 'gemini-3-pro-preview', lookup);
+      const contents = result.contents as Array<{ parts: Array<Record<string, unknown>> }>;
+      expect(contents[0].parts[0].thoughtSignature).toBe('cached_sig');
+    });
+
     it('injects a dummy thoughtSignature when neither client nor cache provides one', () => {
       const body = {
         messages: [
