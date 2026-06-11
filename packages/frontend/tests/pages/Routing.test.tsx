@@ -661,11 +661,12 @@ beforeEach(() => {
 });
 
 describe('Routing page', () => {
-  it('renders the page header with the agent display name', async () => {
-    render(() => <Routing />);
+  it('renders routing description without a duplicate page heading', async () => {
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
       expect(screen.getByText(/Pick which model handles each type of request/)).toBeDefined();
     });
+    expect(container.querySelector('h1')).toBeNull();
   });
 
   it('renders the empty providers state when no providers are connected', async () => {
@@ -745,7 +746,7 @@ describe('Routing page', () => {
     render(() => <Routing />);
     await waitFor(() => {
       expect(mockToastWarning).toHaveBeenCalledWith(
-        'Model pricing data is unavailable. Automatic tier defaults may be delayed.',
+        'Model pricing data is unavailable. Model cost details may be incomplete.',
       );
     });
     expect(screen.queryByText(/Pricing catalog is empty/)).toBeNull();
@@ -1096,7 +1097,7 @@ describe('Routing page', () => {
       });
     });
 
-    it("falls back to auto_assigned_route's model when override is null", async () => {
+    it('does nothing when pinning a key with only a legacy auto_assigned_route', async () => {
       const autoAssignment = {
         ...codingAssignment,
         override_route: null,
@@ -1113,16 +1114,8 @@ describe('Routing page', () => {
         expect(screen.getByTestId('spec-pin-key')).toBeDefined();
       });
       fireEvent.click(screen.getByTestId('spec-pin-key'));
-      await waitFor(() => {
-        expect(mockOverrideSpecificity).toHaveBeenCalledWith(
-          'demo',
-          'coding',
-          'claude-haiku',
-          'anthropic',
-          'api_key',
-          'Work',
-        );
-      });
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideSpecificity).not.toHaveBeenCalled();
     });
 
     it('does nothing when the category does not match an existing assignment', async () => {

@@ -138,7 +138,7 @@ export class ProviderController {
       await this.ollamaSync.sync();
     }
 
-    const { provider: result, isNew } = await this.providerService.upsertProvider(
+    const { provider: result } = await this.providerService.upsertProvider(
       agent.id,
       user.id,
       body.provider,
@@ -159,27 +159,13 @@ export class ProviderController {
         .execute();
     }
 
-    // Discover models and recalculate tiers before returning so the
-    // frontend sees updated data immediately (typically ~1-3s).
+    // Discover models before returning so the frontend sees updated model
+    // availability immediately (typically ~1-3s). Route choices remain
+    // user-controlled and are not recalculated here.
     try {
       await this.discoveryService.discoverModels(result);
     } catch {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
-    }
-    try {
-      // A NEW provider is global + ON for every owned agent, so every sibling
-      // agent must be recalced against the post-discovery model set (the grant
-      // fan-out in upsertProvider ran its recalc BEFORE discovery populated
-      // cached_models, so siblings would otherwise route to a stale set). An
-      // existing-row reconnect only touches the connecting agent, preserving
-      // each sibling's per-agent disable state.
-      if (isNew) {
-        await this.providerService.recalculateTiersForUser(user.id);
-      } else {
-        await this.providerService.recalculateTiers(agent.id, user.id);
-      }
-    } catch {
-      // Tier recalculation failure is non-fatal
     }
 
     return {

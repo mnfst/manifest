@@ -1,7 +1,6 @@
 import { Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
-import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
@@ -25,7 +24,6 @@ import {
 @Controller('api/v1/routing')
 export class ModelController {
   constructor(
-    private readonly providerService: ProviderService,
     private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
@@ -56,9 +54,8 @@ export class ModelController {
 
   @Post(':agentName/refresh-models')
   async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.resolveAgentService.resolve(user.id, params.agentName);
     await this.discoveryService.discoverAllForAgent(user.id);
-    await this.providerService.recalculateTiers(agent.id, user.id);
     return { ok: true };
   }
 
@@ -68,15 +65,12 @@ export class ModelController {
     @Param() params: AgentProviderParamDto,
     @Query() query: RemoveProviderQueryDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    await this.resolveAgentService.resolve(user.id, params.agentName);
     const result = await this.discoveryService.refreshProvider(
       user.id,
       params.provider,
       query.authType,
     );
-    if (result.ok) {
-      await this.providerService.recalculateTiers(agent.id, user.id);
-    }
     return result;
   }
 

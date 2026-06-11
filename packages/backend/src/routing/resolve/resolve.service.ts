@@ -125,8 +125,7 @@ export class ResolveService {
     if (!effectiveRoutes.primaryRoute) {
       this.logger.warn(
         `No route resolved for agent=${agentId} tier=${result.tier} ` +
-          `(override=${assignment.override_route?.model ?? 'null'} ` +
-          `auto=${assignment.auto_assigned_route?.model ?? 'null'})`,
+          `(override=${assignment.override_route?.model ?? 'null'})`,
       );
       return {
         tier: result.tier,
@@ -305,8 +304,6 @@ export class ResolveService {
         return null;
       }
       route = overrideRoute;
-    } else if (assignment.auto_assigned_route) {
-      route = assignment.auto_assigned_route;
     } else {
       return null;
     }
@@ -336,9 +333,8 @@ export class ResolveService {
 
   /**
    * Build the resolved route for a tier assignment. Validates the override
-   * still points to an available model; falls through to auto-assigned when
-   * the override is orphaned. Enriches with the default key label when no
-   * explicit pin is present.
+   * still points to an available model and enriches it with the default key
+   * label when no explicit pin is present.
    */
   private async buildResolvedRoute(
     agentId: string,
@@ -351,24 +347,21 @@ export class ResolveService {
         return this.enrichRouteKeyLabel(agentId, userId, override);
       }
       this.logger.warn(
-        `Override ${override.model} unavailable for agent=${agentId} — falling back to auto`,
+        `Override ${override.model} unavailable for agent=${agentId} — no route selected`,
       );
     }
-    return assignment.auto_assigned_route
-      ? this.enrichRouteKeyLabel(agentId, userId, assignment.auto_assigned_route)
-      : null;
+    return null;
   }
 
   /**
    * Fill in `route.keyLabel` from the user's default (priority-0) key for
    * (route.provider, route.authType) when the route doesn't already pin a
-   * specific label. The proxy needs a concrete keyLabel to pick the right
-   * row in `user_providers`; without this, multi-key users would always hit
-   * the first key, ignoring per-tier pins set on auto-assigned routes.
+   * specific label. The proxy needs a concrete keyLabel to pick the right row
+   * in `user_providers`; without this, multi-key users would always hit the
+   * first key instead of the default key for the selected auth mode.
    *
-   * authType is taken from the route itself (not from any assignment-level
-   * legacy field), so this can't accidentally use the override's authType
-   * for an auto-assigned model picked under a different auth mode.
+   * authType is taken from the route itself, not from any assignment-level
+   * legacy field.
    */
   private async enrichRouteKeyLabel(
     agentId: string,

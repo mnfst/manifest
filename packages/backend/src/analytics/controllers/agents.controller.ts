@@ -26,8 +26,8 @@ import { AuthUser } from '../../auth/auth.instance';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
 import { DuplicateAgentDto } from '../../common/dto/duplicate-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
-import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
-import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { AgentListCacheInterceptor } from '../../common/interceptors/agent-list-cache.interceptor';
+import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constants/cache.constants';
 import { slugify } from '../../common/utils/slugify';
 import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -49,17 +49,17 @@ export class AgentsController {
   ) {}
 
   private async invalidateAgentListCache(userId: string): Promise<void> {
-    // GET /agents is cached per (user, originalUrl). The Messages filter hits the
-    // ?includeSystem=true variant, which is a distinct cache entry, so a single
-    // del() would leave it stale after a create/rename/delete. Clear both.
+    // GET /agents has exactly two canonical cache entries per user (system agents
+    // included or not — see AgentListCacheInterceptor). Clear both so neither the
+    // Workspace list nor the Messages filter goes stale after a mutation.
     await Promise.all([
-      this.cacheManager.del(`${userId}:/api/v1/agents`),
-      this.cacheManager.del(`${userId}:/api/v1/agents?includeSystem=true`),
+      this.cacheManager.del(agentListCacheKey(userId, false)),
+      this.cacheManager.del(agentListCacheKey(userId, true)),
     ]);
   }
 
   @Get('agents')
-  @UseInterceptors(UserCacheInterceptor)
+  @UseInterceptors(AgentListCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
   async getAgents(@CurrentUser() user: AuthUser, @Query('includeSystem') includeSystem?: string) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
@@ -94,8 +94,7 @@ export class AgentsController {
       throw error;
     }
     // Providers are global + ON by default: a brand-new agent immediately
-    // inherits every usable provider the user already connected, with its
-    // auto-assigned routes calculated from that model set.
+    // inherits access to every usable provider the user already connected.
     await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
     await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');

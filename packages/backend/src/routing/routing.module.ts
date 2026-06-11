@@ -25,6 +25,8 @@ import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
+import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import { HeaderTier } from '../entities/header-tier.entity';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { TierAssignment } from '../entities/tier-assignment.entity';
       AgentMessage,
       Tenant,
       TierAssignment,
+      SpecificityAssignment,
+      HeaderTier,
     ]),
     RoutingCoreModule,
     ModelPricesModule,

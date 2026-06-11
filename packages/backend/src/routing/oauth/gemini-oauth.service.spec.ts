@@ -250,7 +250,7 @@ describe('GeminiOauthService', () => {
       await svc.exchangeCode(state, 'auth-code');
 
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('swallows discovery errors (OAuth success is not rolled back)', async () => {

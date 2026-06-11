@@ -3,6 +3,8 @@ import { AgentProviderAccessController } from './agent-provider-access.controlle
 import type { AgentProviderAccess } from '../entities/agent-provider-access.entity';
 import type { UserProvider } from '../entities/user-provider.entity';
 import type { TierAssignment } from '../entities/tier-assignment.entity';
+import type { SpecificityAssignment } from '../entities/specificity-assignment.entity';
+import type { HeaderTier } from '../entities/header-tier.entity';
 
 const AGENT_ID = 'agent-uuid-1';
 const USER_ID = 'user-1';
@@ -46,6 +48,16 @@ function makeController(overrides: Record<string, unknown> = {}) {
     save: jest.fn().mockResolvedValue(undefined),
     ...((overrides.tierRepo as object) ?? {}),
   };
+  const specificityRepo = {
+    find: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue(undefined),
+    ...((overrides.specificityRepo as object) ?? {}),
+  };
+  const headerTierRepo = {
+    find: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockResolvedValue(undefined),
+    ...((overrides.headerTierRepo as object) ?? {}),
+  };
 
   const providerService = {
     recalculateTiers: jest.fn().mockResolvedValue(undefined),
@@ -59,6 +71,8 @@ function makeController(overrides: Record<string, unknown> = {}) {
       tenantRepo as never,
       userProviderRepo as never,
       tierRepo as never,
+      specificityRepo as never,
+      headerTierRepo as never,
       providerService as never,
     ),
     accessRepo,
@@ -66,6 +80,8 @@ function makeController(overrides: Record<string, unknown> = {}) {
     tenantRepo,
     userProviderRepo,
     tierRepo,
+    specificityRepo,
+    headerTierRepo,
     providerService,
     agent,
     tenant,
@@ -197,52 +213,14 @@ describe('AgentProviderAccessController', () => {
       expect(result).toEqual({ affected_tiers: [] });
     });
 
-    it('reports auto_assigned_route by provider identity even with no cached models', async () => {
-      // Regression: the preview used to early-return [] when cached_models was
-      // empty and ignored auto_assigned_route entirely. The disable handler
-      // matches by provider name/authType, so the preview must too.
+    it('ignores historical auto_assigned_route rows when previewing disable impact', async () => {
+      // auto_assigned_route is legacy system-authored state, not a user-authored
+      // assignment. The impact preview only reports routes the user still controls.
       const tiers: Partial<TierAssignment>[] = [
         {
           tier: 'standard',
           override_route: null,
           auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
-          fallback_routes: null,
-        },
-      ];
-      const { controller } = makeController({
-        userProviderRepo: {
-          findOne: jest.fn().mockResolvedValue({
-            id: PROVIDER_ID,
-            user_id: USER_ID,
-            provider: 'openai',
-            auth_type: 'api_key',
-            label: 'Default',
-            cached_models: [],
-          } as Partial<UserProvider>),
-        },
-        tierRepo: {
-          find: jest.fn().mockResolvedValue(tiers),
-          save: jest.fn().mockResolvedValue(undefined),
-        },
-      });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
-      expect(result.affected_tiers).toEqual([
-        { tier: 'standard', model: 'gpt-4o', position: 'auto-assigned' },
-      ]);
-    });
-
-    it('reports auto_assigned_route matched only by cached model id (no route.provider)', async () => {
-      // Covers the providerModels.has(route.model) branch of the predicate for
-      // an auto-assigned route that carries no provider field.
-      const tiers: Partial<TierAssignment>[] = [
-        {
-          tier: 'complex',
-          override_route: null,
-          auto_assigned_route: { provider: '', authType: 'api_key', model: 'gpt-4o' },
           fallback_routes: null,
         },
       ];
@@ -267,8 +245,43 @@ describe('AgentProviderAccessController', () => {
         'my-agent',
         PROVIDER_ID,
       );
+      expect(result.affected_tiers).toEqual([]);
+    });
+
+    it('matches a fallback route only by cached model id (no route.provider)', async () => {
+      // Covers the providerModels.has(route.model) branch of the predicate for a
+      // route that carries no provider field.
+      const tiers: Partial<TierAssignment>[] = [
+        {
+          tier: 'complex',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: [{ provider: '', authType: 'api_key', model: 'gpt-4o' }],
+        },
+      ];
+      const { controller } = makeController({
+        userProviderRepo: {
+          findOne: jest.fn().mockResolvedValue({
+            id: PROVIDER_ID,
+            user_id: USER_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
+            cached_models: [{ id: 'gpt-4o' }],
+          } as Partial<UserProvider>),
+        },
+        tierRepo: {
+          find: jest.fn().mockResolvedValue(tiers),
+          save: jest.fn().mockResolvedValue(undefined),
+        },
+      });
+      const result = await controller.getDisableImpact(
+        { id: USER_ID } as never,
+        'my-agent',
+        PROVIDER_ID,
+      );
       expect(result.affected_tiers).toEqual([
-        { tier: 'complex', model: 'gpt-4o', position: 'auto-assigned' },
+        { tier: 'complex', model: 'gpt-4o', position: 'fallback 1' },
       ]);
     });
 
@@ -279,13 +292,10 @@ describe('AgentProviderAccessController', () => {
         {
           tier: 'simple',
           override_route: { provider: 'openai', authType: 'subscription', model: 'gpt-4o' },
-          auto_assigned_route: {
-            provider: 'openai',
-            authType: 'api_key',
-            model: 'gpt-4o',
-            keyLabel: 'Other',
-          },
-          fallback_routes: null,
+          auto_assigned_route: null,
+          fallback_routes: [
+            { provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'Other' },
+          ],
         },
       ];
       const { controller } = makeController({
@@ -409,7 +419,7 @@ describe('AgentProviderAccessController', () => {
       ).rejects.toBeInstanceOf(HttpException);
     });
 
-    it('inserts grant and recalculates tiers on success', async () => {
+    it('inserts grant and invalidates routing cache on success', async () => {
       const qb = {
         insert: jest.fn().mockReturnThis(),
         into: jest.fn().mockReturnThis(),
@@ -449,7 +459,7 @@ describe('AgentProviderAccessController', () => {
       ).rejects.toBeInstanceOf(HttpException);
     });
 
-    it('deletes access row and recalculates tiers when provider not found', async () => {
+    it('deletes access row and invalidates routing cache when provider not found', async () => {
       const { controller, accessRepo, providerService } = makeController();
 
       const result = await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
@@ -462,14 +472,13 @@ describe('AgentProviderAccessController', () => {
       expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
     });
 
-    it('clears affected tier routes and deletes access row', async () => {
+    it('throws conflict and leaves access enabled when a tier route uses the provider', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'standard',
         override_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
       const { controller, accessRepo, providerService } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
@@ -483,30 +492,26 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await expect(
+        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
+      ).rejects.toThrow(/assigned to this harness/);
 
-      expect(tierSave).toHaveBeenCalled();
-      expect(tier.override_route).toBeNull();
-      expect(accessRepo.delete).toHaveBeenCalledWith({
-        agent_id: AGENT_ID,
-        user_provider_id: PROVIDER_ID,
-      });
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
+      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
+      expect(tier.override_route).not.toBeNull();
     });
 
-    it('does not save tier if no models match', async () => {
+    it('deletes access row when no routes match the provider', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'standard',
         override_route: { provider: 'anthropic', authType: 'api_key', model: 'claude-3-5-sonnet' },
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo, providerService } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -519,26 +524,28 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      const result = await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      // Tier is unmodified so save should not be called
-      expect(tierSave).not.toHaveBeenCalled();
+      expect(result).toEqual({ ok: true });
+      expect(accessRepo.delete).toHaveBeenCalledWith({
+        agent_id: AGENT_ID,
+        user_provider_id: PROVIDER_ID,
+      });
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
+      expect(tier.override_route).not.toBeNull();
     });
 
-    it('handles non-array cached_models gracefully in disable (treats as empty, no crash)', async () => {
-      // Covers the Array.isArray(...) ? ... : [] else branch on line 146.
+    it('handles non-array cached_models gracefully while still matching explicit provider routes', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'standard',
         override_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -551,27 +558,25 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await expect(
+        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
+      ).rejects.toThrow(/assigned to this harness/);
 
-      // Route matched by provider name (no model set fallback needed); tier cleared.
-      expect(tier.override_route).toBeNull();
-      expect(tierSave).toHaveBeenCalled();
+      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(tier.override_route).not.toBeNull();
     });
 
-    it('skips disable route whose authType does not match (covers authType-mismatch return false in disable handler)', async () => {
-      // Covers line 155: authType mismatch early-return in the disable handler closure.
+    it('skips route whose authType does not match the disabled provider', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'simple',
         override_route: { provider: 'openai', authType: 'subscription', model: 'gpt-4o' },
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -584,27 +589,23 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
       await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      // Route not matched (authType mismatch) → tier unchanged → save not called.
-      expect(tierSave).not.toHaveBeenCalled();
+      expect(accessRepo.delete).toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
     });
 
-    it('clears auto_assigned_route when it matches the disabled provider by name/authType', async () => {
-      // Covers lines 172-173: auto_assigned_route = null; changed = true.
+    it('ignores matching auto_assigned_route when disabling provider access', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'standard',
         override_route: null,
         auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
         fallback_routes: null,
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -617,26 +618,23 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
       await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      expect(tier.auto_assigned_route).toBeNull();
-      expect(tierSave).toHaveBeenCalled();
+      expect(accessRepo.delete).toHaveBeenCalled();
+      expect(tier.auto_assigned_route).not.toBeNull();
     });
 
-    it('removes matching fallback routes (reduces to null when all removed)', async () => {
-      // Covers lines 178-179: tier.fallback_routes = null; changed = true.
+    it('throws conflict when a fallback route uses the provider', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'complex',
         override_route: null,
         auto_assigned_route: null,
         fallback_routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -649,18 +647,18 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await expect(
+        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
+      ).rejects.toThrow(/assigned to this harness/);
 
-      expect(tier.fallback_routes).toBeNull();
-      expect(tierSave).toHaveBeenCalled();
+      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(tier.fallback_routes).toHaveLength(1);
     });
 
-    it('skips disable route whose keyLabel does not match (covers keyLabel-mismatch return false in disable handler)', async () => {
-      // Covers line 157 in the disable handler's routeBelongsToDisabledProvider closure.
+    it('skips route whose keyLabel does not match the disabled provider', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'simple',
         override_route: {
@@ -672,8 +670,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -686,19 +683,16 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
       await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      // Route not matched → tier unchanged → save not called.
-      expect(tierSave).not.toHaveBeenCalled();
+      expect(accessRepo.delete).toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
     });
 
-    it('matches a fallback route by cached model id (no route.provider) in the disable handler', async () => {
-      // Covers line 161: providerModels.has(route.model) in the disable handler closure.
+    it('throws conflict for a fallback route matched by cached model id', async () => {
       const tier: Partial<TierAssignment> = {
         tier: 'complex',
         override_route: null,
@@ -708,8 +702,7 @@ describe('AgentProviderAccessController', () => {
           { provider: 'anthropic', authType: 'api_key', model: 'claude-3-5-sonnet' },
         ],
       };
-      const tierSave = jest.fn().mockResolvedValue(undefined);
-      const { controller } = makeController({
+      const { controller, accessRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -722,18 +715,15 @@ describe('AgentProviderAccessController', () => {
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
-          save: tierSave,
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await expect(
+        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
+      ).rejects.toThrow(/assigned to this harness/);
 
-      // The openai fallback matched by model id should be removed; anthropic stays.
-      expect(tier.fallback_routes).toHaveLength(1);
-      expect((tier.fallback_routes as NonNullable<typeof tier.fallback_routes>)[0].model).toBe(
-        'claude-3-5-sonnet',
-      );
-      expect(tierSave).toHaveBeenCalled();
+      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(tier.fallback_routes).toHaveLength(2);
     });
   });
 });

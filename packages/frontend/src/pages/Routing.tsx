@@ -296,7 +296,7 @@ const Routing: Component = () => {
     }
     if (pricingWarningShown()) return;
     setPricingWarningShown(true);
-    toast.warning('Model pricing data is unavailable. Automatic tier defaults may be delayed.');
+    toast.warning('Model pricing data is unavailable. Model cost details may be incomplete.');
   });
 
   const refetchAll = async () => {
@@ -428,7 +428,7 @@ const Routing: Component = () => {
     authType?: 'api_key' | 'subscription' | 'local',
   ) => {
     const assignment = specificityAssignments()?.find((a) => a.category === category);
-    const effective = assignment?.override_route ?? assignment?.auto_assigned_route ?? null;
+    const effective = assignment?.override_route ?? null;
     const model = effective?.model;
     if (!assignment || !model || !provider) return;
     setChangingSpecificity(category);
@@ -459,12 +459,7 @@ const Routing: Component = () => {
       />
 
       <div class="page-header routing-page-header">
-        <div>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Pick which model handles each type of
-            request
-          </span>
-        </div>
+        <span class="breadcrumb">Pick which model handles each type of request</span>
         <Show when={!connectedProviders.loading && !agentProviderAccess.loading}>
           <div style="display: flex; gap: 8px;">
             <Show when={isEnabled()}>

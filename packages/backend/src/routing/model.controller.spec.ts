@@ -1,5 +1,4 @@
 import { ModelController } from './model.controller';
-import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
@@ -32,7 +31,6 @@ function makeDiscovered(overrides: Partial<DiscoveredModel> = {}): DiscoveredMod
 
 describe('ModelController', () => {
   let controller: ModelController;
-  let mockProviderService: Record<string, jest.Mock>;
   let mockDiscoveryService: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
   let mockResolveAgent: Record<string, jest.Mock>;
@@ -44,9 +42,6 @@ describe('ModelController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockProviderService = {
-      recalculateTiers: jest.fn().mockResolvedValue(undefined),
-    };
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
       discoverAllForAgent: jest.fn().mockResolvedValue(undefined),
@@ -82,7 +77,6 @@ describe('ModelController', () => {
     };
 
     controller = new ModelController(
-      mockProviderService as unknown as ProviderService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
       mockOllamaSync as unknown as OllamaSyncService,
       mockResolveAgent as unknown as ResolveAgentService,
@@ -178,7 +172,7 @@ describe('ModelController', () => {
   describe('refreshProviderModels', () => {
     const mockParams = { agentName: 'test-agent', provider: 'anthropic' } as never;
 
-    it('returns the discovery result and recalculates tiers when ok', async () => {
+    it('returns the discovery result without changing routes when ok', async () => {
       mockDiscoveryService.refreshProvider.mockResolvedValue({
         ok: true,
         model_count: 7,
@@ -193,7 +187,6 @@ describe('ModelController', () => {
         'anthropic',
         undefined,
       );
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID, 'user-1');
       expect(result).toEqual({
         ok: true,
         model_count: 7,
@@ -211,7 +204,7 @@ describe('ModelController', () => {
       );
     });
 
-    it('skips tier recalculation when refresh failed', async () => {
+    it('returns the refresh error when refresh failed', async () => {
       mockDiscoveryService.refreshProvider.mockResolvedValue({
         ok: false,
         model_count: 0,
@@ -221,7 +214,6 @@ describe('ModelController', () => {
 
       const result = await controller.refreshProviderModels(mockUser, mockParams, {});
 
-      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result.ok).toBe(false);
       expect(result.error).toBe('Provider returned no models');
     });

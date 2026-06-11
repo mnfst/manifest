@@ -323,14 +323,14 @@ describe('RoutingTierCard', () => {
     expect(container.querySelector('.skeleton')).not.toBeNull();
   });
 
-  it('renders the auto tag when there is no override (auto assigned)', () => {
+  it('ignores a legacy auto_assigned_route when there is no override', () => {
     const tier = {
       ...baseTier,
       override_route: null,
       auto_assigned_route: { provider: 'openai', authType: 'api_key' as const, model: 'gpt-4o' },
     };
     const { container } = render(() => <RoutingTierCard {...makeProps({ tier: () => tier })} />);
-    expect(container.textContent).toContain('auto');
+    expect(container.querySelector('.routing-card__main')).toBeNull();
   });
 
   it('does NOT render the Reset button when there are no customizations', () => {
@@ -991,11 +991,15 @@ describe('RoutingTierCard', () => {
 
   it('matches an apiModel by the name-startsWith fallback in providerIdForModel', () => {
     // The helper is reached only when manualProviderId() (override_route.provider)
-    // is null/undefined. Use auto-assigned route only.
+    // is null/undefined.
     const tier: TierAssignment = {
       ...baseTier,
-      override_route: null,
-      auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+      override_route: {
+        provider: undefined as unknown as string,
+        authType: 'api_key',
+        model: 'gpt-4o',
+      },
+      auto_assigned_route: null,
     };
     const onlyMini: AvailableModel[] = [
       {
@@ -1019,18 +1023,22 @@ describe('RoutingTierCard', () => {
         })}
       />
     ));
-    // The chip renders via auto_assigned_route — label resolves through the
-    // startsWith match in apiModels, so we see the sibling display_name.
+    // The chip label resolves through the startsWith match in apiModels, so we
+    // see the sibling display_name.
     expect(container.querySelector('.routing-card__main')?.textContent).toBe('GPT-4o mini');
   });
 
   it('returns the dbId when prefix-inferred provider is not in PROVIDERS catalog', () => {
-    // With auto_assigned_route only and a model whose prefix doesn't infer
-    // any catalog id, the helper returns dbId (line 32).
+    // With a model whose prefix doesn't infer any catalog id, the helper
+    // returns dbId.
     const tier: TierAssignment = {
       ...baseTier,
-      override_route: null,
-      auto_assigned_route: { provider: 'mistral', authType: 'api_key', model: 'mistral-large' },
+      override_route: {
+        provider: undefined as unknown as string,
+        authType: 'api_key',
+        model: 'mistral-large',
+      },
+      auto_assigned_route: null,
     };
     const mistralModels: AvailableModel[] = [
       {
@@ -1053,14 +1061,17 @@ describe('RoutingTierCard', () => {
   });
 
   it('scans PROVIDERS catalog when neither apiModels nor inferProviderFromModel resolve', () => {
-    // With auto_assigned_route + a model NOT in apiModels and NOT inferred,
-    // the helper falls into its PROVIDERS scan loop (lines 36-47). The "qwen"
-    // catalog entry only matches via the catalog scan since its prefix isn't
-    // wired into inferProviderFromModel.
+    // With a model NOT in apiModels and NOT inferred, the helper falls into its
+    // PROVIDERS scan loop. The "qwen" catalog entry only matches via the
+    // catalog scan since its prefix isn't wired into inferProviderFromModel.
     const tier: TierAssignment = {
       ...baseTier,
-      override_route: null,
-      auto_assigned_route: { provider: 'qwen-cloud', authType: 'api_key', model: 'qwen2.5' },
+      override_route: {
+        provider: undefined as unknown as string,
+        authType: 'api_key',
+        model: 'qwen2.5',
+      },
+      auto_assigned_route: null,
     };
     const { container } = render(() => (
       <RoutingTierCard {...makeProps({ tier: () => tier, models: () => [] })} />
@@ -1072,8 +1083,12 @@ describe('RoutingTierCard', () => {
   it('returns undefined from providerIdForModel for completely unknown models', () => {
     const tier: TierAssignment = {
       ...baseTier,
-      override_route: null,
-      auto_assigned_route: { provider: 'unknown', authType: 'api_key', model: 'totally-unknown' },
+      override_route: {
+        provider: undefined as unknown as string,
+        authType: 'api_key',
+        model: 'totally-unknown',
+      },
+      auto_assigned_route: null,
     };
     const { container } = render(() => (
       <RoutingTierCard {...makeProps({ tier: () => tier, models: () => [] })} />
@@ -1113,8 +1128,12 @@ describe('RoutingTierCard', () => {
     // Use a model whose name doesn't start with gpt/claude → inferProviderFromModel returns undefined.
     const tier: TierAssignment = {
       ...baseTier,
-      override_route: null,
-      auto_assigned_route: { provider: 'mistral', authType: 'api_key', model: 'mistral-small' },
+      override_route: {
+        provider: undefined as unknown as string,
+        authType: 'api_key',
+        model: 'mistral-small',
+      },
+      auto_assigned_route: null,
     };
     const mistralModels: AvailableModel[] = [
       {
@@ -1178,11 +1197,15 @@ describe('RoutingTierCard', () => {
   });
 
   it('infers Ollama provider for Ollama-resolved DB models', () => {
-    // dbId === "ollama" short-circuit (line 29 of helper).
+    // dbId === "ollama" short-circuit.
     const tier: TierAssignment = {
       ...baseTier,
-      override_route: null,
-      auto_assigned_route: { provider: 'ollama', authType: 'local', model: 'llama3' },
+      override_route: {
+        provider: undefined as unknown as string,
+        authType: 'local',
+        model: 'llama3',
+      },
+      auto_assigned_route: null,
     };
     const ollamaModels: AvailableModel[] = [
       {

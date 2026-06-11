@@ -160,23 +160,17 @@ export class ProviderKeyService {
 
   async getEffectiveModel(userId: string, assignment: TierAssignment): Promise<string | null> {
     const overrideModel = assignment.override_route?.model ?? null;
-    const autoModel = assignment.auto_assigned_route?.model ?? null;
 
     if (overrideModel !== null) {
       if (await this.isModelAvailable(userId, overrideModel)) {
         return overrideModel;
       }
       this.logger.warn(
-        `Override ${overrideModel} falling through to auto ` +
-          `for user=${userId} tier=${assignment.tier} (auto=${autoModel})`,
+        `Override ${overrideModel} unavailable for user=${userId} tier=${assignment.tier}`,
       );
     }
 
-    if (autoModel === null) {
-      this.logger.warn(`auto_assigned_route is null for user=${userId} tier=${assignment.tier}`);
-    }
-
-    return autoModel;
+    return null;
   }
 
   private async resolveProviderKeys(

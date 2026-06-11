@@ -207,7 +207,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
                 // (matched on the full route tuple — same model on a different
                 // (provider, auth) is intentionally NOT filtered).
                 const tier = props.getTier(tierId());
-                const primaryRoute = tier?.override_route ?? tier?.auto_assigned_route ?? null;
+                const primaryRoute = tier?.override_route ?? null;
                 if (
                   primaryRoute &&
                   primaryRoute.model === m.model_name &&
