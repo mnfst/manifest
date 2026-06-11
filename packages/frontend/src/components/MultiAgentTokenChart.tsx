@@ -1,6 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
+import '../styles/agent-chart-tooltip.css';
 import { getHslA } from '../services/theme.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import {
