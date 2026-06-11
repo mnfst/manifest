@@ -5,13 +5,12 @@ import {
   createMemo,
   createResource,
   createSignal,
-  For,
   on,
-  onCleanup,
   Show,
   type Component,
 } from 'solid-js';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -231,23 +230,6 @@ const Overview: Component = () => {
     return new Set();
   };
   const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(loadSavedProviders());
-  const [providerFilterOpen, setProviderFilterOpen] = createSignal(false);
-  let providerFilterRef: HTMLDivElement | undefined;
-  if (typeof document !== 'undefined') {
-    const onClickOutside = (e: MouseEvent) => {
-      if (providerFilterRef && !providerFilterRef.contains(e.target as Node))
-        setProviderFilterOpen(false);
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setProviderFilterOpen(false);
-    };
-    document.addEventListener('click', onClickOutside);
-    document.addEventListener('keydown', onKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', onClickOutside);
-      document.removeEventListener('keydown', onKeyDown);
-    });
-  }
 
   const tsKey = () => ({ range: range(), agent: params.agentName, _ping: messagePing() });
   const [providerTokenTs] = createResource(
@@ -284,8 +266,6 @@ const Overview: Component = () => {
     if (sel.size === 0 && allProviders().length > 0) return new Set(allProviders());
     return sel;
   };
-  const selectedProviderCount = () => effectiveSelected().size;
-
   const persistProviders = (next: Set<string>) => {
     setSelectedProviders(next);
     try {
@@ -337,91 +317,16 @@ const Overview: Component = () => {
       <div class="page-header" style="justify-content: flex-end;">
         <div class="header-controls">
           <Show when={showDashboard() && allProviders().length > 1}>
-            <div class="agent-filter-select" ref={providerFilterRef}>
-              <button
-                class="agent-filter-select__trigger"
-                onClick={() => setProviderFilterOpen(!providerFilterOpen())}
-                type="button"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                </svg>
-                {selectedProviderCount() === allProviders().length
-                  ? `All providers (${allProviders().length})`
-                  : `${selectedProviderCount()} of ${allProviders().length} providers`}
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-              <Show when={providerFilterOpen()}>
-                <div class="agent-filter-select__dropdown">
-                  <div class="agent-filter-select__actions">
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedProviderCount() === allProviders().length}
-                      onClick={() => setAllProviders(true)}
-                    >
-                      Select all
-                    </button>
-                    <button
-                      class="agent-filter-select__action-btn"
-                      type="button"
-                      disabled={selectedProviderCount() === 0}
-                      onClick={() => setAllProviders(false)}
-                    >
-                      Unselect all
-                    </button>
-                  </div>
-                  <For each={allProviders()}>
-                    {(provider) => {
-                      const isOn = () => effectiveSelected().has(provider);
-                      return (
-                        <button
-                          class="agent-filter-select__item"
-                          onClick={() => toggleProvider(provider)}
-                          type="button"
-                        >
-                          <span
-                            class="agent-filter-select__swatch"
-                            style={{ background: providerColorMap()[provider] }}
-                          />
-                          <span class="agent-filter-select__name">
-                            {providerDisplayName(provider)}
-                          </span>
-                          <span
-                            class="agent-filter-select__toggle"
-                            classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                          >
-                            <span class="agent-filter-select__toggle-thumb" />
-                          </span>
-                        </button>
-                      );
-                    }}
-                  </For>
-                </div>
-              </Show>
-            </div>
+            <FilterSelect
+              noun="providers"
+              items={allProviders()}
+              selected={effectiveSelected()}
+              colorMap={providerColorMap()}
+              displayName={providerDisplayName}
+              onToggle={toggleProvider}
+              onSelectAll={() => setAllProviders(true)}
+              onUnselectAll={() => setAllProviders(false)}
+            />
           </Show>
           <Show when={showDashboard()}>
             <Select
