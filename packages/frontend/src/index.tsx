@@ -73,7 +73,7 @@ render(
           <Route path="/harnesses" component={Workspace} />
           <Route path="/playground" component={Playground} />
           <Route path="/providers/subscriptions" component={Subscriptions} />
-          <Route path="/providers/byok" component={Byok} />
+          <Route path="/providers/usage-based" component={Byok} />
           <Route path="/providers/local" component={LocalProviders} />
           <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
           <Route path="/harnesses/:agentName" component={AgentGuard}>

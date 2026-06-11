@@ -53,7 +53,7 @@ const AUTH_TYPE_LABELS: Record<string, string> = {
 
 const BACK_LINKS: Record<string, string> = {
   subscription: '/providers/subscriptions',
-  api_key: '/providers/byok',
+  api_key: '/providers/usage-based',
   local: '/providers/local',
 };
 

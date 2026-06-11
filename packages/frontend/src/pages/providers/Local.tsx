@@ -13,7 +13,7 @@ const LocalProviders: Component = () => {
   const [selfHosted] = createResource(checkIsSelfHosted);
   return (
     <Show when={selfHosted() !== undefined}>
-      <Show when={selfHosted()} fallback={<Navigate href="/providers/byok" />}>
+      <Show when={selfHosted()} fallback={<Navigate href="/providers/usage-based" />}>
         <ProviderConnectionsPage kind="local" />
       </Show>
     </Show>

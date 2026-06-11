@@ -84,7 +84,8 @@ const Header: Component<HeaderProps> = (props) => {
     if (p.startsWith('/providers/subscriptions')) {
       return `${DOCS_BASE_URL}/providers/subscription-based-providers`;
     }
-    if (p.startsWith('/providers/byok')) return `${DOCS_BASE_URL}/providers/api-key-providers`;
+    if (p.startsWith('/providers/usage-based'))
+      return `${DOCS_BASE_URL}/providers/api-key-providers`;
     if (p.startsWith('/providers/local')) return `${DOCS_BASE_URL}/providers/local-models`;
     if (p.includes('/providers')) return `${DOCS_BASE_URL}/providers/api-key-providers`;
     return `${DOCS_BASE_URL}/introduction`;

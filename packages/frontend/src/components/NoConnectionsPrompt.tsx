@@ -58,7 +58,7 @@ const CARDS = [
   },
   {
     title: 'Usage-based',
-    href: '/providers/byok',
+    href: '/providers/usage-based',
     description: 'Connect providers you pay per token or per usage with your own API keys.',
     icon: <ApiKeyIcon />,
   },

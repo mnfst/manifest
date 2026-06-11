@@ -101,10 +101,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
         Subscriptions
       </A>
       <A
-        href="/providers/byok"
+        href="/providers/usage-based"
         class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/byok') }}
-        aria-current={isGlobalActive('/providers/byok') ? 'page' : undefined}
+        classList={{ active: isGlobalActive('/providers/usage-based') }}
+        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
       >
         Usage-based
       </A>

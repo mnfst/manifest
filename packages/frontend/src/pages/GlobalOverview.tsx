@@ -663,7 +663,7 @@ const GlobalOverview: Component = () => {
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Usage-based</span>
                   <A
-                    href="/providers/byok"
+                    href="/providers/usage-based"
                     class="btn btn--outline btn--sm"
                     style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                   >
@@ -716,7 +716,7 @@ const GlobalOverview: Component = () => {
                   </For>
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                  <A href="/providers/byok" class="view-more-link">
+                  <A href="/providers/usage-based" class="view-more-link">
                     View more
                   </A>
                 </div>
