@@ -61,18 +61,6 @@ vi.mock('../../src/services/setup-status.js', () => ({
   checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
-vi.mock('../../src/components/CostChart.jsx', () => ({
-  default: () => <div data-testid="cost-chart" />,
-}));
-
-vi.mock('../../src/components/TokenChart.jsx', () => ({
-  default: () => <div data-testid="token-chart" />,
-}));
-
-vi.mock('../../src/components/SingleTokenChart.jsx', () => ({
-  default: () => <div data-testid="single-token-chart" />,
-}));
-
 // The per-agent Overview renders ProviderChartCard → MultiAgentTokenChart and
 // fetches three per-provider timeseries. Stub the chart to a marker exposing
 // its series, and the API to a controllable resolver.
