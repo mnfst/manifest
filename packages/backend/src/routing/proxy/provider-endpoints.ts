@@ -112,6 +112,7 @@ const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
+const GITLAWB_GATEWAY_BASE = 'https://opengateway.gitlawb.com';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -436,6 +437,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: (model: string) => `/v1/models/${model}:generateContent`,
     format: 'google',
+  },
+  // gitlawb Opengateway — OpenAI-compatible aggregator that routes to
+  // Xiaomi, Google, MiniMax, Qwen, and others. Same shape as Kilo:
+  // users send `gitlawb/<vendor>/<model>` (or the gateway's own short
+  // aliases like `mimo-v2.5-pro`), the proxy strips the `gitlawb/`
+  // prefix and forwards the rest to the gateway.
+  gitlawb: {
+    baseUrl: GITLAWB_GATEWAY_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
   },
 };
 
