@@ -426,6 +426,93 @@ describe('ProviderClient', () => {
       expect((anthropicBody.tools[1] as Record<string, unknown>).cache_control).toBeUndefined();
     });
 
+    it('strips thinking blocks when Anthropic Messages passthrough routes to a different model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const anthropicBody = {
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1024,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+        messages: [
+          { role: 'user', content: 'hello' },
+          {
+            role: 'assistant',
+            content: [
+              { type: 'thinking', thinking: 'reasoning', signature: 'sig_abc' },
+              { type: 'redacted_thinking', data: 'opaque' },
+              { type: 'tool_use', id: 'toolu_1', name: 'foo', input: {} },
+            ],
+          },
+          {
+            role: 'user',
+            content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'ok' }],
+          },
+        ],
+      };
+
+      // Route to a different model than the one in the request body
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-opus-4-8',
+        body: anthropicBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Top-level thinking should be stripped
+      expect(sent).not.toHaveProperty('thinking');
+      // Assistant message should have thinking blocks removed
+      const assistantContent = sent.messages[1].content;
+      expect(assistantContent).toEqual([
+        { type: 'tool_use', id: 'toolu_1', name: 'foo', input: {} },
+      ]);
+      // Model should be the routed-to model
+      expect(sent.model).toBe('claude-opus-4-8');
+      // Original body should not be mutated
+      expect(anthropicBody.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
+      const origContent = (anthropicBody.messages[1] as Record<string, unknown>).content as Array<
+        Record<string, unknown>
+      >;
+      expect(origContent).toHaveLength(3);
+    });
+
+    it('preserves thinking blocks when Anthropic Messages passthrough routes to the same model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const anthropicBody = {
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1024,
+        thinking: { type: 'enabled', budget_tokens: 4096 },
+        messages: [
+          {
+            role: 'assistant',
+            content: [
+              { type: 'thinking', thinking: 'reasoning', signature: 'sig_abc' },
+              { type: 'tool_use', id: 'toolu_1', name: 'foo', input: {} },
+            ],
+          },
+        ],
+      };
+
+      // Same model as the request body
+      await client.forward({
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+        model: 'claude-sonnet-4-5-20250929',
+        body: anthropicBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
+      // Thinking blocks should survive when model hasn't changed
+      expect(sent.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
+      expect(sent.messages[0].content).toHaveLength(2);
+      expect(sent.messages[0].content[0].type).toBe('thinking');
+    });
+
     it('still uses toAnthropicRequest for chat_completions inbound forwarded to an Anthropic upstream', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

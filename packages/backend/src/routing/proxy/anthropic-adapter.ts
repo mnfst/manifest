@@ -244,6 +244,13 @@ export interface AnthropicRequestOptions {
   injectSubscriptionIdentity?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
   thinkingLookup?: ThinkingBlockLookup;
+  /**
+   * Strip signed thinking blocks from native Messages payloads. Anthropic
+   * validates thinking signatures against the model that produced them, so
+   * forwarding a native Messages conversation to a different routed model can
+   * otherwise fail with `Invalid signature in thinking block`.
+   */
+  stripThinkingBlocks?: boolean;
 }
 
 export function toAnthropicRequest(
@@ -365,6 +372,24 @@ export function applyAnthropicMessagesMutations(
   // Strip fields that Anthropic rejects under the standard version header.
   for (const key of ANTHROPIC_UNSUPPORTED_FIELDS) {
     delete result[key];
+  }
+
+  // When routing to a different Anthropic model than the client requested,
+  // signed thinking blocks from prior turns carry signatures that are only
+  // valid for the original model.  Remove them so the upstream doesn't reject
+  // with `Invalid signature in thinking block`.  Also remove the top-level
+  // `thinking` parameter so Anthropic doesn't require signed blocks in
+  // previous assistant turns.
+  if (options?.stripThinkingBlocks && Array.isArray(result.messages)) {
+    result.messages = (result.messages as Array<Record<string, unknown>>).map((m) => {
+      if (m.role !== 'assistant' || !Array.isArray(m.content)) return m;
+      const content = m.content as ContentBlock[];
+      const filtered = content.filter(
+        (b) => b.type !== 'thinking' && b.type !== 'redacted_thinking',
+      );
+      return filtered.length === content.length ? m : { ...m, content: filtered };
+    });
+    delete result.thinking;
   }
 
   // Normalize `system` to a content-block array so cache_control + identity

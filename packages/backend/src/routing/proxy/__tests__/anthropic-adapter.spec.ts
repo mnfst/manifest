@@ -2319,6 +2319,88 @@ describe('Anthropic Adapter', () => {
         messages: [{ role: 'user', content: 'hi' }],
       });
     });
+
+    describe('stripThinkingBlocks', () => {
+      it('removes thinking and redacted_thinking blocks from assistant messages', () => {
+        const result = applyAnthropicMessagesMutations(
+          {
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1024,
+            thinking: { type: 'enabled', budget_tokens: 4096 },
+            messages: [
+              { role: 'user', content: 'hello' },
+              {
+                role: 'assistant',
+                content: [
+                  { type: 'thinking', thinking: 'reasoning', signature: 'sig_abc' },
+                  { type: 'redacted_thinking', data: 'opaque' },
+                  { type: 'tool_use', id: 'toolu_1', name: 'foo', input: {} },
+                ],
+              },
+              {
+                role: 'user',
+                content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'ok' }],
+              },
+            ],
+          },
+          { stripThinkingBlocks: true },
+        );
+        expect(result).not.toHaveProperty('thinking');
+        const messages = result.messages as Array<Record<string, unknown>>;
+        // Assistant message should only have tool_use, no thinking blocks
+        const assistantContent = messages[1].content as Array<Record<string, unknown>>;
+        expect(assistantContent).toEqual([
+          { type: 'tool_use', id: 'toolu_1', name: 'foo', input: {} },
+        ]);
+        // User messages should be untouched
+        expect(messages[0]).toEqual({ role: 'user', content: 'hello' });
+      });
+
+      it('does not strip thinking blocks when stripThinkingBlocks is false/omitted', () => {
+        const result = applyAnthropicMessagesMutations({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          thinking: { type: 'enabled', budget_tokens: 4096 },
+          messages: [
+            {
+              role: 'assistant',
+              content: [
+                { type: 'thinking', thinking: 'reasoning', signature: 'sig_abc' },
+                { type: 'tool_use', id: 'toolu_1', name: 'foo', input: {} },
+              ],
+            },
+          ],
+        });
+        expect(result).toHaveProperty('thinking');
+        const messages = result.messages as Array<Record<string, unknown>>;
+        const content = messages[0].content as Array<Record<string, unknown>>;
+        expect(content).toHaveLength(2);
+        expect(content[0].type).toBe('thinking');
+      });
+
+      it('does not mutate the original body', () => {
+        const body = {
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          thinking: { type: 'enabled', budget_tokens: 4096 },
+          messages: [
+            {
+              role: 'assistant' as const,
+              content: [
+                { type: 'thinking', thinking: 'r', signature: 's' },
+                { type: 'text', text: 'hi' },
+              ],
+            },
+          ],
+        };
+        applyAnthropicMessagesMutations(body, { stripThinkingBlocks: true });
+        // Original body should still have thinking blocks and thinking param
+        expect(body.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
+        const originalContent = body.messages[0].content as Array<Record<string, unknown>>;
+        expect(originalContent).toHaveLength(2);
+        expect(originalContent[0].type).toBe('thinking');
+      });
+    });
   });
 
   describe('extractThinkingBlocksFromMessagesResponse', () => {
