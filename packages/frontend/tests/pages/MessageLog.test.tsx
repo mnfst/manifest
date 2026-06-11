@@ -1,11 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 
 let mockAgentName = "test-agent";
-let mockSearchParams: { agent?: string } = {};
+let mockSearchParams: Record<string, string | undefined> = {};
+let mockSearchAgentAccessor: (() => string | undefined) | null = null;
 const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
+  useSearchParams: () => [
+    {
+      get agent() {
+        return mockSearchAgentAccessor ? mockSearchAgentAccessor() : mockSearchParams.agent;
+      },
+    },
+    vi.fn(),
+  ],
   useNavigate: () => mockNavigate,
   useSearchParams: () => [mockSearchParams, vi.fn()],
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
@@ -137,6 +147,7 @@ describe("MessageLog", () => {
     localStorage.clear();
     mockAgentName = "test-agent";
     mockSearchParams = {};
+    mockSearchAgentAccessor = null;
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }, { agent_name: "agent-beta" }] });
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
@@ -656,6 +667,24 @@ describe("MessageLog", () => {
         expect(container.textContent).toContain("my-llama");
         expect(container.textContent).not.toContain("custom:abc-123/");
       });
+    });
+
+    it("resolves custom provider name + icon in global mode via the first agent", async () => {
+      // Global ("All harnesses") log has no route agent. Custom providers are
+      // user-global, so the resource must fall back to the first agent —
+      // otherwise the source is undefined, the fetcher never runs, and
+      // custom:<uuid> models render as `custom:Custom/…` with no provider icon.
+      mockAgentName = undefined;
+      mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }] });
+      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
+      mockGetMessages.mockResolvedValue(customMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
+        expect(container.textContent).not.toContain("custom:abc-123/");
+      });
+      // Resolved via the first available agent, not an undefined route param.
+      expect(mockGetCustomProviders).toHaveBeenCalledWith("agent-alpha");
     });
   });
 
@@ -1386,6 +1415,42 @@ describe("MessageLog", () => {
       });
     });
 
+    it("pre-seeds the agent filter from the ?agent= query param (View more deep-link)", async () => {
+      mockAgentName = "";
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-beta");
+      });
+    });
+
+    it("updates the agent filter when the ?agent= query param changes", async () => {
+      mockAgentName = "";
+      const [searchAgent, setSearchAgent] = createSignal<string | undefined>();
+      mockSearchAgentAccessor = searchAgent;
+      mockGetMessages.mockResolvedValue(messagesData);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-beta");
+      });
+
+      mockGetMessages.mockClear();
+      setSearchAgent("agent-beta");
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-beta");
+      });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      expect(agentSelect.value).toBe("agent-beta");
+    });
+
     it("omits agent_name query param when 'All harnesses' is selected", async () => {
       mockAgentName = "";
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1549,6 +1614,28 @@ describe("MessageLog", () => {
       await vi.waitFor(() => {
         expect(container.textContent).toContain("alpha-bot");
         expect(container.textContent).toContain("beta-bot");
+      });
+    });
+
+    it("renders harness platform icons in global Harness column cells", async () => {
+      mockAgentName = "";
+      mockGetAgents.mockResolvedValue({
+        agents: [
+          {
+            agent_name: "alpha-bot",
+            agent_platform: "openclaw",
+            agent_category: "personal",
+          },
+        ],
+      });
+      mockGetMessages.mockResolvedValue({
+        ...messagesData,
+        items: [{ ...messagesData.items[0], agent_name: "alpha-bot" }],
+      });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("alpha-bot");
+        expect(container.querySelector('td img[src="/icons/openclaw.png"]')).not.toBeNull();
       });
     });
   });

@@ -9,8 +9,10 @@ import {
 } from '../services/api.js';
 import { getProviders as getGlobalProviders } from '../services/api/providers.js';
 import { PROVIDERS } from '../services/providers.js';
+import { toast } from '../services/toast-store.js';
 import { customProviderColor } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
 import '../styles/routing.css';
 
 const AUTH_BADGES: Record<string, string> = {
@@ -73,10 +75,6 @@ const AgentProviders: Component = () => {
   };
 
   const [busy, setBusy] = createSignal<string | null>(null);
-  const [confirmTarget, setConfirmTarget] = createSignal<AgentProviderConnection | null>(null);
-  const [impactTiers, setImpactTiers] = createSignal<
-    Array<{ tier: string; model: string; position: string }>
-  >([]);
 
   const isEnabled = (userProviderId: string) => access()?.has(userProviderId) ?? false;
 
@@ -91,14 +89,6 @@ const AgentProviders: Component = () => {
     return providerId;
   };
 
-  const loadImpact = async (userProviderId: string) => {
-    try {
-      return (await getAgentProviderDisableImpact(agentName(), userProviderId)).affected_tiers;
-    } catch {
-      return [];
-    }
-  };
-
   const enableConnection = async (userProviderId: string) => {
     setBusy(userProviderId);
     try {
@@ -111,49 +101,54 @@ const AgentProviders: Component = () => {
     }
   };
 
-  const disableConnection = async (userProviderId: string) => {
-    setBusy(userProviderId);
-    try {
-      await disableAgentProviderAccess(agentName(), userProviderId);
-      await refetchAccess();
-    } catch {
-      // fetchMutate already surfaces the toast.
-    } finally {
-      setBusy(null);
-      setConfirmTarget(null);
-      setImpactTiers([]);
-    }
-  };
-
   const handleToggle = async (connection: AgentProviderConnection) => {
     if (!isEnabled(connection.userProviderId)) {
       await enableConnection(connection.userProviderId);
       return;
     }
-    setImpactTiers(await loadImpact(connection.userProviderId));
-    setConfirmTarget(connection);
+
+    setBusy(connection.userProviderId);
+
+    // A provider whose models are wired into this harness's routing can't be
+    // disabled — that would silently strip live tier assignments. Block it with
+    // an error and tell the user to update routing first, rather than removing
+    // the assignments for them.
+    let affectedTiers: Array<{ tier: string; model: string; position: string }>;
+    try {
+      affectedTiers = (await getAgentProviderDisableImpact(agentName(), connection.userProviderId))
+        .affected_tiers;
+    } catch {
+      setBusy(null);
+      toast.error("Couldn't check this provider's routing impact. Please try again.");
+      return;
+    }
+
+    if (affectedTiers.length > 0) {
+      setBusy(null);
+      toast.error(
+        `Can't disable ${providerName(connection.provider)}. Its models are assigned to this harness's routing. Update routing to stop using them first.`,
+      );
+      return;
+    }
+
+    try {
+      await disableAgentProviderAccess(agentName(), connection.userProviderId);
+      await refetchAccess();
+    } catch {
+      // fetchMutate already surfaces the toast.
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
     <div>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
-        Enable the global provider connections this harness may use. Turning a provider off removes
-        routing assignments that depend on its models.
+        Enable the global provider connections this harness may use. A provider can't be turned off
+        while its models are assigned to this harness's routing. Update routing first to remove it.
       </p>
 
-      <Show
-        when={connections().length > 0}
-        fallback={
-          <div style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 48px 24px; gap: 8px; width: 100%; background: hsl(var(--muted) / 0.45); border-radius: var(--radius);">
-            <p style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin: 0;">
-              No providers connected
-            </p>
-            <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin: 0;">
-              Connect providers in the Subscriptions, BYOK, or Local pages first.
-            </p>
-          </div>
-        }
-      >
+      <Show when={connections().length > 0} fallback={<NoConnectionsPrompt />}>
         <div class="panel" style="padding: 0; overflow-x: auto;">
           <table class="data-table" style="min-width: 600px; table-layout: fixed;">
             <colgroup>
@@ -238,67 +233,6 @@ const AgentProviders: Component = () => {
             </tbody>
           </table>
         </div>
-      </Show>
-
-      <Show when={confirmTarget()}>
-        {(target) => (
-          <div
-            class="modal-overlay"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setConfirmTarget(null);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') setConfirmTarget(null);
-              if (event.key === 'Enter') void disableConnection(target().userProviderId);
-            }}
-          >
-            <div
-              class="modal-card"
-              style="max-width: 440px;"
-              role="dialog"
-              aria-modal="true"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <h2 class="modal-card__title">Disable provider</h2>
-              <p class="modal-card__desc">
-                This harness will no longer route requests through{' '}
-                <strong style="color: hsl(var(--foreground));">
-                  {providerName(target().provider)}
-                </strong>
-                . You can re-enable it later.
-              </p>
-              <Show when={impactTiers().length > 0}>
-                <div style="margin-top: 12px; padding: 12px; background: hsl(var(--muted) / 0.45); border-radius: var(--radius); font-size: var(--font-size-sm);">
-                  <p style="margin: 0 0 8px; font-weight: 600; color: hsl(var(--foreground));">
-                    The following routing assignments will be removed:
-                  </p>
-                  <For each={impactTiers()}>
-                    {(item) => (
-                      <div style="display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; color: hsl(var(--muted-foreground));">
-                        <span>
-                          {item.tier} - {item.position}
-                        </span>
-                        <span style="font-family: monospace;">{item.model}</span>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              </Show>
-              <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
-                <button class="btn btn--ghost btn--sm" onClick={() => setConfirmTarget(null)}>
-                  Keep enabled
-                </button>
-                <button
-                  class="btn btn--primary btn--sm"
-                  disabled={busy() === target().userProviderId}
-                  onClick={() => void disableConnection(target().userProviderId)}
-                >
-                  Disable
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </Show>
     </div>
   );

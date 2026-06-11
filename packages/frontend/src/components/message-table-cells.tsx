@@ -21,6 +21,7 @@ import { PROVIDERS } from '../services/providers.js';
 import { getModelDisplayName } from '../services/model-display.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.jsx';
 import { authBadgeFor, authLabel } from './AuthBadge.js';
+import { platformIcon } from 'manifest-shared';
 
 const MONO = 'font-family: var(--font-mono);';
 const MONO_XS =
@@ -277,7 +278,7 @@ export function ModelCell(item: MessageRow, onOpenRecording?: (id: string) => vo
             role="img"
             aria-label={`${provName ?? provId} (${authLabel(item.auth_type)})`}
             title={`${provName ?? provId} (${authLabel(item.auth_type)})`}
-            style="display: inline-flex; flex-shrink: 0; position: relative; color: hsl(var(--foreground));"
+            style="display: inline-flex; flex-shrink: 0; position: relative; color: hsl(var(--foreground)); width: 14px; height: 14px;"
           >
             {providerIcon(provId, 14)}
             {authBadgeFor(item.auth_type, 8)}
@@ -344,8 +345,26 @@ export function DurationCell(item: MessageRow): JSX.Element {
   );
 }
 
-export function AgentCell(item: MessageRow): JSX.Element {
-  return <td>{item.agent_name ?? '—'}</td>;
+export function AgentCell(
+  item: MessageRow,
+  platformLookup?: (
+    name: string,
+  ) => { platform: string | null; category: string | null } | undefined,
+): JSX.Element {
+  const icon = () => {
+    const info = item.agent_name && platformLookup ? platformLookup(item.agent_name) : undefined;
+    return info?.platform ? platformIcon(info.platform, info.category) : undefined;
+  };
+  return (
+    <td style="white-space: nowrap; font-weight: 500; font-size: var(--font-size-xs);">
+      <span style="display: inline-flex; align-items: center; gap: 5px;">
+        <Show when={icon()}>
+          {(src) => <img src={src()} alt="" width="14" height="14" style="flex-shrink: 0;" />}
+        </Show>
+        {item.agent_name ?? '\u2014'}
+      </span>
+    </td>
+  );
 }
 
 export function StatusCell(
@@ -451,6 +470,10 @@ export function FeedbackCell(
 
 export interface CellRenderContext {
   agentName?: string;
+  customProviderName: (model: string) => string | undefined;
+  agentPlatformLookup?: (
+    name: string,
+  ) => { platform: string | null; category: string | null } | undefined;
   onFallbackErrorClick?: (model: string) => void;
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
@@ -492,6 +515,6 @@ export function renderCell(
         ctx.onFeedbackClear ?? (() => {}),
       );
     case 'agent':
-      return AgentCell(item);
+      return AgentCell(item, ctx.agentPlatformLookup);
   }
 }

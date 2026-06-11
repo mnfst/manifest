@@ -122,20 +122,17 @@ const Limits: Component = () => {
   };
 
   return (
-    <div class="container--sm">
+    <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Limits - Manifest</Title>
       <Meta
         name="description"
         content={`Configure limits and alerts for ${agentDisplayName() ?? agentName()}.`}
       />
 
-      <div class="page-header">
-        <div>
-          <span class="breadcrumb">
-            {agentDisplayName() ?? agentName()} &rsaquo; Get notified or block requests when token
-            or cost thresholds are exceeded
-          </span>
-        </div>
+      <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
+        <span class="breadcrumb">
+          Get notified or block requests when token or cost thresholds are exceeded
+        </span>
         <button
           class="btn btn--primary btn--sm"
           onClick={() => {

@@ -5,6 +5,14 @@ import { authClient } from '../services/auth-client.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
+import {
+  connectionBreadcrumbName,
+  connectionBreadcrumbProviderId,
+  connectionBreadcrumbLabel,
+  connectionBreadcrumbBackLink,
+  connectionBreadcrumbBackLabel,
+} from '../services/connection-breadcrumb-store.js';
+import { providerIcon } from './ProviderIcon.jsx';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
 
 const GITHUB_REPO = 'mnfst/manifest';
@@ -12,6 +20,7 @@ const STAR_DISMISSED_KEY = 'github-star-dismissed';
 const STAR_CACHE_KEY = 'github-star-count';
 const STAR_CACHE_TS_KEY = 'github-star-ts';
 const STAR_CACHE_TTL = 3600000; // 1 hour
+const DOCS_BASE_URL = 'https://manifest.build/docs';
 
 interface HeaderProps {
   showMobileNavToggle?: boolean;
@@ -70,9 +79,15 @@ const Header: Component<HeaderProps> = (props) => {
   const effectiveName = () => user()?.name ?? 'User';
   const docsUrl = () => {
     const p = location.pathname;
-    if (p.includes('/limits')) return 'https://manifest.build/docs/set-limits';
-    if (p.includes('/routing')) return 'https://manifest.build/docs/routing';
-    return 'https://manifest.build/docs/introduction';
+    if (p.includes('/guardrails') || p.includes('/limits')) return `${DOCS_BASE_URL}/set-limits`;
+    if (p.includes('/routing')) return `${DOCS_BASE_URL}/routing`;
+    if (p.startsWith('/providers/subscriptions')) {
+      return `${DOCS_BASE_URL}/providers/subscription-based-providers`;
+    }
+    if (p.startsWith('/providers/byok')) return `${DOCS_BASE_URL}/providers/api-key-providers`;
+    if (p.startsWith('/providers/local')) return `${DOCS_BASE_URL}/providers/local-models`;
+    if (p.includes('/providers')) return `${DOCS_BASE_URL}/providers/api-key-providers`;
+    return `${DOCS_BASE_URL}/introduction`;
   };
 
   const initials = () => {
@@ -134,8 +149,11 @@ const Header: Component<HeaderProps> = (props) => {
         )}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A href="/harnesses" class="header__breadcrumb-link">
-            Workspace
+          <A
+            href="/harnesses"
+            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
+          >
+            Harnesses
           </A>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">
@@ -216,6 +234,29 @@ const Header: Component<HeaderProps> = (props) => {
                 </div>
               </Show>
             </div>
+          </span>
+        </Show>
+        <Show when={!getAgentName() && connectionBreadcrumbName()}>
+          <span class="header__separator">/</span>
+          <A
+            href={connectionBreadcrumbBackLink()}
+            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
+          >
+            {connectionBreadcrumbBackLabel()}
+          </A>
+          <span class="header__separator">/</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground));">
+            <Show when={connectionBreadcrumbProviderId()}>
+              <span style="display: inline-flex; align-items: center; flex-shrink: 0;">
+                {providerIcon(connectionBreadcrumbProviderId()!, 14)}
+              </span>
+            </Show>
+            {connectionBreadcrumbName()}
+            <Show when={connectionBreadcrumbLabel()}>
+              <span style="color: hsl(var(--muted-foreground)); font-weight: 400;">
+                {connectionBreadcrumbLabel()}
+              </span>
+            </Show>
           </span>
         </Show>
       </div>

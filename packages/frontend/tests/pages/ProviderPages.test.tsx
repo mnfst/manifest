@@ -9,8 +9,10 @@ const mockGetAgentProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockProviderSelectModal = vi.fn();
 
+const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
   useSearchParams: () => [mockSearchParams, mockSetSearchParams],
+  useNavigate: () => mockNavigate,
   Navigate: (props: { href: string }) => <div data-testid="navigate" data-href={props.href} />,
 }));
 
@@ -54,6 +56,7 @@ vi.mock('../../src/services/providers.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   customProviderColor: () => '#654321',
   formatNumber: (value: number) => String(value),
+  formatCost: (value: number) => `$${value.toFixed(2)}`,
   formatTimeAgo: () => 'recently',
 }));
 
@@ -262,9 +265,7 @@ describe('provider pages', () => {
     await waitFor(() => {
       expect(screen.getByText('Supported subscriptions')).toBeDefined();
       expect(screen.getByText('OpenAI')).toBeDefined();
-      expect((screen.getAllByText('Add subscription')[0] as HTMLButtonElement).disabled).toBe(
-        true,
-      );
+      expect((screen.getAllByText('Add subscription')[0] as HTMLButtonElement).disabled).toBe(true);
     });
   });
 

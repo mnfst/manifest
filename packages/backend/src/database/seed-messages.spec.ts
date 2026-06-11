@@ -119,6 +119,24 @@ describe('seedAgentMessages', () => {
         expect(msg.user_id).toBe('test-user-42');
       }
     });
+
+    it('should set the provider inferred from each model so provider-grouped charts see seed data', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const providersByModelPrefix: Record<string, string> = {
+        'claude-': 'anthropic',
+        'gpt-': 'openai',
+        'gemini-': 'gemini',
+      };
+      for (const msg of messages) {
+        const prefix = Object.keys(providersByModelPrefix).find((p) =>
+          (msg.model as string).startsWith(p),
+        );
+        expect(prefix).toBeDefined();
+        expect(msg.provider).toBe(providersByModelPrefix[prefix!]);
+      }
+    });
   });
 
   describe('determinism', () => {

@@ -397,9 +397,13 @@ export class ModelDiscoveryService {
       if (p.provider.startsWith('custom:')) continue;
       const rawCached = p.cached_models;
       if (!Array.isArray(rawCached)) continue;
-      const cached = filterNonChatModels(rawCached, p.provider.toLowerCase());
       const providerAuthType: AuthType = p.auth_type;
       const providerId = p.provider.toLowerCase();
+      const filterKey =
+        providerId === 'openai' && providerAuthType === 'subscription'
+          ? 'openai-subscription'
+          : providerId;
+      const cached = filterNonChatModels(rawCached, filterKey);
       for (const m of cached) {
         const effectiveAuthType = m.authType ?? providerAuthType;
         // Deduplicate by the routable tuple, not just model ID. Multiple

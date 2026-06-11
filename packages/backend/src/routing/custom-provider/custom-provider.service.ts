@@ -225,12 +225,12 @@ export class CustomProviderService {
     });
     await this.repo.insert(cp);
 
-    // Create UserProvider + trigger tier recalculation across every owned
-    // agent (custom providers are user-global). When the display name
-    // resolves to Ollama / LM Studio we tag the row `'local'` so routed
-    // messages carry the grey-house badge and the row shows up under the
-    // Local tab. A null agentId tells the provider service the change is
-    // user-global rather than tied to one agent.
+    // Create UserProvider + grant access across every owned agent (custom
+    // providers are user-global). When the display name resolves to Ollama /
+    // LM Studio we tag the row `'local'` so routed messages carry the
+    // grey-house badge and the row shows up under the Local tab. A null agentId
+    // tells the provider service the change is user-global rather than tied to
+    // one agent.
     await this.providerService.upsertProvider(
       null,
       userId,
@@ -286,13 +286,11 @@ export class CustomProviderService {
       cp.models = this.enrichCustomProviderModels(cp.name, dto.models);
     }
 
-    // Persist the updated state first so tier recalculation (below) operates
-    // against the new model list, not the stale one.
     await this.repo.save(cp);
     this.routingCache.invalidateUser(userId);
 
-    // Reload pricing cache when the model list changes so the tier
-    // auto-assigner (called below) can score models with fresh prices.
+    // Reload pricing cache when the model list changes so explicit routes to
+    // these models have fresh cost metadata.
     if (dto.models !== undefined) {
       await this.pricingCache.reload();
     }
@@ -330,12 +328,6 @@ export class CustomProviderService {
       );
     }
 
-    // Recalculate tiers across all owned agents when models changed (even
-    // without API key change). The upsert/retag paths already recalc.
-    if (dto.models !== undefined && !('apiKey' in dto) && !nameCategoryChanged) {
-      await this.providerService.recalculateTiersForUser(userId);
-    }
-
     this.notifyChange(userId);
     return cp;
   }
@@ -348,12 +340,15 @@ export class CustomProviderService {
 
     const provKey = CustomProviderService.providerKey(id);
 
-    // Remove the user-global UserProvider + tier overrides across all agents.
+    // Remove the user-global UserProvider. ProviderService blocks removal while
+    // any explicit routes still point at this custom provider.
     // A null agentId tells the provider service the removal is user-global.
     try {
       await this.providerService.removeProvider(null, userId, provKey);
-    } catch {
-      // Provider may not exist if creation partially failed
+    } catch (err) {
+      // Provider may not exist if creation partially failed; every other
+      // failure (notably "provider is still routed") must block deletion.
+      if (!(err instanceof NotFoundException)) throw err;
     }
 
     // Delete CustomProvider row

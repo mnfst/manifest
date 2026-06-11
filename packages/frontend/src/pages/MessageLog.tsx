@@ -34,10 +34,13 @@ import {
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
+import { providerIcon } from '../components/ProviderIcon.jsx';
+import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+import '../styles/routing.css';
 // The recorded-message drawer/modal styles. Only the Messages log mounts
 // RecordedMessageModal, so this CSS stays out of the global theme bundle.
 import '../styles/recording.css';
@@ -53,11 +56,18 @@ interface MessagesData {
   provider_labels?: Record<string, string>;
 }
 
+interface AgentFilterOption {
+  agent_name: string;
+  agent_platform?: string | null;
+  agent_category?: string | null;
+}
+
 const SPECIFICITY_FILTER_PREFIX = 'specificity:';
 const HEADER_TIER_FILTER_PREFIX = 'header:';
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const [searchParams] = useSearchParams<{ agent?: string }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
@@ -74,31 +84,57 @@ const MessageLog: Component = () => {
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
-  const [searchParams] = useSearchParams<{ agent?: string }>();
   // Seed from ?agent= (set by AgentMessagesRedirect) so "View more" on a
   // harness overview lands pre-filtered; only meaningful in global mode —
   // when the route itself carries an agent, that param scopes the query.
   const [agentFilter, setAgentFilter] = createSignal(
     !params.agentName && typeof searchParams.agent === 'string' ? searchParams.agent : '',
   );
-  const [agentList] = createResource(
+  createEffect(
+    on(
+      () => searchParams.agent,
+      (agent) => setAgentFilter(typeof agent === 'string' ? agent : ''),
+      { defer: true },
+    ),
+  );
+  const [agentListRaw] = createResource(
     () => !params.agentName,
     async (isGlobal) => {
-      if (!isGlobal) return [] as string[];
+      if (!isGlobal) return [] as AgentFilterOption[];
       // includeSystem=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
-        | { agents?: Array<{ agent_name: string }> }
-        | Array<{ agent_name: string }>;
-      const list = (Array.isArray(data) ? data : (data?.agents ?? [])) as Array<{
-        agent_name: string;
-      }>;
-      return list.map((a) => a.agent_name).sort();
+        | { agents?: AgentFilterOption[] }
+        | AgentFilterOption[];
+      return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
     },
   );
+  const agentList = createMemo(() => (agentListRaw() ?? []).map((a) => a.agent_name).sort());
+  const agentPlatformMap = createMemo(() => {
+    const map = new Map<string, { platform: string | null; category: string | null }>();
+    for (const a of agentListRaw() ?? []) {
+      map.set(a.agent_name, {
+        platform: a.agent_platform ?? null,
+        category: a.agent_category ?? null,
+      });
+    }
+    return map;
+  });
   const agentFilterOptions = createMemo(() => [
     { label: 'All harnesses', value: '' },
-    ...(agentList() ?? []).map((a) => ({ label: a, value: a })),
+    ...(agentList() ?? []).map((a) => {
+      const info = agentPlatformMap().get(a);
+      const iconPath = info?.platform ? platformIcon(info.platform, info.category) : null;
+      return {
+        label: a,
+        value: a,
+        icon: iconPath ? (
+          <img src={iconPath} alt="" width="14" height="14" style="border-radius: 3px;" />
+        ) : (
+          <span style="display: inline-block; width: 14px; height: 14px;" />
+        ),
+      };
+    }),
   ]);
   const [providerFilter, setProviderFilter] = createSignal('');
   const [tierFilter, setTierFilter] = createSignal('');
@@ -300,6 +336,7 @@ const MessageLog: Component = () => {
 
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
+    if (id === 'manifest') return 'Manifest';
     const prov = PROVIDERS.find((p) => p.id === id);
     if (prov) return prov.name;
     // Custom providers arrive as `custom:<uuid>` — the backend ships a label
@@ -311,6 +348,7 @@ const MessageLog: Component = () => {
     { label: 'All providers', value: '' },
     ...(data()?.providers ?? []).map((id) => ({
       label: providerDisplayName(id),
+      icon: providerIcon(id, 14) ?? undefined,
       value: id,
     })),
   ]);
@@ -570,6 +608,8 @@ const MessageLog: Component = () => {
                   items={displayedItems()}
                   columns={columns()}
                   agentName={params.agentName}
+                  customProviderName={() => undefined}
+                  agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}

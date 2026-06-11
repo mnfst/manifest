@@ -99,7 +99,7 @@ const WingmanDevTools: Component = () => {
           type="button"
           class="wingman-fab"
           onClick={() => setOpenPersist(true)}
-          title="Open Wingman — gateway tester (⌘/Ctrl + Shift + W)"
+          title="Open Wingman, gateway tester (⌘/Ctrl + Shift + W)"
           aria-label="Open Wingman gateway tester"
         >
           <svg

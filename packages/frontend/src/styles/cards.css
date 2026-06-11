@@ -108,6 +108,15 @@
 }
 
 .chart-card__stat--clickable {
+  /* These stats render as <button> for a11y — strip the native button
+     chrome (light UA background/border) so they match the card theme. */
+  appearance: none;
+  background: none;
+  border: none;
+  border-right: 1px solid hsl(var(--border));
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
@@ -151,7 +160,6 @@
   align-items: center;
   gap: var(--gap-sm);
 }
-
 
 .chart-card__controls {
   margin-left: auto;

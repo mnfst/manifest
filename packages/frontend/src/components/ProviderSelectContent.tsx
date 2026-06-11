@@ -15,9 +15,6 @@ import CustomProviderForm from './CustomProviderForm.js';
 import CopilotDeviceLogin from './CopilotDeviceLogin.js';
 import LocalServerDetailView from './LocalServerDetailView.js';
 import ProviderDetailView from './ProviderDetailView.js';
-import ProviderApiKeyTab from './ProviderApiKeyTab.js';
-import ProviderLocalTab from './ProviderLocalTab.js';
-import ProviderSubscriptionTab from './ProviderSubscriptionTab.js';
 
 export interface ProviderSelectContentProps {
   agentName: string;
@@ -25,6 +22,7 @@ export interface ProviderSelectContentProps {
   customProviders?: CustomProviderData[];
   customProviderPrefill?: CustomProviderPrefill | null;
   providerDeepLink?: ProviderDeepLink | null;
+  initialTab?: 'subscription' | 'api_key' | 'local';
   onUpdate: () => void | Promise<void>;
   onClose?: () => void;
   showHeader?: boolean;
@@ -47,7 +45,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
     : null;
 
   const [activeTab, setActiveTab] = createSignal<'subscription' | 'api_key' | 'local'>(
-    'subscription',
+    deepLink?.authType ?? props.initialTab ?? 'subscription',
   );
   const [isSelfHosted, setIsSelfHosted] = createSignal(false);
   onMount(async () => {
@@ -148,6 +146,12 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   };
 
   const goBack = () => {
+    // When opened via deep-link (from a provider list page), there is no
+    // "list view" to go back to. Close the modal instead.
+    if (deepLink) {
+      closeHandler()();
+      return;
+    }
     setDirection('back');
     resetToList();
   };
@@ -296,175 +300,8 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
         </div>
       </Show>
 
-      {/* -- List View -- */}
-      <Show
-        when={
-          selectedProvider() === null &&
-          !showCustomForm() &&
-          !editingCustomProvider() &&
-          !localServerProvider()
-        }
-      >
-        <div
-          class="provider-modal__view"
-          classList={{ 'provider-modal__view--from-left': direction() === 'back' }}
-        >
-          <Show when={showHeader()}>
-            <div class="routing-modal__header">
-              <div>
-                <div class="routing-modal__title" id="provider-modal-title">
-                  Connect providers
-                </div>
-                <div class="routing-modal__subtitle">
-                  Use your subscriptions or API keys to enable routing
-                </div>
-              </div>
-              <button class="modal__close" onClick={closeHandler()} aria-label="Close">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M18 6 6 18" />
-                  <path d="m6 6 12 12" />
-                </svg>
-              </button>
-            </div>
-          </Show>
-
-          {/* -- Tabs -- */}
-          <div class="provider-modal__tabs-wrapper">
-            <div class="panel__tabs" role="tablist">
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'subscription'}
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === 'subscription' }}
-                onClick={() => setActiveTab('subscription')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #1cc4bf"
-                >
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Subscription
-              </button>
-              <button
-                role="tab"
-                aria-selected={activeTab() === 'api_key'}
-                class="panel__tab"
-                classList={{ 'panel__tab--active': activeTab() === 'api_key' }}
-                onClick={() => setActiveTab('api_key')}
-              >
-                <svg
-                  class="provider-modal__tab-icon"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  style="color: #e59d55"
-                >
-                  <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
-                </svg>
-                API Keys
-              </button>
-              <Show when={isSelfHosted()}>
-                <button
-                  role="tab"
-                  aria-selected={activeTab() === 'local'}
-                  class="panel__tab"
-                  classList={{ 'panel__tab--active': activeTab() === 'local' }}
-                  onClick={() => setActiveTab('local')}
-                >
-                  <svg
-                    class="provider-modal__tab-icon"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
-                    style="color: #F72585"
-                  >
-                    <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
-                  </svg>
-                  Local
-                </button>
-              </Show>
-            </div>
-          </div>
-
-          {/* -- Subscription Tab -- */}
-          <Show when={activeTab() === 'subscription'}>
-            <ProviderSubscriptionTab
-              subscriptionProviders={subscriptionProviders()}
-              busy={busy}
-              isSubscriptionConnected={isSubscriptionConnected}
-              isSubscriptionWithToken={isSubscriptionWithToken}
-              onOpenDetail={openDetail}
-              onAddKey={(provId, authType) => openDetail(provId, authType, true)}
-              onToggle={handleSubscriptionToggle}
-            />
-          </Show>
-
-          {/* -- API Keys Tab -- */}
-          <Show when={activeTab() === 'api_key'}>
-            <ProviderApiKeyTab
-              apiKeyProviders={apiKeyProviders()}
-              customProviders={props.customProviders ?? []}
-              isConnected={isConnected}
-              isNoKeyConnected={isNoKeyConnected}
-              onOpenDetail={openDetail}
-              onAddKey={(provId, authType) => openDetail(provId, authType, true)}
-              onOpenCustomForm={openCustomForm}
-              onEditCustom={openEditCustom}
-            />
-          </Show>
-
-          {/* -- Local Tab (self-hosted only) -- */}
-          <Show when={activeTab() === 'local' && isSelfHosted()}>
-            <ProviderLocalTab
-              localProviders={localProviders()}
-              customProviders={props.customProviders ?? []}
-              isConnected={isLocalConnected}
-              onToggle={handleLocalToggle}
-              busy={busy}
-              onOpenDetail={openDetail}
-              onEditCustom={openEditCustom}
-              onOpenLocalServer={openLocalServer}
-            />
-          </Show>
-
-          <Show when={showFooter()}>
-            <div class="provider-modal__footer">
-              <button class="btn btn--primary btn--sm" onClick={closeHandler()}>
-                Done
-              </button>
-            </div>
-          </Show>
-        </div>
-      </Show>
+      {/* List view with tabs removed. Connection now happens via deep-link
+           from the Subscriptions / Usage-based / Local pages directly. */}
 
       {/* -- Device Login Detail View (Copilot) -- */}
       <Show

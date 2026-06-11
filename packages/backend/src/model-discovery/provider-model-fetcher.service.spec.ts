@@ -1809,16 +1809,16 @@ describe('ProviderModelFetcherService', () => {
         json: async () => ({
           models: [
             {
-              slug: 'gpt-5.3-codex',
-              display_name: 'GPT-5.3 Codex',
+              slug: 'gpt-5.5',
+              display_name: 'GPT-5.5',
               context_window: 192000,
               visibility: 'list',
               supported_in_api: true,
               priority: 10,
             },
             {
-              slug: 'gpt-5.2-codex',
-              display_name: 'GPT-5.2 Codex',
+              slug: 'gpt-5.4',
+              display_name: 'GPT-5.4',
               context_window: 200000,
               visibility: 'list',
               supported_in_api: true,
@@ -1831,8 +1831,8 @@ describe('ProviderModelFetcherService', () => {
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual(
         expect.objectContaining({
-          id: 'gpt-5.3-codex',
-          displayName: 'GPT-5.3 Codex',
+          id: 'gpt-5.5',
+          displayName: 'GPT-5.5',
           provider: 'openai',
           contextWindow: 192000,
           inputPricePerToken: 0,
@@ -1841,7 +1841,28 @@ describe('ProviderModelFetcherService', () => {
           qualityScore: 3,
         }),
       );
-      expect(result[1].id).toBe('gpt-5.2-codex');
+      expect(result[1].id).toBe('gpt-5.4');
+    });
+
+    it('should filter ChatGPT-account unsupported Codex models from the models response', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            { slug: 'gpt-5.5', visibility: 'list' },
+            { slug: 'gpt-5.3-codex', visibility: 'list' },
+            { slug: 'gpt-5.2-codex', visibility: 'list' },
+            { slug: 'gpt-5.2', visibility: 'list' },
+            { slug: 'gpt-5.1-codex-max', visibility: 'list' },
+            { slug: 'gpt-5.1-codex', visibility: 'list' },
+            { slug: 'gpt-5.3-codex-spark', visibility: 'list' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'oauth-token', 'subscription');
+
+      expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
     });
 
     it('should filter out models with visibility !== list', async () => {

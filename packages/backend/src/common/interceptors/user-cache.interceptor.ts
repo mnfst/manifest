@@ -9,14 +9,26 @@ export class UserCacheInterceptor extends CacheInterceptor {
     super(cacheManager, reflector);
   }
 
-  protected trackBy(context: ExecutionContext): string | undefined {
+  /**
+   * Shared precondition gate for cacheable per-user GET responses. Returns the
+   * authenticated user id when the request is a GET carrying a logged-in user,
+   * or undefined (skip caching) otherwise. Subclasses build their cache key on
+   * top of this so the GET/auth preconditions live in exactly one place.
+   */
+  protected resolveUserId(context: ExecutionContext): string | undefined {
     const request = context.switchToHttp().getRequest<Request>();
     if (request.method !== 'GET') return undefined;
     const user = (request as unknown as Record<string, unknown>).user as
       | { id?: string }
       | undefined;
-    if (!user?.id) return undefined;
+    return user?.id;
+  }
 
-    return `${user.id}:${request.originalUrl}`;
+  protected trackBy(context: ExecutionContext): string | undefined {
+    const userId = this.resolveUserId(context);
+    if (!userId) return undefined;
+
+    const request = context.switchToHttp().getRequest<Request>();
+    return `${userId}:${request.originalUrl}`;
   }
 }

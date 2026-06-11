@@ -258,11 +258,12 @@ describe('MinimaxOauthService', () => {
         undefined,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1', 'user-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(svc.getPendingCount()).toBe(0);
     });
 
-    it('recalcs ALL owned agents after discovery when the provider row is NEW', async () => {
+    it('does not route agents after discovery when the provider row is new', async () => {
       provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
       const start = await startFlow();
       fetchMock.mockResolvedValueOnce(
@@ -276,7 +277,8 @@ describe('MinimaxOauthService', () => {
 
       await svc.pollAuthorization(start.flowId, 'user-1');
 
-      expect(provider.recalculateTiersForUser).toHaveBeenCalledWith('user-1');
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 

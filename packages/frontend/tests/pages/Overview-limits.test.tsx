@@ -53,15 +53,6 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
   customProviderLogo: () => null,
 }));
 
-vi.mock('../../src/components/CostChart.jsx', () => ({
-  default: () => <div data-testid="cost-chart" />,
-}));
-vi.mock('../../src/components/TokenChart.jsx', () => ({
-  default: () => <div data-testid="token-chart" />,
-}));
-vi.mock('../../src/components/SingleTokenChart.jsx', () => ({
-  default: () => <div data-testid="single-token-chart" />,
-}));
 // The per-agent Overview now renders ProviderChartCard → MultiAgentTokenChart
 // (uPlot) and fetches per-provider timeseries; stub both so jsdom doesn't load
 // the real chart (which calls matchMedia).

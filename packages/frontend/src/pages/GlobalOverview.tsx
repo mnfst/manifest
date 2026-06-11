@@ -1,4 +1,5 @@
 import { Title } from '@solidjs/meta';
+import { toggleScrollFade } from '../services/scroll-fade.js';
 import { A, useNavigate } from '@solidjs/router';
 import {
   createResource,
@@ -8,7 +9,6 @@ import {
   on,
   For,
   Show,
-  onCleanup,
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
@@ -28,10 +28,12 @@ import {
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
+import { getModelDisplayName, preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS } from '../services/providers.js';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import ProviderChartCard from '../components/ProviderChartCard.jsx';
 import Sparkline from '../components/Sparkline.jsx';
+import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
@@ -40,6 +42,7 @@ import { agentPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
+import '../styles/routing.css';
 
 interface ProviderGroup {
   provider: string;
@@ -130,6 +133,7 @@ function loadRange(): string {
 
 const GlobalOverview: Component = () => {
   const navigate = useNavigate();
+  preloadModelDisplayNames();
 
   // ── Range state (persisted in localStorage) ──────────────────────────
   const [chartRange, setChartRangeRaw] = createSignal(loadRange());
@@ -230,6 +234,29 @@ const GlobalOverview: Component = () => {
     (p) => costFetcher(p.range, p.group),
   );
 
+  // Provider-grouped series key custom providers as 'custom:<uuid>'. Remap
+  // those keys to the provider's display name so the filter, legend, and
+  // tooltip read like every other provider. Reactive to customProviderData,
+  // so names fill in once that resource resolves.
+  const displaySeriesName = (key: string) => {
+    const name = resolveCustomName(key);
+    // 'hour'/'date' are the row's bucket columns — never let a custom
+    // provider named like them clobber the axis.
+    return name && name !== 'hour' && name !== 'date' ? name : key;
+  };
+  const remapCustomSeries = (raw: TSResult | undefined): TSResult | undefined => {
+    if (!raw || !raw.agents.some((a) => a.startsWith('custom:'))) return raw;
+    return {
+      agents: raw.agents.map(displaySeriesName),
+      timeseries: raw.timeseries.map((row) =>
+        Object.fromEntries(Object.entries(row).map(([k, v]) => [displaySeriesName(k), v])),
+      ),
+    };
+  };
+  const tokenSeries = createMemo(() => remapCustomSeries(agentTimeseries()));
+  const messageSeries = createMemo(() => remapCustomSeries(agentMessageTimeseries()));
+  const costSeries = createMemo(() => remapCustomSeries(agentCostTimeseries()));
+
   // ── Harness filter state (sessionStorage) ────────────────────────────
   // Scope the persisted selection by groupBy(): the provider grouping and the
   // harness grouping list completely different series, so a single shared set
@@ -258,29 +285,9 @@ const GlobalOverview: Component = () => {
       { defer: true },
     ),
   );
-  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
-  let agentFilterRef: HTMLDivElement | undefined;
-
-  if (typeof document !== 'undefined') {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
-        setAgentFilterOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAgentFilterOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  }
-
   const allAgents = createMemo(() => {
-    const tokenAgents = agentTimeseries()?.agents ?? [];
-    const msgAgents = agentMessageTimeseries()?.agents ?? [];
+    const tokenAgents = tokenSeries()?.agents ?? [];
+    const msgAgents = messageSeries()?.agents ?? [];
     const set = new Set([...tokenAgents, ...msgAgents]);
     return [...set].sort();
   });
@@ -307,8 +314,6 @@ const GlobalOverview: Component = () => {
     return pruned;
   };
 
-  const selectedAgentCount = () => effectiveSelected().size;
-
   const toggleAgent = (agent: string) => {
     const current = effectiveSelected();
     const next = new Set(current);
@@ -326,7 +331,7 @@ const GlobalOverview: Component = () => {
   };
 
   const filteredAgentTimeseries = createMemo(() => {
-    const raw = agentTimeseries();
+    const raw = tokenSeries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -342,7 +347,7 @@ const GlobalOverview: Component = () => {
   });
 
   const filteredAgentMessageTimeseries = createMemo(() => {
-    const raw = agentMessageTimeseries();
+    const raw = messageSeries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -358,7 +363,7 @@ const GlobalOverview: Component = () => {
   });
 
   const filteredAgentCostTimeseries = createMemo(() => {
-    const raw = agentCostTimeseries();
+    const raw = costSeries();
     if (!raw) return undefined;
     const sel = effectiveSelected();
     if (sel.size === 0) return raw;
@@ -425,106 +430,29 @@ const GlobalOverview: Component = () => {
           <div style="display: flex; align-items: center; gap: 8px;">
             <Select value={groupBy()} onChange={setGroupBy} options={GROUP_OPTIONS} />
             <Show when={allAgents().length > 1}>
-              <div class="agent-filter-select" ref={agentFilterRef}>
-                <button
-                  class="agent-filter-select__trigger"
-                  onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                  type="button"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                  </svg>
-                  {(() => {
-                    const label = groupBy() === 'provider' ? 'providers' : 'harnesses';
-                    return selectedAgentCount() === allAgents().length
-                      ? `All ${label} (${allAgents().length})`
-                      : `${selectedAgentCount()} of ${allAgents().length} ${label}`;
-                  })()}
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-                <Show when={agentFilterOpen()}>
-                  <div class="agent-filter-select__dropdown">
-                    <div class="agent-filter-select__actions">
-                      <button
-                        class="agent-filter-select__action-btn"
-                        type="button"
-                        disabled={selectedAgentCount() === allAgents().length}
-                        onClick={() => {
-                          setSelectedAgents(new Set(allAgents()));
-                          try {
-                            sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                      >
-                        Select all
-                      </button>
-                      <button
-                        class="agent-filter-select__action-btn"
-                        type="button"
-                        disabled={selectedAgentCount() === 0}
-                        onClick={() => {
-                          setSelectedAgents(new Set<string>());
-                          try {
-                            sessionStorage.setItem(storageKey(), JSON.stringify([]));
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                      >
-                        Unselect all
-                      </button>
-                    </div>
-                    <For each={allAgents()}>
-                      {(agent) => {
-                        const isOn = () => effectiveSelected().has(agent);
-                        return (
-                          <button
-                            class="agent-filter-select__item"
-                            onClick={() => toggleAgent(agent)}
-                            type="button"
-                          >
-                            <span
-                              class="agent-filter-select__swatch"
-                              style={{ background: agentColorMap()[agent] }}
-                            />
-                            <span class="agent-filter-select__name">{agent}</span>
-                            <span
-                              class="agent-filter-select__toggle"
-                              classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                            >
-                              <span class="agent-filter-select__toggle-thumb" />
-                            </span>
-                          </button>
-                        );
-                      }}
-                    </For>
-                  </div>
-                </Show>
-              </div>
+              <FilterSelect
+                noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                items={allAgents()}
+                selected={effectiveSelected()}
+                colorMap={agentColorMap()}
+                onToggle={toggleAgent}
+                onSelectAll={() => {
+                  setSelectedAgents(new Set(allAgents()));
+                  try {
+                    sessionStorage.setItem(storageKey(), JSON.stringify([...allAgents()]));
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+                onUnselectAll={() => {
+                  setSelectedAgents(new Set<string>());
+                  try {
+                    sessionStorage.setItem(storageKey(), JSON.stringify([]));
+                  } catch {
+                    /* ignore */
+                  }
+                }}
+              />
             </Show>
             <Select value={chartRange()} onChange={setChartRange} options={RANGE_OPTIONS} />
           </div>
@@ -580,7 +508,7 @@ const GlobalOverview: Component = () => {
             Connect a model provider to start routing your harnesses' LLM calls.
           </div>
           <A
-            href="/providers/subscriptions?add=true"
+            href="/providers/subscriptions"
             class="btn btn--primary btn--sm"
             style="text-decoration: none;"
           >
@@ -673,7 +601,7 @@ const GlobalOverview: Component = () => {
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                   <span class="overview-stat-card__label">Subscriptions</span>
                   <A
-                    href="/providers/subscriptions?add=true"
+                    href="/providers/subscriptions"
                     class="btn btn--outline btn--sm"
                     style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                   >
@@ -733,9 +661,9 @@ const GlobalOverview: Component = () => {
               </div>
               <div class="overview-stat-card" style={cardStyle}>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                  <span class="overview-stat-card__label">BYOK</span>
+                  <span class="overview-stat-card__label">Usage-based</span>
                   <A
-                    href="/providers/byok?add=true"
+                    href="/providers/byok"
                     class="btn btn--outline btn--sm"
                     style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                   >
@@ -798,7 +726,7 @@ const GlobalOverview: Component = () => {
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <span class="overview-stat-card__label">Local</span>
                     <A
-                      href="/providers/local?add=true"
+                      href="/providers/local"
                       class="btn btn--outline btn--sm"
                       style="font-size: var(--font-size-xs); padding: 2px 10px; height: 24px; text-decoration: none;"
                     >
@@ -918,14 +846,7 @@ const GlobalOverview: Component = () => {
               View more
             </A>
           </div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
@@ -975,13 +896,13 @@ const GlobalOverview: Component = () => {
                       <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
                           <Show when={row.provider}>
-                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                            <span style="position: relative; flex-shrink: 0; display: flex; align-items: center; width: 14px; height: 14px;">
                               {providerIcon(row.provider!, 16)}
                               {authBadgeFor(row.auth_type ?? null, 12)}
                             </span>
                           </Show>
                           <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">
-                            {row.model || '—'}
+                            {row.model ? getModelDisplayName(row.model) : '—'}
                           </span>
                         </div>
                       </td>
@@ -1015,14 +936,7 @@ const GlobalOverview: Component = () => {
         {/* ── 5. Model usage (full width) ────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div class="panel__title">Model usage</div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
@@ -1062,7 +976,7 @@ const GlobalOverview: Component = () => {
                               );
                             }
                             return row.provider ? (
-                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center;">
+                              <span style="position: relative; flex-shrink: 0; display: flex; align-items: center; width: 14px; height: 14px;">
                                 {providerIcon(row.provider, 16)}
                                 {authBadgeFor(row.auth_type, 12)}
                               </span>
@@ -1119,14 +1033,7 @@ const GlobalOverview: Component = () => {
         {/* ── 6. Provider connections (full width) ────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div class="panel__title">Provider connections</div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
@@ -1254,14 +1161,7 @@ const GlobalOverview: Component = () => {
         {/* ── 7. Harnesses (full width) ──────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
           <div class="panel__title">Harnesses</div>
-          <div
-            class="scroll-panel__body"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-              el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-            }}
-          >
+          <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>

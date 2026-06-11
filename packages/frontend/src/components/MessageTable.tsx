@@ -7,6 +7,10 @@ export interface MessageTableProps {
   items: MessageRow[];
   columns: MessageColumnKey[];
   agentName?: string;
+  customProviderName: (model: string) => string | undefined;
+  agentPlatformLookup?: (
+    name: string,
+  ) => { platform: string | null; category: string | null } | undefined;
   onFallbackErrorClick?: (model: string) => void;
   onFeedbackLike?: (id: string) => void;
   onFeedbackDislike?: (id: string) => void;
@@ -66,6 +70,8 @@ function ExpandableRow(props: {
   const colSpan = () => props.columns.length + 1;
   const ctx = {
     agentName: props.tableProps.agentName,
+    customProviderName: props.tableProps.customProviderName,
+    agentPlatformLookup: props.tableProps.agentPlatformLookup,
     onFallbackErrorClick: props.tableProps.onFallbackErrorClick,
     onFeedbackLike: props.tableProps.onFeedbackLike,
     onFeedbackDislike: props.tableProps.onFeedbackDislike,
@@ -136,6 +142,8 @@ function PlainRow(props: {
 }): JSX.Element {
   const ctx = {
     agentName: props.tableProps.agentName,
+    customProviderName: props.tableProps.customProviderName,
+    agentPlatformLookup: props.tableProps.agentPlatformLookup,
     onFallbackErrorClick: props.tableProps.onFallbackErrorClick,
     onFeedbackLike: props.tableProps.onFeedbackLike,
     onFeedbackDislike: props.tableProps.onFeedbackDislike,

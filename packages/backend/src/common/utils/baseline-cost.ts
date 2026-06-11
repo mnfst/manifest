@@ -33,7 +33,7 @@ export interface RoutingSlot {
 /**
  * Collect every unique model ID that is actively selected in the routing
  * configuration: tier assignments, specificity assignments, and header tiers.
- * Includes primaries (override or auto-assigned) and all fallbacks.
+ * Includes explicit primaries and all fallbacks.
  */
 export function collectRoutedModelIds(slots: RoutingSlot[]): string[] {
   const ids = new Set<string>();

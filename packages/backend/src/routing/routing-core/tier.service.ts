@@ -1,9 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
-import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -15,18 +13,14 @@ import {
   TIER_SLOTS,
   TierSlot,
 } from 'manifest-shared';
-import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 import { explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
 import { assertStreamableResponseMode } from './response-mode-guard';
 
 @Injectable()
 export class TierService {
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
-    private readonly autoAssign: TierAutoAssignService,
     private readonly routingCache: RoutingCacheService,
     private readonly providerService: ProviderService,
     private readonly discoveryService: ModelDiscoveryService,
@@ -34,7 +28,7 @@ export class TierService {
 
   async hasRoutableTier(agentId: string): Promise<boolean> {
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
-    return rows.some((r) => !!r.override_route || !!r.auto_assigned_route);
+    return rows.some((r) => !!r.override_route);
   }
 
   async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
@@ -83,23 +77,6 @@ export class TierService {
         return existing;
       }
       throw err;
-    }
-
-    // If the user has active providers, recalculate so new slots get
-    // auto-assigned models. Providers are user-scoped (agent_id is NULL after
-    // the LiftProvidersToUserLevel migration), so filter by user_id — filtering
-    // by agent_id here would always return zero rows and silently skip backfill.
-    if (userId) {
-      const providers = await this.providerRepo.find({
-        where: { user_id: userId, is_active: true },
-      });
-      const usableProviders = providers.filter(isManifestUsableProvider);
-      if (usableProviders.length > 0) {
-        await this.autoAssign.recalculate(agentId, userId);
-        const result = await this.tierRepo.find({ where: { agent_id: agentId } });
-        this.routingCache.setTiers(agentId, result);
-        return result;
-      }
     }
 
     const merged = [...rows, ...created];
@@ -210,7 +187,7 @@ export class TierService {
       assertStreamableResponseMode(
         responseMode,
         `tier "${tier}"`,
-        existing.override_route ?? existing.auto_assigned_route,
+        existing.override_route,
         existing.fallback_routes,
       );
       existing.response_mode = responseMode;
@@ -247,7 +224,7 @@ export class TierService {
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
-      existing.auto_assigned_route,
+      null,
       existing.fallback_routes,
     );
     existing.updated_at = new Date().toISOString();
@@ -287,7 +264,7 @@ export class TierService {
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       fallbackRoutes,
     );
     existing.fallback_routes = fallbackRoutes;
@@ -303,7 +280,7 @@ export class TierService {
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       null,
     );
     existing.fallback_routes = null;

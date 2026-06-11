@@ -99,8 +99,8 @@ export function createRoutingActions(input: RoutingActionsInput) {
    * Re-uses the existing PUT /tiers/:tier endpoint by re-sending the current
    * (model, provider, authType) tuple — the only delta is the new
    * providerKeyLabel. The caller supplies the resolved providerId because
-   * tiers in `auto` mode have a null override_route, and the DTO requires a
-   * non-empty provider value.
+   * tiers with no explicit route have a null override_route, and the DTO
+   * requires a non-empty provider value.
    */
   const handlePinKey = async (
     tierId: string,
@@ -109,7 +109,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
     authType?: AuthType,
   ) => {
     const tier = getTier(tierId);
-    const effective = tier?.override_route ?? tier?.auto_assigned_route ?? null;
+    const effective = tier?.override_route ?? null;
     const model = effective?.model;
     if (!tier || !model || !providerId) return;
     setChangingTier(tierId);
@@ -142,7 +142,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
           fallback_routes: null,
         })),
       );
-      toast.success('All tiers reset to auto');
+      toast.success('All tier routes cleared');
     } catch {
       // error toast from fetchMutate
     } finally {
@@ -157,7 +157,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
       input.mutateTiers((prev) =>
         prev?.map((t) => (t.tier === tierId ? { ...t, override_route: null } : t)),
       );
-      toast.success('Tier reset to auto');
+      toast.success('Tier route cleared');
     } catch {
       // error toast from fetchMutate
     } finally {

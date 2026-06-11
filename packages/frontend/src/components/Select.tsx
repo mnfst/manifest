@@ -1,8 +1,10 @@
-import { createSignal, For, Show, onCleanup, type Component } from 'solid-js';
+import { createSignal, For, Show, onCleanup, type Component, type JSX } from 'solid-js';
 
-interface SelectOption {
+export interface SelectOption {
   label: string;
   value: string;
+  /** Optional icon rendered before the label (e.g. provider logo, platform icon). */
+  icon?: JSX.Element;
 }
 
 interface SelectProps {
@@ -19,10 +21,8 @@ const Select: Component<SelectProps> = (props) => {
   const [open, setOpen] = createSignal(false);
   let ref: HTMLDivElement | undefined;
 
-  const selectedLabel = () => {
-    const opt = props.options.find((o) => o.value === props.value);
-    return opt?.label ?? props.placeholder ?? 'Select...';
-  };
+  const selected = () => props.options.find((o) => o.value === props.value);
+  const selectedLabel = () => selected()?.label ?? props.placeholder ?? 'Select...';
 
   const handleClickOutside = (e: MouseEvent) => {
     if (ref && !ref.contains(e.target as Node)) {
@@ -57,7 +57,13 @@ const Select: Component<SelectProps> = (props) => {
         aria-expanded={open()}
         aria-label={props.label ?? selectedLabel()}
       >
-        <span class="custom-select__value">{props.displayValue ?? selectedLabel()}</span>
+        <span
+          class="custom-select__value"
+          style="display: inline-flex; align-items: center; gap: 6px;"
+        >
+          <Show when={!props.displayValue && selected()?.icon}>{selected()!.icon}</Show>
+          {props.displayValue ?? selectedLabel()}
+        </span>
         <svg
           class="custom-select__chevron"
           width="12"
@@ -87,7 +93,9 @@ const Select: Component<SelectProps> = (props) => {
                 type="button"
                 role="option"
                 aria-selected={props.value === opt.value}
+                style={opt.icon ? 'display: flex; align-items: center; gap: 6px;' : undefined}
               >
+                <Show when={opt.icon}>{opt.icon}</Show>
                 {opt.label}
               </button>
             )}

@@ -106,7 +106,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/providers/byok') }}
         aria-current={isGlobalActive('/providers/byok') ? 'page' : undefined}
       >
-        BYOK
+        Usage-based
       </A>
       <Show when={selfHosted()}>
         <A

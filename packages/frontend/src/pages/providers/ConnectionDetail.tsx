@@ -1,13 +1,14 @@
 import { Title } from '@solidjs/meta';
-import { A, useParams } from '@solidjs/router';
+import { toggleScrollFade } from '../../services/scroll-fade.js';
+import { A, useNavigate, useParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
   createResource,
   createSignal,
   For,
-  Show,
   onCleanup,
+  Show,
   type Component,
 } from 'solid-js';
 import {
@@ -20,6 +21,7 @@ import {
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
+import FilterSelect from '../../components/FilterSelect.jsx';
 import {
   formatNumber,
   formatCost,
@@ -27,19 +29,26 @@ import {
   customProviderColor,
 } from '../../services/formatters.js';
 import { getAgents, getCustomProviders as fetchCustomProviders } from '../../services/api.js';
-import { getProviders as getAgentProviders } from '../../services/api/routing.js';
+import {
+  getProviders as getAgentProviders,
+  renameProviderKey,
+  disconnectProvider,
+  refreshModels,
+} from '../../services/api/routing.js';
 import ProviderChartCard from '../../components/ProviderChartCard.jsx';
-import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
 import { AGENT_COLORS } from '../../components/MultiAgentTokenChart.jsx';
 import Select from '../../components/Select.jsx';
 import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-store.js';
+import { toast } from '../../services/toast-store.js';
 import '../../styles/charts.css';
 import '../../styles/analytics-overview.css';
+import { getModelDisplayName } from '../../services/model-display.js';
+import '../../styles/routing.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
   subscription: 'Subscriptions',
-  api_key: 'Bring your own key',
-  local: 'Local Providers',
+  api_key: 'Usage-based',
+  local: 'Local',
 };
 
 const BACK_LINKS: Record<string, string> = {
@@ -96,6 +105,7 @@ interface AnalyticsResponse {
 
 const ConnectionDetail: Component = () => {
   const params = useParams<{ connectionId: string }>();
+  const navigate = useNavigate();
 
   const [detail, { refetch: refetchDetail }] = createResource(
     () => params.connectionId,
@@ -140,9 +150,10 @@ const ConnectionDetail: Component = () => {
   createEffect(() => {
     const c = conn();
     if (c) {
-      setConnectionBreadcrumb(providerDisplayName(), backLink());
+      setConnectionBreadcrumb(providerDisplayName(), backLink(), backLabel(), c.provider, c.label);
     }
   });
+  onCleanup(() => setConnectionBreadcrumb(null));
 
   // Chart state (persisted in sessionStorage)
   const rangeKey = () => `chart-range:${params.connectionId}`;
@@ -275,27 +286,6 @@ const ConnectionDetail: Component = () => {
       /* ignore */
     }
   };
-  const [agentFilterOpen, setAgentFilterOpen] = createSignal(false);
-  let agentFilterRef: HTMLDivElement | undefined;
-
-  // Close agent filter dropdown on outside click / Escape
-  if (typeof document !== 'undefined') {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (agentFilterRef && !agentFilterRef.contains(e.target as Node)) {
-        setAgentFilterOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setAgentFilterOpen(false);
-    };
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    });
-  }
-
   // Merge agent lists from both token and message timeseries
   const allAgents = createMemo(() => {
     const tokenAgents = agentTimeseries()?.agents ?? [];
@@ -314,10 +304,6 @@ const ConnectionDetail: Component = () => {
     return map;
   });
 
-  const selectedAgentCount = () => {
-    const sel = effectiveSelected();
-    return sel.size;
-  };
   const effectiveSelected = () => {
     const sel = selectedAgents();
     // No persisted preference (null) → default to all selected. An explicit
@@ -358,9 +344,12 @@ const ConnectionDetail: Component = () => {
   const filteredAgentMessageTimeseries = createMemo(() => filterSeries(agentMessageTimeseries()));
   const filteredAgentCostTimeseries = createMemo(() => filterSeries(agentCostTimeseries()));
 
-  // Provider management modal (rename / disconnect / refresh models all live
-  // inside ProviderSelectModal). The "Manage" button opens it directly.
-  const [showProviderModal, setShowProviderModal] = createSignal(false);
+  // Manage modal state
+  const [showManageModal, setShowManageModal] = createSignal(false);
+  const [renameValue, setRenameValue] = createSignal('');
+  const [renaming, setRenaming] = createSignal(false);
+  const [renameError, setRenameError] = createSignal('');
+  const [refreshingModels, setRefreshingModels] = createSignal(false);
   const [agents] = createResource(async () => {
     try {
       const res = await getAgents();
@@ -370,17 +359,77 @@ const ConnectionDetail: Component = () => {
     }
   });
   const firstAgentName = () => (agents() ?? [])[0]?.agent_name ?? '';
-  const [modalProviders, { refetch: refetchModalProviders }] = createResource(
-    () => firstAgentName(),
-    async (name) => {
-      if (!name) return [];
-      try {
-        return await getAgentProviders(name);
-      } catch {
-        return [];
-      }
-    },
-  );
+
+  const openManageModal = () => {
+    const c = conn();
+    if (c) setRenameValue(c.label);
+    setRenameError('');
+    setShowManageModal(true);
+  };
+
+  const handleRename = async () => {
+    const c = conn();
+    if (!c) return;
+    if (!firstAgentName()) {
+      toast.error('Create at least one harness first.');
+      return;
+    }
+    const newLabel = renameValue().trim();
+    if (!newLabel) {
+      setRenameError('Name cannot be empty');
+      return;
+    }
+    if (newLabel === c.label) {
+      setShowManageModal(false);
+      return;
+    }
+    setRenaming(true);
+    setRenameError('');
+    try {
+      await renameProviderKey(firstAgentName(), c.provider, c.label, newLabel, c.auth_type as any);
+      toast.success('Connection renamed');
+      setShowManageModal(false);
+      refetchDetail();
+    } catch (e: any) {
+      setRenameError(e?.message ?? 'Failed to rename');
+    } finally {
+      setRenaming(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    const c = conn();
+    if (!c) return;
+    const agent = firstAgentName();
+    if (!agent) {
+      toast.error('Create at least one harness before disconnecting a provider.');
+      return;
+    }
+    try {
+      await disconnectProvider(agent, c.provider, c.auth_type as any, c.label);
+      toast.success('Connection removed');
+      navigate(backLink());
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Failed to disconnect');
+    }
+  };
+
+  const handleRefreshModels = async () => {
+    if (!firstAgentName()) {
+      toast.error('Create at least one harness first.');
+      return;
+    }
+    setRefreshingModels(true);
+    try {
+      await refreshModels(firstAgentName());
+      toast.success('Models refreshed');
+      refetchDetail();
+    } catch {
+      toast.error('Failed to refresh models');
+    } finally {
+      setRefreshingModels(false);
+    }
+  };
 
   // A resolved-but-null connection means the id is unknown / the connection
   // was deleted. Branch on the resource so this renders a not-found state
@@ -407,9 +456,7 @@ const ConnectionDetail: Component = () => {
         when={!notFound() && detail() && conn()}
         fallback={
           <Show when={!notFound()}>
-            <div style="padding: 48px 0; text-align: center; color: hsl(var(--muted-foreground));">
-              Loading...
-            </div>
+            <div style="width: 100%; height: 300px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
           </Show>
         }
       >
@@ -418,7 +465,7 @@ const ConnectionDetail: Component = () => {
           return (
             <>
               <Title>
-                {providerDisplayName()} — {c.label} | Manifest
+                {providerDisplayName()} / {c.label} | Manifest
               </Title>
 
               {/* Back link */}
@@ -432,7 +479,7 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
                 <div>
                   <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                     <span style="display: flex; align-items: center; width: 32px; height: 32px;">
@@ -460,8 +507,14 @@ const ConnectionDetail: Component = () => {
                         {providerIcon(c.provider, 32)}
                       </Show>
                     </span>
-                    <h1 class="page-header__title" style="margin: 0;">
+                    <h1
+                      class="page-header__title"
+                      style="margin: 0; display: flex; align-items: baseline; gap: 8px;"
+                    >
                       {providerDisplayName()}
+                      <span style="font-size: var(--font-size-sm); font-weight: 400; color: hsl(var(--muted-foreground));">
+                        {c.label}
+                      </span>
                     </h1>
                     <Show when={isCustomProvider()}>
                       <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
@@ -514,89 +567,15 @@ const ConnectionDetail: Component = () => {
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                   <Show when={allAgents().length > 1}>
-                    <div class="agent-filter-select" ref={agentFilterRef}>
-                      <button
-                        class="agent-filter-select__trigger"
-                        onClick={() => setAgentFilterOpen(!agentFilterOpen())}
-                        type="button"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                        </svg>
-                        {selectedAgentCount() === allAgents().length
-                          ? `All harnesses (${allAgents().length})`
-                          : `${selectedAgentCount()} of ${allAgents().length} harnesses`}
-                        <svg
-                          width="10"
-                          height="10"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          aria-hidden="true"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                      </button>
-                      <Show when={agentFilterOpen()}>
-                        <div class="agent-filter-select__dropdown">
-                          <div class="agent-filter-select__actions">
-                            <button
-                              class="agent-filter-select__action-btn"
-                              type="button"
-                              disabled={selectedAgentCount() === allAgents().length}
-                              onClick={() => persistSelection(new Set(allAgents()))}
-                            >
-                              Select all
-                            </button>
-                            <button
-                              class="agent-filter-select__action-btn"
-                              type="button"
-                              disabled={selectedAgentCount() === 0}
-                              onClick={() => persistSelection(new Set<string>())}
-                            >
-                              Unselect all
-                            </button>
-                          </div>
-                          <For each={allAgents()}>
-                            {(agent) => {
-                              const isOn = () => effectiveSelected().has(agent);
-                              return (
-                                <button
-                                  class="agent-filter-select__item"
-                                  onClick={() => toggleAgent(agent)}
-                                  type="button"
-                                >
-                                  <span
-                                    class="agent-filter-select__swatch"
-                                    style={{ background: agentColorMap()[agent] }}
-                                  />
-                                  <span class="agent-filter-select__name">{agent}</span>
-                                  <span
-                                    class="agent-filter-select__toggle"
-                                    classList={{ 'agent-filter-select__toggle--on': isOn() }}
-                                  >
-                                    <span class="agent-filter-select__toggle-thumb" />
-                                  </span>
-                                </button>
-                              );
-                            }}
-                          </For>
-                        </div>
-                      </Show>
-                    </div>
+                    <FilterSelect
+                      noun="harnesses"
+                      items={allAgents()}
+                      selected={effectiveSelected()}
+                      colorMap={agentColorMap()}
+                      onToggle={toggleAgent}
+                      onSelectAll={() => persistSelection(new Set(allAgents()))}
+                      onUnselectAll={() => persistSelection(new Set<string>())}
+                    />
                   </Show>
                   <Select
                     value={chartRange()}
@@ -607,14 +586,9 @@ const ConnectionDetail: Component = () => {
                       { label: 'Last 30 days', value: '30d' },
                     ]}
                   />
-                  <Show when={c.is_active}>
-                    <button
-                      class="btn btn--outline btn--sm"
-                      onClick={() => setShowProviderModal(true)}
-                    >
-                      Manage
-                    </button>
-                  </Show>
+                  <button class="btn btn--outline btn--sm" onClick={openManageModal}>
+                    Manage
+                  </button>
                 </div>
               </div>
 
@@ -658,9 +632,6 @@ const ConnectionDetail: Component = () => {
                   style="display: flex; justify-content: space-between; align-items: center;"
                 >
                   Recent Messages
-                  <A href={`/messages`} class="view-more-link">
-                    View more
-                  </A>
                 </div>
                 <Show
                   when={detail()!.recent_messages.length > 0}
@@ -670,19 +641,12 @@ const ConnectionDetail: Component = () => {
                     </div>
                   }
                 >
-                  <div
-                    class="scroll-panel__body"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                    }}
-                  >
+                  <div class="scroll-panel__body" onScroll={toggleScrollFade}>
                     <table class="data-table">
                       <thead>
                         <tr>
                           <th>Date</th>
-                          <th>Message</th>
+                          <th>Message ID</th>
                           <th>Model</th>
                           <th>Tokens</th>
                         </tr>
@@ -694,11 +658,22 @@ const ConnectionDetail: Component = () => {
                               <td style="white-space: nowrap;">
                                 {msg.timestamp ? formatTimeAgo(msg.timestamp) : '—'}
                               </td>
-                              <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {msg.description || msg.first_message || '—'}
+                              <td style="font-family: var(--font-mono, monospace); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                                {msg.id ? msg.id.slice(0, 8) : '—'}
                               </td>
-                              <td style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {msg.model || '—'}
+                              <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span style="display: inline-flex; align-items: center; gap: 4px;">
+                                  {msg.model ? (
+                                    <>
+                                      <span style="display: inline-flex; flex-shrink: 0; position: relative; width: 14px; height: 14px;">
+                                        {providerIcon(msg.provider ?? c.provider, 14)}
+                                      </span>
+                                      {getModelDisplayName(msg.model)}
+                                    </>
+                                  ) : (
+                                    '—'
+                                  )}
+                                </span>
                               </td>
                               <td>
                                 {formatNumber((msg.input_tokens ?? 0) + (msg.output_tokens ?? 0))}
@@ -723,14 +698,7 @@ const ConnectionDetail: Component = () => {
                     </div>
                   }
                 >
-                  <div
-                    class="scroll-panel__body"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                    }}
-                  >
+                  <div class="scroll-panel__body" onScroll={toggleScrollFade}>
                     <table class="data-table">
                       <thead>
                         <tr>
@@ -792,14 +760,7 @@ const ConnectionDetail: Component = () => {
                     </div>
                   }
                 >
-                  <div
-                    class="scroll-panel__body"
-                    onScroll={(e) => {
-                      const el = e.currentTarget;
-                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 8;
-                      el.parentElement?.classList.toggle('scroll-panel--at-bottom', atBottom);
-                    }}
-                  >
+                  <div class="scroll-panel__body" onScroll={toggleScrollFade}>
                     <table class="data-table">
                       <thead>
                         <tr>
@@ -865,25 +826,138 @@ const ConnectionDetail: Component = () => {
                   </div>
                 </Show>
               </div>
-              {/* Provider management modal (rename, change key, disconnect, refresh models). */}
-              <Show when={showProviderModal() && firstAgentName()}>
-                <ProviderSelectModal
-                  agentName={firstAgentName()}
-                  providers={modalProviders() ?? []}
-                  customProviders={customProviderData() ? [customProviderData()] : []}
-                  providerDeepLink={{
-                    providerId: c.provider,
-                    authType: c.auth_type as 'subscription' | 'api_key' | 'local',
+              {/* Manage connection modal */}
+              <Show when={showManageModal()}>
+                <div
+                  class="modal-overlay"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setShowManageModal(false);
                   }}
-                  onUpdate={async () => {
-                    refetchDetail();
-                    refetchModalProviders();
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setShowManageModal(false);
                   }}
-                  onClose={() => {
-                    setShowProviderModal(false);
-                    refetchDetail();
-                  }}
-                />
+                >
+                  <div
+                    class="modal-card"
+                    style="max-width: 420px; padding: 24px;"
+                    role="dialog"
+                    aria-modal="true"
+                  >
+                    {/* Header with provider name and close button */}
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="display: flex; align-items: center; width: 28px; height: 28px;">
+                          <Show
+                            when={provDef()}
+                            fallback={
+                              <span style="width: 28px; height: 28px; border-radius: 50%; background: hsl(var(--muted)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: hsl(var(--muted-foreground));">
+                                {providerDisplayName().charAt(0)}
+                              </span>
+                            }
+                          >
+                            {providerIcon(provDef()!.id, 28)}
+                          </Show>
+                        </span>
+                        <span style="font-size: var(--font-size-lg); font-weight: 600; color: hsl(var(--foreground));">
+                          {providerDisplayName()}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowManageModal(false)}
+                        style="background: none; border: none; cursor: pointer; padding: 4px; color: hsl(var(--muted-foreground)); font-size: 18px; line-height: 1;"
+                        aria-label="Close"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Connection name */}
+                    <div style="margin-bottom: 16px;">
+                      <label style="display: block; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground)); margin-bottom: 6px;">
+                        Connection name
+                      </label>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <input
+                          type="text"
+                          class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                          value={renameValue()}
+                          onInput={(e) => {
+                            setRenameValue(e.currentTarget.value);
+                            setRenameError('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleRename();
+                          }}
+                          style="flex: 1;"
+                        />
+                        <button
+                          class="btn btn--primary btn--sm"
+                          disabled={renaming() || renameValue().trim() === conn()?.label}
+                          onClick={handleRename}
+                        >
+                          {renaming() ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                      <Show when={renameError()}>
+                        <div style="color: hsl(var(--destructive)); font-size: var(--font-size-sm); margin-top: 4px;">
+                          {renameError()}
+                        </div>
+                      </Show>
+                    </div>
+
+                    <Show when={c.is_active}>
+                      {/* Models */}
+                      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
+                        <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                          {c.cached_model_count ?? 0} models
+                        </span>
+                        <button
+                          class="btn btn--outline btn--sm"
+                          disabled={refreshingModels()}
+                          onClick={handleRefreshModels}
+                          style="display: inline-flex; align-items: center; gap: 6px;"
+                        >
+                          {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                        </button>
+                      </div>
+
+                      {/* Connection info */}
+                      <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                        Connected via{' '}
+                        {c.auth_type === 'subscription'
+                          ? c.auth_type
+                          : c.auth_type === 'api_key'
+                            ? 'API key'
+                            : 'local server'}
+                      </div>
+
+                      {/* Actions */}
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
+                        <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
+                          Disconnect
+                        </button>
+                        <button
+                          class="btn btn--outline btn--sm"
+                          onClick={() => setShowManageModal(false)}
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </Show>
+
+                    <Show when={!c.is_active}>
+                      <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
+                        <button
+                          class="btn btn--outline btn--sm"
+                          onClick={() => setShowManageModal(false)}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </Show>
+                  </div>
+                </div>
               </Show>
             </>
           );

@@ -9,6 +9,12 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
   const s = { width: `${size}px`, height: `${size}px` };
 
   switch (id) {
+    /* ── Manifest ────────────────────────────────── */
+    case 'manifest':
+      return (
+        <img src="/icons/manifest.svg" alt="Manifest" style={{ ...s, 'border-radius': '3px' }} />
+      );
+
     /* ── OpenAI ───────────────────────────────────── */
     case 'openai':
       return (

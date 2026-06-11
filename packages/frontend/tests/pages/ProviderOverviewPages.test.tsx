@@ -700,6 +700,48 @@ describe('GlobalOverview (analytics)', () => {
     expect(screen.getByTestId('ts-agents').textContent).toContain('anthropic');
   });
 
+  it('shows custom provider names instead of custom:<uuid> in provider series', async () => {
+    const customSeries = {
+      agents: ['openai', 'custom:cp-1'],
+      timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, 'custom:cp-1': 300 }],
+    };
+    apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(customSeries);
+    apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(customSeries);
+    apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(customSeries);
+    // A custom model with no display_name must render its stripped name, not
+    // the raw custom:<uuid>/ slug.
+    apiMocks.getOverview.mockResolvedValue({
+      ...overviewResponse,
+      cost_by_model: [
+        {
+          model: 'custom:cp-1/qwen-2.5',
+          display_name: null,
+          tokens: 300,
+          share_pct: 25,
+          estimated_cost: 0.1,
+          auth_type: 'api_key',
+          provider: 'custom:cp-1',
+        },
+      ],
+    });
+
+    render(() => <GlobalOverview />);
+    await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
+
+    // Chart series and filter list the resolved name once customProviderData loads.
+    await waitFor(() =>
+      expect(screen.getByTestId('ts-agents').textContent).toContain('Custom Provider'),
+    );
+    expect(screen.getByTestId('ts-agents').textContent).not.toContain('custom:cp-1');
+    fireEvent.click(screen.getByText('All providers (2)'));
+    expect(
+      screen.getAllByText('Custom Provider').some((el) => el.closest('.agent-filter-select')),
+    ).toBe(true);
+
+    // Model usage renders the stripped model name.
+    expect(screen.getByText('qwen-2.5')).toBeDefined();
+  });
+
   it('shows the empty state when there are no harnesses and no providers', async () => {
     apiMocks.getAgents.mockResolvedValue({ agents: [] });
     apiMocks.getGlobalProviders.mockResolvedValue({ providers: [] });

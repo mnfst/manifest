@@ -1,6 +1,6 @@
 import { Title } from '@solidjs/meta';
-import { useSearchParams } from '@solidjs/router';
-import { createResource, createSignal, For, Show, type Component } from 'solid-js';
+import { useNavigate, useSearchParams } from '@solidjs/router';
+import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
 import {
   getAgents,
   getCustomProviders,
@@ -10,15 +10,25 @@ import {
   getProviders as getGlobalProviders,
   type UserProviderSummary,
 } from '../../services/api/providers.js';
+import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
-import type { ProviderDeepLink } from '../../services/routing-params.js';
+import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
 import { PROVIDERS, type ProviderDef } from '../../services/providers.js';
-import { customProviderColor, formatNumber, formatTimeAgo } from '../../services/formatters.js';
+import {
+  customProviderColor,
+  formatCost,
+  formatNumber,
+  formatTimeAgo,
+} from '../../services/formatters.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
+import InfoTooltip from '../../components/InfoTooltip.jsx';
+import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
+import Sparkline from '../../components/Sparkline.jsx';
 import '../../styles/routing.css';
 
 type ProviderPageKind = 'subscriptions' | 'byok' | 'local';
+type ViewMode = 'list' | 'grid';
 
 interface ProviderConnectionsPageProps {
   kind: ProviderPageKind;
@@ -35,37 +45,55 @@ const PAGE_COPY: Record<
     heading: string;
     subtitle: string;
     addLabel: string;
+    customAddLabel?: string;
     connectedHeading: string;
     supportedHeading: string;
     authType: AuthType;
+    /** Cost metric (stat card + per-row column) — BYOK only. Subscriptions and
+     *  local providers have no real cost figure to show (savings was removed). */
+    metricLabel?: string;
+    metricTooltip?: string;
+    rowMetricHeading?: string;
+    activeSingular: string;
+    activePlural: string;
   }
 > = {
   subscriptions: {
     title: 'Subscriptions | Manifest',
     heading: 'Subscriptions',
-    subtitle: 'Connect flat-rate subscriptions to route through your existing plans.',
-    addLabel: 'Add subscription',
-    connectedHeading: 'My Subscriptions',
-    supportedHeading: 'Supported subscriptions',
+    subtitle: 'Use your current plans with any supported provider.',
+    addLabel: 'Connect',
+    connectedHeading: 'My subscription connections',
+    supportedHeading: 'Supported subscription providers',
     authType: 'subscription',
+    activeSingular: 'connection',
+    activePlural: 'connections',
   },
   byok: {
-    title: 'BYOK | Manifest',
-    heading: 'BYOK',
-    subtitle: 'Connect provider API keys managed at the workspace level.',
-    addLabel: 'Add API key',
-    connectedHeading: 'My API Keys',
-    supportedHeading: 'Supported API key providers',
+    title: 'Usage-based | Manifest',
+    heading: 'Usage-based',
+    subtitle: 'Connect providers you pay per token or per usage with your own API keys.',
+    addLabel: 'Connect',
+    customAddLabel: 'Add custom provider',
+    connectedHeading: 'My usage-based connections',
+    supportedHeading: 'Supported usage-based providers',
     authType: 'api_key',
+    metricLabel: 'Total API cost (30d)',
+    metricTooltip: 'Sum of all API key usage costs across your connected providers.',
+    rowMetricHeading: 'Cost (30d)',
+    activeSingular: 'key',
+    activePlural: 'keys',
   },
   local: {
-    title: 'Local Providers | Manifest',
-    heading: 'Local Providers',
+    title: 'Local | Manifest',
+    heading: 'Local',
     subtitle: 'Connect to LLM servers running on your machine.',
-    addLabel: 'Add local provider',
-    connectedHeading: 'My Local Providers',
+    addLabel: 'Connect',
+    connectedHeading: 'My local connections',
     supportedHeading: 'Supported local providers',
     authType: 'local',
+    activeSingular: 'connection',
+    activePlural: 'connections',
   },
 };
 
@@ -94,39 +122,142 @@ const providerDisplayName = (
 ): string =>
   customProviderName(providerId, customProviders) ?? standardProviderName(providerId) ?? providerId;
 
-const ProviderMark: Component<{ providerId: string; name: string }> = (props) => (
+const StatusBadge: Component<{ active: boolean }> = (props) => (
   <Show
-    when={providerIcon(props.providerId, 20)}
+    when={props.active}
     fallback={
-      <span
-        style={{
-          display: 'inline-flex',
-          'align-items': 'center',
-          'justify-content': 'center',
-          width: '20px',
-          height: '20px',
-          'border-radius': '4px',
-          'font-size': '11px',
-          'font-weight': '600',
-          color: 'white',
-          background: customProviderColor(props.name),
-        }}
-      >
-        {props.name.charAt(0).toUpperCase()}
+      <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
+        Inactive
       </span>
     }
   >
-    <span style="display: flex; align-items: center; width: 20px; height: 20px;">
-      {providerIcon(props.providerId, 20)}
+    <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;">
+      Active
     </span>
   </Show>
 );
 
+const ProviderMark: Component<{ providerId: string; name: string; size?: number }> = (props) => {
+  const size = () => props.size ?? 20;
+  return (
+    <Show
+      when={providerIcon(props.providerId, size())}
+      fallback={
+        <span
+          style={{
+            display: 'inline-flex',
+            'align-items': 'center',
+            'justify-content': 'center',
+            width: `${size()}px`,
+            height: `${size()}px`,
+            'border-radius': '4px',
+            'font-size': size() > 20 ? '12px' : '11px',
+            'font-weight': '600',
+            color: 'white',
+            background: customProviderColor(props.name || props.providerId),
+          }}
+        >
+          {(props.name || props.providerId).charAt(0).toUpperCase()}
+        </span>
+      }
+    >
+      <span style={`display: flex; align-items: center; width: ${size()}px; height: ${size()}px;`}>
+        {providerIcon(props.providerId, size())}
+      </span>
+    </Show>
+  );
+};
+
+const ListIcon: Component = () => (
+  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z" />
+  </svg>
+);
+
+const GridIcon: Component = () => (
+  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
+  </svg>
+);
+
+const CustomProviderIcon: Component = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path d="M7 11h10c.37 0 .72-.21.89-.54s.14-.73-.08-1.04l-5-7c-.38-.53-1.25-.53-1.63 0l-5 7A.997.997 0 0 0 6.99 11Zm5-6.28L15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3 22h7c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1m1-7h5v5H4z" />
+  </svg>
+);
+
 const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props) => {
   const copy = () => PAGE_COPY[props.kind];
+  const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
   const [deepLink, setDeepLink] = createSignal<ProviderDeepLink | null>(null);
+  const [customProviderPrefill, setCustomProviderPrefill] =
+    createSignal<CustomProviderPrefill | null>(null);
+  const [viewMode, setViewMode] = createSignal<ViewMode>('grid');
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Inline rename state
+  const [renamingId, setRenamingId] = createSignal<string | null>(null);
+  const [renameValue, setRenameValue] = createSignal('');
+  const [renameError, setRenameError] = createSignal('');
+  const [renameBusy, setRenameBusy] = createSignal(false);
+
+  const startRename = (connectionId: string, currentLabel: string, e: Event) => {
+    e.stopPropagation();
+    setRenamingId(connectionId);
+    setRenameValue(currentLabel);
+    setRenameError('');
+  };
+
+  const cancelRename = (e?: Event) => {
+    e?.stopPropagation();
+    setRenamingId(null);
+    setRenameError('');
+  };
+
+  const submitRename = async (
+    provider: string,
+    currentLabel: string,
+    authType: string,
+    e?: Event,
+  ) => {
+    e?.stopPropagation();
+    const newLabel = renameValue().trim();
+    if (!newLabel) {
+      setRenameError('Name cannot be empty');
+      return;
+    }
+    if (newLabel === currentLabel) {
+      cancelRename();
+      return;
+    }
+    if (!firstAgentName()) return;
+    setRenameBusy(true);
+    setRenameError('');
+    try {
+      await renameProviderKey(
+        firstAgentName(),
+        provider,
+        currentLabel,
+        newLabel,
+        authType as AuthType,
+      );
+      toast.success('Connection renamed');
+      setRenamingId(null);
+      refetchGlobalProviders();
+    } catch (err: any) {
+      setRenameError(err?.message ?? 'Failed to rename');
+    } finally {
+      setRenameBusy(false);
+    }
+  };
 
   const [data, { refetch: refetchGlobalProviders }] = createResource(async () => {
     try {
@@ -174,12 +305,15 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   if (searchParams.add === 'true') {
     queueMicrotask(() => {
       setSearchParams({ add: undefined });
-      setShowModal(true);
+      openModal();
     });
   }
 
   const connectedSummaries = () =>
     (data()?.providers ?? []).filter((provider) => provider.auth_type === copy().authType);
+
+  const hasUsage = (summary: UserProviderSummary) =>
+    summary.consumption_tokens > 0 || summary.consumption_messages > 0;
 
   const connectedRows = () => {
     const rows: Array<{
@@ -188,9 +322,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       name: string;
     }> = [];
     for (const summary of connectedSummaries()) {
-      const hasUsage = summary.consumption_tokens > 0 || summary.consumption_messages > 0;
       for (const connection of summary.connections) {
-        if (!connection.is_active && !hasUsage) continue;
+        if (!connection.is_active && !hasUsage(summary)) continue;
         rows.push({
           summary,
           connection,
@@ -207,19 +340,41 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     return map;
   };
 
-  const modelCount = (providerId: string) => {
-    const summary = connectedByProvider().get(providerId);
-    if (summary && summary.total_models > 0) return summary.total_models;
-    const counts = data()?.model_counts ?? {};
-    return counts[providerId.toLowerCase()] ?? counts[providerId] ?? null;
-  };
-
   const activeConnectionCount = (providerId: string) =>
     connectedByProvider()
       .get(providerId)
       ?.connections.filter((connection) => connection.is_active).length ?? 0;
 
+  const totalApiCost = createMemo(() =>
+    connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
+  );
+
+  const connectionDenominator = (summary: UserProviderSummary) =>
+    Math.max(
+      summary.connections.filter((connection) => connection.is_active || hasUsage(summary)).length,
+      summary.connection_count,
+      1,
+    );
+
+  const perConnectionTokens = (summary: UserProviderSummary) =>
+    Math.round(summary.consumption_tokens / connectionDenominator(summary));
+
+  const perConnectionCost = (summary: UserProviderSummary) =>
+    summary.consumption_cost / connectionDenominator(summary);
+
+  const connectionLastUsedAt = (summary: UserProviderSummary) =>
+    summary.connections.length === 1 ? summary.last_used_at : null;
+
+  const showMetricCard = () =>
+    !!copy().metricLabel && (connectedRows().length > 0 || totalApiCost() > 0);
+
+  const activeLabel = (count: number) => {
+    if (props.kind === 'local') return 'Connected';
+    return `${count} active ${count === 1 ? copy().activeSingular : copy().activePlural}`;
+  };
+
   const openModal = (providerId?: string) => {
+    setCustomProviderPrefill(null);
     // Deep-link with the page's auth type so the connection form opens in the
     // matching mode (e.g. the Subscriptions page opens the OAuth/subscription
     // flow rather than the API-key form for providers that support both).
@@ -228,9 +383,17 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     setShowModal(true);
   };
 
+  const openCustomProvider = () => {
+    setDeepLink(null);
+    setCustomProviderPrefill({ name: '', baseUrl: '' });
+    void refetchModalProviders();
+    setShowModal(true);
+  };
+
   const handleModalClose = () => {
     setShowModal(false);
     setDeepLink(null);
+    setCustomProviderPrefill(null);
     void refetchGlobalProviders();
   };
 
@@ -250,70 +413,178 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <h1 class="page-header__title">{copy().heading}</h1>
           <p class="page-header__subtitle">{copy().subtitle}</p>
         </div>
-        <button
-          class="btn btn--primary btn--sm"
-          disabled={!firstAgentName()}
-          onClick={() => openModal()}
-        >
-          {copy().addLabel}
-        </button>
       </div>
+
+      <Show when={showMetricCard()}>
+        <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
+          <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
+            {copy().metricLabel}
+            <InfoTooltip text={copy().metricTooltip!} />
+          </span>
+          <div class="chart-card__value-row" style="margin-top: 4px;">
+            <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
+          </div>
+        </div>
+      </Show>
 
       <Show when={connectedRows().length > 0}>
         <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
           {copy().connectedHeading}
         </h3>
         <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
-          <table class="data-table" style="min-width: 640px;">
-            <colgroup>
-              <col style="width: 220px;" />
-              <col style="width: 120px;" />
-              <col style="width: 90px;" />
-              <col />
-              <col style="width: 100px;" />
-            </colgroup>
+          <table class="data-table" style="width: 100%;">
             <thead>
               <tr>
                 <th>Provider</th>
                 <th>Connection</th>
-                <th>Models</th>
                 <th>Usage (30d)</th>
+                <Show when={copy().rowMetricHeading}>
+                  <th>{copy().rowMetricHeading}</th>
+                </Show>
                 <th>Status</th>
+                <th>Last used</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               <For each={connectedRows()}>
                 {(row) => (
-                  <tr>
+                  <tr
+                    style="cursor: pointer;"
+                    onClick={() => navigate(`/providers/connections/${row.connection.id}`)}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        navigate(`/providers/connections/${row.connection.id}`);
+                      }
+                    }}
+                    tabindex="0"
+                  >
                     <td>
                       <span style="display: flex; align-items: center; gap: 10px;">
                         <ProviderMark providerId={row.summary.provider} name={row.name} />
                         <span style="font-weight: 500;">{row.name}</span>
+                        <Show when={row.summary.provider.startsWith('custom:')}>
+                          <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                            Custom
+                          </span>
+                        </Show>
                       </span>
                     </td>
-                    <td style="color: hsl(var(--muted-foreground));">{row.connection.label}</td>
-                    <td>{row.connection.cached_model_count || row.summary.total_models || '-'}</td>
-                    <td>{formatNumber(row.summary.consumption_tokens)} tokens</td>
-                    <td>
+                    <td
+                      style="color: hsl(var(--muted-foreground));"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Show
-                        when={row.connection.is_active}
+                        when={renamingId() === row.connection.id}
                         fallback={
-                          <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                            Inactive
+                          <span
+                            style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
+                            class="connection-label-cell"
+                          >
+                            {row.connection.label}
+                            <button
+                              type="button"
+                              class="connection-label-cell__edit"
+                              onClick={(e) =>
+                                startRename(row.connection.id, row.connection.label, e)
+                              }
+                              aria-label={`Rename ${row.connection.label}`}
+                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
+                              </svg>
+                            </button>
                           </span>
                         }
                       >
-                        <span
-                          title={
-                            row.summary.last_used_at
-                              ? `Last used ${formatTimeAgo(row.summary.last_used_at)}`
-                              : undefined
-                          }
-                          style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-xs); font-weight: 600;"
-                        >
-                          Active
-                        </span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <input
+                            type="text"
+                            class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                            value={renameValue()}
+                            onInput={(e) => {
+                              setRenameValue(e.currentTarget.value);
+                              setRenameError('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter')
+                                submitRename(
+                                  row.summary.provider,
+                                  row.connection.label,
+                                  row.summary.auth_type ?? copy().authType,
+                                  e,
+                                );
+                              if (e.key === 'Escape') cancelRename(e);
+                            }}
+                            style="width: 120px;"
+                            ref={(el) => requestAnimationFrame(() => el.focus())}
+                          />
+                          <button
+                            class="btn btn--primary btn--sm"
+                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                            disabled={renameBusy()}
+                            onClick={(e) =>
+                              submitRename(
+                                row.summary.provider,
+                                row.connection.label,
+                                row.summary.auth_type ?? copy().authType,
+                                e,
+                              )
+                            }
+                          >
+                            Save
+                          </button>
+                          <button
+                            class="btn btn--outline btn--sm"
+                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                            onClick={cancelRename}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                        <Show when={renameError()}>
+                          <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
+                            {renameError()}
+                          </div>
+                        </Show>
                       </Show>
+                    </td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <Show when={row.summary.sparkline_7d?.length}>
+                          <span style="flex-shrink: 0;">
+                            <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
+                          </span>
+                        </Show>
+                        <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
+                      </div>
+                    </td>
+                    <Show when={copy().rowMetricHeading}>
+                      <td>{formatCost(perConnectionCost(row.summary)) ?? '$0.00'}</td>
+                    </Show>
+                    <td>
+                      <StatusBadge active={row.connection.is_active} />
+                    </td>
+                    <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                      {connectionLastUsedAt(row.summary)
+                        ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                        : '-'}
+                    </td>
+                    <td style="text-align: right;">
+                      <button
+                        class="btn btn--outline btn--sm"
+                        style="font-size: var(--font-size-xs); white-space: nowrap;"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          navigate(`/providers/connections/${row.connection.id}`);
+                        }}
+                      >
+                        View details
+                      </button>
                     </td>
                   </tr>
                 )}
@@ -323,66 +594,149 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         </div>
       </Show>
 
-      <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
-        {copy().supportedHeading}
-      </h3>
-      <div class="panel" style="padding: 0; overflow-x: auto;">
-        <table class="data-table" style="min-width: 520px;">
-          <colgroup>
-            <col style="width: 240px;" />
-            <col style="width: 100px;" />
-            <col />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Provider</th>
-              <th>Models</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            <For each={providerListForKind(props.kind)}>
-              {(provider) => {
-                const activeCount = () => activeConnectionCount(provider.id);
-                return (
-                  <tr>
-                    <td>
-                      <span style="display: flex; align-items: center; gap: 10px;">
-                        <ProviderMark providerId={provider.id} name={provider.name} />
-                        <span style="font-weight: 500;">{provider.name}</span>
-                      </span>
-                    </td>
-                    <td style="color: hsl(var(--muted-foreground));">
-                      {modelCount(provider.id) ?? '-'}
-                    </td>
-                    <td style="text-align: right;">
-                      <Show when={activeCount() > 0}>
-                        <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; margin-right: 8px;">
-                          {activeCount()} active
-                        </span>
-                      </Show>
-                      <button
-                        class="btn btn--outline btn--sm"
-                        disabled={!firstAgentName()}
-                        onClick={() => openModal(provider.id)}
-                      >
-                        {copy().addLabel}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              }}
-            </For>
-          </tbody>
-        </table>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+        <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin: 0;">
+          {copy().supportedHeading}
+        </h3>
+        <div class="panel__tabs" role="tablist" style="height: 30px;">
+          <button
+            role="tab"
+            aria-selected={viewMode() === 'grid'}
+            class="panel__tab"
+            classList={{ 'panel__tab--active': viewMode() === 'grid' }}
+            onClick={() => setViewMode('grid')}
+            aria-label="Grid view"
+            style="padding: 0 8px;"
+          >
+            <GridIcon />
+          </button>
+          <button
+            role="tab"
+            aria-selected={viewMode() === 'list'}
+            class="panel__tab"
+            classList={{ 'panel__tab--active': viewMode() === 'list' }}
+            onClick={() => setViewMode('list')}
+            aria-label="List view"
+            style="padding: 0 8px;"
+          >
+            <ListIcon />
+          </button>
+        </div>
       </div>
+
+      <Show when={viewMode() === 'list'}>
+        <div class="panel" style="padding: 0; overflow-x: auto;">
+          <table class="data-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              <For each={providerListForKind(props.kind)}>
+                {(provider) => {
+                  const activeCount = () => activeConnectionCount(provider.id);
+                  return (
+                    <tr>
+                      <td>
+                        <span style="display: flex; align-items: center; gap: 10px;">
+                          <ProviderMark providerId={provider.id} name={provider.name} />
+                          <span style="font-weight: 500;">{provider.name}</span>
+                        </span>
+                      </td>
+                      <td style="text-align: right;">
+                        <span style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                          <Show when={activeCount() > 0}>
+                            <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                              <svg
+                                width="8"
+                                height="8"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                              </svg>
+                              {activeLabel(activeCount())}
+                            </span>
+                          </Show>
+                          <button
+                            class="btn btn--outline btn--sm"
+                            disabled={!firstAgentName()}
+                            style="white-space: nowrap;"
+                            onClick={() => openModal(provider.id)}
+                          >
+                            {copy().addLabel}
+                          </button>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                }}
+              </For>
+            </tbody>
+          </table>
+        </div>
+      </Show>
+
+      <Show when={viewMode() === 'grid'}>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+          <For each={providerListForKind(props.kind)}>
+            {(provider) => {
+              const activeCount = () => activeConnectionCount(provider.id);
+              return (
+                <div
+                  class="panel"
+                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
+                >
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                      <ProviderMark providerId={provider.id} name={provider.name} size={24} />
+                      <span style="font-weight: 600; font-size: var(--font-size-sm); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {provider.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <Show when={activeCount() > 0} fallback={<span />}>
+                      <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                        <svg
+                          width="8"
+                          height="8"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                        </svg>
+                        {activeLabel(activeCount())}
+                      </span>
+                    </Show>
+                    <button
+                      class="btn btn--outline btn--sm"
+                      disabled={!firstAgentName()}
+                      style="font-size: var(--font-size-xs); white-space: nowrap;"
+                      onClick={() => openModal(provider.id)}
+                    >
+                      {copy().addLabel}
+                    </button>
+                  </div>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      </Show>
 
       <Show when={showModal() && firstAgentName()}>
         <ProviderSelectModal
           agentName={firstAgentName()}
           providers={modalProviders() ?? []}
           customProviders={customProviders() ?? []}
+          customProviderPrefill={customProviderPrefill()}
           providerDeepLink={deepLink()}
+          initialTab={copy().authType}
           onUpdate={handleModalUpdate}
           onClose={handleModalClose}
         />
