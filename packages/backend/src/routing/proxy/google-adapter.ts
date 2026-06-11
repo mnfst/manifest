@@ -73,6 +73,8 @@ const UNSUPPORTED_SCHEMA_FIELDS = new Set([
   'default',
   'const',
   'title',
+  'exclusiveMinimum',
+  'exclusiveMaximum',
 ]);
 
 function sanitizeSchema(schema: unknown, isPropertiesMap = false): unknown {

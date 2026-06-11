@@ -3439,6 +3439,51 @@ describe('ProviderClient', () => {
       expect(result.isCodeAssist).toBe(true);
     });
 
+    it('sanitizes tool schemas inside the CodeAssist envelope for gemini subscription', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini',
+        apiKey: 'access-token',
+        model: 'gemini-2.5-pro',
+        body: {
+          messages: [{ role: 'user', content: 'Set a threshold' }],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'set_threshold',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    threshold: {
+                      type: 'number',
+                      minimum: 0,
+                      exclusiveMinimum: true,
+                      exclusiveMaximum: false,
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+        stream: false,
+        authType: 'subscription',
+        providerResource: 'proj-code-assist-999',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const tools = sentBody.request.tools as Array<{
+        functionDeclarations: Array<{ parameters: Record<string, unknown> }>;
+      }>;
+      const props = tools[0].functionDeclarations[0].parameters.properties as Record<
+        string,
+        Record<string, unknown>
+      >;
+      expect(props.threshold).toEqual({ type: 'number', minimum: 0 });
+    });
+
     it('uses the non-stream generateContent path for non-streaming requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

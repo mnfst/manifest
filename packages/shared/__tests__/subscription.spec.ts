@@ -368,8 +368,8 @@ describe('getSubscriptionKnownModelsMatch', () => {
     expect(getSubscriptionKnownModelsMatch('anthropic')).toBe('prefix');
   });
 
-  it('returns prefix for openai (no override)', () => {
-    expect(getSubscriptionKnownModelsMatch('openai')).toBe('prefix');
+  it('returns exact for openai', () => {
+    expect(getSubscriptionKnownModelsMatch('openai')).toBe('exact');
   });
 
   it('returns exact for gemini', () => {
