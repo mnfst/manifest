@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: var(--gap-lg);
+  margin-bottom: 0;
 }
 
 .routing-providers-info__icons {
@@ -1914,6 +1914,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   width: 100%;
+  max-width: 1400px;
 }
 
 .no-connections-prompt__card {

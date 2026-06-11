@@ -477,9 +477,7 @@ const ConnectionDetail: Component = () => {
         when={!notFound() && detail() && conn()}
         fallback={
           <Show when={!notFound()}>
-            <div style="padding: 48px 0; text-align: center; color: hsl(var(--muted-foreground));">
-              Loading...
-            </div>
+            <div style="width: 100%; height: 300px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
           </Show>
         }
       >

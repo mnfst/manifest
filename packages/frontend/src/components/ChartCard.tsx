@@ -7,12 +7,16 @@ import type { SavingsTimeseriesRow } from '../services/api/analytics.js';
 // pulls that chunk into the initial Overview render even though only one view
 // is visible at a time. Loading each chart lazily defers the chunk until its
 // tab is actually selected.
-const CostChart = lazy(() => import('./CostChart.jsx'));
+const MultiAgentTokenChart = lazy(() => import('./MultiAgentTokenChart.jsx'));
 const SavingsChart = lazy(() => import('./SavingsChart.jsx'));
-const SingleTokenChart = lazy(() => import('./SingleTokenChart.jsx'));
-const TokenChart = lazy(() => import('./TokenChart.jsx'));
 
 type ActiveView = 'cost' | 'tokens' | 'messages' | 'savings';
+
+const EMPTY = (msg: string) => (
+  <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
+    {msg}
+  </div>
+);
 
 const trendBadge = (pct: number, value: number, mode: 'inverted' | 'neutral') => {
   if (pct === 0) return null;
@@ -118,47 +122,46 @@ const ChartCard: Component<ChartCardProps> = (props) => (
     </div>
     <div class="chart-card__body">
       <Show when={props.activeView === 'cost'}>
-        <Show
-          when={props.costUsage?.length}
-          fallback={
-            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-              No cost data for this time range
-            </div>
-          }
-        >
+        <Show when={props.costUsage?.length} fallback={EMPTY('No cost data for this time range')}>
           <Suspense fallback={<div style="height: 260px;" />}>
-            <CostChart data={props.costUsage} range={props.range} />
+            <MultiAgentTokenChart
+              agents={['Cost']}
+              timeseries={props.costUsage.map((d) => ({
+                ...(d.hour ? { hour: d.hour } : { date: d.date! }),
+                Cost: d.cost,
+              }))}
+              range={props.range}
+            />
           </Suspense>
         </Show>
       </Show>
       <Show when={props.activeView === 'tokens'}>
-        <Show
-          when={props.tokenUsage?.length}
-          fallback={
-            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-              No token data for this time range
-            </div>
-          }
-        >
+        <Show when={props.tokenUsage?.length} fallback={EMPTY('No token data for this time range')}>
           <Suspense fallback={<div style="height: 260px;" />}>
-            <TokenChart data={props.tokenUsage} range={props.range} />
+            <MultiAgentTokenChart
+              agents={['Input', 'Output']}
+              timeseries={props.tokenUsage.map((d) => ({
+                ...(d.hour ? { hour: d.hour } : { date: d.date! }),
+                Input: d.input_tokens,
+                Output: d.output_tokens,
+              }))}
+              range={props.range}
+            />
           </Suspense>
         </Show>
       </Show>
       <Show when={props.activeView === 'messages'}>
         <Show
           when={props.messageChartData.length}
-          fallback={
-            <div style="height: 260px; color: hsl(var(--muted-foreground)); display: flex; align-items: center; justify-content: center;">
-              No message data for this time range
-            </div>
-          }
+          fallback={EMPTY('No message data for this time range')}
         >
           <Suspense fallback={<div style="height: 260px;" />}>
-            <SingleTokenChart
-              data={props.messageChartData}
-              label="Messages"
-              colorVar="--chart-1"
+            <MultiAgentTokenChart
+              agents={['Messages']}
+              timeseries={props.messageChartData.map((d) => ({
+                ...(d.time.includes(':') ? { hour: d.time } : { date: d.time }),
+                Messages: d.value,
+              }))}
               range={props.range}
             />
           </Suspense>
