@@ -6,7 +6,6 @@ import {
   getCustomProviders,
   getProviders as getAgentProviders,
 } from '../../services/api.js';
-import { getOverview } from '../../services/api/analytics.js';
 import {
   getProviders as getGlobalProviders,
   type UserProviderSummary,
@@ -37,13 +36,6 @@ interface AgentRow {
   agent_name: string;
 }
 
-interface OverviewData {
-  cost_by_model?: Array<{
-    estimated_cost?: number;
-    auth_type?: string | null;
-  }>;
-}
-
 const PAGE_COPY: Record<
   ProviderPageKind,
   {
@@ -55,9 +47,11 @@ const PAGE_COPY: Record<
     connectedHeading: string;
     supportedHeading: string;
     authType: AuthType;
-    metricLabel: string;
-    metricTooltip: string;
-    rowMetricHeading: string;
+    /** Cost metric (stat card + per-row column) — BYOK only. Subscriptions and
+     *  local providers have no real cost figure to show (savings was removed). */
+    metricLabel?: string;
+    metricTooltip?: string;
+    rowMetricHeading?: string;
     activeSingular: string;
     activePlural: string;
   }
@@ -70,9 +64,6 @@ const PAGE_COPY: Record<
     connectedHeading: 'My Subscriptions',
     supportedHeading: 'Supported subscriptions',
     authType: 'subscription',
-    metricLabel: 'Estimated savings (30d)',
-    metricTooltip: 'Equivalent API cost you saved by using subscriptions instead of pay-per-use.',
-    rowMetricHeading: 'Savings (30d)',
     activeSingular: 'connection',
     activePlural: 'connections',
   },
@@ -99,10 +90,6 @@ const PAGE_COPY: Record<
     connectedHeading: 'My Local Providers',
     supportedHeading: 'Supported local providers',
     authType: 'local',
-    metricLabel: 'Estimated savings (30d)',
-    metricTooltip:
-      'Equivalent API cost you saved by running models locally instead of using paid API keys.',
-    rowMetricHeading: 'Savings (30d)',
     activeSingular: 'connection',
     activePlural: 'connections',
   },
@@ -222,14 +209,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }
   });
 
-  const [overview] = createResource(async (): Promise<OverviewData> => {
-    try {
-      return (await getOverview('30d')) as OverviewData;
-    } catch {
-      return { cost_by_model: [] };
-    }
-  });
-
   const [agents] = createResource(async () => {
     try {
       const result = (await getAgents()) as { agents?: AgentRow[] } | AgentRow[];
@@ -315,22 +294,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       .get(providerId)
       ?.connections.filter((connection) => connection.is_active).length ?? 0;
 
-  const totalEstimatedSavings = createMemo(() => {
-    if (copy().authType === 'api_key') return 0;
-    return (overview()?.cost_by_model ?? [])
-      .filter((row) => row.auth_type === copy().authType)
-      .reduce((sum, row) => sum + (row.estimated_cost ?? 0), 0);
-  });
-
   const totalApiCost = createMemo(() =>
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
-
-  const pageMetricTotal = () =>
-    copy().authType === 'api_key' ? totalApiCost() : totalEstimatedSavings();
-
-  const totalKindTokens = () =>
-    connectedSummaries().reduce((sum, summary) => sum + summary.consumption_tokens, 0);
 
   const connectionDenominator = (summary: UserProviderSummary) =>
     Math.max(
@@ -342,23 +308,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const perConnectionTokens = (summary: UserProviderSummary) =>
     Math.round(summary.consumption_tokens / connectionDenominator(summary));
 
-  const perConnectionMetric = (summary: UserProviderSummary) => {
-    if (copy().authType === 'api_key') {
-      return summary.consumption_cost / connectionDenominator(summary);
-    }
-    const tokens = totalKindTokens();
-    if (tokens <= 0) return 0;
-    return (
-      ((summary.consumption_tokens / tokens) * totalEstimatedSavings()) /
-      connectionDenominator(summary)
-    );
-  };
+  const perConnectionCost = (summary: UserProviderSummary) =>
+    summary.consumption_cost / connectionDenominator(summary);
 
   const connectionLastUsedAt = (summary: UserProviderSummary) =>
     summary.connections.length === 1 ? summary.last_used_at : null;
 
   const showMetricCard = () =>
-    props.kind === 'subscriptions' || connectedRows().length > 0 || pageMetricTotal() > 0;
+    !!copy().metricLabel && (connectedRows().length > 0 || totalApiCost() > 0);
 
   const activeLabel = (count: number) => {
     if (props.kind === 'local') return 'Connected';
@@ -431,10 +388,10 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
           <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
             {copy().metricLabel}
-            <InfoTooltip text={copy().metricTooltip} />
+            <InfoTooltip text={copy().metricTooltip!} />
           </span>
           <div class="chart-card__value-row" style="margin-top: 4px;">
-            <span class="chart-card__value">{formatCost(pageMetricTotal()) ?? '$0.00'}</span>
+            <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
           </div>
         </div>
       </Show>
@@ -450,7 +407,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               <col style="width: 120px;" />
               <col style="width: 70px;" />
               <col />
-              <col style="width: 110px;" />
+              <Show when={copy().rowMetricHeading}>
+                <col style="width: 110px;" />
+              </Show>
               <col style="width: 90px;" />
               <col style="width: 90px;" />
               <col style="width: 110px;" />
@@ -461,7 +420,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 <th>Connection</th>
                 <th>Models</th>
                 <th>Usage (30d)</th>
-                <th>{copy().rowMetricHeading}</th>
+                <Show when={copy().rowMetricHeading}>
+                  <th>{copy().rowMetricHeading}</th>
+                </Show>
                 <th>Status</th>
                 <th>Last used</th>
                 <th />
@@ -505,7 +466,9 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                         <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
                       </div>
                     </td>
-                    <td>{formatCost(perConnectionMetric(row.summary)) ?? '$0.00'}</td>
+                    <Show when={copy().rowMetricHeading}>
+                      <td>{formatCost(perConnectionCost(row.summary)) ?? '$0.00'}</td>
+                    </Show>
                     <td>
                       <StatusBadge active={row.connection.is_active} />
                     </td>
