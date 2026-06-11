@@ -1,0 +1,19 @@
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_e1b70d41b01e6a::t_81f60a4a9cfa57 718-734
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "afd5a4760d12ed40f283d71618eec36099e19621",
+  "prompts": {},
+  "sessions": {
+    "s_e1b70d41b01e6a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a171d69c-205a-4893-b9d9-91fdec7c91ca",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
