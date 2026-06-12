@@ -18,6 +18,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { OtlpModule } from './otlp/otlp.module';
 import { ModelPricesModule } from './model-prices/model-prices.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { RetentionModule } from './retention/retention.module';
 import { RoutingModule } from './routing/routing.module';
 import { PlaygroundModule } from './playground/playground.module';
 import { CommonModule } from './common/common.module';
@@ -31,58 +32,59 @@ import { TelemetryModule } from './telemetry/telemetry.module';
 const frontendPath = resolveFrontendDir();
 const ONE_YEAR_S = 365 * 24 * 60 * 60;
 const serveStaticImports = frontendPath
-  ? [
-      ServeStaticModule.forRoot({
-        rootPath: frontendPath,
-        renderPath: '/__serve_static_never_match',
-        exclude: ['/api/{*path}', '/v1/{*path}'],
-        serveStaticOptions: {
-          maxAge: ONE_YEAR_S * 1000,
-          immutable: true,
-          setHeaders: (res: { setHeader: (name: string, value: string) => void }, path: string) => {
-            // index.html must never be cached (SPA entry point)
-            if (path.endsWith('.html') || path.endsWith('/index.html')) {
-              res.setHeader('Cache-Control', 'no-cache');
-            }
-          },
-        },
-      }),
-    ]
-  : [];
+	? [
+			ServeStaticModule.forRoot({
+				rootPath: frontendPath,
+				renderPath: '/__serve_static_never_match',
+				exclude: ['/api/{*path}', '/v1/{*path}'],
+				serveStaticOptions: {
+					maxAge: ONE_YEAR_S * 1000,
+					immutable: true,
+					setHeaders: (res: { setHeader: (name: string, value: string) => void }, path: string) => {
+						// index.html must never be cached (SPA entry point)
+						if (path.endsWith('.html') || path.endsWith('/index.html')) {
+							res.setHeader('Cache-Control', 'no-cache');
+						}
+					},
+				},
+			}),
+		]
+	: [];
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
-    CacheModule.register({ isGlobal: true, ttl: DASHBOARD_CACHE_TTL_MS }),
-    ...serveStaticImports,
-    ThrottlerModule.forRoot([
-      {
-        ttl: Number(process.env['THROTTLE_TTL'] ?? 60000),
-        limit: Number(process.env['THROTTLE_LIMIT'] ?? 100),
-      },
-    ]),
-    CommonModule,
-    DatabaseModule,
-    TypeOrmModule.forFeature([ApiKey]),
-    AuthModule,
-    HealthModule,
-    AnalyticsModule,
-    OtlpModule,
-    ModelPricesModule,
-    NotificationsModule,
-    RoutingModule,
-    PlaygroundModule,
-    SseModule,
-    GithubModule,
-    PublicStatsModule,
-    SetupModule,
-    FreeModelsModule,
-    TelemetryModule,
-  ],
-  providers: [
-    { provide: APP_GUARD, useClass: SessionGuard },
-    { provide: APP_GUARD, useClass: ApiKeyGuard },
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+	imports: [
+		ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
+		CacheModule.register({ isGlobal: true, ttl: DASHBOARD_CACHE_TTL_MS }),
+		...serveStaticImports,
+		ThrottlerModule.forRoot([
+			{
+				ttl: Number(process.env['THROTTLE_TTL'] ?? 60000),
+				limit: Number(process.env['THROTTLE_LIMIT'] ?? 100),
+			},
+		]),
+		CommonModule,
+		DatabaseModule,
+		TypeOrmModule.forFeature([ApiKey]),
+		AuthModule,
+		HealthModule,
+		AnalyticsModule,
+		OtlpModule,
+		ModelPricesModule,
+		NotificationsModule,
+		RetentionModule,
+		RoutingModule,
+		PlaygroundModule,
+		SseModule,
+		GithubModule,
+		PublicStatsModule,
+		SetupModule,
+		FreeModelsModule,
+		TelemetryModule,
+	],
+	providers: [
+		{ provide: APP_GUARD, useClass: SessionGuard },
+		{ provide: APP_GUARD, useClass: ApiKeyGuard },
+		{ provide: APP_GUARD, useClass: ThrottlerGuard },
+	],
 })
 export class AppModule {}

@@ -9,18 +9,21 @@ import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
  */
 @Entity('install_metadata')
 export class InstallMetadata {
-  @PrimaryColumn('varchar')
-  id!: string;
+	@PrimaryColumn('varchar')
+	id!: string;
 
-  @Column('varchar')
-  install_id!: string;
+	@Column('varchar')
+	install_id!: string;
 
-  @Column(timestampType(), { default: timestampDefault() })
-  created_at!: string;
+	@Column(timestampType(), { default: timestampDefault() })
+	created_at!: string;
 
-  @Column(timestampType(), { nullable: true })
-  first_send_at!: string | null;
+	@Column(timestampType(), { nullable: true })
+	first_send_at!: string | null;
 
-  @Column(timestampType(), { nullable: true })
-  last_sent_at!: string | null;
+	@Column(timestampType(), { nullable: true })
+	last_sent_at!: string | null;
+
+	@Column('integer', { nullable: true, default: null })
+	message_retention_days!: number | null;
 }
