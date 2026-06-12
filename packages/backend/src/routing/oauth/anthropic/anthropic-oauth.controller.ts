@@ -13,7 +13,7 @@ import { AuthUser } from '../../../auth/auth.instance';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { AnthropicOauthExchangeError, AnthropicOauthService } from './anthropic-oauth.service';
-import { optionalTrimmedStringQuery } from '../query-params';
+import { optionalTrimmedStringQuery } from '../core/query-params';
 
 @Controller('api/v1/oauth/anthropic')
 export class AnthropicOauthController {

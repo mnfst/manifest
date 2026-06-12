@@ -1,10 +1,10 @@
 import { Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { AuthUser } from '../../auth/auth.instance';
+import { CurrentUser } from '../../../auth/current-user.decorator';
+import { AuthUser } from '../../../auth/auth.instance';
 import { KiroOauthService } from './kiro-oauth.service';
-import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { optionalTrimmedStringQuery } from './query-params';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { ProviderService } from '../../routing-core/provider.service';
+import { optionalTrimmedStringQuery } from '../core/query-params';
 
 @Controller('api/v1/oauth/kiro')
 export class KiroOauthController {

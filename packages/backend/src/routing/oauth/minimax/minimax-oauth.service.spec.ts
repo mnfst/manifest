@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
-import { MinimaxOauthService } from './oauth/minimax-oauth.service';
-import { ProviderService } from './routing-core/provider.service';
+import { MinimaxOauthService } from './minimax-oauth.service';
+import { ProviderService } from '../../routing-core/provider.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;

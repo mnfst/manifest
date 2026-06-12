@@ -1,5 +1,5 @@
-import { OAuthTokenBlob } from './openai-oauth.types';
-import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { OAuthTokenBlob } from '../openai/openai-oauth.types';
+import { normalizeMinimaxSubscriptionBaseUrl } from '../../provider-base-url';
 
 export const MINIMAX_BASE_URLS = {
   global: 'https://api.minimax.io',

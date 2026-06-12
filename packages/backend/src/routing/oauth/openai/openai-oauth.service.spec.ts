@@ -1,7 +1,7 @@
 import { createServer } from 'http';
 import { ConfigService } from '@nestjs/config';
-import { OpenaiOauthService, OAuthTokenBlob } from './oauth/openai-oauth.service';
-import { ProviderService } from './routing-core/provider.service';
+import { OpenaiOauthService, OAuthTokenBlob } from './openai-oauth.service';
+import { ProviderService } from '../../routing-core/provider.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fetchMock = jest.fn() as jest.Mock<Promise<any>>;

@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { OpenaiOauthController } from './openai-oauth.controller';
 import { OpenaiOauthService } from './openai-oauth.service';
-import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { ProviderKeyService } from '../routing-core/provider-key.service';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ProviderKeyService } from '../../routing-core/provider-key.service';
 
 const user = { id: 'user-1', email: 'u@example.com', name: 'U' } as never;
 

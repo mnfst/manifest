@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { KiroOauthService } from './kiro-oauth.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { parseKiroOAuthTokenBlob, serializeKiroOAuthTokenBlob } from './kiro-oidc';
 
 const originalFetch = global.fetch;

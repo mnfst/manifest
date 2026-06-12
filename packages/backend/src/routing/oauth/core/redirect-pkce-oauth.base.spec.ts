@@ -8,8 +8,8 @@
  * external network or DI.
  */
 import { ConfigService } from '@nestjs/config';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import {
   RedirectPkceOauthBaseService,
   type RedirectPkceOauthConfig,

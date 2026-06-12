@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { KiroOauthController } from './oauth/kiro-oauth.controller';
-import { KiroOauthService } from './oauth/kiro-oauth.service';
-import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { ProviderService } from './routing-core/provider.service';
+import { KiroOauthController } from './kiro-oauth.controller';
+import { KiroOauthService } from './kiro-oauth.service';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { ProviderService } from '../../routing-core/provider.service';
 
 describe('KiroOauthController', () => {
   let controller: KiroOauthController;

@@ -1,11 +1,11 @@
 import { Body, Controller, Param, Post } from '@nestjs/common';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
-import { ProviderService } from './routing-core/provider.service';
-import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { CopilotDeviceAuthService } from './oauth/copilot-device-auth.service';
-import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
-import { AgentNameParamDto, CopilotPollDto } from './dto/routing.dto';
+import { CurrentUser } from '../../../auth/current-user.decorator';
+import { AuthUser } from '../../../auth/auth.instance';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { CopilotDeviceAuthService } from './copilot-device-auth.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import { AgentNameParamDto, CopilotPollDto } from '../../dto/routing.dto';
 
 @Controller('api/v1/routing')
 export class CopilotController {

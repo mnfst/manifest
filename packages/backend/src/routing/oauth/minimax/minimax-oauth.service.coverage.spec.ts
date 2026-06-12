@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { MinimaxOauthService } from './minimax-oauth.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 
 const originalFetch = global.fetch;
 

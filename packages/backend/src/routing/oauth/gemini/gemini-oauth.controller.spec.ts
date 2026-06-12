@@ -1,15 +1,15 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OpenaiOauthController } from './oauth/openai-oauth.controller';
-import { OpenaiOauthService } from './oauth/openai-oauth.service';
-import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { ProviderKeyService } from './routing-core/provider-key.service';
-import { ProviderService } from './routing-core/provider.service';
+import { GeminiOauthController } from './gemini-oauth.controller';
+import { GeminiOauthService } from './gemini-oauth.service';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { ProviderKeyService } from '../../routing-core/provider-key.service';
+import { ProviderService } from '../../routing-core/provider.service';
 import { Request, Response } from 'express';
 
-describe('OpenaiOauthController', () => {
-  let controller: OpenaiOauthController;
-  let oauthService: jest.Mocked<OpenaiOauthService>;
+describe('GeminiOauthController', () => {
+  let controller: GeminiOauthController;
+  let oauthService: jest.Mocked<GeminiOauthService>;
   let resolveAgent: jest.Mocked<ResolveAgentService>;
   let providerKeyService: jest.Mocked<ProviderKeyService>;
   let providerService: jest.Mocked<ProviderService>;
@@ -19,7 +19,7 @@ describe('OpenaiOauthController', () => {
     oauthService = {
       generateAuthorizationUrl: jest.fn(),
       revokeToken: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<OpenaiOauthService>;
+    } as unknown as jest.Mocked<GeminiOauthService>;
 
     resolveAgent = {
       resolve: jest.fn(),
@@ -37,7 +37,7 @@ describe('OpenaiOauthController', () => {
       get: jest.fn().mockReturnValue(undefined),
     } as unknown as jest.Mocked<ConfigService>;
 
-    controller = new OpenaiOauthController(
+    controller = new GeminiOauthController(
       oauthService,
       resolveAgent,
       providerKeyService,
@@ -47,9 +47,11 @@ describe('OpenaiOauthController', () => {
   });
 
   describe('authorize', () => {
-    it('resolves agent and returns authorize URL', async () => {
+    it('resolves agent and returns authorize URL for Gemini', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
-      oauthService.generateAuthorizationUrl.mockResolvedValue('https://auth.openai.com/oauth/...');
+      oauthService.generateAuthorizationUrl.mockResolvedValue(
+        'https://accounts.google.com/o/oauth2/v2/auth?...',
+      );
 
       const req = {
         protocol: 'http',
@@ -64,7 +66,7 @@ describe('OpenaiOauthController', () => {
         'user-1',
         'http://localhost:3001',
       );
-      expect(result).toEqual({ url: 'https://auth.openai.com/oauth/...' });
+      expect(result).toEqual({ url: 'https://accounts.google.com/o/oauth2/v2/auth?...' });
     });
 
     it('throws 400 when agentName is missing', async () => {
@@ -121,7 +123,9 @@ describe('OpenaiOauthController', () => {
 
     it('uses BETTER_AUTH_URL from config when set, ignoring Host header', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
-      oauthService.generateAuthorizationUrl.mockResolvedValue('https://auth.openai.com/oauth/...');
+      oauthService.generateAuthorizationUrl.mockResolvedValue(
+        'https://accounts.google.com/o/oauth2/v2/auth?...',
+      );
       configService.get.mockReturnValue('https://manifest.example.com');
 
       const req = {
@@ -152,89 +156,29 @@ describe('OpenaiOauthController', () => {
       );
     });
 
-    it('revokes every active OpenAI subscription key when no label is provided', async () => {
+    it('revokes both access and refresh tokens from stored blob', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      const blob = JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 });
       providerKeyService.getProviderKeys.mockResolvedValue([
-        {
-          id: 'key-1',
-          label: 'Default',
-          priority: 0,
-          apiKey: JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 }),
-          region: null,
-        },
-        {
-          id: 'key-2',
-          label: 'Key 2',
-          priority: 1,
-          apiKey: JSON.stringify({ t: 'access-2', r: 'refresh-2', e: Date.now() + 3600000 }),
-          region: null,
-        },
+        { label: 'Gemini', apiKey: blob } as never,
       ]);
 
       const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
 
       expect(providerKeyService.getProviderKeys).toHaveBeenCalledWith(
         'agent-id-1',
-        'openai',
+        'gemini',
         'subscription',
       );
       expect(oauthService.revokeToken).toHaveBeenCalledWith('access-tok');
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
-      expect(oauthService.revokeToken).toHaveBeenCalledWith('access-2');
-      expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-2');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'openai',
+        'gemini',
         'subscription',
         undefined,
       );
       expect(result).toEqual({ ok: true, notifications: [] });
-    });
-
-    it('revokes and removes only the labeled OpenAI subscription key', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
-      providerKeyService.getProviderKeys.mockResolvedValue([
-        {
-          id: 'key-1',
-          label: 'Default',
-          priority: 0,
-          apiKey: JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 }),
-          region: null,
-        },
-        {
-          id: 'key-2',
-          label: 'Key 2',
-          priority: 1,
-          apiKey: JSON.stringify({ t: 'access-2', r: 'refresh-2', e: Date.now() + 3600000 }),
-          region: null,
-        },
-      ]);
-
-      const result = await controller.revoke('my-agent', 'Key 2', { id: 'user-1' } as never);
-
-      expect(oauthService.revokeToken).not.toHaveBeenCalledWith('access-tok');
-      expect(oauthService.revokeToken).not.toHaveBeenCalledWith('refresh-tok');
-      expect(oauthService.revokeToken).toHaveBeenCalledWith('access-2');
-      expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-2');
-      expect(providerService.removeProvider).toHaveBeenCalledWith(
-        'agent-id-1',
-        'openai',
-        'subscription',
-        'Key 2',
-      );
-      expect(result).toEqual({ ok: true, notifications: [] });
-    });
-
-    it('rejects repeated label query parameters', async () => {
-      await expect(
-        controller.revoke('my-agent', ['Key 1', 'Key 2'], { id: 'user-1' } as never),
-      ).rejects.toMatchObject({
-        message: 'label query parameter must be a string',
-        status: HttpStatus.BAD_REQUEST,
-      });
-      expect(resolveAgent.resolve).not.toHaveBeenCalled();
-      expect(providerKeyService.getProviderKeys).not.toHaveBeenCalled();
-      expect(providerService.removeProvider).not.toHaveBeenCalled();
     });
 
     it('returns ok even when no stored token exists', async () => {
@@ -246,7 +190,7 @@ describe('OpenaiOauthController', () => {
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'openai',
+        'gemini',
         'subscription',
         undefined,
       );
@@ -256,7 +200,7 @@ describe('OpenaiOauthController', () => {
     it('returns ok when token blob is not valid JSON', async () => {
       resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
       providerKeyService.getProviderKeys.mockResolvedValue([
-        { id: 'key-1', label: 'Default', priority: 0, apiKey: 'not-json', region: null },
+        { label: 'Gemini', apiKey: 'not-json' } as never,
       ]);
 
       const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
@@ -264,9 +208,31 @@ describe('OpenaiOauthController', () => {
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'openai',
+        'gemini',
         'subscription',
         undefined,
+      );
+      expect(result).toEqual({ ok: true, notifications: [] });
+    });
+
+    it('revokes only the selected labeled token', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      const selectedBlob = JSON.stringify({ t: 'selected-access', e: Date.now() + 3600000 });
+      const otherBlob = JSON.stringify({ t: 'other-access', e: Date.now() + 3600000 });
+      providerKeyService.getProviderKeys.mockResolvedValue([
+        { label: 'Default', apiKey: otherBlob } as never,
+        { label: 'Work', apiKey: selectedBlob } as never,
+      ]);
+
+      const result = await controller.revoke('my-agent', 'work', { id: 'user-1' } as never);
+
+      expect(oauthService.revokeToken).toHaveBeenCalledTimes(1);
+      expect(oauthService.revokeToken).toHaveBeenCalledWith('selected-access');
+      expect(providerService.removeProvider).toHaveBeenCalledWith(
+        'agent-id-1',
+        'gemini',
+        'subscription',
+        'work',
       );
       expect(result).toEqual({ ok: true, notifications: [] });
     });
@@ -333,7 +299,6 @@ describe('OpenaiOauthController', () => {
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('manifest-oauth-success'));
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Login successful'));
       expect(res.send).toHaveBeenCalledWith(expect.stringContaining('BroadcastChannel'));
-      // Script tag should include the nonce
       const html = res.send.mock.calls[0][0] as string;
       expect(html).toMatch(/nonce="[A-Za-z0-9+/=]+"/);
     });

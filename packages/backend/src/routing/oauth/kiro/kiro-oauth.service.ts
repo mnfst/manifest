@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'node:crypto';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { scrubSecrets } from '../../common/utils/secret-scrub';
-import { coordinateOAuthRefresh, oauthRefreshKey } from './core';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../../common/utils/secret-scrub';
+import { coordinateOAuthRefresh, oauthRefreshKey } from '../core';
 import {
   KIRO_CLIENT_NAME,
   KIRO_CLIENT_TYPE,

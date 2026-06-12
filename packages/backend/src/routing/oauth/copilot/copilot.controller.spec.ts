@@ -1,9 +1,9 @@
 import { CopilotController } from './copilot.controller';
-import { ProviderService } from './routing-core/provider.service';
-import { ResolveAgentService } from './routing-core/resolve-agent.service';
-import { CopilotDeviceAuthService } from './oauth/copilot-device-auth.service';
-import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
-import { Agent } from '../entities/agent.entity';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { CopilotDeviceAuthService } from './copilot-device-auth.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import { Agent } from '../../../entities/agent.entity';
 
 const mockUser = { id: 'user-1' } as never;
 const mockAgentName = { agentName: 'test-agent' } as never;

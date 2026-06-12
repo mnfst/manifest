@@ -13,15 +13,15 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
-import { Public } from '../../common/decorators/public.decorator';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { AuthUser } from '../../auth/auth.instance';
-import { OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.types';
+import { Public } from '../../../common/decorators/public.decorator';
+import { CurrentUser } from '../../../auth/current-user.decorator';
+import { AuthUser } from '../../../auth/auth.instance';
+import { OAuthTokenBlob, oauthDoneHtml } from '../openai/openai-oauth.types';
 import { GeminiOauthService } from './gemini-oauth.service';
-import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { ProviderKeyService } from '../routing-core/provider-key.service';
-import { optionalTrimmedStringQuery } from './query-params';
+import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ProviderKeyService } from '../../routing-core/provider-key.service';
+import { optionalTrimmedStringQuery } from '../core/query-params';
 
 @Controller('api/v1/oauth/gemini')
 export class GeminiOauthController {

@@ -9,7 +9,7 @@ export {
   parseOAuthTokenBlob,
   serializeOAuthTokenBlob,
   type OAuthTokenBlob,
-} from './core';
+} from '../core';
 
 /** OpenAI-specific pending-flow shape, colocated with the OpenAI service. */
 export interface PendingOAuth {

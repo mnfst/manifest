@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes, randomUUID } from 'crypto';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { scrubSecrets } from '../../common/utils/secret-scrub';
-import { coordinateOAuthRefresh, oauthRefreshKey } from './core';
-import { OAuthTokenBlob } from './openai-oauth.types';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../../common/utils/secret-scrub';
+import { coordinateOAuthRefresh, oauthRefreshKey } from '../core';
+import { OAuthTokenBlob } from '../openai/openai-oauth.types';
 import {
   MinimaxRegion,
   DEFAULT_REGION,

@@ -20,7 +20,7 @@
  *      Streaming chunks have the same wrapper shape.
  */
 import { Injectable, Logger } from '@nestjs/common';
-import { scrubSecrets } from '../../common/utils/secret-scrub';
+import { scrubSecrets } from '../../../common/utils/secret-scrub';
 
 const CODE_ASSIST_BASE = 'https://cloudcode-pa.googleapis.com';
 const CODE_ASSIST_VERSION = 'v1internal';

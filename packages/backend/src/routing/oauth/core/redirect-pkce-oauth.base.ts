@@ -13,20 +13,18 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { scrubSecrets } from '../../common/utils/secret-scrub';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import { scrubSecrets } from '../../../common/utils/secret-scrub';
+import { generatePkce, generateState } from './pkce';
+import { oauthDoneHtml } from './callback-page';
+import { PendingStore } from './pending-store';
 import {
-  coordinateOAuthRefresh,
-  oauthRefreshKey,
-  generatePkce,
-  generateState,
-  oauthDoneHtml,
   parseOAuthTokenBlob,
-  PendingStore,
   serializeOAuthTokenBlob,
   type OAuthTokenBlob,
-} from './core';
+} from './oauth-blob';
+import { coordinateOAuthRefresh, oauthRefreshKey } from './oauth-refresh-coordinator';
 
 export interface RedirectPkceOauthConfig {
   /** Provider id stored on `user_providers.provider_id`. */

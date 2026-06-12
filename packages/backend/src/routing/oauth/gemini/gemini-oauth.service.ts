@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ProviderService } from '../routing-core/provider.service';
-import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { OAuthTokenBlob } from './openai-oauth.types';
-import { RedirectPkceOauthBaseService } from './redirect-pkce-oauth.base';
+import { ProviderService } from '../../routing-core/provider.service';
+import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import { OAuthTokenBlob } from '../openai/openai-oauth.types';
+import { RedirectPkceOauthBaseService } from '../core/redirect-pkce-oauth.base';
 import { CodeAssistClientService } from './codeassist-client.service';
 
 // Default OAuth client borrowed from the open-source `gemini-cli` (Google's
