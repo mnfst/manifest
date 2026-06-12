@@ -4,7 +4,6 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { MessageRecording } from '../../entities/message-recording.entity';
 import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
-import { ProviderRateLimit } from '../../entities/provider-rate-limit.entity';
 import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { ModelPricesModule } from '../../model-prices/model-prices.module';
 import { ModelDiscoveryModule } from '../../model-discovery/model-discovery.module';
@@ -28,7 +27,6 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
-import { RateLimitTrackerService } from './rate-limit-tracker.service';
 
 @Module({
   imports: [
@@ -37,7 +35,6 @@ import { RateLimitTrackerService } from './rate-limit-tracker.service';
       CustomProvider,
       MessageRecording,
       ReasoningContentCacheEntry,
-      ProviderRateLimit,
     ]),
     RoutingCoreModule,
     ModelPricesModule,
@@ -64,8 +61,7 @@ import { RateLimitTrackerService } from './rate-limit-tracker.service';
     ReasoningContentCache,
     ProxyExceptionFilter,
     MessageRecordingService,
-    RateLimitTrackerService,
   ],
-  exports: [ProviderClient, RateLimitTrackerService],
+  exports: [ProviderClient],
 })
 export class ProxyModule {}
