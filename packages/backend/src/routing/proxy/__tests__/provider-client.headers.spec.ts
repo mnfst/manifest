@@ -9,6 +9,9 @@
 // fails loudly.
 
 import { ProviderClient } from '../provider-client';
+import { CodexSessionAffinity } from '../codex-session-affinity';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
@@ -209,7 +212,137 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
     // rejects non-Codex shaped requests).
     expect(typeof sentHeaders['user-agent']).toBe('string');
     expect(sentHeaders['user-agent'].length).toBeGreaterThan(0);
+    // Prompt-cache affinity headers the Codex backend needs for cache hits.
+    expect(sentHeaders['session-id']).toMatch(UUID_RE);
+    expect(sentHeaders['thread-id']).toMatch(UUID_RE);
     expect(sentHeaders).not.toHaveProperty('x-api-key');
     expect(sentHeaders).not.toHaveProperty('anthropic-version');
+  });
+});
+
+describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)', () => {
+  let client: ProviderClient;
+
+  beforeEach(() => {
+    client = new ProviderClient();
+    mockFetch.mockReset();
+  });
+
+  const subscriptionOpts = {
+    provider: 'openai',
+    apiKey: 'oauth-token',
+    model: 'gpt-5',
+    body,
+    stream: false,
+    authType: 'subscription',
+  } as const;
+
+  it('sends deterministic session-id/thread-id headers across requests', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({ ...subscriptionOpts });
+    await client.forward({ ...subscriptionOpts });
+
+    const first = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    const second = mockFetch.mock.calls[1][1].headers as Record<string, string>;
+    expect(first['session-id']).toMatch(UUID_RE);
+    expect(first['session-id']).toBe(second['session-id']);
+    expect(first['thread-id']).toBe(second['thread-id']);
+  });
+
+  it('injects a stable default prompt_cache_key into the outgoing body', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({ ...subscriptionOpts });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(sentBody.prompt_cache_key).toMatch(UUID_RE);
+  });
+
+  it('keeps the caller-supplied prompt_cache_key on the Chat Completions path', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      ...subscriptionOpts,
+      body: { ...body, prompt_cache_key: 'caller-conv-1' },
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(sentBody.prompt_cache_key).toBe('caller-conv-1');
+  });
+
+  it('forwards the caller prompt_cache_key on the api-key /responses conversion path', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-test',
+      model: 'o1-pro',
+      body: { ...body, prompt_cache_key: 'caller-conv-1' },
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(sentBody.prompt_cache_key).toBe('caller-conv-1');
+    // Affinity headers stay subscription-only; the API-key path needs none.
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    expect(sentHeaders).not.toHaveProperty('session-id');
+  });
+
+  it('replays the x-codex-turn-state token captured from the previous response', async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response('{}', { status: 200, headers: { 'x-codex-turn-state': 'turn-abc' } }),
+    );
+    mockFetch.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+
+    await client.forward({ ...subscriptionOpts });
+    await client.forward({ ...subscriptionOpts });
+
+    const first = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    const second = mockFetch.mock.calls[1][1].headers as Record<string, string>;
+    expect(first).not.toHaveProperty('x-codex-turn-state');
+    expect(second['x-codex-turn-state']).toBe('turn-abc');
+  });
+
+  it('applies affinity on the native Responses API path too', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      ...subscriptionOpts,
+      apiMode: 'responses',
+      body: { input: 'Hello', instructions: 'You are helpful.' },
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(sentHeaders['session-id']).toMatch(UUID_RE);
+    expect(sentBody.prompt_cache_key).toMatch(UUID_RE);
+  });
+
+  it('keeps affinity headers authoritative over caller-supplied extraHeaders', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      ...subscriptionOpts,
+      extraHeaders: { 'session-id': 'attacker-override', 'x-observability': 'keep-me' },
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    // Routing-critical affinity header wins…
+    expect(sentHeaders['session-id']).toMatch(UUID_RE);
+    expect(sentHeaders['session-id']).not.toBe('attacker-override');
+    // …while non-conflicting extraHeaders still pass through.
+    expect(sentHeaders['x-observability']).toBe('keep-me');
+  });
+
+  it('uses an injected CodexSessionAffinity instance when provided', async () => {
+    const affinity = new CodexSessionAffinity();
+    const prepareSpy = jest.spyOn(affinity, 'prepare');
+    const injected = new ProviderClient(undefined, undefined, affinity);
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await injected.forward({ ...subscriptionOpts });
+
+    expect(prepareSpy).toHaveBeenCalledWith('oauth-token', expect.any(Object));
   });
 });
