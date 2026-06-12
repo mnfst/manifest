@@ -408,6 +408,7 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
 function transformStreamChunk(chunk: string, state: StreamState): string | null {
   const events: string[] = [];
   for (const payload of extractDataPayloads(chunk)) {
+    if (state.endedMessage) break;
     if (payload === '[DONE]') continue;
     const data = safeParse(payload);
     if (!data) continue;
@@ -418,7 +419,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
     // would fabricate a successful empty `end_turn` message.
     if (isRecord(data.error)) {
       events.push(buildStreamErrorEvent(state, data.error));
-      continue;
+      break;
     }
 
     if (!state.startedMessage) {

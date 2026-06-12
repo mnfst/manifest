@@ -655,6 +655,19 @@ describe('Anthropic Messages adapter', () => {
       expect(sse).not.toContain('message_stop');
     });
 
+    it('ignores later stream payloads after a terminal error event', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"error":{"message":"Too many requests","status":429}}\n\ndata: {"choices":[{"delta":{"content":"same chunk"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"later chunk"}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+      ]);
+
+      expect(sse).toBe(
+        'event: error\ndata: {"type":"error","error":{"type":"rate_limit_error","message":"Too many requests"}}\n\n',
+      );
+    });
+
     it('emits an error event mid-stream and suppresses the fabricated end_turn close', () => {
       const t = createMessagesStreamTransformer('gpt-5');
       const sse = flushChunks(t, [
