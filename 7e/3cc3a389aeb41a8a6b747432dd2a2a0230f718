@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/stream-warmup.spec.ts
+  s_60f09856ccf971::t_acfa5bd5ea9605 76-82
+packages/backend/src/routing/proxy/stream-warmup.ts
+  s_60f09856ccf971::t_acfa5bd5ea9605 13-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "7e3cc3a389aeb41a8a6b747432dd2a2a0230f718",
+  "prompts": {},
+  "sessions": {
+    "s_60f09856ccf971": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ebc03-86c1-7562-8b12-1c7295a28cbc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
