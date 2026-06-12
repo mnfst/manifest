@@ -271,7 +271,7 @@ describe('ModelParamsDialog', () => {
     ));
 
     fireEvent.click(screen.getByLabelText('Thinking mode'));
-    fireEvent.click(screen.getByRole('option', { name: 'unset' }));
+    fireEvent.click(screen.getByRole('option', { name: 'None' }));
     expect((screen.getByLabelText('Thinking display') as HTMLButtonElement).disabled).toBe(true);
 
     fireEvent.click(screen.getByText('Save'));
@@ -291,7 +291,7 @@ describe('ModelParamsDialog', () => {
     ));
 
     fireEvent.click(screen.getByLabelText('Thinking mode'));
-    expect(screen.getByRole('option', { name: 'unset' })).toBeTruthy();
+    expect(screen.getByRole('option', { name: 'None' })).toBeTruthy();
     fireEvent.click(screen.getByRole('option', { name: 'adaptive' }));
     fireEvent.click(screen.getByText('Save'));
 

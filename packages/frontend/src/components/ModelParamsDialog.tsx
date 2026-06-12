@@ -193,7 +193,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
   };
 
   const selectOptions = (spec: ProviderParamSpec) => [
-    ...(canUnset(spec) ? [{ label: 'unset', value: UNSET_OPTION_VALUE }] : []),
+    ...(canUnset(spec) ? [{ label: 'None', value: UNSET_OPTION_VALUE }] : []),
     ...(spec.values ?? []).map((v) => ({ label: String(v), value: String(v) })),
   ];
 
@@ -426,7 +426,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
   const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
     const spec = () => rowProps.spec;
     const description = () => trimTrailingPunct(spec().description) + '.';
-    const defaultLabel = () => (spec().default === undefined ? 'unset' : String(spec().default));
+    const defaultLabel = () => (spec().default === undefined ? 'none' : String(spec().default));
     return (
       <div
         class="model-params__row"
