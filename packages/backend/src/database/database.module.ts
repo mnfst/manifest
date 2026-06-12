@@ -88,8 +88,6 @@ import { BackfillLocalAuthType1777200000000 } from './migrations/1777200000000-B
 import { BackfillLocalCustomProviders1777300000000 } from './migrations/1777300000000-BackfillLocalCustomProviders';
 import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000000-ReAddComplexityRoutingFlag';
-import { AddSavingsBaselineModel1782000000000 } from './migrations/1782000000000-AddSavingsBaselineModel';
-import { AddBaselineCostColumns1782100000000 } from './migrations/1782100000000-AddBaselineCostColumns';
 import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/1782000000000-RetuneSpecificityMiscategorizedIndex';
 import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddAgentSoftDelete';
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
@@ -117,6 +115,7 @@ import { LiftProvidersToUserLevel1791000000000 } from './migrations/179100000000
 import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-SeedPlaygroundAgents';
 import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
+import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000000-DropSavingsBaselineColumns';
 
 const entities = [
   AgentMessage,
@@ -206,8 +205,6 @@ const migrations = [
   BackfillLocalCustomProviders1777300000000,
   DropComplexityRoutingFlag1780000000000,
   ReAddComplexityRoutingFlag1781000000000,
-  AddSavingsBaselineModel1782000000000,
-  AddBaselineCostColumns1782100000000,
   RetuneSpecificityMiscategorizedIndex1782000000000,
   AddAgentSoftDelete1782200000000,
   AddModelRouteColumns1783000000000,
@@ -235,6 +232,7 @@ const migrations = [
   LiftCustomProvidersToUserLevel1791200000000,
   SeedPlaygroundAgents1791400000000,
   DropProviderRateLimits1791600000000,
+  DropSavingsBaselineColumns1791700000000,
 ];
 
 @Module({

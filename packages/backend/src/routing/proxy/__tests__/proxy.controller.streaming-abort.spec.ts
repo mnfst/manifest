@@ -75,10 +75,6 @@ function makeRecorder(repo: { insert: jest.Mock; findOne: jest.Mock; find: jest.
           model: model ?? null,
         })),
     } as never,
-    { getProviders: jest.fn().mockResolvedValue([]) } as never,
-    { getTiers: jest.fn().mockResolvedValue([]) } as never,
-    { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-    { list: jest.fn().mockResolvedValue([]) } as never,
     {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),

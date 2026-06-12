@@ -16,11 +16,6 @@ import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
-import { ProviderService } from '../routing-core/provider.service';
-import { computeBaselineCost, collectRoutedModelIds } from '../../common/utils/baseline-cost';
-import { TierService } from '../routing-core/tier.service';
-import { SpecificityService } from '../routing-core/specificity.service';
-import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
@@ -148,10 +143,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly dedup: ProxyMessageDedup,
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
-    private readonly providerService: ProviderService,
-    private readonly tierService: TierService,
-    private readonly specificityService: SpecificityService,
-    private readonly headerTierService: HeaderTierService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
     private readonly recordingService: MessageRecordingService,
   ) {
@@ -416,8 +407,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
 
-    const baseline = await this.computeBaseline(ctx.agentId, ctx.userId, inputTokens, outputTokens);
-
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.userId,
       provider,
@@ -453,8 +442,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_id: headerTierId ?? null,
         header_tier_name: headerTierName ?? null,
         header_tier_color: headerTierColor ?? null,
-        baseline_model_id: baseline?.modelId ?? null,
-        baseline_cost_usd: baseline?.cost ?? null,
       }),
     );
     this.eventBus.emit(ctx.userId);
@@ -496,13 +483,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
     });
-
-    const baseline = await this.computeBaseline(
-      ctx.agentId,
-      ctx.userId,
-      usage.prompt_tokens,
-      usage.completion_tokens,
-    );
 
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
@@ -563,8 +543,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
-              baseline_model_id: baseline?.modelId ?? null,
-              baseline_cost_usd: baseline?.cost ?? null,
               recorded,
             };
             if (normalizedSessionKey) updatePayload.session_key = normalizedSessionKey;
@@ -605,8 +583,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               header_tier_id: headerTierId ?? null,
               header_tier_name: headerTierName ?? null,
               header_tier_color: headerTierColor ?? null,
-              baseline_model_id: baseline?.modelId ?? null,
-              baseline_cost_usd: baseline?.cost ?? null,
               recorded,
             }),
           );
@@ -646,36 +622,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const canonical = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id;
     if (canonical !== 'opencode-go') return null;
     return this.opencodeGoCatalog.resolveCostPerRequest(model);
-  }
-
-  private async computeBaseline(
-    agentId: string,
-    userId: string,
-    inputTokens: number,
-    outputTokens: number,
-  ): Promise<{ modelId: string; cost: number } | null> {
-    try {
-      const [providers, tiers, specificityAssignments, headerTiers] = await Promise.all([
-        this.providerService.getProviders(userId),
-        this.tierService.getTiers(agentId),
-        this.specificityService.getAssignments(agentId),
-        this.headerTierService.list(agentId),
-      ]);
-      const routedModelIds = collectRoutedModelIds([
-        ...tiers,
-        ...specificityAssignments,
-        ...headerTiers,
-      ]);
-      return computeBaselineCost(
-        providers,
-        routedModelIds,
-        inputTokens,
-        outputTokens,
-        this.pricingCache,
-      );
-    } catch {
-      return null;
-    }
   }
 
   private evictExpiredCooldowns(): void {
