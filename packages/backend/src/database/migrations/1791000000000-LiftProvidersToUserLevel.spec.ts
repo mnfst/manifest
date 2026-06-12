@@ -97,7 +97,7 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(createIdx).toBeGreaterThan(relabelIdx);
   });
 
-  it('down restores agent_id strictness, the agent-scoped index, and drops access', async () => {
+  it('down reconstructs per-agent rows, recreates the agent-scoped index, and drops access', async () => {
     await migration.down(queryRunner);
     expect(
       queries.some(
@@ -110,18 +110,12 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(queries.some((q) => q.includes('SET "agent_id" = first_grant."agent_id"'))).toBe(true);
     expect(
       queries.some(
-        (q) => q.includes('DELETE FROM "user_providers"') && q.includes('"agent_id" IS NULL'),
-      ),
-    ).toBe(true);
-    expect(
-      queries.some(
         (q) =>
           q.includes('CREATE UNIQUE INDEX IF NOT EXISTS') &&
           q.includes('"IDX_user_providers_agent_provider_auth_label"') &&
           q.includes('"agent_id"'),
       ),
     ).toBe(true);
-    expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" SET NOT NULL'))).toBe(true);
     expect(
       queries.some((q) =>
         q.includes('DROP CONSTRAINT IF EXISTS "FK_agent_provider_access_provider"'),
@@ -133,5 +127,28 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(queries.some((q) => q.includes('DROP TABLE IF EXISTS "agent_provider_access"'))).toBe(
       true,
     );
+  });
+
+  it('down aliases agent_provider_access as "apa" in the first_grant CTE (regression: a missing alias made the whole revert throw at plan time)', async () => {
+    await migration.down(queryRunner);
+    const firstGrant = queries.find((q) => q.includes('SET "agent_id" = first_grant."agent_id"'));
+    expect(firstGrant).toBeDefined();
+    expect(firstGrant).toContain('FROM "agent_provider_access" apa');
+  });
+
+  it('down is lossless: no blanket delete, and NOT NULL is restored only when every row is mapped', async () => {
+    await migration.down(queryRunner);
+    // The old blanket `DELETE FROM "user_providers" WHERE "agent_id" IS NULL`
+    // dropped user-global providers (and their encrypted keys) on rollback — gone.
+    expect(queries.some((q) => /DELETE\s+FROM\s+"user_providers"/i.test(q))).toBe(false);
+    // NOT NULL is re-imposed only when no row is left unmapped, so an un-mappable
+    // connection keeps its row instead of blocking the revert.
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('IF NOT EXISTS (SELECT 1 FROM "user_providers" WHERE "agent_id" IS NULL)') &&
+          q.includes('ALTER COLUMN "agent_id" SET NOT NULL'),
+      ),
+    ).toBe(true);
   });
 });
