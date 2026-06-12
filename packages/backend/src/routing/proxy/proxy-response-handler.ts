@@ -39,7 +39,7 @@ import { sanitizeResponseHeaders } from './recording-capture';
 import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
-} from '../oauth/codeassist-envelope';
+} from '../oauth/gemini/codeassist-envelope';
 
 const logger = new Logger('ProxyResponseHandler');
 

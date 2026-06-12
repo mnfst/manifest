@@ -2,39 +2,43 @@ import {
   Body,
   Controller,
   Get,
-  HttpException,
-  HttpStatus,
-  Logger,
   Post,
   Query,
   Req,
   Res,
+  Logger,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
-import { AuthUser } from '../../../auth/auth.instance';
-import { CurrentUser } from '../../../auth/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
+import { CurrentUser } from '../../../auth/current-user.decorator';
+import { AuthUser } from '../../../auth/auth.instance';
+import { OpenaiOauthService, OAuthTokenBlob, oauthDoneHtml } from './openai-oauth.service';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
-import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { ProviderService } from '../../routing-core/provider.service';
-import { oauthDoneHtml, type OAuthTokenBlob } from '../core';
+import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { optionalTrimmedStringQuery } from '../core/query-params';
-import { XaiOauthService } from './xai-oauth.service';
 
-@Controller('api/v1/oauth/xai')
-export class XaiOauthController {
-  private readonly logger = new Logger(XaiOauthController.name);
+@Controller('api/v1/oauth/openai')
+export class OpenaiOauthController {
+  private readonly logger = new Logger(OpenaiOauthController.name);
 
   constructor(
-    private readonly oauthService: XaiOauthService,
+    private readonly oauthService: OpenaiOauthService,
     private readonly resolveAgent: ResolveAgentService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly providerService: ProviderService,
     private readonly configService: ConfigService,
   ) {}
 
+  /**
+   * Generates an OpenAI OAuth authorize URL with PKCE challenge.
+   * The frontend opens this URL in a popup window.
+   * A temporary callback server on port 1455 handles the redirect.
+   */
   @Get('authorize')
   async authorize(
     @Query('agentName') agentName: string,
@@ -45,6 +49,9 @@ export class XaiOauthController {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
+    // Prefer the operator-configured BETTER_AUTH_URL so a forged Host header
+    // can't redirect the OAuth flow. Fall back to the request's host:port for
+    // the dev case where BETTER_AUTH_URL isn't set.
     const trustedBackendUrl = this.configService.get<string>('BETTER_AUTH_URL');
     const backendUrl = trustedBackendUrl || `${req.protocol}://${req.get('host')}`;
     try {
@@ -56,6 +63,51 @@ export class XaiOauthController {
     }
   }
 
+  /**
+   * Revoke stored OpenAI OAuth token(s) (best-effort) and disconnect the provider.
+   */
+  @Post('revoke')
+  async revoke(
+    @Query('agentName') agentName: string,
+    @Query('label') label: string | string[] | undefined,
+    @CurrentUser() user: AuthUser,
+  ) {
+    if (!agentName) {
+      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
+    }
+    const keyLabel = optionalTrimmedStringQuery(label, 'label');
+    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const keys = await this.providerKeyService.getProviderKeys(agent.id, 'openai', 'subscription');
+    const keysToRevoke = keyLabel
+      ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
+      : keys;
+
+    for (const key of keysToRevoke) {
+      if (!key.apiKey) continue;
+      try {
+        const blob = JSON.parse(key.apiKey) as OAuthTokenBlob;
+        if (blob.t) await this.oauthService.revokeToken(blob.t);
+        if (blob.r) await this.oauthService.revokeToken(blob.r);
+      } catch {
+        this.logger.warn('Could not parse OAuth token blob for revocation');
+      }
+    }
+
+    const { notifications } = await this.providerService.removeProvider(
+      agent.id,
+      'openai',
+      'subscription',
+      keyLabel,
+    );
+
+    return { ok: true, notifications };
+  }
+
+  /**
+   * Manual OAuth callback for cloud deployments.
+   * When the popup redirects to localhost:1455 and fails (no local server),
+   * the frontend extracts code+state from the failed URL and POSTs here.
+   */
   @Post('callback')
   async callback(
     @Body('code') code: string,
@@ -71,48 +123,16 @@ export class XaiOauthController {
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Token exchange failed';
-      this.logger.error(`xAI OAuth callback exchange failed: ${message}`);
+      this.logger.error(`OAuth callback exchange failed: ${message}`);
       throw new HttpException(message, HttpStatus.BAD_REQUEST);
     }
   }
 
-  @Post('revoke')
-  async revoke(
-    @Query('agentName') agentName: string,
-    @Query('label') label: string | string[] | undefined,
-    @CurrentUser() user: AuthUser,
-  ) {
-    if (!agentName) {
-      throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
-    }
-    const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(agent.id, 'xai', 'subscription');
-    const keysToRevoke = keyLabel
-      ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
-      : keys;
-
-    for (const key of keysToRevoke) {
-      if (!key.apiKey) continue;
-      try {
-        const blob = JSON.parse(key.apiKey) as OAuthTokenBlob;
-        if (blob.t) await this.oauthService.revokeToken(blob.t);
-        if (blob.r) await this.oauthService.revokeToken(blob.r);
-      } catch {
-        this.logger.warn('Could not parse xAI OAuth token blob for revocation');
-      }
-    }
-
-    const { notifications } = await this.providerService.removeProvider(
-      agent.id,
-      'xai',
-      'subscription',
-      keyLabel,
-    );
-
-    return { ok: true, notifications };
-  }
-
+  /**
+   * Completion page served on the main backend's origin.
+   * The port-1455 callback server redirects here after token exchange
+   * so that postMessage reaches the opener (same origin).
+   */
   @Get('done')
   @Public()
   done(@Query('ok') ok: string, @Res() res: Response) {
@@ -121,6 +141,6 @@ export class XaiOauthController {
     const nonce = randomBytes(16).toString('base64');
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Content-Security-Policy', `default-src 'none'; script-src 'nonce-${nonce}'`);
-    res.send(oauthDoneHtml(success, nonce, 'xAI Login'));
+    res.send(oauthDoneHtml(success, nonce));
   }
 }
