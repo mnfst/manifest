@@ -1,5 +1,35 @@
 # manifest
 
+## 6.10.0
+
+### Minor Changes
+
+- a29a705: Add a per-auth-type breakdown to the public `provider-tokens` endpoint. Each provider now carries an `auth_types` array (`{ auth_type, total_tokens, model_count }`) alongside the existing `models` list, so a provider that is used both with an API key and a subscription (e.g. OpenAI API key vs ChatGPT subscription) can be listed once per auth method. Usage with no recorded auth type is counted as `api_key`. The existing `provider`/`total_tokens`/`models` fields are unchanged, so the addition is backwards compatible.
+- 43e06c6: Add Xiaomi MiMo as an API-key provider with MiMo Token Plan subscription routing.
+
+### Patch Changes
+
+- 17d7fd5: Fix the Anthropic subscription model catalog. Drop the `claude-*-fast` ids it pulled from the pricing cache — those 404 at `api.anthropic.com` because fast mode is an `anthropic-beta` header on the base Opus model, not a model id. Also add `claude-fable-5` (Claude Fable 5), a new subscription model that didn't match the existing `claude-*-4` prefixes.
+- 6eb902d: Forward OpenAI-compatible image inputs as Anthropic image content blocks when routing Chat Completions or Responses requests to Claude.
+- abbf574: Inject cache_control prompt-caching breakpoints for Anthropic subscription OAuth requests. The skip dated from a misdiagnosed 400 that was actually caused by the missing Claude Code identity block, so subscription users were re-paying their full prompt prefix in quota on every request.
+- 6dc6c07: Filter ChatGPT subscription model discovery to models the Codex backend accepts with a ChatGPT account.
+- 00870bf: Make Anthropic Claude Code subscription OAuth and routing match the Claude Code flow: exchange tokens through the Claude Code API host, avoid connect-time probes, and use Claude Code-compatible request headers. Also fix Anthropic OAuth pending-flow consumption so the saved provider keeps the correct agent and user IDs.
+- 392efe2: Allow adaptive-only Anthropic thinking mode parameters to be reset to unset from the model parameter dialog.
+- 04782c1: Restore prompt-cache hits on the ChatGPT subscription backend: send the session affinity headers the Codex CLI sends (`session-id`/`thread-id`, `x-codex-turn-state` replay, stable `prompt_cache_key`), and forward the caller's `prompt_cache_key` on OpenAI /responses conversions
+- 4ea4872: Allow self-hosted installs to tune streaming warmup timeout with STREAM_WARMUP_MS.
+- 3f59cc4: Route Copilot subscription models using their advertised supported endpoints so responses-only models use `/responses` directly instead of failing on `/chat/completions`.
+- 96eba2d: Resolve subscription provider aliases before checking subscription support so Gemini subscriptions stored or registered as "google" remain usable for routing.
+- 09a7379: Strip unsupported `exclusiveMinimum` and `exclusiveMaximum` JSON Schema fields from Google/Gemini tool declarations so function-calling requests do not fail validation.
+- 8cbc0da: Forward OpenAI-compatible image inputs as Gemini inline or file data parts when routing requests to Google.
+- d018cb4: Fix custom (header) routing tiers keeping stale account pins after disconnecting one of several accounts on the same provider. Provider-reference cleanup only updated complexity and specificity tiers, so disconnecting an account, renaming a key, or deactivating all providers left header-tier routes pointing at a removed account (the account chip then rendered blank). `relabelOverrides`, `cleanupProviderReferences`, and `deactivateAllProviders` now clean `header_tiers` routes the same way.
+- cb48cc0: Fix OAuth subscription tokens getting permanently invalidated (#2012). Providers like OpenAI now rotate refresh tokens on every refresh, so the previous "refresh then persist" path could brick an account when parallel proxy requests refreshed the same credential at once, or when the DB write failed after the provider had already rotated. Lazy refreshes are now coordinated per credential: concurrent refreshes coalesce into a single round-trip, the freshest token is re-read from the database before refreshing, and the rotated token is persisted with retries. Applies to all subscription OAuth providers (OpenAI, Gemini, Anthropic, MiniMax, xAI, Kiro).
+- 2ee31b3: Route already-resolved OpenAI `o3-deep-research` API-key requests through the Responses endpoint, matching the existing deep-research handling for `o4-mini-deep-research` without adding unavailable models to discovery. Preserve non-streaming mode when forwarding Chat Completions-shaped requests to OpenAI Responses, and surface collected Responses SSE error events as upstream failures instead of empty successful completions.
+- 6677b95: Fix the Playground sending MiniMax subscription requests to the default region endpoint. The OAuth `resource_url` (which encodes the chosen region) was only applied for Gemini and dropped for MiniMax; it is now turned into a `minimax-subscription` base-URL override the same way the proxy does, so Playground requests hit the correct region. Follow-up to #2110 (cubic-flagged).
+- 4a7e1fa: Normalize provider reasoning stream aliases such as Copilot's `reasoning_text` to OpenAI-compatible `reasoning_content` for chat-completions clients while preserving provider-specific replay safeguards.
+- 642b162: Prevent OpenAI Responses-backed subscription streams from ending as interrupted client streams: forward terminal upstream `error` / `response.failed` events as OpenAI-compatible SSE error payloads, convert `response.incomplete` (max_output_tokens / content filter) into a proper `length` / `content_filter` finish chunk, surface upstream stream errors to `/v1/messages` clients as native Anthropic `error` events instead of a fabricated empty `end_turn` message, and stop the provider request timeout from aborting healthy streaming response bodies after headers have arrived.
+- 34febf8: Fix the Playground using the wrong endpoint for region-based providers (qwen, zai) and forwarding vendor-prefixed model ids for copilot/zai. The proxy's endpoint + model resolution (region overrides for minimax/qwen/zai, prefix stripping for copilot/minimax/zai, custom-provider endpoints) is now a shared `resolveForwardEndpoint` helper used by both the proxy and the Playground, so the two paths can no longer drift.
+- 6154127: Try configured tier fallback routes before the auto-assigned route when a manual override model is unavailable.
+
 ## 6.9.2
 
 ### Patch Changes
