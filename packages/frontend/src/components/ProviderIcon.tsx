@@ -38,6 +38,24 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── AWS Bedrock ─────────────────────────────── */
+    case 'bedrock':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <rect x="2" y="3" width="20" height="18" rx="3" fill="#232F3E" />
+          <path d="M6.2 9.1 12 5.8l5.8 3.3v6.8L12 19.2l-5.8-3.3V9.1Z" fill="#FF9900" />
+          <path d="M12 5.8v6.6l5.8-3.3L12 5.8Z" fill="#FFC46B" />
+          <path d="M6.2 9.1 12 12.4v6.8l-5.8-3.3V9.1Z" fill="#E07A00" />
+          <path d="M12 12.4v6.8l5.8-3.3V9.1L12 12.4Z" fill="#F28C00" />
+        </svg>
+      );
+
     /* ── BytePlus ─────────────────────────────────── */
     case 'byteplus':
       return (

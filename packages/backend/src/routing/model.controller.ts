@@ -10,7 +10,7 @@ import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
-import { resolveUnderlyingModelIdentity } from 'manifest-shared';
+import { resolveProviderMetadataIdentity } from 'manifest-shared';
 import {
   inputModalitiesFromCapabilities,
   mergeModelCapabilities,
@@ -106,12 +106,10 @@ export class ModelController {
           authType,
           m.id,
         );
-        // Gateway models (e.g. `opencode-go/glm-5.1`) proxy another provider's
-        // API, so their capabilities live under the underlying provider on
-        // models.dev. Resolve the provenance before the metadata lookups; this
-        // is gateway-generic, not OpenCode Go-specific. `getCapabilities` (MPS)
-        // already unwraps gateways internally, so it keeps the raw identity.
-        const capId = resolveUnderlyingModelIdentity(m.provider, m.id);
+        // Some routable ids proxy another provider's model namespace (gateway
+        // ids, Bedrock vendor-prefixed ids). Resolve that provenance for
+        // metadata only; the routable provider/model below stay unchanged.
+        const capId = resolveProviderMetadataIdentity(m.provider, m.id);
         const capProvider = capId.provider ?? m.provider;
         const modelsDevEntry = this.modelsDevSync.lookupModel(capProvider, capId.model);
         const modelsDevCapabilities = modelsDevEntry?.capabilities;

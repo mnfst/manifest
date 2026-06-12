@@ -1,3 +1,5 @@
+import { SHARED_PROVIDERS } from './providers';
+
 /**
  * Infer a provider ID from a model name string.
  * This is the unified superset of all regex patterns from backend and frontend.
@@ -32,6 +34,14 @@ export { MODEL_PREFIX_MAP };
  * own model id (e.g. `opencode-go/deepseek-v4-pro` -> `deepseek-v4-pro`).
  */
 const GATEWAY_MODEL_PREFIXES = ['opencode-go/', 'opencode-zen/'] as const;
+
+const BEDROCK_PROVIDER_TOKENS = new Map<string, string>();
+for (const provider of SHARED_PROVIDERS) {
+  const tokens = [provider.id, ...provider.aliases, ...provider.openRouterPrefixes];
+  for (const token of tokens) {
+    BEDROCK_PROVIDER_TOKENS.set(token.toLowerCase(), provider.id);
+  }
+}
 
 /**
  * If `model` is a gateway model id, return the underlying provider's model
@@ -73,4 +83,29 @@ export function resolveUnderlyingModelIdentity(
   const underlying = underlyingGatewayModel(model);
   if (underlying === null) return { provider, model };
   return { provider: inferProviderFromModel(underlying), model: underlying };
+}
+
+/**
+ * Resolve the provider/model identity that owns model metadata. This must not
+ * be used for inference routing: Bedrock still needs the original model id,
+ * but pricing/params/capabilities belong to the underlying model vendor.
+ */
+export function resolveProviderMetadataIdentity(
+  provider: string | undefined,
+  model: string,
+): { provider: string | undefined; model: string } {
+  const gateway = resolveUnderlyingModelIdentity(provider, model);
+  if (gateway.provider !== provider || gateway.model !== model) return gateway;
+
+  if (provider?.toLowerCase() !== 'bedrock') return { provider, model };
+
+  const parts = model.split('.');
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const resolvedProvider = BEDROCK_PROVIDER_TOKENS.get(parts[i].toLowerCase());
+    if (!resolvedProvider || resolvedProvider === 'bedrock') continue;
+    const underlyingModel = parts.slice(i + 1).join('.');
+    if (underlyingModel) return { provider: resolvedProvider, model: underlyingModel };
+  }
+
+  return { provider, model };
 }
