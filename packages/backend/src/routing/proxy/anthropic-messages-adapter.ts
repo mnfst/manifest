@@ -408,9 +408,19 @@ export function createMessagesStreamTransformer(model: string): MessagesStreamTr
 function transformStreamChunk(chunk: string, state: StreamState): string | null {
   const events: string[] = [];
   for (const payload of extractDataPayloads(chunk)) {
+    if (state.endedMessage) break;
     if (payload === '[DONE]') continue;
     const data = safeParse(payload);
     if (!data) continue;
+
+    // Terminal upstream errors arrive as OpenAI-shape `{"error":{...}}` chunks
+    // (e.g. from the ChatGPT Responses adapter). Surface them as a native
+    // Anthropic `error` event instead of dropping them — otherwise closeStream
+    // would fabricate a successful empty `end_turn` message.
+    if (isRecord(data.error)) {
+      events.push(buildStreamErrorEvent(state, data.error));
+      break;
+    }
 
     if (!state.startedMessage) {
       events.push(buildMessageStartEvent(state, data));
@@ -609,6 +619,32 @@ function buildMessageStartEvent(state: StreamState, data: JsonRecord): string {
       stop_sequence: null,
       usage,
     },
+  });
+}
+
+const ANTHROPIC_ERROR_TYPE_BY_STATUS: Record<number, string> = {
+  400: 'invalid_request_error',
+  401: 'authentication_error',
+  403: 'permission_error',
+  404: 'not_found_error',
+  429: 'rate_limit_error',
+  529: 'overloaded_error',
+};
+
+function buildStreamErrorEvent(state: StreamState, error: JsonRecord): string {
+  // Marking the message ended makes closeStream a no-op, so the error event is
+  // the terminal event the client sees (matching Anthropic's own stream
+  // protocol, where `error` can end a stream without `message_stop`).
+  state.endedMessage = true;
+  const message =
+    typeof error.message === 'string' && error.message
+      ? error.message
+      : 'Upstream provider stream failed';
+  const status = typeof error.status === 'number' ? error.status : undefined;
+  const errorType = (status && ANTHROPIC_ERROR_TYPE_BY_STATUS[status]) || 'api_error';
+  return formatMessagesEvent('error', {
+    type: 'error',
+    error: { type: errorType, message },
   });
 }
 

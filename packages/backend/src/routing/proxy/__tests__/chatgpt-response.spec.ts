@@ -214,4 +214,21 @@ describe('ChatGPT Adapter – collectChatGptSseResponse', () => {
 
     expect(choices[0].message.content).toBeNull();
   });
+
+  it('returns truncated text with finish_reason length when the stream ends with response.incomplete', () => {
+    const sse = [
+      'event: response.output_text.delta\ndata: {"delta":"Partial answ"}',
+      'event: response.incomplete\ndata: {"response":{"incomplete_details":{"reason":"max_output_tokens"},"usage":{"input_tokens":7,"output_tokens":6,"total_tokens":13}}}',
+    ].join('\n\n');
+
+    const result = collectChatGptSseResponse(sse, 'gpt-5');
+    const choices = result.choices as { message: { content: string }; finish_reason: string }[];
+
+    expect(choices[0].message.content).toBe('Partial answ');
+    expect(choices[0].finish_reason).toBe('length');
+
+    const usage = result.usage as Record<string, number>;
+    expect(usage.prompt_tokens).toBe(7);
+    expect(usage.completion_tokens).toBe(6);
+  });
 });

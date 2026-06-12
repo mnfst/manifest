@@ -145,4 +145,39 @@ describe('ProviderClient — timeout signal actually aborts the in-flight fetch'
 
     expect(abortObserved).toBe(true);
   }, 5000);
+
+  it('does not abort a streaming response body after headers arrive', async () => {
+    process.env.PROVIDER_TIMEOUT_MS = '25';
+
+    let fetchSignal: AbortSignal | undefined;
+    mockFetch.mockImplementation((_url: string, init: RequestInit) => {
+      fetchSignal = init.signal as AbortSignal;
+      return Promise.resolve(
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('data: {"choices":[]}\n\n'));
+            },
+          }),
+          { status: 200, headers: { 'content-type': 'text/event-stream' } },
+        ),
+      );
+    });
+
+    await jest.isolateModulesAsync(async () => {
+      const { ProviderClient: FreshClient } = await import('../provider-client');
+      const fresh = new FreshClient();
+      await fresh.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: true,
+      });
+    });
+
+    await new Promise((r) => setTimeout(r, 50));
+    expect(fetchSignal).toBeDefined();
+    expect(fetchSignal!.aborted).toBe(false);
+  }, 5000);
 });
