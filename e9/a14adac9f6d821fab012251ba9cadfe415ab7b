@@ -1,0 +1,34 @@
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_5d148c55faf58e::t_9eb365dcfa2c52 60-91
+packages/backend/src/routing/proxy/__tests__/chatgpt-response.spec.ts
+  s_5d148c55faf58e::t_d7717eb31a0626 217-233
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_5d148c55faf58e::t_fdfabb21ab4608 408,413-416
+  s_5d148c55faf58e::t_f09224d5ec428c 263-266
+  s_5d148c55faf58e::t_de1739c8674497 370
+  s_5d148c55faf58e::t_fd824bf3ed2cc7 433-435
+  s_5d148c55faf58e::t_8b42a70136624c 284-302,307-326
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_5d148c55faf58e::t_0edc5383bc49bd 415-423
+  s_5d148c55faf58e::t_df519ce139161d 624-649
+.changeset/response-interrupted-streams.md
+  s_5d148c55faf58e::t_34a7ec21ddc4c9 5
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_5d148c55faf58e::t_321787c7357098 644-672
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "e9a14adac9f6d821fab012251ba9cadfe415ab7b",
+  "prompts": {},
+  "sessions": {
+    "s_5d148c55faf58e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2d1cb61b-31ae-463c-8c01-0ebae6472899",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
