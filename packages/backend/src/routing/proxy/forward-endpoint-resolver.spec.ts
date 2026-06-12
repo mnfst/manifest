@@ -146,6 +146,17 @@ describe('resolveForwardEndpoint', () => {
     expect(out.customEndpoint).toBeDefined();
   });
 
+  it('builds the AWS Bedrock Mantle endpoint for a selected region', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'bedrock',
+      authType: 'api_key',
+      model: 'mistral.ministral-3-8b-instruct',
+      providerRegion: 'eu-west-1',
+    });
+    expect(out.forwardModel).toBe('mistral.ministral-3-8b-instruct');
+    expect(out.customEndpoint?.baseUrl).toBe('https://bedrock-mantle.eu-west-1.api.aws');
+  });
+
   it('sets no qwen override for an unresolved region', () => {
     const out = resolveForwardEndpoint({
       provider: 'qwen',

@@ -29,6 +29,7 @@ import {
 } from './dto/routing.dto';
 import { isQwenRegion } from './qwen-region';
 import { getSubscriptionEndpointRegionConfig } from './subscription-region';
+import { isBedrockProvider, isBedrockRegion } from './bedrock-region';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -106,13 +107,17 @@ export class ProviderController {
         if (!isQwenRegion(body.region)) {
           throw new BadRequestException('region must be one of: auto, singapore, us, beijing');
         }
+      } else if (isBedrockProvider(lowerProvider) && (body.authType ?? 'api_key') === 'api_key') {
+        if (!isBedrockRegion(body.region)) {
+          throw new BadRequestException('AWS Bedrock region must be a valid AWS region code');
+        }
       } else if (subscriptionRegionConfig) {
         if (!subscriptionRegionConfig.isRegion(body.region)) {
           throw new BadRequestException(subscriptionRegionConfig.validationMessage);
         }
       } else {
         throw new BadRequestException(
-          'region is only supported for Alibaba/Qwen providers, MiniMax subscriptions, Xiaomi MiMo Token Plan, and Z.ai subscriptions',
+          'region is only supported for Alibaba/Qwen providers, AWS Bedrock, MiniMax subscriptions, Xiaomi MiMo Token Plan, and Z.ai subscriptions',
         );
       }
     }

@@ -84,6 +84,12 @@ export function lookupWithVariants(
     }
   }
 
+  const prefixedModel = providerPrefixedModelId(prefix, modelId);
+  if (prefixedModel) {
+    const prefixedResult = pricingSync.lookupPricing(`${prefix}/${prefixedModel}`);
+    if (prefixedResult) return prefixedResult;
+  }
+
   const dotVariant = modelId.replace(/-(\d+)-(\d)/g, '-$1.$2');
   if (dotVariant !== modelId) {
     const dotResult = pricingSync.lookupPricing(`${prefix}/${dotVariant}`);
@@ -133,6 +139,12 @@ export function lookupWithVariants(
   }
 
   return null;
+}
+
+function providerPrefixedModelId(prefix: string, modelId: string): string | null {
+  const normalizedPrefix = prefix.toLowerCase();
+  if (modelId.toLowerCase().startsWith(`${normalizedPrefix}-`)) return null;
+  return `${prefix}-${modelId}`;
 }
 
 /**

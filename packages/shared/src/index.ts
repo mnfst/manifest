@@ -90,6 +90,7 @@ export {
   inferProviderFromModel,
   underlyingGatewayModel,
   resolveUnderlyingModelIdentity,
+  resolveProviderMetadataIdentity,
 } from './provider-inference';
 export {
   SHARED_PROVIDERS,

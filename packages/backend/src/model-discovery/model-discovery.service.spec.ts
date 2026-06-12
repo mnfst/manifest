@@ -218,6 +218,72 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].displayName).toBe('GPT-4 via OR');
     });
 
+    it('does not use underlying provider pricing for Bedrock models', async () => {
+      mockPricingSync.lookupPricing.mockImplementation((key: string) => {
+        if (key === 'anthropic/claude-opus-4.8') {
+          return {
+            input: 0.000015,
+            output: 0.000075,
+            contextWindow: 200000,
+            displayName: 'Claude Opus 4.8',
+          };
+        }
+        return null;
+      });
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'us.anthropic.claude-opus-4.8', provider: 'bedrock' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'bedrock', region: 'us-east-1' } as Partial<UserProvider>),
+      );
+
+      expect(result[0].id).toBe('us.anthropic.claude-opus-4.8');
+      expect(result[0].provider).toBe('bedrock');
+      expect(mockPricingSync.lookupPricing).not.toHaveBeenCalledWith('anthropic/claude-opus-4.8');
+      expect(result[0].inputPricePerToken).toBeNull();
+      expect(result[0].outputPricePerToken).toBeNull();
+    });
+
+    it('uses exact Bedrock models.dev pricing for AWS model ids', async () => {
+      mockModelsDevSync.lookupModel.mockImplementation((providerId: string, modelId: string) => {
+        if (providerId === 'anthropic' && modelId === 'claude-opus-4.8') {
+          return {
+            name: 'Claude Opus 4.8',
+            inputPricePerToken: 0.000015,
+            outputPricePerToken: 0.000075,
+            contextWindow: 200000,
+          };
+        }
+        if (providerId === 'bedrock' && modelId === 'us.anthropic.claude-opus-4.8') {
+          return {
+            name: 'AWS Claude Opus 4.8',
+            inputPricePerToken: 0.000016,
+            outputPricePerToken: 0.00008,
+            contextWindow: 200000,
+          };
+        }
+        return null;
+      });
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'us.anthropic.claude-opus-4.8', provider: 'bedrock' }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'bedrock', region: 'us-east-1' } as Partial<UserProvider>),
+      );
+
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith(
+        'bedrock',
+        'us.anthropic.claude-opus-4.8',
+      );
+      expect(result[0].inputPricePerToken).toBe(0.000016);
+      expect(result[0].outputPricePerToken).toBe(0.00008);
+      expect(result[0].displayName).toBe('Claude Opus 4.8');
+    });
+
     it('should use model contextWindow when openRouter has no contextWindow', async () => {
       mockPricingSync.lookupPricing.mockImplementation((key: string) => {
         if (key === 'openai/gpt-4') {
