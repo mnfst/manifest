@@ -401,22 +401,22 @@ describe('PayloadBuilderService', () => {
     expect(payload.agents_by_platform).toEqual({ unknown: 2 });
   });
 
-  it('excludes system agents from agents_total count (is_system = false filter applied)', async () => {
-    // The count query is for user agents only — system agents (e.g. Playground)
+  it('excludes playground agents from agents_total count (is_playground = false filter applied)', async () => {
+    // The count query is for user agents only — playground agents (e.g. Playground)
     // must not inflate the install telemetry.
     const { service, agentsRepo } = await makeServiceWithRepo({ agentsCount: 3 });
 
     const payload = await service.build('inst', '1.0.0');
 
     expect(payload.agents_total).toBe(3);
-    // The count QB must have received a where clause filtering system agents.
+    // The count QB must have received a where clause filtering playground agents.
     const countQb = agentsRepo.createQueryBuilder.mock.results[0].value as {
       where: jest.Mock;
     };
-    expect(countQb.where).toHaveBeenCalledWith('a.is_system = false');
+    expect(countQb.where).toHaveBeenCalledWith('a.is_playground = false');
   });
 
-  it('excludes system agents from agents_by_platform (is_system = false filter applied)', async () => {
+  it('excludes playground agents from agents_by_platform (is_playground = false filter applied)', async () => {
     const { service, agentsRepo } = await makeServiceWithRepo({
       agentPlatforms: [{ category: 'personal', platform: 'openclaw', count: '2' }],
     });
@@ -424,10 +424,10 @@ describe('PayloadBuilderService', () => {
     const payload = await service.build('inst', '1.0.0');
 
     expect(payload.agents_by_platform).toEqual({ openclaw: 2 });
-    // The platform QB (second agents QB call) must filter system agents.
+    // The platform QB (second agents QB call) must filter playground agents.
     const platformQb = agentsRepo.createQueryBuilder.mock.results[1].value as {
       where: jest.Mock;
     };
-    expect(platformQb.where).toHaveBeenCalledWith('a.is_system = false');
+    expect(platformQb.where).toHaveBeenCalledWith('a.is_playground = false');
   });
 });

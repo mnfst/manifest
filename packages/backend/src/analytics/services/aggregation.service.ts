@@ -7,7 +7,7 @@ import {
   MetricWithTrend,
   computeTrend,
   addTenantFilter,
-  excludeSystemAgents,
+  excludePlaygroundAgents,
   scopeToConnection,
 } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -62,7 +62,7 @@ export class AggregationService {
     agentName?: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
     userProviderId?: string,
   ) {
@@ -79,7 +79,7 @@ export class AggregationService {
     addTenantFilter(currentQb, userId, agentName, tenantId);
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
     if (provider) currentQb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(currentQb);
+    if (excludePlayground) excludePlaygroundAgents(currentQb);
     scopeToConnection(currentQb, userProviderId, label);
 
     const prevQb = this.buildPreviousWindowQuery(
@@ -90,7 +90,7 @@ export class AggregationService {
       prevCutoff,
       authType,
       provider,
-      excludeSystem,
+      excludePlayground,
       label,
       userProviderId,
     )
@@ -139,7 +139,7 @@ export class AggregationService {
     prevCutoff: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
     userProviderId?: string,
   ): SelectQueryBuilder<AgentMessage> {
@@ -150,7 +150,7 @@ export class AggregationService {
     addTenantFilter(qb, userId, agentName, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(qb);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     scopeToConnection(qb, userProviderId, label);
     return qb;
   }

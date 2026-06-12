@@ -129,8 +129,8 @@ describe('TierController', () => {
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
   });
 
-  // P1-A: tier write endpoint must 404 for the system "Playground" agent
-  it('PUT /tiers/:tier throws NotFoundException when resolve rejects the system agent', async () => {
+  // P1-A: tier write endpoint must 404 for the reserved "Playground" agent
+  it('PUT /tiers/:tier throws NotFoundException when resolve rejects the Playground agent', async () => {
     resolveAgentService.resolve.mockRejectedValueOnce(
       new NotFoundException('Agent "Playground" not found'),
     );

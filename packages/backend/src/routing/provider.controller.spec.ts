@@ -657,11 +657,11 @@ describe('ProviderController', () => {
       await expect(
         controller.getProviders(mockUser, { agentName: 'nonexistent' } as never),
       ).rejects.toThrow(NotFoundException);
-      // getProviders passes { allowSystem: true } so the Playground agent can be
+      // getProviders passes { allowPlayground: true } so the Playground agent can be
       // read; the NotFoundException originates from the service mock, not the
-      // is_system check.
+      // is_playground check.
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent', {
-        allowSystem: true,
+        allowPlayground: true,
       });
     });
 
@@ -686,7 +686,7 @@ describe('ProviderController', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('upsertProvider passes { allowSystem: true } so the Playground agent can connect providers', async () => {
+    it('upsertProvider passes { allowPlayground: true } so the Playground agent can connect providers', async () => {
       mockProviderService.upsertProvider.mockResolvedValue({
         provider: { id: 'p1', provider: 'openai', is_active: true },
         isNew: false,
@@ -698,7 +698,7 @@ describe('ProviderController', () => {
       });
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'Playground', {
-        allowSystem: true,
+        allowPlayground: true,
       });
     });
 

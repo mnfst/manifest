@@ -405,9 +405,9 @@ export class PlaygroundService {
     // just streamed to the user. A telemetry-insert blip must not turn that
     // into a user-visible failure.
     try {
-      // No user_provider_id: Playground runs use the reserved is_system agent,
-      // which excludeSystemAgents() filters out of every per-connection view, so
-      // stamping the connection here would have no analytic effect.
+      // No user_provider_id: Playground runs use the reserved is_playground agent,
+      // which excludePlaygroundAgents() filters out of every per-connection view,
+      // so stamping the connection here would have no analytic effect.
       await this.messageRepo.insert({
         id: uuid(),
         tenant_id: agent.tenant_id,

@@ -86,7 +86,7 @@ describe('ProviderAnalyticsController', () => {
   describe('getAnalytics', () => {
     it('returns summary + timeseries for default range (24h, hourly)', async () => {
       const out = await controller.getAnalytics(user, 'subscription');
-      // Final `true` arg = excludeSystem: Playground usage must not pollute
+      // Final `true` arg = excludePlayground: Playground usage must not pollute
       // provider analytics aggregates. Trailing `undefined` = no connection_id.
       expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
         '24h',

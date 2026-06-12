@@ -15,10 +15,10 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Fine at current scale; large self-hosted installs should expect a short
  * write stall the first time this migration runs.
  */
-export class AddUserProviderIdToAgentMessages1791900000000 implements MigrationInterface {
-  name = 'AddUserProviderIdToAgentMessages1791900000000';
+export class AddUserProviderIdToAgentMessages1792000000000 implements MigrationInterface {
+  name = 'AddUserProviderIdToAgentMessages1792000000000';
 
-  private readonly logger = new Logger(AddUserProviderIdToAgentMessages1791900000000.name);
+  private readonly logger = new Logger(AddUserProviderIdToAgentMessages1792000000000.name);
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Nullable add → metadata-only, no table rewrite even on a large table.

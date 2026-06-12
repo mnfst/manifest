@@ -11,7 +11,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import {
   selectMessageRowColumns,
   filterByUserProviderId,
-  excludeSystemAgents,
+  excludePlaygroundAgents,
 } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
 import { sqlCastFloat, sqlSanitizeCost } from '../../common/utils/postgres-sql';
@@ -47,7 +47,7 @@ export class ProviderAnalyticsController {
     const agent = agentName || undefined;
 
     const [summary, ts] = await Promise.all([
-      // excludeSystem=true: Playground (is_system) usage must not pollute
+      // excludePlayground=true: Playground (is_playground) usage must not pollute
       // provider analytics aggregates.
       this.aggregation.getSummaryMetrics(
         validRange,
@@ -244,15 +244,15 @@ export class ProviderAnalyticsController {
       // Join on agent identity, not name: a soft-deleted agent sharing a slug
       // with a live one would otherwise match twice and double this breakdown's
       // per-agent tokens/cost/message counts. This one-to-(0/1) join is only for
-      // the `agent_platform` column; system-agent exclusion is handled by the
-      // NOT EXISTS semi-join in excludeSystemAgents (catches id- AND name-only
+      // the `agent_platform` column; playground-agent exclusion is handled by the
+      // NOT EXISTS semi-join in excludePlaygroundAgents (catches id- AND name-only
       // Playground rows without re-introducing duplication).
       .leftJoin('agents', 'a', 'a.id = at.agent_id')
       .where('at.tenant_id = :tid', { tid: tenantId })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
       .andWhere('at.agent_name IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent from the breakdown.
-    excludeSystemAgents(agentQb);
+    // Exclude the reserved Playground (is_playground) agent from the breakdown.
+    excludePlaygroundAgents(agentQb);
     filterByUserProviderId(agentQb, connId);
     const agentRows = await agentQb.groupBy('at.agent_name').orderBy('tokens', 'DESC').getRawMany();
 
@@ -268,7 +268,7 @@ export class ProviderAnalyticsController {
       .andWhere('at.model IS NOT NULL');
     // Same Playground exclusion as the agent breakdown, so the per-model token
     // sum stays equal to the per-agent sum (both cover the same messages).
-    excludeSystemAgents(modelQb);
+    excludePlaygroundAgents(modelQb);
     filterByUserProviderId(modelQb, connId);
     const modelRows = await modelQb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
 
@@ -283,7 +283,7 @@ export class ProviderAnalyticsController {
       costExpr,
     ).where('at.tenant_id = :tid', { tid: tenantId });
     // Keep reserved Playground runs out of the recent-messages list too.
-    excludeSystemAgents(msgQb);
+    excludePlaygroundAgents(msgQb);
     filterByUserProviderId(msgQb, connId);
     const recentMessages = await msgQb.orderBy('at.timestamp', 'DESC').limit(5).getRawMany();
 
