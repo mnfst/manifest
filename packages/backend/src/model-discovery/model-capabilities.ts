@@ -24,13 +24,16 @@ const STREAMING_ENDPOINT_PROVIDERS = new Set([
   'minimax',
   'mistral',
   'moonshot',
+  'nvidia',
   'ollama',
   'ollama-cloud',
   'openai',
   'opencode-go',
+  'opencode-zen',
   'openrouter',
   'qwen',
   'xai',
+  'xiaomi',
   'zai',
 ]);
 
