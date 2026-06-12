@@ -76,7 +76,6 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'MiniMax-M2.1-highspeed',
       'MiniMax-M2',
     ]),
-    knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 1000000,
       supportsPromptCaching: false,
