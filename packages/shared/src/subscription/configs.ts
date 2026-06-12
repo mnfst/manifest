@@ -76,7 +76,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'MiniMax-M2',
     ]),
     subscriptionCapabilities: Object.freeze({
-      maxContextWindow: 1000000,
+      maxContextWindow: 200000,
       supportsPromptCaching: false,
       supportsBatching: false,
     }),
