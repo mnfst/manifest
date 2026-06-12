@@ -147,12 +147,15 @@ export abstract class RedirectPkceOauthBaseService {
     return `${this.oauthConfig.authorizeUrl}?${params.toString()}`;
   }
 
-  async exchangeCode(state: string, code: string): Promise<void> {
+  async exchangeCode(state: string, code: string, expectedUserId?: string): Promise<void> {
     const pending = this.pending.peek(state);
     if (!pending) throw new Error('Invalid or expired OAuth state');
     if (pending.expiresAt < Date.now()) {
       this.pending.delete(state);
       throw new Error('OAuth state expired');
+    }
+    if (expectedUserId && pending.userId !== expectedUserId) {
+      throw new Error('Invalid or expired OAuth state');
     }
     this.pending.delete(state);
     const body = new URLSearchParams({

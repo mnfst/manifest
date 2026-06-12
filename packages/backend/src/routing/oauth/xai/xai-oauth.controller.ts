@@ -13,7 +13,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
-import { AuthUser } from '../../../auth/auth.instance';
 import { CurrentUser } from '../../../auth/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
@@ -38,7 +37,7 @@ export class XaiOauthController {
   @Get('authorize')
   async authorize(
     @Query('agentName') agentName: string,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: { id: string },
     @Req() req: Request,
   ) {
     if (!agentName) {
@@ -60,14 +59,14 @@ export class XaiOauthController {
   async callback(
     @Body('code') code: string,
     @Body('state') state: string,
-    @CurrentUser() _user: AuthUser,
+    @CurrentUser() user: { id: string },
   ) {
     if (!code || !state) {
       throw new HttpException('code and state are required', HttpStatus.BAD_REQUEST);
     }
 
     try {
-      await this.oauthService.exchangeCode(state, code);
+      await this.oauthService.exchangeCode(state, code, user.id);
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Token exchange failed';
@@ -80,7 +79,7 @@ export class XaiOauthController {
   async revoke(
     @Query('agentName') agentName: string,
     @Query('label') label: string | string[] | undefined,
-    @CurrentUser() user: AuthUser,
+    @CurrentUser() user: { id: string },
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);

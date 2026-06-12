@@ -137,6 +137,18 @@ describe('OpenaiOauthService', () => {
       );
     });
 
+    it('rejects a manual callback when the state belongs to another user', async () => {
+      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
+      const state = new URL(url).searchParams.get('state')!;
+
+      await expect(service.exchangeCode(state, 'code', 'user-2')).rejects.toThrow(
+        'Invalid or expired OAuth state',
+      );
+      expect(service.getPendingCount()).toBe(1);
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(providerService.upsertProvider).not.toHaveBeenCalled();
+    });
+
     it('throws for expired state', async () => {
       const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
       const state = new URL(url).searchParams.get('state')!;
