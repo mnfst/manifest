@@ -1,0 +1,30 @@
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_12d44588bfe5b2::t_4fe8d719dbe98e 111-118
+  s_12d44588bfe5b2::t_8de8af797075da 44-49
+packages/backend/src/routing/proxy/__tests__/codex-session-affinity.spec.ts
+  s_12d44588bfe5b2::t_4a14f313921f35 1-192
+packages/backend/src/routing/proxy/provider-client.ts
+  s_12d44588bfe5b2::t_f8b1af05546532 163-170
+  s_12d44588bfe5b2::t_68bb559e0fb773 187,194-195
+  s_12d44588bfe5b2::t_1a6805448f065a 441-444
+  s_12d44588bfe5b2::t_0fe92b5ee509c7 87,94-98
+  s_12d44588bfe5b2::t_ca9783b452b4d4 26
+.changeset/codex-subscription-cache-affinity.md
+  s_12d44588bfe5b2::t_1443d949669304 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "252a2f6b6fd9b5ce4c91077c7b292692258107a8",
+  "prompts": {},
+  "sessions": {
+    "s_12d44588bfe5b2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ae0725bc-5c38-434b-840a-1f98bc94402b",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
