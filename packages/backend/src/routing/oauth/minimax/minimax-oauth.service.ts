@@ -5,7 +5,7 @@ import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import { coordinateOAuthRefresh, oauthRefreshKey } from '../core';
-import { OAuthTokenBlob } from '../openai/openai-oauth.types';
+import { OAuthTokenBlob } from '../core';
 import {
   MinimaxRegion,
   DEFAULT_REGION,

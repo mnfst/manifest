@@ -16,7 +16,7 @@ import { Request, Response } from 'express';
 import { Public } from '../../../common/decorators/public.decorator';
 import { CurrentUser } from '../../../auth/current-user.decorator';
 import { AuthUser } from '../../../auth/auth.instance';
-import { OAuthTokenBlob, oauthDoneHtml } from '../openai/openai-oauth.types';
+import { OAuthTokenBlob, oauthDoneHtml } from '../core';
 import { GeminiOauthService } from './gemini-oauth.service';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';

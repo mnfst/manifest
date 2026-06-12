@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
-import { OAuthTokenBlob } from '../openai/openai-oauth.types';
+import { OAuthTokenBlob } from '../core';
 import { RedirectPkceOauthBaseService } from '../core/redirect-pkce-oauth.base';
 import { CodeAssistClientService } from './codeassist-client.service';
 

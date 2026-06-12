@@ -18,6 +18,8 @@
  * them again — hence they live on the stored blob alongside the refresh token.
  */
 
+import { toPollIntervalMs as toDeviceFlowPollIntervalMs } from '../core/device-flow';
+
 export const KIRO_OIDC_DEFAULT_REGION = 'us-east-1';
 // AWS Builder ID. Google / GitHub social logins are surfaced on this same
 // hosted page, so a single start URL covers every Kiro sign-in method.
@@ -43,7 +45,6 @@ export const KIRO_REGISTER_GRANT_TYPES: readonly string[] = Object.freeze([
   KIRO_REFRESH_GRANT,
 ]);
 
-const ABSOLUTE_TIME_THRESHOLD_MS = 10_000_000_000;
 export const KIRO_DEFAULT_POLL_INTERVAL_MS = 5000;
 
 export function getKiroOidcBaseUrl(region: string = KIRO_OIDC_DEFAULT_REGION): string {
@@ -62,16 +63,11 @@ export function buildKiroTokenUrl(baseUrl: string): string {
   return `${baseUrl}/token`;
 }
 
-/** SSO OIDC returns `expiresIn` as a relative seconds value; store absolute ms. */
-export function toAbsoluteExpiryTimestamp(expiresIn: number): number {
-  if (expiresIn > ABSOLUTE_TIME_THRESHOLD_MS) return expiresIn;
-  return Date.now() + expiresIn * 1000;
-}
+export { toAbsoluteExpiryTimestamp } from '../core/device-flow';
 
 /** SSO OIDC returns the minimum poll `interval` in seconds; normalize to ms. */
 export function toPollIntervalMs(interval?: number): number {
-  if (!interval || interval <= 0) return KIRO_DEFAULT_POLL_INTERVAL_MS;
-  return interval >= 1000 ? interval : interval * 1000;
+  return toDeviceFlowPollIntervalMs(interval, KIRO_DEFAULT_POLL_INTERVAL_MS);
 }
 
 /**

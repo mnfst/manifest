@@ -11,7 +11,7 @@ import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
-import { parseOAuthTokenBlob } from '../routing/oauth/openai/openai-oauth.types';
+import { parseOAuthTokenBlob } from '../routing/oauth/core';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax/minimax-oauth-helpers';
 import {

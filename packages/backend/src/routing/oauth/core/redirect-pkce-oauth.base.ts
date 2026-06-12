@@ -55,6 +55,23 @@ export interface RedirectPkceOauthConfig {
    * refresh token).
    */
   readonly extraAuthorizeParams?: Readonly<Record<string, string>>;
+  /**
+   * Full redirect URI override. Defaults to
+   * `http://localhost:<callbackPort>/auth/callback`; xAI registers
+   * `http://127.0.0.1:<port>/callback` instead.
+   */
+  readonly redirectUri?: string;
+  /** Path the loopback callback server answers on. Default `/auth/callback`. */
+  readonly callbackPath?: string;
+  /** Send an OIDC `nonce` in the authorize request (xAI requires one). */
+  readonly includeNonce?: boolean;
+  /**
+   * Extra headers merged into token-endpoint requests (exchange, refresh,
+   * revoke). xAI's endpoints expect `Accept: application/json`.
+   */
+  readonly extraTokenHeaders?: Readonly<Record<string, string>>;
+  /** Heading shown on the fallback "you can close this tab" page. */
+  readonly providerLabel?: string;
 }
 
 const STATE_TTL_MS = 10 * 60 * 1000;
@@ -104,7 +121,8 @@ export abstract class RedirectPkceOauthBaseService {
       ? (configService.get<string>(oauthConfig.clientSecretEnvVar) ??
         oauthConfig.defaultClientSecret)
       : oauthConfig.defaultClientSecret;
-    this.redirectUri = `http://localhost:${oauthConfig.callbackPort}/auth/callback`;
+    this.redirectUri =
+      oauthConfig.redirectUri ?? `http://localhost:${oauthConfig.callbackPort}/auth/callback`;
     // Loopback callback server runs only in development. Production
     // deployments (Docker self-hosted and cloud) complete the OAuth flow
     // through the server's public URL instead.
@@ -138,6 +156,7 @@ export abstract class RedirectPkceOauthBaseService {
       response_type: 'code',
       scope: this.oauthConfig.scope,
       state,
+      ...(this.oauthConfig.includeNonce ? { nonce: generateState(16) } : {}),
       code_challenge: challenge,
       code_challenge_method: 'S256',
       ...(this.oauthConfig.extraAuthorizeParams ?? {}),
@@ -163,7 +182,7 @@ export abstract class RedirectPkceOauthBaseService {
     if (this.clientSecret) body.set('client_secret', this.clientSecret);
     const response = await fetch(this.oauthConfig.tokenUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: this.tokenHeaders(),
       body,
     });
     if (!response.ok) {
@@ -218,7 +237,7 @@ export abstract class RedirectPkceOauthBaseService {
     if (this.clientSecret) body.set('client_secret', this.clientSecret);
     const response = await fetch(this.oauthConfig.tokenUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: this.tokenHeaders(),
       body,
     });
     if (!response.ok) {
@@ -302,7 +321,7 @@ export abstract class RedirectPkceOauthBaseService {
       if (this.clientSecret) body.set('client_secret', this.clientSecret);
       const response = await fetch(revokeUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: this.tokenHeaders(),
         body,
       });
       if (!response.ok) {
@@ -330,7 +349,15 @@ export abstract class RedirectPkceOauthBaseService {
 
   /** Path on the loopback callback server (relative). Subclasses can override. */
   protected get callbackPath(): string {
-    return '/auth/callback';
+    return this.oauthConfig.callbackPath ?? '/auth/callback';
+  }
+
+  /** Headers for token-endpoint requests (exchange, refresh, revoke). */
+  private tokenHeaders(): Record<string, string> {
+    return {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      ...(this.oauthConfig.extraTokenHeaders ?? {}),
+    };
   }
 
   /**
@@ -424,7 +451,7 @@ export abstract class RedirectPkceOauthBaseService {
       res.end();
     } else {
       res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(oauthDoneHtml(success));
+      res.end(oauthDoneHtml(success, undefined, this.oauthConfig.providerLabel));
     }
   }
 
