@@ -25,7 +25,6 @@ import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
-import { ProviderRateLimit } from '../entities/provider-rate-limit.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -117,7 +116,7 @@ import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1
 import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
 import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-SeedPlaygroundAgents';
-import { AddProviderRateLimits1791500000000 } from './migrations/1791500000000-AddProviderRateLimits';
+import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
 
 const entities = [
   AgentMessage,
@@ -143,7 +142,6 @@ const entities = [
   PlaygroundColumn,
   ReasoningContentCacheEntry,
   AgentProviderAccess,
-  ProviderRateLimit,
 ];
 
 const migrations = [
@@ -236,7 +234,7 @@ const migrations = [
   LiftProvidersToUserLevel1791000000000,
   LiftCustomProvidersToUserLevel1791200000000,
   SeedPlaygroundAgents1791400000000,
-  AddProviderRateLimits1791500000000,
+  DropProviderRateLimits1791600000000,
 ];
 
 @Module({
