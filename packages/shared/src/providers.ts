@@ -257,6 +257,25 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: '',
   },
   {
+    id: 'tokenrouter',
+    displayName: 'TokenRouter',
+    aliases: [],
+    // TokenRouter aggregates other providers behind a single OpenAI-
+    // compatible endpoint. Like OpenRouter, it returns model ids with a
+    // `vendor/model` prefix (e.g. `groq/llama-3.3-70b-versatile`), but
+    // the underlying providers are routed by TokenRouter's own vendor
+    // table, not by OpenRouter. Mapping OR's prefixes here would
+    // mis-attribute TokenRouter-hosted models to their upstream vendor
+    // the same way we deliberately skip the OpenRouter self-prefix.
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#6E56CF',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'TokenRouter API key',
+  },
+  {
     id: 'lmstudio',
     displayName: 'LM Studio',
     aliases: ['lm-studio', 'lm studio'],
