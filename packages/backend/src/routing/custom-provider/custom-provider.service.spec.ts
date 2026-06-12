@@ -35,7 +35,19 @@ function makeDeps(overrides: {
   const results = overrides.findOneResults ?? [];
   findOne.mockImplementation(() => Promise.resolve(results.shift() ?? null));
 
-  const repo = { findOne, find, insert, save, remove } as unknown as Repository<CustomProvider>;
+  // create()/remove() run their two-row dance inside repo.manager.transaction;
+  // the fake manager resolves getRepository() back to the same mock repo so
+  // existing insert/remove assertions keep observing the writes.
+  const txManager = { getRepository: jest.fn(() => repo) };
+  const transaction = jest.fn(async (cb: (manager: unknown) => Promise<unknown>) => cb(txManager));
+  const repo = {
+    findOne,
+    find,
+    insert,
+    save,
+    remove,
+    manager: { transaction },
+  } as unknown as Repository<CustomProvider>;
 
   const upsertProvider = jest.fn().mockResolvedValue({ provider: {} });
   const removeProvider = jest.fn().mockResolvedValue(undefined);
@@ -88,6 +100,8 @@ function makeDeps(overrides: {
     setCustomProviders,
     invalidateUser,
     reloadPricing,
+    txManager,
+    transaction,
   };
 }
 
@@ -320,14 +334,19 @@ describe('CustomProviderService', () => {
     });
 
     it('inserts the row, upserts a UserProvider, and defaults context_window to 128k', async () => {
-      const { svc, insert, upsertProvider, reloadPricing, emit } = makeDeps({
-        findOneResults: [null],
-      });
+      const { svc, insert, upsertProvider, reloadPricing, emit, txManager, transaction } = makeDeps(
+        {
+          findOneResults: [null],
+        },
+      );
       const cp = await svc.create('user-1', dto);
 
       // Custom providers are user-global: notify open clients to refresh.
       expect(emit).toHaveBeenCalledWith('user-1', 'routing');
 
+      // Both rows are written inside one transaction so a failed companion
+      // insert can't strand a custom_providers row.
+      expect(transaction).toHaveBeenCalledTimes(1);
       expect(insert).toHaveBeenCalledTimes(1);
       expect(cp.user_id).toBe('user-1');
       expect(cp.name).toBe('my-openai');
@@ -338,6 +357,9 @@ describe('CustomProviderService', () => {
         `custom:${cp.id}`,
         'sk-x',
         'api_key',
+        undefined,
+        undefined,
+        txManager,
       );
       expect(validatePublicUrl).toHaveBeenCalledWith(dto.base_url, { allowPrivate: false });
       // Price lookup cache must be refreshed so the proxy can compute cost
@@ -346,7 +368,7 @@ describe('CustomProviderService', () => {
     });
 
     it('tags the companion user_providers row as local when the name is LM Studio', async () => {
-      const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
+      const { svc, upsertProvider, txManager } = makeDeps({ findOneResults: [null] });
       await svc.create('user-1', { ...dto, name: 'LM Studio' });
       expect(upsertProvider).toHaveBeenCalledWith(
         null,
@@ -354,11 +376,14 @@ describe('CustomProviderService', () => {
         expect.stringMatching(/^custom:/),
         'sk-x',
         'local',
+        undefined,
+        undefined,
+        txManager,
       );
     });
 
     it('normalizes the name for detection (lm-studio / LMSTUDIO both resolve to local)', async () => {
-      const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
+      const { svc, upsertProvider, txManager } = makeDeps({ findOneResults: [null] });
       await svc.create('user-1', { ...dto, name: 'lm-studio' });
       expect(upsertProvider).toHaveBeenLastCalledWith(
         null,
@@ -366,11 +391,14 @@ describe('CustomProviderService', () => {
         expect.stringMatching(/^custom:/),
         'sk-x',
         'local',
+        undefined,
+        undefined,
+        txManager,
       );
     });
 
     it('keeps api_key tagging for freeform custom provider names', async () => {
-      const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
+      const { svc, upsertProvider, txManager } = makeDeps({ findOneResults: [null] });
       await svc.create('user-1', { ...dto, name: 'My Home Server' });
       expect(upsertProvider).toHaveBeenCalledWith(
         null,
@@ -378,6 +406,9 @@ describe('CustomProviderService', () => {
         expect.stringMatching(/^custom:/),
         'sk-x',
         'api_key',
+        undefined,
+        undefined,
+        txManager,
       );
     });
 
@@ -740,11 +771,21 @@ describe('CustomProviderService', () => {
 
     it('deletes the row and attempts provider removal', async () => {
       const cp = { id: 'cp1' } as CustomProvider;
-      const { svc, removeProvider, remove, reloadPricing, emit, invalidateUser } = makeDeps({
-        findOneResults: [cp],
-      });
+      const { svc, removeProvider, remove, reloadPricing, emit, invalidateUser, txManager } =
+        makeDeps({
+          findOneResults: [cp],
+        });
       await svc.remove('user-1', 'cp1');
-      expect(removeProvider).toHaveBeenCalledWith(null, 'user-1', 'custom:cp1');
+      // Both deletions run inside one transaction; the provider teardown
+      // receives the tx manager so its writes commit or roll back together.
+      expect(removeProvider).toHaveBeenCalledWith(
+        null,
+        'user-1',
+        'custom:cp1',
+        undefined,
+        undefined,
+        txManager,
+      );
       expect(remove).toHaveBeenCalledWith(cp);
       // The user-scoped custom-provider cache must be dropped so a later list()
       // doesn't serve the deleted provider from a warm cache.

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, FindOptionsWhere } from 'typeorm';
+import { Repository, In, FindOptionsWhere, EntityManager } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
@@ -62,6 +62,25 @@ export class ProviderService {
   ) {}
 
   /**
+   * Resolve the UserProvider repository against an optional transaction
+   * manager. Callers that need the companion-row dance to be atomic (custom
+   * providers: custom_providers + user_providers must commit or roll back
+   * together) pass the manager of their enclosing transaction; everyone else
+   * gets the injected repository.
+   */
+  private userProviderRepo(manager?: EntityManager): Repository<UserProvider> {
+    return manager ? manager.getRepository(UserProvider) : this.providerRepo;
+  }
+
+  /** Transaction-aware counterpart of `enabledProviderRepo` (see userProviderRepo). */
+  private agentEnabledProviderRepo(
+    manager?: EntityManager,
+  ): Repository<AgentEnabledProvider> | null {
+    if (!this.enabledProviderRepo) return null;
+    return manager ? manager.getRepository(AgentEnabledProvider) : this.enabledProviderRepo;
+  }
+
+  /**
    * Back-compat entry point retained for callers that used to refresh automatic
    * routes after provider/model changes. Model routing is now user-controlled,
    * so this only invalidates caches.
@@ -94,9 +113,14 @@ export class ProviderService {
     return providers;
   }
 
-  async enableProviderForAgent(agentId: string, userProviderId: string): Promise<void> {
-    if (!this.enabledProviderRepo) return;
-    await this.enabledProviderRepo
+  async enableProviderForAgent(
+    agentId: string,
+    userProviderId: string,
+    manager?: EntityManager,
+  ): Promise<void> {
+    const enabledRepo = this.agentEnabledProviderRepo(manager);
+    if (!enabledRepo) return;
+    await enabledRepo
       .createQueryBuilder()
       .insert()
       .into(AgentEnabledProvider)
@@ -127,17 +151,25 @@ export class ProviderService {
    * user already owns must immediately gain access to it. Route assignment
    * remains user-controlled. No-op safe when the user owns 0 agents.
    */
-  async enableProviderForAllAgents(userId: string, userProviderId: string): Promise<void> {
+  async enableProviderForAllAgents(
+    userId: string,
+    userProviderId: string,
+    manager?: EntityManager,
+  ): Promise<void> {
     for (const agentId of await this.listOwnedAgentIds(userId)) {
-      await this.enableProviderForAgent(agentId, userProviderId);
+      await this.enableProviderForAgent(agentId, userProviderId, manager);
       this.routingCache.invalidateAgent(agentId);
     }
     this.routingCache.invalidateUser(userId);
   }
 
-  private async deleteProviderAccess(userProviderIds: string[]): Promise<void> {
-    if (!this.enabledProviderRepo || userProviderIds.length === 0) return;
-    await this.enabledProviderRepo.delete({ user_provider_id: In(userProviderIds) });
+  private async deleteProviderAccess(
+    userProviderIds: string[],
+    manager?: EntityManager,
+  ): Promise<void> {
+    const enabledRepo = this.agentEnabledProviderRepo(manager);
+    if (!enabledRepo || userProviderIds.length === 0) return;
+    await enabledRepo.delete({ user_provider_id: In(userProviderIds) });
   }
 
   /**
@@ -178,9 +210,11 @@ export class ProviderService {
     authType?: AuthType,
     region?: string,
     label?: string,
+    manager?: EntityManager,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
     const effectiveAuthType = authType ?? 'api_key';
     const trimmedLabel = this.normalizeLabel(label, effectiveAuthType);
+    const repo = this.userProviderRepo(manager);
 
     if (trimmedLabel) {
       return this.upsertProviderWithLabel(
@@ -191,6 +225,7 @@ export class ProviderService {
         effectiveAuthType,
         region,
         trimmedLabel,
+        manager,
       );
     }
 
@@ -200,7 +235,7 @@ export class ProviderService {
     // migration backfilled every pre-existing row with label='Default', so
     // this lookup is unambiguous (the unique index guarantees at most one
     // 'Default' row per tuple).
-    const existing = await this.providerRepo.findOne({
+    const existing = await repo.findOne({
       where: { user_id: userId, provider, auth_type: effectiveAuthType, label: DEFAULT_LABEL },
     });
     const resolvedRegion = await this.resolveProviderRegion(
@@ -221,8 +256,8 @@ export class ProviderService {
       existing.region = resolvedRegion;
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
-      await this.providerRepo.save(existing);
-      await this.afterProviderChange(agentId, userId, existing.id);
+      await repo.save(existing);
+      await this.afterProviderChange(agentId, userId, existing.id, manager);
       return { provider: existing, isNew: false };
     }
 
@@ -241,10 +276,10 @@ export class ProviderService {
       updated_at: new Date().toISOString(),
     });
 
-    await this.providerRepo.insert(record);
+    await repo.insert(record);
     // A brand-new provider is global + ON by default: enable it for every agent
     // the user owns, without changing model routes.
-    await this.enableProviderForAllAgents(userId, record.id);
+    await this.enableProviderForAllAgents(userId, record.id, manager);
     return { provider: record, isNew: true };
   }
 
@@ -256,8 +291,10 @@ export class ProviderService {
     authType: AuthType,
     region: string | undefined,
     label: string,
+    manager?: EntityManager,
   ): Promise<{ provider: UserProvider; isNew: boolean }> {
-    const existingRows = await this.providerRepo.find({
+    const repo = this.userProviderRepo(manager);
+    const existingRows = await repo.find({
       where: { user_id: userId, provider, auth_type: authType },
     });
     const existing =
@@ -280,8 +317,8 @@ export class ProviderService {
       existing.region = resolvedRegion;
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
-      await this.providerRepo.save(existing);
-      await this.afterProviderChange(agentId, userId, existing.id);
+      await repo.save(existing);
+      await this.afterProviderChange(agentId, userId, existing.id, manager);
       return { provider: existing, isNew: false };
     }
 
@@ -303,8 +340,8 @@ export class ProviderService {
         sameKey.region = resolvedRegion;
         sameKey.is_active = true;
         sameKey.updated_at = new Date().toISOString();
-        await this.providerRepo.save(sameKey);
-        await this.afterProviderChange(agentId, userId, sameKey.id);
+        await repo.save(sameKey);
+        await this.afterProviderChange(agentId, userId, sameKey.id, manager);
         return { provider: sameKey, isNew: false };
       }
     }
@@ -324,10 +361,10 @@ export class ProviderService {
       updated_at: new Date().toISOString(),
     });
 
-    await this.providerRepo.insert(record);
+    await repo.insert(record);
     // A brand-new provider is global + ON by default: enable it for every agent
     // the user owns, without changing model routes.
-    await this.enableProviderForAllAgents(userId, record.id);
+    await this.enableProviderForAllAgents(userId, record.id, manager);
     return { provider: record, isNew: true };
   }
 
@@ -537,11 +574,12 @@ export class ProviderService {
     agentId: string | null,
     userId: string,
     userProviderId?: string,
+    manager?: EntityManager,
   ): Promise<void> {
     if (agentId === null) {
       await this.recalculateTiersForUser(userId);
     } else {
-      if (userProviderId) await this.enableProviderForAgent(agentId, userProviderId);
+      if (userProviderId) await this.enableProviderForAgent(agentId, userProviderId, manager);
       this.routingCache.invalidateAgent(agentId);
     }
     this.routingCache.invalidateUser(userId);
@@ -598,26 +636,28 @@ export class ProviderService {
     provider: string,
     authType?: AuthType,
     label?: string,
+    manager?: EntityManager,
   ): Promise<{ notifications: string[] }> {
     if (label) {
       // Labeled key chains only exist for agent-scoped standard providers;
       // user-global custom providers never pass a label, so agentId is set.
-      return this.removeKeyByLabel(agentId as string, userId, provider, authType, label);
+      return this.removeKeyByLabel(agentId as string, userId, provider, authType, label, manager);
     }
 
     // Legacy disconnect: deactivate every active key for the (provider,
     // [auth_type]) tuple. Route rows are user-controlled, so disconnect is
     // blocked until all routes pointing at the target provider/key are removed
     // explicitly through the routing UI.
+    const repo = this.userProviderRepo(manager);
     const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider, is_active: true };
     if (authType) where.auth_type = authType;
-    const activeRows = await this.providerRepo.find({ where });
+    const activeRows = await repo.find({ where });
     let affectedRows = activeRows;
 
     if (activeRows.length === 0) {
       const fallbackWhere: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
       if (authType) fallbackWhere.auth_type = authType;
-      const any = await this.providerRepo.findOne({ where: fallbackWhere });
+      const any = await repo.findOne({ where: fallbackWhere });
       if (!any) throw new NotFoundException('Provider not found');
       affectedRows = [any];
     } else {
@@ -627,9 +667,12 @@ export class ProviderService {
         row.is_active = false;
         row.updated_at = now;
       }
-      await this.providerRepo.save(activeRows);
+      await repo.save(activeRows);
     }
-    await this.deleteProviderAccess(affectedRows.map((row) => row.id));
+    await this.deleteProviderAccess(
+      affectedRows.map((row) => row.id),
+      manager,
+    );
 
     const targetAgentIds = await this.listOwnedAgentIds(userId);
     for (const target of targetAgentIds) {
@@ -795,10 +838,12 @@ export class ProviderService {
     provider: string,
     authType: AuthType | undefined,
     label: string,
+    manager?: EntityManager,
   ): Promise<{ notifications: string[] }> {
+    const repo = this.userProviderRepo(manager);
     const where: FindOptionsWhere<UserProvider> = { user_id: userId, provider };
     if (authType) where.auth_type = authType;
-    const matching = await this.providerRepo.find({ where });
+    const matching = await repo.find({ where });
     if (matching.length === 0) throw new NotFoundException('Provider not found');
 
     const target = matching.find((r) => r.label.toLowerCase() === label.toLowerCase());
@@ -811,13 +856,13 @@ export class ProviderService {
     if (!stillHasOtherKeys) {
       // Last key — delegate to the no-label path. We pass authType through so
       // the lookup matches what we just deleted.
-      return this.removeProvider(agentId, userId, provider, target.auth_type);
+      return this.removeProvider(agentId, userId, provider, target.auth_type, undefined, manager);
     }
 
     await this.assertProviderRoutesNotUsed(userId, [target]);
-    await this.providerRepo.remove(target);
-    await this.deleteProviderAccess([target.id]);
-    await this.renumberPriorities(userId, provider, target.auth_type);
+    await repo.remove(target);
+    await this.deleteProviderAccess([target.id], manager);
+    await this.renumberPriorities(userId, provider, target.auth_type, manager);
     this.routingCache.invalidateAgent(agentId);
     this.routingCache.invalidateUser(userId);
     return { notifications: [] };
@@ -1004,8 +1049,10 @@ export class ProviderService {
     userId: string,
     provider: string,
     authType: AuthType,
+    manager?: EntityManager,
   ): Promise<void> {
-    const allRows = await this.providerRepo.find({
+    const repo = this.userProviderRepo(manager);
+    const allRows = await repo.find({
       where: { user_id: userId, provider, auth_type: authType },
       order: { priority: 'ASC' },
     });
@@ -1022,7 +1069,7 @@ export class ProviderService {
         changed = true;
       }
     }
-    if (changed) await this.providerRepo.save(rows);
+    if (changed) await repo.save(rows);
   }
 
   private normalizeLabel(label: string | undefined, authType: AuthType): string | undefined {
