@@ -1,18 +1,21 @@
 name: Docker
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Optional version override (e.g. 5.38.1). Leave blank to use the current version from packages/manifest/package.json."
-        required: false
-        type: string
-  workflow_call:
-    inputs:
-      version:
-        description: "Optional version override. Leave blank to use the current version from packages/manifest/package.json."
-        required: false
-        type: string
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/docker.yml"
+      - "docker/Dockerfile"
+      - ".dockerignore"
+      - "docker/docker-compose.yml"
+      - "docker/.env.example"
+      - "docker/install.sh"
+      - "packages/backend/**"
+      - "packages/frontend/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
   pull_request:
     branches: [main]
     paths:
@@ -28,6 +31,22 @@ on:
       - "package.json"
       - "package-lock.json"
       - "turbo.json"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: >
+          Optional version override (e.g. 5.38.1). Leave blank to use
+          the current version from packages/manifest/package.json.
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        description: >
+          Optional version override. Leave blank to use the current
+          version from packages/manifest/package.json.
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -35,6 +54,7 @@ permissions:
 env:
   IMAGE: manifestdotbuild/manifest
 
+# ─── Validation (PR only) ──────────────────────────────────────────────
 jobs:
   validate:
     name: Build (validate, ${{ matrix.platform.arch }})
@@ -47,11 +67,11 @@ jobs:
           - { os: ubuntu-24.04-arm, arch: arm64 }
     runs-on: ${{ matrix.platform.os }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - uses: docker/setup-buildx-action@v3
 
-      - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+      - uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
@@ -60,6 +80,7 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.platform.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.platform.arch }}
 
+  # ─── Build + Push (push to main / release) ────────────────────────────
   build:
     name: Build (${{ matrix.platform.arch }})
     if: github.event_name != 'pull_request'
@@ -74,22 +95,23 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - uses: docker/setup-buildx-action@v3
 
-      - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+      - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ${{ env.IMAGE }}
 
-      - id: build
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+      - name: Build and push (by digest)
+        id: build
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: docker/Dockerfile
@@ -108,13 +130,14 @@ jobs:
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@v4
         with:
           name: digests-${{ matrix.platform.arch }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 
+  # ─── Merge multi-arch manifests + tag ─────────────────────────────────
   merge:
     name: Merge & Publish
     if: github.event_name != 'pull_request'
@@ -124,7 +147,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@v4
 
       - name: Resolve version
         id: version
@@ -139,29 +162,35 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Download digests
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@v4
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-*
           merge-multiple: true
 
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - uses: docker/setup-buildx-action@v3
 
-      - uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+      - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ${{ env.IMAGE }}
           flavor: |
-            latest=true
+            latest=auto
           tags: |
+            # Semver tags on every merge (pulls version from package.json).
+            # The latest=auto flavor above already sets "latest" for the
+            # highest semver, so no explicit latest tag is needed here.
             type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}},value=${{ steps.version.outputs.version }}
+            # Rolling "main" tag — always tracks the latest main build
+            type=raw,value=main,enable={{is_default_branch}}
+            # Git SHA tag for traceability
             type=sha
 
       - name: Create manifest list and push
@@ -175,7 +204,7 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}
 
-      - uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+      - uses: sigstore/cosign-installer@v3
 
       - name: Sign published image
         env:
@@ -183,8 +212,6 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
           # Extract the manifest-list digest from the freshly-pushed tag.
-          # Uses the pattern established by the dagger project and others: format
-          # the full inspect output as JSON and pull .manifest.digest out with jq.
           DIGEST=$(docker buildx imagetools inspect "${{ env.IMAGE }}:${VERSION}" --format '{{json .}}' | jq -r '.manifest.digest')
           if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
             echo "::error::Failed to extract manifest-list digest for ${{ env.IMAGE }}:${VERSION}"
