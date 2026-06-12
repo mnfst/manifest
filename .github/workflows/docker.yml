@@ -47,6 +47,14 @@ on:
           version from packages/manifest/package.json.
         required: false
         type: string
+      tag:
+        description: >
+          Rolling branch tag to emit (e.g. "release"). When set, the
+          merge job tags images with this value + SHA instead of
+          semver + latest. Leave blank for version-based tagging.
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -175,8 +183,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: docker/metadata-action@v5
+      - name: Compute metadata (semver / main)
         id: meta
+        if: inputs.tag == ''
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE }}
           flavor: |
@@ -193,6 +203,20 @@ jobs:
             # Git SHA tag for traceability
             type=sha
 
+      - name: Compute metadata (rolling branch tag)
+        id: meta
+        if: inputs.tag != ''
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          # When called from release.yml on a push to the `release`
+          # branch, emit a single rolling tag + SHA. No semver, no
+          # latest — the release branch is for users who explicitly
+          # want a stable channel, not the bleeding edge.
+          tags: |
+            type=raw,value=${{ inputs.tag }}
+            type=sha
+
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
@@ -202,20 +226,39 @@ jobs:
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}
+          # When tagged semver, version is a real semver (e.g. 5.38.1).
+          # When tagged as a rolling branch (e.g. release), use that tag.
+          # `inputs.tag` is undefined on push triggers, so we fall back
+          # to the resolved version. Use bash to OR them rather than
+          # a ${{ }} expression, which would render the literal string
+          # "null" for an undefined input.
+          INSPECT_TAG="${{ inputs.tag }}"
+          if [ -z "$INSPECT_TAG" ]; then
+            INSPECT_TAG="${{ steps.meta.outputs.version }}"
+          fi
+          docker buildx imagetools inspect ${{ env.IMAGE }}:${INSPECT_TAG}
 
       - uses: sigstore/cosign-installer@v3
 
       - name: Sign published image
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
-          VERSION: ${{ steps.meta.outputs.version }}
+          # For semver-tagged builds, VERSION is a real semver. For
+          # rolling branch tags (e.g. release), VERSION is empty —
+          # cosign signs by tag+@digest, so a missing VERSION here is
+          # fine (we still sign every entry of TAGS).
+          VERSION: ${{ inputs.tag }}
         run: |
           # Extract the manifest-list digest from the freshly-pushed tag.
-          DIGEST=$(docker buildx imagetools inspect "${{ env.IMAGE }}:${VERSION}" --format '{{json .}}' | jq -r '.manifest.digest')
+          # Same null-handling as the Inspect step above.
+          INSPECT_TAG="${{ inputs.tag }}"
+          if [ -z "$INSPECT_TAG" ]; then
+            INSPECT_TAG="${{ steps.meta.outputs.version }}"
+          fi
+          DIGEST=$(docker buildx imagetools inspect "${{ env.IMAGE }}:${INSPECT_TAG}" --format '{{json .}}' | jq -r '.manifest.digest')
           if [ -z "$DIGEST" ] || [ "$DIGEST" = "null" ]; then
-            echo "::error::Failed to extract manifest-list digest for ${{ env.IMAGE }}:${VERSION}"
-            docker buildx imagetools inspect "${{ env.IMAGE }}:${VERSION}" --format '{{json .}}'
+            echo "::error::Failed to extract manifest-list digest for ${{ env.IMAGE }}:${INSPECT_TAG}"
+            docker buildx imagetools inspect "${{ env.IMAGE }}:${INSPECT_TAG}" --format '{{json .}}'
             exit 1
           fi
           echo "Signing manifest list digest: $DIGEST"
