@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, FindOptionsWhere } from 'typeorm';
 import { UserProvider } from '../../entities/user-provider.entity';
-import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { Agent } from '../../entities/agent.entity';
@@ -57,8 +57,8 @@ export class ProviderService {
     private readonly headerTierRepo: Repository<HeaderTier>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly routingCache: RoutingCacheService,
-    @InjectRepository(AgentProviderAccess)
-    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
   /**
@@ -94,12 +94,12 @@ export class ProviderService {
     return providers;
   }
 
-  async grantProviderAccess(agentId: string, userProviderId: string): Promise<void> {
-    if (!this.accessRepo) return;
-    await this.accessRepo
+  async enableProviderForAgent(agentId: string, userProviderId: string): Promise<void> {
+    if (!this.enabledProviderRepo) return;
+    await this.enabledProviderRepo
       .createQueryBuilder()
       .insert()
-      .into(AgentProviderAccess)
+      .into(AgentEnabledProvider)
       .values({ agent_id: agentId, user_provider_id: userProviderId })
       .orIgnore()
       .execute();
@@ -114,7 +114,7 @@ export class ProviderService {
    */
   async enableAllProvidersForAgent(agentId: string, userId: string): Promise<void> {
     for (const provider of await this.getProviders(userId)) {
-      await this.grantProviderAccess(agentId, provider.id);
+      await this.enableProviderForAgent(agentId, provider.id);
     }
     this.routingCache.invalidateAgent(agentId);
     this.routingCache.invalidateUser(userId);
@@ -127,17 +127,17 @@ export class ProviderService {
    * user already owns must immediately gain access to it. Route assignment
    * remains user-controlled. No-op safe when the user owns 0 agents.
    */
-  async grantNewProviderToAllAgents(userId: string, userProviderId: string): Promise<void> {
+  async enableProviderForAllAgents(userId: string, userProviderId: string): Promise<void> {
     for (const agentId of await this.listOwnedAgentIds(userId)) {
-      await this.grantProviderAccess(agentId, userProviderId);
+      await this.enableProviderForAgent(agentId, userProviderId);
       this.routingCache.invalidateAgent(agentId);
     }
     this.routingCache.invalidateUser(userId);
   }
 
   private async deleteProviderAccess(userProviderIds: string[]): Promise<void> {
-    if (!this.accessRepo || userProviderIds.length === 0) return;
-    await this.accessRepo.delete({ user_provider_id: In(userProviderIds) });
+    if (!this.enabledProviderRepo || userProviderIds.length === 0) return;
+    await this.enabledProviderRepo.delete({ user_provider_id: In(userProviderIds) });
   }
 
   /**
@@ -242,9 +242,9 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    // A brand-new provider is global + ON by default: grant it to every agent
+    // A brand-new provider is global + ON by default: enable it for every agent
     // the user owns, without changing model routes.
-    await this.grantNewProviderToAllAgents(userId, record.id);
+    await this.enableProviderForAllAgents(userId, record.id);
     return { provider: record, isNew: true };
   }
 
@@ -325,9 +325,9 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    // A brand-new provider is global + ON by default: grant it to every agent
+    // A brand-new provider is global + ON by default: enable it for every agent
     // the user owns, without changing model routes.
-    await this.grantNewProviderToAllAgents(userId, record.id);
+    await this.enableProviderForAllAgents(userId, record.id);
     return { provider: record, isNew: true };
   }
 
@@ -527,9 +527,9 @@ export class ProviderService {
     });
 
     await this.providerRepo.insert(record);
-    // A brand-new subscription provider is global + ON by default: grant it to
+    // A brand-new subscription provider is global + ON by default: enable it for
     // every agent the user owns, without changing model routes.
-    await this.grantNewProviderToAllAgents(userId, record.id);
+    await this.enableProviderForAllAgents(userId, record.id);
     return { isNew: true };
   }
 
@@ -541,7 +541,7 @@ export class ProviderService {
     if (agentId === null) {
       await this.recalculateTiersForUser(userId);
     } else {
-      if (userProviderId) await this.grantProviderAccess(agentId, userProviderId);
+      if (userProviderId) await this.enableProviderForAgent(agentId, userProviderId);
       this.routingCache.invalidateAgent(agentId);
     }
     this.routingCache.invalidateUser(userId);

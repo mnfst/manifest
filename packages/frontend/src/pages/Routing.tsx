@@ -29,7 +29,7 @@ import {
   getAvailableModels,
   getProviders,
   getCustomProviders,
-  getAgentProviderAccess,
+  getEnabledProviders,
   getSpecificityAssignments,
   setSpecificityResponseMode,
   overrideSpecificity,
@@ -91,9 +91,9 @@ const Routing: Component = () => {
     () => agentName(),
     getCustomProviders,
   );
-  const [agentProviderAccess, { refetch: refetchAgentProviderAccess }] = createResource(
+  const [enabledProviders, { refetch: refetchEnabledProviders }] = createResource(
     () => agentName(),
-    async (name) => getAgentProviderAccess(name).catch(() => ({ enabled: [] })),
+    async (name) => getEnabledProviders(name).catch(() => ({ enabled: [] })),
   );
   const [specificityAssignments, { refetch: refetchSpecificity, mutate: mutateSpecificity }] =
     createResource(() => agentName(), getSpecificityAssignments);
@@ -308,7 +308,7 @@ const Routing: Component = () => {
       refetchModels(),
       refetchSpecificity(),
       refetchHeaderTiers(),
-      refetchAgentProviderAccess(),
+      refetchEnabledProviders(),
     ]);
   };
 
@@ -365,11 +365,11 @@ const Routing: Component = () => {
     return actions.handleAddFallback(tierId, modelName, providerId, authType, providerKeyLabel);
   };
 
-  const grantedProviderIds = () => new Set(agentProviderAccess()?.enabled ?? []);
-  const grantedConnectedProviders = () =>
-    (connectedProviders() ?? []).filter((provider) => grantedProviderIds().has(provider.id));
-  const isEnabled = () => grantedConnectedProviders().some((p) => p.is_active);
-  const activeProviders = () => grantedConnectedProviders().filter((p) => p.is_active);
+  const enabledProviderIds = () => new Set(enabledProviders()?.enabled ?? []);
+  const enabledConnectedProviders = () =>
+    (connectedProviders() ?? []).filter((provider) => enabledProviderIds().has(provider.id));
+  const isEnabled = () => enabledConnectedProviders().some((p) => p.is_active);
+  const activeProviders = () => enabledConnectedProviders().filter((p) => p.is_active);
   const hasProviders = () => activeProviders().length > 0;
   const hasOverrides = () => tiers()?.some((t) => t.override_route !== null) ?? false;
 
@@ -464,7 +464,7 @@ const Routing: Component = () => {
       />
 
       <Show
-        when={!connectedProviders.loading && !agentProviderAccess.loading}
+        when={!connectedProviders.loading && !enabledProviders.loading}
         fallback={<RoutingLoadingSkeleton />}
       >
         <Show when={hasProviders()} fallback={<NoConnectionsPrompt />}>
@@ -539,7 +539,7 @@ const Routing: Component = () => {
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
                   activeProviders={activeProviders}
-                  connectedProviders={grantedConnectedProviders}
+                  connectedProviders={enabledConnectedProviders}
                   tiersLoading={tiers.loading}
                   changingTier={actions.changingTier}
                   resettingTier={actions.resettingTier}
@@ -571,7 +571,7 @@ const Routing: Component = () => {
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
                   activeProviders={activeProviders}
-                  connectedProviders={grantedConnectedProviders}
+                  connectedProviders={enabledConnectedProviders}
                   changingTier={changingSpecificity}
                   resettingTier={resettingSpecificity}
                   resettingAll={() => false}
@@ -618,7 +618,7 @@ const Routing: Component = () => {
                   agentName={agentName}
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
-                  connectedProviders={grantedConnectedProviders}
+                  connectedProviders={enabledConnectedProviders}
                   externalTiers={() => headerTiers()}
                   externalRefetch={() => void refetchHeaderTiers()}
                   externalMutate={mutateHeaderTiers}
@@ -724,7 +724,7 @@ const Routing: Component = () => {
         tiers={() => tiers() ?? []}
         specificityAssignments={() => specificityAssignments() ?? []}
         customProviders={() => customProviders() ?? []}
-        connectedProviders={grantedConnectedProviders}
+        connectedProviders={enabledConnectedProviders}
         getTier={(tierId) => {
           const generalist = actions.getTier(tierId);
           if (generalist) return generalist;
