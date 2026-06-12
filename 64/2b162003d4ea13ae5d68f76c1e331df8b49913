@@ -1,0 +1,36 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_a0a0e99c96ea6f::t_8f8f51af024515 490,499-511,527-528
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_a0a0e99c96ea6f::t_3ac33113828be1 278-281,314-333
+  s_5d148c55faf58e::t_8b42a70136624c 308
+.changeset/response-interrupted-streams.md
+  s_a0a0e99c96ea6f::t_c88fab79efa538 1-4
+packages/backend/src/routing/proxy/__tests__/provider-client.timeout.spec.ts
+  s_a0a0e99c96ea6f::t_d1edb81ac5eefc 148-182
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_a0a0e99c96ea6f::t_676887cbcf244c 27-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "642b162003d4ea13ae5d68f76c1e331df8b49913",
+  "prompts": {},
+  "sessions": {
+    "s_5d148c55faf58e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2d1cb61b-31ae-463c-8c01-0ebae6472899",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_a0a0e99c96ea6f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ebbe2-6fed-7323-89d8-ae904718b5c5",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
