@@ -1,0 +1,33 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_b7f6407d49a731::t_c1da4dba27045e 369-370
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_b7f6407d49a731::t_8c60f553f273e5 384
+  s_b7f6407d49a731::t_ce98259a9490c2 254
+  s_b7f6407d49a731::t_73dc4a1fed9476 279
+  s_b7f6407d49a731::t_e90184a2a551e3 358,366
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_b7f6407d49a731::t_cac0eb1421ec9e 33,57
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_b7f6407d49a731::t_2c7073c0eda8bc 2113-2118,2120,2122
+  s_b7f6407d49a731::t_a8fc285a666e08 2062-2067,2076,2082,2088
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_b7f6407d49a731::t_527bf76da1fbaa 690,716-719,721
+.changeset/anthropic-subscription-prompt-caching.md
+  s_b7f6407d49a731::t_8d375e203c8cda 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "abbf5741b087f864a100e81d11e63b891142d5b2",
+  "prompts": {},
+  "sessions": {
+    "s_b7f6407d49a731": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bf32ef61-2af7-4fe9-9144-6dbc3b91370a",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
