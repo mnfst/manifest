@@ -9,7 +9,8 @@ import request from 'supertest';
 import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
-import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
+import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
+import { TierService } from '../src/routing/routing-core/tier.service';
 
 let app: INestApplication;
 
@@ -140,9 +141,46 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       [anthropicModels, TEST_USER_ID, 'anthropic'],
     );
 
-    // Recalculate tier assignments with the seeded models
-    const autoAssign = app.get(TierAutoAssignService);
-    await autoAssign.recalculate(TEST_AGENT_ID, TEST_USER_ID);
+    // Model routing is now user-controlled (auto-assign was removed). Drop the
+    // discovery cache so the seeded cached_models is visible, then set explicit
+    // per-tier overrides that mirror what auto-assign used to pick: cheapest for
+    // simple, mid quality for standard/complex, the reasoning-capable top model
+    // for reasoning. These let the scorer-selected tier resolve to a model.
+    const discovery = app.get(ModelDiscoveryService);
+    const tierService = app.get(TierService);
+    discovery.invalidate(TEST_AGENT_ID);
+    await tierService.setOverride(
+      TEST_AGENT_ID,
+      TEST_USER_ID,
+      'simple',
+      'gpt-4o-mini',
+      'openai',
+      'api_key',
+    );
+    await tierService.setOverride(
+      TEST_AGENT_ID,
+      TEST_USER_ID,
+      'standard',
+      'claude-sonnet-4',
+      'anthropic',
+      'api_key',
+    );
+    await tierService.setOverride(
+      TEST_AGENT_ID,
+      TEST_USER_ID,
+      'complex',
+      'claude-sonnet-4',
+      'anthropic',
+      'api_key',
+    );
+    await tierService.setOverride(
+      TEST_AGENT_ID,
+      TEST_USER_ID,
+      'reasoning',
+      'claude-opus-4-6',
+      'anthropic',
+      'api_key',
+    );
   });
 
   it('routes "hi" → simple tier with cheapest model', async () => {
@@ -271,6 +309,10 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 
 describe('Subscription providers respect supported capabilities', () => {
   beforeAll(async () => {
+    // Disconnecting providers now 409s while their models are still assigned to
+    // routing ("Update routing first"). The previous block set tier overrides
+    // on openai/anthropic, so clear them before deactivating all providers.
+    await app.get(TierService).resetAllOverrides(TEST_AGENT_ID);
     // Start fresh: deactivate all, then register via subscription endpoint
     await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
       .expect(201);
@@ -408,7 +450,12 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
       [openaiModels, TEST_USER_ID, 'openai'],
     );
-    await app.get(TierAutoAssignService).recalculate(TEST_AGENT_ID, TEST_USER_ID);
+    // Re-establish the simple-tier override (deactivate-all dropped routability);
+    // invalidate discovery first so the re-seeded cached_models is picked up.
+    app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
+    await app
+      .get(TierService)
+      .setOverride(TEST_AGENT_ID, TEST_USER_ID, 'simple', 'gpt-4o-mini', 'openai', 'api_key');
 
     const res = await bearer(api().post('/api/v1/routing/resolve'))
       .send({ messages: [{ role: 'user', content: 'hi' }] })

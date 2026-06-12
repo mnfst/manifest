@@ -196,6 +196,16 @@ describe('ST-04: Routing enabled', () => {
 
     customProviderId = res.body.id;
 
+    // Connecting a provider no longer auto-assigns tier routes (model routing is
+    // now user-controlled). Set an explicit override on every scoring tier so
+    // routing is enabled and ST-05/ST-06 can resolve + proxy a request. This
+    // mirrors the override pattern ST-09 already relies on.
+    for (const tier of ['simple', 'standard', 'complex', 'reasoning']) {
+      await auth(api().put(`/api/v1/routing/${smokeAgentName}/tiers/${tier}`))
+        .send({ model: `custom:${customProviderId}/model-primary` })
+        .expect(200);
+    }
+
     const status = await auth(
       api().get(`/api/v1/routing/${smokeAgentName}/status`),
     ).expect(200);

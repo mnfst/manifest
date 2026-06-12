@@ -464,7 +464,7 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith(
-        'Copy failed — select the command and copy it manually',
+        'Copy failed. Select the command and copy it manually',
       );
     });
   });
@@ -715,7 +715,7 @@ describe('LocalServerDetailView', () => {
 
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith(
-        'Copy failed — select the command and copy it manually',
+        'Copy failed. Select the command and copy it manually',
       );
     });
   });

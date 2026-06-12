@@ -76,14 +76,18 @@ describe('ProviderSelectContent — providerDeepLink', () => {
     expect(screen.getByText('Anthropic')).toBeDefined();
   });
 
-  it('navigates back to the list view when back is clicked', async () => {
+  it('closes the modal when back is clicked (deep-link entry has no list view to return to)', async () => {
+    // The list view was removed; ProviderSelectContent now only renders detail
+    // views. A deep-link entry has no list to go back to, so the Back button
+    // calls onClose (dismissing the modal) instead of returning to a list.
+    const onClose = vi.fn();
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
         providerDeepLink={{ providerId: 'gemini' }}
         onUpdate={onUpdate}
-        onClose={vi.fn()}
+        onClose={onClose}
       />
     ));
     // Should start in detail view
@@ -94,14 +98,14 @@ describe('ProviderSelectContent — providerDeepLink', () => {
     expect(backBtn).not.toBeNull();
     fireEvent.click(backBtn!);
 
-    // Should now show the list view
+    // Back dismisses the modal via onClose (no list view exists).
     await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
+      expect(onClose).toHaveBeenCalled();
     });
   });
 
-  it('does not open detail view when providerDeepLink is null', () => {
-    render(() => (
+  it('renders no detail view when providerDeepLink is null', () => {
+    const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
@@ -110,12 +114,12 @@ describe('ProviderSelectContent — providerDeepLink', () => {
         onClose={vi.fn()}
       />
     ));
-    // Should show the list view with header
-    expect(screen.getByText('Connect providers')).toBeDefined();
+    // Without a deep link there is nothing to render — the list view is gone.
+    expect(container.querySelector('.provider-modal__view--from-right')).toBeNull();
   });
 
-  it('does not open detail view when providerDeepLink is undefined', () => {
-    render(() => (
+  it('renders no detail view when providerDeepLink is undefined', () => {
+    const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
@@ -123,8 +127,8 @@ describe('ProviderSelectContent — providerDeepLink', () => {
         onClose={vi.fn()}
       />
     ));
-    // Should show the list view with header
-    expect(screen.getByText('Connect providers')).toBeDefined();
+    // Without a deep link there is nothing to render — the list view is gone.
+    expect(container.querySelector('.provider-modal__view--from-right')).toBeNull();
   });
 
   it('opens detail view for gemini with correct auth type', () => {
@@ -174,13 +178,13 @@ describe('ProviderSelectContent — providerDeepLink', () => {
         onClose={vi.fn()}
       />
     ));
-    // Initially no match → still on the list view.
-    expect(screen.getByText('Connect providers')).toBeDefined();
+    // Initially no match → the editor has not opened yet.
+    expect(screen.queryByText('Edit custom provider')).toBeNull();
     setProvidersList([customProvider]);
     await waitFor(() => expect(screen.getByText('Edit custom provider')).toBeDefined());
   });
 
-  it('stays on the list view for a custom: deep link with no matching provider', () => {
+  it('opens no editor for a custom: deep link with no matching provider', () => {
     render(() => (
       <ProviderSelectContent
         agentName="test-agent"
@@ -191,8 +195,7 @@ describe('ProviderSelectContent — providerDeepLink', () => {
         onClose={vi.fn()}
       />
     ));
-    // No custom provider matches → the editor never opens.
-    expect(screen.getByText('Connect providers')).toBeDefined();
+    // No custom provider matches → the editor never opens (nothing renders).
     expect(screen.queryByText('Edit custom provider')).toBeNull();
   });
 });

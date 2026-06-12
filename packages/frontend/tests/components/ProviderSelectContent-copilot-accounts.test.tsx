@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
+import { render, waitFor } from '@solidjs/testing-library';
 import { describe, expect, it, vi } from 'vitest';
 import type { RoutingProvider } from '../../src/services/api';
 
@@ -68,11 +68,16 @@ describe('ProviderSelectContent Copilot accounts', () => {
       },
     ];
 
+    // The provider list/tile view was removed; the Copilot detail view is now
+    // reached via a deep link instead of clicking a "GitHub Copilot" tile.
     const { container } = render(() => (
-      <ProviderSelectContent agentName="test-agent" providers={providers} onUpdate={vi.fn()} />
+      <ProviderSelectContent
+        agentName="test-agent"
+        providers={providers}
+        providerDeepLink={{ providerId: 'copilot', authType: 'subscription' }}
+        onUpdate={vi.fn()}
+      />
     ));
-
-    fireEvent.click(screen.getByText('GitHub Copilot'));
 
     const detail = await waitFor(() => {
       const element = container.querySelector('[data-testid="copilot-device-login"]');

@@ -17,7 +17,6 @@ vi.mock("@solidjs/router", () => ({
     vi.fn(),
   ],
   useNavigate: () => mockNavigate,
-  useSearchParams: () => [mockSearchParams, vi.fn()],
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
 
@@ -669,22 +668,19 @@ describe("MessageLog", () => {
       });
     });
 
-    it("resolves custom provider name + icon in global mode via the first agent", async () => {
-      // Global ("All harnesses") log has no route agent. Custom providers are
-      // user-global, so the resource must fall back to the first agent —
-      // otherwise the source is undefined, the fetcher never runs, and
-      // custom:<uuid> models render as `custom:Custom/…` with no provider icon.
+    it("resolves custom provider name + icon in global mode from the response", async () => {
+      // Global ("All harnesses") log has no route agent. The backend resolves
+      // the custom provider's name into each row (`custom_provider_name`), so
+      // custom:<uuid> models still render with the real name and provider icon
+      // — the page no longer fetches the provider list itself.
       mockAgentName = undefined;
       mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }] });
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
         expect(container.textContent).not.toContain("custom:abc-123/");
       });
-      // Resolved via the first available agent, not an undefined route param.
-      expect(mockGetCustomProviders).toHaveBeenCalledWith("agent-alpha");
     });
   });
 
@@ -1635,7 +1631,7 @@ describe("MessageLog", () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain("alpha-bot");
-        expect(container.querySelector('td img[src="/icons/openclaw.png"]')).not.toBeNull();
+        expect(container.querySelector('td img[src="/icons/openclaw.svg"]')).not.toBeNull();
       });
     });
   });

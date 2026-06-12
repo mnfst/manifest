@@ -618,7 +618,7 @@ describe("EmailProviderModal", () => {
     fireEvent.click(testBtn);
     await vi.waitFor(() => {
       expect((toast.error as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
-        "Email test failed — check your credentials",
+        "Email test failed. Check your credentials",
       );
     });
   });

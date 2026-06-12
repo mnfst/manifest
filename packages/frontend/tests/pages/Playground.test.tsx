@@ -422,10 +422,12 @@ describe('Playground page', () => {
   });
 
   it('shows the empty state when providers exist but none are active', async () => {
+    // Provider connection now lives on the sidebar provider pages, so the
+    // empty state is purely informational here — no comparison columns render.
     mockGetProviders.mockResolvedValue([{ ...ACTIVE_PROVIDER, is_active: false }]);
     render(() => <Playground />);
-    fireEvent.click(await find('empty-connect'));
-    await waitFor(() => expect(providerModalProps).not.toBeNull());
+    expect(await find('empty-connect')).toBeDefined();
+    expect(document.querySelectorAll('[data-testid^="col-"]').length).toBe(0);
   });
 
   describe('submit → streaming run → history', () => {
@@ -888,17 +890,6 @@ describe('Playground page', () => {
       await waitFor(() => expect(setSearchParamsFn).toHaveBeenCalledWith({ run: undefined }));
       await waitFor(() => expect(ssStore['manifest.playground.lastRun']).toBeUndefined());
     });
-  });
-
-  it('opens and closes the connect-providers modal and refetches on close/update', async () => {
-    const { getByText } = render(() => <Playground />);
-    fireEvent.click(getByText('Connect providers'));
-    await find('provider-modal');
-    fireEvent.click(await find('provider-modal-update'));
-    fireEvent.click(await find('provider-modal-close'));
-    await waitFor(() => expect(document.querySelector('[data-testid="provider-modal"]')).toBeNull());
-    // Closing triggers refetchAllProviders → providers fetched again.
-    await waitFor(() => expect(mockGetProviders.mock.calls.length).toBeGreaterThan(1));
   });
 
   it('wires the prompt recall handler to the store (ArrowUp history recall)', async () => {

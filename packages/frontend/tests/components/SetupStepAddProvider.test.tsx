@@ -100,7 +100,7 @@ describe("SetupStepAddProvider", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const icon = container.querySelector(".panel__tab-icon");
     expect(icon).not.toBeNull();
-    expect(icon!.getAttribute("src")).toBe("/icons/openclaw.png");
+    expect(icon!.getAttribute("src")).toBe("/icons/openclaw.svg");
   });
 
   it("shows Agents card when OpenClaw selected", () => {

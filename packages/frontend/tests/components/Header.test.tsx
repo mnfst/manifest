@@ -305,7 +305,7 @@ describe("Header - breadcrumb", () => {
     expect(container.querySelector(".header__breadcrumb-current")?.textContent).toContain(
       "my-agent",
     );
-    expect(container.querySelectorAll(".header__separator").length).toBe(1);
+    expect(container.querySelectorAll(".header__separator").length).toBe(2);
   });
 });
 

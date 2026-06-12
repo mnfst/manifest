@@ -16,6 +16,14 @@ import {
 } from '../../common/utils/provider-aliases';
 import { isManifestUsableProvider } from '../../common/utils/subscription-support';
 
+/**
+ * Sentinel id for the built-in Ollama tile. getProviderKeys() short-circuits
+ * Ollama to a synthetic key without a DB lookup, so this id matches no
+ * `user_providers` row — callers stamping `agent_messages.user_provider_id`
+ * must treat it as "no persisted connection" (NULL) to avoid an FK violation.
+ */
+export const SYNTHETIC_OLLAMA_PROVIDER_ID = 'ollama';
+
 @Injectable()
 export class ProviderKeyService {
   private readonly logger = new Logger(ProviderKeyService.name);
@@ -45,7 +53,15 @@ export class ProviderKeyService {
     agentId?: string,
   ): Promise<CachedProviderKey[]> {
     if (provider.toLowerCase() === 'ollama') {
-      return [{ id: 'ollama', label: 'Default', priority: 0, apiKey: '', region: null }];
+      return [
+        {
+          id: SYNTHETIC_OLLAMA_PROVIDER_ID,
+          label: 'Default',
+          priority: 0,
+          apiKey: '',
+          region: null,
+        },
+      ];
     }
 
     if (agentId) return this.resolveProviderKeys(userId, provider, authType, agentId);
@@ -69,6 +85,30 @@ export class ProviderKeyService {
     return keys[0]?.label;
   }
 
+  /**
+   * Selects the key for (user, provider, authType): the case-insensitive label
+   * match when a label is given, else the first (priority-ordered) default key.
+   * Returns null when no key resolves. getProviderApiKey/getProviderRegion are
+   * thin projections of this — callers that also need the `user_providers` row
+   * id (e.g. the proxy, to stamp `agent_messages.user_provider_id`) call it
+   * directly so the id selected and the key forwarded can never diverge.
+   */
+  async selectProviderKey(
+    userId: string,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+    agentId?: string,
+  ): Promise<CachedProviderKey | null> {
+    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
+    if (keys.length === 0) return null;
+    if (label) {
+      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
+      if (match) return match;
+    }
+    return keys[0];
+  }
+
   async getProviderApiKey(
     userId: string,
     provider: string,
@@ -76,13 +116,26 @@ export class ProviderKeyService {
     label?: string,
     agentId?: string,
   ): Promise<string | null> {
-    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
-    if (keys.length === 0) return null;
-    if (label) {
-      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
-      if (match) return match.apiKey;
-    }
-    return keys[0].apiKey;
+    const key = await this.selectProviderKey(userId, provider, authType, label, agentId);
+    return key ? key.apiKey : null;
+  }
+
+  /**
+   * Returns the `user_providers` row id of the selected key, for stamping
+   * `agent_messages.user_provider_id` at proxy time. Returns null when no key
+   * resolves OR when the selection is the synthetic Ollama tile (which has no
+   * persisted row — stamping its id would violate the agent_messages FK).
+   */
+  async getProviderKeyId(
+    userId: string,
+    provider: string,
+    authType?: AuthType,
+    label?: string,
+    agentId?: string,
+  ): Promise<string | null> {
+    const key = await this.selectProviderKey(userId, provider, authType, label, agentId);
+    if (!key || key.id === SYNTHETIC_OLLAMA_PROVIDER_ID) return null;
+    return key.id;
   }
 
   async getAuthType(
@@ -133,13 +186,8 @@ export class ProviderKeyService {
     label?: string,
     agentId?: string,
   ): Promise<string | null> {
-    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
-    if (keys.length === 0) return null;
-    if (label) {
-      const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
-      if (match) return match.region;
-    }
-    return keys[0].region;
+    const key = await this.selectProviderKey(userId, provider, authType, label, agentId);
+    return key ? key.region : null;
   }
 
   async findProviderForModel(
@@ -183,7 +231,9 @@ export class ProviderKeyService {
     if (provider.startsWith('custom:')) {
       const records = await this.providerRepo.find({
         where: { user_id: userId, provider, is_active: true },
-        order: { priority: 'ASC' },
+        // id tiebreaker keeps selection deterministic when keys share a priority,
+        // so the key forwarded and the id stamped never resolve to different rows.
+        order: { priority: 'ASC', id: 'ASC' },
       });
       return (await this.filterProvidersForAgent(records, agentId)).flatMap((record) =>
         this.decryptOne(record),
@@ -193,7 +243,9 @@ export class ProviderKeyService {
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },
-      order: { priority: 'ASC' },
+      // id tiebreaker keeps selection deterministic when keys share a priority,
+      // so the key forwarded and the id stamped never resolve to different rows.
+      order: { priority: 'ASC', id: 'ASC' },
     });
 
     const scopedRecords = await this.filterProvidersForAgent(records, agentId);

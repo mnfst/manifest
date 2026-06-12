@@ -153,11 +153,11 @@ describe('provider pages', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Subscriptions')).toBeDefined();
-      expect(screen.getByText('My Subscriptions')).toBeDefined();
+      expect(screen.getByText('My subscription connections')).toBeDefined();
       expect(screen.getByText('ChatGPT')).toBeDefined();
     });
 
-    fireEvent.click(screen.getAllByText('Add subscription')[0]!);
+    fireEvent.click(screen.getAllByText('Connect')[0]!);
     await waitFor(() => {
       expect(screen.getByRole('dialog', { name: 'provider modal' })).toBeDefined();
       expect(mockProviderSelectModal).toHaveBeenCalledWith(
@@ -180,17 +180,15 @@ describe('provider pages', () => {
   it('deep-links the connect modal to a specific provider when added from its row', async () => {
     render(() => <Subscriptions />);
 
-    // Index 0 is the generic page-header button (no deep link, covered above);
-    // index 1 is the first supported-provider row (OpenAI), which should open
-    // straight into that provider's connection form rather than the picker list.
-    // Wait until the agents resource resolves so the row button is enabled.
+    // Each supported-provider row carries its own "Connect" button; clicking it
+    // opens straight into that provider's connection form (deep link) rather
+    // than the generic picker list. Index 0 is the first supported provider
+    // (OpenAI). Wait until the agents resource resolves so the button enables.
     await waitFor(() => {
-      expect((screen.getAllByText('Add subscription')[1] as HTMLButtonElement).disabled).toBe(
-        false,
-      );
+      expect((screen.getAllByText('Connect')[0] as HTMLButtonElement).disabled).toBe(false);
     });
 
-    fireEvent.click(screen.getAllByText('Add subscription')[1]!);
+    fireEvent.click(screen.getAllByText('Connect')[0]!);
     await waitFor(() => {
       expect(mockProviderSelectModal).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -200,15 +198,15 @@ describe('provider pages', () => {
     });
   });
 
-  it('renders the BYOK page with custom provider connections', async () => {
+  it('renders the BYOK (usage-based) page with custom provider connections', async () => {
     render(() => <Byok />);
 
     await waitFor(() => {
-      expect(screen.getByText('BYOK')).toBeDefined();
-      expect(screen.getByText('My API Keys')).toBeDefined();
+      expect(screen.getByText('Usage-based')).toBeDefined();
+      expect(screen.getByText('My usage-based connections')).toBeDefined();
       expect(screen.getByText('Custom Gateway')).toBeDefined();
       expect(screen.getByText('Inactive')).toBeDefined();
-      expect(screen.getByText('Supported API key providers')).toBeDefined();
+      expect(screen.getByText('Supported usage-based providers')).toBeDefined();
     });
   });
 
@@ -216,22 +214,24 @@ describe('provider pages', () => {
     render(() => <LocalProviders />);
 
     await waitFor(() => {
-      expect(screen.getByText('Local Providers')).toBeDefined();
-      expect(screen.getByText('My Local Providers')).toBeDefined();
+      expect(screen.getByText('Local')).toBeDefined();
+      expect(screen.getByText('My local connections')).toBeDefined();
       expect(screen.getAllByText('Ollama').length).toBeGreaterThan(0);
     });
   });
 
-  it('redirects the local providers page to BYOK in cloud', async () => {
+  it('redirects the local providers page to the usage-based page in cloud', async () => {
     mockIsSelfHosted = false;
     const { container } = render(() => <LocalProviders />);
 
     await waitFor(() => {
       const navigate = container.querySelector('[data-testid="navigate"]');
       expect(navigate).not.toBeNull();
-      expect(navigate?.getAttribute('data-href')).toBe('/providers/byok');
+      expect(navigate?.getAttribute('data-href')).toBe('/providers/usage-based');
     });
-    expect(container.textContent).not.toContain('Local Providers');
+    // The page content (its connected-connections heading) must not render —
+    // cloud short-circuits straight to the redirect.
+    expect(container.textContent).not.toContain('My local connections');
   });
 
   it('auto-opens the modal from add=true and clears the query param', async () => {
@@ -249,7 +249,7 @@ describe('provider pages', () => {
     render(() => <Byok />);
 
     await waitFor(() => {
-      const addButton = screen.getAllByText('Add API key')[0] as HTMLButtonElement;
+      const addButton = screen.getAllByText('Connect')[0] as HTMLButtonElement;
       expect(addButton.disabled).toBe(true);
     });
   });
@@ -263,9 +263,9 @@ describe('provider pages', () => {
     render(() => <Subscriptions />);
 
     await waitFor(() => {
-      expect(screen.getByText('Supported subscriptions')).toBeDefined();
+      expect(screen.getByText('Supported subscription providers')).toBeDefined();
       expect(screen.getByText('OpenAI')).toBeDefined();
-      expect((screen.getAllByText('Add subscription')[0] as HTMLButtonElement).disabled).toBe(true);
+      expect((screen.getAllByText('Connect')[0] as HTMLButtonElement).disabled).toBe(true);
     });
   });
 

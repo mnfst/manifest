@@ -87,7 +87,7 @@ describe('ProviderAnalyticsController', () => {
     it('returns summary + timeseries for default range (24h, hourly)', async () => {
       const out = await controller.getAnalytics(user, 'subscription');
       // Final `true` arg = excludePlayground: Playground usage must not pollute
-      // provider analytics aggregates.
+      // provider analytics aggregates. Trailing `undefined` = no connection_id.
       expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
         '24h',
         'u1',
@@ -96,6 +96,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
         undefined,
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
@@ -107,6 +108,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         undefined,
         true,
+        undefined,
         undefined,
       );
       expect(out.summary.messages).toEqual({ value: 5 });
@@ -125,6 +127,7 @@ describe('ProviderAnalyticsController', () => {
         'openai',
         true,
         undefined,
+        undefined,
       );
     });
 
@@ -138,6 +141,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         undefined,
         true,
+        undefined,
         undefined,
       );
     });
@@ -155,6 +159,7 @@ describe('ProviderAnalyticsController', () => {
         undefined,
         true,
         undefined,
+        undefined,
       );
     });
 
@@ -169,6 +174,7 @@ describe('ProviderAnalyticsController', () => {
         'openai',
         true,
         'Work',
+        undefined,
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '7d',
@@ -180,6 +186,36 @@ describe('ProviderAnalyticsController', () => {
         'openai',
         true,
         'Work',
+        undefined,
+      );
+    });
+
+    it('scopes summary + timeseries to an exact connection id when connection_id is given', async () => {
+      await controller.getAnalytics(user, 'api_key', '7d', undefined, 'openai', 'Work', 'conn-123');
+      // connection_id rides as the trailing userProviderId arg; the services
+      // prefer it over the provider/auth_type/label tuple.
+      expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+        'conn-123',
+      );
+      expect(timeseries.getTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+        'conn-123',
       );
     });
   });
@@ -195,6 +231,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         'openai',
         undefined,
+        undefined,
       );
       expect(out).toEqual({ agents: ['a'], timeseries: [] });
     });
@@ -209,6 +246,7 @@ describe('ProviderAnalyticsController', () => {
         'subscription',
         'openai',
         undefined,
+        undefined,
       );
     });
 
@@ -221,6 +259,7 @@ describe('ProviderAnalyticsController', () => {
         'tenant-1',
         'api_key',
         'anthropic',
+        undefined,
         undefined,
       );
     });
@@ -237,6 +276,7 @@ describe('ProviderAnalyticsController', () => {
         'api_key',
         'openai',
         'Work',
+        undefined,
       );
       expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
         '7d',
@@ -246,6 +286,7 @@ describe('ProviderAnalyticsController', () => {
         'api_key',
         'openai',
         'Work',
+        undefined,
       );
       expect(timeseries.getPerAgentCostTimeseries).toHaveBeenCalledWith(
         '7d',
@@ -255,6 +296,50 @@ describe('ProviderAnalyticsController', () => {
         'api_key',
         'openai',
         'Work',
+        undefined,
+      );
+    });
+
+    it('forwards connection_id to every per-agent timeseries query', async () => {
+      await controller.getPerAgentTimeseries(user, 'api_key', 'openai', '7d', 'Work', 'conn-9');
+      await controller.getPerAgentMessageTimeseries(
+        user,
+        'api_key',
+        'openai',
+        '7d',
+        'Work',
+        'conn-9',
+      );
+      await controller.getPerAgentCostTimeseries(user, 'api_key', 'openai', '7d', 'Work', 'conn-9');
+      expect(timeseries.getPerAgentTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+        'conn-9',
+      );
+      expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+        'conn-9',
+      );
+      expect(timeseries.getPerAgentCostTimeseries).toHaveBeenCalledWith(
+        '7d',
+        'u1',
+        false,
+        'tenant-1',
+        'api_key',
+        'openai',
+        'Work',
+        'conn-9',
       );
     });
   });
@@ -449,10 +534,10 @@ describe('ProviderAnalyticsController', () => {
       expect(out.model_usage[0].pct_of_total).toBe(0);
     });
 
-    it('filters every usage query by the connection label (case-insensitive, NULL->Default)', async () => {
-      // Two keys share provider+auth_type but differ by label. The detail for
-      // the "Work" connection must filter every usage query by that label so a
-      // sibling "Personal" key's usage never bleeds in.
+    it('scopes every usage query to the connection id, not the provider/auth/label tuple', async () => {
+      // Two keys can share provider+auth_type+label; only user_provider_id is
+      // unique per key, so every usage query must filter on conn.id — and must
+      // NOT fall back to the old provider_key_label predicate.
       providerRepo.findOne.mockResolvedValue({
         id: 'c1',
         provider: 'openai',
@@ -479,18 +564,23 @@ describe('ProviderAnalyticsController', () => {
 
       await controller.getConnectionDetail(user, 'c1');
 
-      // Every one of the four usage builders must carry the label predicate
-      // with the connection's label bound case-insensitively.
       for (const qb of qbs) {
+        const idCall = qb.andWhere.mock.calls.find((c) =>
+          String(c[0]).includes('at.user_provider_id = :userProviderId'),
+        );
+        expect(idCall).toBeDefined();
+        expect(idCall![1]).toEqual({ userProviderId: 'c1' });
+        // The legacy label predicate must be gone — that was the merge bug.
         const labelCall = qb.andWhere.mock.calls.find((c) =>
           String(c[0]).includes("LOWER(COALESCE(at.provider_key_label, 'Default'))"),
         );
-        expect(labelCall).toBeDefined();
-        expect(labelCall![1]).toEqual({ keyLabel: 'Work' });
+        expect(labelCall).toBeUndefined();
       }
     });
 
-    it('treats a legacy NULL connection label as Default in the usage filter', async () => {
+    it('scopes by connection id even when the connection label is null', async () => {
+      // A legacy connection with a NULL label still has a unique id; the detail
+      // resolves by that id rather than collapsing a label to 'Default'.
       providerRepo.findOne.mockResolvedValue({
         id: 'c1',
         provider: 'openai',
@@ -512,10 +602,10 @@ describe('ProviderAnalyticsController', () => {
 
       await controller.getConnectionDetail(user, 'c1');
 
-      const labelCall = firstQb.andWhere.mock.calls.find((c) =>
-        String(c[0]).includes("LOWER(COALESCE(at.provider_key_label, 'Default'))"),
+      const idCall = firstQb.andWhere.mock.calls.find((c) =>
+        String(c[0]).includes('at.user_provider_id = :userProviderId'),
       );
-      expect(labelCall![1]).toEqual({ keyLabel: 'Default' });
+      expect(idCall![1]).toEqual({ userProviderId: 'c1' });
     });
 
     it('returns null last_used_at when no rows have ever been recorded', async () => {
