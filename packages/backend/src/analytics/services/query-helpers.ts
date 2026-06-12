@@ -52,45 +52,38 @@ export function downsample(data: number[], targetLen: number): number[] {
 export function filterByLiveAgentName<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   agentName: string,
-  userId: string,
-  tenantId?: string,
+  tenantId: string,
 ): SelectQueryBuilder<T> {
-  // Scope the live-agent lookup to the SAME tenant the outer query resolves to,
-  // NOT `at.tenant_id`: on the user_id fallback path (no resolved tenant)
-  // message rows can carry a NULL tenant_id, which would make the subquery match
-  // nothing and blank the chart. When a tenant is resolved, match it directly;
-  // otherwise resolve the tenant from the user (tenant.name = userId).
-  const tenantScope = tenantId
-    ? 'a.tenant_id = :liveTenantId'
-    : 'a.tenant_id = (SELECT t.id FROM tenants t WHERE t.name = :liveUserId LIMIT 1)';
-  const params: ObjectLiteral = { liveAgentName: agentName };
-  if (tenantId) params.liveTenantId = tenantId;
-  else params.liveUserId = userId;
   return qb.andWhere(
     `at.agent_id = (
         SELECT a.id FROM agents a
-        WHERE ${tenantScope}
+        WHERE a.tenant_id = :liveTenantId
           AND a.name = :liveAgentName
           AND a.deleted_at IS NULL
         LIMIT 1
       )`,
-    params,
+    { liveAgentName: agentName, liveTenantId: tenantId },
   );
 }
 
+/**
+ * Scope a message aggregate to the tenant. Pass `null` when the requesting
+ * user has no tenant yet (fresh account) — the filter then matches nothing,
+ * which is the correct "no data" answer. Tenancy is the ONLY scope; the
+ * informational `at.user_id` column is never consulted.
+ */
 export function addTenantFilter<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
-  userId: string,
+  tenantId: string | null,
   agentName?: string,
-  tenantId?: string,
 ): SelectQueryBuilder<T> {
-  if (tenantId) {
-    qb.andWhere('at.tenant_id = :tenantId', { tenantId });
-  } else {
-    qb.andWhere('at.user_id = :userId', { userId });
+  if (tenantId === null) {
+    // No tenant → no rows. Keeps callers branch-free.
+    return qb.andWhere('1 = 0');
   }
+  qb.andWhere('at.tenant_id = :tenantId', { tenantId });
   if (agentName) {
-    filterByLiveAgentName(qb, agentName, userId, tenantId);
+    filterByLiveAgentName(qb, agentName, tenantId);
   }
   return qb;
 }

@@ -16,9 +16,10 @@ import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
 import type { CustomProvider } from '../entities/custom-provider.entity';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
-const USER_ID = 'user-1';
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
+const CTX: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 
 function makeDto(overrides: Partial<RunPlaygroundDto> = {}): RunPlaygroundDto {
   return {
@@ -185,7 +186,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // --- 1. The user-facing JSON response must NOT contain the full body. ---
     expect(res._status).toBe(502);
@@ -240,7 +241,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const message = (res._json as { message: string }).message;
     expect(message).toBe('Provider returned 500');
@@ -269,7 +270,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const message = (res._json as { message: string }).message;
     expect(message).toBe('Provider returned 429: quota exceeded');

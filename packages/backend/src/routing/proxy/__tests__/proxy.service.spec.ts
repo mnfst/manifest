@@ -240,7 +240,7 @@ describe('ProxyService — orchestration', () => {
       expect(body).toContain('M200');
     });
 
-    it('skips limit checks when tenantId is missing', async () => {
+    it('skips limit checks when agentName is missing', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: null,
@@ -249,7 +249,7 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      await svc.proxyRequest({ ...baseOpts(), tenantId: undefined });
+      await svc.proxyRequest({ ...baseOpts(), agentName: undefined });
       expect(limitCheck.checkLimits).not.toHaveBeenCalled();
     });
   });
@@ -344,7 +344,7 @@ describe('ProxyService — orchestration', () => {
           rawApiKey: rawBlob,
           providerKeyLabel: 'Work',
           agentId: 'agent-1',
-          userId: 'user-1',
+          tenantId: 'tenant-1',
         }),
       );
     });
@@ -1139,7 +1139,7 @@ describe('ProxyService — orchestration', () => {
           body: { messages: [{ role: 'user', content: 'HEARTBEAT_OK' }] },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
     });
 
@@ -1171,7 +1171,7 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
     });
 
     it('does not detect heartbeat when no user message exists', async () => {

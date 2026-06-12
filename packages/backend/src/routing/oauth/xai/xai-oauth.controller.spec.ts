@@ -7,7 +7,7 @@ import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 
-const user = { id: 'user-1', email: 'u@example.com', name: 'U' } as never;
+const ctx = { tenantId: 'tenant-1', userId: 'user-1' } as never;
 
 const buildRequest = (): Request =>
   ({ protocol: 'https', get: jest.fn().mockReturnValue('api.example.com') }) as unknown as Request;
@@ -19,7 +19,7 @@ function build() {
     revokeToken: jest.fn().mockResolvedValue(undefined),
   } as unknown as XaiOauthService;
   const resolveAgent = {
-    resolve: jest.fn().mockResolvedValue({ id: 'agent-1' }),
+    resolve: jest.fn().mockResolvedValue({ id: 'agent-1', tenant_id: 'tenant-1' }),
   } as unknown as ResolveAgentService;
   const providerKeyService = {
     getProviderKeys: jest.fn().mockResolvedValue([]),
@@ -61,7 +61,7 @@ describe('XaiOauthController', () => {
   describe('authorize', () => {
     it('returns 400 when agentName is empty', async () => {
       const { ctrl, resolveAgent } = build();
-      await expect(ctrl.authorize('', user, buildRequest())).rejects.toMatchObject({
+      await expect(ctrl.authorize('', ctx, buildRequest())).rejects.toMatchObject({
         status: HttpStatus.BAD_REQUEST,
       });
       expect(resolveAgent.resolve).not.toHaveBeenCalled();
@@ -72,7 +72,7 @@ describe('XaiOauthController', () => {
       (resolveAgent.resolve as jest.Mock).mockRejectedValue(
         new NotFoundException('Agent not found'),
       );
-      await expect(ctrl.authorize('ghost', user, buildRequest())).rejects.toBeInstanceOf(
+      await expect(ctrl.authorize('ghost', ctx, buildRequest())).rejects.toBeInstanceOf(
         NotFoundException,
       );
       expect(oauth.generateAuthorizationUrl).not.toHaveBeenCalled();
@@ -84,30 +84,32 @@ describe('XaiOauthController', () => {
         key === 'BETTER_AUTH_URL' ? 'https://xai.example.com' : undefined,
       );
       (oauth.generateAuthorizationUrl as jest.Mock).mockResolvedValue('https://auth.x.ai/oauth?x');
-      const result = await ctrl.authorize('demo-agent', user, buildRequest());
+      const result = await ctrl.authorize('demo-agent', ctx, buildRequest());
       expect(result).toEqual({ url: 'https://auth.x.ai/oauth?x' });
       expect(oauth.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'https://xai.example.com',
+        'user-1',
       );
     });
 
     it('falls back to request host when BETTER_AUTH_URL is not set', async () => {
       const { ctrl, oauth } = build();
       (oauth.generateAuthorizationUrl as jest.Mock).mockResolvedValue('https://auth.x.ai/oauth?y');
-      await ctrl.authorize('demo-agent', user, buildRequest());
+      await ctrl.authorize('demo-agent', ctx, buildRequest());
       expect(oauth.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'https://api.example.com',
+        'user-1',
       );
     });
 
     it('wraps service errors in a 503', async () => {
       const { ctrl, oauth } = build();
       (oauth.generateAuthorizationUrl as jest.Mock).mockRejectedValue(new Error('bind failed'));
-      await expect(ctrl.authorize('demo-agent', user, buildRequest())).rejects.toMatchObject({
+      await expect(ctrl.authorize('demo-agent', ctx, buildRequest())).rejects.toMatchObject({
         status: HttpStatus.SERVICE_UNAVAILABLE,
         message: 'bind failed',
       });
@@ -116,7 +118,7 @@ describe('XaiOauthController', () => {
     it('wraps non-Error throws with a generic message', async () => {
       const { ctrl, oauth } = build();
       (oauth.generateAuthorizationUrl as jest.Mock).mockRejectedValue('boom');
-      await expect(ctrl.authorize('agent', user, buildRequest())).rejects.toThrow(
+      await expect(ctrl.authorize('agent', ctx, buildRequest())).rejects.toThrow(
         'Failed to start OAuth callback server',
       );
     });
@@ -125,7 +127,7 @@ describe('XaiOauthController', () => {
   describe('callback', () => {
     it('returns 400 when code is missing', async () => {
       const { ctrl, oauth } = build();
-      await expect(ctrl.callback('', 'state', user)).rejects.toMatchObject({
+      await expect(ctrl.callback('', 'state', ctx)).rejects.toMatchObject({
         status: HttpStatus.BAD_REQUEST,
       });
       expect(oauth.exchangeCode).not.toHaveBeenCalled();
@@ -133,20 +135,20 @@ describe('XaiOauthController', () => {
 
     it('returns 400 when state is missing', async () => {
       const { ctrl } = build();
-      await expect(ctrl.callback('code', '', user)).rejects.toBeInstanceOf(HttpException);
+      await expect(ctrl.callback('code', '', ctx)).rejects.toBeInstanceOf(HttpException);
     });
 
     it('exchanges code and returns ok', async () => {
       const { ctrl, oauth } = build();
       (oauth.exchangeCode as jest.Mock).mockResolvedValue(undefined);
-      await expect(ctrl.callback('auth-code', 'state-1', user)).resolves.toEqual({ ok: true });
+      await expect(ctrl.callback('auth-code', 'state-1', ctx)).resolves.toEqual({ ok: true });
       expect(oauth.exchangeCode).toHaveBeenCalledWith('state-1', 'auth-code');
     });
 
     it('wraps service errors in a 400', async () => {
       const { ctrl, oauth } = build();
       (oauth.exchangeCode as jest.Mock).mockRejectedValue(new Error('token exchange failed'));
-      await expect(ctrl.callback('code', 'state', user)).rejects.toMatchObject({
+      await expect(ctrl.callback('code', 'state', ctx)).rejects.toMatchObject({
         status: HttpStatus.BAD_REQUEST,
         message: 'token exchange failed',
       });
@@ -155,19 +157,19 @@ describe('XaiOauthController', () => {
     it('wraps non-Error throws with a generic message', async () => {
       const { ctrl, oauth } = build();
       (oauth.exchangeCode as jest.Mock).mockRejectedValue('boom');
-      await expect(ctrl.callback('code', 'state', user)).rejects.toThrow('Token exchange failed');
+      await expect(ctrl.callback('code', 'state', ctx)).rejects.toThrow('Token exchange failed');
     });
   });
 
   describe('revoke', () => {
     it('returns 400 when agentName is missing', async () => {
       const { ctrl } = build();
-      await expect(ctrl.revoke('', undefined, user)).rejects.toBeInstanceOf(HttpException);
+      await expect(ctrl.revoke('', undefined, ctx)).rejects.toBeInstanceOf(HttpException);
     });
 
     it('rejects repeated label query parameters', async () => {
       const { ctrl, resolveAgent, providerService } = build();
-      await expect(ctrl.revoke('agent', ['Key 1', 'Key 2'], user)).rejects.toMatchObject({
+      await expect(ctrl.revoke('agent', ['Key 1', 'Key 2'], ctx)).rejects.toMatchObject({
         message: 'label query parameter must be a string',
         status: 400,
       });
@@ -180,19 +182,19 @@ describe('XaiOauthController', () => {
       (resolveAgent.resolve as jest.Mock).mockRejectedValue(
         new NotFoundException('Agent not found'),
       );
-      await expect(ctrl.revoke('ghost', undefined, user)).rejects.toBeInstanceOf(NotFoundException);
+      await expect(ctrl.revoke('ghost', undefined, ctx)).rejects.toBeInstanceOf(NotFoundException);
       expect(providerService.removeProvider).not.toHaveBeenCalled();
     });
 
-    it('calls removeProvider with user.id when no keys are stored', async () => {
+    it('calls removeProvider with agent.tenant_id when no keys are stored', async () => {
       const { ctrl, providerService } = build();
-      await expect(ctrl.revoke('agent', undefined, user)).resolves.toEqual({
+      await expect(ctrl.revoke('agent', undefined, ctx)).resolves.toEqual({
         ok: true,
         notifications: [],
       });
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'xai',
         'subscription',
         undefined,
@@ -204,25 +206,25 @@ describe('XaiOauthController', () => {
       (providerKeyService.getProviderKeys as jest.Mock).mockResolvedValue([
         blobKey('Default', 'access-1', 'refresh-1'),
       ]);
-      await ctrl.revoke('agent', undefined, user);
+      await ctrl.revoke('agent', undefined, ctx);
       expect(oauth.revokeToken).toHaveBeenCalledWith('access-1');
       expect(oauth.revokeToken).toHaveBeenCalledWith('refresh-1');
-      // Verify user.id (not agent.id) is threaded through to removeProvider
+      // Verify agent.tenant_id is threaded through to removeProvider
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'xai',
         'subscription',
         undefined,
       );
     });
 
-    it('uses user.id (not agent.id) when looking up provider keys', async () => {
+    it('uses agent.tenant_id (not agent.id) when looking up provider keys', async () => {
       const { ctrl, providerKeyService } = build();
-      await ctrl.revoke('agent', undefined, user);
-      // First arg must be user.id ('user-1'), not agent.id ('agent-1')
+      await ctrl.revoke('agent', undefined, ctx);
+      // First arg must be agent.tenant_id ('tenant-1'), not agent.id ('agent-1')
       expect(providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-        'user-1',
+        'tenant-1',
         'xai',
         'subscription',
       );
@@ -234,13 +236,13 @@ describe('XaiOauthController', () => {
         blobKey('Default', 'a1', 'r1'),
         blobKey('Work', 'a2', 'r2'),
       ]);
-      await ctrl.revoke('agent', 'work', user);
+      await ctrl.revoke('agent', 'work', ctx);
       expect(oauth.revokeToken).toHaveBeenCalledWith('a2');
       expect(oauth.revokeToken).toHaveBeenCalledWith('r2');
       expect(oauth.revokeToken).not.toHaveBeenCalledWith('a1');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'xai',
         'subscription',
         'work',
@@ -255,7 +257,7 @@ describe('XaiOauthController', () => {
       (providerKeyService.getProviderKeys as jest.Mock).mockResolvedValue([
         { id: 'p1', label: 'Default', priority: 0, apiKey, region: null },
       ]);
-      await expect(ctrl.revoke('agent', undefined, user)).resolves.toEqual({
+      await expect(ctrl.revoke('agent', undefined, ctx)).resolves.toEqual({
         ok: true,
         notifications: [],
       });
@@ -268,7 +270,7 @@ describe('XaiOauthController', () => {
       (providerService.removeProvider as jest.Mock).mockResolvedValue({
         notifications: ['model-warning'],
       });
-      await expect(ctrl.revoke('agent', undefined, user)).resolves.toEqual({
+      await expect(ctrl.revoke('agent', undefined, ctx)).resolves.toEqual({
         ok: true,
         notifications: ['model-warning'],
       });

@@ -1,13 +1,12 @@
 import { ProviderAnalyticsController } from './provider-analytics.controller';
 import type { AggregationService } from '../services/aggregation.service';
 import type { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import type { TenantCacheService } from '../../common/services/tenant-cache.service';
 import type { Repository } from 'typeorm';
-import type { UserProvider } from '../../entities/user-provider.entity';
+import type { TenantProvider } from '../../entities/tenant-provider.entity';
 import type { AgentMessage } from '../../entities/agent-message.entity';
-import type { AuthUser } from '../../auth/auth.instance';
+import type { TenantContext } from '../../common/decorators/tenant-context.decorator';
 
-const user = { id: 'u1' } as AuthUser;
+const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'u1' };
 
 interface ConnectionDetailFull {
   connection: { last_used_at: string | null; [k: string]: unknown };
@@ -49,7 +48,6 @@ describe('ProviderAnalyticsController', () => {
     getPerAgentCostTimeseries: jest.Mock;
     getAgentNamesByAuthType: jest.Mock;
   };
-  let tenantCache: { resolve: jest.Mock };
   let providerRepo: { findOne: jest.Mock };
   let messageRepo: { createQueryBuilder: jest.Mock };
   let controller: ProviderAnalyticsController;
@@ -70,27 +68,24 @@ describe('ProviderAnalyticsController', () => {
       getPerAgentCostTimeseries: jest.fn().mockResolvedValue({ agents: ['a'], timeseries: [] }),
       getAgentNamesByAuthType: jest.fn().mockResolvedValue(['agent-1']),
     };
-    tenantCache = { resolve: jest.fn().mockResolvedValue('tenant-1') };
     providerRepo = { findOne: jest.fn() };
     messageRepo = { createQueryBuilder: jest.fn() };
 
     controller = new ProviderAnalyticsController(
       aggregation as unknown as AggregationService,
       timeseries as unknown as TimeseriesQueriesService,
-      tenantCache as unknown as TenantCacheService,
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       messageRepo as unknown as Repository<AgentMessage>,
     );
   });
 
   describe('getAnalytics', () => {
     it('returns summary + timeseries for default range (24h, hourly)', async () => {
-      const out = await controller.getAnalytics(user, 'subscription');
+      const out = await controller.getAnalytics(ctx, 'subscription');
       // Final `true` arg = excludeSystem: Playground usage must not pollute
       // provider analytics aggregates.
       expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
         '24h',
-        'u1',
         'tenant-1',
         undefined,
         'subscription',
@@ -100,9 +95,8 @@ describe('ProviderAnalyticsController', () => {
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '24h',
-        'u1',
-        true,
         'tenant-1',
+        true,
         undefined,
         'subscription',
         undefined,
@@ -114,12 +108,11 @@ describe('ProviderAnalyticsController', () => {
     });
 
     it('honors 7d range (non-hourly) and agent + provider filters', async () => {
-      await controller.getAnalytics(user, 'api_key', '7d', 'agent-x', 'openai');
+      await controller.getAnalytics(ctx, 'api_key', '7d', 'agent-x', 'openai');
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         'agent-x',
         'api_key',
         'openai',
@@ -129,10 +122,9 @@ describe('ProviderAnalyticsController', () => {
     });
 
     it('honors 30d range', async () => {
-      await controller.getAnalytics(user, undefined, '30d');
+      await controller.getAnalytics(ctx, undefined, '30d');
       expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
         '30d',
-        'u1',
         'tenant-1',
         undefined,
         undefined,
@@ -142,14 +134,13 @@ describe('ProviderAnalyticsController', () => {
       );
     });
 
-    it('falls back to undefined tenantId when unresolved', async () => {
-      tenantCache.resolve.mockResolvedValue(null);
-      await controller.getAnalytics(user, 'subscription');
+    it('passes a null tenantId straight through when the account has no tenant', async () => {
+      const noTenant: TenantContext = { tenantId: null, userId: 'u1' };
+      await controller.getAnalytics(noTenant, 'subscription');
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '24h',
-        'u1',
+        null,
         true,
-        undefined,
         undefined,
         'subscription',
         undefined,
@@ -159,10 +150,9 @@ describe('ProviderAnalyticsController', () => {
     });
 
     it('scopes summary + timeseries to a connection label', async () => {
-      await controller.getAnalytics(user, 'api_key', '7d', undefined, 'openai', 'Work');
+      await controller.getAnalytics(ctx, 'api_key', '7d', undefined, 'openai', 'Work');
       expect(aggregation.getSummaryMetrics).toHaveBeenCalledWith(
         '7d',
-        'u1',
         'tenant-1',
         undefined,
         'api_key',
@@ -172,9 +162,8 @@ describe('ProviderAnalyticsController', () => {
       );
       expect(timeseries.getTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         undefined,
         'api_key',
         'openai',
@@ -186,12 +175,11 @@ describe('ProviderAnalyticsController', () => {
 
   describe('per-agent timeseries endpoints', () => {
     it('getPerAgentTimeseries delegates with hourly default', async () => {
-      const out = await controller.getPerAgentTimeseries(user, 'subscription', 'openai');
+      const out = await controller.getPerAgentTimeseries(ctx, 'subscription', 'openai');
       expect(timeseries.getPerAgentTimeseries).toHaveBeenCalledWith(
         '24h',
-        'u1',
-        true,
         'tenant-1',
+        true,
         'subscription',
         'openai',
         undefined,
@@ -200,12 +188,11 @@ describe('ProviderAnalyticsController', () => {
     });
 
     it('getPerAgentMessageTimeseries honors 30d', async () => {
-      await controller.getPerAgentMessageTimeseries(user, 'subscription', 'openai', '30d');
+      await controller.getPerAgentMessageTimeseries(ctx, 'subscription', 'openai', '30d');
       expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
         '30d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         'subscription',
         'openai',
         undefined,
@@ -213,12 +200,11 @@ describe('ProviderAnalyticsController', () => {
     });
 
     it('getPerAgentCostTimeseries honors 7d', async () => {
-      await controller.getPerAgentCostTimeseries(user, 'api_key', 'anthropic', '7d');
+      await controller.getPerAgentCostTimeseries(ctx, 'api_key', 'anthropic', '7d');
       expect(timeseries.getPerAgentCostTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         'api_key',
         'anthropic',
         undefined,
@@ -226,32 +212,29 @@ describe('ProviderAnalyticsController', () => {
     });
 
     it('forwards the connection label to every per-agent timeseries query', async () => {
-      await controller.getPerAgentTimeseries(user, 'api_key', 'openai', '7d', 'Work');
-      await controller.getPerAgentMessageTimeseries(user, 'api_key', 'openai', '7d', 'Work');
-      await controller.getPerAgentCostTimeseries(user, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentTimeseries(ctx, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentMessageTimeseries(ctx, 'api_key', 'openai', '7d', 'Work');
+      await controller.getPerAgentCostTimeseries(ctx, 'api_key', 'openai', '7d', 'Work');
       expect(timeseries.getPerAgentTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         'api_key',
         'openai',
         'Work',
       );
       expect(timeseries.getPerAgentMessageTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         'api_key',
         'openai',
         'Work',
       );
       expect(timeseries.getPerAgentCostTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-1',
+        false,
         'api_key',
         'openai',
         'Work',
@@ -261,77 +244,38 @@ describe('ProviderAnalyticsController', () => {
 
   describe('getAgents', () => {
     it('returns agent names with explicit auth_type', async () => {
-      const out = await controller.getAgents(user, 'api_key');
-      expect(timeseries.getAgentNamesByAuthType).toHaveBeenCalledWith('api_key', 'u1', 'tenant-1');
+      const out = await controller.getAgents(ctx, 'api_key');
+      expect(timeseries.getAgentNamesByAuthType).toHaveBeenCalledWith('api_key', 'tenant-1');
       expect(out).toEqual({ agents: ['agent-1'] });
     });
 
     it('defaults auth_type to subscription', async () => {
-      await controller.getAgents(user);
-      expect(timeseries.getAgentNamesByAuthType).toHaveBeenCalledWith(
-        'subscription',
-        'u1',
-        'tenant-1',
-      );
+      await controller.getAgents(ctx);
+      expect(timeseries.getAgentNamesByAuthType).toHaveBeenCalledWith('subscription', 'tenant-1');
     });
   });
 
   describe('getConnectionDetail', () => {
     it('returns empty shape (incl. model_usage) when connection_id is missing', async () => {
-      const out = await controller.getConnectionDetail(user, undefined);
+      const out = await controller.getConnectionDetail(ctx, undefined);
       expect(out).toEqual({ connection: null, agents: [], model_usage: [], recent_messages: [] });
     });
 
     it('returns empty shape (incl. model_usage) when the connection is not found / not owned', async () => {
       providerRepo.findOne.mockResolvedValue(null);
-      const out = await controller.getConnectionDetail(user, 'c1');
+      const out = await controller.getConnectionDetail(ctx, 'c1');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'c1', user_id: 'u1' },
+        where: { id: 'c1', tenant_id: 'tenant-1' },
       });
       expect(out).toEqual({ connection: null, agents: [], model_usage: [], recent_messages: [] });
     });
 
-    it('resolves the tenant via TenantCacheService, not a per-request tenant query', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'c1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        label: 'My OpenAI',
-        cached_models: null,
-        key_prefix: 'sk-abc',
-        connected_at: '2026-01-01',
-        is_active: true,
-      });
-      messageRepo.createQueryBuilder
-        .mockReturnValueOnce(makeQb({ rawOne: { last_used_at: null } }))
-        .mockReturnValueOnce(makeQb({ rawMany: [] }))
-        .mockReturnValueOnce(makeQb({ rawMany: [] }))
-        .mockReturnValueOnce(makeQb({ rawMany: [] }));
-
-      await controller.getConnectionDetail(user, 'c1');
-      expect(tenantCache.resolve).toHaveBeenCalledWith('u1');
-    });
-
-    it('returns connection-only shape when tenant is missing', async () => {
-      providerRepo.findOne.mockResolvedValue({
-        id: 'c1',
-        provider: 'openai',
-        auth_type: 'api_key',
-        label: 'My OpenAI',
-        cached_models: [{ id: 'm1' }, { id: 'm2' }],
-        key_prefix: 'sk-abc',
-        connected_at: '2026-01-01',
-      });
-      tenantCache.resolve.mockResolvedValue(null);
-
-      const out = (await controller.getConnectionDetail(
-        user,
-        'c1',
-      )) as unknown as ConnectionDetailFull;
-      expect(out.connection).toMatchObject({ id: 'c1', cached_model_count: 2 });
-      expect(out.agents).toEqual([]);
-      expect(out.model_usage).toEqual([]);
-      expect(out.recent_messages).toEqual([]);
+    it('returns connection-only shape when the account has no tenant', async () => {
+      const noTenant: TenantContext = { tenantId: null, userId: 'u1' };
+      const out = await controller.getConnectionDetail(noTenant, 'c1');
+      // No tenant → no connection lookup, just the empty shape.
+      expect(providerRepo.findOne).not.toHaveBeenCalled();
+      expect(out).toEqual({ connection: null, agents: [], model_usage: [], recent_messages: [] });
     });
 
     it('aggregates agents, models and recent messages with percentages', async () => {
@@ -345,7 +289,6 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       const lastUsedDate = new Date('2026-02-01T10:00:00Z');
       // Query order in controller: lastUsed, agentRows, modelRows, recentMessages
@@ -384,10 +327,13 @@ describe('ProviderAnalyticsController', () => {
         .mockReturnValueOnce(makeQb({ rawMany: [{ id: 'msg-1' }] }));
 
       const out = (await controller.getConnectionDetail(
-        user,
+        ctx,
         'c1',
       )) as unknown as ConnectionDetailFull;
 
+      expect(providerRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'c1', tenant_id: 'tenant-1' },
+      });
       expect(out.connection).toMatchObject({
         id: 'c1',
         cached_model_count: 0,
@@ -424,7 +370,6 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: false,
       });
-      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       messageRepo.createQueryBuilder
         // last_used_at as a raw string (not a Date)
@@ -440,7 +385,7 @@ describe('ProviderAnalyticsController', () => {
         .mockReturnValueOnce(makeQb({ rawMany: [] }));
 
       const out = (await controller.getConnectionDetail(
-        user,
+        ctx,
         'c1',
       )) as unknown as ConnectionDetailFull;
       expect(out.connection.last_used_at).toBe('2026-02-01T00:00:00Z');
@@ -463,7 +408,6 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       const qbs = [
         makeQb({ rawOne: { last_used_at: null } }),
@@ -477,7 +421,7 @@ describe('ProviderAnalyticsController', () => {
         .mockReturnValueOnce(qbs[2])
         .mockReturnValueOnce(qbs[3]);
 
-      await controller.getConnectionDetail(user, 'c1');
+      await controller.getConnectionDetail(ctx, 'c1');
 
       // Every one of the four usage builders must carry the label predicate
       // with the connection's label bound case-insensitively.
@@ -501,7 +445,6 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       const firstQb = makeQb({ rawOne: { last_used_at: null } });
       messageRepo.createQueryBuilder
@@ -510,7 +453,7 @@ describe('ProviderAnalyticsController', () => {
         .mockReturnValueOnce(makeQb({ rawMany: [] }))
         .mockReturnValueOnce(makeQb({ rawMany: [] }));
 
-      await controller.getConnectionDetail(user, 'c1');
+      await controller.getConnectionDetail(ctx, 'c1');
 
       const labelCall = firstQb.andWhere.mock.calls.find((c) =>
         String(c[0]).includes("LOWER(COALESCE(at.provider_key_label, 'Default'))"),
@@ -529,7 +472,6 @@ describe('ProviderAnalyticsController', () => {
         connected_at: '2026-01-01',
         is_active: true,
       });
-      tenantCache.resolve.mockResolvedValue('tenant-1');
 
       messageRepo.createQueryBuilder
         .mockReturnValueOnce(makeQb({ rawOne: { last_used_at: null } }))
@@ -538,7 +480,7 @@ describe('ProviderAnalyticsController', () => {
         .mockReturnValueOnce(makeQb({ rawMany: [] }));
 
       const out = (await controller.getConnectionDetail(
-        user,
+        ctx,
         'c1',
       )) as unknown as ConnectionDetailFull;
       expect(out.connection.last_used_at).toBeNull();

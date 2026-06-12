@@ -10,7 +10,7 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
+import { createTestApp, TEST_AGENT_ID, TEST_OTLP_KEY, TEST_TENANT_ID, TEST_USER_ID } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
@@ -45,11 +45,12 @@ beforeAll(async () => {
   //   - anthropic / api_key   (primary)
   //   - openai    / subscription (fallback)
   await ds.query(
-    `INSERT INTO user_providers
-       (id, user_id, agent_id, provider, auth_type, api_key_encrypted, is_active, connected_at, updated_at, key_prefix, cached_models)
-     VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
+    `INSERT INTO tenant_providers
+       (id, tenant_id, created_by_user_id, agent_id, provider, auth_type, api_key_encrypted, is_active, connected_at, updated_at, key_prefix, cached_models)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,true,$8,$8,$9,$10)`,
     [
       'up-anthropic',
+      TEST_TENANT_ID,
       TEST_USER_ID,
       TEST_AGENT_ID,
       'anthropic',
@@ -72,11 +73,12 @@ beforeAll(async () => {
     ],
   );
   await ds.query(
-    `INSERT INTO user_providers
-       (id, user_id, agent_id, provider, auth_type, api_key_encrypted, is_active, connected_at, updated_at, key_prefix, cached_models)
-     VALUES ($1,$2,$3,$4,$5,$6,true,$7,$7,$8,$9)`,
+    `INSERT INTO tenant_providers
+       (id, tenant_id, created_by_user_id, agent_id, provider, auth_type, api_key_encrypted, is_active, connected_at, updated_at, key_prefix, cached_models)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,true,$8,$8,$9,$10)`,
     [
       'up-openai-sub',
+      TEST_TENANT_ID,
       TEST_USER_ID,
       TEST_AGENT_ID,
       'openai',
@@ -102,7 +104,7 @@ beforeAll(async () => {
   // Enable both user-level providers for the test agent (PR3 requires
   // explicit rows in agent_enabled_providers for per-agent filtering).
   await ds.query(
-    `INSERT INTO agent_enabled_providers (agent_id, user_provider_id) VALUES ($1,$2),($1,$3)`,
+    `INSERT INTO agent_enabled_providers (agent_id, tenant_provider_id) VALUES ($1,$2),($1,$3)`,
     [TEST_AGENT_ID, 'up-anthropic', 'up-openai-sub'],
   );
 
@@ -111,14 +113,13 @@ beforeAll(async () => {
   // and use ON CONFLICT in case another code path beat us to it.
   await ds.query(
     `INSERT INTO tier_assignments
-       (id, user_id, agent_id, tier, override_route, auto_assigned_route, fallback_routes, updated_at)
-     VALUES ($1,$2,$3,$4,$5::jsonb,NULL,$6::jsonb,$7)
+       (id, agent_id, tier, override_route, auto_assigned_route, fallback_routes, updated_at)
+     VALUES ($1,$2,$3,$4::jsonb,NULL,$5::jsonb,$6)
      ON CONFLICT (agent_id, tier) DO UPDATE SET
        override_route = EXCLUDED.override_route,
        fallback_routes = EXCLUDED.fallback_routes`,
     [
       'tier-default',
-      TEST_USER_ID,
       TEST_AGENT_ID,
       'default',
       JSON.stringify({ provider: 'anthropic', authType: 'api_key', model: PRIMARY_MODEL }),

@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { Agent } from '../../entities/agent.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -28,11 +27,13 @@ export class ResolveAgentService {
   constructor(
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async resolve(userId: string, agentName: string, options: ResolveOptions = {}): Promise<Agent> {
-    const tenantId = await this.tenantCache.resolve(userId);
+  async resolve(
+    tenantId: string | null,
+    agentName: string,
+    options: ResolveOptions = {},
+  ): Promise<Agent> {
     if (!tenantId) throw new NotFoundException('Tenant not found');
 
     const cacheKey = `${tenantId}:${agentName}`;

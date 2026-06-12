@@ -1,13 +1,24 @@
 import type { DataSource, EntityManager, Repository } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
 import { PlaygroundAgentService } from './playground-agent.service';
 import type { Agent } from '../entities/agent.entity';
-import type { Tenant } from '../entities/tenant.entity';
 import type { TenantCacheService } from '../common/services/tenant-cache.service';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants';
 
 const TENANT_ID = 'tenant-abc';
 const USER_ID = 'user-xyz';
 const AGENT_ID = 'agent-sys-1';
+
+/** A request context that already carries a resolved tenant. */
+function ctxWithTenant(): TenantContext {
+  return { tenantId: TENANT_ID, userId: USER_ID };
+}
+
+/** A request context for a fresh account: no tenant yet, only an authenticated user. */
+function ctxNoTenant(): TenantContext {
+  return { tenantId: null, userId: USER_ID };
+}
 
 /** A minimal Agent-shaped object that satisfies the service's return type. */
 function makeAgent(overrides: Partial<Agent> = {}): Agent {
@@ -22,32 +33,17 @@ function makeAgent(overrides: Partial<Agent> = {}): Agent {
   } as Agent;
 }
 
-/** A minimal Tenant-shaped object. */
-function makeTenant(overrides: Partial<Tenant> = {}): Tenant {
-  return {
-    id: TENANT_ID,
-    name: USER_ID,
-    is_active: true,
-    ...overrides,
-  } as Tenant;
-}
-
-interface TenantRepo {
-  findOne: jest.Mock;
-  insert: jest.Mock;
-}
-
 interface Mocks {
   agentRepo: {
     findOne: jest.Mock;
   };
   tenantCache: {
+    ensureForUser: jest.Mock;
     resolve: jest.Mock;
     invalidate: jest.Mock;
   };
   dataSource: {
     transaction: jest.Mock;
-    getRepository: jest.Mock;
   };
 }
 
@@ -65,29 +61,16 @@ function makeManager(
   } as unknown as EntityManager;
 }
 
-/**
- * Build a mock tenant repository for dataSource.getRepository(Tenant).
- * findOne and insert can be configured per-test.
- */
-function makeTenantRepo(overrides: Partial<TenantRepo> = {}): TenantRepo {
-  return {
-    findOne: jest.fn().mockResolvedValue(null),
-    insert: jest.fn().mockResolvedValue(undefined),
-    ...overrides,
-  };
-}
-
 function buildService(mocks: Partial<Mocks> = {}): {
   service: PlaygroundAgentService;
   mocks: Mocks;
 } {
-  const tenantRepo = makeTenantRepo();
-
   const full: Mocks = {
     agentRepo: {
       findOne: jest.fn().mockResolvedValue(null),
     },
     tenantCache: {
+      ensureForUser: jest.fn().mockResolvedValue(TENANT_ID),
       resolve: jest.fn().mockResolvedValue(TENANT_ID),
       invalidate: jest.fn(),
     },
@@ -96,8 +79,6 @@ function buildService(mocks: Partial<Mocks> = {}): {
       transaction: jest.fn().mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
         await cb(makeManager());
       }),
-      // Default: returns a tenant repo stub (used by ensureTenant).
-      getRepository: jest.fn().mockReturnValue(tenantRepo),
     },
     ...mocks,
   };
@@ -112,193 +93,71 @@ function buildService(mocks: Partial<Mocks> = {}): {
 }
 
 describe('PlaygroundAgentService.resolve', () => {
-  describe('(a) tenantCache hit — no tenant bootstrap', () => {
-    it('does not call dataSource.getRepository when tenantCache resolves a tenantId', async () => {
+  describe('(a) tenant already on context — no tenant bootstrap', () => {
+    it('does not call tenantCache.ensureForUser when ctx.tenantId is present', async () => {
       const existing = makeAgent();
       const { service, mocks } = buildService({
         agentRepo: { findOne: jest.fn().mockResolvedValue(existing) },
-        // tenantCache already resolves TENANT_ID by default
       });
 
-      await service.resolve(USER_ID);
+      await service.resolve(ctxWithTenant());
 
-      expect(mocks.dataSource.getRepository).not.toHaveBeenCalled();
+      expect(mocks.tenantCache.ensureForUser).not.toHaveBeenCalled();
     });
 
-    it('returns the existing agent when tenantCache hits and agent exists', async () => {
+    it('returns the existing agent when ctx carries a tenant and the agent exists', async () => {
       const existing = makeAgent();
       const { service } = buildService({
         agentRepo: { findOne: jest.fn().mockResolvedValue(existing) },
       });
 
-      const result = await service.resolve(USER_ID);
+      const result = await service.resolve(ctxWithTenant());
       expect(result).toBe(existing);
     });
-
-    it('does NOT call tenantCache.invalidate when tenantCache already resolved an id', async () => {
-      const existing = makeAgent();
-      const { service, mocks } = buildService({
-        agentRepo: { findOne: jest.fn().mockResolvedValue(existing) },
-        // tenantCache.resolve returns TENANT_ID (non-null) by default
-      });
-
-      await service.resolve(USER_ID);
-
-      expect(mocks.tenantCache.invalidate).not.toHaveBeenCalled();
-    });
   });
 
-  describe('(a1) tenantCache miss → ensureTenant → cache invalidated', () => {
-    it('calls tenantCache.invalidate(userId) after ensureTenant bootstraps the tenant', async () => {
-      const tenantRepo = makeTenantRepo({
-        findOne: jest.fn().mockResolvedValue(makeTenant()),
-      });
-
-      const invalidateFn = jest.fn();
+  describe('(a1) no tenant on context → bootstrap via tenantCache.ensureForUser', () => {
+    it('calls tenantCache.ensureForUser(userId) and scopes the agent under the returned tenant', async () => {
+      const ensureForUser = jest.fn().mockResolvedValue('bootstrapped-tenant');
       const { service } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: invalidateFn },
-        dataSource: {
-          transaction: jest
-            .fn()
-            .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
-              await cb(makeManager());
-            }),
-          getRepository: jest.fn().mockReturnValue(tenantRepo),
-        },
+        tenantCache: { ensureForUser, resolve: jest.fn(), invalidate: jest.fn() },
       });
 
-      await service.resolve(USER_ID);
+      const result = await service.resolve(ctxNoTenant());
 
-      // invalidate must be called with the userId so subsequent resolves see the
-      // real tenantId instead of the cached null.
-      expect(invalidateFn).toHaveBeenCalledTimes(1);
-      expect(invalidateFn).toHaveBeenCalledWith(USER_ID);
+      expect(ensureForUser).toHaveBeenCalledTimes(1);
+      expect(ensureForUser).toHaveBeenCalledWith(USER_ID);
+      // The agent should be created under the bootstrapped tenant id.
+      expect(result.tenant_id).toBe('bootstrapped-tenant');
     });
-  });
 
-  describe('(a2) ensureTenant — tenant already exists in DB (findOne returns row)', () => {
-    it('uses the existing tenant id and proceeds to create the agent', async () => {
-      const tenant = makeTenant();
-      const tenantRepo = makeTenantRepo({
-        findOne: jest.fn().mockResolvedValue(tenant),
-      });
-
-      const insertFn = jest.fn().mockResolvedValue(undefined);
-      const queryFn = jest.fn().mockResolvedValue(undefined);
-      const manager = makeManager(insertFn, queryFn);
-
+    it('looks up the system agent under the bootstrapped tenant id', async () => {
+      const ensureForUser = jest.fn().mockResolvedValue('bootstrapped-tenant');
       const { service, mocks } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
-        dataSource: {
-          transaction: jest
-            .fn()
-            .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
-              await cb(manager);
-            }),
-          getRepository: jest.fn().mockReturnValue(tenantRepo),
-        },
+        tenantCache: { ensureForUser, resolve: jest.fn(), invalidate: jest.fn() },
       });
 
-      const result = await service.resolve(USER_ID);
+      await service.resolve(ctxNoTenant());
 
-      // getRepository(Tenant) was called to look up the tenant.
-      expect(mocks.dataSource.getRepository).toHaveBeenCalled();
-      // insert was NOT called because findOne found the tenant.
-      expect(tenantRepo.insert).not.toHaveBeenCalled();
-      // The agent was created under the found tenant id.
-      expect(result.tenant_id).toBe(TENANT_ID);
+      expect(mocks.agentRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ tenant_id: 'bootstrapped-tenant', is_system: true }),
+        }),
+      );
     });
   });
 
-  describe('(a3) ensureTenant — tenant missing → insert succeeds', () => {
-    it('inserts a new tenant and returns the new id', async () => {
-      const newTenantId = 'new-tenant-uuid';
-      const tenantRepo = makeTenantRepo({
-        // findOne returns null — tenant does not exist
-        findOne: jest.fn().mockResolvedValue(null),
-        insert: jest.fn().mockResolvedValue(undefined),
-      });
-
-      const { service, mocks } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
-        dataSource: {
-          transaction: jest
-            .fn()
-            .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
-              await cb(makeManager());
-            }),
-          getRepository: jest.fn().mockReturnValue(tenantRepo),
-        },
-      });
-
-      const result = await service.resolve(USER_ID);
-
-      expect(tenantRepo.insert).toHaveBeenCalledTimes(1);
-      const insertArg = tenantRepo.insert.mock.calls[0][0] as {
-        id: string;
-        name: string;
-        is_active: boolean;
-      };
-      expect(typeof insertArg.id).toBe('string');
-      expect(insertArg.name).toBe(USER_ID);
-      expect(insertArg.is_active).toBe(true);
-      // The agent should be created under the new tenant's id.
-      expect(typeof result.tenant_id).toBe('string');
-      // getRepository was used for ensureTenant.
-      expect(mocks.dataSource.getRepository).toHaveBeenCalled();
-      void newTenantId; // suppress unused warning
-    });
-  });
-
-  describe('(a4) ensureTenant — insert throws, re-find returns row', () => {
-    it('returns the race-winner tenant id without re-throwing', async () => {
-      const racingTenant = makeTenant({ id: 'race-winner-tenant' });
-      const tenantRepo = makeTenantRepo({
-        findOne: jest
-          .fn()
-          .mockResolvedValueOnce(null) // first call: not found → trigger insert
-          .mockResolvedValueOnce(racingTenant), // second call: race winner found
-        insert: jest.fn().mockRejectedValue(new Error('duplicate key')),
-      });
-
+  describe('(a2) no tenant and no user on context → not found', () => {
+    it('throws NotFoundException without touching tenantCache', async () => {
+      const ensureForUser = jest.fn();
       const { service } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
-        dataSource: {
-          transaction: jest
-            .fn()
-            .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
-              await cb(makeManager());
-            }),
-          getRepository: jest.fn().mockReturnValue(tenantRepo),
-        },
+        tenantCache: { ensureForUser, resolve: jest.fn(), invalidate: jest.fn() },
       });
 
-      const result = await service.resolve(USER_ID);
-
-      expect(tenantRepo.findOne).toHaveBeenCalledTimes(2);
-      expect(tenantRepo.insert).toHaveBeenCalledTimes(1);
-      // Agent should be created under the race-winner's tenant id.
-      expect(result.tenant_id).toBe('race-winner-tenant');
-    });
-  });
-
-  describe('(a5) ensureTenant — insert throws, re-find returns null', () => {
-    it('re-throws the original DB error (does not mask it as not-found)', async () => {
-      const dbError = new Error('connection reset');
-      const tenantRepo = makeTenantRepo({
-        findOne: jest.fn().mockResolvedValue(null), // both calls return null
-        insert: jest.fn().mockRejectedValue(dbError),
-      });
-
-      const { service } = buildService({
-        tenantCache: { resolve: jest.fn().mockResolvedValue(null), invalidate: jest.fn() },
-        dataSource: {
-          transaction: jest.fn().mockResolvedValue(undefined),
-          getRepository: jest.fn().mockReturnValue(tenantRepo),
-        },
-      });
-
-      await expect(service.resolve(USER_ID)).rejects.toThrow('connection reset');
+      await expect(service.resolve({ tenantId: null, userId: null })).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(ensureForUser).not.toHaveBeenCalled();
     });
   });
 
@@ -311,7 +170,7 @@ describe('PlaygroundAgentService.resolve', () => {
         },
       });
 
-      const result = await service.resolve(USER_ID);
+      const result = await service.resolve(ctxWithTenant());
 
       expect(result).toBe(existing);
       expect(mocks.dataSource.transaction).not.toHaveBeenCalled();
@@ -325,7 +184,7 @@ describe('PlaygroundAgentService.resolve', () => {
         },
       });
 
-      await service.resolve(USER_ID);
+      await service.resolve(ctxWithTenant());
 
       expect(mocks.agentRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -348,26 +207,25 @@ describe('PlaygroundAgentService.resolve', () => {
             .mockImplementation(async (cb: (m: EntityManager) => Promise<void>) => {
               await cb(manager);
             }),
-          getRepository: jest.fn().mockReturnValue(makeTenantRepo()),
         },
       });
 
-      const result = await service.resolve(USER_ID);
+      const result = await service.resolve(ctxWithTenant());
 
       expect(mocks.dataSource.transaction).toHaveBeenCalledTimes(1);
       expect(insertFn).toHaveBeenCalledTimes(1);
 
-      // The enable query must receive [agentId, userId].
+      // The enable query must receive [agentId, tenantId].
       expect(queryFn).toHaveBeenCalledTimes(1);
       const [_sql, params] = queryFn.mock.calls[0] as [string, [string, string]];
       expect(params[0]).toBe(result.id);
-      expect(params[1]).toBe(USER_ID);
+      expect(params[1]).toBe(TENANT_ID);
     });
 
     it('returns a new agent with the correct fields (no DB re-fetch on success)', async () => {
       const { service, mocks } = buildService();
 
-      const result = await service.resolve(USER_ID);
+      const result = await service.resolve(ctxWithTenant());
 
       expect(result.name).toBe(PLAYGROUND_AGENT_NAME);
       expect(result.display_name).toBe(PLAYGROUND_AGENT_NAME);
@@ -393,11 +251,10 @@ describe('PlaygroundAgentService.resolve', () => {
           transaction: jest
             .fn()
             .mockRejectedValue(new Error('duplicate key value violates unique')),
-          getRepository: jest.fn().mockReturnValue(makeTenantRepo()),
         },
       });
 
-      const result = await service.resolve(USER_ID);
+      const result = await service.resolve(ctxWithTenant());
 
       expect(result).toBe(raceWinner);
       expect(mocks.agentRepo.findOne).toHaveBeenCalledTimes(2);
@@ -413,11 +270,10 @@ describe('PlaygroundAgentService.resolve', () => {
         },
         dataSource: {
           transaction: jest.fn().mockRejectedValue(new Error('unique constraint')),
-          getRepository: jest.fn().mockReturnValue(makeTenantRepo()),
         },
       });
 
-      await expect(service.resolve(USER_ID)).resolves.toBe(raceWinner);
+      await expect(service.resolve(ctxWithTenant())).resolves.toBe(raceWinner);
     });
   });
 
@@ -430,11 +286,10 @@ describe('PlaygroundAgentService.resolve', () => {
         },
         dataSource: {
           transaction: jest.fn().mockRejectedValue(dbError),
-          getRepository: jest.fn().mockReturnValue(makeTenantRepo()),
         },
       });
 
-      await expect(service.resolve(USER_ID)).rejects.toThrow('deadlock detected');
+      await expect(service.resolve(ctxWithTenant())).rejects.toThrow('deadlock detected');
     });
 
     it('does not attempt a second transaction when the race re-find also returns null', async () => {
@@ -445,11 +300,10 @@ describe('PlaygroundAgentService.resolve', () => {
         },
         dataSource: {
           transaction: transactionFn,
-          getRepository: jest.fn().mockReturnValue(makeTenantRepo()),
         },
       });
 
-      await expect(service.resolve(USER_ID)).rejects.toThrow('duplicate key');
+      await expect(service.resolve(ctxWithTenant())).rejects.toThrow('duplicate key');
       expect(transactionFn).toHaveBeenCalledTimes(1);
     });
   });

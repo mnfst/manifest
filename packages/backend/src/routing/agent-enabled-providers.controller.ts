@@ -10,12 +10,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { Agent } from '../entities/agent.entity';
-import { Tenant } from '../entities/tenant.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
@@ -29,10 +27,8 @@ export class AgentEnabledProvidersController {
     private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
-    @InjectRepository(UserProvider)
-    private readonly userProviderRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly tenantProviderRepo: Repository<TenantProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
     @InjectRepository(SpecificityAssignment)
@@ -42,43 +38,42 @@ export class AgentEnabledProvidersController {
     private readonly providerService: ProviderService,
   ) {}
 
-  private async resolveAgent(agentName: string, userId: string) {
-    const tenant = await this.tenantRepo.findOne({ where: { name: userId } });
-    if (!tenant) return null;
+  private async resolveAgent(agentName: string, tenantId: string | null) {
+    if (!tenantId) return null;
     // Exclude the reserved system (Playground) agent — its enabled providers are the global
     // pool and must not be togglable/removable through this per-agent endpoint.
     return this.agentRepo.findOne({
-      where: { name: decodeURIComponent(agentName), tenant_id: tenant.id, is_system: false },
+      where: { name: decodeURIComponent(agentName), tenant_id: tenantId, is_system: false },
     });
   }
 
   @Get()
-  async listEnabled(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    const agent = await this.resolveAgent(agentName, user.id);
+  async listEnabled(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgent(agentName, ctx.tenantId);
     if (!agent) return { enabled: [] };
 
     const rows = await this.enabledProviderRepo.find({ where: { agent_id: agent.id } });
-    return { enabled: rows.map((r) => r.user_provider_id) };
+    return { enabled: rows.map((r) => r.tenant_provider_id) };
   }
 
-  @Get(':userProviderId/impact')
+  @Get(':tenantProviderId/impact')
   async getDisableImpact(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
-    @Param('userProviderId') userProviderId: string,
+    @Param('tenantProviderId') tenantProviderId: string,
   ) {
-    const agent = await this.resolveAgent(agentName, user.id);
+    const agent = await this.resolveAgent(agentName, ctx.tenantId);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
-    const provider = await this.userProviderRepo.findOne({
-      where: { id: userProviderId, user_id: user.id },
+    const provider = await this.tenantProviderRepo.findOne({
+      where: { id: tenantProviderId, tenant_id: agent.tenant_id },
     });
     if (!provider) return { affected_tiers: [] };
 
     return { affected_tiers: await this.findAffectedRoutes(agent.id, provider) };
   }
 
-  private async findAffectedRoutes(agentId: string, provider: UserProvider) {
+  private async findAffectedRoutes(agentId: string, provider: TenantProvider) {
     const providerModels = new Set(
       (Array.isArray(provider.cached_models) ? provider.cached_models : []).map((m) => m.id),
     );
@@ -150,17 +145,17 @@ export class AgentEnabledProvidersController {
     return affected;
   }
 
-  @Put(':userProviderId')
+  @Put(':tenantProviderId')
   async enable(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
-    @Param('userProviderId') userProviderId: string,
+    @Param('tenantProviderId') tenantProviderId: string,
   ) {
-    const agent = await this.resolveAgent(agentName, user.id);
+    const agent = await this.resolveAgent(agentName, ctx.tenantId);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
-    const provider = await this.userProviderRepo.findOne({
-      where: { id: userProviderId, user_id: user.id },
+    const provider = await this.tenantProviderRepo.findOne({
+      where: { id: tenantProviderId, tenant_id: agent.tenant_id },
     });
     if (!provider) throw new HttpException('Provider not found', HttpStatus.NOT_FOUND);
 
@@ -168,25 +163,25 @@ export class AgentEnabledProvidersController {
       .createQueryBuilder()
       .insert()
       .into(AgentEnabledProvider)
-      .values({ agent_id: agent.id, user_provider_id: userProviderId })
+      .values({ agent_id: agent.id, tenant_provider_id: tenantProviderId })
       .orIgnore()
       .execute();
-    await this.providerService.recalculateTiers(agent.id, user.id);
+    await this.providerService.recalculateTiers(agent.id, agent.tenant_id);
 
     return { ok: true };
   }
 
-  @Delete(':userProviderId')
+  @Delete(':tenantProviderId')
   async disable(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
-    @Param('userProviderId') userProviderId: string,
+    @Param('tenantProviderId') tenantProviderId: string,
   ) {
-    const agent = await this.resolveAgent(agentName, user.id);
+    const agent = await this.resolveAgent(agentName, ctx.tenantId);
     if (!agent) throw new HttpException('Agent not found', HttpStatus.NOT_FOUND);
 
-    const provider = await this.userProviderRepo.findOne({
-      where: { id: userProviderId, user_id: user.id },
+    const provider = await this.tenantProviderRepo.findOne({
+      where: { id: tenantProviderId, tenant_id: agent.tenant_id },
     });
     if (provider) {
       const affected = await this.findAffectedRoutes(agent.id, provider);
@@ -197,8 +192,11 @@ export class AgentEnabledProvidersController {
       }
     }
 
-    await this.enabledProviderRepo.delete({ agent_id: agent.id, user_provider_id: userProviderId });
-    await this.providerService.recalculateTiers(agent.id, user.id);
+    await this.enabledProviderRepo.delete({
+      agent_id: agent.id,
+      tenant_provider_id: tenantProviderId,
+    });
+    await this.providerService.recalculateTiers(agent.id, agent.tenant_id);
     return { ok: true };
   }
 }

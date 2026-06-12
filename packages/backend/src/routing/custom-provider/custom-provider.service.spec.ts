@@ -40,21 +40,21 @@ function makeDeps(overrides: {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: {} });
   const removeProvider = jest.fn().mockResolvedValue(undefined);
   const retagAuthType = jest.fn().mockResolvedValue(undefined);
-  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForTenant = jest.fn().mockResolvedValue(undefined);
   const providerService = {
     upsertProvider,
     removeProvider,
     retagAuthType,
-    recalculateTiersForUser,
+    recalculateTiersForTenant,
   } as unknown as ProviderService;
 
   const getCustomProviders = jest.fn().mockReturnValue(overrides.cached ?? null);
   const setCustomProviders = jest.fn();
-  const invalidateUser = jest.fn();
+  const invalidateTenant = jest.fn();
   const routingCache = {
     getCustomProviders,
     setCustomProviders,
-    invalidateUser,
+    invalidateTenant,
   } as unknown as RoutingCacheService;
 
   const reloadPricing = jest.fn().mockResolvedValue(undefined);
@@ -83,10 +83,10 @@ function makeDeps(overrides: {
     upsertProvider,
     removeProvider,
     retagAuthType,
-    recalculateTiersForUser,
+    recalculateTiersForTenant,
     getCustomProviders,
     setCustomProviders,
-    invalidateUser,
+    invalidateTenant,
     reloadPricing,
   };
 }
@@ -133,7 +133,7 @@ describe('CustomProviderService', () => {
       const { svc } = makeDeps({ cached: [row] });
 
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         'custom:cp-llamacpp',
         'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
       );
@@ -148,7 +148,7 @@ describe('CustomProviderService', () => {
       const { svc } = makeDeps({ cached: [row] });
 
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         'custom:cp-mine',
         'custom:cp-mine/llama-3.1-70b',
       );
@@ -158,7 +158,7 @@ describe('CustomProviderService', () => {
     it('passes through cloud providers (no custom: prefix)', async () => {
       const { svc } = makeDeps({ cached: [] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         'anthropic',
         'anthropic/claude-opus-4-6',
       );
@@ -172,7 +172,7 @@ describe('CustomProviderService', () => {
       } as CustomProvider;
       const { svc } = makeDeps({ cached: [row] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         null,
         'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
       );
@@ -181,14 +181,14 @@ describe('CustomProviderService', () => {
 
     it('returns nulls when both provider and model are empty', async () => {
       const { svc } = makeDeps({ cached: [] });
-      const out = await svc.canonicalizeAgentMessageKeys('user-1', null, null);
+      const out = await svc.canonicalizeAgentMessageKeys('tenant-1', null, null);
       expect(out).toEqual({ provider: null, model: null });
     });
 
     it('returns provider unchanged when the referenced custom provider no longer exists', async () => {
       const { svc } = makeDeps({ cached: [] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         'custom:deleted',
         'custom:deleted/foo',
       );
@@ -201,7 +201,7 @@ describe('CustomProviderService', () => {
       // through rather than silently dropping the reference.
       const { svc } = makeDeps({ cached: [] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         null,
         'custom:missing-uuid/my-model',
       );
@@ -219,7 +219,7 @@ describe('CustomProviderService', () => {
       } as CustomProvider;
       const { svc } = makeDeps({ cached: [row] });
       const out = await svc.canonicalizeAgentMessageKeys(
-        'user-1',
+        'tenant-1',
         'custom:cp-llamacpp',
         'anthropic/claude-opus-4-6',
       );
@@ -230,7 +230,7 @@ describe('CustomProviderService', () => {
       // Combines the "row not found" branch with a null model — the
       // canonicalizer must not invent a model string when none was supplied.
       const { svc } = makeDeps({ cached: [] });
-      const out = await svc.canonicalizeAgentMessageKeys('user-1', 'custom:deleted', null);
+      const out = await svc.canonicalizeAgentMessageKeys('tenant-1', 'custom:deleted', null);
       expect(out).toEqual({ provider: 'custom:deleted', model: null });
     });
 
@@ -242,7 +242,7 @@ describe('CustomProviderService', () => {
         name: 'My Groq',
       } as CustomProvider;
       const { svc } = makeDeps({ cached: [row] });
-      const out = await svc.canonicalizeAgentMessageKeys('user-1', 'custom:cp-mine', null);
+      const out = await svc.canonicalizeAgentMessageKeys('tenant-1', 'custom:cp-mine', null);
       expect(out).toEqual({ provider: 'custom:cp-mine', model: null });
     });
 
@@ -255,7 +255,7 @@ describe('CustomProviderService', () => {
         name: 'llama.cpp',
       } as CustomProvider;
       const { svc } = makeDeps({ cached: [row] });
-      const out = await svc.canonicalizeAgentMessageKeys('user-1', 'custom:cp-llamacpp', null);
+      const out = await svc.canonicalizeAgentMessageKeys('tenant-1', 'custom:cp-llamacpp', null);
       expect(out).toEqual({ provider: 'llamacpp', model: null });
     });
   });
@@ -264,7 +264,7 @@ describe('CustomProviderService', () => {
     it('returns the cached result when present', async () => {
       const cached = [{ id: 'cp1' } as CustomProvider];
       const { svc, find, setCustomProviders } = makeDeps({ cached });
-      const result = await svc.list('user-1');
+      const result = await svc.list('tenant-1');
       expect(result).toBe(cached);
       expect(find).not.toHaveBeenCalled();
       expect(setCustomProviders).not.toHaveBeenCalled();
@@ -276,10 +276,10 @@ describe('CustomProviderService', () => {
         cached: null,
         findResult: rows,
       });
-      const result = await svc.list('user-1');
+      const result = await svc.list('tenant-1');
       expect(result).toBe(rows);
-      expect(find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
-      expect(setCustomProviders).toHaveBeenCalledWith('user-1', rows);
+      expect(find).toHaveBeenCalledWith({ where: { tenant_id: 'tenant-1' } });
+      expect(setCustomProviders).toHaveBeenCalledWith('tenant-1', rows);
     });
   });
 
@@ -302,7 +302,7 @@ describe('CustomProviderService', () => {
       const { svc } = makeDeps({
         findResult: [{ id: 'existing', name: dto.name } as CustomProvider],
       });
-      await expect(svc.create('user-1', dto)).rejects.toBeInstanceOf(ConflictException);
+      await expect(svc.create('tenant-1', dto)).rejects.toBeInstanceOf(ConflictException);
     });
 
     it('throws Conflict when a case-variant of the same name already exists (e.g. "my-openai" vs "MY-OPENAI")', async () => {
@@ -310,34 +310,37 @@ describe('CustomProviderService', () => {
         findResult: [{ id: 'existing', name: 'MY-OPENAI' } as CustomProvider],
       });
       // dto.name is 'my-openai' — differs only in case, must still conflict.
-      await expect(svc.create('user-1', dto)).rejects.toBeInstanceOf(ConflictException);
+      await expect(svc.create('tenant-1', dto)).rejects.toBeInstanceOf(ConflictException);
     });
 
     it('throws BadRequest when the base URL fails validation', async () => {
       (validatePublicUrl as jest.Mock).mockRejectedValue(new Error('not public'));
       const { svc } = makeDeps({ findOneResults: [null] });
-      await expect(svc.create('user-1', dto)).rejects.toBeInstanceOf(BadRequestException);
+      await expect(svc.create('tenant-1', dto)).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('inserts the row, upserts a UserProvider, and defaults context_window to 128k', async () => {
+    it('inserts the row, upserts a TenantProvider, and defaults context_window to 128k', async () => {
       const { svc, insert, upsertProvider, reloadPricing, emit } = makeDeps({
         findOneResults: [null],
       });
-      const cp = await svc.create('user-1', dto);
+      const cp = await svc.create('tenant-1', dto);
 
-      // Custom providers are user-global: notify open clients to refresh.
-      expect(emit).toHaveBeenCalledWith('user-1', 'routing');
+      // Custom providers are tenant-global: notify open clients to refresh.
+      expect(emit).toHaveBeenCalledWith('tenant-1', 'routing', undefined);
 
       expect(insert).toHaveBeenCalledTimes(1);
-      expect(cp.user_id).toBe('user-1');
+      expect(cp.tenant_id).toBe('tenant-1');
       expect(cp.name).toBe('my-openai');
       expect(cp.models[0].context_window).toBe(128_000);
       expect(upsertProvider).toHaveBeenCalledWith(
         null,
-        'user-1',
+        'tenant-1',
         `custom:${cp.id}`,
         'sk-x',
         'api_key',
+        undefined,
+        undefined,
+        undefined,
       );
       expect(validatePublicUrl).toHaveBeenCalledWith(dto.base_url, { allowPrivate: false });
       // Price lookup cache must be refreshed so the proxy can compute cost
@@ -345,39 +348,48 @@ describe('CustomProviderService', () => {
       expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
-    it('tags the companion user_providers row as local when the name is LM Studio', async () => {
+    it('tags the companion tenant_providers row as local when the name is LM Studio', async () => {
       const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
-      await svc.create('user-1', { ...dto, name: 'LM Studio' });
+      await svc.create('tenant-1', { ...dto, name: 'LM Studio' });
       expect(upsertProvider).toHaveBeenCalledWith(
         null,
-        'user-1',
+        'tenant-1',
         expect.stringMatching(/^custom:/),
         'sk-x',
         'local',
+        undefined,
+        undefined,
+        undefined,
       );
     });
 
     it('normalizes the name for detection (lm-studio / LMSTUDIO both resolve to local)', async () => {
       const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
-      await svc.create('user-1', { ...dto, name: 'lm-studio' });
+      await svc.create('tenant-1', { ...dto, name: 'lm-studio' });
       expect(upsertProvider).toHaveBeenLastCalledWith(
         null,
-        'user-1',
+        'tenant-1',
         expect.stringMatching(/^custom:/),
         'sk-x',
         'local',
+        undefined,
+        undefined,
+        undefined,
       );
     });
 
     it('keeps api_key tagging for freeform custom provider names', async () => {
       const { svc, upsertProvider } = makeDeps({ findOneResults: [null] });
-      await svc.create('user-1', { ...dto, name: 'My Home Server' });
+      await svc.create('tenant-1', { ...dto, name: 'My Home Server' });
       expect(upsertProvider).toHaveBeenCalledWith(
         null,
-        'user-1',
+        'tenant-1',
         expect.stringMatching(/^custom:/),
         'sk-x',
         'api_key',
+        undefined,
+        undefined,
+        undefined,
       );
     });
 
@@ -385,7 +397,7 @@ describe('CustomProviderService', () => {
       (isSelfHosted as jest.Mock).mockReturnValue(true);
       const selfHostedDto = { ...dto, base_url: 'http://host.docker.internal:11434/v1' };
       const { svc } = makeDeps({ findOneResults: [null] });
-      await svc.create('user-1', selfHostedDto);
+      await svc.create('tenant-1', selfHostedDto);
       expect(validatePublicUrl).toHaveBeenCalledWith(selfHostedDto.base_url, {
         allowPrivate: true,
       });
@@ -393,13 +405,13 @@ describe('CustomProviderService', () => {
 
     it('defaults api_kind to "openai" when the DTO omits it', async () => {
       const { svc } = makeDeps({ findOneResults: [null] });
-      const cp = await svc.create('user-1', dto);
+      const cp = await svc.create('tenant-1', dto);
       expect(cp.api_kind).toBe('openai');
     });
 
     it('persists api_kind="anthropic" when requested', async () => {
       const { svc } = makeDeps({ findOneResults: [null] });
-      const cp = await svc.create('user-1', {
+      const cp = await svc.create('tenant-1', {
         ...dto,
         api_kind: 'anthropic',
       });
@@ -416,7 +428,7 @@ describe('CustomProviderService', () => {
       };
       const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
 
-      const cp = await svc.create('user-1', {
+      const cp = await svc.create('tenant-1', {
         ...dto,
         name: 'Kilo Gateway',
         models: [{ model_name: 'openai/gpt-4o-mini' }],
@@ -445,7 +457,7 @@ describe('CustomProviderService', () => {
       };
       const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
 
-      const cp = await svc.create('user-1', {
+      const cp = await svc.create('tenant-1', {
         ...dto,
         name: 'Mammouth AI',
         models: [{ model_name: 'openai/gpt-4o-mini' }],
@@ -475,7 +487,7 @@ describe('CustomProviderService', () => {
       };
       const { svc } = makeDeps({ findOneResults: [null], modelsDevSync });
 
-      const cp = await svc.create('user-1', {
+      const cp = await svc.create('tenant-1', {
         ...dto,
         name: 'Kilo Gateway',
         models: [
@@ -499,7 +511,7 @@ describe('CustomProviderService', () => {
   describe('update', () => {
     it('throws NotFound when the provider does not exist for the agent', async () => {
       const { svc } = makeDeps({ findOneResults: [null] });
-      await expect(svc.update('missing', 'user-1', { name: 'x' })).rejects.toBeInstanceOf(
+      await expect(svc.update('missing', 'tenant-1', { name: 'x' })).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
@@ -513,7 +525,7 @@ describe('CustomProviderService', () => {
           { id: 'other', name: 'new' } as CustomProvider,
         ],
       });
-      await expect(svc.update('cp1', 'user-1', { name: 'new' })).rejects.toBeInstanceOf(
+      await expect(svc.update('cp1', 'tenant-1', { name: 'new' })).rejects.toBeInstanceOf(
         ConflictException,
       );
     });
@@ -529,21 +541,21 @@ describe('CustomProviderService', () => {
         ],
       });
       // Renaming cp1 to 'new' must conflict with existing 'NEW' (case-insensitive)
-      await expect(svc.update('cp1', 'user-1', { name: 'new' })).rejects.toBeInstanceOf(
+      await expect(svc.update('cp1', 'tenant-1', { name: 'new' })).rejects.toBeInstanceOf(
         ConflictException,
       );
     });
 
     it('renames and persists when no collision', async () => {
       const existing = { id: 'cp1', name: 'old' } as CustomProvider;
-      const { svc, save, invalidateUser, reloadPricing, emit } = makeDeps({
+      const { svc, save, invalidateTenant, reloadPricing, emit } = makeDeps({
         findOneResults: [existing, null],
       });
-      await svc.update('cp1', 'user-1', { name: 'new' });
+      await svc.update('cp1', 'tenant-1', { name: 'new' });
       expect(existing.name).toBe('new');
       expect(save).toHaveBeenCalledWith(existing);
-      expect(invalidateUser).toHaveBeenCalledWith('user-1');
-      expect(emit).toHaveBeenCalledWith('user-1', 'routing');
+      expect(invalidateTenant).toHaveBeenCalledWith('tenant-1');
+      expect(emit).toHaveBeenCalledWith('tenant-1', 'routing', undefined);
       // A rename-only update cannot affect prices, so the shared pricing
       // cache should be left alone (reload is expensive for large installs).
       expect(reloadPricing).not.toHaveBeenCalled();
@@ -556,7 +568,7 @@ describe('CustomProviderService', () => {
         base_url: 'a',
       } as CustomProvider;
       const { svc } = makeDeps({ findOneResults: [existing] });
-      await svc.update('cp1', 'user-1', { base_url: 'https://b.example' });
+      await svc.update('cp1', 'tenant-1', { base_url: 'https://b.example' });
       expect(validatePublicUrl).toHaveBeenCalledWith('https://b.example', { allowPrivate: false });
       expect(existing.base_url).toBe('https://b.example');
     });
@@ -565,7 +577,7 @@ describe('CustomProviderService', () => {
       (isSelfHosted as jest.Mock).mockReturnValue(true);
       const existing = { id: 'cp1', name: 'n' } as CustomProvider;
       const { svc } = makeDeps({ findOneResults: [existing] });
-      await svc.update('cp1', 'user-1', {
+      await svc.update('cp1', 'tenant-1', {
         base_url: 'http://host.docker.internal:8000/v1',
       });
       expect(validatePublicUrl).toHaveBeenCalledWith('http://host.docker.internal:8000/v1', {
@@ -577,17 +589,17 @@ describe('CustomProviderService', () => {
       const existing = { id: 'cp1', name: 'n' } as CustomProvider;
       const { svc } = makeDeps({ findOneResults: [existing] });
       (validatePublicUrl as jest.Mock).mockRejectedValue(new Error('bad url'));
-      await expect(svc.update('cp1', 'user-1', { base_url: 'http://bad' })).rejects.toBeInstanceOf(
-        BadRequestException,
-      );
+      await expect(
+        svc.update('cp1', 'tenant-1', { base_url: 'http://bad' }),
+      ).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('rewrites models without recalculating routes when the api key is not touched', async () => {
       const existing = { id: 'cp1', name: 'n' } as CustomProvider;
-      const { svc, recalculateTiersForUser, upsertProvider, reloadPricing } = makeDeps({
+      const { svc, recalculateTiersForTenant, upsertProvider, reloadPricing } = makeDeps({
         findOneResults: [existing],
       });
-      await svc.update('cp1', 'user-1', {
+      await svc.update('cp1', 'tenant-1', {
         models: [
           {
             model_name: 'm1',
@@ -597,7 +609,7 @@ describe('CustomProviderService', () => {
         ],
       });
       expect(existing.models[0].context_window).toBe(128_000);
-      expect(recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(recalculateTiersForTenant).not.toHaveBeenCalled();
       expect(upsertProvider).not.toHaveBeenCalled();
       // Edited prices must flow into the shared pricing cache so the next
       // proxied message picks up the new per-token cost.
@@ -620,7 +632,7 @@ describe('CustomProviderService', () => {
         return Promise.resolve(undefined);
       });
 
-      await svc.update('cp1', 'user-1', {
+      await svc.update('cp1', 'tenant-1', {
         models: [
           {
             model_name: 'm1',
@@ -644,7 +656,7 @@ describe('CustomProviderService', () => {
       };
       const { svc } = makeDeps({ findOneResults: [existing], modelsDevSync });
 
-      await svc.update('cp1', 'user-1', {
+      await svc.update('cp1', 'tenant-1', {
         models: [{ model_name: 'openai/gpt-4o-mini' }],
       });
 
@@ -663,50 +675,50 @@ describe('CustomProviderService', () => {
         api_kind: 'openai',
       } as CustomProvider;
       const { svc } = makeDeps({ findOneResults: [existing] });
-      await svc.update('cp1', 'user-1', { api_kind: 'anthropic' });
+      await svc.update('cp1', 'tenant-1', { api_kind: 'anthropic' });
       expect(existing.api_kind).toBe('anthropic');
     });
 
     it('retags auth_type via ProviderService.retagAuthType when a rename crosses the local ↔ api_key boundary', async () => {
       const existing = { id: 'cp1', name: 'LM Studio' } as CustomProvider;
-      const { svc, retagAuthType, upsertProvider, recalculateTiersForUser } = makeDeps({
+      const { svc, retagAuthType, upsertProvider, recalculateTiersForTenant } = makeDeps({
         findOneResults: [existing, null],
       });
-      await svc.update('cp1', 'user-1', { name: 'My Home Server' });
-      expect(retagAuthType).toHaveBeenCalledWith(null, 'user-1', 'custom:cp1', 'api_key');
+      await svc.update('cp1', 'tenant-1', { name: 'My Home Server' });
+      expect(retagAuthType).toHaveBeenCalledWith(null, 'tenant-1', 'custom:cp1', 'api_key');
       // No apiKey in the DTO, so upsertProvider must not fire.
       expect(upsertProvider).not.toHaveBeenCalled();
       // retagAuthType owns the cache invalidation; rename should not double-recalculate tiers.
-      expect(recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(recalculateTiersForTenant).not.toHaveBeenCalled();
     });
 
     it('retags local → api_key when renaming away from a canonical local name (LM Studio → Home Server)', async () => {
       const existing = { id: 'cp1', name: 'LM Studio' } as CustomProvider;
       const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
-      await svc.update('cp1', 'user-1', { name: 'Home Server' });
-      expect(retagAuthType).toHaveBeenLastCalledWith(null, 'user-1', 'custom:cp1', 'api_key');
+      await svc.update('cp1', 'tenant-1', { name: 'Home Server' });
+      expect(retagAuthType).toHaveBeenLastCalledWith(null, 'tenant-1', 'custom:cp1', 'api_key');
     });
 
     it('retags api_key → local when renaming into a canonical local name', async () => {
       const existing = { id: 'cp1', name: 'Home Server' } as CustomProvider;
       const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
-      await svc.update('cp1', 'user-1', { name: 'LM Studio' });
-      expect(retagAuthType).toHaveBeenLastCalledWith(null, 'user-1', 'custom:cp1', 'local');
+      await svc.update('cp1', 'tenant-1', { name: 'LM Studio' });
+      expect(retagAuthType).toHaveBeenLastCalledWith(null, 'tenant-1', 'custom:cp1', 'local');
     });
 
     it('does not retag when a rename stays within the same category', async () => {
       const existing = { id: 'cp1', name: 'Foo' } as CustomProvider;
       const { svc, retagAuthType } = makeDeps({ findOneResults: [existing, null] });
-      await svc.update('cp1', 'user-1', { name: 'Bar' });
+      await svc.update('cp1', 'tenant-1', { name: 'Bar' });
       expect(retagAuthType).not.toHaveBeenCalled();
     });
 
     it('delegates tier recalculation to provider upsert when the api key is also updated', async () => {
       const existing = { id: 'cp1', name: 'n' } as CustomProvider;
-      const { svc, recalculateTiersForUser, upsertProvider, reloadPricing } = makeDeps({
+      const { svc, recalculateTiersForTenant, upsertProvider, reloadPricing } = makeDeps({
         findOneResults: [existing],
       });
-      await svc.update('cp1', 'user-1', {
+      await svc.update('cp1', 'tenant-1', {
         apiKey: 'sk-new',
         models: [
           {
@@ -719,13 +731,16 @@ describe('CustomProviderService', () => {
       });
       expect(upsertProvider).toHaveBeenCalledWith(
         null,
-        'user-1',
+        'tenant-1',
         'custom:cp1',
         'sk-new',
         'api_key',
+        undefined,
+        undefined,
+        undefined,
       );
       // When api key is updated, the upsert triggers its own recalc — service should not double-call.
-      expect(recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(recalculateTiersForTenant).not.toHaveBeenCalled();
       expect(existing.models[0].context_window).toBe(64_000);
       // Prices still changed → pricing cache must still be refreshed.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
@@ -735,21 +750,21 @@ describe('CustomProviderService', () => {
   describe('remove', () => {
     it('throws NotFound when the provider is missing', async () => {
       const { svc } = makeDeps({ findOneResults: [null] });
-      await expect(svc.remove('user-1', 'cp1')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(svc.remove('tenant-1', 'cp1')).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('deletes the row and attempts provider removal', async () => {
       const cp = { id: 'cp1' } as CustomProvider;
-      const { svc, removeProvider, remove, reloadPricing, emit, invalidateUser } = makeDeps({
+      const { svc, removeProvider, remove, reloadPricing, emit, invalidateTenant } = makeDeps({
         findOneResults: [cp],
       });
-      await svc.remove('user-1', 'cp1');
-      expect(removeProvider).toHaveBeenCalledWith(null, 'user-1', 'custom:cp1');
+      await svc.remove('tenant-1', 'cp1');
+      expect(removeProvider).toHaveBeenCalledWith(null, 'tenant-1', 'custom:cp1');
       expect(remove).toHaveBeenCalledWith(cp);
       // The user-scoped custom-provider cache must be dropped so a later list()
       // doesn't serve the deleted provider from a warm cache.
-      expect(invalidateUser).toHaveBeenCalledWith('user-1');
-      expect(emit).toHaveBeenCalledWith('user-1', 'routing');
+      expect(invalidateTenant).toHaveBeenCalledWith('tenant-1');
+      expect(emit).toHaveBeenCalledWith('tenant-1', 'routing', undefined);
       // Stale pricing entries for this provider must be dropped from the
       // cache so getAll() stops returning them.
       expect(reloadPricing).toHaveBeenCalledTimes(1);
@@ -759,7 +774,7 @@ describe('CustomProviderService', () => {
       const cp = { id: 'cp1' } as CustomProvider;
       const { svc, removeProvider, remove } = makeDeps({ findOneResults: [cp] });
       removeProvider.mockRejectedValue(new NotFoundException('not linked'));
-      await expect(svc.remove('user-1', 'cp1')).resolves.toBeUndefined();
+      await expect(svc.remove('tenant-1', 'cp1')).resolves.toBeUndefined();
       expect(remove).toHaveBeenCalledWith(cp);
     });
 
@@ -767,7 +782,7 @@ describe('CustomProviderService', () => {
       const cp = { id: 'cp1' } as CustomProvider;
       const { svc, removeProvider, remove } = makeDeps({ findOneResults: [cp] });
       removeProvider.mockRejectedValue(new Error('provider is routed'));
-      await expect(svc.remove('user-1', 'cp1')).rejects.toThrow('provider is routed');
+      await expect(svc.remove('tenant-1', 'cp1')).rejects.toThrow('provider is routed');
       expect(remove).not.toHaveBeenCalled();
     });
   });

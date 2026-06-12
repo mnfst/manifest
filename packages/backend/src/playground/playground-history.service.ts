@@ -12,7 +12,8 @@ import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 
 export interface SaveColumnInput {
-  userId: string;
+  /** Audit-only author attribution; the run is scoped by agent.tenant_id. */
+  createdByUserId: string | null;
   agent: { id: string; tenant_id: string; name: string };
   runId?: string;
   prompt: string;
@@ -33,7 +34,7 @@ export interface SaveColumnInput {
   } | null;
 }
 
-/** Soft cap on stored runs per (user, agent) pair; oldest pruned on insert. */
+/** Soft cap on stored runs per (tenant, agent) pair; oldest pruned on insert. */
 export const MAX_RUNS_PER_AGENT = 50;
 
 @Injectable()
@@ -83,7 +84,7 @@ export class PlaygroundHistoryService {
 
     if (insertedRun) {
       try {
-        await this.pruneOldRuns(input.userId, input.agent.id);
+        await this.pruneOldRuns(input.agent.tenant_id, input.agent.id);
       } catch (err) {
         this.logger.warn(
           `Failed to prune old playground runs: ${err instanceof Error ? err.message : err}`,
@@ -110,7 +111,7 @@ export class PlaygroundHistoryService {
         .values({
           id: runId,
           tenant_id: input.agent.tenant_id,
-          user_id: input.userId,
+          created_by_user_id: input.createdByUserId,
           agent_id: input.agent.id,
           agent_name: input.agent.name,
           prompt: input.prompt.slice(0, 10_000),
@@ -127,9 +128,9 @@ export class PlaygroundHistoryService {
     }
   }
 
-  async listRuns(userId: string, agentId: string): Promise<PlaygroundHistoryRunSummary[]> {
+  async listRuns(tenantId: string, agentId: string): Promise<PlaygroundHistoryRunSummary[]> {
     const runs = await this.runRepo.find({
-      where: { user_id: userId, agent_id: agentId },
+      where: { tenant_id: tenantId, agent_id: agentId },
       order: { created_at: 'DESC' },
       take: MAX_RUNS_PER_AGENT,
     });
@@ -163,13 +164,13 @@ export class PlaygroundHistoryService {
   }
 
   async getRun(
-    userId: string,
+    tenantId: string,
     runId: string,
     agentId?: string,
   ): Promise<PlaygroundHistoryRunDetail> {
-    const where: { id: string; user_id: string; agent_id?: string } = {
+    const where: { id: string; tenant_id: string; agent_id?: string } = {
       id: runId,
-      user_id: userId,
+      tenant_id: tenantId,
     };
     if (agentId) where.agent_id = agentId;
     const run = await this.runRepo.findOne({ where });
@@ -218,12 +219,12 @@ export class PlaygroundHistoryService {
     };
   }
 
-  async toggleStar(userId: string, runId: string): Promise<boolean> {
+  async toggleStar(tenantId: string | null, runId: string): Promise<boolean> {
     const result = await this.runRepo
       .createQueryBuilder()
       .update(PlaygroundRun)
       .set({ starred: () => 'NOT starred' })
-      .where('id = :runId AND user_id = :userId', { runId, userId })
+      .where('id = :runId AND tenant_id = :tenantId', { runId, tenantId })
       .returning('starred')
       .execute();
 
@@ -241,10 +242,10 @@ export class PlaygroundHistoryService {
    *
    * When setting, the column must belong to this run: a cross-run id would
    * poison the RL signal. The ownership update is a single atomic statement
-   * scoped by user_id (same pattern as toggleStar).
+   * scoped by tenant_id (same pattern as toggleStar).
    */
   async setBestColumn(
-    userId: string,
+    tenantId: string | null,
     runId: string,
     columnId: string | null,
   ): Promise<string | null> {
@@ -264,7 +265,7 @@ export class PlaygroundHistoryService {
       .createQueryBuilder()
       .update(PlaygroundRun)
       .set({ best_column_id: columnId })
-      .where('id = :runId AND user_id = :userId', { runId, userId })
+      .where('id = :runId AND tenant_id = :tenantId', { runId, tenantId })
       .returning('best_column_id')
       .execute();
 
@@ -275,11 +276,11 @@ export class PlaygroundHistoryService {
     return result.raw[0].best_column_id ?? null;
   }
 
-  private async pruneOldRuns(userId: string, agentId: string): Promise<void> {
+  private async pruneOldRuns(tenantId: string, agentId: string): Promise<void> {
     const surplus = await this.runRepo
       .createQueryBuilder('r')
       .select('r.id', 'id')
-      .where('r.user_id = :userId', { userId })
+      .where('r.tenant_id = :tenantId', { tenantId })
       .andWhere('r.agent_id = :agentId', { agentId })
       .orderBy('r.created_at', 'DESC')
       .offset(MAX_RUNS_PER_AGENT)

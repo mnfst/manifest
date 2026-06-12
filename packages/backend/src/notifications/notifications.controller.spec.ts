@@ -6,14 +6,13 @@ import { EmailProviderConfigService } from './services/email-provider-config.ser
 import { NotificationCronService } from './services/notification-cron.service';
 import { LimitCheckService } from './services/limit-check.service';
 
-const mockUser = { id: 'user-1', email: 'test@test.com', name: 'Test' } as never;
+const mockCtx = { tenantId: 't-1', userId: 'user-1' } as never;
 
 const mockRule = {
   id: 'rule-1',
   tenant_id: 't-1',
   agent_id: 'a-1',
   agent_name: 'my-agent',
-  user_id: 'user-1',
   metric_type: 'tokens' as const,
   threshold: 100000,
   period: 'day' as const,
@@ -99,14 +98,14 @@ describe('NotificationsController', () => {
     const logService = module.get(NotificationLogService) as jest.Mocked<NotificationLogService>;
     logService.getLogsForAgent.mockResolvedValue(mockLogs);
 
-    const result = await controller.getLogs('my-agent', mockUser);
-    expect(logService.getLogsForAgent).toHaveBeenCalledWith('user-1', 'my-agent');
+    const result = await controller.getLogs('my-agent', mockCtx);
+    expect(logService.getLogsForAgent).toHaveBeenCalledWith('t-1', 'my-agent');
     expect(result).toEqual(mockLogs);
   });
 
   it('lists rules for an agent', async () => {
-    const result = await controller.listRules('my-agent', mockUser);
-    expect(rulesService.listRules).toHaveBeenCalledWith('user-1', 'my-agent');
+    const result = await controller.listRules('my-agent', mockCtx);
+    expect(rulesService.listRules).toHaveBeenCalledWith('t-1', 'my-agent');
     expect(result).toEqual([mockRule]);
   });
 
@@ -117,27 +116,27 @@ describe('NotificationsController', () => {
       threshold: 100000,
       period: 'day' as const,
     };
-    const result = await controller.createRule(dto, mockUser);
-    expect(rulesService.createRule).toHaveBeenCalledWith('user-1', dto);
+    const result = await controller.createRule(dto, mockCtx);
+    expect(rulesService.createRule).toHaveBeenCalledWith('t-1', dto);
     expect(result).toEqual(mockRule);
   });
 
   it('updates a rule', async () => {
     const dto = { is_active: false };
-    const result = await controller.updateRule('rule-1', dto, mockUser);
-    expect(rulesService.updateRule).toHaveBeenCalledWith('user-1', 'rule-1', dto);
+    const result = await controller.updateRule('rule-1', dto, mockCtx);
+    expect(rulesService.updateRule).toHaveBeenCalledWith('t-1', 'rule-1', dto);
     expect(result?.is_active).toBe(false);
   });
 
   it('deletes a rule', async () => {
-    const result = await controller.deleteRule('rule-1', mockUser);
-    expect(rulesService.deleteRule).toHaveBeenCalledWith('user-1', 'rule-1');
+    const result = await controller.deleteRule('rule-1', mockCtx);
+    expect(rulesService.deleteRule).toHaveBeenCalledWith('t-1', 'rule-1');
     expect(result).toEqual({ deleted: true });
   });
 
   it('returns configured: false when no provider', async () => {
-    const result = await controller.getEmailProvider(mockUser);
-    expect(emailProviderConfigService.getConfig).toHaveBeenCalledWith('user-1');
+    const result = await controller.getEmailProvider(mockCtx);
+    expect(emailProviderConfigService.getConfig).toHaveBeenCalledWith('t-1');
     expect(result).toEqual({ configured: false });
   });
 
@@ -148,7 +147,7 @@ describe('NotificationsController', () => {
       domain: 'example.com',
       to: 'test@test.com',
     } as never;
-    const result = await controller.testEmailProvider(mockUser, dto);
+    const result = await controller.testEmailProvider(mockCtx, dto);
     expect(emailProviderConfigService.testConfig).toHaveBeenCalledWith(
       { provider: 'resend', apiKey: 're_testkey123', domain: 'example.com' },
       'test@test.com',
@@ -158,7 +157,7 @@ describe('NotificationsController', () => {
 
   it('tests sendgrid provider config without domain', async () => {
     const dto = { provider: 'sendgrid', apiKey: 'SG.testkey123456', to: 'test@test.com' } as never;
-    const result = await controller.testEmailProvider(mockUser, dto);
+    const result = await controller.testEmailProvider(mockCtx, dto);
     expect(emailProviderConfigService.testConfig).toHaveBeenCalledWith(
       { provider: 'sendgrid', apiKey: 'SG.testkey123456', domain: undefined },
       'test@test.com',
@@ -168,21 +167,21 @@ describe('NotificationsController', () => {
 
   it('triggers manual notification check', async () => {
     const cronService = module.get(NotificationCronService) as jest.Mocked<NotificationCronService>;
-    const result = await controller.triggerCheck(mockUser);
-    expect(cronService.checkThresholds).toHaveBeenCalledWith('user-1');
+    const result = await controller.triggerCheck(mockCtx);
+    expect(cronService.checkThresholds).toHaveBeenCalledWith('t-1');
     expect(result).toEqual({ triggered: 2, message: '2 notification(s) triggered' });
   });
 
   it('returns null notification email when not set', async () => {
-    const result = await controller.getNotificationEmail(mockUser);
-    expect(emailProviderConfigService.getNotificationEmail).toHaveBeenCalledWith('user-1');
+    const result = await controller.getNotificationEmail(mockCtx);
+    expect(emailProviderConfigService.getNotificationEmail).toHaveBeenCalledWith('t-1');
     expect(result).toEqual({ email: null });
   });
 
   it('saves notification email', async () => {
-    const result = await controller.setNotificationEmail(mockUser, { email: 'alerts@test.com' });
+    const result = await controller.setNotificationEmail(mockCtx, { email: 'alerts@test.com' });
     expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith(
-      'user-1',
+      't-1',
       'alerts@test.com',
     );
     expect(result).toEqual({ saved: true });
@@ -190,21 +189,21 @@ describe('NotificationsController', () => {
 
   it('saves email provider config', async () => {
     const dto = { provider: 'resend', apiKey: 're_testkey123456' } as never;
-    const result = await controller.setEmailProvider(mockUser, dto);
-    expect(emailProviderConfigService.upsert).toHaveBeenCalledWith('user-1', dto);
+    const result = await controller.setEmailProvider(mockCtx, dto);
+    expect(emailProviderConfigService.upsert).toHaveBeenCalledWith(mockCtx, dto);
     expect(result.provider).toBe('resend');
   });
 
   it('saves email provider config without API key (keep existing)', async () => {
     const dto = { provider: 'resend', notificationEmail: 'new@test.com' } as never;
-    const result = await controller.setEmailProvider(mockUser, dto);
-    expect(emailProviderConfigService.upsert).toHaveBeenCalledWith('user-1', dto);
+    const result = await controller.setEmailProvider(mockCtx, dto);
+    expect(emailProviderConfigService.upsert).toHaveBeenCalledWith(mockCtx, dto);
     expect(result.provider).toBe('resend');
   });
 
   it('removes email provider config', async () => {
-    const result = await controller.removeEmailProvider(mockUser);
-    expect(emailProviderConfigService.remove).toHaveBeenCalledWith('user-1');
+    const result = await controller.removeEmailProvider(mockCtx);
+    expect(emailProviderConfigService.remove).toHaveBeenCalledWith('t-1');
     expect(result).toEqual({ ok: true });
   });
 
@@ -216,7 +215,7 @@ describe('NotificationsController', () => {
       is_active: true,
       notificationEmail: 'alerts@test.com',
     });
-    const result = await controller.getEmailProvider(mockUser);
+    const result = await controller.getEmailProvider(mockCtx);
     expect(result).toEqual({
       provider: 'sendgrid',
       domain: null,
@@ -227,11 +226,8 @@ describe('NotificationsController', () => {
   });
 
   it('tests saved email provider config', async () => {
-    const result = await controller.testSavedEmailProvider(mockUser, { to: 'test@test.com' });
-    expect(emailProviderConfigService.testSavedConfig).toHaveBeenCalledWith(
-      'user-1',
-      'test@test.com',
-    );
+    const result = await controller.testSavedEmailProvider(mockCtx, { to: 'test@test.com' });
+    expect(emailProviderConfigService.testSavedConfig).toHaveBeenCalledWith('t-1', 'test@test.com');
     expect(result).toEqual({ success: true });
   });
 
@@ -253,7 +249,7 @@ describe('NotificationsController', () => {
         period: 'day' as const,
         action: 'block' as const,
       };
-      await controller.createRule(dto, mockUser);
+      await controller.createRule(dto, mockCtx);
 
       expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
     });
@@ -269,7 +265,7 @@ describe('NotificationsController', () => {
         period: 'day' as const,
         action: 'notify' as const,
       };
-      await controller.createRule(dto, mockUser);
+      await controller.createRule(dto, mockCtx);
 
       expect(limitCheck.invalidateCache).not.toHaveBeenCalled();
     });
@@ -285,7 +281,7 @@ describe('NotificationsController', () => {
         period: 'day' as const,
         action: 'both' as const,
       };
-      await controller.createRule(dto, mockUser);
+      await controller.createRule(dto, mockCtx);
 
       expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
     });
@@ -293,7 +289,7 @@ describe('NotificationsController', () => {
     it('always invalidates cache on update', async () => {
       rulesService.updateRule.mockResolvedValue({ ...mockRule, threshold: 200 });
 
-      await controller.updateRule('rule-1', { threshold: 200 }, mockUser);
+      await controller.updateRule('rule-1', { threshold: 200 }, mockCtx);
 
       expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
     });
@@ -301,7 +297,7 @@ describe('NotificationsController', () => {
     it('invalidates cache on delete when rule exists', async () => {
       rulesService.getOwnedRule.mockResolvedValue(mockRule);
 
-      await controller.deleteRule('rule-1', mockUser);
+      await controller.deleteRule('rule-1', mockCtx);
 
       expect(limitCheck.invalidateCache).toHaveBeenCalledWith('t-1', 'my-agent');
     });
@@ -309,7 +305,7 @@ describe('NotificationsController', () => {
     it('does not invalidate cache on delete when rule not found', async () => {
       rulesService.getOwnedRule.mockResolvedValue(undefined);
 
-      await controller.deleteRule('rule-missing', mockUser);
+      await controller.deleteRule('rule-missing', mockCtx);
 
       expect(limitCheck.invalidateCache).not.toHaveBeenCalled();
     });

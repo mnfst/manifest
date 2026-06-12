@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { Agent } from '../entities/agent.entity';
-import { Tenant } from '../entities/tenant.entity';
 import { TenantCacheService } from '../common/services/tenant-cache.service';
+import { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants';
 
 /**
@@ -30,19 +30,14 @@ export class PlaygroundAgentService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async resolve(userId: string): Promise<Agent> {
+  async resolve(ctx: TenantContext): Promise<Agent> {
     // The Playground is a global page that may be opened before the user has
-    // created any normal agent — i.e. before onboarding created their tenant row.
-    // Bootstrap the tenant so the reserved agent can always be created.
-    const cached = await this.tenantCache.resolve(userId);
-    let tenantId: string;
-    if (cached) {
-      tenantId = cached;
-    } else {
-      tenantId = await this.ensureTenant(userId);
-      // Bust the stale null so subsequent resolves (e.g. ResolveAgentService) see
-      // the real tenant id instead of waiting out the 5-minute TTL.
-      this.tenantCache.invalidate(userId);
+    // created any normal agent — i.e. before onboarding created their tenant
+    // row. Bootstrap the tenant so the reserved agent can always be created.
+    let tenantId = ctx.tenantId;
+    if (!tenantId) {
+      if (!ctx.userId) throw new NotFoundException('Tenant not found');
+      tenantId = await this.tenantCache.ensureForUser(ctx.userId);
     }
 
     const existing = await this.findSystemAgent(tenantId);
@@ -66,9 +61,9 @@ export class PlaygroundAgentService {
         // same shape the seed migration uses.  No tier recalculation needed here;
         // symmetric auto-connect handles providers added later.
         await manager.query(
-          `INSERT INTO "agent_enabled_providers" ("agent_id","user_provider_id") ` +
-            `SELECT $1, "id" FROM "user_providers" WHERE "user_id" = $2 ON CONFLICT DO NOTHING`,
-          [agent.id, userId],
+          `INSERT INTO "agent_enabled_providers" ("agent_id","tenant_provider_id") ` +
+            `SELECT $1, "id" FROM "tenant_providers" WHERE "tenant_id" = $2 ON CONFLICT DO NOTHING`,
+          [agent.id, tenantId],
         );
       });
     } catch (err) {
@@ -87,23 +82,5 @@ export class PlaygroundAgentService {
     return this.agentRepo.findOne({
       where: { tenant_id: tenantId, is_system: true, deleted_at: IsNull() },
     });
-  }
-
-  /** Create the user's tenant row if it doesn't exist yet (race-safe). */
-  private async ensureTenant(userId: string): Promise<string> {
-    const repo = this.dataSource.getRepository(Tenant);
-    const existing = await repo.findOne({ where: { name: userId } });
-    if (existing) return existing.id;
-
-    const id = randomUUID();
-    try {
-      await repo.insert({ id, name: userId, is_active: true });
-      return id;
-    } catch (err) {
-      // Concurrent winner → reuse its row; any other failure is real → re-throw.
-      const raced = await repo.findOne({ where: { name: userId } });
-      if (raced) return raced.id;
-      throw err;
-    }
   }
 }

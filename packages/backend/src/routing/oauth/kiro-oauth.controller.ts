@@ -1,6 +1,13 @@
-import { Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { AuthUser } from '../../auth/auth.instance';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { KiroOauthService } from './kiro-oauth.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { ProviderService } from '../routing-core/provider.service';
@@ -15,13 +22,13 @@ export class KiroOauthController {
   ) {}
 
   @Post('start')
-  async start(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+  async start(@Query('agentName') agentName: string, @TenantCtx() ctx: TenantContext) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
     try {
-      return await this.oauthService.startAuthorization(agent.id, user.id);
+      return await this.oauthService.startAuthorization(agent.id, agent.tenant_id, ctx.userId);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start Kiro login';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
@@ -29,12 +36,15 @@ export class KiroOauthController {
   }
 
   @Get('poll')
-  async poll(@Query('flowId') flowId: string, @CurrentUser() user: AuthUser) {
+  async poll(@Query('flowId') flowId: string, @TenantCtx() ctx: TenantContext) {
     if (!flowId) {
       throw new HttpException('flowId query parameter is required', HttpStatus.BAD_REQUEST);
     }
+    if (!ctx.tenantId) {
+      throw new NotFoundException('Tenant not found');
+    }
     try {
-      return await this.oauthService.pollAuthorization(flowId, user.id);
+      return await this.oauthService.pollAuthorization(flowId, ctx.tenantId);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to poll Kiro login';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
@@ -45,16 +55,16 @@ export class KiroOauthController {
   async revoke(
     @Query('agentName') agentName: string,
     @Query('label') label: string | string[] | undefined,
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
-      user.id,
+      agent.tenant_id,
       'kiro',
       'subscription',
       keyLabel,

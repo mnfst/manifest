@@ -10,6 +10,17 @@ export class Tenant {
   @Column('varchar', { unique: true })
   name!: string;
 
+  /**
+   * The Better Auth user that owns this tenant (1:1 today). This is the ONLY
+   * sanctioned user→tenant link — resolution goes through
+   * TenantCacheService.resolve(). Nullable: future tenants may exist without
+   * a single owning user. The partial unique index lives in the
+   * TenantOwnerColumn migration (unique only where NOT NULL, which a plain
+   * @Index can't express).
+   */
+  @Column('varchar', { nullable: true })
+  owner_user_id!: string | null;
+
   @Column('varchar', { nullable: true })
   organization_name!: string | null;
 

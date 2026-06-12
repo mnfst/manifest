@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   MESSAGE_ROW_SELECT_ALIASES,
   EXCLUDE_SYSTEM_AGENTS_PREDICATE,
@@ -91,10 +90,6 @@ describe('TimeseriesQueriesService', () => {
         {
           provide: getRepositoryToken(Agent),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
-        },
-        {
-          provide: TenantCacheService,
-          useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },
         },
       ],
     }).compile();
@@ -296,7 +291,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('applies tenant isolation via addTenantFilter so cross-tenant data cannot leak', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getRecentActivity('24h', 'u1', 5, undefined, 'tenant-123');
+      await service.getRecentActivity('24h', 'tenant-123', 5);
 
       // When a tenantId is provided the helper filters by tenant_id (not user_id).
       const andWhereCalls = mockTurnQb.andWhere.mock.calls.map((call) => call[0] as string);
@@ -311,7 +306,7 @@ describe('TimeseriesQueriesService', () => {
         { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 80, cost: 2.0, count: 8 },
       ]);
 
-      const result = await service.getTimeseries('24h', 'u1', true, 'tenant-123');
+      const result = await service.getTimeseries('24h', 'tenant-123', true);
       expect(result.tokenUsage).toHaveLength(2);
       expect(result.costUsage).toHaveLength(2);
       expect(result.messageUsage).toHaveLength(2);
@@ -329,7 +324,7 @@ describe('TimeseriesQueriesService', () => {
         { date: '2026-02-15', input_tokens: 500, output_tokens: 300, cost: 5.0, count: 20 },
       ]);
 
-      const result = await service.getTimeseries('7d', 'u1', false, 'tenant-123');
+      const result = await service.getTimeseries('7d', 'tenant-123', false);
       expect(result.tokenUsage).toHaveLength(1);
       expect(result.tokenUsage[0]).toEqual({
         date: '2026-02-15',
@@ -342,7 +337,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('returns empty arrays when no data', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      const result = await service.getTimeseries('24h', 'u1', true, 'tenant-123');
+      const result = await service.getTimeseries('24h', 'tenant-123', true);
       expect(result.tokenUsage).toEqual([]);
       expect(result.costUsage).toEqual([]);
       expect(result.messageUsage).toEqual([]);
@@ -359,7 +354,7 @@ describe('TimeseriesQueriesService', () => {
         },
       ]);
 
-      const result = await service.getTimeseries('24h', 'u1', true);
+      const result = await service.getTimeseries('24h', 'tenant-1', true);
       expect(result.tokenUsage[0]).toEqual({
         hour: '2026-02-16T10:00:00',
         input_tokens: 0,
@@ -371,7 +366,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('passes agentName to tenant filter', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      const result = await service.getTimeseries('24h', 'u1', true, 'tenant-123', 'bot-1');
+      const result = await service.getTimeseries('24h', 'tenant-123', true, 'bot-1');
       expect(result.tokenUsage).toEqual([]);
     });
   });
@@ -387,7 +382,7 @@ describe('TimeseriesQueriesService', () => {
     });
 
     it('includes system agents when includeSystem is true (Messages filter)', async () => {
-      await service.getAgentList('u1', undefined, true);
+      await service.getAgentList('u1', true);
       const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
       expect(clauses).not.toContain('a.is_system = false');
     });
@@ -486,15 +481,7 @@ describe('TimeseriesQueriesService', () => {
   describe('getTimeseries with authType/provider filters', () => {
     it('applies auth_type and provider andWhere clauses', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getTimeseries(
-        '24h',
-        'u1',
-        true,
-        'tenant-1',
-        'agent-x',
-        'subscription',
-        'openai',
-      );
+      await service.getTimeseries('24h', 'tenant-1', true, 'agent-x', 'subscription', 'openai');
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).toContain('at.auth_type = :authType');
       expect(clauses).toContain('at.provider = :provider');
@@ -502,16 +489,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('excludes the system Playground agent when excludeSystem=true', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getTimeseries(
-        '24h',
-        'u1',
-        true,
-        'tenant-1',
-        undefined,
-        undefined,
-        undefined,
-        true,
-      );
+      await service.getTimeseries('24h', 'tenant-1', true, undefined, undefined, undefined, true);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
       // Semi-join exclusion adds no LEFT JOIN of its own.
@@ -520,7 +498,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('does not exclude system agents by default', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getTimeseries('24h', 'u1', true, 'tenant-1');
+      await service.getTimeseries('24h', 'tenant-1', true);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
     });
@@ -529,9 +507,8 @@ describe('TimeseriesQueriesService', () => {
       mockGetRawMany.mockResolvedValue([]);
       await service.getTimeseries(
         '24h',
-        'u1',
-        true,
         'tenant-1',
+        true,
         undefined,
         'api_key',
         'openai',
@@ -556,9 +533,8 @@ describe('TimeseriesQueriesService', () => {
       mockGetRawMany.mockResolvedValue(rows);
       const out = await service.getPerAgentTimeseries(
         '24h',
-        'u1',
-        true,
         'tenant-1',
+        true,
         'subscription',
         'openai',
       );
@@ -599,17 +575,9 @@ describe('TimeseriesQueriesService', () => {
 
     it('scopes each per-agent timeseries to a connection label when provided', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getPerAgentTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai', 'Work');
-      await service.getPerAgentMessageTimeseries(
-        '24h',
-        'u1',
-        true,
-        't1',
-        'api_key',
-        'openai',
-        'Work',
-      );
-      await service.getPerAgentCostTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai', 'Work');
+      await service.getPerAgentTimeseries('24h', 't1', true, 'api_key', 'openai', 'Work');
+      await service.getPerAgentMessageTimeseries('24h', 't1', true, 'api_key', 'openai', 'Work');
+      await service.getPerAgentCostTimeseries('24h', 't1', true, 'api_key', 'openai', 'Work');
       const labelCalls = mockTurnQb.andWhere.mock.calls.filter((c) => c[0] === labelClause);
       expect(labelCalls).toHaveLength(3);
       for (const call of labelCalls) expect(call[1]).toEqual({ keyLabel: 'Work' });
@@ -617,14 +585,14 @@ describe('TimeseriesQueriesService', () => {
 
     it('treats a legacy empty connection label as Default in the per-agent filter', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getPerAgentTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai', '');
+      await service.getPerAgentTimeseries('24h', 't1', true, 'api_key', 'openai', '');
       const labelCall = mockTurnQb.andWhere.mock.calls.find((c) => c[0] === labelClause);
       expect(labelCall![1]).toEqual({ keyLabel: 'Default' });
     });
 
     it('omits the label filter when no label is given', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getPerAgentTimeseries('24h', 'u1', true, 't1', 'api_key', 'openai');
+      await service.getPerAgentTimeseries('24h', 't1', true, 'api_key', 'openai');
       expect(mockTurnQb.andWhere.mock.calls.some((c) => c[0] === labelClause)).toBe(false);
     });
   });
@@ -635,7 +603,7 @@ describe('TimeseriesQueriesService', () => {
         { hour: '01', provider: 'openai', tokens: 7 },
         { hour: '01', provider: 'anthropic', tokens: 3 },
       ]);
-      const out = await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      const out = await service.getPerProviderTimeseries('24h', 'tenant-1', true, 'agent-x');
       expect(out.agents).toEqual(['anthropic', 'openai']);
       expect(out.timeseries[0]).toEqual({ hour: '01', anthropic: 3, openai: 7 });
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
@@ -694,7 +662,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
-      await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      await service.getPerModelTimeseries('24h', 'tenant-1', true, 'agent-x');
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       const liveAgentClause = clauses.find(
         (c) =>
@@ -708,7 +676,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('omits the agent filter entirely when no agent is given', async () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: 1 }]);
-      await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1');
+      await service.getPerProviderTimeseries('24h', 'tenant-1', true);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses.some((c) => typeof c === 'string' && c.includes('at.agent_id = ('))).toBe(
         false,
@@ -717,7 +685,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
-      await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      await service.getPerModelTimeseries('24h', 'tenant-1', true, 'agent-x');
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       const liveAgentClause = clauses.find(
         (c) =>
@@ -731,7 +699,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('omits the agent filter entirely when no agent is given', async () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: 1 }]);
-      await service.getPerProviderTimeseries('24h', 'u1', true, 'tenant-1');
+      await service.getPerProviderTimeseries('24h', 'tenant-1', true);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
       expect(clauses.some((c) => typeof c === 'string' && c.includes('at.agent_id = ('))).toBe(
         false,
@@ -752,7 +720,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('getPerModelTimeseries pivots tokens', async () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
-      const out = await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
+      const out = await service.getPerModelTimeseries('24h', 'tenant-1', true, 'agent-x');
       expect(out.agents).toEqual(['gpt-4o']);
       expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 9 }]);
       // Playground (is_system) usage must be excluded from per-model totals.
@@ -783,7 +751,7 @@ describe('TimeseriesQueriesService', () => {
   describe('getAgentNamesByAuthType', () => {
     it('returns distinct agent names excluding system agents', async () => {
       mockGetRawMany.mockResolvedValue([{ agent_name: 'a' }, { agent_name: 'b' }]);
-      const out = await service.getAgentNamesByAuthType('subscription', 'u1', 'tenant-1');
+      const out = await service.getAgentNamesByAuthType('subscription', 'tenant-1');
       expect(out).toEqual(['a', 'b']);
       expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
         EXCLUDE_SYSTEM_AGENTS_PREDICATE,

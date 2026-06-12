@@ -48,8 +48,9 @@ export class DatabaseSeederService implements OnModuleInit {
     // so `/serve` and E2E tests get a non-empty dashboard without going
     // through the setup wizard on every run.
     await this.seedAdminUser();
-    await this.seedApiKey();
+    // Tenant first: the dashboard API key is tenant-scoped.
     await this.seedTenantAndAgent();
+    await this.seedApiKey();
     await this.seedAgentMessages();
     this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
     this.logger.warn(
@@ -103,7 +104,8 @@ export class DatabaseSeederService implements OnModuleInit {
       key: null,
       key_hash: hashKey(SEED_API_KEY),
       key_prefix: keyPrefix(SEED_API_KEY),
-      user_id: userId,
+      tenant_id: SEED_TENANT_ID,
+      created_by_user_id: userId,
       name: 'Development API Key',
     });
   }
@@ -130,6 +132,7 @@ export class DatabaseSeederService implements OnModuleInit {
     await this.tenantRepo.insert({
       id: SEED_TENANT_ID,
       name: userId,
+      owner_user_id: userId,
       organization_name: 'Demo Organization',
       email: 'admin@manifest.build',
       is_active: true,

@@ -13,7 +13,7 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { NotificationRule } from '../entities/notification-rule.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
 import { EmailProviderConfig } from '../entities/email-provider-config.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
@@ -117,6 +117,10 @@ import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-Se
 import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
 import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000000-DropSavingsBaselineColumns';
 import { RenameProviderAccessToEnabledProviders1791800000000 } from './migrations/1791800000000-RenameProviderAccessToEnabledProviders';
+import { TenantOwnerColumn1792000000000 } from './migrations/1792000000000-TenantOwnerColumn';
+import { TenantProviders1792100000000 } from './migrations/1792100000000-TenantProviders';
+import { TenantScopedConfigs1792200000000 } from './migrations/1792200000000-TenantScopedConfigs';
+import { DropUserScopeFromRouting1792300000000 } from './migrations/1792300000000-DropUserScopeFromRouting';
 
 const entities = [
   AgentMessage,
@@ -130,7 +134,7 @@ const entities = [
   NotificationRule,
   NotificationLog,
   EmailProviderConfig,
-  UserProvider,
+  TenantProvider,
   TierAssignment,
   CustomProvider,
   SpecificityAssignment,
@@ -235,6 +239,10 @@ const migrations = [
   DropProviderRateLimits1791600000000,
   DropSavingsBaselineColumns1791700000000,
   RenameProviderAccessToEnabledProviders1791800000000,
+  TenantOwnerColumn1792000000000,
+  TenantProviders1792100000000,
+  TenantScopedConfigs1792200000000,
+  DropUserScopeFromRouting1792300000000,
 ];
 
 @Module({
@@ -278,7 +286,7 @@ const migrations = [
       AgentApiKey,
       AgentMessage,
       ApiKey,
-      UserProvider,
+      TenantProvider,
       TierAssignment,
       CustomProvider,
       SpecificityAssignment,

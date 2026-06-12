@@ -42,10 +42,10 @@ export class ResolveController {
     @Body() body: ResolveRequestDto,
     @Req() req: Request & { ingestionContext: IngestionContext },
   ): Promise<ResolveResponse> {
-    const { agentId, userId } = req.ingestionContext;
+    const { agentId, tenantId } = req.ingestionContext;
     return this.resolveService.resolve(
       agentId,
-      userId,
+      tenantId,
       body.messages as { role: string; content?: unknown; [k: string]: unknown }[],
       body.tools,
       body.tool_choice,
@@ -61,7 +61,8 @@ export class ResolveController {
     @Body() body: RegisterSubscriptionsDto,
     @Req() req: Request & { ingestionContext: IngestionContext },
   ): Promise<{ registered: number }> {
-    const { agentId, userId } = req.ingestionContext;
+    // tenantId scopes the provider rows; userId is audit-only attribution.
+    const { agentId, tenantId, userId } = req.ingestionContext;
     let registered = 0;
 
     for (const item of body.providers) {
@@ -69,17 +70,21 @@ export class ResolveController {
       if (item.token) {
         const result = await this.providerService.upsertProvider(
           agentId,
-          userId,
+          tenantId,
           item.provider,
           item.token,
           'subscription',
+          undefined,
+          undefined,
+          userId,
         );
         isNew = result.isNew;
       } else {
         const result = await this.providerService.registerSubscriptionProvider(
           agentId,
-          userId,
+          tenantId,
           item.provider,
+          userId,
         );
         isNew = result.isNew;
       }

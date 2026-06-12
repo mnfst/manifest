@@ -68,11 +68,17 @@ export interface ForwardOptions {
 /** Options for ProxyService.proxyRequest. */
 export interface ProxyRequestOptions {
   agentId: string;
-  userId: string;
+  /** Tenant that owns the agent — the scoping key for every provider/key/limit lookup. */
+  tenantId: string;
+  /**
+   * Owning user, when one exists. Informational attribution for the message
+   * recorder (`agent_messages.user_id`) only — never used for scoping,
+   * keying, or rate limiting.
+   */
+  userId: string | null;
   body: Record<string, unknown>;
   apiMode?: ProxyApiMode;
   sessionKey: string;
-  tenantId?: string;
   agentName?: string;
   signal?: AbortSignal;
   specificityOverride?: string;

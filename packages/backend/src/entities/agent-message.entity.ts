@@ -95,6 +95,12 @@ export class AgentMessage {
   @Column('integer', { nullable: true })
   fallback_index!: number | null;
 
+  /**
+   * DEPRECATED — informational attribution only, written by the proxy
+   * recorder. Never filter, scope, key, or authorize by this column; all
+   * scoping goes through `tenant_id`. Kept because agent_messages is the
+   * big hot table and a column drop isn't worth the rewrite.
+   */
   @Column('varchar', { nullable: true })
   user_id!: string | null;
 

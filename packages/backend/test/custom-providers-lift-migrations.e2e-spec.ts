@@ -1,6 +1,8 @@
 import { DataSource } from 'typeorm';
 import { LiftCustomProvidersToUserLevel1791200000000 } from '../src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel';
 import { RenameProviderAccessToEnabledProviders1791800000000 } from '../src/database/migrations/1791800000000-RenameProviderAccessToEnabledProviders';
+import { TenantProviders1792100000000 } from '../src/database/migrations/1792100000000-TenantProviders';
+import { TenantScopedConfigs1792200000000 } from '../src/database/migrations/1792200000000-TenantScopedConfigs';
 
 /**
  * Runs the REAL migration chain (synchronize:false) so LiftCustomProvidersToUserLevel
@@ -31,34 +33,36 @@ describe('LiftCustomProvidersToUserLevel under migration-built schema (e2e)', ()
     await ds?.destroy();
   });
 
-  it('drops the agent_id column from custom_providers', async () => {
+  it('drops the agent_id column from custom_providers and re-scopes it to the tenant', async () => {
     const cols: { column_name: string }[] = await ds.query(
       `SELECT column_name FROM information_schema.columns WHERE table_name = 'custom_providers'`,
     );
     const names = cols.map((c) => c.column_name);
     expect(names).not.toContain('agent_id');
-    expect(names).toContain('user_id');
+    expect(names).not.toContain('user_id');
+    expect(names).toContain('tenant_id');
+    expect(names).toContain('created_by_user_id');
   });
 
-  it('enforces the user-scoped unique index on (user_id, LOWER(name))', async () => {
+  it('enforces the tenant-scoped unique index on (tenant_id, LOWER(name))', async () => {
     await ds.query(
-      `INSERT INTO "custom_providers" ("id","user_id","name","base_url","api_kind","models","created_at")
-       VALUES ('cpm-1','u-1','My Provider','https://a.example.com/v1','openai','[]', now())`,
+      `INSERT INTO "custom_providers" ("id","tenant_id","name","base_url","api_kind","models","created_at")
+       VALUES ('cpm-1','t-1','My Provider','https://a.example.com/v1','openai','[]', now())`,
     );
-    // Same user, case-insensitively equal name → must collide.
+    // Same tenant, case-insensitively equal name → must collide.
     await expect(
       ds.query(
-        `INSERT INTO "custom_providers" ("id","user_id","name","base_url","api_kind","models","created_at")
-         VALUES ('cpm-2','u-1','my provider','https://b.example.com/v1','openai','[]', now())`,
+        `INSERT INTO "custom_providers" ("id","tenant_id","name","base_url","api_kind","models","created_at")
+         VALUES ('cpm-2','t-1','my provider','https://b.example.com/v1','openai','[]', now())`,
       ),
     ).rejects.toThrow(/duplicate key value violates unique constraint/);
   });
 
-  it('allows the same name under a different user', async () => {
+  it('allows the same name under a different tenant', async () => {
     await expect(
       ds.query(
-        `INSERT INTO "custom_providers" ("id","user_id","name","base_url","api_kind","models","created_at")
-         VALUES ('cpm-3','u-2','My Provider','https://c.example.com/v1','openai','[]', now())`,
+        `INSERT INTO "custom_providers" ("id","tenant_id","name","base_url","api_kind","models","created_at")
+         VALUES ('cpm-3','t-2','My Provider','https://c.example.com/v1','openai','[]', now())`,
       ),
     ).resolves.toBeDefined();
   });
@@ -89,8 +93,15 @@ describe('LiftCustomProvidersToUserLevel data transformation (e2e)', () => {
     await ds.initialize();
     await ds.runMigrations();
 
-    // Revert the later table rename first so this historical migration can be
-    // replayed against the schema naming it expects (agent_provider_access).
+    // Revert the later tenant re-scoping + table renames first (newest first)
+    // so this historical migration can be replayed against the schema naming
+    // it expects (user_providers / agent_provider_access / user_id columns).
+    const tenantConfigsQr = ds.createQueryRunner();
+    await new TenantScopedConfigs1792200000000().down(tenantConfigsQr);
+    await tenantConfigsQr.release();
+    const tenantProvidersQr = ds.createQueryRunner();
+    await new TenantProviders1792100000000().down(tenantProvidersQr);
+    await tenantProvidersQr.release();
     const renameQr = ds.createQueryRunner();
     await new RenameProviderAccessToEnabledProviders1791800000000().down(renameQr);
     await renameQr.release();
@@ -107,7 +118,7 @@ describe('LiftCustomProvidersToUserLevel data transformation (e2e)', () => {
     await ds.query(`DELETE FROM "agents"`);
     await ds.query(`DELETE FROM "tenants"`);
     await ds.query(
-      `INSERT INTO "tenants" ("id","name","is_active") VALUES ('t1','cu-1',true)`,
+      `INSERT INTO "tenants" ("id","name","owner_user_id","is_active") VALUES ('t1','cu-1','cu-1',true)`,
     );
     for (const a of ['a1', 'a2', 'a3']) {
       await ds.query(

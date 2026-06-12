@@ -3,7 +3,6 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { OverviewController } from './overview.controller';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -50,15 +49,15 @@ describe('OverviewController', () => {
   let controller: OverviewController;
   let agg: Record<string, jest.Mock>;
   let ts: Record<string, jest.Mock>;
-  let mockTenantResolve: jest.Mock;
   let mockResolveAgent: jest.Mock;
   let mockGetProviders: jest.Mock;
   let mockAccessFind: jest.Mock;
 
+  const ctx = { tenantId: 'tenant-123', userId: 'u1' };
+
   beforeEach(async () => {
     agg = mockAggregation();
     ts = mockTimeseries();
-    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
     mockResolveAgent = jest.fn().mockResolvedValue({ id: 'agent-uuid-1' });
     mockGetProviders = jest.fn().mockResolvedValue([]);
     mockAccessFind = jest.fn().mockResolvedValue([]);
@@ -69,7 +68,6 @@ describe('OverviewController', () => {
       providers: [
         { provide: AggregationService, useValue: agg },
         { provide: TimeseriesQueriesService, useValue: ts },
-        { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
         { provide: ProviderService, useValue: { getProviders: mockGetProviders } },
         { provide: ResolveAgentService, useValue: { resolve: mockResolveAgent } },
         { provide: getRepositoryToken(AgentEnabledProvider), useValue: { find: mockAccessFind } },
@@ -80,124 +78,115 @@ describe('OverviewController', () => {
   });
 
   it('returns overview with hourly timeseries for 24h range', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getOverview({ range: '24h' }, user as never);
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
 
     expect(result.summary.tokens_today).toBeDefined();
     expect(result.summary.cost_today).toBeDefined();
     expect(result.summary.messages).toBeDefined();
-    expect(ts.getTimeseries).toHaveBeenCalledWith('24h', 'u1', true, 'tenant-123', undefined);
+    expect(ts.getTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, undefined);
   });
 
   it('returns overview with daily timeseries for 7d range', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getOverview({ range: '7d' }, user as never);
+    const result = await controller.getOverview({ range: '7d' }, ctx as never);
 
     expect(result.token_usage).toBeDefined();
-    expect(ts.getTimeseries).toHaveBeenCalledWith('7d', 'u1', false, 'tenant-123', undefined);
+    expect(ts.getTimeseries).toHaveBeenCalledWith('7d', 'tenant-123', false, undefined);
   });
 
   it('defaults range to 24h when not specified', async () => {
-    const user = { id: 'u1' };
-    await controller.getOverview({}, user as never);
+    await controller.getOverview({}, ctx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'u1', 'tenant-123', undefined);
+    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'tenant-123', undefined);
   });
 
   it('passes agent_name and tenantId to all calls', async () => {
-    const user = { id: 'u1' };
-    await controller.getOverview({ range: '24h', agent_name: 'bot-1' }, user as never);
+    await controller.getOverview({ range: '24h', agent_name: 'bot-1' }, ctx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'u1', 'tenant-123', 'bot-1');
-    expect(ts.getTimeseries).toHaveBeenCalledWith('24h', 'u1', true, 'tenant-123', 'bot-1');
-    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'u1', 'bot-1', 'tenant-123');
-    expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'u1', 5, 'bot-1', 'tenant-123');
-    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'u1', 'bot-1', 'tenant-123');
-    expect(agg.hasAnyData).toHaveBeenCalledWith('u1', 'bot-1', 'tenant-123');
+    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1');
+    expect(ts.getTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, 'bot-1');
+    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1');
+    expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'tenant-123', 5, 'bot-1');
+    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1');
+    expect(agg.hasAnyData).toHaveBeenCalledWith('tenant-123', 'bot-1');
   });
 
   it('includes services_hit placeholder in summary', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getOverview({ range: '24h' }, user as never);
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
 
     expect(result.summary.services_hit).toEqual({ total: 0, healthy: 0, issues: 0 });
   });
 
   it('includes has_data boolean in response', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getOverview({ range: '24h' }, user as never);
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
 
     expect(result.has_data).toBe(true);
   });
 
   it('returns has_data false when no data exists', async () => {
     agg.hasAnyData.mockResolvedValueOnce(false);
-    const user = { id: 'u1' };
-    const result = await controller.getOverview({ range: '24h' }, user as never);
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
 
     expect(result.has_data).toBe(false);
   });
 
-  it('resolves tenant once and passes to all services', async () => {
-    const user = { id: 'u1' };
-    await controller.getOverview({ range: '24h' }, user as never);
+  it('passes null tenantId straight through when tenant not resolved', async () => {
+    const nullCtx = { tenantId: null, userId: 'u1' };
+    await controller.getOverview({ range: '24h' }, nullCtx as never);
 
-    expect(mockTenantResolve).toHaveBeenCalledTimes(1);
-    expect(mockTenantResolve).toHaveBeenCalledWith('u1');
-  });
-
-  it('passes undefined tenantId when tenant not found', async () => {
-    mockTenantResolve.mockResolvedValueOnce(null);
-    const user = { id: 'u1' };
-    await controller.getOverview({ range: '24h' }, user as never);
-
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'u1', undefined, undefined);
+    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', null, undefined);
   });
 
   it('returns has_providers true when agent has active providers', async () => {
     mockGetProviders.mockResolvedValueOnce([{ id: 'provider-1', is_active: true }]);
     mockAccessFind.mockResolvedValueOnce([
-      { agent_id: 'agent-uuid-1', user_provider_id: 'provider-1' },
+      { agent_id: 'agent-uuid-1', tenant_provider_id: 'provider-1' },
     ]);
-    const user = { id: 'u1' };
     const result = await controller.getOverview(
       { range: '24h', agent_name: 'bot-1' },
-      user as never,
+      ctx as never,
     );
 
     expect(result.has_providers).toBe(true);
-    expect(mockResolveAgent).toHaveBeenCalledWith('u1', 'bot-1');
-    expect(mockGetProviders).toHaveBeenCalledWith('u1');
+    expect(mockResolveAgent).toHaveBeenCalledWith('tenant-123', 'bot-1');
+    expect(mockGetProviders).toHaveBeenCalledWith('tenant-123');
     expect(mockAccessFind).toHaveBeenCalledWith({ where: { agent_id: 'agent-uuid-1' } });
   });
 
   it('returns has_providers false when active providers are not enabled for the agent', async () => {
     mockGetProviders.mockResolvedValueOnce([{ id: 'provider-1', is_active: true }]);
     mockAccessFind.mockResolvedValueOnce([
-      { agent_id: 'agent-uuid-1', user_provider_id: 'provider-2' },
+      { agent_id: 'agent-uuid-1', tenant_provider_id: 'provider-2' },
     ]);
-    const user = { id: 'u1' };
     const result = await controller.getOverview(
       { range: '24h', agent_name: 'bot-1' },
-      user as never,
+      ctx as never,
     );
 
     expect(result.has_providers).toBe(false);
   });
 
   it('returns has_providers false when no providers exist', async () => {
-    const user = { id: 'u1' };
     const result = await controller.getOverview(
       { range: '24h', agent_name: 'bot-1' },
-      user as never,
+      ctx as never,
     );
 
     expect(result.has_providers).toBe(false);
   });
 
   it('returns has_providers false when agent_name is not provided', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getOverview({ range: '24h' }, user as never);
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
+
+    expect(result.has_providers).toBe(false);
+    expect(mockResolveAgent).not.toHaveBeenCalled();
+  });
+
+  it('returns has_providers false when tenant is null', async () => {
+    const nullCtx = { tenantId: null, userId: 'u1' };
+    const result = await controller.getOverview(
+      { range: '24h', agent_name: 'bot-1' },
+      nullCtx as never,
+    );
 
     expect(result.has_providers).toBe(false);
     expect(mockResolveAgent).not.toHaveBeenCalled();
@@ -205,10 +194,9 @@ describe('OverviewController', () => {
 
   it('returns has_providers false when agent resolution fails', async () => {
     mockResolveAgent.mockRejectedValueOnce(new Error('Not found'));
-    const user = { id: 'u1' };
     const result = await controller.getOverview(
       { range: '24h', agent_name: 'missing-agent' },
-      user as never,
+      ctx as never,
     );
 
     expect(result.has_providers).toBe(false);
@@ -216,103 +204,91 @@ describe('OverviewController', () => {
 
   it('returns has_providers false when all providers are inactive', async () => {
     mockGetProviders.mockResolvedValueOnce([{ is_active: false }, { is_active: false }]);
-    const user = { id: 'u1' };
     const result = await controller.getOverview(
       { range: '24h', agent_name: 'bot-1' },
-      user as never,
+      ctx as never,
     );
 
     expect(result.has_providers).toBe(false);
   });
 
   describe('per-agent / per-provider / per-model timeseries endpoints', () => {
-    const user = { id: 'u1' } as never;
-
     it('getPerAgentTimeseries delegates with hourly range', async () => {
-      await controller.getPerAgentTimeseries({ range: '24h' }, user);
-      expect(ts.getPerAgentTimeseries).toHaveBeenCalledWith('24h', 'u1', true, 'tenant-123');
+      await controller.getPerAgentTimeseries({ range: '24h' }, ctx as never);
+      expect(ts.getPerAgentTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true);
     });
 
     it('getPerAgentMessageTimeseries defaults range to 24h', async () => {
-      await controller.getPerAgentMessageTimeseries({}, user);
-      expect(ts.getPerAgentMessageTimeseries).toHaveBeenCalledWith('24h', 'u1', true, 'tenant-123');
+      await controller.getPerAgentMessageTimeseries({}, ctx as never);
+      expect(ts.getPerAgentMessageTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true);
     });
 
     it('getPerAgentCostTimeseries delegates with daily range', async () => {
-      await controller.getPerAgentCostTimeseries({ range: '7d' }, user);
-      expect(ts.getPerAgentCostTimeseries).toHaveBeenCalledWith('7d', 'u1', false, 'tenant-123');
+      await controller.getPerAgentCostTimeseries({ range: '7d' }, ctx as never);
+      expect(ts.getPerAgentCostTimeseries).toHaveBeenCalledWith('7d', 'tenant-123', false);
     });
 
     it('getPerProviderTimeseries forwards agent_name', async () => {
-      await controller.getPerProviderTimeseries({ range: '24h', agent_name: 'bot-1' }, user);
-      expect(ts.getPerProviderTimeseries).toHaveBeenCalledWith(
-        '24h',
-        'u1',
-        true,
-        'tenant-123',
-        'bot-1',
+      await controller.getPerProviderTimeseries(
+        { range: '24h', agent_name: 'bot-1' },
+        ctx as never,
       );
+      expect(ts.getPerProviderTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, 'bot-1');
     });
 
     it('getPerProviderMessageTimeseries defaults range and undefined agent', async () => {
-      await controller.getPerProviderMessageTimeseries({}, user);
+      await controller.getPerProviderMessageTimeseries({}, ctx as never);
       expect(ts.getPerProviderMessageTimeseries).toHaveBeenCalledWith(
         '24h',
-        'u1',
-        true,
         'tenant-123',
+        true,
         undefined,
       );
     });
 
     it('getPerProviderCostTimeseries delegates', async () => {
-      await controller.getPerProviderCostTimeseries({ range: '30d', agent_name: 'bot-1' }, user);
+      await controller.getPerProviderCostTimeseries(
+        { range: '30d', agent_name: 'bot-1' },
+        ctx as never,
+      );
       expect(ts.getPerProviderCostTimeseries).toHaveBeenCalledWith(
         '30d',
-        'u1',
-        false,
         'tenant-123',
+        false,
         'bot-1',
       );
     });
 
     it('getPerModelTimeseries delegates', async () => {
-      await controller.getPerModelTimeseries({ range: '24h' }, user);
-      expect(ts.getPerModelTimeseries).toHaveBeenCalledWith(
-        '24h',
-        'u1',
-        true,
-        'tenant-123',
-        undefined,
-      );
+      await controller.getPerModelTimeseries({ range: '24h' }, ctx as never);
+      expect(ts.getPerModelTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, undefined);
     });
 
     it('getPerModelMessageTimeseries delegates', async () => {
-      await controller.getPerModelMessageTimeseries({ range: '7d', agent_name: 'bot-1' }, user);
+      await controller.getPerModelMessageTimeseries(
+        { range: '7d', agent_name: 'bot-1' },
+        ctx as never,
+      );
       expect(ts.getPerModelMessageTimeseries).toHaveBeenCalledWith(
         '7d',
-        'u1',
-        false,
         'tenant-123',
+        false,
         'bot-1',
       );
     });
 
     it('getPerModelCostTimeseries delegates', async () => {
-      await controller.getPerModelCostTimeseries({ range: '24h', agent_name: 'bot-1' }, user);
-      expect(ts.getPerModelCostTimeseries).toHaveBeenCalledWith(
-        '24h',
-        'u1',
-        true,
-        'tenant-123',
-        'bot-1',
+      await controller.getPerModelCostTimeseries(
+        { range: '24h', agent_name: 'bot-1' },
+        ctx as never,
       );
+      expect(ts.getPerModelCostTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, 'bot-1');
     });
 
-    it('falls back to undefined tenantId when unresolved', async () => {
-      mockTenantResolve.mockResolvedValueOnce(null);
-      await controller.getPerAgentTimeseries({ range: '24h' }, user);
-      expect(ts.getPerAgentTimeseries).toHaveBeenCalledWith('24h', 'u1', true, undefined);
+    it('passes null tenantId straight through when unresolved', async () => {
+      const nullCtx = { tenantId: null, userId: 'u1' };
+      await controller.getPerAgentTimeseries({ range: '24h' }, nullCtx as never);
+      expect(ts.getPerAgentTimeseries).toHaveBeenCalledWith('24h', null, true);
     });
   });
 });

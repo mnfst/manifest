@@ -103,7 +103,7 @@ describe('CustomProviderService edge cases', () => {
       });
       // The cache miss path must actually hit the DB and repopulate the
       // cache (with the empty result) so the next lookup is also cheap.
-      expect(find).toHaveBeenCalledWith({ where: { user_id: 'agent-1' } });
+      expect(find).toHaveBeenCalledWith({ where: { tenant_id: 'agent-1' } });
       expect(setCustomProviders).toHaveBeenCalledWith('agent-1', []);
     });
 

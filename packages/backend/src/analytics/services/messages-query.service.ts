@@ -5,7 +5,6 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { addTenantFilter, formatTimestamp, selectMessageRowColumns } from './query-helpers';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import type { MessageStatusFilter } from '../dto/messages-query.dto';
 
 const ERROR_STATUSES = ['error', 'fallback_error', 'rate_limited'] as const;
@@ -34,12 +33,11 @@ export class MessagesQueryService {
     private readonly turnRepo: Repository<AgentMessage>,
     @InjectRepository(CustomProvider)
     private readonly customProviderRepo: Repository<CustomProvider>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
   async getMessages(params: {
     range?: string;
-    userId: string;
+    tenantId: string | null;
     provider?: string;
     service_type?: string;
     cost_min?: number;
@@ -53,8 +51,7 @@ export class MessagesQueryService {
     specificity_category?: string;
     header_tier_id?: string;
   }) {
-    const tenantId = (await this.tenantCache.resolve(params.userId)) ?? undefined;
-    const baseQb = await this.buildBaseMessageQuery(params, tenantId);
+    const baseQb = await this.buildBaseMessageQuery(params);
 
     const countCacheKey = this.buildCountCacheKey(params);
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
@@ -82,7 +79,7 @@ export class MessagesQueryService {
         .addOrderBy('at.id', 'DESC')
         .limit(params.limit + 1)
         .getRawMany(),
-      this.getDistinctModels(params.userId, params.range, tenantId, params.agent_name),
+      this.getDistinctModels(params.tenantId, params.range, params.agent_name),
     ]);
 
     const totalCount = countHit
@@ -119,28 +116,25 @@ export class MessagesQueryService {
     return Object.fromEntries(rows.map((cp) => [`custom:${cp.id}`, cp.name]));
   }
 
-  private async buildBaseMessageQuery(
-    params: {
-      range?: string;
-      userId: string;
-      provider?: string;
-      service_type?: string;
-      cost_min?: number;
-      cost_max?: number;
-      agent_name?: string;
-      status?: MessageStatusFilter;
-      recorded?: boolean;
-      routing_tier?: string;
-      specificity_category?: string;
-      header_tier_id?: string;
-    },
-    tenantId: string | undefined,
-  ): Promise<SelectQueryBuilder<AgentMessage>> {
+  private async buildBaseMessageQuery(params: {
+    range?: string;
+    tenantId: string | null;
+    provider?: string;
+    service_type?: string;
+    cost_min?: number;
+    cost_max?: number;
+    agent_name?: string;
+    status?: MessageStatusFilter;
+    recorded?: boolean;
+    routing_tier?: string;
+    specificity_category?: string;
+    header_tier_id?: string;
+  }): Promise<SelectQueryBuilder<AgentMessage>> {
     const cutoff = params.range ? computeCutoff(rangeToInterval(params.range)) : undefined;
     const qb = this.turnRepo.createQueryBuilder('at');
     if (cutoff) qb.where('at.timestamp >= :cutoff', { cutoff });
 
-    addTenantFilter(qb, params.userId, undefined, tenantId);
+    addTenantFilter(qb, params.tenantId);
 
     if (params.service_type)
       qb.andWhere('at.service_type = :serviceType', { serviceType: params.service_type });
@@ -189,9 +183,8 @@ export class MessagesQueryService {
 
     if (params.provider) {
       await this.applyProviderFilter(qb, params.provider, {
-        userId: params.userId,
+        tenantId: params.tenantId,
         range: params.range,
-        tenantId,
         agentName: params.agent_name,
       });
     }
@@ -202,17 +195,12 @@ export class MessagesQueryService {
   private async applyProviderFilter(
     qb: SelectQueryBuilder<AgentMessage>,
     provider: string,
-    ctx: { userId: string; range?: string; tenantId?: string; agentName?: string },
+    ctx: { tenantId: string | null; range?: string; agentName?: string },
   ): Promise<void> {
     // Prefer the stored provider column (populated by the proxy from routing
     // resolution), and fall back to inference for legacy rows that pre-date
     // the column.
-    const distinct = await this.getDistinctModels(
-      ctx.userId,
-      ctx.range,
-      ctx.tenantId,
-      ctx.agentName,
-    );
+    const distinct = await this.getDistinctModels(ctx.tenantId, ctx.range, ctx.agentName);
     const matching = distinct.models.filter((m) => inferProviderFromModel(m) === provider);
     qb.andWhere(
       new Brackets((sub) => {
@@ -280,12 +268,11 @@ export class MessagesQueryService {
   }
 
   private async getDistinctModels(
-    userId: string,
+    tenantId: string | null,
     range?: string,
-    tenantId?: string,
     agentName?: string,
   ): Promise<{ models: string[]; providers: string[] }> {
-    const cacheKey = `${userId}:${agentName ?? ''}:${range ?? 'all'}`;
+    const cacheKey = `${tenantId ?? 'no-tenant'}:${agentName ?? ''}:${range ?? 'all'}`;
     const cached = this.modelsCache.get(cacheKey);
     if (cached) return cached;
 
@@ -303,7 +290,7 @@ export class MessagesQueryService {
       .where('at.model IS NOT NULL')
       .andWhere("at.model != ''")
       .andWhere('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(modelsQb, userId, agentName, tenantId);
+    addTenantFilter(modelsQb, tenantId, agentName);
     const modelsResult = await modelsQb.orderBy('at.model', 'ASC').getRawMany();
 
     const modelSet = new Set<string>();
@@ -327,7 +314,7 @@ export class MessagesQueryService {
   }
 
   private buildCountCacheKey(params: {
-    userId: string;
+    tenantId: string | null;
     range?: string;
     provider?: string;
     service_type?: string;
@@ -341,7 +328,7 @@ export class MessagesQueryService {
     header_tier_id?: string;
   }): string {
     return [
-      params.userId,
+      params.tenantId ?? 'no-tenant',
       params.range ?? '',
       params.provider ?? '',
       params.service_type ?? '',

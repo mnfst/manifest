@@ -10,7 +10,6 @@ import {
   excludeSystemAgents,
   filterByKeyLabel,
 } from './query-helpers';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
 export { MetricWithTrend };
@@ -25,31 +24,35 @@ export class AggregationService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly turnRepo: Repository<AgentMessage>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async hasAnyData(userId: string, agentName?: string, tenantId?: string): Promise<boolean> {
-    const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
+  async hasAnyData(tenantId: string | null, agentName?: string): Promise<boolean> {
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
-    addTenantFilter(qb, userId, agentName, resolved);
+    addTenantFilter(qb, tenantId, agentName);
     const row = await qb.getRawOne();
     return row != null;
   }
 
-  async getPreviousTokenTotal(range: string, userId: string, agentName?: string): Promise<number> {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getPreviousTokenTotal(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+  ): Promise<number> {
     const { cutoff, prevCutoff } = this.computeWindow(range);
-    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const row = await this.buildPreviousWindowQuery(tenantId, agentName, cutoff, prevCutoff)
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
       .getRawOne();
     return Number(row?.total ?? 0);
   }
 
-  async getPreviousCostTotal(range: string, userId: string, agentName?: string): Promise<number> {
-    const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
+  async getPreviousCostTotal(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+  ): Promise<number> {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
-    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const row = await this.buildPreviousWindowQuery(tenantId, agentName, cutoff, prevCutoff)
       .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .getRawOne();
     return Number(row?.total ?? 0);
@@ -57,8 +60,7 @@ export class AggregationService {
 
   async getSummaryMetrics(
     range: string,
-    userId: string,
-    tenantId?: string,
+    tenantId: string | null,
     agentName?: string,
     authType?: string,
     provider?: string,
@@ -75,7 +77,7 @@ export class AggregationService {
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName, tenantId);
+    addTenantFilter(currentQb, tenantId, agentName);
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
     if (provider) currentQb.andWhere('at.provider = :provider', { provider });
     if (excludeSystem) excludeSystemAgents(currentQb);
@@ -85,9 +87,8 @@ export class AggregationService {
     if (label !== undefined) filterByKeyLabel(currentQb, label);
 
     const prevQb = this.buildPreviousWindowQuery(
-      userId,
-      agentName,
       tenantId,
+      agentName,
       cutoff,
       prevCutoff,
       authType,
@@ -133,9 +134,8 @@ export class AggregationService {
   }
 
   private buildPreviousWindowQuery(
-    userId: string,
+    tenantId: string | null,
     agentName: string | undefined,
-    tenantId: string | undefined,
     cutoff: string,
     prevCutoff: string,
     authType?: string,
@@ -147,7 +147,7 @@ export class AggregationService {
       .createQueryBuilder('at')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
+    addTenantFilter(qb, tenantId, agentName);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
     if (excludeSystem) excludeSystemAgents(qb);

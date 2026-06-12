@@ -145,17 +145,8 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const {
-      agentId,
-      userId,
-      body,
-      sessionKey,
-      tenantId,
-      agentName,
-      signal,
-      specificityOverride,
-      headers,
-    } = opts;
+    const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
+      opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const chatBody =
       apiMode === 'responses'
@@ -173,7 +164,7 @@ export class ProxyService {
 
     const resolved = await this.resolveRouting(
       agentId,
-      userId,
+      tenantId,
       routingBody,
       sessionKey,
       specificityOverride,
@@ -190,7 +181,7 @@ export class ProxyService {
     }
 
     const route = resolved.route;
-    const credentials = await this.resolveCredentials(agentId, userId, {
+    const credentials = await this.resolveCredentials(agentId, tenantId, {
       provider: route.provider,
       auth_type: route.authType,
       provider_key_label: route.keyLabel ?? undefined,
@@ -254,7 +245,7 @@ export class ProxyService {
       sessionKey,
       signal,
       agentId,
-      userId,
+      tenantId,
       rawApiKey: credentials.rawApiKey,
       providerKeyLabel: route.keyLabel ?? undefined,
       authType: route.authType,
@@ -270,7 +261,7 @@ export class ProxyService {
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const fallbackResult = await this.tryFallbackChain({
         agentId,
-        userId,
+        tenantId,
         resolved,
         primaryModel,
         forward,
@@ -333,7 +324,7 @@ export class ProxyService {
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
-        userId,
+        tenantId,
         resolved,
         primaryModel,
         forward: syntheticForward,
@@ -391,7 +382,7 @@ export class ProxyService {
 
   private async resolveRouting(
     agentId: string,
-    userId: string,
+    tenantId: string,
     body: ProxyRequestOptions['body'],
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
@@ -405,10 +396,10 @@ export class ProxyService {
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
     return isHeartbeat
-      ? this.resolveService.resolveForTier(agentId, userId, 'simple')
+      ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
       : this.resolveService.resolve(
           agentId,
-          userId,
+          tenantId,
           scoringMessages,
           scoringTools,
           body.tool_choice,
@@ -422,7 +413,7 @@ export class ProxyService {
 
   private async resolveCredentials(
     agentId: string,
-    userId: string,
+    tenantId: string,
     resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
   ): Promise<{
     apiKey: string;
@@ -431,7 +422,7 @@ export class ProxyService {
     providerRegion?: string | null;
   } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
-      userId,
+      tenantId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
@@ -444,7 +435,7 @@ export class ProxyService {
       apiKey,
       resolved.auth_type,
       agentId,
-      userId,
+      tenantId,
       this.openaiOauth,
       this.minimaxOauth,
       this.anthropicOauth,
@@ -459,7 +450,7 @@ export class ProxyService {
     if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
       rawApiKey =
         (await this.providerKeyService.getProviderApiKey(
-          userId,
+          tenantId,
           resolved.provider,
           resolved.auth_type,
           resolved.provider_key_label,
@@ -467,7 +458,7 @@ export class ProxyService {
         )) ?? apiKey;
     }
     const providerRegion = await this.providerKeyService.getProviderRegion(
-      userId,
+      tenantId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
@@ -483,7 +474,7 @@ export class ProxyService {
 
   private async tryFallbackChain(args: {
     agentId: string;
-    userId: string;
+    tenantId: string;
     resolved: ResolvedRouting;
     primaryModel: string;
     forward: ForwardResult;
@@ -500,7 +491,7 @@ export class ProxyService {
   }): Promise<ProxyResult | null> {
     const {
       agentId,
-      userId,
+      tenantId,
       resolved,
       primaryModel,
       forward,
@@ -539,7 +530,7 @@ export class ProxyService {
     const primaryAuth = resolved.route?.authType;
     const { success, failures } = await this.fallbackService.tryFallbacks(
       agentId,
-      userId,
+      tenantId,
       fallbackModels,
       body,
       stream,
@@ -682,8 +673,8 @@ export class ProxyService {
     this.momentum.recordCategory(sessionKey, category as SpecificityCategory);
   }
 
-  private async enforceLimits(tenantId?: string, agentName?: string): Promise<string | null> {
-    if (!tenantId || !agentName) return null;
+  private async enforceLimits(tenantId: string, agentName?: string): Promise<string | null> {
+    if (!agentName) return null;
     const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
     if (!exceeded) return null;
 

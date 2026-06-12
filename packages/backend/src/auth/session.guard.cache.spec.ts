@@ -45,7 +45,12 @@ describe('SessionGuard — cache edge cases', () => {
 
   beforeEach(() => {
     reflector = new Reflector();
-    guard = new SessionGuard(reflector);
+    const tenantCache = {
+      resolve: jest.fn().mockResolvedValue('tenant-1'),
+      ensureForUser: jest.fn(),
+      invalidate: jest.fn(),
+    };
+    guard = new SessionGuard(reflector, tenantCache as never);
     jest.clearAllMocks();
   });
 

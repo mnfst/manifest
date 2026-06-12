@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserProvider } from '../../entities/user-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -44,7 +44,7 @@ export type AgentInvalidationListener = (agentId: string) => void;
 @Injectable()
 export class RoutingCacheService {
   private readonly tiers = new Map<string, CachedEntry<TierAssignment[]>>();
-  private readonly providers = new Map<string, CachedEntry<UserProvider[]>>();
+  private readonly providers = new Map<string, CachedEntry<TenantProvider[]>>();
   private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
   private readonly providerKeys = new Map<string, CachedEntry<CachedProviderKey[]>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
@@ -65,37 +65,37 @@ export class RoutingCacheService {
     setWithEviction(this.tiers, agentId, data);
   }
 
-  getProviders(userId: string): UserProvider[] | null {
-    return getOrExpire(this.providers, userId) ?? null;
+  getProviders(tenantId: string): TenantProvider[] | null {
+    return getOrExpire(this.providers, tenantId) ?? null;
   }
 
-  setProviders(userId: string, data: UserProvider[]): void {
-    setWithEviction(this.providers, userId, data);
+  setProviders(tenantId: string, data: TenantProvider[]): void {
+    setWithEviction(this.providers, tenantId, data);
   }
 
-  getCustomProviders(userId: string): CustomProvider[] | null {
-    return getOrExpire(this.customProviders, userId) ?? null;
+  getCustomProviders(tenantId: string): CustomProvider[] | null {
+    return getOrExpire(this.customProviders, tenantId) ?? null;
   }
 
-  setCustomProviders(userId: string, data: CustomProvider[]): void {
-    setWithEviction(this.customProviders, userId, data);
+  setCustomProviders(tenantId: string, data: CustomProvider[]): void {
+    setWithEviction(this.customProviders, tenantId, data);
   }
 
   getProviderKeys(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: string,
   ): CachedProviderKey[] | undefined {
-    return getOrExpire(this.providerKeys, `${userId}:${provider}:${authType ?? 'default'}`);
+    return getOrExpire(this.providerKeys, `${tenantId}:${provider}:${authType ?? 'default'}`);
   }
 
   setProviderKeys(
-    userId: string,
+    tenantId: string,
     provider: string,
     keys: CachedProviderKey[],
     authType?: string,
   ): void {
-    setWithEviction(this.providerKeys, `${userId}:${provider}:${authType ?? 'default'}`, keys);
+    setWithEviction(this.providerKeys, `${tenantId}:${provider}:${authType ?? 'default'}`, keys);
   }
 
   getSpecificity(agentId: string): SpecificityAssignment[] | null {
@@ -156,14 +156,14 @@ export class RoutingCacheService {
   }
 
   /**
-   * Invalidate user-scoped caches (providers, custom providers, provider keys).
-   * Call after any change to the user's global provider set (connect, disconnect,
+   * Invalidate tenant-scoped caches (providers, custom providers, provider keys).
+   * Call after any change to the tenant's global provider set (connect, disconnect,
    * rename, reorder).
    */
-  invalidateUser(userId: string): void {
-    this.providers.delete(userId);
-    this.customProviders.delete(userId);
-    const prefix = `${userId}:`;
+  invalidateTenant(tenantId: string): void {
+    this.providers.delete(tenantId);
+    this.customProviders.delete(tenantId);
+    const prefix = `${tenantId}:`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);
   }

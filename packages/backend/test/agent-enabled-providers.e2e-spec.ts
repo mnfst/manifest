@@ -16,9 +16,9 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_API_KEY, TEST_USER_ID } from './helpers';
+import { createTestApp, TEST_API_KEY, TEST_TENANT_ID } from './helpers';
 import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.entity';
-import { UserProvider } from '../src/entities/user-provider.entity';
+import { TenantProvider } from '../src/entities/tenant-provider.entity';
 
 let app: INestApplication;
 let ds: DataSource;
@@ -51,7 +51,7 @@ afterAll(async () => {
 });
 
 describe('Direction 2 – connecting a NEW provider auto-enables it for every existing agent', () => {
-  it('creates one global user_providers row and enables it for BOTH agent A and agent B', async () => {
+  it('creates one global tenant_providers row and enables it for BOTH agent A and agent B', async () => {
     const res = await auth(api().post(`/api/v1/routing/${AGENT_A_NAME}/providers`))
       .send({ provider: 'openai', apiKey: 'sk-test-openai-key' })
       .expect(201);
@@ -60,15 +60,15 @@ describe('Direction 2 – connecting a NEW provider auto-enables it for every ex
     expect(typeof providerId).toBe('string');
     expect(res.body.provider).toBe('openai');
 
-    // Exactly one global row for this provider/user — no agent_id set (global).
-    const rows = await ds.getRepository(UserProvider).find({ where: { id: providerId } });
+    // Exactly one global row for this provider/tenant — no agent_id set (global).
+    const rows = await ds.getRepository(TenantProvider).find({ where: { id: providerId } });
     expect(rows).toHaveLength(1);
     expect(rows[0].agent_id).toBeNull();
 
     // Symmetric auto-connect: the new provider is enabled for EVERY owned agent,
     // not just the connecting one. Both A and B now have it enabled.
     const enabledRows = await ds.getRepository(AgentEnabledProvider).find({
-      where: { user_provider_id: providerId },
+      where: { tenant_provider_id: providerId },
     });
     const enabledAgentIds = enabledRows.map((g) => g.agent_id);
     expect(enabledAgentIds).toContain(agentBId);
@@ -87,37 +87,29 @@ describe('Direction 2 – connecting a NEW provider auto-enables it for every ex
     expect(enabled).toContain(providerId);
   });
 
-  it('sibling agent B has a tier route computed AGAINST the post-discovery model set', async () => {
-    // The bug: enableProviderForAllAgents recalcs every agent INSIDE
-    // upsertProvider, but that runs BEFORE discoverModels populates the new
-    // provider's cached_models — so siblings would be left with auto-assigned
-    // routes derived from a model set that excluded the new provider. The fix
-    // re-recalcs ALL owned agents AFTER discovery on a NEW-provider connect.
-    //
-    // Discovery for openai (fake key) falls back to the stubbed OpenRouter
-    // cache, so the provider's cached_models = gpt-4o / gpt-4o-mini after the
-    // connect above. A sibling (agent B) that was never the connect context
-    // must therefore have a non-null auto_assigned_route pointing at openai.
-    const tiers = await ds.query(
-      `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
-      [agentBId],
+  it('sibling agent B sees the post-discovery model set of the new provider', async () => {
+    // Model routing is user-controlled now (no auto-assigned routes), but a
+    // sibling agent that was never the connect context must still see the
+    // post-discovery MODEL SET. Discovery for openai (fake key) falls back to
+    // the stubbed OpenRouter cache, so the provider's cached_models =
+    // gpt-4o / gpt-4o-mini after the connect above.
+    const res = await auth(
+      api().get(`/api/v1/routing/${AGENT_B_NAME}/available-models`),
+    ).expect(200);
+    const openaiModels = (res.body as Array<{ model_name: string; provider: string }>).filter(
+      (m) => m.provider === 'openai',
     );
-    expect(tiers.length).toBeGreaterThan(0);
-    // auto_assigned_route is a JSONB { provider, authType, model } object.
-    const routes = tiers
-      .map((t: { auto_assigned_route: { provider?: string } | null }) => t.auto_assigned_route)
-      .filter((r: unknown): r is { provider?: string } => r !== null);
-    // At least one tier routes to the just-connected openai provider — proof B
-    // was recalced against the model set that INCLUDES the new provider.
-    expect(routes.some((r: { provider?: string }) => r.provider === 'openai')).toBe(true);
+    expect(openaiModels.map((m) => m.model_name)).toEqual(
+      expect.arrayContaining(['gpt-4o', 'gpt-4o-mini']),
+    );
   });
 });
 
 describe('Direction 1 – creating a NEW agent inherits every existing provider', () => {
-  it('creating agent C auto-enables the already-connected provider + assigns routes', async () => {
-    // Seed discovered models so the auto-assigned route is observable.
+  it('creating agent C auto-enables the already-connected provider + exposes its models', async () => {
+    // Seed discovered models so the inherited model set is observable.
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE id = $2`,
+      `UPDATE tenant_providers SET cached_models = $1 WHERE id = $2`,
       [
         JSON.stringify([
           {
@@ -141,7 +133,7 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
 
     // The brand-new agent inherited the existing provider.
     const enabledRows = await ds.getRepository(AgentEnabledProvider).find({
-      where: { agent_id: agentCId, user_provider_id: providerId },
+      where: { agent_id: agentCId, tenant_provider_id: providerId },
     });
     expect(enabledRows).toHaveLength(1);
 
@@ -150,17 +142,13 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     ).expect(200);
     expect((enabledRes.body.enabled ?? []) as string[]).toContain(providerId);
 
-    // Routes were auto-assigned for the new agent (enableAllProvidersForAgent
-    // calls recalculateTiers); a tier_assignments row now exists for agent C.
-    const tiers = await ds.query(
-      `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
-      [agentCId],
-    );
-    expect(tiers.length).toBeGreaterThan(0);
-    const hasRoute = tiers.some(
-      (t: { auto_assigned_route: unknown }) => t.auto_assigned_route !== null,
-    );
-    expect(hasRoute).toBe(true);
+    // Routes are user-controlled now (no auto-assign), but the inherited
+    // provider's discovered models must be routable for the brand-new agent.
+    const modelsRes = await auth(
+      api().get(`/api/v1/routing/${AGENT_C_NAME}/available-models`),
+    ).expect(200);
+    const modelIds = (modelsRes.body as Array<{ model_name: string }>).map((m) => m.model_name);
+    expect(modelIds).toContain('gpt-4o-mini');
   });
 
   it('creating an agent when the user has NO providers succeeds with an empty enabled list', async () => {
@@ -168,14 +156,14 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     // empty set (it filters by isManifestUsableProvider, which ignores
     // is_active), proving the 0-provider create path is a safe no-op. Restore
     // the row + its A/B/C enabled rows afterwards so later isolation tests still run.
-    const snapshot = await ds.getRepository(UserProvider).findOneOrFail({
+    const snapshot = await ds.getRepository(TenantProvider).findOneOrFail({
       where: { id: providerId },
     });
     const enabledSnapshot = await ds.getRepository(AgentEnabledProvider).find({
-      where: { user_provider_id: providerId },
+      where: { tenant_provider_id: providerId },
     });
-    await ds.getRepository(AgentEnabledProvider).delete({ user_provider_id: providerId });
-    await ds.getRepository(UserProvider).delete({ id: providerId });
+    await ds.getRepository(AgentEnabledProvider).delete({ tenant_provider_id: providerId });
+    await ds.getRepository(TenantProvider).delete({ id: providerId });
 
     const res = await auth(api().post('/api/v1/agents'))
       .send({ name: 'isolation-agent-empty' })
@@ -193,7 +181,7 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     expect(enabledRes.body.enabled ?? []).toEqual([]);
 
     // Restore the provider row + its prior enabled rows for the remaining tests.
-    await ds.getRepository(UserProvider).save(snapshot);
+    await ds.getRepository(TenantProvider).save(snapshot);
     if (enabledSnapshot.length > 0) {
       await ds.getRepository(AgentEnabledProvider).save(enabledSnapshot);
     }
@@ -229,15 +217,15 @@ describe('Disable isolation – disabling affects only the targeted agent', () =
       .expect(201);
 
     // Still the same single global row (no duplicate created on reconnect).
-    const rows = await ds.getRepository(UserProvider).find({
-      where: { user_id: TEST_USER_ID, provider: 'openai' },
+    const rows = await ds.getRepository(TenantProvider).find({
+      where: { tenant_id: TEST_TENANT_ID, provider: 'openai' },
     });
     expect(rows).toHaveLength(1);
     expect(rows[0].id).toBe(providerId);
 
     // A is re-enabled (it was the reconnect target); B keeps its row.
     const enabledRows = await ds.getRepository(AgentEnabledProvider).find({
-      where: { user_provider_id: providerId },
+      where: { tenant_provider_id: providerId },
     });
     const enabledAgentIds = enabledRows.map((g) => g.agent_id);
     expect(enabledAgentIds).toContain(agentBId);
@@ -250,24 +238,27 @@ describe('Disable isolation – disabling affects only the targeted agent', () =
     ).expect(200);
 
     const bGrants = await ds.getRepository(AgentEnabledProvider).find({
-      where: { agent_id: agentBId, user_provider_id: providerId },
+      where: { agent_id: agentBId, tenant_provider_id: providerId },
     });
     expect(bGrants).toHaveLength(1);
   });
 });
 
 describe('Disable impact preview – mirrors what the disable handler will strip', () => {
-  it('reports an auto_assigned_route that uses the provider with position "auto-assigned"', async () => {
-    // Regression: the preview used to ignore auto_assigned_route entirely (and
-    // early-return [] when the provider had no cached models), so an agent
-    // routed via an auto-assigned openai route saw an empty impact even though
-    // disabling would strip that route. Force a deterministic auto-assigned
-    // openai route on agent B, then assert the preview surfaces it.
+  it('reports a pinned route that uses the provider with position "primary"', async () => {
+    // Pin a deterministic openai route on agent B's standard tier (routes are
+    // user-controlled now), then assert the preview surfaces it as a route the
+    // disable would strip.
     await ds.query(
-      `UPDATE tier_assignments
-         SET auto_assigned_route = $1, override_route = NULL, fallback_routes = NULL
-       WHERE agent_id = $2 AND tier = 'standard'`,
-      [JSON.stringify({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }), agentBId],
+      `INSERT INTO tier_assignments (id, agent_id, tier, override_route, fallback_routes, updated_at)
+       VALUES ($1,$2,'standard',$3::jsonb,NULL, now())
+       ON CONFLICT (agent_id, tier) DO UPDATE SET
+         override_route = EXCLUDED.override_route, fallback_routes = NULL`,
+      [
+        `tier-standard-${agentBId}`,
+        agentBId,
+        JSON.stringify({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }),
+      ],
     );
 
     const res = await auth(
@@ -276,22 +267,17 @@ describe('Disable impact preview – mirrors what the disable handler will strip
 
     const affected: Array<{ tier: string; model: string; position: string }> =
       res.body.affected_tiers ?? [];
-    // The regression returned [] here; now every auto-assigned openai route is
-    // surfaced. Assert the deterministic standard-tier route we just pinned is
-    // among them with the new 'auto-assigned' position.
-    const autoAssigned = affected.filter((a) => a.position === 'auto-assigned');
-    expect(autoAssigned.length).toBeGreaterThan(0);
-    expect(autoAssigned).toContainEqual({
+    expect(affected).toContainEqual({
       tier: 'standard',
       model: 'gpt-4o-mini',
-      position: 'auto-assigned',
+      position: 'primary',
     });
   });
 });
 
 describe('Structural invariant – the global key row survives enable/disable churn', () => {
-  it('global user_providers row is not deleted by any enable/disable change', async () => {
-    const row = await ds.getRepository(UserProvider).findOne({ where: { id: providerId } });
+  it('global tenant_providers row is not deleted by any enable/disable change', async () => {
+    const row = await ds.getRepository(TenantProvider).findOne({ where: { id: providerId } });
     expect(row).not.toBeNull();
     expect(row!.is_active).toBe(true);
   });

@@ -13,6 +13,7 @@ import { Request } from 'express';
 import { timingSafeEqual } from 'crypto';
 import { ApiKey } from '../../entities/api-key.entity';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { RequestWithTenantContext } from '../decorators/tenant-context.decorator';
 import { verifyKey, keyPrefix as computePrefix } from '../utils/hash.util';
 
 @Injectable()
@@ -51,14 +52,20 @@ export class ApiKeyGuard implements CanActivate {
     const found = candidates.find((c) => verifyKey(apiKey, c.key_hash));
 
     if (found) {
-      // Populate request.user so @CurrentUser-scoped controllers work the
-      // same way they do for cookie sessions. We only know the user_id from
-      // the api_keys row — name/email aren't joined here, but every analytics
-      // path keys off `user.id` via addTenantFilter, so the minimal shape is
-      // sufficient.
-      (request as Request & { user: { id: string } }).user = { id: String(found.user_id) };
+      // Keys are tenant credentials: the tenant comes straight off the key
+      // row — no key → user → tenant indirection. The creating user is kept
+      // as attribution so @CurrentUser-scoped controllers (and audit writes)
+      // still see a user when one exists.
+      (request as RequestWithTenantContext).tenantContext = {
+        tenantId: found.tenant_id,
+        userId: found.created_by_user_id,
+      };
+      if (found.created_by_user_id) {
+        (request as Request & { user: { id: string } }).user = {
+          id: String(found.created_by_user_id),
+        };
+      }
       (request as Request & { authMethod: string }).authMethod = 'api_key';
-      (request as Request & { apiKeyUserId: string }).apiKeyUserId = String(found.user_id);
       this.apiKeyRepo
         .createQueryBuilder()
         .update(ApiKey)

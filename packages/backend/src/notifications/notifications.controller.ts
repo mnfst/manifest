@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Patch, Delete, Query, Param, Body, Logger } from '@nestjs/common';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { NotificationRulesService } from './services/notification-rules.service';
 import { NotificationLogService } from './services/notification-log.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
@@ -27,13 +26,13 @@ export class NotificationsController {
   ) {}
 
   @Get('email-provider')
-  async getEmailProvider(@CurrentUser() user: AuthUser) {
-    const config = await this.emailProviderConfigService.getConfig(user.id);
+  async getEmailProvider(@TenantCtx() ctx: TenantContext) {
+    const config = await this.emailProviderConfigService.getConfig(ctx.tenantId);
     return config ?? { configured: false };
   }
 
   @Post('email-provider/test')
-  async testEmailProvider(@CurrentUser() user: AuthUser, @Body() body: TestEmailProviderDto) {
+  async testEmailProvider(@TenantCtx() _ctx: TenantContext, @Body() body: TestEmailProviderDto) {
     return this.emailProviderConfigService.testConfig(
       { provider: body.provider, apiKey: body.apiKey, domain: body.domain },
       body.to,
@@ -42,55 +41,58 @@ export class NotificationsController {
 
   @Post('email-provider/test-saved')
   async testSavedEmailProvider(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Body() body: TestSavedEmailProviderDto,
   ) {
-    return this.emailProviderConfigService.testSavedConfig(user.id, body.to);
+    return this.emailProviderConfigService.testSavedConfig(ctx.tenantId, body.to);
   }
 
   @Post('email-provider')
-  async setEmailProvider(@CurrentUser() user: AuthUser, @Body() body: SetEmailProviderDto) {
-    return this.emailProviderConfigService.upsert(user.id, body);
+  async setEmailProvider(@TenantCtx() ctx: TenantContext, @Body() body: SetEmailProviderDto) {
+    return this.emailProviderConfigService.upsert(ctx, body);
   }
 
   @Delete('email-provider')
-  async removeEmailProvider(@CurrentUser() user: AuthUser) {
-    await this.emailProviderConfigService.remove(user.id);
+  async removeEmailProvider(@TenantCtx() ctx: TenantContext) {
+    await this.emailProviderConfigService.remove(ctx.tenantId);
     return { ok: true };
   }
 
   @Get('notification-email')
-  async getNotificationEmail(@CurrentUser() user: AuthUser) {
-    const email = await this.emailProviderConfigService.getNotificationEmail(user.id);
+  async getNotificationEmail(@TenantCtx() ctx: TenantContext) {
+    const email = await this.emailProviderConfigService.getNotificationEmail(ctx.tenantId);
     return { email };
   }
 
   @Post('notification-email')
-  async setNotificationEmail(@CurrentUser() user: AuthUser, @Body() body: SetNotificationEmailDto) {
-    await this.emailProviderConfigService.setNotificationEmail(user.id, body.email);
+  async setNotificationEmail(
+    @TenantCtx() ctx: TenantContext,
+    @Body() body: SetNotificationEmailDto,
+  ) {
+    await this.emailProviderConfigService.setNotificationEmail(ctx.tenantId, body.email);
     return { saved: true };
   }
 
   @Post('trigger-check')
-  async triggerCheck(@CurrentUser() user: AuthUser) {
+  async triggerCheck(@TenantCtx() ctx: TenantContext) {
     this.logger.log('Manual notification check triggered');
-    const triggered = await this.cronService.checkThresholds(user.id);
+    const triggered = await this.cronService.checkThresholds(ctx.tenantId ?? undefined);
     return { triggered, message: `${triggered} notification(s) triggered` };
   }
 
   @Get('logs')
-  async getLogs(@Query('agent_name') agentName: string, @CurrentUser() user: AuthUser) {
-    return this.notificationLog.getLogsForAgent(user.id, agentName);
+  async getLogs(@Query('agent_name') agentName: string, @TenantCtx() ctx: TenantContext) {
+    return this.notificationLog.getLogsForAgent(ctx.tenantId, agentName);
   }
 
   @Get()
-  async listRules(@Query('agent_name') agentName: string, @CurrentUser() user: AuthUser) {
-    return this.rulesService.listRules(user.id, agentName);
+  async listRules(@Query('agent_name') agentName: string, @TenantCtx() ctx: TenantContext) {
+    return this.rulesService.listRules(ctx.tenantId, agentName);
   }
 
   @Post()
-  async createRule(@Body() dto: CreateNotificationRuleDto, @CurrentUser() user: AuthUser) {
-    const rule = await this.rulesService.createRule(user.id, dto);
+  async createRule(@Body() dto: CreateNotificationRuleDto, @TenantCtx() ctx: TenantContext) {
+    const rule = await this.rulesService.createRule(ctx.tenantId, dto);
     if (rule.action === 'block' || rule.action === 'both') {
       this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
     }
@@ -101,9 +103,9 @@ export class NotificationsController {
   async updateRule(
     @Param('id') id: string,
     @Body() dto: UpdateNotificationRuleDto,
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
   ) {
-    const rule = await this.rulesService.updateRule(user.id, id, dto);
+    const rule = await this.rulesService.updateRule(ctx.tenantId, id, dto);
     if (rule) {
       this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
     }
@@ -111,9 +113,9 @@ export class NotificationsController {
   }
 
   @Delete(':id')
-  async deleteRule(@Param('id') id: string, @CurrentUser() user: AuthUser) {
-    const rule = await this.rulesService.getOwnedRule(user.id, id);
-    await this.rulesService.deleteRule(user.id, id);
+  async deleteRule(@Param('id') id: string, @TenantCtx() ctx: TenantContext) {
+    const rule = await this.rulesService.getOwnedRule(ctx.tenantId, id);
+    await this.rulesService.deleteRule(ctx.tenantId, id);
     if (rule) {
       this.limitCheck.invalidateCache(rule.tenant_id, rule.agent_name);
     }
