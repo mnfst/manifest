@@ -269,7 +269,7 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
       SELECT DISTINCT ON (apa."user_provider_id")
         apa."user_provider_id",
         apa."agent_id"
-      FROM "agent_provider_access"
+      FROM "agent_provider_access" apa
       JOIN "user_providers" up ON up."id" = apa."user_provider_id"
       WHERE up."agent_id" IS NULL
       ORDER BY apa."user_provider_id", apa."agent_id"
@@ -281,13 +281,21 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
       AND up."agent_id" IS NULL
   `);
 
+    // Lossless rollback: do NOT delete user-global providers that can't be
+    // mapped back to a single agent (a connection owned by a user with no
+    // agents, or one that never received a grant). The two statements above
+    // already reconstructed per-agent rows for every granted provider; anything
+    // still unbound keeps agent_id = NULL so its encrypted key + config survive
+    // the revert. Re-impose NOT NULL only when every row could be mapped —
+    // otherwise leave the column nullable. This is a deliberate, lossless
+    // deviation from the exact pre-lift schema rather than dropping data.
     await queryRunner.query(`
-    DELETE FROM "user_providers"
-    WHERE "agent_id" IS NULL
-  `);
-
-    await queryRunner.query(`
-    ALTER TABLE "user_providers" ALTER COLUMN "agent_id" SET NOT NULL
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM "user_providers" WHERE "agent_id" IS NULL) THEN
+        ALTER TABLE "user_providers" ALTER COLUMN "agent_id" SET NOT NULL;
+      END IF;
+    END $$
   `);
     await queryRunner.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_providers_agent_provider_auth_label"
