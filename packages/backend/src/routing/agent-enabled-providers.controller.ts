@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthUser } from '../auth/auth.instance';
-import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { Agent } from '../entities/agent.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { UserProvider } from '../entities/user-provider.entity';
@@ -22,11 +22,11 @@ import { HeaderTier } from '../entities/header-tier.entity';
 import { ProviderService } from './routing-core/provider.service';
 import type { ModelRoute } from 'manifest-shared';
 
-@Controller('api/v1/agents/:agentName/provider-access')
-export class AgentProviderAccessController {
+@Controller('api/v1/agents/:agentName/enabled-providers')
+export class AgentEnabledProvidersController {
   constructor(
-    @InjectRepository(AgentProviderAccess)
-    private readonly accessRepo: Repository<AgentProviderAccess>,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(Tenant)
@@ -45,7 +45,7 @@ export class AgentProviderAccessController {
   private async resolveAgent(agentName: string, userId: string) {
     const tenant = await this.tenantRepo.findOne({ where: { name: userId } });
     if (!tenant) return null;
-    // Exclude the reserved system (Playground) agent — its grants are the global
+    // Exclude the reserved system (Playground) agent — its enabled providers are the global
     // pool and must not be togglable/removable through this per-agent endpoint.
     return this.agentRepo.findOne({
       where: { name: decodeURIComponent(agentName), tenant_id: tenant.id, is_system: false },
@@ -57,7 +57,7 @@ export class AgentProviderAccessController {
     const agent = await this.resolveAgent(agentName, user.id);
     if (!agent) return { enabled: [] };
 
-    const rows = await this.accessRepo.find({ where: { agent_id: agent.id } });
+    const rows = await this.enabledProviderRepo.find({ where: { agent_id: agent.id } });
     return { enabled: rows.map((r) => r.user_provider_id) };
   }
 
@@ -164,10 +164,10 @@ export class AgentProviderAccessController {
     });
     if (!provider) throw new HttpException('Provider not found', HttpStatus.NOT_FOUND);
 
-    await this.accessRepo
+    await this.enabledProviderRepo
       .createQueryBuilder()
       .insert()
-      .into(AgentProviderAccess)
+      .into(AgentEnabledProvider)
       .values({ agent_id: agent.id, user_provider_id: userProviderId })
       .orIgnore()
       .execute();
@@ -197,7 +197,7 @@ export class AgentProviderAccessController {
       }
     }
 
-    await this.accessRepo.delete({ agent_id: agent.id, user_provider_id: userProviderId });
+    await this.enabledProviderRepo.delete({ agent_id: agent.id, user_provider_id: userProviderId });
     await this.providerService.recalculateTiers(agent.id, user.id);
     return { ok: true };
   }

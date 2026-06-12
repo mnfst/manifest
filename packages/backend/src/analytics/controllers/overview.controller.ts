@@ -13,7 +13,7 @@ import { ProviderService } from '../../routing/routing-core/provider.service';
 import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
@@ -25,8 +25,8 @@ export class OverviewController {
     private readonly tenantCache: TenantCacheService,
     private readonly providerService: ProviderService,
     private readonly resolveAgent: ResolveAgentService,
-    @InjectRepository(AgentProviderAccess)
-    private readonly accessRepo: Repository<AgentProviderAccess>,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
   ) {}
 
   @Get('overview')
@@ -166,8 +166,8 @@ export class OverviewController {
       const providers = await this.providerService.getProviders(userId);
       const activeProviderIds = new Set(providers.filter((p) => p.is_active).map((p) => p.id));
       if (activeProviderIds.size === 0) return false;
-      const grants = await this.accessRepo.find({ where: { agent_id: agent.id } });
-      return grants.some((grant) => activeProviderIds.has(grant.user_provider_id));
+      const enabledRows = await this.enabledProviderRepo.find({ where: { agent_id: agent.id } });
+      return enabledRows.some((row) => activeProviderIds.has(row.user_provider_id));
     } catch {
       return false;
     }

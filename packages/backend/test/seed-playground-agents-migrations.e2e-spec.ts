@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { SeedPlaygroundAgents1791400000000 } from '../src/database/migrations/1791400000000-SeedPlaygroundAgents';
+import { RenameProviderAccessToEnabledProviders1791800000000 } from '../src/database/migrations/1791800000000-RenameProviderAccessToEnabledProviders';
 
 /**
  * Runs the REAL migration chain so SeedPlaygroundAgents executes against
@@ -26,6 +27,12 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
     });
     await ds.initialize();
     await ds.runMigrations();
+
+    // Revert the later table rename first so this historical migration can be
+    // replayed against the schema naming it expects (agent_provider_access).
+    const renameQr = ds.createQueryRunner();
+    await new RenameProviderAccessToEnabledProviders1791800000000().down(renameQr);
+    await renameQr.release();
 
     // Revert just this migration → pre-seed schema (no is_system column).
     const revertQr = ds.createQueryRunner();

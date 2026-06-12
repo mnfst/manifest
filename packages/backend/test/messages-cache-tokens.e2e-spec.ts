@@ -80,10 +80,10 @@ beforeAll(async () => {
     ],
   );
 
-  // Grant the test agent access to the user-level provider (PR3 requires
-  // explicit grants in agent_provider_access for per-agent filtering).
+  // Enable the user-level provider for the test agent (PR3 requires
+  // explicit rows in agent_enabled_providers for per-agent filtering).
   await ds.query(
-    `INSERT INTO agent_provider_access (agent_id, user_provider_id) VALUES ($1,$2)`,
+    `INSERT INTO agent_enabled_providers (agent_id, user_provider_id) VALUES ($1,$2)`,
     [TEST_AGENT_ID, 'up-anthropic-1871'],
   );
 
