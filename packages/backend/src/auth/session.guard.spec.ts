@@ -131,6 +131,21 @@ describe('SessionGuard', () => {
     expect(request['tenantContext']).toEqual({ tenantId: null, userId: 'fresh-user' });
   });
 
+  it('fails soft with a null tenantId when tenant resolution throws (no request crash)', async () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    (auth.api.getSession as jest.Mock).mockResolvedValue({
+      user: { id: 'user-1', name: 'Test', email: 'test@test.com' },
+      session: { id: 'session-1' },
+    });
+    tenantCache.resolve.mockRejectedValue(new Error('connection terminated'));
+    const { context, request } = createMockContext({});
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(request['tenantContext']).toEqual({ tenantId: null, userId: 'user-1' });
+  });
+
   it('returns true even when no session found (anonymous passthrough)', async () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     (auth.api.getSession as jest.Mock).mockResolvedValue(null);

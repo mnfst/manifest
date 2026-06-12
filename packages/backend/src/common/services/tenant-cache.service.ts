@@ -43,12 +43,14 @@ export class TenantCacheService {
       await this.tenantRepo.insert({ id, name: userId, owner_user_id: userId, is_active: true });
       this.cache.invalidate(userId);
       return id;
-    } catch {
-      // Unique index on owner_user_id: a concurrent request created it first.
+    } catch (err) {
+      // Unique index on owner_user_id: a concurrent request may have created
+      // it first — reuse the winner's row. Any other failure is a real error
+      // (not a race): re-throw it rather than masking it.
       this.cache.invalidate(userId);
       const raced = await this.tenantRepo.findOne({ where: { owner_user_id: userId } });
-      if (!raced) throw new Error(`Failed to create tenant for user ${userId}`);
-      return raced.id;
+      if (raced) return raced.id;
+      throw err;
     }
   }
 

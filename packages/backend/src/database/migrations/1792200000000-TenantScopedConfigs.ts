@@ -76,11 +76,33 @@ export class TenantScopedConfigs1792200000000 implements MigrationInterface {
     `);
   }
 
+  /**
+   * Restore authoritative user_id semantics on rollback: rows whose audit
+   * column was null get the tenant owner back, and NOT NULL is re-imposed
+   * only when every row could be mapped (ownerless tenants leave the column
+   * nullable rather than failing the rollback).
+   */
+  private async restoreUserScope(queryRunner: QueryRunner, table: string): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "${table}" RENAME COLUMN "created_by_user_id" TO "user_id"`,
+    );
+    await queryRunner.query(`
+      UPDATE "${table}" c SET "user_id" = t."owner_user_id"
+      FROM "tenants" t WHERE t."id" = c."tenant_id" AND c."user_id" IS NULL
+    `);
+    await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM "${table}" WHERE "user_id" IS NULL) THEN
+          ALTER TABLE "${table}" ALTER COLUMN "user_id" SET NOT NULL;
+        END IF;
+      END $$
+    `);
+  }
+
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX IF EXISTS "IDX_custom_providers_tenant_name"`);
-    await queryRunner.query(
-      `ALTER TABLE "custom_providers" RENAME COLUMN "created_by_user_id" TO "user_id"`,
-    );
+    await this.restoreUserScope(queryRunner, 'custom_providers');
     await queryRunner.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS "IDX_custom_providers_user_name"
       ON "custom_providers" ("user_id", LOWER("name"))
@@ -88,15 +110,11 @@ export class TenantScopedConfigs1792200000000 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "custom_providers" DROP COLUMN IF EXISTS "tenant_id"`);
 
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_api_keys_tenant"`);
-    await queryRunner.query(
-      `ALTER TABLE "api_keys" RENAME COLUMN "created_by_user_id" TO "user_id"`,
-    );
+    await this.restoreUserScope(queryRunner, 'api_keys');
     await queryRunner.query(`ALTER TABLE "api_keys" DROP COLUMN IF EXISTS "tenant_id"`);
 
     await queryRunner.query(`DROP INDEX IF EXISTS "uq_email_provider_configs_tenant"`);
-    await queryRunner.query(
-      `ALTER TABLE "email_provider_configs" RENAME COLUMN "created_by_user_id" TO "user_id"`,
-    );
+    await this.restoreUserScope(queryRunner, 'email_provider_configs');
     await queryRunner.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS "IDX_email_provider_configs_user_id"
       ON "email_provider_configs" ("user_id")

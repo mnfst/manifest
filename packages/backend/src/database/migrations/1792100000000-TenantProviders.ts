@@ -84,6 +84,22 @@ export class TenantProviders1792100000000 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "user_providers" RENAME COLUMN "created_by_user_id" TO "user_id"`,
     );
+    // Restore authoritative user_id semantics: rows whose audit column was
+    // null get the tenant owner back, and NOT NULL is re-imposed only when
+    // every row could be mapped (ownerless tenants leave it nullable rather
+    // than failing the rollback).
+    await queryRunner.query(`
+      UPDATE "user_providers" up SET "user_id" = t."owner_user_id"
+      FROM "tenants" t WHERE t."id" = up."tenant_id" AND up."user_id" IS NULL
+    `);
+    await queryRunner.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM "user_providers" WHERE "user_id" IS NULL) THEN
+          ALTER TABLE "user_providers" ALTER COLUMN "user_id" SET NOT NULL;
+        END IF;
+      END $$
+    `);
     await queryRunner.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS "IDX_user_providers_user_provider_auth_label"
       ON "user_providers" ("user_id", "provider", "auth_type", LOWER("label"))

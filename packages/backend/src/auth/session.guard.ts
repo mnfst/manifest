@@ -120,8 +120,17 @@ export class SessionGuard implements CanActivate, OnModuleDestroy {
   private async attachTenantContext(request: Request, user: unknown): Promise<void> {
     const userId = (user as { id?: unknown } | null)?.id;
     if (typeof userId !== 'string' || userId.length === 0) return;
-    const tenantId = await this.tenantCache.resolve(userId);
-    (request as RequestWithTenantContext).tenantContext = { tenantId, userId };
+    try {
+      const tenantId = await this.tenantCache.resolve(userId);
+      (request as RequestWithTenantContext).tenantContext = { tenantId, userId };
+    } catch (err) {
+      // Fail soft: a transient resolution failure (e.g. DB hiccup) must not
+      // crash every authenticated request — especially the cached-session
+      // fast path, which never touched the DB before tenant scoping. A null
+      // tenant means read endpoints return empty and mutations 404.
+      this.logger.warn(`Tenant resolution failed for session user: ${(err as Error).message}`);
+      (request as RequestWithTenantContext).tenantContext = { tenantId: null, userId };
+    }
   }
 
   invalidateCache(cookieHeader?: string): void {

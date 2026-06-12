@@ -99,14 +99,12 @@ describe('TenantCacheService', () => {
       expect(mockFindOne).toHaveBeenLastCalledWith({ where: { owner_user_id: 'user-3' } });
     });
 
-    it('throws when the insert races but the re-find still finds nothing', async () => {
+    it('rethrows the original insert error when the re-find finds nothing (not a race)', async () => {
       mockFindOne.mockResolvedValueOnce(null);
-      mockInsert.mockRejectedValueOnce(new Error('duplicate key value'));
+      mockInsert.mockRejectedValueOnce(new Error('connection terminated'));
       mockFindOne.mockResolvedValueOnce(null);
 
-      await expect(service.ensureForUser('user-4')).rejects.toThrow(
-        'Failed to create tenant for user user-4',
-      );
+      await expect(service.ensureForUser('user-4')).rejects.toThrow('connection terminated');
     });
   });
 });
