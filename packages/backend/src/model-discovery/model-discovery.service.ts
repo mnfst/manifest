@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../entities/user-provider.entity';
-import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
@@ -82,8 +82,8 @@ export class ModelDiscoveryService {
     @Inject(CopilotTokenService)
     private readonly copilotTokenService: CopilotTokenService | null,
     @Optional()
-    @InjectRepository(AgentProviderAccess)
-    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -374,9 +374,9 @@ export class ModelDiscoveryService {
 
   private async invalidateProviderAccess(provider: UserProvider): Promise<void> {
     if (provider.agent_id) this.invalidate(provider.agent_id);
-    if (!this.accessRepo) return;
+    if (!this.enabledProviderRepo) return;
 
-    const rows = await this.accessRepo.find({ where: { user_provider_id: provider.id } });
+    const rows = await this.enabledProviderRepo.find({ where: { user_provider_id: provider.id } });
     for (const row of rows) {
       this.invalidate(row.agent_id);
     }
@@ -467,8 +467,8 @@ export class ModelDiscoveryService {
     providers: UserProvider[],
     agentId?: string,
   ): Promise<UserProvider[]> {
-    if (!agentId || !this.accessRepo) return providers;
-    const rows = await this.accessRepo.find({ where: { agent_id: agentId } });
+    if (!agentId || !this.enabledProviderRepo) return providers;
+    const rows = await this.enabledProviderRepo.find({ where: { agent_id: agentId } });
     if (rows.length === 0) return [];
     const enabledIds = new Set(rows.map((r) => r.user_provider_id));
     return providers.filter((p) => enabledIds.has(p.id));

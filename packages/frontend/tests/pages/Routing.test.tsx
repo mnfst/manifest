@@ -6,7 +6,7 @@ const mockGetTierAssignments = vi.fn();
 const mockGetAvailableModels = vi.fn();
 const mockGetProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
-const mockGetAgentProviderAccess = vi.fn();
+const mockGetEnabledProviders = vi.fn();
 const mockGetSpecificityAssignments = vi.fn();
 const mockOverrideSpecificity = vi.fn();
 const mockResetSpecificity = vi.fn();
@@ -27,7 +27,7 @@ vi.mock('../../src/services/api.js', () => ({
   getAvailableModels: (...args: unknown[]) => mockGetAvailableModels(...args),
   getProviders: (...args: unknown[]) => mockGetProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
-  getAgentProviderAccess: (...args: unknown[]) => mockGetAgentProviderAccess(...args),
+  getEnabledProviders: (...args: unknown[]) => mockGetEnabledProviders(...args),
   getSpecificityAssignments: (...args: unknown[]) => mockGetSpecificityAssignments(...args),
   overrideSpecificity: (...args: unknown[]) => mockOverrideSpecificity(...args),
   resetSpecificity: (...args: unknown[]) => mockResetSpecificity(...args),
@@ -659,7 +659,7 @@ beforeEach(() => {
   mockGetAvailableModels.mockResolvedValue([]);
   mockGetProviders.mockResolvedValue([baseProvider]);
   mockGetCustomProviders.mockResolvedValue([]);
-  mockGetAgentProviderAccess.mockResolvedValue({ enabled: ['p1'] });
+  mockGetEnabledProviders.mockResolvedValue({ enabled: ['p1'] });
   mockGetSpecificityAssignments.mockResolvedValue([]);
   mockListHeaderTiers.mockResolvedValue([]);
   mockGetComplexityStatus.mockResolvedValue({ enabled: true });
@@ -705,7 +705,7 @@ describe('Routing page', () => {
     });
   });
 
-  it('passes only granted providers into the model picker path', async () => {
+  it('passes only enabled providers into the model picker path', async () => {
     mockGetProviders.mockResolvedValue([
       baseProvider,
       {
@@ -717,7 +717,7 @@ describe('Routing page', () => {
         connected_at: '2025-01-01',
       },
     ]);
-    mockGetAgentProviderAccess.mockResolvedValue({ enabled: ['p1'] });
+    mockGetEnabledProviders.mockResolvedValue({ enabled: ['p1'] });
     render(() => <Routing />);
 
     await waitFor(() => {

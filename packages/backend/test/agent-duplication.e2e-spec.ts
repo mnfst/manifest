@@ -8,7 +8,7 @@ import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
 import { Agent } from '../src/entities/agent.entity';
 import { AgentApiKey } from '../src/entities/agent-api-key.entity';
-import { AgentProviderAccess } from '../src/entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.entity';
 
 describe('Agent Duplication (e2e)', () => {
   let app: INestApplication;
@@ -41,8 +41,8 @@ describe('Agent Duplication (e2e)', () => {
       models_fetched_at: null,
     });
 
-    // Grant the source agent access to the global provider via agent_provider_access.
-    await ds.getRepository(AgentProviderAccess).insert({
+    // Enable the global provider for the source agent via agent_enabled_providers.
+    await ds.getRepository(AgentEnabledProvider).insert({
       agent_id: TEST_AGENT_ID,
       user_provider_id: 'up-e2e-1',
     });
@@ -98,7 +98,7 @@ describe('Agent Duplication (e2e)', () => {
       .set(headers)
       .expect(200);
 
-    // providers = count of agent_provider_access grants for the source agent (1 grant for up-e2e-1)
+    // providers = count of agent_enabled_providers rows for the source agent (1 row for up-e2e-1)
     expect(res.body.copied).toEqual({
       providers: 1,
       tierAssignments: 1,
@@ -115,7 +115,7 @@ describe('Agent Duplication (e2e)', () => {
       .expect(404);
   });
 
-  it('POST /agents/:name/duplicate copies grants to a new agent (providers are user-global, not cloned)', async () => {
+  it('POST /agents/:name/duplicate copies enabled-provider rows to a new agent (providers are user-global, not cloned)', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/v1/agents/${sourceAgent}/duplicate`)
       .set(headers)
@@ -124,7 +124,7 @@ describe('Agent Duplication (e2e)', () => {
 
     expect(res.body.agent.name).toBe('test-agent-copy');
     expect(res.body.apiKey).toMatch(/^mnfst_/);
-    // providers = 1 grant copied (the global anthropic row gets a new grant, not a clone)
+    // providers = 1 row copied (the global anthropic row gets a new enabled-provider row, not a clone)
     expect(res.body.copied).toEqual({
       providers: 1,
       tierAssignments: 1,
@@ -153,9 +153,9 @@ describe('Agent Duplication (e2e)', () => {
     expect(allAnthropicProviders).toHaveLength(1);
     expect(allAnthropicProviders[0].id).toBe('up-e2e-1');
 
-    // The new agent gets an agent_provider_access grant pointing at the original row.
+    // The new agent gets an agent_enabled_providers row pointing at the original row.
     const newGrants = await ds
-      .getRepository(AgentProviderAccess)
+      .getRepository(AgentEnabledProvider)
       .find({ where: { agent_id: res.body.agent.id } });
     expect(newGrants).toHaveLength(1);
     expect(newGrants[0].user_provider_id).toBe('up-e2e-1');
@@ -182,8 +182,8 @@ describe('Agent Duplication (e2e)', () => {
     expect(newSpec[0].category).toBe('coding');
   });
 
-  it('POST /agents/:name/duplicate copies a custom provider grant verbatim (shared row, not re-credentialed)', async () => {
-    // Custom providers are user-global. Their agent_provider_access grant is copied
+  it('POST /agents/:name/duplicate copies a custom provider enablement verbatim (shared row, not re-credentialed)', async () => {
+    // Custom providers are user-global. Their agent_enabled_providers row is copied
     // verbatim pointing at the SAME user_providers row — no new CustomProvider row,
     // no new UserProvider row.
     const now = new Date().toISOString();
@@ -234,7 +234,7 @@ describe('Agent Duplication (e2e)', () => {
       models_fetched_at: null,
     });
 
-    // A regular global provider grant alongside the custom one.
+    // A regular global provider enabled alongside the custom one.
     await ds.getRepository(UserProvider).insert({
       id: 'up-ollama-e2e',
       user_id: 'test-user-001',
@@ -251,8 +251,8 @@ describe('Agent Duplication (e2e)', () => {
       models_fetched_at: null,
     });
 
-    // Grant the source agent access to both providers.
-    await ds.getRepository(AgentProviderAccess).insert([
+    // Enable both providers for the source agent.
+    await ds.getRepository(AgentEnabledProvider).insert([
       { agent_id: srcAgentId, user_provider_id: 'up-lmstudio-e2e' },
       { agent_id: srcAgentId, user_provider_id: 'up-ollama-e2e' },
     ]);
@@ -265,9 +265,9 @@ describe('Agent Duplication (e2e)', () => {
 
     const newAgentId = res.body.agent.id;
 
-    // 2 grants copied verbatim — same user_provider_id values as the source.
+    // 2 enabled-provider rows copied verbatim — same user_provider_id values as the source.
     const newGrants = await ds
-      .getRepository(AgentProviderAccess)
+      .getRepository(AgentEnabledProvider)
       .find({ where: { agent_id: newAgentId } });
     expect(newGrants).toHaveLength(2);
 
@@ -291,7 +291,7 @@ describe('Agent Duplication (e2e)', () => {
       .find({ where: { agent_id: newAgentId } });
     expect(newUserProviders).toHaveLength(0);
 
-    // Summary reflects 2 grants copied.
+    // Summary reflects 2 enabled-provider rows copied.
     expect(res.body.copied.providers).toBe(2);
   });
 

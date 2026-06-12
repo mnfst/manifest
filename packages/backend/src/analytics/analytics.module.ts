@@ -8,7 +8,7 @@ import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { UserProvider } from '../entities/user-provider.entity';
-import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
@@ -47,7 +47,7 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
       AgentLog,
       CustomProvider,
       UserProvider,
-      AgentProviderAccess,
+      AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,
       HeaderTier,

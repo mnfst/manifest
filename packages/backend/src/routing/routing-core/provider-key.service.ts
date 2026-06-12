@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../../entities/user-provider.entity';
-import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -36,8 +36,8 @@ export class ProviderKeyService {
     private readonly routingCache: RoutingCacheService,
     private readonly providerService: ProviderService,
     @Optional()
-    @InjectRepository(AgentProviderAccess)
-    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
   /**
@@ -358,15 +358,15 @@ export class ProviderKeyService {
 
   /**
    * Filters a list of global user providers down to only those the given
-   * agent has been granted access to. If no agentId is provided, or if the
-   * access repo is not available, returns the full list unchanged.
+   * agent has enabled. If no agentId is provided, or if the
+   * enabled-provider repo is not available, returns the full list unchanged.
    */
   private async filterProvidersForAgent(
     providers: UserProvider[],
     agentId?: string,
   ): Promise<UserProvider[]> {
-    if (!agentId || !this.accessRepo) return providers;
-    const rows = await this.accessRepo.find({ where: { agent_id: agentId } });
+    if (!agentId || !this.enabledProviderRepo) return providers;
+    const rows = await this.enabledProviderRepo.find({ where: { agent_id: agentId } });
     if (rows.length === 0) return [];
     const enabledIds = new Set(rows.map((r) => r.user_provider_id));
     return providers.filter((p) => enabledIds.has(p.id));

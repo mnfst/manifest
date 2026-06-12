@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { LiftCustomProvidersToUserLevel1791200000000 } from '../src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel';
+import { RenameProviderAccessToEnabledProviders1791800000000 } from '../src/database/migrations/1791800000000-RenameProviderAccessToEnabledProviders';
 
 /**
  * Runs the REAL migration chain (synchronize:false) so LiftCustomProvidersToUserLevel
@@ -87,6 +88,12 @@ describe('LiftCustomProvidersToUserLevel data transformation (e2e)', () => {
     });
     await ds.initialize();
     await ds.runMigrations();
+
+    // Revert the later table rename first so this historical migration can be
+    // replayed against the schema naming it expects (agent_provider_access).
+    const renameQr = ds.createQueryRunner();
+    await new RenameProviderAccessToEnabledProviders1791800000000().down(renameQr);
+    await renameQr.release();
 
     // Revert just this migration to get the pre-lift schema (agent_id back).
     const revertQr = ds.createQueryRunner();

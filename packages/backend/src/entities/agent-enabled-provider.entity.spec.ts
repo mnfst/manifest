@@ -1,11 +1,11 @@
 import { getMetadataArgsStorage } from 'typeorm';
-import { AgentProviderAccess } from './agent-provider-access.entity';
+import { AgentEnabledProvider } from './agent-enabled-provider.entity';
 import { Agent } from './agent.entity';
 import { UserProvider } from './user-provider.entity';
 
-describe('AgentProviderAccess entity', () => {
+describe('AgentEnabledProvider entity', () => {
   it('creates an instance with both key columns', () => {
-    const access = new AgentProviderAccess();
+    const access = new AgentEnabledProvider();
     access.agent_id = 'agent-1';
     access.user_provider_id = 'provider-1';
 
@@ -15,7 +15,7 @@ describe('AgentProviderAccess entity', () => {
 
   it('declares cascade relations to agents and user providers', () => {
     const relations = getMetadataArgsStorage().relations.filter(
-      (r) => r.target === AgentProviderAccess,
+      (r) => r.target === AgentEnabledProvider,
     );
 
     const agentRelation = relations.find((r) => r.propertyName === 'agent');

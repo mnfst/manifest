@@ -10,14 +10,14 @@ import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants'
 /**
  * Resolves the tenant's reserved `is_system` "Playground" agent — the single
  * agent every Playground run records under (so runs show as `Playground` in
- * global Messages) and which holds grants to the whole global provider pool.
+ * global Messages) and which has the whole global provider pool enabled.
  *
  * The migration seeds it for existing tenants and onboarding creates it for new
  * ones; this lazily creates it on first use as a safety net so the Playground
  * always has an agent to run under.
  *
- * The agent insert and provider-pool grant are executed inside a single DB
- * transaction so a committed reserved agent is always fully granted.  If a
+ * The agent insert and provider-pool enablement are executed inside a single DB
+ * transaction so a committed reserved agent always has the full pool enabled.  If a
  * concurrent request wins the unique-index race the transaction throws and we
  * simply return the winner's row.
  */
@@ -62,11 +62,11 @@ export class PlaygroundAgentService {
         // Insert the reserved agent row.
         await manager.getRepository(Agent).insert(agent);
 
-        // Grant the new agent the tenant's whole provider pool atomically — the
+        // Enable the tenant's whole provider pool for the new agent atomically — the
         // same shape the seed migration uses.  No tier recalculation needed here;
         // symmetric auto-connect handles providers added later.
         await manager.query(
-          `INSERT INTO "agent_provider_access" ("agent_id","user_provider_id") ` +
+          `INSERT INTO "agent_enabled_providers" ("agent_id","user_provider_id") ` +
             `SELECT $1, "id" FROM "user_providers" WHERE "user_id" = $2 ON CONFLICT DO NOTHING`,
           [agent.id, userId],
         );

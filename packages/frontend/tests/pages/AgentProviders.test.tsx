@@ -2,10 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetGlobalProviders = vi.fn();
-const mockGetAgentProviderAccess = vi.fn();
+const mockGetEnabledProviders = vi.fn();
 const mockGetAgentProviderDisableImpact = vi.fn();
-const mockEnableAgentProviderAccess = vi.fn();
-const mockDisableAgentProviderAccess = vi.fn();
+const mockEnableEnabledProviders = vi.fn();
+const mockDisableEnabledProviders = vi.fn();
 const mockGetCustomProviders = vi.fn();
 
 vi.mock('@solidjs/router', () => ({
@@ -28,11 +28,11 @@ vi.mock('../../src/services/api/providers.js', () => ({
 }));
 
 vi.mock('../../src/services/api.js', () => ({
-  getAgentProviderAccess: (...args: unknown[]) => mockGetAgentProviderAccess(...args),
+  getEnabledProviders: (...args: unknown[]) => mockGetEnabledProviders(...args),
   getAgentProviderDisableImpact: (...args: unknown[]) =>
     mockGetAgentProviderDisableImpact(...args),
-  enableAgentProviderAccess: (...args: unknown[]) => mockEnableAgentProviderAccess(...args),
-  disableAgentProviderAccess: (...args: unknown[]) => mockDisableAgentProviderAccess(...args),
+  enableProviderForAgent: (...args: unknown[]) => mockEnableEnabledProviders(...args),
+  disableProviderForAgent: (...args: unknown[]) => mockDisableEnabledProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
 }));
 
@@ -142,12 +142,12 @@ describe('AgentProviders', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetGlobalProviders.mockResolvedValue(providersResponse);
-    mockGetAgentProviderAccess.mockResolvedValue({ enabled: ['up-openai'] });
+    mockGetEnabledProviders.mockResolvedValue({ enabled: ['up-openai'] });
     mockGetAgentProviderDisableImpact.mockResolvedValue({
       affected_tiers: [{ tier: 'default', model: 'gpt-4o', position: 'primary' }],
     });
-    mockEnableAgentProviderAccess.mockResolvedValue({ ok: true });
-    mockDisableAgentProviderAccess.mockResolvedValue({ ok: true });
+    mockEnableEnabledProviders.mockResolvedValue({ ok: true });
+    mockDisableEnabledProviders.mockResolvedValue({ ok: true });
     mockGetCustomProviders.mockResolvedValue([
       {
         id: 'cp-1',
@@ -161,7 +161,7 @@ describe('AgentProviders', () => {
     ]);
   });
 
-  it('renders connected global providers with grant toggles', async () => {
+  it('renders connected global providers with enable toggles', async () => {
     render(() => <AgentProviders />);
 
     await waitFor(() => {
@@ -176,7 +176,7 @@ describe('AgentProviders', () => {
     expect(screen.getByLabelText('Enable Anthropic Max')).toBeDefined();
   });
 
-  it('enables a provider grant with PUT', async () => {
+  it('enables a provider with PUT', async () => {
     render(() => <AgentProviders />);
 
     await waitFor(() => {
@@ -185,7 +185,7 @@ describe('AgentProviders', () => {
     fireEvent.click(screen.getByLabelText('Enable Anthropic Max'));
 
     await waitFor(() => {
-      expect(mockEnableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-anthropic');
+      expect(mockEnableEnabledProviders).toHaveBeenCalledWith('demo-agent', 'up-anthropic');
     });
   });
 
@@ -201,7 +201,7 @@ describe('AgentProviders', () => {
       expect(mockGetAgentProviderDisableImpact).toHaveBeenCalledWith('demo-agent', 'up-openai');
       expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("Can't disable OpenAI"));
     });
-    expect(mockDisableAgentProviderAccess).not.toHaveBeenCalled();
+    expect(mockDisableEnabledProviders).not.toHaveBeenCalled();
   });
 
   it('disables directly with DELETE when no models are routed', async () => {
@@ -214,7 +214,7 @@ describe('AgentProviders', () => {
     fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
 
     await waitFor(() => {
-      expect(mockDisableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
+      expect(mockDisableEnabledProviders).toHaveBeenCalledWith('demo-agent', 'up-openai');
     });
     expect(mockToastError).not.toHaveBeenCalled();
   });
@@ -230,7 +230,7 @@ describe('AgentProviders', () => {
 
   it('falls back to an empty state when initial API calls fail', async () => {
     mockGetGlobalProviders.mockRejectedValue(new Error('providers failed'));
-    mockGetAgentProviderAccess.mockRejectedValue(new Error('access failed'));
+    mockGetEnabledProviders.mockRejectedValue(new Error('access failed'));
     mockGetCustomProviders.mockRejectedValue(new Error('custom failed'));
 
     render(() => <AgentProviders />);
@@ -252,13 +252,13 @@ describe('AgentProviders', () => {
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("Couldn't check"));
     });
-    expect(mockDisableAgentProviderAccess).not.toHaveBeenCalled();
+    expect(mockDisableEnabledProviders).not.toHaveBeenCalled();
   });
 
   it('clears busy state when enable or disable calls fail', async () => {
-    mockEnableAgentProviderAccess.mockRejectedValueOnce(new Error('enable failed'));
+    mockEnableEnabledProviders.mockRejectedValueOnce(new Error('enable failed'));
     mockGetAgentProviderDisableImpact.mockResolvedValue({ affected_tiers: [] });
-    mockDisableAgentProviderAccess.mockRejectedValueOnce(new Error('disable failed'));
+    mockDisableEnabledProviders.mockRejectedValueOnce(new Error('disable failed'));
     render(() => <AgentProviders />);
 
     await waitFor(() => {
@@ -273,7 +273,7 @@ describe('AgentProviders', () => {
 
     fireEvent.click(screen.getByLabelText('Disable OpenAI Work'));
     await waitFor(() => {
-      expect(mockDisableAgentProviderAccess).toHaveBeenCalledWith('demo-agent', 'up-openai');
+      expect(mockDisableEnabledProviders).toHaveBeenCalledWith('demo-agent', 'up-openai');
     });
     await waitFor(() => {
       expect((screen.getByLabelText('Disable OpenAI Work') as HTMLButtonElement).disabled).toBe(

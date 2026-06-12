@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 import { Tenant } from '../src/entities/tenant.entity';
 import { Agent } from '../src/entities/agent.entity';
 import { UserProvider } from '../src/entities/user-provider.entity';
-import { AgentProviderAccess } from '../src/entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.entity';
 import { AgentDuplicationService } from '../src/analytics/services/agent-duplication.service';
 
 /**
@@ -50,7 +50,7 @@ describe('Agent duplication under migration-built schema (e2e)', () => {
 
   beforeEach(async () => {
     // Clean slate per test (FK-safe order).
-    await ds.query('DELETE FROM "agent_provider_access"');
+    await ds.query('DELETE FROM "agent_enabled_providers"');
     await ds.query('DELETE FROM "user_providers"');
     await ds.query('DELETE FROM "agents"');
     await ds.query('DELETE FROM "tenants"');
@@ -82,7 +82,7 @@ describe('Agent duplication under migration-built schema (e2e)', () => {
       models_fetched_at: null,
     });
     await ds
-      .getRepository(AgentProviderAccess)
+      .getRepository(AgentEnabledProvider)
       .insert({ agent_id: 'dup-src', user_provider_id: 'dup-up1' });
   });
 
@@ -92,7 +92,7 @@ describe('Agent duplication under migration-built schema (e2e)', () => {
     ).resolves.toMatchObject({ agentName: 'src-agent-copy' });
   });
 
-  it('shares the global provider via a copied grant instead of cloning the row', async () => {
+  it('shares the global provider via a copied enabled-provider row instead of cloning it', async () => {
     const result = await svc.duplicate(USER, 'src-agent', {
       name: 'src-agent-copy',
       displayName: 'Copy',
@@ -102,10 +102,10 @@ describe('Agent duplication under migration-built schema (e2e)', () => {
     const ups = await ds.getRepository(UserProvider).find({ where: { user_id: USER } });
     expect(ups).toHaveLength(1);
 
-    // The new agent gets its own grant pointing at the SAME global provider.
-    const grants = await ds
-      .getRepository(AgentProviderAccess)
+    // The new agent gets its own enabled-provider row pointing at the SAME global provider.
+    const enabledRows = await ds
+      .getRepository(AgentEnabledProvider)
       .find({ where: { agent_id: result.agentId } });
-    expect(grants).toEqual([{ agent_id: result.agentId, user_provider_id: 'dup-up1' }]);
+    expect(enabledRows).toEqual([{ agent_id: result.agentId, user_provider_id: 'dup-up1' }]);
   });
 });

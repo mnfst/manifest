@@ -24,7 +24,7 @@ import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
-import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -116,7 +116,8 @@ import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/179120
 import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-SeedPlaygroundAgents';
 import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
 import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000000-DropSavingsBaselineColumns';
-import { AddUserProviderIdToAgentMessages1791800000000 } from './migrations/1791800000000-AddUserProviderIdToAgentMessages';
+import { RenameProviderAccessToEnabledProviders1791800000000 } from './migrations/1791800000000-RenameProviderAccessToEnabledProviders';
+import { AddUserProviderIdToAgentMessages1791900000000 } from './migrations/1791900000000-AddUserProviderIdToAgentMessages';
 
 const entities = [
   AgentMessage,
@@ -141,7 +142,7 @@ const entities = [
   PlaygroundRun,
   PlaygroundColumn,
   ReasoningContentCacheEntry,
-  AgentProviderAccess,
+  AgentEnabledProvider,
 ];
 
 const migrations = [
@@ -234,7 +235,8 @@ const migrations = [
   SeedPlaygroundAgents1791400000000,
   DropProviderRateLimits1791600000000,
   DropSavingsBaselineColumns1791700000000,
-  AddUserProviderIdToAgentMessages1791800000000,
+  RenameProviderAccessToEnabledProviders1791800000000,
+  AddUserProviderIdToAgentMessages1791900000000,
 ];
 
 @Module({
@@ -286,7 +288,7 @@ const migrations = [
       MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
-      AgentProviderAccess,
+      AgentEnabledProvider,
     ]),
     ModelPricesModule,
   ],

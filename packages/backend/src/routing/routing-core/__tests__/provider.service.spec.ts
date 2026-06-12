@@ -5,7 +5,7 @@ import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
 import { Agent } from '../../../entities/agent.entity';
 import { HeaderTier } from '../../../entities/header-tier.entity';
-import { AgentProviderAccess } from '../../../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../../../entities/agent-enabled-provider.entity';
 import type { Repository } from 'typeorm';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
@@ -1014,15 +1014,15 @@ describe('ProviderService — route-only cleanup paths', () => {
 describe('ProviderService — symmetric provider↔agent auto-connect', () => {
   const PREV_SECRET = process.env.BETTER_AUTH_SECRET;
 
-  // A query-builder mock whose insert chain records the granted (agent, provider)
-  // pairs so the symmetric-grant tests can assert exactly which grants were made.
-  const makeAccessRepo = (granted: Array<{ agent: string; provider: string }>) => {
+  // A query-builder mock whose insert chain records the enabled (agent, provider)
+  // pairs so the symmetric auto-enable tests can assert exactly which pairs were enabled.
+  const makeEnabledProviderRepo = (enabled: Array<{ agent: string; provider: string }>) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const insertChain: any = {
       insert: jest.fn().mockReturnThis(),
       into: jest.fn().mockReturnThis(),
       values: jest.fn((v: { agent_id: string; user_provider_id: string }) => {
-        granted.push({ agent: v.agent_id, provider: v.user_provider_id });
+        enabled.push({ agent: v.agent_id, provider: v.user_provider_id });
         return insertChain;
       }),
       orIgnore: jest.fn().mockReturnThis(),
@@ -1034,7 +1034,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
     };
   };
 
-  const build = (agentIds: string[], granted: Array<{ agent: string; provider: string }>) => {
+  const build = (agentIds: string[], enabled: Array<{ agent: string; provider: string }>) => {
     const providerRepo = makeRepo();
     const agentRepo = makeRepo(agentIds);
     const routingCache = {
@@ -1043,7 +1043,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       invalidateAgent: jest.fn(),
       invalidateUser: jest.fn(),
     };
-    const accessRepo = makeAccessRepo(granted);
+    const enabledProviderRepo = makeEnabledProviderRepo(enabled);
     const svc = new ProviderService(
       providerRepo as unknown as Repository<UserProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
@@ -1052,7 +1052,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       makeRepo() as unknown as Repository<HeaderTier>,
       { getByModel: jest.fn() } as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
-      accessRepo as unknown as Repository<AgentProviderAccess>,
+      enabledProviderRepo as unknown as Repository<AgentEnabledProvider>,
     );
     return { svc, providerRepo, routingCache };
   };
@@ -1066,9 +1066,9 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
   });
 
   describe('enableAllProvidersForAgent', () => {
-    it('grants every usable provider to the agent and invalidates that agent', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo, routingCache } = build(['agent-x'], granted);
+    it('enables every usable provider for the agent and invalidates that agent', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo, routingCache } = build(['agent-x'], enabled);
       providerRepo.find.mockResolvedValue([
         { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
         { id: 'p2', provider: 'anthropic', auth_type: 'api_key', is_active: true } as UserProvider,
@@ -1076,7 +1076,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
 
       await svc.enableAllProvidersForAgent('new-agent', 'user-1');
 
-      expect(granted).toEqual([
+      expect(enabled).toEqual([
         { agent: 'new-agent', provider: 'p1' },
         { agent: 'new-agent', provider: 'p2' },
       ]);
@@ -1084,26 +1084,26 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
     });
 
-    it('is a no-op grant when the user has no usable providers', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo, routingCache } = build(['agent-x'], granted);
+    it('is a no-op when the user has no usable providers', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo, routingCache } = build(['agent-x'], enabled);
       providerRepo.find.mockResolvedValue([]);
 
       await expect(svc.enableAllProvidersForAgent('new-agent', 'user-1')).resolves.toBeUndefined();
-      expect(granted).toEqual([]);
+      expect(enabled).toEqual([]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('new-agent');
       expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
     });
   });
 
-  describe('grantNewProviderToAllAgents', () => {
-    it('grants the new provider to every owned agent and invalidates their caches', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, routingCache } = build(['agent-1', 'agent-2'], granted);
+  describe('enableProviderForAllAgents', () => {
+    it('enables the new provider for every owned agent and invalidates their caches', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, routingCache } = build(['agent-1', 'agent-2'], enabled);
 
-      await svc.grantNewProviderToAllAgents('user-1', 'new-provider');
+      await svc.enableProviderForAllAgents('user-1', 'new-provider');
 
-      expect(granted).toEqual([
+      expect(enabled).toEqual([
         { agent: 'agent-1', provider: 'new-provider' },
         { agent: 'agent-2', provider: 'new-provider' },
       ]);
@@ -1112,23 +1112,23 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
     });
 
-    it('is a no-op grant when the user owns no agents', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, routingCache } = build([], granted);
+    it('is a no-op when the user owns no agents', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, routingCache } = build([], enabled);
 
       await expect(
-        svc.grantNewProviderToAllAgents('user-1', 'new-provider'),
+        svc.enableProviderForAllAgents('user-1', 'new-provider'),
       ).resolves.toBeUndefined();
-      expect(granted).toEqual([]);
+      expect(enabled).toEqual([]);
       expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
       expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
     });
   });
 
   describe('upsertProvider — new provider connect fans out to all agents', () => {
-    it('grants a brand-new api_key provider to every owned agent (Default label path)', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+    it('enables a brand-new api_key provider for every owned agent (Default label path)', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
       // No existing row → new-row branch.
       providerRepo.findOne.mockResolvedValue(null);
 
@@ -1141,16 +1141,16 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       );
 
       expect(isNew).toBe(true);
-      // Every owned agent (not just the connecting one) gets the grant.
-      expect(granted).toEqual([
+      // Every owned agent (not just the connecting one) gets the provider enabled.
+      expect(enabled).toEqual([
         { agent: 'agent-1', provider: provider.id },
         { agent: 'agent-2', provider: provider.id },
       ]);
     });
 
-    it('grants a brand-new labeled provider to every owned agent', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+    it('enables a brand-new labeled provider for every owned agent', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
       // upsertProviderWithLabel: no existing rows → new-row branch.
       providerRepo.find.mockResolvedValue([]);
 
@@ -1165,30 +1165,30 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       );
 
       expect(isNew).toBe(true);
-      expect(granted).toEqual([
+      expect(enabled).toEqual([
         { agent: 'agent-1', provider: provider.id },
         { agent: 'agent-2', provider: provider.id },
       ]);
     });
 
-    it('grants a brand-new tokenless subscription provider to every owned agent', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
+    it('enables a brand-new tokenless subscription provider for every owned agent', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
       // registerSubscriptionProvider new-row branch: no existing sub/api_key row.
       providerRepo.findOne.mockResolvedValue(null);
 
       const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
 
       expect(isNew).toBe(true);
-      expect(granted.map((g) => g.agent)).toEqual(['agent-1', 'agent-2']);
+      expect(enabled.map((g) => g.agent)).toEqual(['agent-1', 'agent-2']);
     });
   });
 
-  describe('reconnect of an EXISTING provider does NOT re-grant (per-agent disables preserved)', () => {
-    it('does not grant other agents when an existing Default-label row is updated', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
-      const grantSpy = jest.spyOn(svc, 'grantNewProviderToAllAgents');
+  describe('reconnect of an EXISTING provider does NOT re-enable (per-agent disables preserved)', () => {
+    it('does not enable other agents when an existing Default-label row is updated', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
       // Existing row → update-in-place branch (afterProviderChange path).
       providerRepo.findOne.mockResolvedValue({
         id: 'p-existing',
@@ -1202,17 +1202,17 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
 
       expect(isNew).toBe(false);
       // The fan-out-to-all-agents path is NOT taken on reconnect.
-      expect(grantSpy).not.toHaveBeenCalled();
-      // Only the connecting agent is (re)granted via afterProviderChange —
+      expect(enableSpy).not.toHaveBeenCalled();
+      // Only the connecting agent is (re)enabled via afterProviderChange —
       // sibling agent-2 keeps whatever per-agent disable state it had.
-      expect(granted).toEqual([{ agent: 'agent-1', provider: 'p-existing' }]);
-      expect(granted.some((g) => g.agent === 'agent-2')).toBe(false);
+      expect(enabled).toEqual([{ agent: 'agent-1', provider: 'p-existing' }]);
+      expect(enabled.some((g) => g.agent === 'agent-2')).toBe(false);
     });
 
-    it('does not re-grant when reconnecting the same key under a new label (sameKey path)', async () => {
-      const granted: Array<{ agent: string; provider: string }> = [];
-      const { svc, providerRepo } = build(['agent-1', 'agent-2'], granted);
-      const grantSpy = jest.spyOn(svc, 'grantNewProviderToAllAgents');
+    it('does not re-enable when reconnecting the same key under a new label (sameKey path)', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
       const sameKeyEncrypted = encrypt('sk-same-key', getEncryptionSecret());
       // upsertProviderWithLabel: a row with the SAME decrypted key already
       // exists under a different label → sameKey reactivation branch.
@@ -1240,11 +1240,11 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
 
       expect(isNew).toBe(false);
       // The fan-out-to-all-agents path is NOT taken on a same-key reconnect.
-      expect(grantSpy).not.toHaveBeenCalled();
-      // Only the connecting agent is (re)granted via afterProviderChange —
+      expect(enableSpy).not.toHaveBeenCalled();
+      // Only the connecting agent is (re)enabled via afterProviderChange —
       // sibling agent-2 keeps whatever per-agent disable state it had.
-      expect(granted).toEqual([{ agent: 'agent-1', provider: 'p-same' }]);
-      expect(granted.some((g) => g.agent === 'agent-2')).toBe(false);
+      expect(enabled).toEqual([{ agent: 'agent-1', provider: 'p-same' }]);
+      expect(enabled.some((g) => g.agent === 'agent-2')).toBe(false);
     });
   });
 });

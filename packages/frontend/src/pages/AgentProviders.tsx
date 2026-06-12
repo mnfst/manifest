@@ -1,9 +1,9 @@
 import { useParams } from '@solidjs/router';
 import { createResource, createSignal, For, Show, type Component } from 'solid-js';
 import {
-  disableAgentProviderAccess,
-  enableAgentProviderAccess,
-  getAgentProviderAccess,
+  disableProviderForAgent,
+  enableProviderForAgent,
+  getEnabledProviders,
   getAgentProviderDisableImpact,
   getCustomProviders,
 } from '../services/api.js';
@@ -45,7 +45,7 @@ const AgentProviders: Component = () => {
     () => agentName(),
     async (name) => {
       try {
-        return new Set((await getAgentProviderAccess(name)).enabled);
+        return new Set((await getEnabledProviders(name)).enabled);
       } catch {
         return new Set<string>();
       }
@@ -92,7 +92,7 @@ const AgentProviders: Component = () => {
   const enableConnection = async (userProviderId: string) => {
     setBusy(userProviderId);
     try {
-      await enableAgentProviderAccess(agentName(), userProviderId);
+      await enableProviderForAgent(agentName(), userProviderId);
       await refetchAccess();
     } catch {
       // fetchMutate already surfaces the toast.
@@ -132,7 +132,7 @@ const AgentProviders: Component = () => {
     }
 
     try {
-      await disableAgentProviderAccess(agentName(), connection.userProviderId);
+      await disableProviderForAgent(agentName(), connection.userProviderId);
       await refetchAccess();
     } catch {
       // fetchMutate already surfaces the toast.
