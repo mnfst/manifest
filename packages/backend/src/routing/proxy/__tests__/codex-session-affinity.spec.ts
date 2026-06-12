@@ -70,6 +70,33 @@ describe('CodexSessionAffinity', () => {
       expect(headers).not.toHaveProperty('x-codex-turn-state');
     });
 
+    it('treats an over-long prompt_cache_key as absent to cap per-key memory', () => {
+      const longKey = 'x'.repeat(513);
+      const body: Record<string, unknown> = { prompt_cache_key: longKey };
+      const otherLongKey: Record<string, unknown> = { prompt_cache_key: 'y'.repeat(600) };
+
+      const first = affinity.prepare('token', body);
+      const second = affinity.prepare('token', otherLongKey);
+
+      // The giant key is never echoed back to the upstream…
+      expect(body.prompt_cache_key).toMatch(UUID_RE);
+      expect(body.prompt_cache_key).not.toBe(longKey);
+      // …and distinct over-long keys collapse onto the single per-token session
+      // (storeKey is just the token), so they cannot amplify the cache.
+      expect(first.storeKey).toBe(second.storeKey);
+      expect(first.headers['session-id']).toBe(second.headers['session-id']);
+    });
+
+    it('accepts a prompt_cache_key at the length boundary', () => {
+      const maxKey = 'x'.repeat(512);
+      const body: Record<string, unknown> = { prompt_cache_key: maxKey };
+
+      const { storeKey } = affinity.prepare('token', body);
+
+      expect(body.prompt_cache_key).toBe(maxKey);
+      expect(storeKey).toContain(maxKey);
+    });
+
     it('rotates session ids after the TTL', () => {
       const before = affinity.prepare('token', { prompt_cache_key: 'conv-1' });
 

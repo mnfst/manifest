@@ -166,8 +166,10 @@ export class ProviderClient {
       endpointKey === 'openai-subscription'
         ? this.codexAffinity.prepare(apiKey, requestBody)
         : undefined;
+    // Affinity headers are routing-critical and must win over caller-supplied
+    // extraHeaders (provider-side observability hints), so they spread last.
     const finalHeaders =
-      affinity || extraHeaders ? { ...headers, ...affinity?.headers, ...extraHeaders } : headers;
+      affinity || extraHeaders ? { ...headers, ...extraHeaders, ...affinity?.headers } : headers;
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 

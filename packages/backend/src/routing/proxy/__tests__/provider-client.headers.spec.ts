@@ -319,6 +319,22 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
     expect(sentBody.prompt_cache_key).toMatch(UUID_RE);
   });
 
+  it('keeps affinity headers authoritative over caller-supplied extraHeaders', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      ...subscriptionOpts,
+      extraHeaders: { 'session-id': 'attacker-override', 'x-observability': 'keep-me' },
+    });
+
+    const sentHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    // Routing-critical affinity header wins…
+    expect(sentHeaders['session-id']).toMatch(UUID_RE);
+    expect(sentHeaders['session-id']).not.toBe('attacker-override');
+    // …while non-conflicting extraHeaders still pass through.
+    expect(sentHeaders['x-observability']).toBe('keep-me');
+  });
+
   it('uses an injected CodexSessionAffinity instance when provided', async () => {
     const affinity = new CodexSessionAffinity();
     const prepareSpy = jest.spyOn(affinity, 'prepare');

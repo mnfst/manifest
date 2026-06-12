@@ -5,6 +5,10 @@ import { Injectable } from '@nestjs/common';
 const SESSION_TTL_MS = 5 * 60 * 1000; // matches the OpenAI prompt-cache idle window
 const CLEANUP_INTERVAL_MS = 60 * 1000;
 const MAX_ENTRIES = 10_000;
+// Legitimate prompt_cache_key values are short identifiers; an over-long one is
+// treated as absent so a caller can't amplify memory by storing huge unique
+// keys (MAX_ENTRIES bounds the count, this bounds each key's size).
+const MAX_CACHE_KEY_LEN = 512;
 
 interface CodexSession {
   sessionId: string;
@@ -64,7 +68,10 @@ export class CodexSessionAffinity {
    */
   prepare(apiKey: string, requestBody: Record<string, unknown>): CodexAffinityRequest {
     const callerKey = requestBody.prompt_cache_key;
-    const cacheKey = typeof callerKey === 'string' && callerKey ? callerKey : null;
+    const cacheKey =
+      typeof callerKey === 'string' && callerKey && callerKey.length <= MAX_CACHE_KEY_LEN
+        ? callerKey
+        : null;
     const storeKey = cacheKey ? `${apiKey}\u0000${cacheKey}` : apiKey;
 
     const session = this.getOrCreateSession(storeKey, cacheKey);
