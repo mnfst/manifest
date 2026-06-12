@@ -163,7 +163,6 @@ describe('Agent entity', () => {
       expect(byName('description')!.options.nullable).toBe(true);
       expect(byName('agent_category')!.options.nullable).toBe(true);
       expect(byName('agent_platform')!.options.nullable).toBe(true);
-      expect(byName('savings_baseline_model')!.options.nullable).toBe(true);
 
       // Soft-delete column: NULL for live rows, set on delete.
       expect(byName('deleted_at')!.options.nullable).toBe(true);

@@ -50,7 +50,7 @@ const PAGE_COPY: Record<
     supportedHeading: string;
     authType: AuthType;
     /** Cost metric (stat card + per-row column) — BYOK only. Subscriptions and
-     *  local providers have no real cost figure to show (savings was removed). */
+     *  local providers have no real cost figure to show. */
     metricLabel?: string;
     metricTooltip?: string;
     rowMetricHeading?: string;

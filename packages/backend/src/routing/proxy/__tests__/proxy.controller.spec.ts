@@ -152,10 +152,6 @@ describe('ProxyController', () => {
       new ProxyMessageDedup(),
       { emit: jest.fn() } as unknown as IngestEventBusService,
       mockCustomProviders as never,
-      { getProviders: jest.fn().mockResolvedValue([]) } as never,
-      { getTiers: jest.fn().mockResolvedValue([]) } as never,
-      { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-      { list: jest.fn().mockResolvedValue([]) } as never,
       {
         getCostPerRequest: jest.fn().mockReturnValue(null),
         resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1959,10 +1955,6 @@ describe('ProxyController', () => {
               }),
             ),
         } as never,
-        { getProviders: jest.fn().mockResolvedValue([]) } as never,
-        { getTiers: jest.fn().mockResolvedValue([]) } as never,
-        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-        { list: jest.fn().mockResolvedValue([]) } as never,
         {
           getCostPerRequest: jest.fn().mockReturnValue(null),
           resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1999,10 +1991,6 @@ describe('ProxyController', () => {
               }),
             ),
         } as never,
-        { getProviders: jest.fn().mockResolvedValue([]) } as never,
-        { getTiers: jest.fn().mockResolvedValue([]) } as never,
-        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-        { list: jest.fn().mockResolvedValue([]) } as never,
         {
           getCostPerRequest: jest.fn().mockReturnValue(null),
           resolveCostPerRequest: jest.fn().mockResolvedValue(null),
