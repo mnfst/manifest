@@ -223,21 +223,33 @@ export class CustomProviderService {
       models: this.enrichCustomProviderModels(dto.name, dto.models),
       created_at: new Date().toISOString(),
     });
-    await this.repo.insert(cp);
 
-    // Create UserProvider + enable it for every owned agent (custom
-    // providers are user-global). When the display name resolves to Ollama /
-    // LM Studio we tag the row `'local'` so routed messages carry the
-    // grey-house badge and the row shows up under the Local tab. A null agentId
-    // tells the provider service the change is user-global rather than tied to
-    // one agent.
-    await this.providerService.upsertProvider(
-      null,
-      userId,
-      provKey,
-      dto.apiKey,
-      authTypeForCustomProvider(dto.name),
-    );
+    // A custom provider is two rows that must exist together: the
+    // custom_providers config row and its companion user_providers row
+    // (provider = 'custom:<id>', FK-backed via the generated
+    // custom_provider_id column). Insert both in ONE transaction so a failed
+    // companion insert can't strand a custom_providers row that squats the
+    // name while being invisible to routing.
+    //
+    // Inside the transaction: create UserProvider + enable it for every owned
+    // agent (custom providers are user-global). When the display name
+    // resolves to Ollama / LM Studio we tag the row `'local'` so routed
+    // messages carry the grey-house badge and the row shows up under the
+    // Local tab. A null agentId tells the provider service the change is
+    // user-global rather than tied to one agent.
+    await this.repo.manager.transaction(async (manager) => {
+      await manager.getRepository(CustomProvider).insert(cp);
+      await this.providerService.upsertProvider(
+        null,
+        userId,
+        provKey,
+        dto.apiKey,
+        authTypeForCustomProvider(dto.name),
+        undefined,
+        undefined,
+        manager,
+      );
+    });
 
     // Rebuild the shared pricing cache so the proxy can compute cost for
     // requests routed to this custom provider's models immediately (without
@@ -340,19 +352,33 @@ export class CustomProviderService {
 
     const provKey = CustomProviderService.providerKey(id);
 
-    // Remove the user-global UserProvider. ProviderService blocks removal while
-    // any explicit routes still point at this custom provider.
-    // A null agentId tells the provider service the removal is user-global.
-    try {
-      await this.providerService.removeProvider(null, userId, provKey);
-    } catch (err) {
-      // Provider may not exist if creation partially failed; every other
-      // failure (notably "provider is still routed") must block deletion.
-      if (!(err instanceof NotFoundException)) throw err;
-    }
+    // Tear down both rows in ONE transaction so a failure between them can't
+    // leave a custom provider listed without its companion user_providers row
+    // (or vice versa). The DB-level FK on user_providers.custom_provider_id
+    // additionally cascade-deletes any companion row the application pass
+    // missed once the custom_providers row goes.
+    await this.repo.manager.transaction(async (manager) => {
+      // Remove the user-global UserProvider. ProviderService blocks removal
+      // while any explicit routes still point at this custom provider.
+      // A null agentId tells the provider service the removal is user-global.
+      try {
+        await this.providerService.removeProvider(
+          null,
+          userId,
+          provKey,
+          undefined,
+          undefined,
+          manager,
+        );
+      } catch (err) {
+        // Provider may not exist if creation partially failed; every other
+        // failure (notably "provider is still routed") must block deletion.
+        if (!(err instanceof NotFoundException)) throw err;
+      }
 
-    // Delete CustomProvider row
-    await this.repo.remove(cp);
+      // Delete CustomProvider row
+      await manager.getRepository(CustomProvider).remove(cp);
+    });
 
     // Drop the now-deleted provider from the user-scoped custom-provider cache
     // so a subsequent list() doesn't serve it from a warm cache (mirrors update).

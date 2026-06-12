@@ -119,6 +119,7 @@ import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000
 import { RenameProviderAccessToEnabledProviders1791800000000 } from './migrations/1791800000000-RenameProviderAccessToEnabledProviders';
 import { RenameIsSystemToIsPlayground1791900000000 } from './migrations/1791900000000-RenameIsSystemToIsPlayground';
 import { AddUserProviderIdToAgentMessages1792000000000 } from './migrations/1792000000000-AddUserProviderIdToAgentMessages';
+import { AddCustomProviderFkToUserProviders1792100000000 } from './migrations/1792100000000-AddCustomProviderFkToUserProviders';
 
 const entities = [
   AgentMessage,
@@ -239,6 +240,7 @@ const migrations = [
   RenameProviderAccessToEnabledProviders1791800000000,
   RenameIsSystemToIsPlayground1791900000000,
   AddUserProviderIdToAgentMessages1792000000000,
+  AddCustomProviderFkToUserProviders1792100000000,
 ];
 
 @Module({
