@@ -222,6 +222,53 @@ describe('ModelPricingCacheService', () => {
       expect(result!.provider).toBe('Anthropic');
     });
 
+    it('does not resolve Bedrock vendor-prefixed model ids through underlying pricing aliases', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['anthropic/claude-opus-4-6', makeEntry(0.015, 0.075)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      const direct = service.getByModel('anthropic.claude-opus-4.6');
+      const crossRegion = service.getByModel('us.anthropic.claude-opus-4.6');
+
+      expect(direct).toBeUndefined();
+      expect(crossRegion).toBeUndefined();
+    });
+
+    it('does not resolve Bedrock short vendor model ids through provider-prefixed pricing aliases', async () => {
+      const orMap = new Map<string, OpenRouterPricingEntry>([
+        ['deepseek/deepseek-v3.2', makeEntry(0.0000002, 0.0000008)],
+      ]);
+      mockGetAll.mockReturnValue(orMap);
+      await service.reload();
+
+      const result = service.getByModel('deepseek.v3.2');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('uses exact Bedrock models.dev pricing entries when present', async () => {
+      mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) => {
+        if (providerId !== 'bedrock') return [];
+        return [
+          {
+            id: 'us.anthropic.claude-opus-4.6',
+            name: 'AWS Claude Opus 4.6',
+            inputPricePerToken: 0.000016,
+            outputPricePerToken: 0.00008,
+          },
+        ];
+      });
+      await service.reload();
+
+      const result = service.getByModel('us.anthropic.claude-opus-4.6');
+
+      expect(result).toBeDefined();
+      expect(result!.provider).toBe('AWS Bedrock');
+      expect(result!.input_price_per_token).toBe(0.000016);
+    });
+
     it('should resolve dash-variant when cached Anthropic model uses dots', async () => {
       const orMap = new Map<string, OpenRouterPricingEntry>([
         ['anthropic/claude-opus-4.6', makeEntry(0.015, 0.075)],

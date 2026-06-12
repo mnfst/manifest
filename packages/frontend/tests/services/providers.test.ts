@@ -125,6 +125,23 @@ describe('validateApiKey', () => {
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates AWS Bedrock API key prefix and length', () => {
+    const bedrock = getProvider('bedrock')!;
+    expect(validateApiKey(bedrock, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(bedrock, 'sk-wrong-prefix-that-is-long-enough')).toEqual({
+      valid: false,
+      error: 'AWS Bedrock keys start with "bedrock-api-key-"',
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 50 characters)',
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-' + 'a'.repeat(50))).toEqual({ valid: true });
+  });
+
   it('validates Xiaomi MiMo API key prefix and length', () => {
     const xiaomi = getProvider('xiaomi')!;
     expect(validateApiKey(xiaomi, '')).toEqual({
@@ -422,6 +439,23 @@ describe('PROVIDERS', () => {
     expect(anthropic.subscriptionAuthMode).toBe('popup_paste');
     expect(anthropic.subscriptionCommand).toBeUndefined();
     expect(anthropic.subscriptionKeyPlaceholder).toBeUndefined();
+  });
+
+  it('AWS Bedrock exposes API-key region choices', () => {
+    const bedrock = PROVIDERS.find((p) => p.id === 'bedrock')!;
+    expect(bedrock.name).toBe('AWS Bedrock');
+    expect(bedrock.apiKeyEndpointRegions?.[0]).toEqual({
+      value: 'us-east-1',
+      label: 'US East (N. Virginia)',
+    });
+    expect(bedrock.apiKeyEndpointRegions).toContainEqual({
+      value: 'eu-west-1',
+      label: 'Europe (Ireland)',
+    });
+    expect(bedrock.apiKeyEndpointRegions).not.toContainEqual({
+      value: 'eu-west-3',
+      label: 'Europe (Paris)',
+    });
   });
 
   it('GitHub Copilot is subscription-only', () => {

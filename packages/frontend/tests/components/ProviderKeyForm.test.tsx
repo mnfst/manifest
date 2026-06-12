@@ -335,6 +335,43 @@ describe('ProviderKeyForm', () => {
         region: 'cn',
       });
     });
+
+    it('sends the selected API-key endpoint region on connect', async () => {
+      const def = makeProviderDef({
+        id: 'bedrock',
+        name: 'AWS Bedrock',
+        keyPlaceholder: 'bedrock-api-key-...',
+        apiKeyEndpointRegions: [
+          { value: 'us-east-1', label: 'US East (N. Virginia)' },
+          { value: 'eu-west-1', label: 'Europe (Ireland)' },
+        ],
+      });
+      const { container } = mount({
+        provDef: def,
+        provId: 'bedrock',
+        isSubMode: false,
+        selectedAuthType: 'api_key',
+        keyInput: 'bedrock-api-key-test',
+      });
+
+      const endpoint = container.querySelector(
+        '#bedrock-subscription-endpoint',
+      ) as HTMLSelectElement;
+      expect(endpoint.value).toBe('us-east-1');
+      fireEvent.change(endpoint, { target: { value: 'eu-west-1' } });
+
+      const connectBtn = container.querySelector('.provider-detail__action') as HTMLButtonElement;
+      fireEvent.click(connectBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        authType: 'api_key',
+        region: 'eu-west-1',
+      });
+    });
   });
 
   describe('handleUpdateKey toast labels', () => {

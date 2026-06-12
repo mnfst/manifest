@@ -69,6 +69,64 @@ describe('ProviderService — route-only cleanup paths', () => {
     );
   });
 
+  describe('upsertProvider — Bedrock region', () => {
+    let originalSecret: string | undefined;
+
+    const makeShortTermKey = (region: string) => {
+      const payload =
+        'bedrock.amazonaws.com/?Action=CallWithBearerToken&' +
+        `X-Amz-Credential=ASIAEXAMPLE%2F20260612%2F${region}%2Fbedrock%2Faws4_request`;
+      return `bedrock-api-key-${Buffer.from(payload).toString('base64')}`;
+    };
+
+    beforeEach(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+
+    afterEach(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('infers the region from a short-term Bedrock API key', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider('agent-1', 'user-1', 'bedrock', makeShortTermKey('eu-west-1'));
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('eu-west-1');
+    });
+
+    it('falls back to the default region when a short-term Bedrock key uses an unsupported Mantle region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider('agent-1', 'user-1', 'bedrock', makeShortTermKey('eu-west-3'));
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('us-east-1');
+    });
+
+    it('uses an explicitly selected Bedrock region over key inference', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermKey('eu-west-3'),
+        'api_key',
+        'us-west-2',
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('us-west-2');
+    });
+  });
+
   describe('removeProvider — cleanupProviderReferences', () => {
     it('clears tier override_route when its provider matches removed provider (case-insensitive)', async () => {
       providerRepo.findOne.mockResolvedValue({

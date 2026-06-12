@@ -301,8 +301,8 @@ export interface AvailableModel {
   input_modalities?: ModelModality[];
   output_modalities?: ModelModality[];
   quality_score: number;
-  display_name?: string;
-  provider_display_name?: string;
+  display_name?: string | null;
+  provider_display_name?: string | null;
 }
 
 export function getAvailableModels(agentName: string) {

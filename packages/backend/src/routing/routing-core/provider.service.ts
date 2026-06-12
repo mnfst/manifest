@@ -18,6 +18,12 @@ import type { AuthType, ModelRoute } from 'manifest-shared';
 import { TIER_LABELS } from 'manifest-shared';
 import { detectQwenRegion, isQwenRegion, isQwenResolvedRegion } from '../qwen-region';
 import {
+  DEFAULT_BEDROCK_REGION,
+  detectBedrockRegionFromApiKey,
+  isBedrockProvider,
+  isBedrockRegion,
+} from '../bedrock-region';
+import {
   getSubscriptionEndpointRegionConfig,
   SubscriptionEndpointRegionConfig,
 } from '../subscription-region';
@@ -339,6 +345,19 @@ export class ProviderService {
         requestedRegion,
         existing,
       );
+    }
+
+    if (isBedrockProvider(lower) && authType === 'api_key') {
+      if (requestedRegion !== undefined) {
+        if (!isBedrockRegion(requestedRegion)) {
+          throw new BadRequestException('AWS Bedrock region must be a valid AWS region code');
+        }
+        return requestedRegion;
+      }
+
+      const detectedRegion = detectBedrockRegionFromApiKey(apiKey);
+      if (detectedRegion) return detectedRegion;
+      return isBedrockRegion(existing?.region) ? existing.region : DEFAULT_BEDROCK_REGION;
     }
 
     const isQwenProvider = lower === 'qwen' || lower === 'alibaba';

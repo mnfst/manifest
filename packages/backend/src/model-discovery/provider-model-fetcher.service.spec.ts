@@ -19,6 +19,7 @@ describe('ProviderModelFetcherService', () => {
     const expected = [
       'openai',
       'openai-subscription',
+      'bedrock',
       'deepseek',
       'byteplus',
       'commandcode',
@@ -47,6 +48,32 @@ describe('ProviderModelFetcherService', () => {
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
     }
+  });
+
+  it('should fetch AWS Bedrock models from the selected Mantle region', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'mistral.ministral-3-8b-instruct' }, { id: 'amazon.titan-embed-text-v2:0' }],
+      }),
+    });
+
+    const result = await service.fetch(
+      'bedrock',
+      'bedrock-api-key-test',
+      'api_key',
+      'https://bedrock-mantle.eu-west-1.api.aws',
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://bedrock-mantle.eu-west-1.api.aws/v1/models',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer bedrock-api-key-test',
+        }),
+      }),
+    );
+    expect(result.map((m) => m.id)).toEqual(['mistral.ministral-3-8b-instruct']);
   });
 
   /* ── Unknown provider ── */
