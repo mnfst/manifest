@@ -231,7 +231,9 @@ export class ProviderKeyService {
     if (provider.startsWith('custom:')) {
       const records = await this.providerRepo.find({
         where: { user_id: userId, provider, is_active: true },
-        order: { priority: 'ASC' },
+        // id tiebreaker keeps selection deterministic when keys share a priority,
+        // so the key forwarded and the id stamped never resolve to different rows.
+        order: { priority: 'ASC', id: 'ASC' },
       });
       return (await this.filterProvidersForAgent(records, agentId)).flatMap((record) =>
         this.decryptOne(record),
@@ -241,7 +243,9 @@ export class ProviderKeyService {
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
       where: { user_id: userId, is_active: true },
-      order: { priority: 'ASC' },
+      // id tiebreaker keeps selection deterministic when keys share a priority,
+      // so the key forwarded and the id stamped never resolve to different rows.
+      order: { priority: 'ASC', id: 'ASC' },
     });
 
     const scopedRecords = await this.filterProvidersForAgent(records, agentId);

@@ -247,7 +247,13 @@ export function recordFallbackFailures(
         reason: meta.reason,
         // meta.userProviderId holds the winning fallback here; the primary's id
         // is preserved separately (mirrors primaryProvider / primaryAuthType).
-        userProviderId: meta.primaryUserProviderId ?? meta.userProviderId,
+        // Compare against undefined, not ??, so an explicit null primary
+        // connection (e.g. Ollama) stays null rather than being misattributed
+        // to the fallback's connection.
+        userProviderId:
+          meta.primaryUserProviderId === undefined
+            ? meta.userProviderId
+            : meta.primaryUserProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
