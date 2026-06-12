@@ -49,7 +49,7 @@ export class AgentsController {
   ) {}
 
   private async invalidateAgentListCache(userId: string): Promise<void> {
-    // GET /agents has exactly two canonical cache entries per user (system agents
+    // GET /agents has exactly two canonical cache entries per user (playground agents
     // included or not — see AgentListCacheInterceptor). Clear both so neither the
     // Workspace list nor the Messages filter goes stale after a mutation.
     await Promise.all([
@@ -61,9 +61,16 @@ export class AgentsController {
   @Get('agents')
   @UseInterceptors(AgentListCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
-  async getAgents(@CurrentUser() user: AuthUser, @Query('includeSystem') includeSystem?: string) {
+  async getAgents(
+    @CurrentUser() user: AuthUser,
+    @Query('includePlayground') includePlayground?: string,
+  ) {
     const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
-    const agents = await this.timeseries.getAgentList(user.id, tenantId, includeSystem === 'true');
+    const agents = await this.timeseries.getAgentList(
+      user.id,
+      tenantId,
+      includePlayground === 'true',
+    );
     return { agents };
   }
 
@@ -165,8 +172,8 @@ export class AgentsController {
 
   @Get('agents/:agentName/key')
   async getAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    // Guard: system agents cannot expose their API key through the user-facing
-    // key endpoint (findAgentInfo filters is_system = false and returns null for
+    // Guard: playground agents cannot expose their API key through the user-facing
+    // key endpoint (findAgentInfo filters is_playground = false and returns null for
     // the reserved "Playground" agent, same as for any missing agent).
     const info = await this.lifecycle.findAgentInfo(user.id, agentName);
     if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
@@ -180,8 +187,8 @@ export class AgentsController {
 
   @Post('agents/:agentName/rotate-key')
   async rotateAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    // Guard: system agents cannot have their key rotated through the user-facing
-    // endpoint (findAgentInfo filters is_system = false and returns null for the
+    // Guard: playground agents cannot have their key rotated through the user-facing
+    // endpoint (findAgentInfo filters is_playground = false and returns null for the
     // reserved "Playground" agent, same as for any missing agent).
     const info = await this.lifecycle.findAgentInfo(user.id, agentName);
     if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);

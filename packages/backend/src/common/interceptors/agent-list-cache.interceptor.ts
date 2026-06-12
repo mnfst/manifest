@@ -6,8 +6,8 @@ import { agentListCacheKey } from '../constants/cache.constants';
 /**
  * Cache interceptor for GET /agents. Unlike the generic URL-keyed
  * UserCacheInterceptor, it collapses every query-string variant (no param,
- * ?includeSystem=true, ?includeSystem=false, anything else) onto one of two
- * canonical keys based on the normalized `includeSystem` boolean. That keeps the
+ * ?includePlayground=true, ?includePlayground=false, anything else) onto one of two
+ * canonical keys based on the normalized `includePlayground` boolean. That keeps the
  * cached key set bounded to exactly two entries per user, so mutation handlers
  * can invalidate it exhaustively (see agentListCacheKey) without a stray URL
  * variant being left stale.
@@ -19,8 +19,8 @@ export class AgentListCacheInterceptor extends UserCacheInterceptor {
     if (!userId) return undefined;
 
     const request = context.switchToHttp().getRequest<Request>();
-    const includeSystem =
-      (request.query as { includeSystem?: string } | undefined)?.includeSystem === 'true';
-    return agentListCacheKey(userId, includeSystem);
+    const includePlayground =
+      (request.query as { includePlayground?: string } | undefined)?.includePlayground === 'true';
+    return agentListCacheKey(userId, includePlayground);
   }
 }

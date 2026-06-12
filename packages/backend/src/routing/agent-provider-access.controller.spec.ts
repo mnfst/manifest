@@ -89,20 +89,20 @@ function makeController(overrides: Record<string, unknown> = {}) {
 }
 
 describe('AgentProviderAccessController', () => {
-  describe('resolveAgent — is_system: false filter', () => {
-    it('passes is_system: false in the agentRepo.findOne where-clause', async () => {
+  describe('resolveAgent — is_playground: false filter', () => {
+    it('passes is_playground: false in the agentRepo.findOne where-clause', async () => {
       const { controller, agentRepo } = makeController();
       await controller.listEnabled({ id: USER_ID } as never, 'my-agent');
       expect(agentRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ is_system: false }),
+          where: expect.objectContaining({ is_playground: false }),
         }),
       );
     });
 
-    it('returns empty enabled list for a system agent (agentRepo.findOne returns null because is_system: false filters it out)', async () => {
-      // Simulate the DB returning null because the agent has is_system: true
-      // and the query filters on is_system: false.
+    it('returns empty enabled list for a playground agent (agentRepo.findOne returns null because is_playground: false filters it out)', async () => {
+      // Simulate the DB returning null because the agent has is_playground: true
+      // and the query filters on is_playground: false.
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
@@ -110,7 +110,7 @@ describe('AgentProviderAccessController', () => {
       expect(result).toEqual({ enabled: [] });
     });
 
-    it('throws 404 on enable when agentRepo.findOne returns null for a system agent', async () => {
+    it('throws 404 on enable when agentRepo.findOne returns null for a playground agent', async () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
         userProviderRepo: {
@@ -122,7 +122,7 @@ describe('AgentProviderAccessController', () => {
       ).rejects.toBeInstanceOf(HttpException);
     });
 
-    it('throws 404 on disable when agentRepo.findOne returns null for a system agent', async () => {
+    it('throws 404 on disable when agentRepo.findOne returns null for a playground agent', async () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });

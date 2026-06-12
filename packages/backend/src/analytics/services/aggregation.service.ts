@@ -7,7 +7,7 @@ import {
   MetricWithTrend,
   computeTrend,
   addTenantFilter,
-  excludeSystemAgents,
+  excludePlaygroundAgents,
   filterByKeyLabel,
 } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
@@ -62,7 +62,7 @@ export class AggregationService {
     agentName?: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
   ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
@@ -78,7 +78,7 @@ export class AggregationService {
     addTenantFilter(currentQb, userId, agentName, tenantId);
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
     if (provider) currentQb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(currentQb);
+    if (excludePlayground) excludePlaygroundAgents(currentQb);
     // Connection-scoped label filter: keep two keys that share
     // provider+auth_type but differ by label from merging into one connection's
     // summary. Legacy NULL provider_key_label → 'Default'.
@@ -92,7 +92,7 @@ export class AggregationService {
       prevCutoff,
       authType,
       provider,
-      excludeSystem,
+      excludePlayground,
       label,
     )
       .select('COUNT(*)', 'msg_count')
@@ -140,7 +140,7 @@ export class AggregationService {
     prevCutoff: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
@@ -150,7 +150,7 @@ export class AggregationService {
     addTenantFilter(qb, userId, agentName, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(qb);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     // Connection-scoped label filter (see getSummaryMetrics).
     if (label !== undefined) filterByKeyLabel(qb, label);
     return qb;

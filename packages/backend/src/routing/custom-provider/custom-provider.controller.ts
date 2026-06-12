@@ -23,9 +23,9 @@ export class CustomProviderController {
   async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
     // Resolve for authz — user must own the agent. Custom providers are
     // user-global, so the listing itself is scoped to the user, not the agent.
-    // allowSystem: true — the Playground page reads custom providers for the
-    // reserved system agent; all mutation endpoints remain blocked.
-    await this.resolveAgentService.resolve(user.id, params.agentName, { allowSystem: true });
+    // allowPlayground: true — the Playground page reads custom providers for the
+    // reserved Playground agent; all mutation endpoints remain blocked.
+    await this.resolveAgentService.resolve(user.id, params.agentName, { allowPlayground: true });
     const [providers, userProviders] = await Promise.all([
       this.customProviderService.list(user.id),
       this.providerService.getProviders(user.id),
@@ -71,9 +71,9 @@ export class CustomProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: CreateCustomProviderDto,
   ) {
-    // allowSystem: true — creating a custom provider from the Playground page is
-    // additive (user-global resource); the system agent is a valid owner context.
-    await this.resolveAgentService.resolve(user.id, params.agentName, { allowSystem: true });
+    // allowPlayground: true — creating a custom provider from the Playground page is
+    // additive (user-global resource); the playground agent is a valid owner context.
+    await this.resolveAgentService.resolve(user.id, params.agentName, { allowPlayground: true });
     const cp = await this.customProviderService.create(user.id, body);
     const provKey = CustomProviderService.providerKey(cp.id);
     const up = (await this.providerService.getProviders(user.id)).find(

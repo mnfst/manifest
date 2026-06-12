@@ -77,7 +77,7 @@ export class AgentLifecycleService {
       .where('t.name = :userId', { userId })
       .andWhere('a.name = :agentName', { agentName })
       .andWhere('a.deleted_at IS NULL')
-      .andWhere('a.is_system = false')
+      .andWhere('a.is_playground = false')
       .getOne();
   }
 
@@ -132,7 +132,7 @@ export class AgentLifecycleService {
       .where('t.name = :userId', { userId })
       .andWhere('a.name = :currentName', { currentName })
       .andWhere('a.deleted_at IS NULL')
-      .andWhere('a.is_system = false')
+      .andWhere('a.is_playground = false')
       .getOne();
 
     if (!agent) {

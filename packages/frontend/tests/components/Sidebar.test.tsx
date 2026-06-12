@@ -287,12 +287,12 @@ describe("Sidebar — harness switcher list", () => {
     expect(beta?.getAttribute("aria-current")).not.toBe("page");
   });
 
-  it("excludes system/Playground agents by calling getAgents() with the default (no includeSystem)", async () => {
+  it("excludes Playground agents by calling getAgents() with the default (no includePlayground)", async () => {
     render(() => <Sidebar />);
     await waitFor(() => {
       expect(mockGetAgents).toHaveBeenCalled();
     });
-    // Default invocation = system agents excluded (getAgents(false)).
+    // Default invocation = playground agents excluded (getAgents(false)).
     expect(mockGetAgents).toHaveBeenCalledWith();
   });
 

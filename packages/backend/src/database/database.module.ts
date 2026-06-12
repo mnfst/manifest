@@ -116,6 +116,7 @@ import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/179120
 import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-SeedPlaygroundAgents';
 import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
 import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000000-DropSavingsBaselineColumns';
+import { RenameIsSystemToIsPlayground1791800000000 } from './migrations/1791800000000-RenameIsSystemToIsPlayground';
 
 const entities = [
   AgentMessage,
@@ -233,6 +234,7 @@ const migrations = [
   SeedPlaygroundAgents1791400000000,
   DropProviderRateLimits1791600000000,
   DropSavingsBaselineColumns1791700000000,
+  RenameIsSystemToIsPlayground1791800000000,
 ];
 
 @Module({

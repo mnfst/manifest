@@ -1,16 +1,19 @@
 import { DataSource } from 'typeorm';
 import { SeedPlaygroundAgents1791400000000 } from '../src/database/migrations/1791400000000-SeedPlaygroundAgents';
+import { RenameIsSystemToIsPlayground1791800000000 } from '../src/database/migrations/1791800000000-RenameIsSystemToIsPlayground';
 
 /**
  * Runs the REAL migration chain so SeedPlaygroundAgents executes against
  * Postgres (the e2e suite uses synchronize:true and never runs migrations). We
- * revert just this migration to get the pre-seed schema, seed two tenants (one
- * with a user agent that collides on the reserved name) + their provider pools,
- * then run up() and assert the data transformation.
+ * revert back to the pre-seed schema (the later rename migration first, then
+ * the seed itself), seed two tenants (one with a user agent that collides on
+ * the reserved name) + their provider pools, then run both up() migrations and
+ * assert the data transformation.
  */
 describe('SeedPlaygroundAgents data transformation (e2e)', () => {
   let ds: DataSource;
   const migration = new SeedPlaygroundAgents1791400000000();
+  const renameMigration = new RenameIsSystemToIsPlayground1791800000000();
 
   beforeAll(async () => {
     ds = new DataSource({
@@ -27,8 +30,10 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
     await ds.initialize();
     await ds.runMigrations();
 
-    // Revert just this migration → pre-seed schema (no is_system column).
+    // Revert back to the pre-seed schema (no is_system/is_playground column):
+    // the rename migration first (restores is_system), then the seed itself.
     const revertQr = ds.createQueryRunner();
+    await renameMigration.down(revertQr);
     await migration.down(revertQr);
     await revertQr.release();
 
@@ -57,6 +62,7 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
 
     const upQr = ds.createQueryRunner();
     await migration.up(upQr);
+    await renameMigration.up(upQr);
     await upQr.release();
   }, 60000);
 
@@ -66,7 +72,7 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
 
   it('creates exactly one reserved Playground agent per tenant', async () => {
     const rows: { tenant_id: string; name: string }[] = await ds.query(
-      `SELECT "tenant_id","name" FROM "agents" WHERE "is_system" = true ORDER BY "tenant_id"`,
+      `SELECT "tenant_id","name" FROM "agents" WHERE "is_playground" = true ORDER BY "tenant_id"`,
     );
     expect(rows).toEqual([
       { tenant_id: 't1', name: 'Playground' },
@@ -75,10 +81,10 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
   });
 
   it("relabels the colliding user agent instead of deleting it", async () => {
-    const row: { name: string; is_system: boolean }[] = await ds.query(
-      `SELECT "name","is_system" FROM "agents" WHERE "id" = 'a-user'`,
+    const row: { name: string; is_playground: boolean }[] = await ds.query(
+      `SELECT "name","is_playground" FROM "agents" WHERE "id" = 'a-user'`,
     );
-    expect(row[0].is_system).toBe(false);
+    expect(row[0].is_playground).toBe(false);
     // Slug-safe suffix: `name-<id>` so the relabeled agent remains routable
     // via the ^[a-zA-Z0-9_-]+$ validator (no spaces or brackets).
     expect(row[0].name).toBe('Playground-a-user');
@@ -87,7 +93,7 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
   it("grants each Playground agent its tenant's whole provider pool", async () => {
     const grants: { provider: string }[] = await ds.query(
       `SELECT up."provider" FROM "agent_provider_access" apa
-       JOIN "agents" a ON a."id" = apa."agent_id" AND a."is_system" = true
+       JOIN "agents" a ON a."id" = apa."agent_id" AND a."is_playground" = true
        JOIN "user_providers" up ON up."id" = apa."user_provider_id"
        WHERE a."tenant_id" = 't1' ORDER BY up."provider"`,
     );
@@ -95,7 +101,7 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
 
     const t2: { provider: string }[] = await ds.query(
       `SELECT up."provider" FROM "agent_provider_access" apa
-       JOIN "agents" a ON a."id" = apa."agent_id" AND a."is_system" = true
+       JOIN "agents" a ON a."id" = apa."agent_id" AND a."is_playground" = true
        JOIN "user_providers" up ON up."id" = apa."user_provider_id"
        WHERE a."tenant_id" = 't2'`,
     );

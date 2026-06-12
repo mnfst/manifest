@@ -72,11 +72,11 @@ beforeAll(async () => {
     [uuid(), TEST_TENANT_ID, ghostAgentId, now, TEST_USER_ID],
   );
 
-  // Finding 1: a reserved Playground (is_system) agent whose usage must NOT
+  // Finding 1: a reserved Playground (is_playground) agent whose usage must NOT
   // pollute provider analytics aggregates or the connection breakdown.
   const playgroundAgentId = uuid();
   await ds.query(
-    `INSERT INTO agents (id, name, display_name, description, is_active, is_system, complexity_routing_enabled, tenant_id, created_at, updated_at)
+    `INSERT INTO agents (id, name, display_name, description, is_active, is_playground, complexity_routing_enabled, tenant_id, created_at, updated_at)
      VALUES ($1,'Playground','Playground','reserved',true,true,true,$2,$3,$3)`,
     [playgroundAgentId, TEST_TENANT_ID, now],
   );
@@ -88,7 +88,7 @@ beforeAll(async () => {
 
   // P2 leak case: an ORPHAN Playground message with a NULL agent_id but
   // agent_name = 'Playground'. The previous id-only exclusion join left this
-  // row's `is_system` NULL and wrongly INCLUDED it. The NOT EXISTS semi-join
+  // row's `is_playground` NULL and wrongly INCLUDED it. The NOT EXISTS semi-join
   // matches the reserved Playground agent by NAME too, so this row is excluded
   // from every aggregate, timeseries and the connection breakdown.
   await ds.query(
@@ -143,7 +143,7 @@ describe('GET /api/v1/provider-analytics', () => {
     expect(res.body.summary.messages.value).toBeGreaterThan(0);
   });
 
-  it('excludes the reserved Playground (is_system) agent from summary aggregates', async () => {
+  it('excludes the reserved Playground (is_playground) agent from summary aggregates', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/provider-analytics?auth_type=subscription&provider=openai&range=24h')
       .set('x-api-key', TEST_API_KEY)
@@ -152,7 +152,7 @@ describe('GET /api/v1/provider-analytics', () => {
     // Playground message with a matching agent_id (18000 tokens) AND the orphan
     // Playground message with a NULL agent_id but agent_name 'Playground'
     // (14000 tokens) must be excluded, so the summary reflects only the
-    // non-system rows. The orphan is the P2 leak case the name-based NOT EXISTS
+    // non-playground rows. The orphan is the P2 leak case the name-based NOT EXISTS
     // exclusion fixes — an id-only join would have counted it.
     expect(res.body.summary.messages.value).toBe(2);
     expect(res.body.summary.tokens.value).toBe(1800);
@@ -398,11 +398,11 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
     }
   });
 
-  it('excludes the Playground (is_system) agent from per-provider and per-model timeseries (Finding 2)', async () => {
+  it('excludes the Playground (is_playground) agent from per-provider and per-model timeseries (Finding 2)', async () => {
     // The Playground agent logged 18000 openai/gpt-4o tokens (agent_id set), and
     // an orphan Playground row logged 14000 more (NULL agent_id, name only).
     // Real openai usage is 1800 tokens (gpt-4o 1500 + gpt-4o-mini 300). Before
-    // the fix these endpoints either had no is_system filter or used an id-only
+    // the fix these endpoints either had no is_playground filter or used an id-only
     // join that missed the orphan. After the name-based NOT EXISTS exclusion
     // BOTH Playground rows are dropped from every per-* timeseries.
     const sumKey = (rows: Array<Record<string, number>>, key: string): number =>
