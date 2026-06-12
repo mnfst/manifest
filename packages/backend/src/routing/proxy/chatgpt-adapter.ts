@@ -275,6 +275,10 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
     return handleCompletedEvent(dataStr, model);
   }
 
+  if (eventType === 'error' || eventType === 'response.failed') {
+    return handleStreamErrorEvent(dataStr);
+  }
+
   return null;
 }
 
@@ -305,6 +309,28 @@ function handleCompletedEvent(dataStr: string, model: string): string {
     usage,
   );
   return `${finish}\ndata: [DONE]\n\n`;
+}
+
+function handleStreamErrorEvent(dataStr: string): string {
+  const data = safeParse(dataStr) ?? {};
+  const err = buildResponsesSseError(data);
+  const parsedBody = safeParse(err.body);
+  const parsedError = isObjectRecord(parsedBody?.error) ? parsedBody.error : {};
+  const message =
+    typeof parsedError.message === 'string' && parsedError.message
+      ? parsedError.message
+      : err.message;
+  const code = typeof parsedError.code === 'string' ? parsedError.code : undefined;
+  const type = typeof parsedError.type === 'string' ? parsedError.type : 'upstream_error';
+  const payload = {
+    error: {
+      message,
+      type,
+      status: err.status,
+      ...(code ? { code } : {}),
+    },
+  };
+  return `data: ${JSON.stringify(payload)}\n\ndata: [DONE]\n\n`;
 }
 
 /* ── Non-streaming SSE collection ── */

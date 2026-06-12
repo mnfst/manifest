@@ -24,6 +24,39 @@ describe('ChatGPT Adapter – transformResponsesStreamChunk', () => {
     expect(result).toContain('data: [DONE]');
   });
 
+  it('converts response.failed to a terminal error event', () => {
+    const chunk =
+      'event: response.failed\ndata: {"response":{"error":{"code":"rate_limit_exceeded","message":"Too many requests"}}}';
+    const result = transformResponsesStreamChunk(chunk, 'gpt-5');
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('data: [DONE]');
+    const errorLine = result!.split('\n').find((line) => line.startsWith('data: {'));
+    const json = JSON.parse(errorLine!.replace('data: ', ''));
+    expect(json.error).toEqual({
+      message: 'Too many requests',
+      type: 'upstream_error',
+      status: 429,
+      code: 'rate_limit_exceeded',
+    });
+  });
+
+  it('converts Responses error events to terminal error events', () => {
+    const chunk =
+      'event: error\ndata: {"error":{"type":"invalid_request_error","message":"Model unavailable"}}';
+    const result = transformResponsesStreamChunk(chunk, 'gpt-5');
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('data: [DONE]');
+    const errorLine = result!.split('\n').find((line) => line.startsWith('data: {'));
+    const json = JSON.parse(errorLine!.replace('data: ', ''));
+    expect(json.error).toEqual({
+      message: 'Model unavailable',
+      type: 'invalid_request_error',
+      status: 400,
+    });
+  });
+
   it('extracts usage from response.completed event', () => {
     const data = JSON.stringify({
       response: {
