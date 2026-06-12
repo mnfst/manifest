@@ -406,6 +406,47 @@ describe('AgentLifecycleService', () => {
     });
   });
 
+  describe('playground agent protection', () => {
+    it('cannot delete a playground agent — findAgentByUser excludes is_playground=true rows', async () => {
+      // Simulate the playground agent being invisible to the resolver (returns null).
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(service.deleteAgent('test-user', 'playground')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it('cannot rename a playground agent — the resolver excludes is_playground=true rows', async () => {
+      // The rename "find current agent" query also filters is_playground = false.
+      mockAgentGetOne.mockResolvedValueOnce(null);
+
+      await expect(service.renameAgent('test-user', 'playground', 'new-name')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockTransaction).not.toHaveBeenCalled();
+    });
+
+    it('applies is_playground = false filter in findAgentByUser', async () => {
+      const mockAndWhere = jest.fn().mockReturnThis();
+      const mockQb = {
+        select: jest.fn().mockReturnThis(),
+        leftJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: mockAndWhere,
+        orderBy: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      mockAgentCreateQueryBuilder.mockReturnValueOnce(mockQb);
+
+      await service.findAgentInfo('user-1', 'playground');
+
+      const andWhereCalls = mockAndWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(andWhereCalls).toContain('a.is_playground = false');
+    });
+  });
+
   describe('setRecordMessages', () => {
     it('updates the record_messages flag and returns the agent id', async () => {
       mockAgentGetOne.mockResolvedValueOnce({ id: 'agent-id-42', name: 'my-agent' });

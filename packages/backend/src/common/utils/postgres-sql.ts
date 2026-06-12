@@ -79,13 +79,37 @@ export function sqlCastInterval(paramName: string): string {
  * Format a Date as a Postgres-friendly timestamp string
  * (`YYYY-MM-DD HH:MM:SS` — space-separated, no timezone suffix).
  *
- * Used for notification-log / notification-rule writes and alert-period
- * boundaries. This emits UTC and is space-separated, intentionally distinct
- * from {@link sqlNow} / {@link computeCutoff}, which emit local-time,
- * `T`-separated strings for the analytics range cutoffs.
+ * Used for notification-log / notification-rule `created_at` / `sent_at` writes.
+ * This emits UTC and is space-separated, intentionally distinct from
+ * {@link sqlNow} / {@link computeCutoff}, which emit local-time strings for the
+ * analytics range cutoffs.
+ *
+ * Do NOT use this to build window boundaries compared against
+ * `agent_messages.timestamp` — those rows are stored in local time, so a UTC
+ * boundary is offset by the process TZ and silently drops rows. Use
+ * {@link toLocalSqlTimestamp} for that (see computePeriodBoundaries).
  */
 export function toSqlTimestamp(d: Date = new Date()): string {
   return d.toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+}
+
+/**
+ * Local-time variant of {@link toSqlTimestamp}: formats the wall-clock time in
+ * the Node process's local timezone as `YYYY-MM-DD HH:MM:SS` (space-separated,
+ * no timezone suffix).
+ *
+ * This is the correct format for period boundaries compared against
+ * `agent_messages.timestamp`: the pg driver serialises stored Dates in local
+ * time, so a UTC boundary would be offset from the stored values by the
+ * process's TZ offset — silently dropping rows near (and, for `periodEnd`, well
+ * within) the window. Mirrors the rationale on {@link computeCutoff}.
+ */
+export function toLocalSqlTimestamp(d: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+    `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  );
 }
 
 /**

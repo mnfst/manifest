@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 const mockNavigate = vi.fn();
-let mockPathname = "/agents/test-agent/messages";
+let mockPathname = "/harnesses/test-agent/messages";
 vi.mock("@solidjs/router", () => ({
   useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: mockPathname }),
@@ -95,7 +95,7 @@ function baseDetails(overrides: Record<string, unknown> = {}) {
 describe("RecordedMessageModal (drawer)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockPathname = "/agents/test-agent/messages";
+    mockPathname = "/harnesses/test-agent/messages";
     mockGetMessageDetails.mockResolvedValue(baseDetails());
     mockDeleteMessageRecording.mockResolvedValue(undefined);
     // jsdom doesn't implement scrollIntoView; the drawer's jumpTo() calls

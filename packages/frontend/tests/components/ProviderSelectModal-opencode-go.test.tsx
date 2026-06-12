@@ -1,6 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
+// NOTE (post-#2207 realignment):
+// ProviderSelectModal no longer renders a provider list/tabs; it opens straight
+// into a provider's detail view via `providerDeepLink` (exactly how
+// ProviderConnectionsPage drives it in production). These tests previously
+// reached OpenCode Go's detail view by clicking it in the subscription list;
+// they now pass the deep link instead. The detail-view assertions (sign-in
+// link, beta hint, token paste field, connect, disconnect) are unchanged.
+
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
@@ -14,6 +22,7 @@ const mockRenameProviderKey = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  refreshProviderModels: () => Promise.resolve({ ok: true, model_count: 0 }),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
   submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
@@ -34,7 +43,7 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
   customProviderLogo: () => null,
 }));
 
-// Only mock opencode-go so the subscription tab has a single entry to click.
+// Only mock opencode-go so the detail view renders a single known provider.
 vi.mock("../../src/services/providers.js", () => {
   const opencodeGoProvider = {
     id: "opencode-go",
@@ -51,6 +60,7 @@ vi.mock("../../src/services/providers.js", () => {
     subscriptionLabel: "OpenCode Go (beta)",
     subscriptionAuthMode: "token",
     subscriptionKeyPlaceholder: "Paste your OpenCode API key",
+    subscriptionCredentialKind: "api-key",
     subscriptionSignInUrl: "https://opencode.ai/auth",
     subscriptionSignInLabel: "Sign in to OpenCode Go",
     subscriptionSignInHint:
@@ -63,6 +73,14 @@ vi.mock("../../src/services/providers.js", () => {
       key.length >= 10 ? { valid: true } : { valid: false, error: "Token is too short" },
   };
 });
+
+// The detail view validates pasted tokens via provider-utils, not the
+// providers module — mock both so the real validator isn't pulled in.
+vi.mock("../../src/services/provider-utils.js", () => ({
+  validateApiKey: () => ({ valid: true }),
+  validateSubscriptionKey: (_p: unknown, key: string) =>
+    key.length >= 10 ? { valid: true } : { valid: false, error: "Token is too short" },
+}));
 
 import ProviderSelectModal from "../../src/components/ProviderSelectModal";
 import type { RoutingProvider } from "../../src/services/api.js";
@@ -86,9 +104,9 @@ describe("OpenCode Go subscription detail view", () => {
         onClose={onClose}
         onUpdate={onUpdate}
         agentName="test-agent"
+        providerDeepLink={{ providerId: "opencode-go", authType: "subscription" }}
       />
     ));
-    fireEvent.click(screen.getByText("OpenCode Go"));
   };
 
   it("opens the sign-in URL in a new tab", () => {
@@ -155,9 +173,9 @@ describe("OpenCode Go subscription detail view", () => {
         onClose={onClose}
         onUpdate={onUpdate}
         agentName="test-agent"
+        providerDeepLink={{ providerId: "opencode-go", authType: "subscription" }}
       />
     ));
-    fireEvent.click(screen.getByText("OpenCode Go"));
 
     fireEvent.click(screen.getByLabelText("Disconnect provider"));
 

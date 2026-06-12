@@ -42,9 +42,10 @@ export class ResolveController {
     @Body() body: ResolveRequestDto,
     @Req() req: Request & { ingestionContext: IngestionContext },
   ): Promise<ResolveResponse> {
-    const { agentId } = req.ingestionContext;
+    const { agentId, userId } = req.ingestionContext;
     return this.resolveService.resolve(
       agentId,
+      userId,
       body.messages as { role: string; content?: unknown; [k: string]: unknown }[],
       body.tools,
       body.tool_choice,

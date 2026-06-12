@@ -61,7 +61,7 @@ const SetupModal: Component<{
                 />
               </Show>
               <span class="setup-modal__title-text">
-                Set up agent: <em>{props.agentName}</em>
+                Set up harness: <em>{props.agentName}</em>
               </span>
             </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
@@ -81,7 +81,9 @@ const SetupModal: Component<{
               </svg>
             </button>
           </div>
-          <p class="modal-card__desc">Connect your agent to Manifest to start routing requests.</p>
+          <p class="modal-card__desc">
+            Connect your harness to Manifest to start routing requests.
+          </p>
 
           <Show
             when={!apiKeyData.error || !!props.apiKey}
@@ -89,7 +91,7 @@ const SetupModal: Component<{
               <ErrorState
                 error={apiKeyData.error}
                 title="Could not load API key"
-                message="Failed to fetch your agent's API key. Please try again."
+                message="Failed to fetch your harness's API key. Please try again."
                 onRetry={refetchKey}
               />
             }

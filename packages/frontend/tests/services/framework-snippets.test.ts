@@ -69,7 +69,7 @@ describe("TOOLKIT_TABS", () => {
     expect(TOOLKIT_TABS[0].icon).toBe("/icons/providers/openai.svg");
     expect(TOOLKIT_TABS[1].icon).toBe("/icons/providers/anthropic.svg");
     expect(TOOLKIT_TABS[2].icon).toBe("/icons/vercel.svg");
-    expect(TOOLKIT_TABS[3].icon).toBe("/icons/langchain.png");
+    expect(TOOLKIT_TABS[3].icon).toBe("/icons/langchain.svg");
     expect(TOOLKIT_TABS[4].icon).toBeUndefined();
   });
 });

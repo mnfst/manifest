@@ -64,6 +64,7 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('sk-test'),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-fallback'),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),

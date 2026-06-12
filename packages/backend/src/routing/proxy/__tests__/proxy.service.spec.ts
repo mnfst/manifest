@@ -67,7 +67,7 @@ const specCatalog: ProviderParamSpecCatalog = [
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
   let providerKeyService: jest.Mocked<
-    Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion'>
+    Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId'>
   >;
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
@@ -104,6 +104,7 @@ describe('ProxyService — orchestration', () => {
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
       getProviderRegion: jest.fn().mockResolvedValue(null),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-default'),
     };
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
@@ -1139,7 +1140,7 @@ describe('ProxyService — orchestration', () => {
           body: { messages: [{ role: 'user', content: 'HEARTBEAT_OK' }] },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
       expect(resolveService.resolve).not.toHaveBeenCalled();
     });
 
@@ -1171,7 +1172,7 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'simple');
+      expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'user-1', 'simple');
     });
 
     it('does not detect heartbeat when no user message exists', async () => {
@@ -1283,8 +1284,10 @@ describe('ProxyService — orchestration', () => {
           },
         }),
       );
-      const [, scoringMessages] = resolveService.resolve.mock.calls[0];
-      expect(scoringMessages.every((m) => m.role === 'user')).toBe(true);
+      const [, , scoringMessages] = resolveService.resolve.mock.calls[0];
+      expect((scoringMessages as Array<{ role: string }>).every((m) => m.role === 'user')).toBe(
+        true,
+      );
     });
   });
 });

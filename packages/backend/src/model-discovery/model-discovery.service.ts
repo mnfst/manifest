@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { UserProvider } from '../entities/user-provider.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
@@ -80,6 +81,9 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(CopilotTokenService)
     private readonly copilotTokenService: CopilotTokenService | null,
+    @Optional()
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
   async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
@@ -247,7 +251,7 @@ export class ModelDiscoveryService {
 
     if (filtered.length === 0 && previousCachedCount > 0) {
       this.logger.warn(
-        `Discovery returned 0 models for ${provider.provider} (agent ${provider.agent_id}); kept ${previousCachedCount} cached models`,
+        `Discovery returned 0 models for ${provider.provider} (user ${provider.user_id}); kept ${previousCachedCount} cached models`,
       );
       return provider.cached_models ?? [];
     }
@@ -255,19 +259,17 @@ export class ModelDiscoveryService {
     provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
     await this.providerRepo.save(provider);
-    // The agent's effective model list just changed on disk — drop the cache
-    // so getModelsForAgent() reassembles it on the next read.
-    this.invalidate(provider.agent_id);
+    await this.invalidateProviderAccess(provider);
 
     this.logger.log(
-      `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
+      `Discovered ${filtered.length} models for provider ${provider.provider} (user ${provider.user_id})`,
     );
     return filtered;
   }
 
-  async discoverAllForAgent(agentId: string): Promise<void> {
+  async discoverAllForAgent(userId: string): Promise<void> {
     const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+      where: { user_id: userId, is_active: true },
     });
     await Promise.all(
       providers
@@ -281,7 +283,7 @@ export class ModelDiscoveryService {
   }
 
   async refreshProvider(
-    agentId: string,
+    userId: string,
     providerId: string,
     authType?: AuthType,
   ): Promise<{
@@ -290,8 +292,8 @@ export class ModelDiscoveryService {
     last_fetched_at: string | null;
     error: string | null;
   }> {
-    const where: { agent_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
-      agent_id: agentId,
+    const where: { user_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
+      user_id: userId,
       provider: providerId,
       is_active: true,
     };
@@ -326,7 +328,7 @@ export class ModelDiscoveryService {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(
-        `Per-provider refresh failed for ${provider.provider} (agent ${agentId}): ${message}`,
+        `Per-provider refresh failed for ${provider.provider} (user ${userId}): ${message}`,
       );
       return {
         ok: false,
@@ -342,14 +344,16 @@ export class ModelDiscoveryService {
    * cached list when warm, otherwise runs the full DB-backed assembly and
    * caches the result. Invalidated on any provider mutation (see invalidate()).
    */
-  async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
+  async getModelsForAgent(userId: string, agentId?: string): Promise<DiscoveredModel[]> {
+    if (!agentId) return this.fetchModelsForAgent(userId);
+
     const cached = this.modelsCache.get(agentId);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.data;
     }
     if (cached) this.modelsCache.delete(agentId);
 
-    const models = await this.fetchModelsForAgent(agentId);
+    const models = await this.fetchModelsForAgent(userId, agentId);
     const now = Date.now();
     // Sweep expired entries on populate so the cache can't grow unbounded as
     // agents come and go (entries are otherwise only dropped on miss/invalidate).
@@ -368,10 +372,21 @@ export class ModelDiscoveryService {
     this.modelsCache.delete(agentId);
   }
 
-  private async fetchModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
-    const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+  private async invalidateProviderAccess(provider: UserProvider): Promise<void> {
+    if (provider.agent_id) this.invalidate(provider.agent_id);
+    if (!this.enabledProviderRepo) return;
+
+    const rows = await this.enabledProviderRepo.find({ where: { user_provider_id: provider.id } });
+    for (const row of rows) {
+      this.invalidate(row.agent_id);
+    }
+  }
+
+  private async fetchModelsForAgent(userId: string, agentId?: string): Promise<DiscoveredModel[]> {
+    const allProviders = await this.providerRepo.find({
+      where: { user_id: userId, is_active: true },
     });
+    const providers = await this.filterProvidersForAgent(allProviders, agentId);
 
     const models: DiscoveredModel[] = [];
     const seen = new Map<string, number>();
@@ -408,13 +423,16 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Merge custom provider models
-    const customProviders = await this.customProviderRepo.find({
-      where: { agent_id: agentId },
+    // With an agent context, only custom providers attached through their
+    // backing user_provider row are visible. User-wide lookups keep all custom
+    // providers for global provider pages and background refreshes.
+    const customProviders: CustomProvider[] = await this.customProviderRepo.find({
+      where: { user_id: userId },
     });
     for (const cp of customProviders) {
       if (!Array.isArray(cp.models)) continue;
       const cpKey = customProviderKey(cp.id);
+      if (agentId && !customAuthTypes.has(cpKey)) continue;
       for (const m of cp.models) {
         const modelKey = customModelKey(cp.id, m.model_name);
         if (seen.has(modelKey)) continue;
@@ -445,8 +463,23 @@ export class ModelDiscoveryService {
     return models;
   }
 
-  async getModelForAgent(agentId: string, modelName: string): Promise<DiscoveredModel | undefined> {
-    const all = await this.getModelsForAgent(agentId);
+  private async filterProvidersForAgent(
+    providers: UserProvider[],
+    agentId?: string,
+  ): Promise<UserProvider[]> {
+    if (!agentId || !this.enabledProviderRepo) return providers;
+    const rows = await this.enabledProviderRepo.find({ where: { agent_id: agentId } });
+    if (rows.length === 0) return [];
+    const enabledIds = new Set(rows.map((r) => r.user_provider_id));
+    return providers.filter((p) => enabledIds.has(p.id));
+  }
+
+  async getModelForAgent(
+    userId: string,
+    modelName: string,
+    agentId?: string,
+  ): Promise<DiscoveredModel | undefined> {
+    const all = await this.getModelsForAgent(userId, agentId);
     const matches = all.filter((m) => m.id === modelName);
     // Provider-less lookups are legacy fallbacks. Once multiple providers can
     // expose the same model ID, only a single matching route is safe to infer.

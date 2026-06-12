@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { seedAgentMessages } from './seed-messages';
+import { getSeedConnections, seedAgentMessages, seedConnectionId } from './seed-messages';
 
 function makeMockRepo() {
   return {
@@ -117,6 +117,40 @@ describe('seedAgentMessages', () => {
       const messages = collectInsertedMessages(mockRepo);
       for (const msg of messages) {
         expect(msg.user_id).toBe('test-user-42');
+      }
+    });
+
+    it('should set the provider inferred from each model so provider-grouped charts see seed data', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const providersByModelPrefix: Record<string, string> = {
+        'claude-': 'anthropic',
+        'gpt-': 'openai',
+        'gemini-': 'gemini',
+      };
+      for (const msg of messages) {
+        const prefix = Object.keys(providersByModelPrefix).find((p) =>
+          (msg.model as string).startsWith(p),
+        );
+        expect(prefix).toBeDefined();
+        expect(msg.provider).toBe(providersByModelPrefix[prefix!]);
+      }
+    });
+
+    it('stamps user_provider_id linking each message to its seeded connection', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const connectionIds = new Set(getSeedConnections().map((c) => c.id));
+      expect(connectionIds.size).toBeGreaterThan(0);
+      for (const msg of messages) {
+        // Each message points at the seeded connection for its (provider, auth_type)
+        // so the connection-detail page resolves it by user_provider_id.
+        expect(msg.user_provider_id).toBe(
+          seedConnectionId(msg.provider as string, msg.auth_type as string),
+        );
+        expect(connectionIds.has(msg.user_provider_id as string)).toBe(true);
       }
     });
   });

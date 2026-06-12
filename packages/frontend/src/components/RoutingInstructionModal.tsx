@@ -70,7 +70,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                 </Show>
               </Show>
               <Show when={isEnable()} fallback={<>Deactivate routing</>}>
-                Set up agent: <em>{props.agentName}</em>
+                Set up harness: <em>{props.agentName}</em>
               </Show>
             </div>
             <button class="modal__close" onClick={() => props.onClose()} aria-label="Close">
@@ -92,7 +92,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
           </div>
           <Show when={isEnable()}>
             <p class="modal-card__desc">
-              Connect your agent to Manifest to start routing requests.
+              Connect your harness to Manifest to start routing requests.
             </p>
           </Show>
 
@@ -102,17 +102,17 @@ const RoutingInstructionModal: Component<Props> = (props) => {
               <>
                 <p style="margin: 0 0 14px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
                   This will stop routing requests through Manifest and restore direct model access
-                  in your OpenClaw agent.
+                  in your OpenClaw harness.
                 </p>
 
                 <p style="margin: 0 0 8px; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                  1. Pick the model your agent should use directly:
+                  1. Pick the model your harness should use directly:
                 </p>
 
                 <ModelSelectDropdown selectedValue={selectedModel()} onSelect={handleModelSelect} />
 
                 <p style="margin: 14px 0; font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); line-height: 1.5;">
-                  2. Run these commands in your agent's terminal to restore direct model access:
+                  2. Run these commands in your harness's terminal to restore direct model access:
                 </p>
 
                 <div class="modal-terminal">

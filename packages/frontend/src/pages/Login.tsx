@@ -101,10 +101,10 @@ const Login: Component = () => {
   return (
     <>
       <Title>Sign In - Manifest</Title>
-      <Meta name="description" content="Sign in to Manifest to monitor your AI agents." />
+      <Meta name="description" content="Sign in to Manifest to monitor your AI harnesses." />
       <div class="auth-header">
         <h1 class="auth-header__title">Welcome back</h1>
-        <p class="auth-header__subtitle">Take control of your AI agent costs</p>
+        <p class="auth-header__subtitle">Take control of your AI harness costs</p>
       </div>
 
       <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />

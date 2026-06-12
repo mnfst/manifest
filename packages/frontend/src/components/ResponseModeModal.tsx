@@ -45,7 +45,7 @@ function getIncompatibleModels(
 
   const result: IncompatibleModel[] = [];
   for (const t of tiers) {
-    const route = t.override_route ?? t.auto_assigned_route;
+    const route = t.override_route;
     if (route && !hasStream(route.model)) {
       result.push({
         model: route.model,

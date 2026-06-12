@@ -1,10 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 
 let mockAgentName = "test-agent";
+let mockSearchParams: Record<string, string | undefined> = {};
+let mockSearchAgentAccessor: (() => string | undefined) | null = null;
 const mockNavigate = vi.fn();
 vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
+  useSearchParams: () => [
+    {
+      get agent() {
+        return mockSearchAgentAccessor ? mockSearchAgentAccessor() : mockSearchParams.agent;
+      },
+    },
+    vi.fn(),
+  ],
   useNavigate: () => mockNavigate,
   A: (props: any) => <a href={props.href} style={props.style} class={props.class}>{props.children}</a>,
 }));
@@ -15,6 +26,7 @@ vi.mock("@solidjs/meta", () => ({
 }));
 
 const mockGetMessages = vi.fn();
+const mockGetAgents = vi.fn();
 const mockGetCustomProviders = vi.fn();
 const mockGetSpecificityAssignments = vi.fn();
 const mockGetMessageDetails = vi.fn();
@@ -25,6 +37,7 @@ const mockClearMessageFeedback = vi.fn();
 const mockDeleteMessageRecording = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
+  getAgents: (...args: unknown[]) => mockGetAgents(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
   getSpecificityAssignments: (...args: unknown[]) => mockGetSpecificityAssignments(...args),
   getMessageDetails: (...args: unknown[]) => mockGetMessageDetails(...args),
@@ -132,6 +145,9 @@ describe("MessageLog", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mockAgentName = "test-agent";
+    mockSearchParams = {};
+    mockSearchAgentAccessor = null;
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }, { agent_name: "agent-beta" }] });
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
@@ -572,7 +588,7 @@ describe("MessageLog", () => {
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
     expect(mockNavigate).toHaveBeenCalledWith(
-      "/agents/test-agent/routing",
+      "/harnesses/test-agent/routing",
       { state: { openProviders: true } },
     );
   });
@@ -588,28 +604,31 @@ describe("MessageLog", () => {
     });
   });
 
-  it("shows Set up agent when no setupCompleted and no providers", async () => {
+  it("shows Set up harness when no setupCompleted and no providers", async () => {
     mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Set up agent");
+      expect(container.textContent).toContain("Set up harness");
       expect(container.textContent).not.toContain("Enable routing");
       expect(container.textContent).not.toContain("Connect provider");
     });
   });
 
   describe("custom provider models", () => {
+    // The backend resolves the custom provider's name into each row
+    // (`custom_provider_name`) and ships a `provider_labels` map for the
+    // filter dropdown; the page no longer fetches the list itself.
     const customMessagesData = {
       items: [
-        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", cache_read_tokens: null, cache_creation_tokens: null, duration_ms: 800 },
+        { id: "msg-cp1", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "custom:abc-123/my-llama", provider: "custom:abc-123", custom_provider_name: "Cerebras", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok", cache_read_tokens: null, cache_creation_tokens: null, duration_ms: 800 },
       ],
       next_cursor: null,
       total_count: 1,
-      providers: ["custom"],
+      providers: ["custom:abc-123"],
+      provider_labels: { "custom:abc-123": "Cerebras" },
     };
 
     it("renders custom provider icon in message rows", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -619,7 +638,6 @@ describe("MessageLog", () => {
     });
 
     it("strips custom prefix from model name display", async () => {
-      mockGetCustomProviders.mockResolvedValue([{ id: "abc-123", name: "Cerebras" }]);
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
@@ -628,12 +646,40 @@ describe("MessageLog", () => {
       });
     });
 
-    it("falls back to model prefix when custom provider not found", async () => {
-      mockGetCustomProviders.mockResolvedValue([]);
+    it("labels the provider filter option with the custom provider name", async () => {
       mockGetMessages.mockResolvedValue(customMessagesData);
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
+        expect(container.textContent).toContain("Cerebras");
+      });
+    });
+
+    it("falls back to model prefix when custom provider was deleted", async () => {
+      const deletedProvider = {
+        ...customMessagesData,
+        items: [{ ...customMessagesData.items[0], custom_provider_name: null }],
+        provider_labels: {},
+      };
+      mockGetMessages.mockResolvedValue(deletedProvider);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
         expect(container.textContent).toContain("my-llama");
+        expect(container.textContent).not.toContain("custom:abc-123/");
+      });
+    });
+
+    it("resolves custom provider name + icon in global mode from the response", async () => {
+      // Global ("All harnesses") log has no route agent. The backend resolves
+      // the custom provider's name into each row (`custom_provider_name`), so
+      // custom:<uuid> models still render with the real name and provider icon
+      // — the page no longer fetches the provider list itself.
+      mockAgentName = undefined;
+      mockGetAgents.mockResolvedValue({ agents: [{ agent_name: "agent-alpha" }] });
+      mockGetMessages.mockResolvedValue(customMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('img[alt="Cerebras"]')).not.toBeNull();
+        expect(container.textContent).not.toContain("custom:abc-123/");
       });
     });
   });
@@ -1276,6 +1322,384 @@ describe("MessageLog", () => {
         expect(lastQ.header_tier_id).toBe("ht-premium");
         expect(lastQ.routing_tier).toBeUndefined();
       });
+    });
+  });
+
+  describe("Agent filter (global mode)", () => {
+    it("renders agent filter dropdown in global mode (no agentName)", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        // agent filter is the first select in global mode
+        expect(selects.length).toBeGreaterThanOrEqual(1);
+        expect(selects[0].textContent).toContain("All harnesses");
+      });
+    });
+
+    it("populates agent filter with sorted agent names from getAgents()", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        expect(selects[0].textContent).toContain("agent-alpha");
+        expect(selects[0].textContent).toContain("agent-beta");
+      });
+    });
+
+    it("requests system agents so the reserved Playground agent appears in the filter", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(mockGetAgents).toHaveBeenCalledWith(true);
+      });
+    });
+
+    it("seeds the agent filter from the ?agent= search param (View more redirect)", async () => {
+      mockAgentName = "";
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const lastCall = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+        expect(lastCall.agent_name).toBe("agent-beta");
+      });
+    });
+
+    it("ignores the ?agent= search param in agent-scoped mode (route param wins)", async () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const lastCall = mockGetMessages.mock.calls.at(-1)![0] as Record<string, string>;
+        expect(lastCall.agent_name).toBe("test-agent");
+      });
+    });
+
+    it("does NOT render agent filter dropdown in agent-scoped mode", async () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        // In agent mode, first select is provider filter (no "All harnesses" option)
+        expect(selects[0].textContent).not.toContain("All harnesses");
+        expect(selects[0].textContent).toContain("All providers");
+      });
+    });
+
+    it("passes agent_name query param when an agent is selected", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve so the options are populated
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      mockGetMessages.mockClear();
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-alpha");
+      });
+    });
+
+    it("pre-seeds the agent filter from the ?agent= query param (View more deep-link)", async () => {
+      mockAgentName = "";
+      mockSearchParams = { agent: "agent-beta" };
+      mockGetMessages.mockResolvedValue(messagesData);
+      render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-beta");
+      });
+    });
+
+    it("updates the agent filter when the ?agent= query param changes", async () => {
+      mockAgentName = "";
+      const [searchAgent, setSearchAgent] = createSignal<string | undefined>();
+      mockSearchAgentAccessor = searchAgent;
+      mockGetMessages.mockResolvedValue(messagesData);
+
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-beta");
+      });
+
+      mockGetMessages.mockClear();
+      setSearchAgent("agent-beta");
+
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBe("agent-beta");
+      });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      expect(agentSelect.value).toBe("agent-beta");
+    });
+
+    it("omits agent_name query param when 'All harnesses' is selected", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve so the options are populated
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      // Select an agent first
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        expect(calls.some((c: any[]) => c[0]?.agent_name === "agent-alpha")).toBe(true);
+      });
+      mockGetMessages.mockClear();
+      // Then go back to "All harnesses"
+      fireEvent.change(agentSelect, { target: { value: "" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.agent_name).toBeUndefined();
+      });
+    });
+
+    it("includes agentFilter in hasActiveFilters so filtered-empty state appears", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve before interacting with the filter
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages match your filters");
+      });
+    });
+
+    it("clears agentFilter when Clear filters is clicked", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      // Wait for agentList to resolve before interacting with the filter
+      await vi.waitFor(() => {
+        const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+        expect(agentSelect.textContent).toContain("agent-alpha");
+      });
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: ["openai"] });
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages match your filters");
+      });
+      // Clear filters — restores data
+      mockGetMessages.mockResolvedValue(messagesData);
+      const clearBtn = container.querySelector(".btn--outline") as HTMLButtonElement;
+      fireEvent.click(clearBtn);
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        expect(calls.some((c: any[]) => !c[0]?.agent_name)).toBe(true);
+      });
+    });
+
+    it("surfaces getAgents() errors to the resource error state (not silently empty)", async () => {
+      mockAgentName = "";
+      // The loader no longer swallows errors: when getAgents() rejects the
+      // rejection propagates out of the loader so SolidJS resource transitions
+      // into error state instead of silently returning [].
+      // We verify: (1) getAgents was actually called; (2) the UI still renders
+      // the agent filter gracefully via `agentList() ?? []`.
+      mockGetAgents.mockImplementation(async () => {
+        throw new Error("network error");
+      });
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container, unmount } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(mockGetAgents).toHaveBeenCalled();
+        const selects = container.querySelectorAll('[data-testid="select"]');
+        // Agent filter still renders gracefully (agentList() ?? [] = [])
+        expect(selects[0].textContent).toContain("All harnesses");
+        expect(selects[0].textContent).not.toContain("agent-alpha");
+      });
+      // Unmount and reset before the rejection can leak into the next test.
+      unmount();
+      mockGetAgents.mockResolvedValue({ agents: [] });
+    });
+
+    it("resets page when agentFilter changes", async () => {
+      mockAgentName = "";
+      const bigData = { ...messagesData, total_count: 120, next_cursor: "cursor-2" };
+      mockGetMessages.mockResolvedValue(bigData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.querySelector('[data-testid="pagination-next"]')).not.toBeNull();
+      });
+      // Navigate to next page
+      const nextBtn = container.querySelector('[data-testid="pagination-next"]') as HTMLButtonElement;
+      mockGetMessages.mockResolvedValue({ ...bigData, next_cursor: null });
+      nextBtn.click();
+      await vi.waitFor(() => {
+        expect(mockGetMessages).toHaveBeenCalledWith(expect.objectContaining({ cursor: "cursor-2" }));
+      });
+      // Changing agent filter should reset page (no cursor)
+      mockGetMessages.mockClear();
+      mockGetMessages.mockResolvedValue(messagesData);
+      const agentSelect = container.querySelectorAll('[data-testid="select"]')[0] as HTMLSelectElement;
+      fireEvent.change(agentSelect, { target: { value: "agent-alpha" } });
+      await vi.waitFor(() => {
+        const calls = mockGetMessages.mock.calls;
+        const lastQ = calls[calls.length - 1]?.[0] ?? {};
+        expect(lastQ.cursor).toBeUndefined();
+      });
+    });
+
+    it("renders 'Harness' column header in the message table when in global mode", async () => {
+      // Fix: columns() now inserts 'agent' before 'model' when !params.agentName.
+      // This test asserts the Harness column header actually appears in the DOM,
+      // not just that the component receives the columns array.
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("gpt-4o");
+      });
+      const headers = Array.from(container.querySelectorAll("thead th"));
+      const headerTexts = headers.map((th) => th.textContent?.trim());
+      expect(headerTexts).toContain("Harness");
+    });
+
+    it("does NOT render 'Harness' column header in agent-scoped mode", async () => {
+      // mockAgentName is "test-agent" from beforeEach — agent-scoped mode.
+      // columns() returns DETAILED_COLUMNS unchanged (no 'agent' key).
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("gpt-4o");
+      });
+      const headers = Array.from(container.querySelectorAll("thead th"));
+      const headerTexts = headers.map((th) => th.textContent?.trim());
+      expect(headerTexts).not.toContain("Harness");
+    });
+
+    it("renders agent_name values in the Agent column cells in global mode", async () => {
+      // Each message row must show its agent_name in the Agent cell when
+      // the 'agent' column is included (global mode).
+      mockAgentName = "";
+      const globalMessagesData = {
+        ...messagesData,
+        items: [
+          { ...messagesData.items[0], agent_name: "alpha-bot" },
+          { ...messagesData.items[1], agent_name: "beta-bot" },
+        ],
+      };
+      mockGetMessages.mockResolvedValue(globalMessagesData);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("alpha-bot");
+        expect(container.textContent).toContain("beta-bot");
+      });
+    });
+
+    it("renders harness platform icons in global Harness column cells", async () => {
+      mockAgentName = "";
+      mockGetAgents.mockResolvedValue({
+        agents: [
+          {
+            agent_name: "alpha-bot",
+            agent_platform: "openclaw",
+            agent_category: "personal",
+          },
+        ],
+      });
+      mockGetMessages.mockResolvedValue({
+        ...messagesData,
+        items: [{ ...messagesData.items[0], agent_name: "alpha-bot" }],
+      });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("alpha-bot");
+        expect(container.querySelector('td img[src="/icons/openclaw.svg"]')).not.toBeNull();
+      });
+    });
+  });
+
+  describe("global mode title and CTA (Bug 2 + Bug 3)", () => {
+    it("renders 'Messages - Manifest' title without agent prefix in global mode", () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      const title = container.querySelector("title");
+      expect(title?.textContent).toBe("Messages - Manifest");
+    });
+
+    it("renders agent-scoped title in agent mode", () => {
+      // mockAgentName is "test-agent" from beforeEach
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      const title = container.querySelector("title");
+      expect(title?.textContent).toContain("test-agent");
+      expect(title?.textContent).toContain("Messages - Manifest");
+    });
+
+    it("does not render 'undefined' in the title in global mode", () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue(messagesData);
+      const { container } = render(() => <MessageLog />);
+      const title = container.querySelector("title");
+      expect(title?.textContent).not.toContain("undefined");
+    });
+
+    it("does not render SetupModal in global mode (no agentName)", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        // Setup modal must not be rendered when there is no agentName
+        expect(container.querySelector('[data-testid="setup-modal"]')).toBeNull();
+      });
+    });
+
+    it("shows 'Go to Harnesses' link (not SetupModal CTA) in the empty state in global mode", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages yet");
+        // Global empty state guides to /harnesses, not set-up-agent modal
+        const link = container.querySelector('a[href="/harnesses"]') as HTMLAnchorElement;
+        expect(link).not.toBeNull();
+        expect(link.textContent).toContain("Go to Harnesses");
+        // No "Set up harness" button in global mode
+        expect(container.textContent).not.toContain("Set up harness");
+      });
+    });
+
+    it("does not navigate to /harnesses/undefined/routing in global mode", async () => {
+      mockAgentName = "";
+      mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0, providers: [] });
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("No messages yet");
+      });
+      // Clicking the "Go to Harnesses" link should use the href attribute, not navigate()
+      // Verify no button triggers mockNavigate with "/harnesses/undefined/routing"
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect.stringContaining("undefined"),
+        expect.anything(),
+      );
     });
   });
 });

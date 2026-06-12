@@ -472,6 +472,19 @@
   box-shadow: 0 0 0 2px hsl(var(--destructive) / 0.2);
 }
 
+/* Inline rename: show pen icon on row hover */
+.connection-label-cell__edit {
+  opacity: 0 !important;
+  transition: opacity 0.15s;
+}
+tr:hover .connection-label-cell__edit,
+.connection-label-cell:hover .connection-label-cell__edit {
+  opacity: 0.6 !important;
+}
+.connection-label-cell__edit:hover {
+  opacity: 1 !important;
+}
+
 .provider-detail__error {
   font-size: var(--font-size-xs);
   color: hsl(var(--destructive));

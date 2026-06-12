@@ -168,6 +168,7 @@ describe('SpecificityController', () => {
       expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
       expect(mockSpecificityService.setFallbacks).toHaveBeenCalledWith(
         'agent-1',
+        'user-1',
         'coding',
         ['model-a'],
         undefined,

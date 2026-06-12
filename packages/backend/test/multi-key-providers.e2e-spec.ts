@@ -122,11 +122,14 @@ describe('Multi-key per provider — HTTP', () => {
   });
 
   it('PUT /providers/:provider/keys/order writes priority by index', async () => {
+    // Use distinct key values per test to avoid the sameKey-reactivation
+    // shortcut (which would otherwise map 'sk-work-order' to an older
+    // inactive row that has a different label and break the expected state).
     await auth(api().post('/api/v1/routing/test-agent/providers'))
-      .send({ provider: 'openai', apiKey: 'sk-personal' })
+      .send({ provider: 'openai', apiKey: 'sk-order-default' })
       .expect(201);
     await auth(api().post('/api/v1/routing/test-agent/providers'))
-      .send({ provider: 'openai', apiKey: 'sk-work', label: 'Work' })
+      .send({ provider: 'openai', apiKey: 'sk-order-work', label: 'Work' })
       .expect(201);
 
     const res = await auth(api().put('/api/v1/routing/test-agent/providers/openai/keys/order'))
@@ -139,11 +142,13 @@ describe('Multi-key per provider — HTTP', () => {
   });
 
   it('DELETE /providers/:provider?label=… removes one key and renumbers priorities', async () => {
+    // Use distinct key values per test to avoid the sameKey-reactivation
+    // shortcut matching an older inactive row with a different label.
     await auth(api().post('/api/v1/routing/test-agent/providers'))
-      .send({ provider: 'openai', apiKey: 'sk-personal' })
+      .send({ provider: 'openai', apiKey: 'sk-del-default' })
       .expect(201);
     await auth(api().post('/api/v1/routing/test-agent/providers'))
-      .send({ provider: 'openai', apiKey: 'sk-work', label: 'Work' })
+      .send({ provider: 'openai', apiKey: 'sk-del-work', label: 'Work' })
       .expect(201);
 
     await auth(api().delete('/api/v1/routing/test-agent/providers/openai?label=Default'))

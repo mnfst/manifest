@@ -166,7 +166,7 @@ const CopilotDeviceLogin: Component<Props> = (props) => {
 
       <div class="routing-modal__header" style="border: none; padding: 0; margin-bottom: 15px;">
         <div>
-          <div class="routing-modal__title">Connect providers</div>
+          <div class="routing-modal__title">Connect provider</div>
         </div>
       </div>
 

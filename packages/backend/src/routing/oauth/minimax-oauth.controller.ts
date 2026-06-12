@@ -66,6 +66,7 @@ export class MinimaxOauthController {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       'minimax',
       'subscription',
       keyLabel,

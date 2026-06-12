@@ -35,9 +35,14 @@ describe('agent delete + recreate (issue #1765)', () => {
        VALUES ($1, $2, $3, $4, 'ok', 'gpt-4o', 100, 50, 0, 0, $5, 'test-user-001', 0.001)`,
       [uuid(), TEST_TENANT_ID, v1Id, now, agentName],
     );
+    // Creating an agent now auto-assigns tier_assignments rows (symmetric
+    // global-providers auto-connect recalculates tiers on create), so a 'simple'
+    // row already exists. Upsert the override onto it rather than inserting a
+    // colliding duplicate.
     await ds.query(
       `INSERT INTO tier_assignments (id, user_id, agent_id, tier, override_route)
-       VALUES ($1, 'test-user-001', $2, 'simple', $3::jsonb)`,
+       VALUES ($1, 'test-user-001', $2, 'simple', $3::jsonb)
+       ON CONFLICT (agent_id, tier) DO UPDATE SET override_route = EXCLUDED.override_route`,
       [
         uuid(),
         v1Id,
@@ -65,8 +70,11 @@ describe('agent delete + recreate (issue #1765)', () => {
     );
     expect(remainingMessages[0].count).toBe(1);
 
+    // The v1 override tier is preserved in storage after the soft delete.
+    // (The agent also has auto-assigned tier rows from create-time recalc; we
+    // assert specifically that the override row survives.)
     const remainingTiers = await ds.query(
-      `SELECT COUNT(*)::int AS count FROM tier_assignments WHERE agent_id = $1`,
+      `SELECT COUNT(*)::int AS count FROM tier_assignments WHERE agent_id = $1 AND override_route IS NOT NULL`,
       [v1Id],
     );
     expect(remainingTiers[0].count).toBe(1);

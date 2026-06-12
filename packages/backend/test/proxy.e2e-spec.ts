@@ -1,10 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID } from './helpers';
+import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID, TEST_USER_ID } from './helpers';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
-import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
+import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
+import { TierService } from '../src/routing/routing-core/tier.service';
 
 let app: INestApplication;
 
@@ -48,13 +49,18 @@ beforeAll(async () => {
     },
   ]);
   await ds.query(
-    `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
-    [models, TEST_AGENT_ID, 'openai'],
+    `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
+    [models, TEST_USER_ID, 'openai'],
   );
 
-  // Recalculate tier assignments with the seeded models
-  const autoAssign = app.get(TierAutoAssignService);
-  await autoAssign.recalculate(TEST_AGENT_ID);
+  // Model routing is now user-controlled (auto-assign was removed). Drop the
+  // discovery cache so the just-seeded cached_models is visible, then set an
+  // explicit override so the proxy resolves a model and forwards. Short prompts
+  // ('hi'/'hello') score to the simple tier.
+  app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
+  await app
+    .get(TierService)
+    .setOverride(TEST_AGENT_ID, TEST_USER_ID, 'simple', 'gpt-4o-mini', 'openai', 'api_key');
 }, 30000);
 
 afterAll(async () => {

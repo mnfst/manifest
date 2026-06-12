@@ -196,7 +196,6 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-a',
-          agent_id: 'agent-a',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -205,7 +204,6 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-b',
-          agent_id: 'agent-b',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -225,7 +223,7 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       await service.getModelsForAgent('agent-isolated');
 
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-isolated' },
+        where: { user_id: 'agent-isolated' },
       });
     });
   });
@@ -238,7 +236,7 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       const result = await service.getModelForAgent('agent-b', 'custom:cp-agent-a/exclusive-model');
       expect(result).toBeUndefined();
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-b' },
+        where: { user_id: 'agent-b' },
       });
     });
   });

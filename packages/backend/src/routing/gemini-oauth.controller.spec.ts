@@ -166,7 +166,7 @@ describe('GeminiOauthController', () => {
       const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
 
       expect(providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-        'agent-id-1',
+        'user-1',
         'gemini',
         'subscription',
       );
@@ -174,6 +174,7 @@ describe('GeminiOauthController', () => {
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
+        'user-1',
         'gemini',
         'subscription',
         undefined,
@@ -190,6 +191,7 @@ describe('GeminiOauthController', () => {
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
+        'user-1',
         'gemini',
         'subscription',
         undefined,
@@ -208,6 +210,7 @@ describe('GeminiOauthController', () => {
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
+        'user-1',
         'gemini',
         'subscription',
         undefined,
@@ -230,6 +233,7 @@ describe('GeminiOauthController', () => {
       expect(oauthService.revokeToken).toHaveBeenCalledWith('selected-access');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
+        'user-1',
         'gemini',
         'subscription',
         'work',

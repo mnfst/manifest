@@ -108,6 +108,15 @@
 }
 
 .chart-card__stat--clickable {
+  /* These stats render as <button> for a11y — strip the native button
+     chrome (light UA background/border) so they match the card theme. */
+  appearance: none;
+  background: none;
+  border: none;
+  border-right: 1px solid hsl(var(--border));
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
   transition: all var(--transition-fast);
   position: relative;
@@ -150,19 +159,6 @@
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
-}
-
-.chart-card__savings-pct {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  line-height: 1.1;
-  color: hsl(var(--success));
-  background: hsl(var(--success) / 0.1);
-  align-self: center;
 }
 
 .chart-card__controls {
@@ -214,6 +210,7 @@
   border: none;
   border-radius: calc(var(--radius) - 2px);
   cursor: pointer;
+  text-decoration: none;
   transition: all var(--transition-fast);
 }
 

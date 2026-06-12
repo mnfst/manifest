@@ -383,10 +383,10 @@ describe('ModelDiscoveryService', () => {
       providerRepo.find.mockResolvedValue(providers);
       fetcher.fetch.mockResolvedValue([]);
 
-      await service.discoverAllForAgent('agent-1');
+      await service.discoverAllForAgent('user-1');
 
       expect(providerRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', is_active: true },
+        where: { user_id: 'user-1', is_active: true },
       });
       expect(fetcher.fetch).toHaveBeenCalledTimes(2);
     });
@@ -458,9 +458,9 @@ describe('ModelDiscoveryService', () => {
         makeModel({ id: 'gpt-4o-mini' }),
       ]);
 
-      const result = await service.refreshProvider('agent-1', 'openai', 'api_key');
+      const result = await service.refreshProvider('user-1', 'openai', 'api_key');
       expect(providerRepo.findOne).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
+        where: { user_id: 'user-1', provider: 'openai', is_active: true, auth_type: 'api_key' },
       });
       expect(result.ok).toBe(true);
       expect(result.model_count).toBe(2);
@@ -755,8 +755,8 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('serves the second call within TTL from cache (no extra DB hit)', async () => {
-      const first = await service.getModelsForAgent('agent-1');
-      const second = await service.getModelsForAgent('agent-1');
+      const first = await service.getModelsForAgent('user-1', 'agent-1');
+      const second = await service.getModelsForAgent('user-1', 'agent-1');
 
       expect(second).toEqual(first);
       // providerRepo.find is hit once for user_providers on the first call only.
@@ -765,28 +765,28 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('isolates cache entries per agent', async () => {
-      await service.getModelsForAgent('agent-1');
-      await service.getModelsForAgent('agent-2');
+      await service.getModelsForAgent('user-1', 'agent-1');
+      await service.getModelsForAgent('user-1', 'agent-2');
 
       // Distinct keys → distinct DB reads.
       expect(providerRepo.find).toHaveBeenCalledTimes(2);
     });
 
     it('refetches after invalidate(agentId)', async () => {
-      await service.getModelsForAgent('agent-1');
+      await service.getModelsForAgent('user-1', 'agent-1');
       service.invalidate('agent-1');
-      await service.getModelsForAgent('agent-1');
+      await service.getModelsForAgent('user-1', 'agent-1');
 
       expect(providerRepo.find).toHaveBeenCalledTimes(2);
     });
 
     it('only invalidates the targeted agent', async () => {
-      await service.getModelsForAgent('agent-1');
-      await service.getModelsForAgent('agent-2');
+      await service.getModelsForAgent('user-1', 'agent-1');
+      await service.getModelsForAgent('user-1', 'agent-2');
       service.invalidate('agent-1');
 
-      await service.getModelsForAgent('agent-1'); // refetch
-      await service.getModelsForAgent('agent-2'); // still cached
+      await service.getModelsForAgent('user-1', 'agent-1'); // refetch
+      await service.getModelsForAgent('user-1', 'agent-2'); // still cached
 
       expect(providerRepo.find).toHaveBeenCalledTimes(3);
     });
@@ -794,9 +794,9 @@ describe('ModelDiscoveryService', () => {
     it('refetches after the TTL expires', async () => {
       jest.useFakeTimers();
       try {
-        await service.getModelsForAgent('agent-1');
+        await service.getModelsForAgent('user-1', 'agent-1');
         jest.advanceTimersByTime(120_001);
-        await service.getModelsForAgent('agent-1');
+        await service.getModelsForAgent('user-1', 'agent-1');
         expect(providerRepo.find).toHaveBeenCalledTimes(2);
       } finally {
         jest.useRealTimers();
@@ -805,15 +805,15 @@ describe('ModelDiscoveryService', () => {
 
     it('invalidates the agent cache after discoverModels rewrites cached_models', async () => {
       // Warm the cache for agent-1.
-      await service.getModelsForAgent('agent-1');
+      await service.getModelsForAgent('user-1', 'agent-1');
       expect(providerRepo.find).toHaveBeenCalledTimes(1);
 
-      // Discover models for the same agent → cached_models change on disk →
-      // the per-agent model cache must be dropped.
+      // Discover models for the same user → cached_models change on disk →
+      // the per-user model cache must be dropped.
       fetcher.fetch.mockResolvedValue([makeModel({ id: 'gpt-4o', provider: 'openai' })]);
-      await service.discoverModels(makeProvider({ agent_id: 'agent-1' }));
+      await service.discoverModels(makeProvider({ user_id: 'user-1', agent_id: 'agent-1' }));
 
-      await service.getModelsForAgent('agent-1');
+      await service.getModelsForAgent('user-1', 'agent-1');
       // Second getModelsForAgent must hit the DB again (find called twice for
       // user_providers across the two getModelsForAgent calls).
       expect(providerRepo.find).toHaveBeenCalledTimes(2);
@@ -823,12 +823,12 @@ describe('ModelDiscoveryService', () => {
       jest.useFakeTimers();
       try {
         const cache = (service as unknown as { modelsCache: Map<string, unknown> }).modelsCache;
-        await service.getModelsForAgent('agent-1');
-        await service.getModelsForAgent('agent-2'); // sweep sees agent-1 still fresh (skip branch)
+        await service.getModelsForAgent('user-1', 'agent-1');
+        await service.getModelsForAgent('user-1', 'agent-2'); // sweep sees agent-1 still fresh (skip branch)
         expect(cache.size).toBe(2);
 
         jest.advanceTimersByTime(120_001); // agent-1 + agent-2 now expired
-        await service.getModelsForAgent('agent-3'); // sweep evicts the two stale entries
+        await service.getModelsForAgent('user-1', 'agent-3'); // sweep evicts the two stale entries
 
         expect(cache.size).toBe(1);
         expect(cache.has('agent-3')).toBe(true);

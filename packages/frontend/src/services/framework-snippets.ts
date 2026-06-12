@@ -26,7 +26,7 @@ export const TOOLKIT_TABS: ToolkitTab[] = [
   { id: 'openai-sdk', label: 'OpenAI SDK', icon: '/icons/providers/openai.svg' },
   { id: 'anthropic-sdk', label: 'Anthropic SDK', icon: '/icons/providers/anthropic.svg' },
   { id: 'vercel-ai-sdk', label: 'Vercel AI SDK', icon: '/icons/vercel.svg' },
-  { id: 'langchain', label: 'LangChain', icon: '/icons/langchain.png' },
+  { id: 'langchain', label: 'LangChain', icon: '/icons/langchain.svg' },
   { id: 'curl', label: 'cURL' },
 ];
 

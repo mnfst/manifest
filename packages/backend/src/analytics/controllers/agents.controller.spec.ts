@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { ConfigService } from '@nestjs/config';
 import type { Cache } from 'cache-manager';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { AgentsController } from './agents.controller';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
@@ -12,6 +12,15 @@ import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { ProviderService } from '../../routing/routing-core/provider.service';
+
+// Shared no-op ProviderService stub. createAgent now auto-enables every usable
+// provider on the new agent (symmetric global-providers auto-connect), so every
+// testing module that instantiates AgentsController must provide it.
+const providerServiceProvider = () => ({
+  provide: ProviderService,
+  useValue: { enableAllProvidersForAgent: jest.fn().mockResolvedValue(undefined) },
+});
 
 describe('AgentsController', () => {
   let controller: AgentsController;
@@ -120,6 +129,7 @@ describe('AgentsController', () => {
           provide: IngestEventBusService,
           useValue: { emit: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -134,7 +144,7 @@ describe('AgentsController', () => {
 
     expect(result.agents).toHaveLength(2);
     expect(result.agents[0].agent_name).toBe('bot-1');
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123');
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123', false);
   });
 
   it('passes undefined tenantId when tenant not found', async () => {
@@ -142,7 +152,14 @@ describe('AgentsController', () => {
     const user = { id: 'u1' };
     await controller.getAgents(user as never);
 
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined);
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined, false);
+  });
+
+  it('passes includePlayground=true through to getAgentList (Messages filter)', async () => {
+    const user = { id: 'u1' };
+    await controller.getAgents(user as never, 'true');
+
+    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123', true);
   });
 
   it('GET /agents/:agentName returns metadata for an existing agent', async () => {
@@ -229,7 +246,10 @@ describe('AgentsController', () => {
 
     expect(result).toEqual({ renamed: true, name: 'bot-renamed', display_name: 'Bot Renamed' });
     expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed', 'Bot Renamed');
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=false');
+    // The Messages-filter variant (playground agents included) is a distinct cache
+    // entry and must also be cleared so it never goes stale after a rename.
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=true');
   });
 
   it('rejects rename with empty slug', async () => {
@@ -239,13 +259,31 @@ describe('AgentsController', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('rejects rename to the reserved "Playground" name', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.updateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+    ).rejects.toThrow(/reserved/i);
+    expect(mockRenameAgent).not.toHaveBeenCalled();
+  });
+
+  it('rejects createAgent with the reserved "Playground" name', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.createAgent(user as never, { name: 'Playground' } as never),
+    ).rejects.toThrow(/reserved/i);
+  });
+
   it('deletes agent and returns success', async () => {
     const user = { id: 'u1' };
     const result = await controller.deleteAgent(user as never, 'bot-1');
 
     expect(result).toEqual({ deleted: true });
     expect(mockDeleteAgent).toHaveBeenCalledWith('u1', 'bot-1');
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+    // Both canonical variants are cleared so neither the Workspace list nor the
+    // Messages filter (playground agents included) goes stale after a delete.
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=true');
   });
 
   it('passes agent_category and agent_platform to onboardAgent', async () => {
@@ -284,6 +322,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -346,6 +385,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -406,6 +446,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: mockInvalidate },
         },
+        providerServiceProvider(),
       ],
     }).compile();
     const ctrl = module.get<AgentsController>(AgentsController);
@@ -456,6 +497,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -466,7 +508,10 @@ describe('AgentsController', () => {
     const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
 
     expect(result.agent.name).toBe('my-agent');
-    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents');
+    // Both canonical variants are cleared so neither the Workspace list nor the
+    // Messages filter (playground agents included) goes stale after a create.
+    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:playground=false');
+    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:playground=true');
   });
 
   it('rejects createAgent with empty slug', async () => {
@@ -501,6 +546,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -545,6 +591,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 
@@ -586,7 +633,10 @@ describe('AgentsController', () => {
       name: 'bot-copy',
       displayName: 'Bot Copy',
     });
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents');
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=false');
+    // The Messages-filter variant (playground agents included) is a distinct cache
+    // entry and must also be cleared so it never goes stale after a duplicate.
+    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=true');
   });
 
   it('rejects duplicateAgent with empty slug', async () => {
@@ -612,6 +662,35 @@ describe('AgentsController', () => {
     await expect(
       controller.duplicateAgent(user as never, 'bot-1', { name: 'bot-copy' } as never),
     ).rejects.toThrow('boom');
+  });
+
+  // P1-B: duplicate must honor the reserved name
+  it('rejects duplicateAgent with the reserved "Playground" name', async () => {
+    const user = { id: 'u1' };
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      controller.duplicateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+    ).rejects.toThrow(/reserved/i);
+    expect(mockDuplicate).not.toHaveBeenCalled();
+  });
+
+  // P1-A: key endpoints must reject the reserved "Playground" agent
+  it('getAgentKey throws NotFoundException for the reserved "Playground" agent', async () => {
+    // findAgentInfo returns null for playground agents (is_playground = false filter)
+    // which is the same shape as a missing agent — NotFoundException is thrown.
+    const user = { id: 'u1' };
+    await expect(controller.getAgentKey(user as never, 'Playground')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('rotateAgentKey throws NotFoundException for the reserved "Playground" agent', async () => {
+    const user = { id: 'u1' };
+    await expect(controller.rotateAgentKey(user as never, 'Playground')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('re-throws non-duplicate QueryFailedError from onboardAgent', async () => {
@@ -647,6 +726,7 @@ describe('AgentsController', () => {
           provide: AgentRecordingCacheService,
           useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
         },
+        providerServiceProvider(),
       ],
     }).compile();
 

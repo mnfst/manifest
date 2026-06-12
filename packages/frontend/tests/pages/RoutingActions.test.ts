@@ -205,7 +205,7 @@ describe("createRoutingActions", () => {
       await actions.handleReset("simple");
       expect(mockResetTier).toHaveBeenCalledWith("demo", "simple");
       expect(actions.getTier("simple")?.override_route).toBeNull();
-      expect(mockToastSuccess).toHaveBeenCalledWith("Tier reset to auto");
+      expect(mockToastSuccess).toHaveBeenCalledWith("Tier route cleared");
     });
 
     it("clears resettingTier even when reset fails", async () => {
@@ -229,7 +229,7 @@ describe("createRoutingActions", () => {
       const t = actions.getTier("simple");
       expect(t?.override_route).toBeNull();
       expect(t?.fallback_routes).toBeNull();
-      expect(mockToastSuccess).toHaveBeenCalledWith("All tiers reset to auto");
+      expect(mockToastSuccess).toHaveBeenCalledWith("All tier routes cleared");
     });
 
     it("clears resettingAll even when reset fails", async () => {
@@ -366,24 +366,28 @@ describe("createRoutingActions", () => {
       expect(actions.getTier("simple")?.override_route?.keyLabel).toBe("Work");
     });
 
-    it("falls back to auto_assigned_route's model when the tier has no override", async () => {
+    it("does not pin a legacy auto_assigned_route when the tier has no override", async () => {
       mockOverrideTier.mockResolvedValue({ ...baseTier });
       const { actions } = setupActions();
       await actions.handlePinKey("simple", "openai", "Personal");
-      // baseTier.auto_assigned_route.model = "auto-1"
-      expect(mockOverrideTier).toHaveBeenCalledWith(
-        "demo",
-        "simple",
-        "auto-1",
-        "openai",
-        "api_key",
-        "Personal",
-      );
+      expect(mockOverrideTier).not.toHaveBeenCalled();
     });
 
     it("emits a 'Key pin cleared' toast when providerKeyLabel is null", async () => {
-      mockOverrideTier.mockResolvedValue({ ...baseTier });
-      const { actions } = setupActions();
+      const tier = {
+        ...baseTier,
+        override_route: {
+          provider: "openai",
+          authType: "api_key" as const,
+          model: "gpt-4o",
+          keyLabel: "Work",
+        },
+      };
+      mockOverrideTier.mockResolvedValue({
+        ...tier,
+        override_route: { provider: "openai", authType: "api_key" as const, model: "gpt-4o" },
+      });
+      const { actions } = setupActions([tier]);
       await actions.handlePinKey("simple", "openai", null);
       expect(mockToastSuccess).toHaveBeenCalledWith("Key pin cleared");
     });

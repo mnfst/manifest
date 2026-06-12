@@ -98,7 +98,6 @@ export default defineConfig(({ command }) => ({
         'src/components/CostChart.tsx',
         'src/components/TokenChart.tsx',
         'src/components/SingleTokenChart.tsx',
-        'src/components/SavingsChart.tsx',
         'src/components/Sparkline.tsx',
       ],
     },

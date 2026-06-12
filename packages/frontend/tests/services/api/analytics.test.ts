@@ -56,37 +56,119 @@ describe('analytics API client', () => {
     expect(url).toContain('/api/v1/model-prices');
   });
 
-  it('getSavings forwards range, agent_name, and baseline params', async () => {
+  it('getProviderAnalytics forwards auth_type, range and optional filters', async () => {
     const fetchMock = setupFetch({});
-    await analytics.getSavings('7d', 'demo', 'gpt-4o');
+    await analytics.getProviderAnalytics('subscription', '7d', 'demo', 'openai');
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/savings');
+    expect(url).toContain('/api/v1/provider-analytics');
+    expect(url).toContain('auth_type=subscription');
     expect(url).toContain('range=7d');
     expect(url).toContain('agent_name=demo');
-    expect(url).toContain('baseline=gpt-4o');
+    expect(url).toContain('provider=openai');
   });
 
-  it('getSavings omits baseline when not provided', async () => {
+  it('getProviderAnalytics omits agent_name, provider and connection_id when absent', async () => {
     const fetchMock = setupFetch({});
-    await analytics.getSavings('7d', 'demo');
+    await analytics.getProviderAnalytics('api_key');
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).not.toContain('baseline=');
+    expect(url).toContain('auth_type=api_key');
+    expect(url).toContain('range=24h');
+    expect(url).not.toContain('agent_name=');
+    expect(url).not.toContain('provider=');
+    expect(url).not.toContain('connection_id=');
   });
 
-  it('getBaselineCandidates forwards agent_name', async () => {
-    const fetchMock = setupFetch([]);
-    await analytics.getBaselineCandidates('demo');
+  it('getProviderAnalytics forwards connection_id when provided', async () => {
+    const fetchMock = setupFetch({});
+    await analytics.getProviderAnalytics('api_key', '7d', undefined, 'openai', 'Work', 'conn-1');
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/savings/baseline-candidates');
-    expect(url).toContain('agent_name=demo');
+    expect(url).toContain('connection_id=conn-1');
   });
 
-  it('getSavingsTimeseries forwards range and agent_name', async () => {
-    const fetchMock = setupFetch([]);
-    await analytics.getSavingsTimeseries('30d', 'demo');
+  it('getProviderAnalyticsAgents forwards auth_type', async () => {
+    const fetchMock = setupFetch({ agents: [] });
+    await analytics.getProviderAnalyticsAgents('subscription');
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/savings/timeseries');
-    expect(url).toContain('range=30d');
-    expect(url).toContain('agent_name=demo');
+    expect(url).toContain('/api/v1/provider-analytics/agents');
+    expect(url).toContain('auth_type=subscription');
+  });
+
+  it('per-agent timeseries endpoints forward auth_type + provider + range', async () => {
+    const fns: Array<[(a: string, p: string, r?: string) => unknown, string]> = [
+      [analytics.getPerAgentTimeseries, 'per-agent-timeseries'],
+      [analytics.getPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
+      [analytics.getPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
+    ];
+    for (const [fn, path] of fns) {
+      const fetchMock = setupFetch({ agents: [], timeseries: [] });
+      await fn('subscription', 'openai', '30d');
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain(`/api/v1/provider-analytics/${path}`);
+      expect(url).toContain('auth_type=subscription');
+      expect(url).toContain('provider=openai');
+      expect(url).toContain('range=30d');
+      expect(url).not.toContain('connection_id=');
+    }
+  });
+
+  it('per-agent timeseries endpoints forward connection_id when provided', async () => {
+    const fns: Array<[(a: string, p: string, r?: string, l?: string, c?: string) => unknown, string]> =
+      [
+        [analytics.getPerAgentTimeseries, 'per-agent-timeseries'],
+        [analytics.getPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
+        [analytics.getPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
+      ];
+    for (const [fn, path] of fns) {
+      const fetchMock = setupFetch({ agents: [], timeseries: [] });
+      await fn('subscription', 'openai', '30d', 'Work', 'conn-7');
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain(`/api/v1/provider-analytics/${path}`);
+      expect(url).toContain('connection_id=conn-7');
+    }
+  });
+
+  it('getConnectionDetail forwards connection_id', async () => {
+    const fetchMock = setupFetch({});
+    await analytics.getConnectionDetail('conn-1');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/provider-analytics/connection-detail');
+    expect(url).toContain('connection_id=conn-1');
+  });
+
+  it('global per-* timeseries endpoints forward range', async () => {
+    const fns: Array<[(r?: string) => unknown, string]> = [
+      [analytics.getGlobalPerAgentTimeseries, 'per-agent-timeseries'],
+      [analytics.getGlobalPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
+      [analytics.getGlobalPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
+      [analytics.getGlobalPerProviderTimeseries, 'per-provider-timeseries'],
+      [analytics.getGlobalPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
+      [analytics.getGlobalPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
+      [analytics.getGlobalPerModelTimeseries, 'per-model-timeseries'],
+      [analytics.getGlobalPerModelMessageTimeseries, 'per-model-message-timeseries'],
+      [analytics.getGlobalPerModelCostTimeseries, 'per-model-cost-timeseries'],
+    ];
+    for (const [fn, path] of fns) {
+      const fetchMock = setupFetch({ agents: [], timeseries: [] });
+      await fn('7d');
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain(`/api/v1/overview/${path}`);
+      expect(url).toContain('range=7d');
+    }
+  });
+
+  it('agent-scoped per-provider timeseries endpoints forward agent_name + range', async () => {
+    const fns: Array<[(a: string, r?: string) => unknown, string]> = [
+      [analytics.getPerProviderTimeseries, 'per-provider-timeseries'],
+      [analytics.getPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
+      [analytics.getPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
+    ];
+    for (const [fn, path] of fns) {
+      const fetchMock = setupFetch({ agents: [], timeseries: [] });
+      await fn('demo', '30d');
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain(`/api/v1/overview/${path}`);
+      expect(url).toContain('agent_name=demo');
+      expect(url).toContain('range=30d');
+    }
   });
 });

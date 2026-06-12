@@ -31,6 +31,7 @@ describe('ProviderController', () => {
       reorderKeys: jest.fn(),
       deactivateAllProviders: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      recalculateTiersForUser: jest.fn().mockResolvedValue(undefined),
     };
     mockDiscoveryService = {
       discoverModels: jest.fn().mockResolvedValue([]),
@@ -141,7 +142,7 @@ describe('ProviderController', () => {
 
       const result = await controller.getProviders(mockUser, mockAgentName);
 
-      expect(mockProviderService.getProviders).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.getProviders).toHaveBeenCalledWith('user-1');
       expect(result).toEqual([
         {
           id: 'p1',
@@ -297,7 +298,9 @@ describe('ProviderController', () => {
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
     });
 
-    it('should call recalculateTiers after discovery in upsertProvider', async () => {
+    it('discovers models without routing agents when the provider is new', async () => {
+      // A brand-new provider is global + ON for every owned agent, but routes
+      // remain user-controlled after discovery.
       const providerResult = { id: 'p1', provider: 'openai', is_active: true };
       mockProviderService.upsertProvider.mockResolvedValue({
         provider: providerResult,
@@ -309,7 +312,28 @@ describe('ProviderController', () => {
         apiKey: 'sk-test',
       });
 
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+    });
+
+    it('discovers models without routing agents on an existing-row reconnect', async () => {
+      // Reconnecting an existing provider row still preserves each sibling
+      // agent's per-agent disable state.
+      const providerResult = { id: 'p1', provider: 'openai', is_active: true };
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: providerResult,
+        isNew: false,
+      });
+
+      await controller.upsertProvider(mockUser, mockAgentName, {
+        provider: 'openai',
+        apiKey: 'sk-test',
+      });
+
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerResult);
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
     });
 
     it('should swallow discovery errors silently', async () => {
@@ -553,7 +577,10 @@ describe('ProviderController', () => {
     it('should return ok after deactivating all', async () => {
       const result = await controller.deactivateAllProviders(mockUser, mockAgentName);
 
-      expect(mockProviderService.deactivateAllProviders).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.deactivateAllProviders).toHaveBeenCalledWith(
+        TEST_AGENT_ID,
+        'user-1',
+      );
       expect(result).toEqual({ ok: true });
     });
   });
@@ -572,6 +599,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.removeProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'openai',
         undefined,
         undefined,
@@ -601,6 +629,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.removeProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         'subscription',
         undefined,
@@ -628,7 +657,12 @@ describe('ProviderController', () => {
       await expect(
         controller.getProviders(mockUser, { agentName: 'nonexistent' } as never),
       ).rejects.toThrow(NotFoundException);
-      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent');
+      // getProviders passes { allowPlayground: true } so the Playground agent can be
+      // read; the NotFoundException originates from the service mock, not the
+      // is_playground check.
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'nonexistent', {
+        allowPlayground: true,
+      });
     });
 
     it('should resolve agent and pass its id to service methods', async () => {
@@ -638,7 +672,7 @@ describe('ProviderController', () => {
       await controller.getStatus(mockUser, { agentName: 'my-agent' } as never);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-      expect(mockProviderService.getProviders).toHaveBeenCalledWith('agent-xyz');
+      expect(mockProviderService.getProviders).toHaveBeenCalledWith('user-1');
     });
 
     it('should propagate NotFoundException through upsertProvider', async () => {
@@ -650,6 +684,22 @@ describe('ProviderController', () => {
           apiKey: 'sk-test',
         }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('upsertProvider passes { allowPlayground: true } so the Playground agent can connect providers', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'openai', is_active: true },
+        isNew: false,
+      });
+
+      await controller.upsertProvider(mockUser, { agentName: 'Playground' } as never, {
+        provider: 'openai',
+        apiKey: 'sk-test',
+      });
+
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'Playground', {
+        allowPlayground: true,
+      });
     });
 
     it('should propagate NotFoundException through removeProvider', async () => {
@@ -687,6 +737,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.renameKey).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'openai',
         'api_key',
         'Personal',
@@ -718,6 +769,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.renameKey).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'anthropic',
         'subscription',
         'Default',
@@ -741,6 +793,7 @@ describe('ProviderController', () => {
 
       expect(mockProviderService.reorderKeys).toHaveBeenCalledWith(
         TEST_AGENT_ID,
+        'user-1',
         'openai',
         'api_key',
         ['Work', 'Personal'],

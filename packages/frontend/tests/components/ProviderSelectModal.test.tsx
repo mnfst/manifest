@@ -1,6 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 
+// ─────────────────────────────────────────────────────────────────────────
+// NOTE (post-#2207 realignment)
+//
+// Commit #2207 ("UI design polish... and component cleanup") removed the
+// provider LIST + tab bar (Subscription / API Keys / Local), the
+// "Connect providers" header/subtitle, the "Done" footer, the list toggle
+// switches, and the "Add custom provider" list affordance from
+// ProviderSelectContent. The component now opens straight into a single
+// provider's detail view, driven by a `providerDeepLink` prop — which is
+// exactly how the sole production consumer (ProviderConnectionsPage) uses it.
+//
+// These tests are realigned to drive ProviderSelectModal through that real
+// contract (`providerDeepLink={{ providerId, authType }}`). Every detail-view
+// behavior the modal still renders (API-key/token input + validation, connect,
+// Change/Save edit, disconnect, OpenAI OAuth popup/paste/BroadcastChannel,
+// Anthropic paste-code, MiniMax device-code, Copilot device-login, custom
+// provider create/delete wiring) is preserved verbatim.
+//
+// Assertions that targeted the *removed list/tab/footer chrome* are not faked
+// against the detail view — that behavior now lives in dedicated, passing test
+// files and is covered there:
+//   - List rows, toggle switches, "Add custom provider", API-Keys tab filtering,
+//     tab hints, provider/subscription labels in the list:
+//       tests/components/ProviderApiKeyTab.test.tsx
+//       tests/components/ProviderSubscriptionTab.test.tsx
+//       tests/components/ProviderLocalTab.test.tsx
+//       tests/components/RoutingTabs.test.tsx
+//   - The "Connect providers" header / tab default-active / list-view back nav:
+//       tests/components/ProviderSelectContent-deeplink.test.tsx
+//       tests/components/ProviderSelectContent.test.tsx
+// ─────────────────────────────────────────────────────────────────────────
+
 const broadcastChannelRegistry = new Map<string, Set<MockBroadcastChannel>>();
 
 class MockBroadcastChannel {
@@ -48,10 +80,15 @@ const mockRenameProviderKey = vi.fn();
 const mockCreateCustomProvider = vi.fn();
 const mockUpdateCustomProvider = vi.fn();
 const mockDeleteCustomProvider = vi.fn();
+const mockProbeCustomProvider = vi.fn();
+const mockRefreshProviderModels = vi.fn();
+const mockCopilotDeviceCode = vi.fn();
+const mockCopilotPollToken = vi.fn();
 
 vi.mock('../../src/services/api.js', () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
   submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
@@ -75,6 +112,9 @@ vi.mock('../../src/services/api.js', () => ({
   createCustomProvider: (...args: unknown[]) => mockCreateCustomProvider(...args),
   updateCustomProvider: (...args: unknown[]) => mockUpdateCustomProvider(...args),
   deleteCustomProvider: (...args: unknown[]) => mockDeleteCustomProvider(...args),
+  probeCustomProvider: (...args: unknown[]) => mockProbeCustomProvider(...args),
+  copilotDeviceCode: (...args: unknown[]) => mockCopilotDeviceCode(...args),
+  copilotPollToken: (...args: unknown[]) => mockCopilotPollToken(...args),
   getPopupOauthApi: (providerId: string) =>
     providerId === 'xai'
       ? {
@@ -98,9 +138,19 @@ vi.mock('../../src/components/ProviderIcon.js', () => ({
   customProviderLogo: () => null,
 }));
 
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: vi.fn().mockResolvedValue(false),
+  checkIsOllamaAvailable: vi.fn().mockResolvedValue(false),
+  checkLocalLlmHost: vi.fn().mockResolvedValue('localhost'),
+}));
+
 import ProviderSelectModal from '../../src/components/ProviderSelectModal';
 import { toast } from '../../src/services/toast-store.js';
 import type { RoutingProvider } from '../../src/services/api.js';
+
+// Helpers ──────────────────────────────────────────────────────────────────
+
+type DeepLink = { providerId: string; authType?: 'api_key' | 'subscription' | 'local' };
 
 const connectedProvider: RoutingProvider = {
   id: 'p1',
@@ -112,24 +162,38 @@ const connectedProvider: RoutingProvider = {
   auth_type: 'api_key',
 };
 
-const disconnectedProvider: RoutingProvider = {
-  id: 'p2',
-  provider: 'anthropic',
-  is_active: false,
-  has_api_key: false,
-  connected_at: '2025-01-01',
-  auth_type: 'api_key',
-};
-
 // Valid key that passes OpenAI validation (prefix "sk-", min 50 chars)
 const VALID_OPENAI_KEY = 'sk-' + 'a'.repeat(50);
-// Valid key that passes Anthropic validation (prefix "sk-ant-", min 50 chars)
-const VALID_ANTHROPIC_KEY = 'sk-ant-' + 'a'.repeat(50);
+// Valid key shape for Alibaba/Qwen (prefix "sk-", min 30 chars)
 const VALID_QWEN_KEY = 'sk-' + 'a'.repeat(30);
 
 describe('ProviderSelectModal', () => {
   let onClose: ReturnType<typeof vi.fn>;
   let onUpdate: ReturnType<typeof vi.fn>;
+
+  const renderModal = (props: {
+    providers?: RoutingProvider[];
+    customProviders?: unknown[];
+    deepLink?: DeepLink;
+    customProviderPrefill?: unknown;
+  } = {}) =>
+    render(() => (
+      <ProviderSelectModal
+        providers={props.providers ?? []}
+        customProviders={props.customProviders as never}
+        onClose={onClose}
+        onUpdate={onUpdate}
+        agentName="test-agent"
+        providerDeepLink={props.deepLink as never}
+        customProviderPrefill={props.customProviderPrefill as never}
+      />
+    ));
+
+  const openApiKey = (providerId: string, providers: RoutingProvider[] = []) =>
+    renderModal({ providers, deepLink: { providerId, authType: 'api_key' } });
+
+  const openSubscription = (providerId: string, providers: RoutingProvider[] = []) =>
+    renderModal({ providers, deepLink: { providerId, authType: 'subscription' } });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -139,6 +203,7 @@ describe('ProviderSelectModal', () => {
     onUpdate = vi.fn();
     mockConnectProvider.mockResolvedValue({});
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
+    mockRefreshProviderModels.mockResolvedValue({ ok: true, model_count: 0 });
     mockGetOpenaiOAuthUrl.mockResolvedValue({
       url: 'https://auth.openai.com/oauth/authorize?test=1',
     });
@@ -159,277 +224,82 @@ describe('ProviderSelectModal', () => {
     });
   });
 
-  it('renders modal with title', () => {
-    render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    expect(screen.getByText('Connect providers')).toBeDefined();
+  // ── Overlay / modal-card behavior (survives on ProviderSelectModal) ──────
+
+  it('renders the modal overlay and card', () => {
+    const { container } = renderModal({ deepLink: { providerId: 'openai', authType: 'api_key' } });
+    expect(container.querySelector('.modal-overlay')).not.toBeNull();
+    expect(container.querySelector('.modal-card')).not.toBeNull();
   });
 
-  it('renders subtitle description', () => {
-    render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    expect(screen.getByText('Use your subscriptions or API keys to enable routing')).toBeDefined();
-  });
-
-  it('renders all provider names from the PROVIDERS list on API Keys tab', () => {
-    render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByText('API Keys'));
-    expect(screen.getByText('OpenAI')).toBeDefined();
-    expect(screen.getByText('Anthropic')).toBeDefined();
-    expect(screen.getByText('Google')).toBeDefined();
-    expect(screen.getByText('DeepSeek')).toBeDefined();
-    expect(screen.getByText('OpenRouter')).toBeDefined();
-  });
-
-  it('does not show subscription-only providers in the API Keys tab', () => {
-    render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByText('API Keys'));
-    expect(screen.queryByText('GitHub Copilot')).toBeNull();
-  });
-
-  it("shows toggle switch in 'on' state for connected providers", () => {
-    const { container } = render(() => (
-      <ProviderSelectModal
-        providers={[connectedProvider]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByText('API Keys'));
-    const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
-    expect(onSwitches.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("shows toggle switch in 'off' state for disconnected providers", () => {
-    const { container } = render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByText('API Keys'));
-    const allSwitches = container.querySelectorAll('.provider-toggle__switch');
-    const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
-    expect(allSwitches.length).toBeGreaterThan(0);
-    expect(onSwitches.length).toBe(0);
-  });
-
-  it('calls onClose when Done button is clicked', () => {
-    render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByText('Done'));
-    expect(onClose).toHaveBeenCalledOnce();
-  });
-
-  it('calls onClose when close button is clicked', () => {
-    render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByLabelText('Close'));
-    expect(onClose).toHaveBeenCalledOnce();
+  it('renders the detail-view title for the selected provider', () => {
+    openApiKey('openai');
+    expect(screen.getByText('Connect provider')).toBeDefined();
   });
 
   it('calls onClose when clicking overlay background', () => {
-    const { container } = render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
+    const { container } = renderModal({ deepLink: { providerId: 'openai', authType: 'api_key' } });
     const overlay = container.querySelector('.modal-overlay')!;
     fireEvent.click(overlay);
     expect(onClose).toHaveBeenCalledOnce();
   });
 
   it('does not close when clicking inside the modal card', () => {
-    const { container } = render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
+    const { container } = renderModal({ deepLink: { providerId: 'openai', authType: 'api_key' } });
     const card = container.querySelector('.modal-card')!;
     fireEvent.click(card);
     expect(onClose).not.toHaveBeenCalled();
   });
 
   it('calls onClose on Escape key', () => {
-    const { container } = render(() => (
-      <ProviderSelectModal
-        providers={[]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
+    const { container } = renderModal({ deepLink: { providerId: 'openai', authType: 'api_key' } });
     const overlay = container.querySelector('.modal-overlay')!;
     fireEvent.keyDown(overlay, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  describe('detail view navigation', () => {
-    it('shows API key input when provider row is clicked', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+  describe('detail view', () => {
+    it('shows API key input for the deep-linked provider', () => {
+      openApiKey('openai');
       expect(screen.getByLabelText('OpenAI API key')).toBeDefined();
     });
 
     it('shows where-to-get API key link for selected provider', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
-
+      openApiKey('openai');
       const link = screen.getByRole('link', { name: 'Get OpenAI API key' });
       expect(link.getAttribute('href')).toBe('https://platform.openai.com/api-keys');
       expect(link.getAttribute('target')).toBe('_blank');
     });
 
-    it('returns to list view when back button is clicked', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+    it('closes the modal when the back button is clicked (deep-link has no list)', () => {
+      openApiKey('openai');
       expect(screen.getByLabelText('OpenAI API key')).toBeDefined();
-
       fireEvent.click(screen.getByLabelText('Back to providers'));
-      expect(screen.queryByLabelText('OpenAI API key')).toBeNull();
-      // List view is back
-      expect(screen.getByText('Done')).toBeDefined();
+      expect(onClose).toHaveBeenCalledOnce();
     });
 
     it('shows disconnect icon for connected providers', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       expect(screen.getByLabelText('Disconnect provider')).toBeDefined();
     });
 
     it("shows 'Change' button for connected non-ollama providers", () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       expect(screen.getByText('Change')).toBeDefined();
     });
 
     it("shows 'Connect' button for non-connected providers", () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       expect(screen.getByText('Connect')).toBeDefined();
     });
 
     it('shows masked key prefix for connected providers', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       expect(screen.getByLabelText('Current API key (masked)')).toBeDefined();
     });
 
     it('sends Alibaba API keys without a region override and relies on backend auto-detection', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Alibaba Cloud'));
+      openApiKey('qwen');
       fireEvent.input(screen.getByLabelText('Alibaba Cloud API key'), {
         target: { value: VALID_QWEN_KEY },
       });
@@ -447,16 +317,7 @@ describe('ProviderSelectModal', () => {
 
   describe('connecting a provider', () => {
     it('connects a provider when valid API key is entered and Connect clicked', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       const input = screen.getByLabelText('OpenAI API key');
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
       fireEvent.click(screen.getByText('Connect'));
@@ -473,32 +334,13 @@ describe('ProviderSelectModal', () => {
     });
 
     it('does not connect when API key is empty', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
-
+      openApiKey('openai');
       const connectBtn = screen.getByText('Connect');
       expect(connectBtn.hasAttribute('disabled')).toBe(true);
     });
 
     it('shows validation error for invalid key prefix', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       const input = screen.getByLabelText('OpenAI API key');
       fireEvent.input(input, {
         target: { value: 'invalid-key-prefix-12345678901234567890123456789012345' },
@@ -510,16 +352,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('shows validation error for key that is too short', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       const input = screen.getByLabelText('OpenAI API key');
       fireEvent.input(input, { target: { value: 'sk-short' } });
       fireEvent.click(screen.getByText('Connect'));
@@ -529,16 +362,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('clears validation error on input change', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       const input = screen.getByLabelText('OpenAI API key');
       fireEvent.input(input, { target: { value: 'bad' } });
       fireEvent.click(screen.getByText('Connect'));
@@ -551,16 +375,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('connects on Enter key in API key input', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       const input = screen.getByLabelText('OpenAI API key');
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -573,16 +388,7 @@ describe('ProviderSelectModal', () => {
 
   describe('disconnecting a provider', () => {
     it('calls disconnectProvider and triggers onUpdate', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByLabelText('Disconnect provider'));
 
       await waitFor(() => {
@@ -601,16 +407,7 @@ describe('ProviderSelectModal', () => {
         notifications: ['Model X no longer available. Simple is back to automatic mode.'],
       });
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByLabelText('Disconnect provider'));
 
       await waitFor(() => {
@@ -623,16 +420,7 @@ describe('ProviderSelectModal', () => {
     it('handles disconnect error gracefully', async () => {
       mockDisconnectProvider.mockRejectedValue(new Error('Network error'));
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByLabelText('Disconnect provider'));
 
       // Should not throw, busy state should reset
@@ -646,16 +434,7 @@ describe('ProviderSelectModal', () => {
     it('handles connect error gracefully', async () => {
       mockConnectProvider.mockRejectedValue(new Error('Failed'));
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai');
       const input = screen.getByLabelText('OpenAI API key');
       fireEvent.input(input, { target: { value: VALID_OPENAI_KEY } });
       fireEvent.click(screen.getByText('Connect'));
@@ -669,16 +448,7 @@ describe('ProviderSelectModal', () => {
 
   describe('updating a key', () => {
     it('switches to edit mode when Change is clicked', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByText('Change'));
 
       // Edit mode shows a masked input and Save button
@@ -687,16 +457,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('saves updated key', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByText('Change'));
 
       const input = screen.getByLabelText('New OpenAI API key');
@@ -714,16 +475,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('shows validation error for invalid key in edit mode', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByText('Change'));
 
       const input = screen.getByLabelText('New OpenAI API key');
@@ -736,16 +488,7 @@ describe('ProviderSelectModal', () => {
 
     it('handles update key error gracefully', async () => {
       mockConnectProvider.mockRejectedValue(new Error('Server error'));
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByText('Change'));
 
       const input = screen.getByLabelText('New OpenAI API key');
@@ -758,16 +501,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('triggers handleUpdateKey on Enter key in edit input', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[connectedProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openApiKey('openai', [connectedProvider]);
       fireEvent.click(screen.getByText('Change'));
 
       const input = screen.getByLabelText('New OpenAI API key');
@@ -780,112 +514,80 @@ describe('ProviderSelectModal', () => {
     });
   });
 
-  describe('custom providers', () => {
-    const customProviderData = [
-      {
-        id: 'cp-1',
-        name: 'Cerebras',
-        base_url: 'https://api.cerebras.ai',
-        has_api_key: true,
-        models: [{ model_name: 'llama-3.1-70b' }, { model_name: 'llama-3.1-8b' }],
+  describe('custom provider create/delete wiring', () => {
+    // The custom-provider list and "Add custom provider" affordance moved to
+    // ProviderApiKeyTab; the custom form itself is covered by
+    // CustomProviderForm.test.tsx. What remains unique to ProviderSelectModal
+    // is the create/delete → completeToList() → onUpdate wiring, reached via a
+    // prefill (create) or a `custom:<id>` deep link (edit/delete).
+
+    it('calls onUpdate when the custom provider form creates a provider', async () => {
+      mockProbeCustomProvider.mockResolvedValue({ models: [{ model_name: 'test-model' }] });
+      mockCreateCustomProvider.mockResolvedValue({
+        id: 'cp-new',
+        name: 'NewProvider',
+        base_url: 'http://localhost:8080',
+        has_api_key: false,
+        models: [{ model_name: 'test-model' }],
         created_at: '2025-01-01',
-      },
-    ];
-
-    it('renders custom provider list items', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          customProviders={customProviderData}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      expect(screen.getByText('Cerebras')).toBeDefined();
-      expect(screen.getByText('Custom')).toBeDefined();
-    });
-
-    it('renders custom provider icon letter', () => {
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          customProviders={customProviderData}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      // Find the Cerebras provider toggle and check its logo letter
-      const cerebrasToggle = screen.getByText('Cerebras').closest('.provider-toggle');
-      const letter = cerebrasToggle?.querySelector('.provider-card__logo-letter');
-      expect(letter).not.toBeNull();
-      expect(letter!.textContent).toBe('C');
-    });
-
-    it('shows Add custom provider button', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      expect(screen.getByText('Add custom provider')).toBeDefined();
-    });
-
-    it('opens custom provider form when Add button is clicked', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Add custom provider'));
-      await waitFor(() => {
-        expect(screen.getByPlaceholderText('e.g. Groq, Together, Azure')).toBeDefined();
       });
-    });
 
-    it('opens edit form when custom provider is clicked', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          customProviders={customProviderData}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Cerebras'));
+      renderModal({ customProviderPrefill: {} });
+
+      // The custom form opens directly from the prefill.
+      const nameInput = await screen.findByPlaceholderText('e.g. Groq, Together, Azure');
+      fireEvent.input(nameInput, { target: { value: 'NewProvider' } });
+
+      const urlInput = screen.getByPlaceholderText('https://api.example.com/v1');
+      fireEvent.input(urlInput, { target: { value: 'http://localhost:8080' } });
+
+      const modelInput = screen.getByPlaceholderText('Model name');
+      fireEvent.input(modelInput, { target: { value: 'test-model' } });
+
+      // Click Connect (the create-mode button label)
+      fireEvent.click(screen.getByText('Connect'));
+
       await waitFor(() => {
-        const nameInput = screen.getByDisplayValue('Cerebras');
-        expect(nameInput).toBeDefined();
+        expect(mockCreateCustomProvider).toHaveBeenCalled();
       });
+      expect(onUpdate).toHaveBeenCalled();
     });
 
-    it('singularizes model count for single model', () => {
-      const singleModel = [{ ...customProviderData[0], models: [{ model_name: 'llama' }] }];
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          customProviders={singleModel}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      // Custom providers show the "Custom" tag
-      expect(screen.getByText('Custom')).toBeDefined();
+    it('calls onUpdate when the custom provider form deletes a provider', async () => {
+      mockDeleteCustomProvider.mockResolvedValue({ ok: true });
+
+      const customProviders = [
+        {
+          id: 'cp-1',
+          name: 'TestProv',
+          base_url: 'http://localhost:8080',
+          has_api_key: false,
+          models: [{ model_name: 'm1' }],
+          created_at: '2025-01-01',
+        },
+      ];
+
+      renderModal({
+        customProviders,
+        deepLink: { providerId: 'custom:cp-1', authType: 'api_key' },
+      });
+
+      // The custom editor opens directly from the `custom:` deep link.
+      await screen.findByDisplayValue('TestProv');
+
+      // Click Delete provider button to open confirmation dialog
+      fireEvent.click(screen.getByText('Delete provider'));
+
+      // Confirm deletion in the confirmation dialog
+      await waitFor(() => {
+        expect(screen.getByText('Delete')).toBeDefined();
+      });
+      fireEvent.click(screen.getByText('Delete'));
+
+      await waitFor(() => {
+        expect(mockDeleteCustomProvider).toHaveBeenCalledWith('test-agent', 'cp-1');
+      });
+      expect(onUpdate).toHaveBeenCalled();
     });
   });
 
@@ -898,50 +600,12 @@ describe('ProviderSelectModal', () => {
       connected_at: '2025-01-01',
       auth_type: 'api_key',
     };
-    render(() => (
-      <ProviderSelectModal
-        providers={[noPrefix]}
-        onClose={onClose}
-        onUpdate={onUpdate}
-        agentName="test-agent"
-      />
-    ));
-    fireEvent.click(screen.getByText('API Keys'));
-    fireEvent.click(screen.getByText('OpenAI'));
+    openApiKey('openai', [noPrefix]);
     const maskedInput = screen.getByLabelText('Current API key (masked)') as HTMLInputElement;
     expect(maskedInput.value).toContain('••••••••••••');
   });
 
-  describe('subscription tab', () => {
-    it('shows subscription tab as default active tab', () => {
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      const activeTab = container.querySelector('.panel__tab--active');
-      expect(activeTab).not.toBeNull();
-      expect(activeTab!.textContent).toContain('Subscription');
-    });
-
-    it('renders subscription providers with toggle switches', () => {
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      // Subscription tab is default, check subscription providers are listed
-      expect(screen.getByText('Anthropic')).toBeDefined();
-      const switches = container.querySelectorAll('.provider-toggle__switch');
-      expect(switches.length).toBeGreaterThan(0);
-    });
-
+  describe('subscription detail views', () => {
     it('shows subscription toggle as on for subscription-connected providers with token', () => {
       const subProvider: RoutingProvider = {
         id: 'p-sub',
@@ -952,58 +616,25 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
-      expect(onSwitches.length).toBeGreaterThanOrEqual(1);
+      // Anthropic subscription is connected → its detail view shows the
+      // "Connected via …" state rather than the sign-in flow.
+      openSubscription('anthropic', [subProvider]);
+      expect(screen.getByText(/Connected via Claude Max \/ Pro subscription/)).toBeDefined();
     });
 
     it('opens detail view for Anthropic and shows the OAuth sign-in button', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
+      openSubscription('anthropic');
       // The detail view for Anthropic uses the paste-code OAuth flow.
       expect(screen.getByText('Sign in with Claude')).toBeDefined();
     });
 
     it('does not show credits button for non-Anthropic providers', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
-
+      openSubscription('openai');
       expect(screen.queryByText('Claim your credits on Claude')).toBeNull();
     });
 
     it('shows the OAuth sign-in button in Anthropic subscription detail view', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
-
+      openSubscription('anthropic');
       expect(screen.getByText('Sign in with Claude')).toBeDefined();
     });
 
@@ -1016,15 +647,7 @@ describe('ProviderSelectModal', () => {
         .spyOn(window, 'open')
         .mockReturnValue({ closed: false } as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
+      openSubscription('anthropic');
       fireEvent.click(screen.getByText('Sign in with Claude'));
 
       await waitFor(() => {
@@ -1046,15 +669,7 @@ describe('ProviderSelectModal', () => {
         .spyOn(window, 'open')
         .mockReturnValue({ closed: false } as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
+      openSubscription('anthropic');
       fireEvent.click(screen.getByText('Sign in with Claude'));
       const codeInput = await screen.findByLabelText('Anthropic authorization code');
       fireEvent.input(codeInput, { target: { value: 'auth-code-123#xyz' } });
@@ -1083,15 +698,7 @@ describe('ProviderSelectModal', () => {
       };
       mockRevokeAnthropicOAuth.mockResolvedValue({ ok: true, notifications: [] });
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
+      openSubscription('anthropic', [subProvider]);
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
@@ -1101,35 +708,9 @@ describe('ProviderSelectModal', () => {
       expect(onUpdate).toHaveBeenCalled();
     });
 
-    it('shows tab hint text for subscription tab', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      expect(screen.getByText(/Use your existing subscription or paid plan/)).toBeDefined();
-    });
-
-    it('shows tab hint text for API Keys tab', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      expect(screen.getByText(/Connect providers using your own API keys/)).toBeDefined();
-    });
-
-    it('shows toggle off when an Anthropic subscription record is inactive', async () => {
-      // Anthropic uses popup_paste mode; the connected signal collapses to
-      // `is_active`, so an inactive (revoked / disconnected) subscription
-      // row should show OFF in the list view regardless of has_api_key.
+    it('shows toggle off when an Anthropic subscription record is inactive', () => {
+      // An inactive (revoked / disconnected) subscription row should present
+      // the sign-in flow again, not the connected state.
       const subProvider: RoutingProvider = {
         id: 'p-sub-inactive',
         provider: 'anthropic',
@@ -1138,81 +719,21 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
-      expect(onSwitches.length).toBe(0);
+      openSubscription('anthropic', [subProvider]);
+      expect(screen.getByText('Sign in with Claude')).toBeDefined();
+      expect(screen.queryByText('Disconnect')).toBeNull();
     });
 
-    it('shows subscription toggle as on when provider is subscription-connected without token requirement', async () => {
-      const subProvider: RoutingProvider = {
-        id: 'p-sub-notok',
-        provider: 'anthropic',
-        is_active: true,
-        has_api_key: true,
-        key_prefix: 'sk-ant-oat',
-        connected_at: '2025-01-01',
-        auth_type: 'subscription',
-      };
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      // isSubscriptionWithToken returns true (is_active && has_api_key)
-      const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
-      expect(onSwitches.length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('shows subscription label from provider definition', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      // Anthropic has subscriptionLabel: 'Claude Max / Pro subscription'
-      expect(screen.getByText('Claude Max / Pro subscription')).toBeDefined();
-    });
-
-    it('shows detail subtitle for subscription mode', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      // Click Anthropic on subscription tab to open detail
-      fireEvent.click(screen.getByText('Anthropic'));
-      expect(screen.getByText('Connect providers')).toBeDefined();
+    it('opens the Anthropic subscription detail view header', () => {
+      openSubscription('anthropic');
+      expect(screen.getByText('Connect provider')).toBeDefined();
     });
 
     it('hides the "Get API key" link in Anthropic subscription mode', () => {
       // Anthropic subscription uses an OAuth flow, not an API key from the
       // dashboard, so the console.anthropic.com/settings/keys URL would be
       // misleading and is intentionally suppressed.
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('Anthropic'));
+      const { container } = openSubscription('anthropic');
       const link = container.querySelector<HTMLAnchorElement>(
         'a[href="https://console.anthropic.com/settings/keys"]',
       );
@@ -1220,41 +741,17 @@ describe('ProviderSelectModal', () => {
     });
 
     it('opens detail view for OAuth subscription provider (OpenAI)', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
-      expect(screen.getByText('Connect providers')).toBeDefined();
+      openSubscription('openai');
+      expect(screen.getByText('Connect provider')).toBeDefined();
     });
 
     it("shows 'Log in with OpenAI' button for OAuth provider", () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       expect(screen.getByText('Log in with OpenAI')).toBeDefined();
     });
 
     it('shows OAuth login hint text', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       expect(screen.getByText(/Log in with your OpenAI account/)).toBeDefined();
     });
 
@@ -1262,15 +759,7 @@ describe('ProviderSelectModal', () => {
       const mockPopup = { closed: false, close: vi.fn() };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       await waitFor(() => {
@@ -1295,54 +784,14 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai', [subProvider]);
       expect(screen.getByText('Disconnect')).toBeDefined();
       expect(screen.getByText(/Connected via ChatGPT Plus\/Pro\/Team/)).toBeDefined();
     });
 
-    it('shows OpenAI subscription label in list', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      expect(screen.getByText('ChatGPT Plus/Pro/Team')).toBeDefined();
-    });
-
-    it('shows MiniMax subscription label in list', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      expect(screen.getByText('MiniMax Coding Plan')).toBeDefined();
-    });
-
     it('opens MiniMax device-code detail view', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('MiniMax'));
-      expect(screen.getByText('Connect providers')).toBeDefined();
+      openSubscription('minimax');
+      expect(screen.getByText('Connect provider')).toBeDefined();
       expect(screen.getByText('Connect with MiniMax')).toBeDefined();
       expect(screen.getByLabelText('Region')).toBeDefined();
     });
@@ -1351,15 +800,7 @@ describe('ProviderSelectModal', () => {
       const popup = { close: vi.fn(), opener: {}, location: { replace: vi.fn() } };
       const openSpy = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       // Synchronous open with about:blank — preserves user-gesture flag.
@@ -1380,15 +821,7 @@ describe('ProviderSelectModal', () => {
     it('toasts when the popup is blocked and skips the start call', async () => {
       vi.spyOn(window, 'open').mockReturnValue(null);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1410,15 +843,7 @@ describe('ProviderSelectModal', () => {
         closed: false,
       } as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'cn' } });
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
@@ -1443,16 +868,7 @@ describe('ProviderSelectModal', () => {
         pollIntervalMs: 2500,
       });
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1480,16 +896,7 @@ describe('ProviderSelectModal', () => {
       } as unknown as Window);
       mockPollMinimaxOAuth.mockResolvedValueOnce({ status: 'success' });
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1521,16 +928,7 @@ describe('ProviderSelectModal', () => {
         message: 'MiniMax rejected the login',
       });
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1559,16 +957,7 @@ describe('ProviderSelectModal', () => {
       } as unknown as Window);
       mockPollMinimaxOAuth.mockRejectedValueOnce(new Error('network error'));
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1604,16 +993,7 @@ describe('ProviderSelectModal', () => {
         pollIntervalMs: 1,
       });
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1643,16 +1023,7 @@ describe('ProviderSelectModal', () => {
       } as unknown as Window);
       mockStartMinimaxOAuth.mockRejectedValueOnce(new Error('MiniMax unavailable'));
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax');
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1672,15 +1043,7 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('MiniMax'));
+      openSubscription('minimax', [subProvider]);
       expect(screen.getByText('Disconnect')).toBeDefined();
       expect(screen.getByText(/Connected via MiniMax Coding Plan/)).toBeDefined();
     });
@@ -1695,16 +1058,8 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
+      openSubscription('minimax', [subProvider]);
 
-      fireEvent.click(screen.getByText('MiniMax'));
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
@@ -1728,16 +1083,8 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
+      openSubscription('minimax', [subProvider]);
 
-      fireEvent.click(screen.getByText('MiniMax'));
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
@@ -1771,16 +1118,8 @@ describe('ProviderSelectModal', () => {
           }),
       );
 
-      const view = render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
+      const view = openSubscription('minimax');
 
-      fireEvent.click(screen.getByText('MiniMax'));
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       view.unmount();
@@ -1820,16 +1159,8 @@ describe('ProviderSelectModal', () => {
           }),
       );
 
-      const view = render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
+      const view = openSubscription('minimax');
 
-      fireEvent.click(screen.getByText('MiniMax'));
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
@@ -1854,15 +1185,7 @@ describe('ProviderSelectModal', () => {
     });
 
     it('does not show paste field for OAuth provider', () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       // Should not have a setup token input field
       const inputs = document.querySelectorAll('.provider-detail__input--masked');
       expect(inputs.length).toBe(0);
@@ -1871,42 +1194,12 @@ describe('ProviderSelectModal', () => {
     it('handles OAuth login error gracefully', async () => {
       mockGetOpenaiOAuthUrl.mockRejectedValue(new Error('Network error'));
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       await waitFor(() => {
         expect(mockGetOpenaiOAuthUrl).toHaveBeenCalled();
       });
-    });
-
-    it('shows toggle as on for OpenAI subscription with token', () => {
-      const subProvider: RoutingProvider = {
-        id: 'p-openai-sub',
-        provider: 'openai',
-        is_active: true,
-        has_api_key: true,
-        key_prefix: '{"t":"eyJ',
-        connected_at: '2025-01-01',
-        auth_type: 'subscription',
-      };
-      const { container } = render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      const onSwitches = container.querySelectorAll('.provider-toggle__switch--on');
-      expect(onSwitches.length).toBeGreaterThanOrEqual(1);
     });
 
     it('disconnects OpenAI OAuth subscription through the revoke endpoint', async () => {
@@ -1919,15 +1212,7 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai', [subProvider]);
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
@@ -1948,15 +1233,7 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[subProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai', [subProvider]);
       fireEvent.click(screen.getByText('Disconnect'));
 
       await waitFor(() => {
@@ -1969,15 +1246,7 @@ describe('ProviderSelectModal', () => {
     it('shows popup blocked error when window.open returns null', async () => {
       vi.spyOn(window, 'open').mockReturnValue(null);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       await waitFor(() => {
@@ -1998,15 +1267,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       await waitFor(() => {
@@ -2029,15 +1290,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       // Paste URL field appears immediately (not after popup closes)
@@ -2061,15 +1314,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       // Wait long enough for the polling to detect the closed popup
@@ -2093,15 +1338,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       // Simulate the done page sending via BroadcastChannel
@@ -2131,15 +1368,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       // Poll detects popup.closed=true, but BroadcastChannel stays alive
@@ -2169,15 +1398,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       // Simulate the done page sending a postMessage
@@ -2206,15 +1427,7 @@ describe('ProviderSelectModal', () => {
       };
       vi.spyOn(window, 'open').mockReturnValue(mockPopup as unknown as Window);
 
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('OpenAI'));
+      openSubscription('openai');
       fireEvent.click(screen.getByText('Log in with OpenAI'));
 
       // Paste URL field is already visible before any message
@@ -2235,27 +1448,14 @@ describe('ProviderSelectModal', () => {
       vi.restoreAllMocks();
     });
 
-    it('opens device login view for copilot instead of toggling directly', async () => {
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      // Find the copilot row and click its toggle area
-      const copilotText = screen.getByText('GitHub Copilot');
-      expect(copilotText).toBeDefined();
+    it('opens device login view for copilot instead of connecting directly', async () => {
+      openSubscription('copilot');
 
-      // Click the Copilot row (toggle)
-      fireEvent.click(copilotText);
-
-      // Should open device login detail view instead of calling connectProvider
+      // Should render the GitHub device-login view (its own sign-in CTA),
+      // not eagerly call connectProvider.
       await waitFor(() => {
-        expect(screen.getByText('Connect providers')).toBeDefined();
+        expect(screen.getByText('Sign in with GitHub')).toBeDefined();
       });
-      // connectProvider should NOT have been called (device login guard)
       expect(mockConnectProvider).not.toHaveBeenCalled();
     });
 
@@ -2269,109 +1469,12 @@ describe('ProviderSelectModal', () => {
         connected_at: '2025-01-01',
         auth_type: 'subscription',
       };
-      render(() => (
-        <ProviderSelectModal
-          providers={[copilotSubProvider]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      // Click the copilot row — always navigates to detail view
-      const copilotText = screen.getByText('GitHub Copilot');
-      fireEvent.click(copilotText);
+      openSubscription('copilot', [copilotSubProvider]);
 
-      // Should open device login detail view (with disconnect button)
+      // Should open device login detail view (with connected state copy)
       await waitFor(() => {
         expect(screen.getByText('Connected via GitHub device login.')).toBeDefined();
       });
-    });
-  });
-
-  describe('custom provider callbacks', () => {
-    it('calls onUpdate when custom provider form triggers onCreated', async () => {
-      mockCreateCustomProvider.mockResolvedValue({
-        id: 'cp-new',
-        name: 'NewProvider',
-        base_url: 'http://localhost:8080',
-        has_api_key: false,
-        models: [{ model_name: 'test-model' }],
-        created_at: '2025-01-01',
-      });
-
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('Add custom provider'));
-
-      // Fill in the custom provider form
-      const nameInput = screen.getByPlaceholderText('e.g. Groq, Together, Azure');
-      fireEvent.input(nameInput, { target: { value: 'NewProvider' } });
-
-      const urlInput = screen.getByPlaceholderText('https://api.example.com/v1');
-      fireEvent.input(urlInput, { target: { value: 'http://localhost:8080' } });
-
-      const modelInput = screen.getByPlaceholderText('Model name');
-      fireEvent.input(modelInput, { target: { value: 'test-model' } });
-
-      // Click Connect (the create mode button label)
-      fireEvent.click(screen.getByText('Connect'));
-
-      await waitFor(() => {
-        expect(mockCreateCustomProvider).toHaveBeenCalled();
-      });
-      expect(onUpdate).toHaveBeenCalled();
-      // Should navigate back to list view
-      expect(screen.getByText('Done')).toBeDefined();
-    });
-
-    it('calls onUpdate when custom provider form triggers onDeleted', async () => {
-      mockDeleteCustomProvider.mockResolvedValue({ ok: true });
-
-      const customProviders = [
-        {
-          id: 'cp-1',
-          name: 'TestProv',
-          base_url: 'http://localhost:8080',
-          has_api_key: false,
-          models: [{ model_name: 'm1' }],
-          created_at: '2025-01-01',
-        },
-      ];
-
-      render(() => (
-        <ProviderSelectModal
-          providers={[]}
-          customProviders={customProviders}
-          onClose={onClose}
-          onUpdate={onUpdate}
-          agentName="test-agent"
-        />
-      ));
-      fireEvent.click(screen.getByText('API Keys'));
-      fireEvent.click(screen.getByText('TestProv'));
-
-      // Click Delete provider button to open confirmation dialog
-      fireEvent.click(screen.getByText('Delete provider'));
-
-      // Confirm deletion in the confirmation dialog
-      await waitFor(() => {
-        expect(screen.getByText('Delete')).toBeDefined();
-      });
-      fireEvent.click(screen.getByText('Delete'));
-
-      await waitFor(() => {
-        expect(mockDeleteCustomProvider).toHaveBeenCalledWith('test-agent', 'cp-1');
-      });
-      expect(onUpdate).toHaveBeenCalled();
-      // Should navigate back to list view
-      expect(screen.getByText('Done')).toBeDefined();
     });
   });
 });

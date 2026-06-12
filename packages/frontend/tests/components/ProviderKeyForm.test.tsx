@@ -451,6 +451,46 @@ describe('ProviderKeyForm', () => {
         apiKey: 'zai-new-key',
         authType: 'subscription',
         region: 'cn',
+        label: 'Default',
+      });
+    });
+
+    it('targets the visible key label on update so a non-Default key is not bypassed', async () => {
+      const def = makeProviderDef({ id: 'openai', name: 'OpenAI' });
+      const { container } = mount({
+        provDef: def,
+        provId: 'openai',
+        connected: true,
+        editing: true,
+        keyInput: 'sk-new-value',
+        providers: [
+          {
+            id: 'p2',
+            provider: 'openai',
+            auth_type: 'api_key' as const,
+            is_active: true,
+            has_api_key: true,
+            key_prefix: 'sk-old-',
+            label: 'second',
+            priority: 1,
+            region: null,
+            connected_at: '2026-04-27',
+          },
+        ],
+      });
+
+      const saveBtn = Array.from(container.querySelectorAll('.provider-detail__action')).find((b) =>
+        b.textContent?.includes('Save'),
+      ) as HTMLButtonElement;
+      fireEvent.click(saveBtn);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
+        provider: 'openai',
+        apiKey: 'sk-new-value',
+        authType: 'api_key',
+        label: 'second',
       });
     });
 

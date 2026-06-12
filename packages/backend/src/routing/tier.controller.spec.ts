@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { TierController } from './tier.controller';
 import { TierService } from './routing-core/tier.service';
@@ -127,5 +127,16 @@ describe('TierController', () => {
       complexity_routing_enabled: false,
     });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
+  });
+
+  // P1-A: tier write endpoint must 404 for the reserved "Playground" agent
+  it('PUT /tiers/:tier throws NotFoundException when resolve rejects the Playground agent', async () => {
+    resolveAgentService.resolve.mockRejectedValueOnce(
+      new NotFoundException('Agent "Playground" not found'),
+    );
+    await expect(
+      controller.setOverride(user, 'Playground', 'default', { model: 'm' }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(tierService.setOverride).not.toHaveBeenCalled();
   });
 });

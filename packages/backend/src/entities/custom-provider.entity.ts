@@ -1,6 +1,5 @@
-import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryColumn } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
-import { Agent } from './agent.entity';
 
 export interface CustomProviderModel {
   model_name: string;
@@ -12,14 +11,14 @@ export interface CustomProviderModel {
 
 export type CustomProviderApiKind = 'openai' | 'anthropic';
 
+// Uniqueness is owned by the migration as a case-insensitive index on
+// (user_id, LOWER(name)) — which a column-list @Index can't express. Declaring a
+// case-sensitive @Index here would drift from the real schema (synchronize ≠
+// migrations), so it's intentionally omitted (same pattern as user_providers).
 @Entity('custom_providers')
-@Index(['agent_id', 'name'], { unique: true })
 export class CustomProvider {
   @PrimaryColumn('varchar')
   id!: string;
-
-  @Column('varchar')
-  agent_id!: string;
 
   @Column('varchar')
   user_id!: string;
@@ -35,10 +34,6 @@ export class CustomProvider {
 
   @Column('simple-json')
   models!: CustomProviderModel[];
-
-  @ManyToOne(() => Agent, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'agent_id' })
-  agent!: Agent;
 
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;

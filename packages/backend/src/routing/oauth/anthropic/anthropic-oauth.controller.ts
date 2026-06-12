@@ -99,6 +99,7 @@ export class AnthropicOauthController {
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      user.id,
       'anthropic',
       'subscription',
       keyLabel,

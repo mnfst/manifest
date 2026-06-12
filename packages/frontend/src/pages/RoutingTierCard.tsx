@@ -132,8 +132,7 @@ export interface RoutingTierCardProps {
 
 const effectiveRoute = (
   t: TierAssignment,
-): { provider: string; authType: AuthType; model: string } | null =>
-  t.override_route ?? t.auto_assigned_route;
+): { provider: string; authType: AuthType; model: string } | null => t.override_route;
 
 const effectiveModel = (t: TierAssignment): string | null => effectiveRoute(t)?.model ?? null;
 
@@ -570,7 +569,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                               viewBox="0 0 24 24"
                               aria-hidden="true"
                             >
-                              <path d="M2.75 9h3.44c.67 0 1-.81.53-1.28l-.85-.85c.15-.18.31-.36.48-.52.73-.74 1.59-1.31 2.54-1.71 1.97-.83 4.26-.83 6.23 0 .95.4 1.81.98 2.54 1.72.74.73 1.31 1.59 1.71 2.54.3.72.5 1.46.58 2.23.05.5.48.88.99.88.6 0 1.07-.52 1-1.12-.11-.95-.35-1.88-.72-2.77-.5-1.19-1.23-2.26-2.14-3.18S17.09 3.3 15.9 2.8a10.12 10.12 0 0 0-7.79 0c-1.19.5-2.26 1.23-3.18 2.14-.17.17-.32.35-.48.52L3.28 4.29C2.81 3.82 2 4.15 2 4.82v3.44c0 .41.34.75.75.75ZM21.25 15h-3.44c-.67 0-1 .81-.53 1.28l.85.85c-.15.18-.31.36-.48.52-.73.74-1.59 1.31-2.54 1.71-1.97.83-4.26.83-6.23 0-.95-.4-1.81-.98-2.54-1.72a7.8 7.8 0 0 1-1.71-2.54c-.3-.72-.5-1.46-.58-2.23a.99.99 0 0 0-.99-.88c-.6 0-1.07.52-1 1.12.11.95.35 1.88.72 2.77.5 1.19 1.23 2.26 2.14 3.18S6.91 20.7 8.1 21.2c1.23.52 2.54.79 3.89.79s2.66-.26 3.89-.79c1.19-.5 2.26-1.23 3.18-2.14.17-.17.32-.35.48-.52l1.17 1.17c.47.47 1.28.14 1.28-.53v-3.44c0-.41-.34-.75-.75-.75Z" />
+                              <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                              <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
                             </svg>
                           </button>
                         </div>
@@ -724,12 +724,11 @@ const PrimaryKeyChip: Component<PrimaryKeyChipProps> = (props) => {
       .sort((a, b) => a.priority - b.priority);
   };
 
-  // The pinned key label now lives inside the route's `keyLabel` field,
-  // sitting on whichever route is effective (override > auto). When no
-  // pin is set, fall back to the first connected key.
+  // The pinned key label lives inside the explicit primary route's `keyLabel`
+  // field. When no pin is set, fall back to the first connected key.
   const pinned = () => {
     const t = props.tier();
-    const effective = t?.override_route ?? t?.auto_assigned_route ?? null;
+    const effective = t?.override_route ?? null;
     return effective?.keyLabel ?? null;
   };
 

@@ -21,10 +21,14 @@ export class CustomProviderController {
 
   @Get(':agentName/custom-providers')
   async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    // Resolve for authz — user must own the agent. Custom providers are
+    // user-global, so the listing itself is scoped to the user, not the agent.
+    // allowPlayground: true — the Playground page reads custom providers for the
+    // reserved Playground agent; all mutation endpoints remain blocked.
+    await this.resolveAgentService.resolve(user.id, params.agentName, { allowPlayground: true });
     const [providers, userProviders] = await Promise.all([
-      this.customProviderService.list(agent.id),
-      this.providerService.getProviders(agent.id),
+      this.customProviderService.list(user.id),
+      this.providerService.getProviders(user.id),
     ]);
     if (providers.length === 0) return [];
 
@@ -67,10 +71,12 @@ export class CustomProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: CreateCustomProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const cp = await this.customProviderService.create(agent.id, user.id, body);
+    // allowPlayground: true — creating a custom provider from the Playground page is
+    // additive (user-global resource); the playground agent is a valid owner context.
+    await this.resolveAgentService.resolve(user.id, params.agentName, { allowPlayground: true });
+    const cp = await this.customProviderService.create(user.id, body);
     const provKey = CustomProviderService.providerKey(cp.id);
-    const up = (await this.providerService.getProviders(agent.id)).find(
+    const up = (await this.providerService.getProviders(user.id)).find(
       (u) => u.provider === provKey,
     );
 
@@ -92,10 +98,10 @@ export class CustomProviderController {
     @Param('id') id: string,
     @Body() body: UpdateCustomProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    const cp = await this.customProviderService.update(agent.id, id, user.id, body);
+    await this.resolveAgentService.resolve(user.id, agentName);
+    const cp = await this.customProviderService.update(id, user.id, body);
     const provKey = CustomProviderService.providerKey(cp.id);
-    const up = (await this.providerService.getProviders(agent.id)).find(
+    const up = (await this.providerService.getProviders(user.id)).find(
       (u) => u.provider === provKey,
     );
 
@@ -116,8 +122,8 @@ export class CustomProviderController {
     @Param('agentName') agentName: string,
     @Param('id') id: string,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    await this.customProviderService.remove(agent.id, id);
+    await this.resolveAgentService.resolve(user.id, agentName);
+    await this.customProviderService.remove(user.id, id);
     return { ok: true };
   }
 }

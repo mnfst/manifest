@@ -13,6 +13,11 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 // Per-completion success dedup (ProxyMessageDedup.findExistingSuccessMessage)
 // filters tenant_id + agent_id + model + status='ok' and orders by timestamp.
 @Index(['tenant_id', 'agent_id', 'model', 'status', 'timestamp'])
+// Per-connection analytics scope by the exact key that served each message
+// (user_provider_id) ordered by recency, and the FK below resolves its
+// ON DELETE SET NULL against the same column. user_provider_id leads so one
+// index serves both the connection-detail reads and the parent-delete cleanup.
+@Index(['user_provider_id', 'tenant_id', 'timestamp'])
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
@@ -52,12 +57,6 @@ export class AgentMessage {
 
   @Column('decimal', { precision: 10, scale: 6, nullable: true })
   cost_usd!: number | null;
-
-  @Column('varchar', { nullable: true })
-  baseline_model_id!: string | null;
-
-  @Column('decimal', { precision: 10, scale: 6, nullable: true })
-  baseline_cost_usd!: number | null;
 
   @Column('varchar', { default: 'ok' })
   status!: string;
@@ -142,4 +141,12 @@ export class AgentMessage {
 
   @Column('varchar', { nullable: true })
   provider_key_label!: string | null;
+
+  // The exact user_providers row (connection/key) that served this message.
+  // Stamped at proxy time from the selected CachedProviderKey.id so per-connection
+  // analytics filter on identity rather than the (provider, auth_type, label)
+  // tuple — which is not unique per key (default label 'Default'; NULL coerces to
+  // it). NULL for pre-upgrade history, local/Ollama, and blind-proxy paths.
+  @Column('varchar', { nullable: true })
+  user_provider_id!: string | null;
 }

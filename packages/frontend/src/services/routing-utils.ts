@@ -12,8 +12,8 @@ export interface RouteSlots {
  * Collect all key labels already used for a given model within a tier
  * (primary + fallbacks). Used to prevent duplicate (model, key) combos.
  *
- * Reads through the structured `override_route`, `auto_assigned_route`,
- * `fallback_routes` fields — `route.keyLabel` is the canonical pin location.
+ * Reads through the structured `override_route` and `fallback_routes` fields;
+ * `route.keyLabel` is the canonical pin location.
  *
  * @param excludeSlot - 'primary' to skip the primary slot (for the primary's
  *   own dropdown), or a fallback index to skip that fallback (for its dropdown).
@@ -30,7 +30,7 @@ export function usedKeyLabelsForModelInTier(
   if (!tier) return used;
   // Check primary
   if (excludeSlot !== 'primary') {
-    const primary = tier.override_route ?? tier.auto_assigned_route ?? null;
+    const primary = tier.override_route ?? null;
     if (primary && primary.model === modelName) {
       const label = primary.keyLabel ?? defaultKeyLabel;
       if (label) used.add(label.toLowerCase());

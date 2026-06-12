@@ -15,7 +15,7 @@ import {
   resolveApiKey,
 } from '../routing/proxy/oauth-credentials';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
-import { ResolveAgentService } from '../routing/routing-core/resolve-agent.service';
+import { PlaygroundAgentService } from './playground-agent.service';
 import { OpenaiOauthService } from '../routing/oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../routing/oauth/minimax-oauth.service';
 import { AnthropicOauthService } from '../routing/oauth/anthropic/anthropic-oauth.service';
@@ -38,7 +38,7 @@ export class PlaygroundService {
   private readonly logger = new Logger(PlaygroundService.name);
 
   constructor(
-    private readonly resolveAgent: ResolveAgentService,
+    private readonly playgroundAgent: PlaygroundAgentService,
     private readonly providerKeyService: ProviderKeyService,
     private readonly providerClient: ProviderClient,
     private readonly openaiOauth: OpenaiOauthService,
@@ -75,8 +75,16 @@ export class PlaygroundService {
     let oauthResourceUrl: string | undefined;
     let providerRegion: string | null | undefined;
     try {
-      agent = await this.resolveAgent.resolve(userId, dto.agentName);
-      const hasProvider = await this.providerKeyService.hasActiveProvider(agent.id, dto.provider);
+      // The Playground always runs under the reserved per-tenant "Playground"
+      // agent (created on first use), so runs record under it in global Messages
+      // and route against the whole global provider pool — regardless of any
+      // agentName the client sends.
+      agent = await this.playgroundAgent.resolve(userId);
+      const hasProvider = await this.providerKeyService.hasActiveProvider(
+        userId,
+        dto.provider,
+        agent.id,
+      );
       if (!hasProvider) {
         return this.sendPreStreamError(
           res,
@@ -85,8 +93,14 @@ export class PlaygroundService {
         );
       }
       authType =
-        dto.authType ?? (await this.providerKeyService.getAuthType(agent.id, dto.provider));
-      const keys = await this.providerKeyService.getProviderKeys(agent.id, dto.provider, authType);
+        dto.authType ??
+        (await this.providerKeyService.getAuthType(userId, dto.provider, undefined, agent.id));
+      const keys = await this.providerKeyService.getProviderKeys(
+        userId,
+        dto.provider,
+        authType,
+        agent.id,
+      );
       const key = keys[0];
       if (!key || key.apiKey === null) {
         return this.sendPreStreamError(
@@ -123,10 +137,11 @@ export class PlaygroundService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            agent.id,
+            userId,
             dto.provider,
             authType,
             providerKeyLabel,
+            agent.id,
           )) ?? rawApiKey;
       }
       oauthResourceUrl = authType === 'subscription' ? resolved.resourceUrl : undefined;
@@ -390,6 +405,9 @@ export class PlaygroundService {
     // just streamed to the user. A telemetry-insert blip must not turn that
     // into a user-visible failure.
     try {
+      // No user_provider_id: Playground runs use the reserved is_playground agent,
+      // which excludePlaygroundAgents() filters out of every per-connection view,
+      // so stamping the connection here would have no analytic effect.
       await this.messageRepo.insert({
         id: uuid(),
         tenant_id: agent.tenant_id,
@@ -428,6 +446,8 @@ export class PlaygroundService {
     durationMs: number,
   ): Promise<void> {
     try {
+      // No user_provider_id — see recordSuccess: Playground is a system agent,
+      // excluded from per-connection analytics.
       await this.messageRepo.insert({
         id: uuid(),
         tenant_id: agent.tenant_id,

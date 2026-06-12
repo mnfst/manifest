@@ -122,7 +122,7 @@ export class XaiOauthService {
       r: data.refresh_token,
       e: Date.now() + data.expires_in * 1000,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'xai');
+    const label = await this.providerService.nextOAuthLabel(pending.userId, 'xai');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
       pending.userId,
@@ -134,7 +134,6 @@ export class XaiOauthService {
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after xAI OAuth failed: ${err}`);
     }
@@ -183,11 +182,11 @@ export class XaiOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('xai', userId, agentId, keyLabel),
+        key: oauthRefreshKey('xai', userId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'xai', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(userId, 'xai', keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r),
         persist: (refreshed) =>
