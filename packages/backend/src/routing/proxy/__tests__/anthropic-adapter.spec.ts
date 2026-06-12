@@ -545,48 +545,6 @@ describe('Anthropic Adapter', () => {
       expect(result.tools).toBeUndefined();
     });
 
-    it('omits cache_control from system blocks when injectCacheControl is false', () => {
-      const body = {
-        messages: [
-          { role: 'system', content: 'You are helpful.' },
-          { role: 'user', content: 'Hi' },
-        ],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      const system = result.system as Array<{ cache_control?: unknown }>;
-      expect(system).toHaveLength(1);
-      expect(system[0].cache_control).toBeUndefined();
-    });
-
-    it('omits top-level cache_control when injectCacheControl is false', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Hi' }],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      expect(result.cache_control).toBeUndefined();
-    });
-
-    it('omits cache_control from tools when injectCacheControl is false', () => {
-      const body = {
-        messages: [{ role: 'user', content: 'Hi' }],
-        tools: [
-          { type: 'function', function: { name: 'a', description: 'tool a' } },
-          { type: 'function', function: { name: 'b', description: 'tool b' } },
-        ],
-      };
-      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514', {
-        injectCacheControl: false,
-      });
-      const tools = result.tools as Array<{ cache_control?: unknown }>;
-      expect(tools).toHaveLength(2);
-      expect(tools[0].cache_control).toBeUndefined();
-      expect(tools[1].cache_control).toBeUndefined();
-    });
-
     it('prepends subscription identity block when injectSubscriptionIdentity is true', () => {
       const body = {
         messages: [
@@ -595,7 +553,6 @@ describe('Anthropic Adapter', () => {
         ],
       };
       const result = toAnthropicRequest(body, 'claude-sonnet-4-6', {
-        injectCacheControl: false,
         injectSubscriptionIdentity: true,
       });
       const system = result.system as Array<{
@@ -2102,15 +2059,12 @@ describe('Anthropic Adapter', () => {
       ]);
     });
 
-    it('leaves string system intact when no mutations are needed', () => {
-      const result = applyAnthropicMessagesMutations(
-        {
-          messages: [{ role: 'user', content: 'hi' }],
-          system: 'Be concise.',
-        },
-        { injectCacheControl: false },
-      );
-      expect(result.system).toBe('Be concise.');
+    it('leaves an empty string system intact', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: '',
+      });
+      expect(result.system).toBe('');
     });
 
     it('prepends the subscription identity block ahead of an existing system', () => {
@@ -2119,18 +2073,19 @@ describe('Anthropic Adapter', () => {
           messages: [{ role: 'user', content: 'hi' }],
           system: 'You are Manifest.',
         },
-        { injectSubscriptionIdentity: true, injectCacheControl: false },
+        { injectSubscriptionIdentity: true },
       );
       const system = result.system as Array<Record<string, unknown>>;
       expect(system).toHaveLength(2);
       expect(system[0].text).toMatch(/Claude agent/);
       expect(system[1].text).toBe('You are Manifest.');
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('creates a system from scratch when subscription identity is requested and no system exists', () => {
       const result = applyAnthropicMessagesMutations(
         { messages: [{ role: 'user', content: 'hi' }] },
-        { injectSubscriptionIdentity: true, injectCacheControl: false },
+        { injectSubscriptionIdentity: true },
       );
       const system = result.system as Array<Record<string, unknown>>;
       expect(system).toHaveLength(1);
@@ -2155,19 +2110,16 @@ describe('Anthropic Adapter', () => {
       expect(result).not.toHaveProperty('system');
     });
 
-    it('omits cache_control when injectCacheControl is false', () => {
-      const result = applyAnthropicMessagesMutations(
-        {
-          messages: [{ role: 'user', content: 'hi' }],
-          system: [{ type: 'text', text: 'persona' }],
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        },
-        { injectCacheControl: false },
-      );
+    it('injects cache_control on the last system block and last tool', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [{ type: 'text', text: 'persona' }],
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      });
       const system = result.system as Array<Record<string, unknown>>;
-      expect(system[0].cache_control).toBeUndefined();
+      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
       const tools = result.tools as Array<Record<string, unknown>>;
-      expect(tools[0].cache_control).toBeUndefined();
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('defaults max_tokens to 4096 when not provided', () => {

@@ -238,8 +238,6 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
 /* ── Request conversion ── */
 
 export interface AnthropicRequestOptions {
-  /** When false, cache_control fields are omitted from the request. Defaults to true. */
-  injectCacheControl?: boolean;
   /** When true, prepends the Claude Code agent system prompt required for subscription OAuth tokens. */
   injectSubscriptionIdentity?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
@@ -251,10 +249,9 @@ export function toAnthropicRequest(
   _model: string,
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
-  const shouldCache = options?.injectCacheControl !== false;
   const messages = (body.messages as OpenAIMessage[]) || [];
   const systemBlocks = extractSystemBlocks(messages);
-  if (systemBlocks.length > 0 && shouldCache) {
+  if (systemBlocks.length > 0) {
     systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
   }
 
@@ -279,7 +276,7 @@ export function toAnthropicRequest(
   // assumption is safe.
   const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
   if (tools) {
-    if (shouldCache) tools[tools.length - 1].cache_control = CACHE;
+    tools[tools.length - 1].cache_control = CACHE;
     result.tools = tools;
   }
 
@@ -350,7 +347,6 @@ export function applyAnthropicMessagesMutations(
   body: Record<string, unknown>,
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
-  const shouldCache = options?.injectCacheControl !== false;
   const result: Record<string, unknown> = { ...body };
 
   // Normalize `system` to a content-block array so cache_control + identity
@@ -359,7 +355,7 @@ export function applyAnthropicMessagesMutations(
   // mutation needs to happen, otherwise we leave a string system intact.
   const needsBlockSystem =
     options?.injectSubscriptionIdentity ||
-    (shouldCache && (typeof body.system === 'string' ? body.system : Array.isArray(body.system)));
+    (typeof body.system === 'string' ? body.system : Array.isArray(body.system));
   if (needsBlockSystem) {
     let systemBlocks: ContentBlock[] = [];
     if (typeof body.system === 'string') {
@@ -367,7 +363,7 @@ export function applyAnthropicMessagesMutations(
     } else if (Array.isArray(body.system)) {
       systemBlocks = (body.system as ContentBlock[]).map((b) => ({ ...b }));
     }
-    if (shouldCache && systemBlocks.length > 0) {
+    if (systemBlocks.length > 0) {
       systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
     }
     if (options?.injectSubscriptionIdentity) {
@@ -385,7 +381,7 @@ export function applyAnthropicMessagesMutations(
   // custom tools' `input_schema` both survive unchanged.
   if (Array.isArray(body.tools)) {
     const tools = (body.tools as Array<Record<string, unknown>>).map((t) => ({ ...t }));
-    if (tools.length > 0 && shouldCache) {
+    if (tools.length > 0) {
       tools[tools.length - 1].cache_control = CACHE;
     }
     result.tools = tools;

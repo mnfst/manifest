@@ -687,7 +687,7 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBeUndefined();
     });
 
-    it('omits cache_control from request body for subscription auth', async () => {
+    it('injects cache_control breakpoints for subscription auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
@@ -713,10 +713,12 @@ describe('ProviderClient', () => {
       // First system block is the subscription identity prompt
       expect(system[0].text).toContain('Claude agent');
       expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
-      // User system block has no cache_control (subscription skips caching)
-      expect(system[1].cache_control).toBeUndefined();
+      // The OAuth API accepts cache_control (the #1193 400s were caused by the
+      // missing identity block, not caching), so subscription auth gets the
+      // same breakpoints as API-key auth.
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
       const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
-      expect(tools[0].cache_control).toBeUndefined();
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('includes block-level cache_control for regular Anthropic API key auth', async () => {
