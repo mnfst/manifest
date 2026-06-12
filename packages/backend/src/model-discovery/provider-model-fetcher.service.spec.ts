@@ -39,6 +39,7 @@ describe('ProviderModelFetcherService', () => {
       'anthropic',
       'gemini',
       'openrouter',
+      'tokenrouter',
       'ollama',
       'ollama-cloud',
       'copilot',
@@ -1660,6 +1661,62 @@ describe('ProviderModelFetcherService', () => {
       });
 
       const result = await service.fetch('openrouter', '');
+      expect(result).toEqual([]);
+    });
+  });
+
+  /* ── TokenRouter provider ── */
+
+  describe('tokenrouter provider', () => {
+    it('fetches the TokenRouter catalog with bearer auth and preserves vendor-prefixed model ids', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'groq/llama-3.3-70b-versatile',
+              object: 'model',
+              created: 1730000000,
+              owned_by: 'groq',
+            },
+            {
+              id: 'openai/gpt-4o',
+              object: 'model',
+              created: 1730000001,
+              owned_by: 'openai',
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('tokenrouter', 'tk-router-key');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.tokenrouter.com/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer tk-router-key' },
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'groq/llama-3.3-70b-versatile',
+          provider: 'tokenrouter',
+        }),
+        expect.objectContaining({
+          id: 'openai/gpt-4o',
+          provider: 'tokenrouter',
+        }),
+      ]);
+    });
+
+    it('returns [] when the TokenRouter catalog data field is missing', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await service.fetch('tokenrouter', 'tk-router-key');
+
       expect(result).toEqual([]);
     });
   });
