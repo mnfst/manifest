@@ -1,0 +1,43 @@
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.ts
+  s_a80493f83bbf63::t_d6f9f48e1adcb8 124-125
+  s_a80493f83bbf63::t_bec6b7d37f9169 58-74
+  s_a80493f83bbf63::t_935ad30ac7f639 159
+  s_a80493f83bbf63::t_f7bd530f194981 185,240,324,352-360,454
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_a80493f83bbf63::t_512f93cf40a2f8 14
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.ts
+  s_a80493f83bbf63::t_512f93cf40a2f8 8
+packages/backend/src/routing/oauth/minimax/minimax-oauth-helpers.ts
+  s_a80493f83bbf63::t_a5c889355b670d 74
+  s_a80493f83bbf63::t_91237f9979cbed 2
+  s_a80493f83bbf63::t_c9245b0d8c4aa1 1,5
+packages/backend/src/routing/oauth/gemini/gemini-oauth.controller.ts
+  s_a80493f83bbf63::t_512f93cf40a2f8 19
+packages/backend/src/routing/oauth/kiro/kiro-oidc.ts
+  s_a80493f83bbf63::t_b1814ead67ce5b 66,70
+  s_a80493f83bbf63::t_dd286249348840 21-22
+packages/backend/src/routing/oauth/core/index.ts
+  s_a80493f83bbf63::t_512f93cf40a2f8 24-28
+packages/backend/src/routing/oauth/core/device-flow.ts
+  s_a80493f83bbf63::t_eecb3370552029 1-20
+packages/backend/src/routing/oauth/gemini/gemini-oauth.service.ts
+  s_a80493f83bbf63::t_512f93cf40a2f8 5
+packages/backend/src/routing/oauth/xai/xai-oauth.service.ts
+  s_a80493f83bbf63::t_f0332ec4fae68f 1,5,11,13-15,17-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "03497b1337445f7a7b7b79d7812426ade1dd554b",
+  "prompts": {},
+  "sessions": {
+    "s_a80493f83bbf63": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fcb05659-c1fc-4792-9efa-9575759418f2",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
