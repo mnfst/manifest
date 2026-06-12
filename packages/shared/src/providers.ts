@@ -124,6 +124,21 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'gsk_...',
   },
   {
+    id: 'gitlawb',
+    displayName: 'gitlawb',
+    aliases: ['opengateway', 'gl'],
+    // No OpenRouter prefix mapping — the gateway aggregates other providers
+    // and OpenRouter's catalog would either double-count or mis-attribute
+    // gitlawb-hosted models to their upstream vendor.
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#10b981',
+    keyPrefix: '',
+    minKeyLength: 20,
+    keyPlaceholder: 'gitlawb API key',
+  },
+  {
     id: 'kilo',
     displayName: 'Kilo',
     aliases: ['kilocode', 'kilo-code'],

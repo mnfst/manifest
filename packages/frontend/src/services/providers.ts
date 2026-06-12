@@ -188,6 +188,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
+  gitlawb: {
+    initial: 'gl',
+    subtitle: 'MiMo, Gemini, MiniMax, Qwen via gitlawb',
+    models: [],
+  },
   kiro: {
     initial: 'K',
     subtitle: 'Claude, DeepSeek, MiniMax, GLM, Qwen via Kiro',
@@ -389,6 +394,7 @@ const PROVIDER_ORDER = [
   'deepseek',
   'fireworks',
   'copilot',
+  'gitlawb',
   'gemini',
   'groq',
   'kilo',

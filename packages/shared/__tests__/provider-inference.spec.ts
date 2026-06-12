@@ -51,6 +51,9 @@ describe('inferProviderFromModel', () => {
     ['opencode-zen/qwen3.6-plus', 'opencode-zen'],
     ['opencode-zen/claude-opus-4-7', 'opencode-zen'],
     ['opencode-zen/gpt-5.5', 'opencode-zen'],
+    ['gitlawb/mimo-v2.5-pro', 'gitlawb'],
+    ['gitlawb/google/gemini-3.1-flash-lite', 'gitlawb'],
+    ['gitlawb/minimax/minimax-m3', 'gitlawb'],
     ['llamacpp/Qwen3.5-9B-Q4_K_M.gguf', 'llamacpp'],
     ['llamacpp/mistral-7b-instruct-v0.3.Q4_K_M.gguf', 'llamacpp'],
     ['openrouter/auto', 'openrouter'],
@@ -90,6 +93,10 @@ describe('underlyingGatewayModel', () => {
     expect(underlyingGatewayModel('opencode-go/deepseek-v4-pro')).toBe('deepseek-v4-pro');
     expect(underlyingGatewayModel('opencode-go/kimi-k2.6')).toBe('kimi-k2.6');
     expect(underlyingGatewayModel('opencode-zen/qwen3.6-plus')).toBe('qwen3.6-plus');
+    expect(underlyingGatewayModel('gitlawb/mimo-v2.5-pro')).toBe('mimo-v2.5-pro');
+    expect(underlyingGatewayModel('gitlawb/google/gemini-3.1-flash-lite')).toBe(
+      'google/gemini-3.1-flash-lite',
+    );
   });
 
   it('returns null for non-gateway model ids', () => {

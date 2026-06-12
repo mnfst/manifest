@@ -250,6 +250,30 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('gitlawb uses the Opengateway OpenAI-compatible endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['gitlawb'];
+    expect(ep.baseUrl).toBe('https://opengateway.gitlawb.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.streamUsageReporting).toBe('openai_stream_options');
+    expect(ep.buildPath('mimo-v2.5-pro')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('gl_test_key')).toEqual({
+      Authorization: 'Bearer gl_test_key',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('gitlawb resolves to gitlawb from its aliases', () => {
+    expect(resolveEndpointKey('gitlawb')).toBe('gitlawb');
+    expect(resolveEndpointKey('GitLawb')).toBe('gitlawb');
+    expect(resolveEndpointKey('opengateway')).toBe('gitlawb');
+    expect(resolveEndpointKey('OpenGateway')).toBe('gitlawb');
+    expect(resolveEndpointKey('gl')).toBe('gitlawb');
+  });
+
+  it('gitlawb appears in the known providers set', () => {
+    expect(Object.keys(PROVIDER_ENDPOINTS)).toContain('gitlawb');
+  });
+
   it('byteplus uses the ModelArk Coding Plan OpenAI-compatible endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['byteplus'];
     expect(ep.baseUrl).toBe('https://ark.ap-southeast.bytepluses.com/api/coding');

@@ -21,6 +21,7 @@ const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^opencode-zen\//, 'opencode-zen'],
   [/^kiro\//, 'kiro'],
   [/^llamacpp\//, 'llamacpp'],
+  [/^gitlawb\//, 'gitlawb'],
   [/^[a-z][\w-]*\//, 'openrouter'],
 ];
 
@@ -31,7 +32,7 @@ export { MODEL_PREFIX_MAP };
  * provider's API, so the id after the prefix is the underlying provider's
  * own model id (e.g. `opencode-go/deepseek-v4-pro` -> `deepseek-v4-pro`).
  */
-const GATEWAY_MODEL_PREFIXES = ['opencode-go/', 'opencode-zen/'] as const;
+const GATEWAY_MODEL_PREFIXES = ['opencode-go/', 'opencode-zen/', 'gitlawb/'] as const;
 
 /**
  * If `model` is a gateway model id, return the underlying provider's model
