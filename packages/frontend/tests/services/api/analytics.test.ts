@@ -171,11 +171,4 @@ describe('analytics API client', () => {
       expect(url).toContain('range=30d');
     }
   });
-
-  it('getRateLimits hits the rate-limits endpoint', async () => {
-    const fetchMock = setupFetch({ providers: [] });
-    await analytics.getRateLimits();
-    const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/rate-limits');
-  });
 });

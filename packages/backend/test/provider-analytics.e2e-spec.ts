@@ -446,14 +446,3 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
     expect(model.body.agents).not.toContain('ghost-model');
   });
 });
-
-describe('GET /api/v1/rate-limits', () => {
-  it('returns an empty providers list when nothing has been captured', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/rate-limits')
-      .set('x-api-key', TEST_API_KEY)
-      .expect(200);
-    expect(res.body).toHaveProperty('providers');
-    expect(Array.isArray(res.body.providers)).toBe(true);
-  });
-});

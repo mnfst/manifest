@@ -13,7 +13,6 @@ import { ForwardResult } from './provider-client';
 import { SessionMomentumService } from './session-momentum.service';
 import { LimitCheckService } from '../../notifications/services/limit-check.service';
 import { shouldTriggerFallback } from './fallback-status-codes';
-import { RateLimitTrackerService, canonicalConnectionLabel } from './rate-limit-tracker.service';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type {
   AuthType,
@@ -158,7 +157,6 @@ export class ProxyService {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
-    private readonly rateLimitTracker: RateLimitTrackerService,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -283,18 +281,6 @@ export class ProxyService {
       reasoningContentLookup,
       paramMergeContext,
     });
-
-    // Capture rate limit headers (fire-and-forget, never blocks proxy).
-    // Attribute to the canonical connection label so an unlabeled key is
-    // recorded under the stored 'Default' connection rather than a NULL that
-    // could collide with a real 'Default' connection on read.
-    this.rateLimitTracker.captureFromResponse(
-      forward.response,
-      userId,
-      route.provider,
-      route.authType,
-      canonicalConnectionLabel(route.keyLabel),
-    );
 
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const fallbackResult = await this.tryFallbackChain({
@@ -633,19 +619,6 @@ export class ProxyService {
         modelParams: fallbackModelParams,
         specs: fallbackSpecs,
       });
-      // Capture the fallback provider's rate-limit headers too — only the
-      // failed primary was tracked before, so a fallback-served request left
-      // the winning connection's limits unrecorded. Fire-and-forget: the
-      // tracker swallows its own errors and never throws into the proxy path.
-      this.rateLimitTracker.captureFromResponse(
-        success.forward.response,
-        userId,
-        success.provider,
-        success.authType ?? '',
-        // Mirror the primary path: a fallback success with no explicit keyLabel
-        // is recorded under the canonical 'Default' connection, not NULL.
-        canonicalConnectionLabel(success.keyLabel),
-      );
       return {
         forward: success.forward,
         meta: this.buildBaseMeta(resolved, success.model, {

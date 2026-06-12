@@ -33,7 +33,6 @@ import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
-import { RateLimitsController } from './controllers/rate-limits.controller';
 import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 import { ProxyModule } from '../routing/proxy/proxy.module';
 
@@ -67,7 +66,6 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
     MessagesController,
     AgentsController,
     AgentAnalyticsController,
-    RateLimitsController,
     ProviderAnalyticsController,
   ],
   providers: [

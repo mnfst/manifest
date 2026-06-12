@@ -38,9 +38,6 @@ export class Agent {
   @Column('boolean', { default: false })
   is_system!: boolean;
 
-  @Column('varchar', { nullable: true })
-  savings_baseline_model!: string | null;
-
   @ManyToOne(() => Tenant, (t) => t.agents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;

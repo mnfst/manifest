@@ -143,10 +143,6 @@ export function getPerProviderCostTimeseries(agentName: string, range = '24h'): 
   }) as PivotedTimeseries;
 }
 
-export function getRateLimits() {
-  return fetchJson('/rate-limits');
-}
-
 export function getOverview(range = '24h', agentName?: string) {
   return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
 }

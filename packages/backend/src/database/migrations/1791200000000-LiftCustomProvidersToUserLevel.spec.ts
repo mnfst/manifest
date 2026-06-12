@@ -84,4 +84,17 @@ describe('LiftCustomProvidersToUserLevel1791200000000', () => {
       ),
     ).toBe(true);
   });
+
+  it('down restores agent_id from the companion grant and never deletes a custom_providers row', async () => {
+    await migration.down(queryRunner);
+    expect(
+      queries.some(
+        (q) =>
+          q.includes('UPDATE "custom_providers"') &&
+          q.includes("'custom:' || cp.") &&
+          q.includes('"agent_provider_access"'),
+      ),
+    ).toBe(true);
+    expect(queries.some((q) => /DELETE\s+FROM\s+"custom_providers"/i.test(q))).toBe(false);
+  });
 });

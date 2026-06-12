@@ -124,11 +124,28 @@ export class LiftCustomProvidersToUserLevel1791200000000 implements MigrationInt
     await queryRunner.query(
       `ALTER TABLE "custom_providers" ADD COLUMN IF NOT EXISTS "agent_id" varchar`,
     );
+    // Best-effort restore of each custom provider's agent binding from its
+    // companion user_providers (custom:<id>) grant. agent_provider_access still
+    // exists here because LiftProviders.down() (1791000…) runs AFTER this
+    // migration's down() in revert order. Deterministic (earliest agent).
+    // custom_providers rows are never deleted on rollback, so this is lossless
+    // whether or not a binding is found; rows with no companion grant keep
+    // agent_id = NULL (the column stays nullable — the pre-lift NOT NULL can't be
+    // guaranteed for every row, and dropping data to satisfy it is not worth it).
+    await queryRunner.query(`
+      UPDATE "custom_providers" cp
+      SET "agent_id" = (
+        SELECT apa."agent_id"
+        FROM "user_providers" up
+        JOIN "agent_provider_access" apa ON apa."user_provider_id" = up."id"
+        WHERE up."provider" = 'custom:' || cp."id"
+        ORDER BY apa."agent_id"
+        LIMIT 1
+      )
+      WHERE cp."agent_id" IS NULL
+    `);
     // Restore the original agent FK (ON DELETE CASCADE) so the rolled-back schema
-    // re-enforces referential integrity. The original column was also NOT NULL,
-    // but that can't be restored on down() — the lift discarded each row's agent
-    // binding, so there are no values to backfill; leaving it nullable is the
-    // closest non-destructive equivalent.
+    // re-enforces referential integrity.
     await queryRunner.query(`
       ALTER TABLE "custom_providers"
         ADD CONSTRAINT "FK_custom_providers_agent"
