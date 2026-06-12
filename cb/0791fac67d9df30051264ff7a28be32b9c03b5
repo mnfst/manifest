@@ -1,0 +1,20 @@
+packages/backend/src/routing/proxy/__tests__/codex-session-affinity.spec.ts
+  s_12d44588bfe5b2::t_d7faa1a2b5abd8 82-96
+  s_12d44588bfe5b2::t_18493389054c63 22,30,72-81,97-108,149-152,157,170-171,173-175,177-178,180,182,184-189,192-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "cb0791fac67d9df30051264ff7a28be32b9c03b5",
+  "prompts": {},
+  "sessions": {
+    "s_12d44588bfe5b2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ae0725bc-5c38-434b-840a-1f98bc94402b",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
