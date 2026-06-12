@@ -10,7 +10,12 @@
 export const DEFAULT_STREAM_WARMUP_MS = 15_000;
 
 export function parseStreamWarmupMs(rawValue = process.env.STREAM_WARMUP_MS): number {
-  const parsed = Number.parseInt(rawValue ?? '', 10);
+  const value = rawValue ?? '';
+  if (!/^\d+$/.test(value)) {
+    return DEFAULT_STREAM_WARMUP_MS;
+  }
+
+  const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_STREAM_WARMUP_MS;
 }
 

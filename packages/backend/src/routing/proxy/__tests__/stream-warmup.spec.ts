@@ -73,6 +73,13 @@ describe('peekStream', () => {
       expect(parseStreamWarmupMs('abc')).toBe(DEFAULT_STREAM_WARMUP_MS);
     });
 
+    it.each(['45000abc', '45000.5', '45_000', ' 45000'])(
+      'falls back to 15000 ms when env var is not digits-only: %s',
+      (rawValue) => {
+        expect(parseStreamWarmupMs(rawValue)).toBe(DEFAULT_STREAM_WARMUP_MS);
+      },
+    );
+
     it('falls back to 15000 ms when env var is negative', () => {
       expect(parseStreamWarmupMs('-1')).toBe(DEFAULT_STREAM_WARMUP_MS);
     });
