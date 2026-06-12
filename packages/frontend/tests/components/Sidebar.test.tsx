@@ -107,15 +107,15 @@ describe("Sidebar — global nav links", () => {
     render(() => <Sidebar />);
     expect(screen.getByText("PROVIDERS")).toBeDefined();
     expect(screen.getByText("Subscriptions")).toBeDefined();
-    expect(screen.getByText("BYOK")).toBeDefined();
+    expect(screen.getByText("Usage-based")).toBeDefined();
     await waitFor(() => expect(screen.getByText("Local")).toBeDefined());
   });
 
   it("hides the Local link in cloud", async () => {
     mockIsSelfHosted = false;
     const { container } = render(() => <Sidebar />);
-    // Wait for the self-hosted resource to settle (BYOK is always present).
-    await waitFor(() => expect(screen.getByText("BYOK")).toBeDefined());
+    // Wait for the self-hosted resource to settle (Usage-based is always present).
+    await waitFor(() => expect(screen.getByText("Usage-based")).toBeDefined());
     await Promise.resolve();
     expect(container.querySelector('a[href="/providers/local"]')).toBeNull();
     expect(container.textContent).not.toContain("Local");
@@ -144,7 +144,7 @@ describe("Sidebar — global nav links", () => {
     expect(container.querySelector('a[href="/overview"]')).not.toBeNull();
     expect(container.querySelector('a[href="/messages"]')).not.toBeNull();
     expect(container.querySelector('a[href="/providers/subscriptions"]')).not.toBeNull();
-    expect(container.querySelector('a[href="/providers/byok"]')).not.toBeNull();
+    expect(container.querySelector('a[href="/providers/usage-based"]')).not.toBeNull();
     await waitFor(() =>
       expect(container.querySelector('a[href="/providers/local"]')).not.toBeNull(),
     );
@@ -163,7 +163,7 @@ describe("Sidebar — global nav links", () => {
       "/overview",
       "/messages",
       "/providers/subscriptions",
-      "/providers/byok",
+      "/providers/usage-based",
       "/providers/local",
       "/playground",
     ]);
@@ -188,9 +188,9 @@ describe("Sidebar — global nav active state", () => {
   });
 
   it("marks provider links active on provider pages (prefix match)", () => {
-    mockPathname = "/providers/byok";
+    mockPathname = "/providers/usage-based";
     const { container } = render(() => <Sidebar />);
-    const link = container.querySelector('a[href="/providers/byok"]');
+    const link = container.querySelector('a[href="/providers/usage-based"]');
     expect(link?.getAttribute("aria-current")).toBe("page");
   });
 

@@ -87,35 +87,27 @@ describe('Direction 2 – connecting a NEW provider auto-grants every existing a
     expect(enabled).toContain(providerId);
   });
 
-  it('sibling agent B has a tier route computed AGAINST the post-discovery model set', async () => {
-    // The bug: grantNewProviderToAllAgents recalcs every agent INSIDE
-    // upsertProvider, but that runs BEFORE discoverModels populates the new
-    // provider's cached_models — so siblings would be left with auto-assigned
-    // routes derived from a model set that excluded the new provider. The fix
-    // re-recalcs ALL owned agents AFTER discovery on a NEW-provider connect.
-    //
-    // Discovery for openai (fake key) falls back to the stubbed OpenRouter
-    // cache, so the provider's cached_models = gpt-4o / gpt-4o-mini after the
-    // connect above. A sibling (agent B) that was never the connect context
-    // must therefore have a non-null auto_assigned_route pointing at openai.
+  it('connecting a provider grants sibling agent B access WITHOUT auto-assigning any route', async () => {
+    // Model routing is now user-controlled: connecting a provider grants access
+    // to every owned agent (asserted above) but never auto-assigns tier routes.
+    // A sibling (agent B) that was never the connect context must therefore have
+    // NO auto_assigned_route — any tier_assignments rows that exist (e.g. lazily
+    // materialised by a tiers read) carry a null auto_assigned_route.
     const tiers = await ds.query(
       `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
       [agentBId],
     );
-    expect(tiers.length).toBeGreaterThan(0);
-    // auto_assigned_route is a JSONB { provider, authType, model } object.
-    const routes = tiers
-      .map((t: { auto_assigned_route: { provider?: string } | null }) => t.auto_assigned_route)
-      .filter((r: unknown): r is { provider?: string } => r !== null);
-    // At least one tier routes to the just-connected openai provider — proof B
-    // was recalced against the model set that INCLUDES the new provider.
-    expect(routes.some((r: { provider?: string }) => r.provider === 'openai')).toBe(true);
+    const autoAssigned = tiers
+      .map((t: { auto_assigned_route: unknown }) => t.auto_assigned_route)
+      .filter((r: unknown) => r !== null);
+    expect(autoAssigned).toHaveLength(0);
   });
 });
 
 describe('Direction 1 – creating a NEW agent inherits every existing provider', () => {
-  it('creating agent C auto-grants the already-connected provider + assigns routes', async () => {
-    // Seed discovered models so the auto-assigned route is observable.
+  it('creating agent C auto-grants the already-connected provider WITHOUT assigning routes', async () => {
+    // Seed discovered models on the provider so a stale auto-assign code path
+    // (if any regressed back in) would have something to assign.
     await ds.query(
       `UPDATE user_providers SET cached_models = $1 WHERE id = $2`,
       [
@@ -139,7 +131,7 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     const res = await auth(api().post('/api/v1/agents')).send({ name: AGENT_C_NAME }).expect(201);
     agentCId = res.body.agent.id as string;
 
-    // The brand-new agent inherited the existing provider.
+    // The brand-new agent inherited the existing provider (access only).
     const grants = await ds.getRepository(AgentProviderAccess).find({
       where: { agent_id: agentCId, user_provider_id: providerId },
     });
@@ -150,17 +142,16 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     ).expect(200);
     expect((enabledRes.body.enabled ?? []) as string[]).toContain(providerId);
 
-    // Routes were auto-assigned for the new agent (enableAllProvidersForAgent
-    // calls recalculateTiers); a tier_assignments row now exists for agent C.
+    // Model routing is user-controlled: creating an agent grants access but does
+    // NOT auto-assign tier routes. No auto_assigned_route exists for agent C.
     const tiers = await ds.query(
       `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
       [agentCId],
     );
-    expect(tiers.length).toBeGreaterThan(0);
-    const hasRoute = tiers.some(
-      (t: { auto_assigned_route: unknown }) => t.auto_assigned_route !== null,
-    );
-    expect(hasRoute).toBe(true);
+    const autoAssigned = tiers
+      .map((t: { auto_assigned_route: unknown }) => t.auto_assigned_route)
+      .filter((r: unknown) => r !== null);
+    expect(autoAssigned).toHaveLength(0);
   });
 
   it('creating an agent when the user has NO providers succeeds with an empty enabled list', async () => {
@@ -257,17 +248,24 @@ describe('Disable isolation – DELETE a grant affects only the targeted agent',
 });
 
 describe('Disable impact preview – mirrors what the disable handler will strip', () => {
-  it('reports an auto_assigned_route that uses the provider with position "auto-assigned"', async () => {
-    // Regression: the preview used to ignore auto_assigned_route entirely (and
-    // early-return [] when the provider had no cached models), so an agent
-    // routed via an auto-assigned openai route saw an empty impact even though
-    // disabling would strip that route. Force a deterministic auto-assigned
-    // openai route on agent B, then assert the preview surfaces it.
+  it('reports a user-assigned override route that uses the provider with position "primary"', async () => {
+    // The preview reports the routes the user still controls — override_route
+    // (primary) and fallback_routes — and deliberately IGNORES the legacy,
+    // system-authored auto_assigned_route. Pin a deterministic standard-tier
+    // override on agent B pointing at the openai connection, then assert the
+    // preview surfaces it as the primary route that disabling would strip.
+    const { v4: uuid } = await import('uuid');
+    const now = new Date().toISOString();
     await ds.query(
-      `UPDATE tier_assignments
-         SET auto_assigned_route = $1, override_route = NULL, fallback_routes = NULL
-       WHERE agent_id = $2 AND tier = 'standard'`,
-      [JSON.stringify({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }), agentBId],
+      `INSERT INTO tier_assignments (id, user_id, agent_id, tier, override_route, auto_assigned_route, fallback_routes, output_modality, response_mode, updated_at)
+       VALUES ($1, $2, $3, 'standard', $4, NULL, NULL, 'text', 'buffered', $5)`,
+      [
+        uuid(),
+        TEST_USER_ID,
+        agentBId,
+        JSON.stringify({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }),
+        now,
+      ],
     );
 
     const res = await auth(
@@ -276,15 +274,11 @@ describe('Disable impact preview – mirrors what the disable handler will strip
 
     const affected: Array<{ tier: string; model: string; position: string }> =
       res.body.affected_tiers ?? [];
-    // The regression returned [] here; now every auto-assigned openai route is
-    // surfaced. Assert the deterministic standard-tier route we just pinned is
-    // among them with the new 'auto-assigned' position.
-    const autoAssigned = affected.filter((a) => a.position === 'auto-assigned');
-    expect(autoAssigned.length).toBeGreaterThan(0);
-    expect(autoAssigned).toContainEqual({
+    // The override route we just pinned must appear with position 'primary'.
+    expect(affected).toContainEqual({
       tier: 'standard',
       model: 'gpt-4o-mini',
-      position: 'auto-assigned',
+      position: 'primary',
     });
   });
 });

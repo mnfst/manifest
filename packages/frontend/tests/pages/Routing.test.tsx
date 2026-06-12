@@ -126,6 +126,9 @@ vi.mock('@solidjs/router', () => ({
   useParams: () => useParams(),
   useLocation: () => useLocation(),
   useSearchParams: () => useSearchParams(),
+  // NoConnectionsPrompt (the empty-providers state) renders <A> links to the
+  // provider pages. Provide a passthrough so it mounts in tests.
+  A: (props: any) => props.children,
 }));
 
 // Component / section mocks — keep them minimal so we exercise Routing.tsx logic.
@@ -262,6 +265,12 @@ vi.mock('../../src/components/RoutingModals.js', () => ({
           }
         >
           spec-override
+        </button>
+        <button
+          data-testid="modal-trigger-open-provider"
+          onClick={() => (props.onOpenProviderModal as () => void)?.()}
+        >
+          open-provider
         </button>
         <button
           data-testid="modal-trigger-provider-update"
@@ -668,10 +677,13 @@ beforeEach(() => {
 });
 
 describe('Routing page', () => {
-  it('renders routing description without a duplicate page heading', async () => {
+  it('renders the routing content without a duplicate page heading', async () => {
+    // The standalone routing description paragraph was removed when the page
+    // moved under the agent-detail tabbed shell. The routing surface still
+    // renders, and (as before) must not introduce its own <h1> page heading.
     const { container } = render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText(/Pick which model handles each type of request/)).toBeDefined();
+      expect(screen.getByTestId('default-section')).toBeDefined();
     });
     expect(container.querySelector('h1')).toBeNull();
   });
@@ -932,15 +944,17 @@ describe('Routing page', () => {
     });
   });
 
-  it('opens the provider modal via Connect providers', async () => {
+  it('opens the provider modal via the modals onOpenProviderModal handler', async () => {
+    // The standalone "Connect providers" button was removed; the modal is now
+    // opened through the onOpenProviderModal callback (fired by the pickers'
+    // "connect providers" affordance), which RoutingModals receives.
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
+      expect(screen.getByTestId('modal-trigger-open-provider')).toBeDefined();
     });
-    fireEvent.click(screen.getByText('Connect providers'));
-    // The modal mock receives showProviderModal=true → it captures props.
+    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
     await waitFor(() => {
-      expect(lastModalsProps).not.toBeNull();
+      expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(true);
     });
   });
 
@@ -1254,9 +1268,9 @@ describe('Routing page', () => {
   it('closes the provider modal via the modals onProviderModalClose handler', async () => {
     render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
+      expect(screen.getByTestId('modal-trigger-open-provider')).toBeDefined();
     });
-    fireEvent.click(screen.getByText('Connect providers'));
+    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
     // After opening, showProviderModal accessor reports true.
     await waitFor(() => {
       expect((lastModalsProps?.showProviderModal as () => boolean)()).toBe(true);
@@ -1498,11 +1512,15 @@ describe('Routing page', () => {
       },
     ]);
     render(() => <Routing />);
+    // Wait until the providers resource has resolved with the inactive
+    // provider. The empty-state ("No providers connected") only renders once
+    // loading is done, which guarantees the openProviderModal snapshot below
+    // sees hadProviders=true (a connected-but-inactive provider exists).
     await waitFor(() => {
-      expect(screen.getByText('Connect providers')).toBeDefined();
+      expect(screen.getByText('No providers connected')).toBeDefined();
     });
     // Step 2: open the provider modal (snapshots wasEnabled=false, hadProviders=true).
-    fireEvent.click(screen.getByText('Connect providers'));
+    fireEvent.click(screen.getByTestId('modal-trigger-open-provider'));
     // Step 3: simulate the modal closing AFTER provider became active.
     mockGetProviders.mockResolvedValue([baseProvider]); // active provider
     // Trigger a refetch path so connectedProviders updates to is_active=true.
@@ -1706,37 +1724,34 @@ describe('Routing page', () => {
     expect(mockDeleteModelParams).not.toHaveBeenCalled();
   });
 
-  it('renders the response mode button in headerRight (lines 538-556)', async () => {
-    render(() => <Routing />);
+  it('renders the response mode button in the routing toolbar', async () => {
+    // The response-mode button moved out of the RoutingTabs header slot and now
+    // sits in the toolbar row above the tabs (rendered once providers exist).
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      expect(screen.getByTestId('tab-header-right')).toBeDefined();
+      expect(container.querySelector('.response-mode-btn')).not.toBeNull();
     });
-    // The response-mode-btn is rendered inside headerRight via the RoutingTabs mock
-    const headerRight = screen.getByTestId('tab-header-right');
-    const btn = headerRight.querySelector('.response-mode-btn');
-    expect(btn).not.toBeNull();
+    const btn = container.querySelector('.response-mode-btn');
     expect(btn?.textContent).toContain('Response mode');
   });
 
   it('opens the ResponseModeModal when clicking the response mode button', async () => {
-    render(() => <Routing />);
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      const headerRight = screen.getByTestId('tab-header-right');
-      expect(headerRight.querySelector('.response-mode-btn')).not.toBeNull();
+      expect(container.querySelector('.response-mode-btn')).not.toBeNull();
     });
-    fireEvent.click(screen.getByTestId('tab-header-right').querySelector('.response-mode-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.response-mode-btn') as HTMLButtonElement);
     await waitFor(() => {
       expect(screen.getByTestId('response-mode-modal')).toBeDefined();
     });
   });
 
   it('closes the ResponseModeModal via onClose', async () => {
-    render(() => <Routing />);
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      const headerRight = screen.getByTestId('tab-header-right');
-      expect(headerRight.querySelector('.response-mode-btn')).not.toBeNull();
+      expect(container.querySelector('.response-mode-btn')).not.toBeNull();
     });
-    fireEvent.click(screen.getByTestId('tab-header-right').querySelector('.response-mode-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.response-mode-btn') as HTMLButtonElement);
     await waitFor(() => {
       expect(screen.getByTestId('response-mode-modal')).toBeDefined();
     });
@@ -1747,12 +1762,11 @@ describe('Routing page', () => {
   });
 
   it('calls onReplace on the ResponseModeModal which closes it and opens dropdown', async () => {
-    render(() => <Routing />);
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      const headerRight = screen.getByTestId('tab-header-right');
-      expect(headerRight.querySelector('.response-mode-btn')).not.toBeNull();
+      expect(container.querySelector('.response-mode-btn')).not.toBeNull();
     });
-    fireEvent.click(screen.getByTestId('tab-header-right').querySelector('.response-mode-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.response-mode-btn') as HTMLButtonElement);
     await waitFor(() => {
       expect(screen.getByTestId('response-mode-modal')).toBeDefined();
     });
@@ -1797,12 +1811,11 @@ describe('Routing page', () => {
   });
 
   it('fires onResponseModeChange on the ResponseModeModal which calls handleDefaultResponseModeChange', async () => {
-    render(() => <Routing />);
+    const { container } = render(() => <Routing />);
     await waitFor(() => {
-      const headerRight = screen.getByTestId('tab-header-right');
-      expect(headerRight.querySelector('.response-mode-btn')).not.toBeNull();
+      expect(container.querySelector('.response-mode-btn')).not.toBeNull();
     });
-    fireEvent.click(screen.getByTestId('tab-header-right').querySelector('.response-mode-btn') as HTMLButtonElement);
+    fireEvent.click(container.querySelector('.response-mode-btn') as HTMLButtonElement);
     await waitFor(() => {
       expect(screen.getByTestId('response-mode-modal')).toBeDefined();
     });
