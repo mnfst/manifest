@@ -26,6 +26,7 @@ import { CopilotTokenService } from './copilot-token.service';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
+import { CodexSessionAffinity } from './codex-session-affinity';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
 
 @Module({
@@ -59,6 +60,7 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ThoughtSignatureCache,
     ThinkingBlockCache,
     ReasoningContentCache,
+    CodexSessionAffinity,
     ProxyExceptionFilter,
     MessageRecordingService,
   ],

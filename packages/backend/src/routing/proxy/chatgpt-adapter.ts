@@ -41,6 +41,13 @@ export interface ToResponsesRequestOptions {
    */
   mapMaxOutputTokens?: boolean;
   /**
+   * Forward the caller's `prompt_cache_key` so same-prefix requests keep
+   * their prompt-cache affinity. Opt-in per endpoint: OpenAI's /responses
+   * endpoints accept the field, other Responses-shaped backends may reject
+   * unknown parameters.
+   */
+  forwardPromptCacheKey?: boolean;
+  /**
    * Explicit upstream streaming mode. Omit to preserve the historical
    * ChatGPT-subscription behavior, which expects SSE collection.
    */
@@ -99,6 +106,14 @@ export function toResponsesRequest(
     if (typeof maxOutputTokens === 'number') {
       request.max_output_tokens = maxOutputTokens;
     }
+  }
+
+  if (
+    options.forwardPromptCacheKey &&
+    typeof body.prompt_cache_key === 'string' &&
+    body.prompt_cache_key
+  ) {
+    request.prompt_cache_key = body.prompt_cache_key;
   }
 
   if (isObjectRecord(body.reasoning)) {

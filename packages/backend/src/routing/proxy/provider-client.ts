@@ -23,6 +23,7 @@ import {
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
 import { ForwardOptions } from './proxy-types';
+import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
@@ -83,13 +84,18 @@ function stripModelPrefix(model: string, endpointKey: string): string {
 @Injectable()
 export class ProviderClient {
   private readonly logger = new Logger(ProviderClient.name);
+  private readonly codexAffinity: CodexSessionAffinity;
 
   constructor(
     @Optional()
     private readonly opencodeGoCatalog?: OpencodeGoCatalogService,
     @Optional()
     private readonly modelRegistry?: ProviderModelRegistryService,
-  ) {}
+    @Optional()
+    codexAffinity?: CodexSessionAffinity,
+  ) {
+    this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
+  }
 
   async forward(opts: ForwardOptions): Promise<ForwardResult> {
     const {
@@ -154,7 +160,14 @@ export class ProviderClient {
       providerResource: opts.providerResource,
     });
 
-    const finalHeaders = extraHeaders ? { ...headers, ...extraHeaders } : headers;
+    // The Codex backend only serves prompt-cache hits with session affinity
+    // headers the real Codex CLI sends — see CodexSessionAffinity.
+    const affinity =
+      endpointKey === 'openai-subscription'
+        ? this.codexAffinity.prepare(apiKey, requestBody)
+        : undefined;
+    const finalHeaders =
+      affinity || extraHeaders ? { ...headers, ...affinity?.headers, ...extraHeaders } : headers;
 
     this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
@@ -171,13 +184,15 @@ export class ProviderClient {
       }
     }
 
-    return this.executeFetch(url, finalHeaders, requestBody, signal, {
+    const result = await this.executeFetch(url, finalHeaders, requestBody, signal, {
       isGoogle,
       isAnthropic,
       isChatGpt,
       isResponses,
       isCodeAssist,
     });
+    if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
+    return result;
   }
 
   private async resolveEndpoint(
@@ -423,6 +438,10 @@ export class ProviderClient {
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'copilot-responses' ||
                 endpointKey === 'xai-responses',
+              // Only OpenAI's /responses endpoints are known to accept
+              // prompt_cache_key; other Responses-shaped backends may 400.
+              forwardPromptCacheKey:
+                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
             });
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
