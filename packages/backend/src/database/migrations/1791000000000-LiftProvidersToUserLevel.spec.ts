@@ -29,8 +29,8 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
     expect(relabel).toContain('LEFT JOIN "agents" a ON a."id" = up."agent_id"');
     expect(relabel).toContain('NULLIF(TRIM(a."display_name"), \'\')');
     expect(relabel).toContain('NULLIF(TRIM(a."name"), \'\')');
-    expect(relabel).toContain('WHEN LOWER("label") = \'default\' THEN "agent_label"');
-    expect(relabel).toContain('ELSE "label" || \' - \' || "agent_label"');
+    expect(relabel).toContain('WHEN LOWER("label") = \'default\' THEN \'from \' || "agent_label"');
+    expect(relabel).toContain('ELSE "label" || \' (from \' || "agent_label" || \')\'');
     expect(relabel).toContain('generate_series(0, 1000)');
     expect(relabel).toContain('candidate_reserved_labels AS');
     expect(relabel).toContain('ranked."proposed_label" || \' [\' || ranked."id" || \']\'');

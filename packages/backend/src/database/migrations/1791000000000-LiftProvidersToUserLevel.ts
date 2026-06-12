@@ -54,11 +54,12 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
     //    (user_id, provider, auth_type, LOWER(label)) by RELABELING, never
     //    deleting. Keys are AES-256-GCM with a random IV so SQL can't prove two
     //    rows hold the same plaintext key; deleting "duplicates" would silently
-    //    drop a distinct key. For old agent-scoped "Default" connections, use
-    //    the agent display name so the global connection keeps its source
-    //    context. Custom labels keep the user's label and append the source
-    //    agent name. If the generated label is still not unique, choose the
-    //    first row-id suffix that does not collide with pre-existing labels.
+    //    drop a distinct key. Name the carried-over connection after its source
+    //    agent so it reads as a key that came from that agent rather than being
+    //    mistaken for the agent itself: an old "Default" connection becomes
+    //    "from <agent>", a custom label becomes "<label> (from <agent>)". If the
+    //    generated label is still not unique, choose the first row-id suffix that
+    //    does not collide with pre-existing labels.
     await queryRunner.query(`
     WITH colliding_labels AS (
       SELECT "user_id", "provider", "auth_type", LOWER("label") AS "label_key"
@@ -99,8 +100,8 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
         "priority",
         "connected_at",
         CASE
-          WHEN LOWER("label") = 'default' THEN "agent_label"
-          ELSE "label" || ' - ' || "agent_label"
+          WHEN LOWER("label") = 'default' THEN 'from ' || "agent_label"
+          ELSE "label" || ' (from ' || "agent_label" || ')'
         END AS "proposed_label"
       FROM agent_labels
     ),
