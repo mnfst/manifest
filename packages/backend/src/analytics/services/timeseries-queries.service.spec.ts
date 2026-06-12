@@ -6,7 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import {
   MESSAGE_ROW_SELECT_ALIASES,
-  EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+  EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
@@ -380,16 +380,16 @@ describe('TimeseriesQueriesService', () => {
     const recentIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const oldIso = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString();
 
-    it('excludes the reserved system (Playground) agent by default', async () => {
+    it('excludes the reserved Playground agent by default', async () => {
       await service.getAgentList('u1');
       const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
-      expect(clauses).toContain('a.is_system = false');
+      expect(clauses).toContain('a.is_playground = false');
     });
 
-    it('includes system agents when includeSystem is true (Messages filter)', async () => {
+    it('includes playground agents when includePlayground is true (Messages filter)', async () => {
       await service.getAgentList('u1', undefined, true);
       const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
-      expect(clauses).not.toContain('a.is_system = false');
+      expect(clauses).not.toContain('a.is_playground = false');
     });
 
     it('returns agents with sparkline data and display_name', async () => {
@@ -500,7 +500,7 @@ describe('TimeseriesQueriesService', () => {
       expect(clauses).toContain('at.provider = :provider');
     });
 
-    it('excludes the system Playground agent when excludeSystem=true', async () => {
+    it('excludes the reserved Playground agent when excludePlayground=true', async () => {
       mockGetRawMany.mockResolvedValue([]);
       await service.getTimeseries(
         '24h',
@@ -513,16 +513,16 @@ describe('TimeseriesQueriesService', () => {
         true,
       );
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
       // Semi-join exclusion adds no LEFT JOIN of its own.
       expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
 
-    it('does not exclude system agents by default', async () => {
+    it('does not exclude playground agents by default', async () => {
       mockGetRawMany.mockResolvedValue([]);
       await service.getTimeseries('24h', 'u1', true, 'tenant-1');
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
 
     it('scopes the aggregate timeseries to a connection label when provided', async () => {
@@ -568,17 +568,17 @@ describe('TimeseriesQueriesService', () => {
         { hour: '02', alpha: 3, bravo: 0 },
       ]);
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
       expect(clauses).toContain('at.auth_type = :authType');
       expect(clauses).toContain('at.provider = :provider');
-      // The NOT EXISTS semi-join matches a system agent by id OR name and is a
+      // The NOT EXISTS semi-join matches a playground agent by id OR name and is a
       // pure existence test, so a soft-deleted agent sharing a slug with a live
       // one can never multiply the per-agent SUM. It adds no LEFT JOIN.
       expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
       // Matching by name (not just id) means a Playground row carrying only
       // agent_name (NULL agent_id) is excluded too — no leak.
-      expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain(
-        'sysag.id = at.agent_id OR sysag.name = at.agent_name',
+      expect(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE).toContain(
+        'playag.id = at.agent_id OR playag.name = at.agent_name',
       );
     });
 
@@ -653,9 +653,9 @@ describe('TimeseriesQueriesService', () => {
         (c) => typeof c[0] === 'string' && c[0].includes('at.agent_id = ('),
       );
       expect(liveAgentCall![1]).toEqual({ liveAgentName: 'agent-x', liveTenantId: 'tenant-1' });
-      // Playground (is_system) usage must be excluded from per-provider totals,
+      // Playground (is_playground) usage must be excluded from per-provider totals,
       // via the same NOT EXISTS semi-join as the per-agent endpoints (no join).
-      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
       // Custom provider names resolve via the cp join (built-ins join to NULL).
       expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
         CustomProvider,
@@ -755,9 +755,9 @@ describe('TimeseriesQueriesService', () => {
       const out = await service.getPerModelTimeseries('24h', 'u1', true, 'tenant-1', 'agent-x');
       expect(out.agents).toEqual(['gpt-4o']);
       expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 9 }]);
-      // Playground (is_system) usage must be excluded from per-model totals.
+      // Playground (is_playground) usage must be excluded from per-model totals.
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
-      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
       expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
 
@@ -781,12 +781,12 @@ describe('TimeseriesQueriesService', () => {
   });
 
   describe('getAgentNamesByAuthType', () => {
-    it('returns distinct agent names excluding system agents', async () => {
+    it('returns distinct agent names excluding playground agents', async () => {
       mockGetRawMany.mockResolvedValue([{ agent_name: 'a' }, { agent_name: 'b' }]);
       const out = await service.getAgentNamesByAuthType('subscription', 'u1', 'tenant-1');
       expect(out).toEqual(['a', 'b']);
       expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
-        EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+        EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
       );
       // No LEFT JOIN on agents anymore — exclusion is a pure semi-join.
       expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();

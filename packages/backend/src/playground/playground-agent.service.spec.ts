@@ -15,7 +15,7 @@ function makeAgent(overrides: Partial<Agent> = {}): Agent {
     id: AGENT_ID,
     name: PLAYGROUND_AGENT_NAME,
     display_name: PLAYGROUND_AGENT_NAME,
-    is_system: true,
+    is_playground: true,
     is_active: true,
     tenant_id: TENANT_ID,
     ...overrides,
@@ -302,7 +302,7 @@ describe('PlaygroundAgentService.resolve', () => {
     });
   });
 
-  describe('(b) existing system agent returned', () => {
+  describe('(b) existing playground agent returned', () => {
     it('returns the existing agent without starting a transaction', async () => {
       const existing = makeAgent();
       const { service, mocks } = buildService({
@@ -317,7 +317,7 @@ describe('PlaygroundAgentService.resolve', () => {
       expect(mocks.dataSource.transaction).not.toHaveBeenCalled();
     });
 
-    it('queries agentRepo with the correct tenant_id, is_system and deleted_at filters', async () => {
+    it('queries agentRepo with the correct tenant_id, is_playground and deleted_at filters', async () => {
       const existing = makeAgent();
       const { service, mocks } = buildService({
         agentRepo: {
@@ -329,7 +329,7 @@ describe('PlaygroundAgentService.resolve', () => {
 
       expect(mocks.agentRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: expect.objectContaining({ tenant_id: TENANT_ID, is_system: true }),
+          where: expect.objectContaining({ tenant_id: TENANT_ID, is_playground: true }),
         }),
       );
     });
@@ -371,7 +371,7 @@ describe('PlaygroundAgentService.resolve', () => {
 
       expect(result.name).toBe(PLAYGROUND_AGENT_NAME);
       expect(result.display_name).toBe(PLAYGROUND_AGENT_NAME);
-      expect(result.is_system).toBe(true);
+      expect(result.is_playground).toBe(true);
       expect(result.is_active).toBe(true);
       expect(result.tenant_id).toBe(TENANT_ID);
       expect(typeof result.id).toBe('string');

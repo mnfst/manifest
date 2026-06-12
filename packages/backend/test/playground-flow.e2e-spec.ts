@@ -178,7 +178,7 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
     // "Playground" in global Messages.
     const ds = app.get(DataSource);
     const [playgroundAgent] = await ds.query(
-      `SELECT id FROM agents WHERE is_system = true AND deleted_at IS NULL LIMIT 1`,
+      `SELECT id FROM agents WHERE is_playground = true AND deleted_at IS NULL LIMIT 1`,
     );
     const rows = await ds.query(
       `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, agent_name FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,

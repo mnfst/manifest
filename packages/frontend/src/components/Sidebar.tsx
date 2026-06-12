@@ -41,7 +41,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const [selfHosted] = createResource(checkIsSelfHosted);
 
   // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
-  // fires (create/delete/rename). Uses the DEFAULT getAgents() — system agents
+  // fires (create/delete/rename). Uses the DEFAULT getAgents() — playground agents
   // (the reserved Playground) are excluded so they never leak into the switcher.
   const [agents] = createResource(
     () => agentPing(),

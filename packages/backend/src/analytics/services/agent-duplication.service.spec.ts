@@ -381,8 +381,8 @@ describe('AgentDuplicationService', () => {
       expect(result.copied.providers).toBe(3);
     });
 
-    it('rejects the reserved system agent as a duplication source (404)', async () => {
-      // findOwnedAgent now includes `is_system = false`, so the Playground agent
+    it('rejects the reserved Playground agent as a duplication source (404)', async () => {
+      // findOwnedAgent now includes `is_playground = false`, so the Playground agent
       // is invisible to duplication lookups — getOne returns null as if it doesn't exist.
       mockAgentGetOne.mockResolvedValueOnce(null);
 
@@ -391,9 +391,9 @@ describe('AgentDuplicationService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('passes is_system = false filter in every findOwnedAgent query builder call', async () => {
-      // Ensures the new andWhere('a.is_system = false') clause is present so the
-      // system agent is always excluded from source resolution.
+    it('passes is_playground = false filter in every findOwnedAgent query builder call', async () => {
+      // Ensures the new andWhere('a.is_playground = false') clause is present so the
+      // playground agent is always excluded from source resolution.
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       await expect(
@@ -401,13 +401,15 @@ describe('AgentDuplicationService', () => {
       ).rejects.toThrow(NotFoundException);
 
       const andWhereCalls = (mockAgentQb.andWhere as jest.Mock).mock.calls as string[][];
-      const hasSystemFilter = andWhereCalls.some(([expr]) => /is_system.*false/i.test(expr));
-      expect(hasSystemFilter).toBe(true);
+      const hasPlaygroundFilter = andWhereCalls.some(([expr]) =>
+        /is_playground.*false/i.test(expr),
+      );
+      expect(hasPlaygroundFilter).toBe(true);
     });
   });
 
-  describe('getCopySummary system-agent block', () => {
-    it('rejects the reserved system agent as a source for getCopySummary (404)', async () => {
+  describe('getCopySummary playground-agent block', () => {
+    it('rejects the reserved Playground agent as a source for getCopySummary (404)', async () => {
       // Same filter applies: the Playground agent is invisible to findOwnedAgent.
       mockAgentGetOne.mockResolvedValueOnce(null);
 
@@ -417,8 +419,8 @@ describe('AgentDuplicationService', () => {
     });
   });
 
-  describe('suggestName system-agent block', () => {
-    it('rejects the reserved system agent as a source for suggestName (404)', async () => {
+  describe('suggestName playground-agent block', () => {
+    it('rejects the reserved Playground agent as a source for suggestName (404)', async () => {
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       await expect(service.suggestName('user-1', 'Playground')).rejects.toThrow(NotFoundException);

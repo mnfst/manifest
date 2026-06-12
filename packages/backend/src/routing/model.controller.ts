@@ -81,10 +81,10 @@ export class ModelController {
 
   @Get(':agentName/available-models')
   async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    // allowSystem: true — the Playground frontend reads available models for the
-    // reserved system agent; all other model.controller endpoints remain blocked.
+    // allowPlayground: true — the Playground frontend reads available models for the
+    // reserved Playground agent; all other model.controller endpoints remain blocked.
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
-      allowSystem: true,
+      allowPlayground: true,
     });
     const models = await this.discoveryService.getModelsForAgent(user.id, agent.id);
 
