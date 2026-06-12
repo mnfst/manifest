@@ -6,8 +6,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * ambiguous (nothing else about the agent is "system"-level). The rename is
  * guarded so it is a no-op on databases that already have the new column.
  */
-export class RenameIsSystemToIsPlayground1791800000000 implements MigrationInterface {
-  name = 'RenameIsSystemToIsPlayground1791800000000';
+export class RenameIsSystemToIsPlayground1791900000000 implements MigrationInterface {
+  name = 'RenameIsSystemToIsPlayground1791900000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

@@ -208,34 +208,34 @@ describe('routing API client (additional coverage)', () => {
     expect(url).toContain('/api/v1/routing/demo/providers/openai/refresh-models?authType=api_key');
   });
 
-  it('getAgentProviderAccess GETs enabled user provider ids', async () => {
+  it('getEnabledProviders GETs enabled user provider ids', async () => {
     const fetchMock = setupFetch({ enabled: ['up-1'] });
-    const out = await routing.getAgentProviderAccess('demo agent');
+    const out = await routing.getEnabledProviders('demo agent');
     expect(out).toEqual({ enabled: ['up-1'] });
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/agents/demo%20agent/provider-access');
+    expect(url).toContain('/api/v1/agents/demo%20agent/enabled-providers');
   });
 
   it('getAgentProviderDisableImpact GETs the disable impact endpoint', async () => {
     const fetchMock = setupFetch({ affected_tiers: [] });
     await routing.getAgentProviderDisableImpact('demo', 'up/1');
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain('/api/v1/agents/demo/provider-access/up%2F1/impact');
+    expect(url).toContain('/api/v1/agents/demo/enabled-providers/up%2F1/impact');
   });
 
-  it('enableAgentProviderAccess PUTs to the grant endpoint', async () => {
+  it('enableProviderForAgent PUTs to the enabled-providers endpoint', async () => {
     const fetchMock = setupFetch({ ok: true });
-    await routing.enableAgentProviderAccess('demo', 'up-1');
+    await routing.enableProviderForAgent('demo', 'up-1');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1');
+    expect(url).toContain('/api/v1/agents/demo/enabled-providers/up-1');
     expect((init as RequestInit).method).toBe('PUT');
   });
 
-  it('disableAgentProviderAccess DELETEs the grant endpoint', async () => {
+  it('disableProviderForAgent DELETEs the enabled-providers endpoint', async () => {
     const fetchMock = setupFetch({ ok: true });
-    await routing.disableAgentProviderAccess('demo', 'up-1');
+    await routing.disableProviderForAgent('demo', 'up-1');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/agents/demo/provider-access/up-1');
+    expect(url).toContain('/api/v1/agents/demo/enabled-providers/up-1');
     expect((init as RequestInit).method).toBe('DELETE');
   });
 

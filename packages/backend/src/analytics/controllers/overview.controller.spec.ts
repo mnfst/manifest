@@ -7,7 +7,7 @@ import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 
 function mockAggregation(): Record<string, jest.Mock> {
   return {
@@ -72,7 +72,7 @@ describe('OverviewController', () => {
         { provide: TenantCacheService, useValue: { resolve: mockTenantResolve } },
         { provide: ProviderService, useValue: { getProviders: mockGetProviders } },
         { provide: ResolveAgentService, useValue: { resolve: mockResolveAgent } },
-        { provide: getRepositoryToken(AgentProviderAccess), useValue: { find: mockAccessFind } },
+        { provide: getRepositoryToken(AgentEnabledProvider), useValue: { find: mockAccessFind } },
       ],
     }).compile();
 
@@ -171,7 +171,7 @@ describe('OverviewController', () => {
     expect(mockAccessFind).toHaveBeenCalledWith({ where: { agent_id: 'agent-uuid-1' } });
   });
 
-  it('returns has_providers false when active providers are not granted to the agent', async () => {
+  it('returns has_providers false when active providers are not enabled for the agent', async () => {
     mockGetProviders.mockResolvedValueOnce([{ id: 'provider-1', is_active: true }]);
     mockAccessFind.mockResolvedValueOnce([
       { agent_id: 'agent-uuid-1', user_provider_id: 'provider-2' },

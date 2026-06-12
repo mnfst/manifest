@@ -225,7 +225,7 @@ export class CustomProviderService {
     });
     await this.repo.insert(cp);
 
-    // Create UserProvider + grant access across every owned agent (custom
+    // Create UserProvider + enable it for every owned agent (custom
     // providers are user-global). When the display name resolves to Ollama /
     // LM Studio we tag the row `'local'` so routed messages carry the
     // grey-house badge and the row shows up under the Local tab. A null agentId

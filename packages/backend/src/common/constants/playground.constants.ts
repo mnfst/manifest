@@ -1,8 +1,8 @@
 /**
  * The reserved per-tenant "Playground" agent that backs the global Playground.
  * Playground runs resolve to it (so they record `agent_name = 'Playground'` in
- * global Messages) and it holds grants to the tenant's whole global provider
- * pool. It is flagged `is_playground = true`, hidden from the agent list/switcher/
+ * global Messages) and it has the tenant's whole global provider
+ * pool enabled. It is flagged `is_playground = true`, hidden from the agent list/switcher/
  * counts, and users cannot create or rename an agent to this name.
  */
 export const PLAYGROUND_AGENT_NAME = 'Playground';

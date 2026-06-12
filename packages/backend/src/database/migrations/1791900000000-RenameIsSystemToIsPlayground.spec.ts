@@ -1,12 +1,12 @@
 import { QueryRunner } from 'typeorm';
-import { RenameIsSystemToIsPlayground1791800000000 } from './1791800000000-RenameIsSystemToIsPlayground';
+import { RenameIsSystemToIsPlayground1791900000000 } from './1791900000000-RenameIsSystemToIsPlayground';
 
-describe('RenameIsSystemToIsPlayground1791800000000', () => {
-  let migration: RenameIsSystemToIsPlayground1791800000000;
+describe('RenameIsSystemToIsPlayground1791900000000', () => {
+  let migration: RenameIsSystemToIsPlayground1791900000000;
   let queryRunner: jest.Mocked<Pick<QueryRunner, 'query'>>;
 
   beforeEach(() => {
-    migration = new RenameIsSystemToIsPlayground1791800000000();
+    migration = new RenameIsSystemToIsPlayground1791900000000();
     queryRunner = { query: jest.fn().mockResolvedValue(undefined) };
   });
 

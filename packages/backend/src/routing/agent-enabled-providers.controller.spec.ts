@@ -1,6 +1,6 @@
 import { HttpException } from '@nestjs/common';
-import { AgentProviderAccessController } from './agent-provider-access.controller';
-import type { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { AgentEnabledProvidersController } from './agent-enabled-providers.controller';
+import type { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import type { UserProvider } from '../entities/user-provider.entity';
 import type { TierAssignment } from '../entities/tier-assignment.entity';
 import type { SpecificityAssignment } from '../entities/specificity-assignment.entity';
@@ -15,7 +15,7 @@ function makeController(overrides: Record<string, unknown> = {}) {
   const tenant = { id: TENANT_ID };
   const agent = { id: AGENT_ID, name: 'my-agent', tenant_id: TENANT_ID };
 
-  const accessRepo = {
+  const enabledProviderRepo = {
     find: jest.fn().mockResolvedValue([]),
     delete: jest.fn().mockResolvedValue(undefined),
     createQueryBuilder: jest.fn().mockReturnValue({
@@ -25,7 +25,7 @@ function makeController(overrides: Record<string, unknown> = {}) {
       orIgnore: jest.fn().mockReturnThis(),
       execute: jest.fn().mockResolvedValue(undefined),
     }),
-    ...((overrides.accessRepo as object) ?? {}),
+    ...((overrides.enabledProviderRepo as object) ?? {}),
   };
 
   const agentRepo = {
@@ -65,8 +65,8 @@ function makeController(overrides: Record<string, unknown> = {}) {
   };
 
   return {
-    controller: new AgentProviderAccessController(
-      accessRepo as never,
+    controller: new AgentEnabledProvidersController(
+      enabledProviderRepo as never,
       agentRepo as never,
       tenantRepo as never,
       userProviderRepo as never,
@@ -75,7 +75,7 @@ function makeController(overrides: Record<string, unknown> = {}) {
       headerTierRepo as never,
       providerService as never,
     ),
-    accessRepo,
+    enabledProviderRepo,
     agentRepo,
     tenantRepo,
     userProviderRepo,
@@ -88,7 +88,7 @@ function makeController(overrides: Record<string, unknown> = {}) {
   };
 }
 
-describe('AgentProviderAccessController', () => {
+describe('AgentEnabledProvidersController', () => {
   describe('resolveAgent — is_playground: false filter', () => {
     it('passes is_playground: false in the agentRepo.findOne where-clause', async () => {
       const { controller, agentRepo } = makeController();
@@ -142,12 +142,12 @@ describe('AgentProviderAccessController', () => {
     });
 
     it('returns enabled user_provider_ids for agent', async () => {
-      const rows: Partial<AgentProviderAccess>[] = [
+      const rows: Partial<AgentEnabledProvider>[] = [
         { agent_id: AGENT_ID, user_provider_id: 'prov-1' },
         { agent_id: AGENT_ID, user_provider_id: 'prov-2' },
       ];
       const { controller } = makeController({
-        accessRepo: { find: jest.fn().mockResolvedValue(rows) },
+        enabledProviderRepo: { find: jest.fn().mockResolvedValue(rows) },
       });
       const result = await controller.listEnabled({ id: USER_ID } as never, 'my-agent');
       expect(result).toEqual({ enabled: ['prov-1', 'prov-2'] });
@@ -419,7 +419,7 @@ describe('AgentProviderAccessController', () => {
       ).rejects.toBeInstanceOf(HttpException);
     });
 
-    it('inserts grant and invalidates routing cache on success', async () => {
+    it('inserts enabled-provider row and invalidates routing cache on success', async () => {
       const qb = {
         insert: jest.fn().mockReturnThis(),
         into: jest.fn().mockReturnThis(),
@@ -427,14 +427,14 @@ describe('AgentProviderAccessController', () => {
         orIgnore: jest.fn().mockReturnThis(),
         execute: jest.fn().mockResolvedValue(undefined),
       };
-      const { controller, accessRepo, providerService } = makeController({
+      const { controller, enabledProviderRepo, providerService } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             user_id: USER_ID,
           } as Partial<UserProvider>),
         },
-        accessRepo: {
+        enabledProviderRepo: {
           createQueryBuilder: jest.fn().mockReturnValue(qb),
         },
       });
@@ -442,7 +442,7 @@ describe('AgentProviderAccessController', () => {
       const result = await controller.enable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
       expect(result).toEqual({ ok: true });
-      expect(accessRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(enabledProviderRepo.createQueryBuilder).toHaveBeenCalled();
       expect(qb.orIgnore).toHaveBeenCalled();
       expect(qb.execute).toHaveBeenCalled();
       expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
@@ -460,12 +460,12 @@ describe('AgentProviderAccessController', () => {
     });
 
     it('deletes access row and invalidates routing cache when provider not found', async () => {
-      const { controller, accessRepo, providerService } = makeController();
+      const { controller, enabledProviderRepo, providerService } = makeController();
 
       const result = await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
       expect(result).toEqual({ ok: true });
-      expect(accessRepo.delete).toHaveBeenCalledWith({
+      expect(enabledProviderRepo.delete).toHaveBeenCalledWith({
         agent_id: AGENT_ID,
         user_provider_id: PROVIDER_ID,
       });
@@ -479,7 +479,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const { controller, accessRepo, providerService } = makeController({
+      const { controller, enabledProviderRepo, providerService } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -499,7 +499,7 @@ describe('AgentProviderAccessController', () => {
         controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
       ).rejects.toThrow(/assigned to this harness/);
 
-      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(providerService.recalculateTiers).not.toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
     });
@@ -511,7 +511,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const { controller, accessRepo, providerService } = makeController({
+      const { controller, enabledProviderRepo, providerService } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -530,7 +530,7 @@ describe('AgentProviderAccessController', () => {
       const result = await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
       expect(result).toEqual({ ok: true });
-      expect(accessRepo.delete).toHaveBeenCalledWith({
+      expect(enabledProviderRepo.delete).toHaveBeenCalledWith({
         agent_id: AGENT_ID,
         user_provider_id: PROVIDER_ID,
       });
@@ -545,7 +545,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const { controller, accessRepo } = makeController({
+      const { controller, enabledProviderRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -565,7 +565,7 @@ describe('AgentProviderAccessController', () => {
         controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
       ).rejects.toThrow(/assigned to this harness/);
 
-      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
     });
 
@@ -576,7 +576,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const { controller, accessRepo } = makeController({
+      const { controller, enabledProviderRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -594,7 +594,7 @@ describe('AgentProviderAccessController', () => {
 
       await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      expect(accessRepo.delete).toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
     });
 
@@ -605,7 +605,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
         fallback_routes: null,
       };
-      const { controller, accessRepo } = makeController({
+      const { controller, enabledProviderRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -623,7 +623,7 @@ describe('AgentProviderAccessController', () => {
 
       await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      expect(accessRepo.delete).toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).toHaveBeenCalled();
       expect(tier.auto_assigned_route).not.toBeNull();
     });
 
@@ -634,7 +634,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
       };
-      const { controller, accessRepo } = makeController({
+      const { controller, enabledProviderRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -654,7 +654,7 @@ describe('AgentProviderAccessController', () => {
         controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
       ).rejects.toThrow(/assigned to this harness/);
 
-      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(tier.fallback_routes).toHaveLength(1);
     });
 
@@ -670,7 +670,7 @@ describe('AgentProviderAccessController', () => {
         auto_assigned_route: null,
         fallback_routes: null,
       };
-      const { controller, accessRepo } = makeController({
+      const { controller, enabledProviderRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -688,7 +688,7 @@ describe('AgentProviderAccessController', () => {
 
       await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
 
-      expect(accessRepo.delete).toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
     });
 
@@ -702,7 +702,7 @@ describe('AgentProviderAccessController', () => {
           { provider: 'anthropic', authType: 'api_key', model: 'claude-3-5-sonnet' },
         ],
       };
-      const { controller, accessRepo } = makeController({
+      const { controller, enabledProviderRepo } = makeController({
         userProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
@@ -722,7 +722,7 @@ describe('AgentProviderAccessController', () => {
         controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
       ).rejects.toThrow(/assigned to this harness/);
 
-      expect(accessRepo.delete).not.toHaveBeenCalled();
+      expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(tier.fallback_routes).toHaveLength(2);
     });
   });

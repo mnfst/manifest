@@ -15,7 +15,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
-import { AgentProviderAccess } from '../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { TierService } from './routing-core/tier.service';
@@ -44,8 +44,8 @@ export class ProviderController {
     private readonly tierService: TierService,
     private readonly pricingSync: PricingSyncService,
     @Optional()
-    @InjectRepository(AgentProviderAccess)
-    private readonly accessRepo: Repository<AgentProviderAccess> | null = null,
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
   @Get(':agentName/status')
@@ -106,7 +106,7 @@ export class ProviderController {
     @Body() body: ConnectProviderDto,
   ) {
     // allowPlayground: true — connecting a provider to the Playground agent
-    // is additive and correct (grants belong to the user-global pool).
+    // is additive and correct (enabled providers belong to the user-global pool).
     const agent = await this.resolveAgentService.resolve(user.id, params.agentName, {
       allowPlayground: true,
     });
@@ -147,13 +147,13 @@ export class ProviderController {
       body.region,
       body.label,
     );
-    // Insert a sparse access grant for this agent so per-agent filtering works.
+    // Insert a sparse enabled-provider row for this agent so per-agent filtering works.
     // .orIgnore() is intentional — reconnect/update flows must not throw on duplicate.
-    if (this.accessRepo) {
-      await this.accessRepo
+    if (this.enabledProviderRepo) {
+      await this.enabledProviderRepo
         .createQueryBuilder()
         .insert()
-        .into(AgentProviderAccess)
+        .into(AgentEnabledProvider)
         .values({ agent_id: agent.id, user_provider_id: result.id })
         .orIgnore()
         .execute();

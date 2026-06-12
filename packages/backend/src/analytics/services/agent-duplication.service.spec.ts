@@ -55,7 +55,7 @@ describe('AgentDuplicationService', () => {
       const tierRepo = makeRepoMock('TierAssignment');
       const specRepo = makeRepoMock('SpecificityAssignment');
       const modelParamsRepo = makeRepoMock('AgentModelParams');
-      const agentProviderAccessRepo = makeRepoMock('AgentProviderAccess');
+      const agentProviderAccessRepo = makeRepoMock('AgentEnabledProvider');
       const manager = {
         getRepository: (entity: { name: string }) => {
           switch (entity.name) {
@@ -69,7 +69,7 @@ describe('AgentDuplicationService', () => {
               return specRepo;
             case 'AgentModelParams':
               return modelParamsRepo;
-            case 'AgentProviderAccess':
+            case 'AgentEnabledProvider':
               return agentProviderAccessRepo;
             default:
               throw new Error(`Unexpected entity ${entity.name}`);
@@ -125,10 +125,10 @@ describe('AgentDuplicationService', () => {
   });
 
   describe('getCopySummary', () => {
-    it('returns grant count for providers and counts of other copyable rows for the source agent', async () => {
+    it('returns enabled-provider count and counts of other copyable rows for the source agent', async () => {
       mockAgentGetOne.mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1' });
       repoCounts = {
-        AgentProviderAccess: 3,
+        AgentEnabledProvider: 3,
         TierAssignment: 4,
         SpecificityAssignment: 2,
         AgentModelParams: 5,
@@ -202,9 +202,9 @@ describe('AgentDuplicationService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
-    it('copies provider access grants verbatim (no new credential rows) for both global and custom providers', async () => {
-      // The main correctness test: both a global provider (anthropic) grant and a
-      // custom provider grant must be copied pointing at the SAME user_providers rows.
+    it('copies enabled-provider rows verbatim (no new credential rows) for both global and custom providers', async () => {
+      // The main correctness test: both a global provider (anthropic) row and a
+      // custom provider row must be copied pointing at the SAME user_providers rows.
       // No new UserProvider rows, no new CustomProvider rows.
       mockAgentGetOne
         .mockResolvedValueOnce({
@@ -219,7 +219,7 @@ describe('AgentDuplicationService', () => {
         .mockResolvedValueOnce(null);
 
       repoRows = {
-        AgentProviderAccess: [
+        AgentEnabledProvider: [
           { agent_id: 'src-1', user_provider_id: 'up-global' },
           { agent_id: 'src-1', user_provider_id: 'up-custom' },
         ],
@@ -279,7 +279,7 @@ describe('AgentDuplicationService', () => {
       expect(mockTransaction).toHaveBeenCalledTimes(1);
       expect(result.agentName).toBe('source-copy');
       expect(result.apiKey).toMatch(/^mnfst_/);
-      // 2 grants copied: one for the global provider, one for the custom provider
+      // 2 enabled-provider rows copied: one for the global provider, one for the custom provider
       expect(result.copied).toEqual({
         providers: 2,
         tierAssignments: 1,
@@ -299,15 +299,15 @@ describe('AgentDuplicationService', () => {
       expect(apiKeyRow['agent_id']).toBe(agentRow['id']);
       expect(apiKeyRow['label']).toContain('source-copy');
 
-      // Two grants inserted verbatim — pointing at the original user_provider_id values
-      const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
-      expect(grants).toHaveLength(2);
-      const globalGrant = grants.find((g) => g['user_provider_id'] === 'up-global');
-      expect(globalGrant).toBeDefined();
-      expect(globalGrant!['agent_id']).toBe(agentRow['id']);
-      const customGrant = grants.find((g) => g['user_provider_id'] === 'up-custom');
-      expect(customGrant).toBeDefined();
-      expect(customGrant!['agent_id']).toBe(agentRow['id']);
+      // Two enabled-provider rows inserted verbatim — pointing at the original user_provider_id values
+      const enabledRows = insertedRows['AgentEnabledProvider'] as Array<Record<string, unknown>>;
+      expect(enabledRows).toHaveLength(2);
+      const globalRow = enabledRows.find((g) => g['user_provider_id'] === 'up-global');
+      expect(globalRow).toBeDefined();
+      expect(globalRow!['agent_id']).toBe(agentRow['id']);
+      const customRow = enabledRows.find((g) => g['user_provider_id'] === 'up-custom');
+      expect(customRow).toBeDefined();
+      expect(customRow!['agent_id']).toBe(agentRow['id']);
 
       // Per-route model params: both rows copied verbatim (custom:cp1 NOT remapped)
       const mpRows = insertedRows['AgentModelParams'] as Array<Record<string, unknown>>;
@@ -323,8 +323,8 @@ describe('AgentDuplicationService', () => {
       expect(mockInvalidateAgent).toHaveBeenCalledWith(agentRow['id']);
     });
 
-    it('skips insert batches when source has no grants or rows', async () => {
-      // Covers the `sourceGrants.length === 0` branch and empty-row branches.
+    it('skips insert batches when source has no enabled providers or rows', async () => {
+      // Covers the `sourceEnabledRows.length === 0` branch and empty-row branches.
       mockAgentGetOne
         .mockResolvedValueOnce({
           id: 'src-1',
@@ -351,17 +351,17 @@ describe('AgentDuplicationService', () => {
       expect(insertedRows['TierAssignment']).toBeUndefined();
       expect(insertedRows['SpecificityAssignment']).toBeUndefined();
       expect(insertedRows['AgentModelParams']).toBeUndefined();
-      expect(insertedRows['AgentProviderAccess']).toBeUndefined();
+      expect(insertedRows['AgentEnabledProvider']).toBeUndefined();
     });
 
-    it('copies multiple grants pointing at their original user_provider_id values', async () => {
-      // Covers copying 3 grants (two custom, one global) all verbatim.
+    it('copies multiple enabled-provider rows pointing at their original user_provider_id values', async () => {
+      // Covers copying 3 enabled-provider rows (two custom, one global) all verbatim.
       mockAgentGetOne
         .mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1', name: 'source' })
         .mockResolvedValueOnce(null);
 
       repoRows = {
-        AgentProviderAccess: [
+        AgentEnabledProvider: [
           { agent_id: 'src-1', user_provider_id: 'up1' },
           { agent_id: 'src-1', user_provider_id: 'up2' },
           { agent_id: 'src-1', user_provider_id: 'up3' },
@@ -373,9 +373,9 @@ describe('AgentDuplicationService', () => {
         displayName: 'copy',
       });
 
-      const grants = insertedRows['AgentProviderAccess'] as Array<Record<string, unknown>>;
-      expect(grants).toHaveLength(3);
-      expect(grants.map((g) => g['user_provider_id'])).toEqual(
+      const enabledRows = insertedRows['AgentEnabledProvider'] as Array<Record<string, unknown>>;
+      expect(enabledRows).toHaveLength(3);
+      expect(enabledRows.map((g) => g['user_provider_id'])).toEqual(
         expect.arrayContaining(['up1', 'up2', 'up3']),
       );
       expect(result.copied.providers).toBe(3);

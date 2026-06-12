@@ -336,7 +336,7 @@ describe('PlaygroundAgentService.resolve', () => {
   });
 
   describe('(c) lazy-create path', () => {
-    it('runs a transaction that inserts the agent and calls the grant query', async () => {
+    it('runs a transaction that inserts the agent and calls the provider-pool enable query', async () => {
       const insertFn = jest.fn().mockResolvedValue(undefined);
       const queryFn = jest.fn().mockResolvedValue(undefined);
       const manager = makeManager(insertFn, queryFn);
@@ -357,7 +357,7 @@ describe('PlaygroundAgentService.resolve', () => {
       expect(mocks.dataSource.transaction).toHaveBeenCalledTimes(1);
       expect(insertFn).toHaveBeenCalledTimes(1);
 
-      // The grant query must receive [agentId, userId].
+      // The enable query must receive [agentId, userId].
       expect(queryFn).toHaveBeenCalledTimes(1);
       const [_sql, params] = queryFn.mock.calls[0] as [string, [string, string]];
       expect(params[0]).toBe(result.id);

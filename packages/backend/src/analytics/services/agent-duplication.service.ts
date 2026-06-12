@@ -5,7 +5,7 @@ import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
-import { AgentProviderAccess } from '../../entities/agent-provider-access.entity';
+import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
@@ -63,9 +63,9 @@ export class AgentDuplicationService {
 
     const [providers, tierAssignments, specificityAssignments, modelParams] = await Promise.all([
       // Providers (including custom providers) are user-global; access is the
-      // agent_provider_access grant, so the copyable unit is the grant count,
+      // agent_enabled_providers row, so the copyable unit is the enabled-provider count,
       // not the credential rows.
-      this.dataSource.getRepository(AgentProviderAccess).count({ where: { agent_id: source.id } }),
+      this.dataSource.getRepository(AgentEnabledProvider).count({ where: { agent_id: source.id } }),
       this.dataSource.getRepository(TierAssignment).count({ where: { agent_id: source.id } }),
       this.dataSource
         .getRepository(SpecificityAssignment)
@@ -139,23 +139,23 @@ export class AgentDuplicationService {
       });
 
       // Providers — regular AND custom — are user-global, shared across agents
-      // via the agent_provider_access junction. Cloning the credential rows
+      // via the agent_enabled_providers junction. Cloning the credential rows
       // under the new agent_id would duplicate a (user_id, provider, auth_type,
       // label) tuple and violate the user-scoped unique index. Instead, copy the
-      // source agent's GRANTS verbatim; every `custom:<id>` reference stays valid
+      // source agent's ENABLED-PROVIDER rows verbatim; every `custom:<id>` reference stays valid
       // because the underlying custom provider is shared, not re-created.
-      const sourceGrants = await manager
-        .getRepository(AgentProviderAccess)
+      const sourceEnabledRows = await manager
+        .getRepository(AgentEnabledProvider)
         .find({ where: { agent_id: source.id } });
-      if (sourceGrants.length > 0) {
-        await manager.getRepository(AgentProviderAccess).insert(
-          sourceGrants.map((g) => ({
+      if (sourceEnabledRows.length > 0) {
+        await manager.getRepository(AgentEnabledProvider).insert(
+          sourceEnabledRows.map((g) => ({
             agent_id: newAgentId,
             user_provider_id: g.user_provider_id,
           })),
         );
       }
-      const providerGrants = sourceGrants.length;
+      const providersEnabled = sourceEnabledRows.length;
 
       const tiers = await manager
         .getRepository(TierAssignment)
@@ -234,7 +234,7 @@ export class AgentDuplicationService {
       }
 
       return {
-        providers: providerGrants,
+        providers: providersEnabled,
         tierAssignments: tiers.length,
         specificityAssignments: specificity.length,
         modelParams: modelParams.length,
