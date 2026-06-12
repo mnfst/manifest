@@ -50,12 +50,10 @@ import { AgentModelParamsService } from '../routing-core/agent-model-params.serv
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError } from '../../common/errors/error-codes';
-import { peekStream } from './stream-warmup';
+import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
-
-const STREAM_WARMUP_MS = 15_000;
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>>;
 

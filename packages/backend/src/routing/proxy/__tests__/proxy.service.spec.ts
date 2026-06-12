@@ -31,6 +31,7 @@ import type { ProviderParamSpecService } from '../../routing-core/provider-param
  */
 jest.mock('../stream-warmup', () => ({
   peekStream: jest.fn(),
+  STREAM_WARMUP_MS: 15_000,
 }));
 
 import { peekStream } from '../stream-warmup';
@@ -969,6 +970,7 @@ describe('ProxyService — orchestration', () => {
         ...baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
       });
       expect(result.forward.response.status).toBe(200);
+      expect(mockedPeek).toHaveBeenCalledWith(streamRes.body, 15_000);
       expect(momentum.recordTier).toHaveBeenCalled();
     });
 

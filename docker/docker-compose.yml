@@ -65,6 +65,8 @@ services:
       # Defaults to the host-installed Ollama. Override in .env if your
       # Ollama runs elsewhere (e.g. on another host on your LAN).
       - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+      - PROVIDER_TIMEOUT_MS=${PROVIDER_TIMEOUT_MS:-180000}
+      - STREAM_WARMUP_MS=${STREAM_WARMUP_MS:-15000}
       - SEED_DATA=false
       - NODE_ENV=production
       # Force self-hosted semantics regardless of the container runtime.
