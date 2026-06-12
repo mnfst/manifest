@@ -10,7 +10,7 @@ import { UserProvider } from '../../entities/user-provider.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import {
   selectMessageRowColumns,
-  filterByKeyLabel,
+  filterByUserProviderId,
   excludeSystemAgents,
 } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
@@ -36,6 +36,10 @@ export class ProviderAnalyticsController {
     @Query('agent_name') agentName?: string,
     @Query('provider') provider?: string,
     @Query('label') label?: string,
+    // When present, scope the summary cards + chart to one exact connection by
+    // its user_providers id (the connection-detail page passes this). The
+    // services prefer it over the provider/auth_type/label tuple.
+    @Query('connection_id') connectionId?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -54,6 +58,7 @@ export class ProviderAnalyticsController {
         provider,
         true,
         label,
+        connectionId,
       ),
       this.timeseries.getTimeseries(
         validRange,
@@ -65,6 +70,7 @@ export class ProviderAnalyticsController {
         provider,
         true,
         label,
+        connectionId,
       ),
     ]);
 
@@ -85,6 +91,7 @@ export class ProviderAnalyticsController {
     @Query('provider') provider?: string,
     @Query('range') range?: string,
     @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -98,6 +105,7 @@ export class ProviderAnalyticsController {
       authType,
       provider,
       label,
+      connectionId,
     );
   }
 
@@ -108,6 +116,7 @@ export class ProviderAnalyticsController {
     @Query('provider') provider?: string,
     @Query('range') range?: string,
     @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -121,6 +130,7 @@ export class ProviderAnalyticsController {
       authType,
       provider,
       label,
+      connectionId,
     );
   }
 
@@ -131,6 +141,7 @@ export class ProviderAnalyticsController {
     @Query('provider') provider?: string,
     @Query('range') range?: string,
     @Query('label') label?: string,
+    @Query('connection_id') connectionId?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
@@ -144,6 +155,7 @@ export class ProviderAnalyticsController {
       authType,
       provider,
       label,
+      connectionId,
     );
   }
 
@@ -197,21 +209,21 @@ export class ProviderAnalyticsController {
     const cutoff30d = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
-    // A connection is identified by (tenant, provider, auth_type, label). The
-    // label filter is mandatory: two keys sharing provider+auth_type but
-    // differing by label must not merge into one connection's detail. Legacy
-    // NULL provider_key_label collapses to 'Default'.
-    const connLabel = conn.label;
+    // A connection is identified by its user_providers row id, stamped on
+    // agent_messages.user_provider_id at proxy time. Filtering on it pins every
+    // widget below to the exact key that served each message — unlike the old
+    // (provider, auth_type, label) tuple, two keys that share a label no longer
+    // merge. Pre-upgrade rows the backfill could not disambiguate carry a NULL
+    // id and so don't appear here (the documented pre-upgrade history gap).
+    const connId = conn.id;
 
     // Global last_used_at for this connection (all time, not just 30d)
-    const lastUsedRow = await filterByKeyLabel(
+    const lastUsedRow = await filterByUserProviderId(
       this.messageRepo
         .createQueryBuilder('at')
         .select('MAX(at.timestamp)', 'last_used_at')
-        .where('at.tenant_id = :tid', { tid: tenantId })
-        .andWhere('at.provider = :provider', { provider: conn.provider })
-        .andWhere('at.auth_type = :authType', { authType: conn.auth_type }),
-      connLabel,
+        .where('at.tenant_id = :tid', { tid: tenantId }),
+      connId,
     ).getRawOne();
     const lastUsedAt =
       lastUsedRow?.last_used_at instanceof Date
@@ -237,13 +249,11 @@ export class ProviderAnalyticsController {
       // Playground rows without re-introducing duplication).
       .leftJoin('agents', 'a', 'a.id = at.agent_id')
       .where('at.tenant_id = :tid', { tid: tenantId })
-      .andWhere('at.provider = :provider', { provider: conn.provider })
-      .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
       .andWhere('at.agent_name IS NOT NULL');
     // Exclude the reserved Playground (is_system) agent from the breakdown.
     excludeSystemAgents(agentQb);
-    filterByKeyLabel(agentQb, connLabel);
+    filterByUserProviderId(agentQb, connId);
     const agentRows = await agentQb.groupBy('at.agent_name').orderBy('tokens', 'DESC').getRawMany();
 
     // Model usage (30d)
@@ -254,14 +264,12 @@ export class ProviderAnalyticsController {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .addSelect('COUNT(*)', 'messages')
       .where('at.tenant_id = :tid', { tid: tenantId })
-      .andWhere('at.provider = :provider', { provider: conn.provider })
-      .andWhere('at.auth_type = :authType', { authType: conn.auth_type })
       .andWhere('at.timestamp >= :cutoff', { cutoff: cutoff30d })
       .andWhere('at.model IS NOT NULL');
     // Same Playground exclusion as the agent breakdown, so the per-model token
     // sum stays equal to the per-agent sum (both cover the same messages).
     excludeSystemAgents(modelQb);
-    filterByKeyLabel(modelQb, connLabel);
+    filterByUserProviderId(modelQb, connId);
     const modelRows = await modelQb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
 
     const totalModelTokens = modelRows.reduce(
@@ -270,13 +278,13 @@ export class ProviderAnalyticsController {
     );
 
     // Recent messages (top 5)
-    const msgQb = selectMessageRowColumns(this.messageRepo.createQueryBuilder('at'), costExpr)
-      .where('at.tenant_id = :tid', { tid: tenantId })
-      .andWhere('at.provider = :provider', { provider: conn.provider })
-      .andWhere('at.auth_type = :authType', { authType: conn.auth_type });
+    const msgQb = selectMessageRowColumns(
+      this.messageRepo.createQueryBuilder('at'),
+      costExpr,
+    ).where('at.tenant_id = :tid', { tid: tenantId });
     // Keep reserved Playground runs out of the recent-messages list too.
     excludeSystemAgents(msgQb);
-    filterByKeyLabel(msgQb, connLabel);
+    filterByUserProviderId(msgQb, connId);
     const recentMessages = await msgQb.orderBy('at.timestamp', 'DESC').limit(5).getRawMany();
 
     return {

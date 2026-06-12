@@ -148,6 +148,44 @@ export function filterByKeyLabel<T extends ObjectLiteral>(
 }
 
 /**
+ * Scope a message aggregate to one exact connection by its `user_providers`
+ * row id — the value stamped on `agent_messages.user_provider_id` at proxy
+ * time. Unlike filterByKeyLabel (which matches the provider+auth_type+label
+ * tuple and so merges sibling keys sharing a label, and treats a NULL label as
+ * 'Default'), this pins to the single connection that actually served each
+ * message. Rows with a NULL id — pre-upgrade history that the backfill could
+ * not disambiguate, plus local/Ollama and blind-proxy paths — never match,
+ * which is the correct behaviour for a per-connection view. Assumes the query
+ * builder aliases `agent_messages` as `at`. Prefer this over filterByKeyLabel
+ * whenever a connection id is available; keep filterByKeyLabel for
+ * provider-level ("all my OpenAI keys") aggregation.
+ */
+export function filterByUserProviderId<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  userProviderId: string,
+): SelectQueryBuilder<T> {
+  return qb.andWhere('at.user_provider_id = :userProviderId', { userProviderId });
+}
+
+/**
+ * Scope a message aggregate to a single connection. When a `user_providers`
+ * row id is known, pin to it (the authoritative per-connection filter, exact
+ * to the key that served each message); otherwise fall back to the
+ * provider+auth_type+label tuple. The id deliberately wins over the label so a
+ * backfilled row whose `provider_key_label` was never set (NULL → 'Default')
+ * still appears under its real connection. A no-op when neither is supplied.
+ */
+export function scopeToConnection<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  userProviderId: string | undefined,
+  label: string | null | undefined,
+): SelectQueryBuilder<T> {
+  if (userProviderId) return filterByUserProviderId(qb, userProviderId);
+  if (label !== undefined) return filterByKeyLabel(qb, label);
+  return qb;
+}
+
+/**
  * Single source of truth for the columns projected by any endpoint that
  * returns rows rendered by the frontend `MessageTable` / `ModelCell` component.
  * The frontend `MessageRow` type (packages/frontend/src/components/message-table-types.ts)

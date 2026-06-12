@@ -118,6 +118,7 @@ import { LiftProvidersToUserLevel1791000000000 } from './migrations/179100000000
 import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
 import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-SeedPlaygroundAgents';
 import { AddProviderRateLimits1791500000000 } from './migrations/1791500000000-AddProviderRateLimits';
+import { AddUserProviderIdToAgentMessages1791600000000 } from './migrations/1791600000000-AddUserProviderIdToAgentMessages';
 
 const entities = [
   AgentMessage,
@@ -237,6 +238,7 @@ const migrations = [
   LiftCustomProvidersToUserLevel1791200000000,
   SeedPlaygroundAgents1791400000000,
   AddProviderRateLimits1791500000000,
+  AddUserProviderIdToAgentMessages1791600000000,
 ];
 
 @Module({

@@ -67,7 +67,7 @@ describe('analytics API client', () => {
     expect(url).toContain('provider=openai');
   });
 
-  it('getProviderAnalytics omits agent_name and provider when absent', async () => {
+  it('getProviderAnalytics omits agent_name, provider and connection_id when absent', async () => {
     const fetchMock = setupFetch({});
     await analytics.getProviderAnalytics('api_key');
     const url = fetchMock.mock.calls[0][0] as string;
@@ -75,6 +75,14 @@ describe('analytics API client', () => {
     expect(url).toContain('range=24h');
     expect(url).not.toContain('agent_name=');
     expect(url).not.toContain('provider=');
+    expect(url).not.toContain('connection_id=');
+  });
+
+  it('getProviderAnalytics forwards connection_id when provided', async () => {
+    const fetchMock = setupFetch({});
+    await analytics.getProviderAnalytics('api_key', '7d', undefined, 'openai', 'Work', 'conn-1');
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('connection_id=conn-1');
   });
 
   it('getProviderAnalyticsAgents forwards auth_type', async () => {
@@ -99,6 +107,23 @@ describe('analytics API client', () => {
       expect(url).toContain('auth_type=subscription');
       expect(url).toContain('provider=openai');
       expect(url).toContain('range=30d');
+      expect(url).not.toContain('connection_id=');
+    }
+  });
+
+  it('per-agent timeseries endpoints forward connection_id when provided', async () => {
+    const fns: Array<[(a: string, p: string, r?: string, l?: string, c?: string) => unknown, string]> =
+      [
+        [analytics.getPerAgentTimeseries, 'per-agent-timeseries'],
+        [analytics.getPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
+        [analytics.getPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
+      ];
+    for (const [fn, path] of fns) {
+      const fetchMock = setupFetch({ agents: [], timeseries: [] });
+      await fn('subscription', 'openai', '30d', 'Work', 'conn-7');
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain(`/api/v1/provider-analytics/${path}`);
+      expect(url).toContain('connection_id=conn-7');
     }
   });
 

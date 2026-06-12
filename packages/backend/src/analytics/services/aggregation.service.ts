@@ -8,7 +8,7 @@ import {
   computeTrend,
   addTenantFilter,
   excludeSystemAgents,
-  filterByKeyLabel,
+  scopeToConnection,
 } from './query-helpers';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
@@ -64,6 +64,7 @@ export class AggregationService {
     provider?: string,
     excludeSystem = false,
     label?: string,
+    userProviderId?: string,
   ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
@@ -79,10 +80,7 @@ export class AggregationService {
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
     if (provider) currentQb.andWhere('at.provider = :provider', { provider });
     if (excludeSystem) excludeSystemAgents(currentQb);
-    // Connection-scoped label filter: keep two keys that share
-    // provider+auth_type but differ by label from merging into one connection's
-    // summary. Legacy NULL provider_key_label → 'Default'.
-    if (label !== undefined) filterByKeyLabel(currentQb, label);
+    scopeToConnection(currentQb, userProviderId, label);
 
     const prevQb = this.buildPreviousWindowQuery(
       userId,
@@ -94,6 +92,7 @@ export class AggregationService {
       provider,
       excludeSystem,
       label,
+      userProviderId,
     )
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -142,6 +141,7 @@ export class AggregationService {
     provider?: string,
     excludeSystem = false,
     label?: string,
+    userProviderId?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -151,8 +151,7 @@ export class AggregationService {
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
     if (excludeSystem) excludeSystemAgents(qb);
-    // Connection-scoped label filter (see getSummaryMetrics).
-    if (label !== undefined) filterByKeyLabel(qb, label);
+    scopeToConnection(qb, userProviderId, label);
     return qb;
   }
 }

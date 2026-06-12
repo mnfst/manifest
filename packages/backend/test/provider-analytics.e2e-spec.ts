@@ -37,16 +37,17 @@ beforeAll(async () => {
     ],
   );
 
-  // Subscription-auth messages on openai for the test agent, tagged with the
-  // connection's label so they belong to the 'My OpenAI' connection detail.
+  // Subscription-auth messages on openai for the test agent, stamped with the
+  // connection's user_providers id so they belong to the 'My OpenAI' connection
+  // detail (which now scopes on user_provider_id, not the label tuple).
   for (const [model, inTok, outTok] of [
     ['gpt-4o', 1000, 500],
     ['gpt-4o-mini', 200, 100],
   ] as Array<[string, number, number]>) {
     await ds.query(
-      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
-       VALUES ($1,$2,$3,$4,'ok',$5,'openai','subscription','My OpenAI',$6,$7,0,0,$8,'msg','agent','test-agent',$9)`,
-      [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, model, inTok, outTok, 0.01, TEST_USER_ID],
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, user_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+       VALUES ($1,$2,$3,$4,'ok',$5,'openai','subscription','My OpenAI',$6,$7,$8,0,0,$9,'msg','agent','test-agent',$10)`,
+      [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, model, connectionId, inTok, outTok, 0.01, TEST_USER_ID],
     );
   }
 
@@ -90,11 +91,13 @@ beforeAll(async () => {
   // agent_name = 'Playground'. The previous id-only exclusion join left this
   // row's `is_system` NULL and wrongly INCLUDED it. The NOT EXISTS semi-join
   // matches the reserved Playground agent by NAME too, so this row is excluded
-  // from every aggregate, timeseries and the connection breakdown.
+  // from every aggregate, timeseries and the connection breakdown. It carries
+  // the 'My OpenAI' connection's user_provider_id so the connection-detail leak
+  // guard proves excludeSystemAgents (not the id scope) is what drops it.
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
-     VALUES ($1,$2,NULL,$3,'ok','gpt-4o','openai','subscription','My OpenAI',7000,7000,0,0,0.77,'msg','agent','Playground',$4)`,
-    [uuid(), TEST_TENANT_ID, now, TEST_USER_ID],
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, user_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+     VALUES ($1,$2,NULL,$3,'ok','gpt-4o','openai','subscription','My OpenAI',$4,7000,7000,0,0,0.77,'msg','agent','Playground',$5)`,
+    [uuid(), TEST_TENANT_ID, now, connectionId, TEST_USER_ID],
   );
 
   // Finding 2: two connections sharing provider+auth_type but differing by
@@ -111,15 +114,19 @@ beforeAll(async () => {
        VALUES ($1,$2,NULL,'anthropic',$3,'api_key',$4,true,$5,$5,$6)`,
       [id, TEST_USER_ID, `sk-${label}`, label, now, JSON.stringify([{ id: 'claude' }])],
     );
+    // Stamp each message with its own connection's user_provider_id so the
+    // connection-detail (which scopes on user_provider_id) keeps Work and
+    // Personal separate even though they share provider+auth_type.
     await ds.query(
-      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
-       VALUES ($1,$2,$3,$4,'ok','claude','anthropic','api_key',$5,$6,$6,0,0,0.02,'msg','agent','test-agent',$7)`,
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, user_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+       VALUES ($1,$2,$3,$4,'ok','claude','anthropic','api_key',$5,$6,$7,$7,0,0,0.02,'msg','agent','test-agent',$8)`,
       [
         uuid(),
         TEST_TENANT_ID,
         TEST_AGENT_ID,
         now,
         label,
+        id,
         label === 'Work' ? 111 : 222,
         TEST_USER_ID,
       ],
