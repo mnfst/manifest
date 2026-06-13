@@ -357,6 +357,7 @@ sets this automatically).
 | `OLLAMA_HOST`        | No       | `http://host.docker.internal:11434` | Ollama endpoint for the built-in tile. Override to point at a LAN-hosted Ollama. |
 | `MANIFEST_MODE`      | No       | auto (Docker → selfhosted) | `selfhosted` or `cloud`. `local` is a legacy alias. Self-hosted mode allows private/http URLs for custom providers. |
 | `MANIFEST_TELEMETRY_DISABLED` | No | `0`               | Set `1` to disable anonymous usage telemetry  |
+| `BODY_PARSER_LIMIT`  | No       | `1mb`                   | Max request body size. Applied globally (except auth routes). Lift when routing to long-context models (e.g. `5mb`, `20mb`). |
 
 Full env var reference: [github.com/mnfst/manifest](https://github.com/mnfst/manifest)
 
