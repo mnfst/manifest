@@ -37,6 +37,7 @@ const QWEN_TOKEN_PLAN_MODELS_URL =
   'https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/models';
 const QWEN_TOKEN_PLAN_CONTEXT_WINDOW = 991000;
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
+const TOKENROUTER_MODELS_URL = 'https://api.tokenrouter.com/v1/models';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
@@ -655,6 +656,15 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://openrouter.ai/api/v1/models',
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
+  },
+  tokenrouter: {
+    // TokenRouter's /v1/models returns the same `{ data: [{ id, ... }] }`
+    // shape as OpenAI-compatible providers. Each entry already carries a
+    // `vendor/model` id, so we preserve it verbatim and let the proxy
+    // forward it to the gateway as-is.
+    endpoint: TOKENROUTER_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
   },
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
