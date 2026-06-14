@@ -650,6 +650,13 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        userId: 'user-1',
+      });
+
+      // The custom-provider row is fetched scoped to the caller's user id so a
+      // foreign custom:<id> can never have its base_url read here.
+      expect(customProviderRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'cp-1', user_id: 'user-1' },
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith({

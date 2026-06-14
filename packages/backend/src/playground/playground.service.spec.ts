@@ -311,6 +311,11 @@ describe('PlaygroundService.runStream', () => {
     expect(call.customEndpoint).toBeDefined();
     // Prefix stripped — the custom endpoint expects the bare upstream model id.
     expect(call.model).toBe('meta-llama/Llama-3.1-8B');
+    // The custom-provider row is fetched scoped to the caller, so another
+    // tenant's custom:<id> can never be resolved here.
+    expect(mocks.customProviderRepo.findOne).toHaveBeenCalledWith({
+      where: { id: 'abc', user_id: USER_ID },
+    });
   });
 
   it('routes MiniMax subscription requests through the region base URL from the OAuth resource_url', async () => {

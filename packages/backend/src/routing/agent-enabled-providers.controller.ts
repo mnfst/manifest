@@ -73,7 +73,10 @@ export class AgentEnabledProvidersController {
     const provider = await this.userProviderRepo.findOne({
       where: { id: userProviderId, user_id: user.id },
     });
-    if (!provider) return { affected_tiers: [] };
+    // Match enable/disable: a provider id that isn't the caller's is a 404, not
+    // an empty result. Returning [] here would be an existence oracle and an
+    // inconsistent ownership contract across the three handlers.
+    if (!provider) throw new HttpException('Provider not found', HttpStatus.NOT_FOUND);
 
     return { affected_tiers: await this.findAffectedRoutes(agent.id, provider) };
   }

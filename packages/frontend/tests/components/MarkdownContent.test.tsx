@@ -111,6 +111,20 @@ describe('MarkdownContent', () => {
     expect(container.querySelector('img')?.hasAttribute('onerror')).toBe(false);
   });
 
+  it('forces rel="noopener noreferrer" on links that open a new tab', async () => {
+    const { container } = render(() => (
+      <MarkdownContent text={'<a href="https://evil.example" target="_blank">click</a>'} />
+    ));
+    await waitFor(() => {
+      expect(container.querySelector('a')).not.toBeNull();
+    });
+    const anchor = container.querySelector('a');
+    expect(anchor?.getAttribute('target')).toBe('_blank');
+    // Without forced rel, a new-tab link inside untrusted model output could
+    // reverse-tabnab the opener.
+    expect(anchor?.getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
   it('renders an empty container when text is nullish', async () => {
     const { container } = render(() => (
       <MarkdownContent text={undefined as unknown as string} />

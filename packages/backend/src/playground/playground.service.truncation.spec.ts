@@ -252,6 +252,43 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     expect(column.errorMessage).not.toContain('real error text');
   });
 
+  it('scrubs credentials echoed in the error body before they reach any sink', async () => {
+    const { service, mocks } = buildService();
+    // Some providers (e.g. Anthropic 401s) echo the submitted key back in the
+    // error body. It must be redacted in the SSE response, the history column,
+    // and the persisted agent_messages row.
+    const leakyBody = JSON.stringify({
+      error: { message: 'invalid x-api-key: sk-ant-abcdef0123456789ghij' },
+    });
+    mocks.providerClient.forward.mockResolvedValue({
+      response: {
+        ok: false,
+        status: 401,
+        headers: new Headers(),
+        text: jest.fn().mockResolvedValue(leakyBody),
+        body: null,
+      },
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const res = mockRes();
+
+    await service.runStream(USER_ID, makeDto(), asRes(res));
+
+    const message = (res._json as { message: string }).message;
+    expect(message).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(message).toContain('[REDACTED]');
+
+    const column = mocks.history.saveColumn.mock.calls[0][0];
+    expect(column.errorMessage).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(column.errorMessage).toContain('[REDACTED]');
+
+    const row = mocks.messageRepo.insert.mock.calls[0][0];
+    expect(row.error_message).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(row.error_message).toContain('[REDACTED]');
+  });
+
   it('preserves short error bodies verbatim (no over-truncation)', async () => {
     const { service, mocks } = buildService();
     const shortBody = 'quota exceeded';

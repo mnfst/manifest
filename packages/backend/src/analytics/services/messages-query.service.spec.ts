@@ -121,7 +121,10 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({ range: '24h', userId: 'labels-user', limit: 10 });
 
-    expect(mockCustomProviderFind).toHaveBeenCalledWith({ where: { id: In(['u-1']) } });
+    // Scoped to the caller so a custom-provider name can't resolve cross-tenant.
+    expect(mockCustomProviderFind).toHaveBeenCalledWith({
+      where: { id: In(['u-1']), user_id: 'labels-user' },
+    });
     expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
   });
 

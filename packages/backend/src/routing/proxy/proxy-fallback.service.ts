@@ -576,7 +576,7 @@ export class ProxyFallbackService {
     // synchronous + DB-free.)
     const customProvider = CustomProviderService.isCustom(provider)
       ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(provider) },
+          where: { id: CustomProviderService.extractId(provider), user_id: opts.userId },
         })
       : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({

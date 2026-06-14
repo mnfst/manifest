@@ -39,6 +39,13 @@ function loadRenderer(): Promise<MarkdownRenderer> {
           breaks: true,
           renderer: { code: renderCodeBlock },
         });
+        // Any anchor that opens a new tab must carry rel="noopener noreferrer"
+        // so links inside untrusted model output can't reverse-tabnab the app.
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.tagName === 'A' && node.hasAttribute('target')) {
+            node.setAttribute('rel', 'noopener noreferrer');
+          }
+        });
         return (text: string) =>
           DOMPurify.sanitize(marked.parse(text) as string, {
             ALLOWED_ATTR: ['href', 'title', 'class', 'target', 'rel'],
