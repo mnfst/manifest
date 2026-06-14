@@ -6,7 +6,6 @@ import { NotificationRule } from '../../entities/notification-rule.entity';
 import { NotificationLog } from '../../entities/notification-log.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
-import { Tenant } from '../../entities/tenant.entity';
 import { CreateNotificationRuleDto, UpdateNotificationRuleDto } from '../dto/notification-rule.dto';
 import { toSqlTimestamp } from '../../common/utils/postgres-sql';
 
@@ -28,13 +27,15 @@ export class NotificationRulesService {
     private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
   ) {}
 
-  async listRules(userId: string, agentName: string): Promise<NotificationRuleWithTriggerCount[]> {
+  async listRules(
+    tenantId: string | null,
+    agentName: string,
+  ): Promise<NotificationRuleWithTriggerCount[]> {
+    if (!tenantId) return [];
     const rules = await this.ruleRepo.find({
-      where: { user_id: userId, agent_name: agentName },
+      where: { tenant_id: tenantId, agent_name: agentName },
       order: { created_at: 'DESC' },
     });
     if (rules.length === 0) return [];
@@ -54,8 +55,11 @@ export class NotificationRulesService {
     return rules.map((rule) => ({ ...rule, trigger_count: countMap.get(rule.id) ?? 0 }));
   }
 
-  async createRule(userId: string, dto: CreateNotificationRuleDto): Promise<NotificationRule> {
-    const agent = await this.resolveAgent(userId, dto.agent_name);
+  async createRule(
+    tenantId: string | null,
+    dto: CreateNotificationRuleDto,
+  ): Promise<NotificationRule> {
+    const agent = await this.resolveAgent(tenantId, dto.agent_name);
     const id = uuid();
     const now = toSqlTimestamp();
 
@@ -64,7 +68,6 @@ export class NotificationRulesService {
       tenant_id: agent.tenant_id,
       agent_id: agent.id,
       agent_name: dto.agent_name,
-      user_id: userId,
       metric_type: dto.metric_type,
       threshold: dto.threshold,
       period: dto.period,
@@ -79,11 +82,11 @@ export class NotificationRulesService {
   }
 
   async updateRule(
-    userId: string,
+    tenantId: string | null,
     ruleId: string,
     dto: UpdateNotificationRuleDto,
   ): Promise<NotificationRule | undefined> {
-    await this.verifyOwnership(userId, ruleId);
+    await this.verifyOwnership(tenantId, ruleId);
 
     const patch: Partial<NotificationRule> = {};
     if (dto.metric_type !== undefined) patch.metric_type = dto.metric_type;
@@ -101,8 +104,8 @@ export class NotificationRulesService {
     return this.getRule(ruleId);
   }
 
-  async deleteRule(userId: string, ruleId: string): Promise<void> {
-    await this.verifyOwnership(userId, ruleId);
+  async deleteRule(tenantId: string | null, ruleId: string): Promise<void> {
+    await this.verifyOwnership(tenantId, ruleId);
     await this.ruleRepo.delete({ id: ruleId });
   }
 
@@ -151,9 +154,9 @@ export class NotificationRulesService {
     });
   }
 
-  getActiveRulesForUser(userId: string): Promise<NotificationRule[]> {
+  getActiveRulesForTenant(tenantId: string): Promise<NotificationRule[]> {
     return this.ruleRepo.find({
-      where: { user_id: userId, is_active: true, action: In([...NOTIFY_ACTIONS]) },
+      where: { tenant_id: tenantId, is_active: true, action: In([...NOTIFY_ACTIONS]) },
     });
   }
 
@@ -172,19 +175,24 @@ export class NotificationRulesService {
     return this.ruleRepo.findOneBy({ id: ruleId }).then((r) => r ?? undefined);
   }
 
-  getOwnedRule(userId: string, ruleId: string): Promise<NotificationRule | undefined> {
-    return this.ruleRepo.findOneBy({ id: ruleId, user_id: userId }).then((r) => r ?? undefined);
+  async getOwnedRule(
+    tenantId: string | null,
+    ruleId: string,
+  ): Promise<NotificationRule | undefined> {
+    if (!tenantId) return undefined;
+    const rule = await this.ruleRepo.findOneBy({ id: ruleId, tenant_id: tenantId });
+    return rule ?? undefined;
   }
 
   private async resolveAgent(
-    userId: string,
+    tenantId: string | null,
     agentName: string,
   ): Promise<{ id: string; tenant_id: string }> {
+    if (!tenantId) throw new NotFoundException('Tenant not found');
     const agent = await this.agentRepo
       .createQueryBuilder('a')
       .select(['a.id', 'a.tenant_id'])
-      .innerJoin(Tenant, 't', 't.id = a.tenant_id')
-      .where('t.name = :userId', { userId })
+      .where('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.name = :agentName', { agentName })
       .andWhere('a.deleted_at IS NULL')
       .getOne();
@@ -192,8 +200,9 @@ export class NotificationRulesService {
     return { id: agent.id, tenant_id: agent.tenant_id };
   }
 
-  private async verifyOwnership(userId: string, ruleId: string): Promise<void> {
-    const count = await this.ruleRepo.count({ where: { id: ruleId, user_id: userId } });
+  private async verifyOwnership(tenantId: string | null, ruleId: string): Promise<void> {
+    if (!tenantId) throw new NotFoundException('Notification rule not found');
+    const count = await this.ruleRepo.count({ where: { id: ruleId, tenant_id: tenantId } });
     if (count === 0) throw new NotFoundException('Notification rule not found');
   }
 }

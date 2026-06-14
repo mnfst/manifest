@@ -13,8 +13,8 @@ describe('CostsController', () => {
   beforeEach(async () => {
     mockGetPreviousCostTotal = jest.fn().mockResolvedValue(10);
     mockGetCostByModel = jest.fn().mockResolvedValue([]);
-    mockGetTimeseries = jest.fn().mockImplementation((options: { hourly: boolean }) => {
-      if (options.hourly) {
+    mockGetTimeseries = jest.fn().mockImplementation((_range, _userId, hourly) => {
+      if (hourly) {
         return Promise.resolve({
           tokenUsage: [],
           costUsage: [{ hour: '2026-02-16T10:00:00', cost: 12.5 }],
@@ -49,9 +49,10 @@ describe('CostsController', () => {
     controller = module.get<CostsController>(CostsController);
   });
 
+  const ctx = { tenantId: 'tenant-1', userId: 'u1' };
+
   it('returns cost summary derived from hourly data with trend', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getCosts({ range: '7d' }, user as never);
+    const result = await controller.getCosts({ range: '7d' }, ctx as never);
 
     expect(result.summary.weekly_cost.value).toBe(12.5);
     expect(result.summary.weekly_cost.trend_pct).toBe(25);
@@ -61,43 +62,30 @@ describe('CostsController', () => {
   });
 
   it('defaults range to 7d', async () => {
-    const user = { id: 'u1' };
-    await controller.getCosts({}, user as never);
+    await controller.getCosts({}, ctx as never);
 
-    expect(mockGetPreviousCostTotal).toHaveBeenCalledWith('7d', 'u1', undefined);
+    expect(mockGetPreviousCostTotal).toHaveBeenCalledWith('7d', 'tenant-1', undefined);
   });
 
   it('passes agent_name to service calls', async () => {
-    const user = { id: 'u1' };
-    await controller.getCosts({ range: '30d', agent_name: 'bot' }, user as never);
+    await controller.getCosts({ range: '30d', agent_name: 'bot' }, ctx as never);
 
-    expect(mockGetPreviousCostTotal).toHaveBeenCalledWith('30d', 'u1', 'bot');
-    expect(mockGetTimeseries).toHaveBeenCalledWith({
-      range: '30d',
-      userId: 'u1',
-      hourly: true,
-      agentName: 'bot',
-    });
-    expect(mockGetTimeseries).toHaveBeenCalledWith({
-      range: '30d',
-      userId: 'u1',
-      hourly: false,
-      agentName: 'bot',
-    });
-    expect(mockGetCostByModel).toHaveBeenCalledWith('30d', 'u1', 'bot');
+    expect(mockGetPreviousCostTotal).toHaveBeenCalledWith('30d', 'tenant-1', 'bot');
+    expect(mockGetTimeseries).toHaveBeenCalledWith('30d', 'tenant-1', true, 'bot');
+    expect(mockGetTimeseries).toHaveBeenCalledWith('30d', 'tenant-1', false, 'bot');
+    expect(mockGetCostByModel).toHaveBeenCalledWith('30d', 'tenant-1', 'bot');
   });
 
   it('returns zero trend when previous cost is zero', async () => {
     mockGetPreviousCostTotal.mockResolvedValue(0);
-    const user = { id: 'u1' };
-    const result = await controller.getCosts({ range: '7d' }, user as never);
+    const result = await controller.getCosts({ range: '7d' }, ctx as never);
 
     expect(result.summary.weekly_cost.trend_pct).toBe(0);
   });
 
   it('computes summary from multiple hourly buckets', async () => {
-    mockGetTimeseries.mockImplementation((options: { hourly: boolean }) => {
-      if (options.hourly) {
+    mockGetTimeseries.mockImplementation((_range: string, _userId: string, hourly: boolean) => {
+      if (hourly) {
         return Promise.resolve({
           tokenUsage: [],
           costUsage: [
@@ -109,8 +97,7 @@ describe('CostsController', () => {
       }
       return Promise.resolve({ tokenUsage: [], costUsage: [], messageUsage: [] });
     });
-    const user = { id: 'u1' };
-    const result = await controller.getCosts({ range: '7d' }, user as never);
+    const result = await controller.getCosts({ range: '7d' }, ctx as never);
 
     expect(result.summary.weekly_cost.value).toBe(12.5);
   });

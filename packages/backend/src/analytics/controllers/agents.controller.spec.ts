@@ -138,33 +138,31 @@ describe('AgentsController', () => {
     jest.spyOn(cacheManager, 'del').mockResolvedValue(true);
   });
 
+  const ctx = { tenantId: 'tenant-123', userId: 'u1' };
+
   it('returns agent list wrapped in agents property', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getAgents(user as never);
+    const result = await controller.getAgents(ctx as never);
 
     expect(result.agents).toHaveLength(2);
     expect(result.agents[0].agent_name).toBe('bot-1');
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123', false);
+    expect(mockGetAgentList).toHaveBeenCalledWith('tenant-123', false);
   });
 
-  it('passes undefined tenantId when tenant not found', async () => {
-    mockTenantResolve.mockResolvedValueOnce(null);
-    const user = { id: 'u1' };
-    await controller.getAgents(user as never);
+  it('passes null tenantId when tenant not found', async () => {
+    const nullCtx = { tenantId: null, userId: 'u1' };
+    await controller.getAgents(nullCtx as never);
 
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', undefined, false);
+    expect(mockGetAgentList).toHaveBeenCalledWith(null, false);
   });
 
   it('passes includePlayground=true through to getAgentList (Messages filter)', async () => {
-    const user = { id: 'u1' };
-    await controller.getAgents(user as never, 'true');
+    await controller.getAgents(ctx as never, 'true');
 
-    expect(mockGetAgentList).toHaveBeenCalledWith('u1', 'tenant-123', true);
+    expect(mockGetAgentList).toHaveBeenCalledWith('tenant-123', true);
   });
 
   it('GET /agents/:agentName returns metadata for an existing agent', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getAgentInfo(user as never, 'bot-1');
+    const result = await controller.getAgentInfo(ctx as never, 'bot-1');
     expect(result).toEqual({
       agent: {
         agent_name: 'bot-1',
@@ -177,17 +175,15 @@ describe('AgentsController', () => {
   });
 
   it('GET /agents/:agentName returns { agent: null } when not found', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getAgentInfo(user as never, 'missing');
+    const result = await controller.getAgentInfo(ctx as never, 'missing');
     expect(result).toEqual({ agent: null });
   });
 
   it('returns agent key prefix', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getAgentKey(user as never, 'bot-1');
+    const result = await controller.getAgentKey(ctx as never, 'bot-1');
 
     expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234' });
-    expect(mockGetKeyForAgent).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(mockGetKeyForAgent).toHaveBeenCalledWith('tenant-123', 'bot-1');
   });
 
   it('returns full apiKey when service returns fullKey', async () => {
@@ -195,27 +191,24 @@ describe('AgentsController', () => {
       keyPrefix: 'mnfst_test1234',
       fullKey: 'mnfst_full_decrypted',
     });
-    const user = { id: 'u1' };
-    const result = await controller.getAgentKey(user as never, 'bot-1');
+    const result = await controller.getAgentKey(ctx as never, 'bot-1');
 
     expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234', apiKey: 'mnfst_full_decrypted' });
   });
 
-  it('returns full apiKey when service returns fullKey', async () => {
+  it('returns full apiKey when service returns fullKey (persistent mock)', async () => {
     mockGetKeyForAgent.mockResolvedValue({
       keyPrefix: 'mnfst_test1234',
       fullKey: 'mnfst_full_decrypted',
     });
-    const user = { id: 'u1' };
-    const result = await controller.getAgentKey(user as never, 'bot-1');
+    const result = await controller.getAgentKey(ctx as never, 'bot-1');
 
     expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234', apiKey: 'mnfst_full_decrypted' });
   });
 
   it('does not return apiKey when service returns no fullKey', async () => {
     mockGetKeyForAgent.mockResolvedValue({ keyPrefix: 'mnfst_test1234' });
-    const user = { id: 'u1' };
-    const result = await controller.getAgentKey(user as never, 'bot-1');
+    const result = await controller.getAgentKey(ctx as never, 'bot-1');
 
     expect(result).toMatchObject({ keyPrefix: 'mnfst_test1234' });
     expect(result).not.toHaveProperty('apiKey');
@@ -224,66 +217,64 @@ describe('AgentsController', () => {
   it('returns empty agents array when no agents exist', async () => {
     mockGetAgentList.mockResolvedValue([]);
 
-    const user = { id: 'u1' };
-    const result = await controller.getAgents(user as never);
+    const result = await controller.getAgents(ctx as never);
 
     expect(result.agents).toEqual([]);
   });
 
   it('rotates agent key and returns new raw key', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.rotateAgentKey(user as never, 'bot-1');
+    const result = await controller.rotateAgentKey(ctx as never, 'bot-1');
 
     expect(result).toEqual({ apiKey: 'mnfst_new_key_123' });
-    expect(mockRotateKey).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(mockRotateKey).toHaveBeenCalledWith('tenant-123', 'bot-1');
   });
 
   it('renames agent and returns success with slug', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.updateAgent(user as never, 'bot-1', {
+    const result = await controller.updateAgent(ctx as never, 'bot-1', {
       name: 'Bot Renamed',
     } as never);
 
     expect(result).toEqual({ renamed: true, name: 'bot-renamed', display_name: 'Bot Renamed' });
-    expect(mockRenameAgent).toHaveBeenCalledWith('u1', 'bot-1', 'bot-renamed', 'Bot Renamed');
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=false');
+    expect(mockRenameAgent).toHaveBeenCalledWith(
+      'tenant-123',
+      'bot-1',
+      'bot-renamed',
+      'Bot Renamed',
+    );
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
     // The Messages-filter variant (playground agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a rename.
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
   });
 
   it('rejects rename with empty slug', async () => {
-    const user = { id: 'u1' };
     await expect(
-      controller.updateAgent(user as never, 'bot-1', { name: '!!!' } as never),
+      controller.updateAgent(ctx as never, 'bot-1', { name: '!!!' } as never),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('rejects rename to the reserved "Playground" name', async () => {
-    const user = { id: 'u1' };
     await expect(
-      controller.updateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+      controller.updateAgent(ctx as never, 'bot-1', { name: 'Playground' } as never),
     ).rejects.toThrow(/reserved/i);
     expect(mockRenameAgent).not.toHaveBeenCalled();
   });
 
   it('rejects createAgent with the reserved "Playground" name', async () => {
-    const user = { id: 'u1' };
     await expect(
-      controller.createAgent(user as never, { name: 'Playground' } as never),
+      controller.createAgent(ctx as never, { name: 'Playground' } as never),
     ).rejects.toThrow(/reserved/i);
   });
 
   it('deletes agent and returns success', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.deleteAgent(user as never, 'bot-1');
+    const result = await controller.deleteAgent(ctx as never, 'bot-1');
 
     expect(result).toEqual({ deleted: true });
-    expect(mockDeleteAgent).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(mockDeleteAgent).toHaveBeenCalledWith('tenant-123', 'bot-1');
     // Both canonical variants are cleared so neither the Workspace list nor the
     // Messages filter (playground agents included) goes stale after a delete.
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=false');
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
   });
 
   it('passes agent_category and agent_platform to onboardAgent', async () => {
@@ -329,9 +320,9 @@ describe('AgentsController', () => {
     const ctrl = module.get<AgentsController>(AgentsController);
     const cm = module.get<Cache>(CACHE_MANAGER);
     jest.spyOn(cm, 'del').mockResolvedValue(true);
-    const user = { id: 'user-123', email: 'test@example.com' };
+    const userCtx = { tenantId: null, userId: 'user-123' };
     const result = await ctrl.createAgent(
-      user as never,
+      userCtx as never,
       {
         name: 'My Agent',
         agent_category: 'personal',
@@ -392,17 +383,15 @@ describe('AgentsController', () => {
     const ctrl = module.get<AgentsController>(AgentsController);
     const cm = module.get<Cache>(CACHE_MANAGER);
     jest.spyOn(cm, 'del').mockResolvedValue(true);
-    const user = { id: 'user-123', email: 'test@example.com' };
-    const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
+    const userCtx = { tenantId: null, userId: 'user-123' };
+    const result = await ctrl.createAgent(userCtx as never, { name: 'My Agent' } as never);
 
     expect(result.agent.agent_category).toBeNull();
     expect(result.agent.agent_platform).toBeNull();
   });
 
   it('passes category/platform to updateAgentType on PATCH', async () => {
-    const mockUpdateType = jest.fn().mockResolvedValue(undefined);
-    const user = { id: 'u1' };
-    const result = await controller.updateAgent(user as never, 'bot-1', {
+    const result = await controller.updateAgent(ctx as never, 'bot-1', {
       agent_category: 'app',
       agent_platform: 'openai-sdk',
     } as never);
@@ -451,12 +440,11 @@ describe('AgentsController', () => {
     }).compile();
     const ctrl = module.get<AgentsController>(AgentsController);
 
-    const user = { id: 'u1' };
-    const result = await ctrl.updateAgent(user as never, 'bot-1', {
+    const result = await ctrl.updateAgent(ctx as never, 'bot-1', {
       record_messages: true,
     } as never);
 
-    expect(mockSetRecord).toHaveBeenCalledWith('u1', 'bot-1', true);
+    expect(mockSetRecord).toHaveBeenCalledWith('tenant-123', 'bot-1', true);
     expect(mockInvalidate).toHaveBeenCalledWith('id-7');
     expect(result).toMatchObject({ record_messages: true });
   });
@@ -504,14 +492,15 @@ describe('AgentsController', () => {
     const ctrl = module.get<AgentsController>(AgentsController);
     const cm = module.get<Cache>(CACHE_MANAGER);
     const delSpy = jest.spyOn(cm, 'del').mockResolvedValue(true);
-    const user = { id: 'user-123', email: 'test@example.com' };
-    const result = await ctrl.createAgent(user as never, { name: 'My Agent' } as never);
+    const userCtx = { tenantId: null, userId: 'user-123' };
+    const result = await ctrl.createAgent(userCtx as never, { name: 'My Agent' } as never);
 
     expect(result.agent.name).toBe('my-agent');
     // Both canonical variants are cleared so neither the Workspace list nor the
-    // Messages filter (playground agents included) goes stale after a create.
-    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:playground=false');
-    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:playground=true');
+    // Messages filter (playground agents included) goes stale after a create. The
+    // cache is keyed by the tenant the onboard returned (t1), not the user id.
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
   });
 
   it('rolls back the agent and clears the list cache when provider enable fails', async () => {
@@ -562,18 +551,19 @@ describe('AgentsController', () => {
     const ctrl = module.get<AgentsController>(AgentsController);
     const cm = module.get<Cache>(CACHE_MANAGER);
     const delSpy = jest.spyOn(cm, 'del').mockResolvedValue(true);
-    const user = { id: 'user-123', email: 'test@example.com' };
+    const ctx = { tenantId: 't1', userId: 'user-123' };
 
     // The original enable error surfaces to the client...
-    await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
+    await expect(ctrl.createAgent(ctx as never, { name: 'My Agent' } as never)).rejects.toThrow(
       'enable boom',
     );
-    // ...the half-created agent is rolled back...
-    expect(mockDelete).toHaveBeenCalledWith('user-123', 'my-agent');
+    // ...the half-created agent is rolled back (deleteAgent is tenant-scoped, so
+    // it receives the tenant id onboardAgent returned, not the user id)...
+    expect(mockDelete).toHaveBeenCalledWith('t1', 'my-agent');
     // ...and the agent-list cache is cleared so the briefly-visible agent does
-    // not linger in a cached list.
-    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:playground=false');
-    expect(delSpy).toHaveBeenCalledWith('user-123:/api/v1/agents:playground=true');
+    // not linger in a cached list (both tenant-keyed entries).
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
   });
 
   it('still re-throws the enable error when the compensating delete also fails', async () => {
@@ -622,9 +612,9 @@ describe('AgentsController', () => {
     }).compile();
 
     const ctrl = module.get<AgentsController>(AgentsController);
-    const user = { id: 'user-123', email: 'test@example.com' };
+    const ctx = { tenantId: 't1', userId: 'user-123' };
     // The compensating cleanup throwing must not mask the original failure.
-    await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
+    await expect(ctrl.createAgent(ctx as never, { name: 'My Agent' } as never)).rejects.toThrow(
       'enable boom',
     );
   });
@@ -666,8 +656,8 @@ describe('AgentsController', () => {
     }).compile();
 
     const ctrl = module.get<AgentsController>(AgentsController);
-    const user = { id: 'user-123', email: 'test@example.com' };
-    await expect(ctrl.createAgent(user as never, { name: '!!!' } as never)).rejects.toThrow(
+    const userCtx = { tenantId: null, userId: 'user-123' };
+    await expect(ctrl.createAgent(userCtx as never, { name: '!!!' } as never)).rejects.toThrow(
       BadRequestException,
     );
     expect(mockOnboard).not.toHaveBeenCalled();
@@ -711,15 +701,14 @@ describe('AgentsController', () => {
     }).compile();
 
     const ctrl = module.get<AgentsController>(AgentsController);
-    const user = { id: 'user-123', email: 'test@example.com' };
-    await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
+    const userCtx = { tenantId: null, userId: 'user-123' };
+    await expect(ctrl.createAgent(userCtx as never, { name: 'My Agent' } as never)).rejects.toThrow(
       ConflictException,
     );
   });
 
   it('returns duplicate preview with copy counts and suggested name', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getDuplicatePreview(user as never, 'bot-1');
+    const result = await controller.getDuplicatePreview(ctx as never, 'bot-1');
 
     expect(result).toEqual({
       copied: {
@@ -731,33 +720,31 @@ describe('AgentsController', () => {
       },
       suggested_name: 'bot-copy',
     });
-    expect(mockGetCopySummary).toHaveBeenCalledWith('u1', 'bot-1');
-    expect(mockSuggestName).toHaveBeenCalledWith('u1', 'bot-1');
+    expect(mockGetCopySummary).toHaveBeenCalledWith('tenant-123', 'bot-1');
+    expect(mockSuggestName).toHaveBeenCalledWith('tenant-123', 'bot-1');
   });
 
   it('duplicates agent and invalidates cache', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.duplicateAgent(user as never, 'bot-1', {
+    const result = await controller.duplicateAgent(ctx as never, 'bot-1', {
       name: 'Bot Copy',
     } as never);
 
     expect(result.agent.name).toBe('bot-copy');
     expect(result.apiKey).toBe('mnfst_new');
     expect(result.copied.providers).toBe(1);
-    expect(mockDuplicate).toHaveBeenCalledWith('u1', 'bot-1', {
+    expect(mockDuplicate).toHaveBeenCalledWith('tenant-123', 'bot-1', {
       name: 'bot-copy',
       displayName: 'Bot Copy',
     });
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
     // The Messages-filter variant (playground agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a duplicate.
-    expect(cacheManager.del).toHaveBeenCalledWith('u1:/api/v1/agents:playground=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
   });
 
   it('rejects duplicateAgent with empty slug', async () => {
-    const user = { id: 'u1' };
     await expect(
-      controller.duplicateAgent(user as never, 'bot-1', { name: '!!!' } as never),
+      controller.duplicateAgent(ctx as never, 'bot-1', { name: '!!!' } as never),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -765,28 +752,25 @@ describe('AgentsController', () => {
     mockDuplicate.mockRejectedValueOnce(
       new QueryFailedError('INSERT', [], new Error('unique constraint violation')),
     );
-    const user = { id: 'u1' };
     await expect(
-      controller.duplicateAgent(user as never, 'bot-1', { name: 'bot-copy' } as never),
+      controller.duplicateAgent(ctx as never, 'bot-1', { name: 'bot-copy' } as never),
     ).rejects.toThrow(ConflictException);
   });
 
   it('re-throws non-duplicate errors from duplicate()', async () => {
     mockDuplicate.mockRejectedValueOnce(new Error('boom'));
-    const user = { id: 'u1' };
     await expect(
-      controller.duplicateAgent(user as never, 'bot-1', { name: 'bot-copy' } as never),
+      controller.duplicateAgent(ctx as never, 'bot-1', { name: 'bot-copy' } as never),
     ).rejects.toThrow('boom');
   });
 
   // P1-B: duplicate must honor the reserved name
   it('rejects duplicateAgent with the reserved "Playground" name', async () => {
-    const user = { id: 'u1' };
     await expect(
-      controller.duplicateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+      controller.duplicateAgent(ctx as never, 'bot-1', { name: 'Playground' } as never),
     ).rejects.toThrow(BadRequestException);
     await expect(
-      controller.duplicateAgent(user as never, 'bot-1', { name: 'Playground' } as never),
+      controller.duplicateAgent(ctx as never, 'bot-1', { name: 'Playground' } as never),
     ).rejects.toThrow(/reserved/i);
     expect(mockDuplicate).not.toHaveBeenCalled();
   });
@@ -795,15 +779,13 @@ describe('AgentsController', () => {
   it('getAgentKey throws NotFoundException for the reserved "Playground" agent', async () => {
     // findAgentInfo returns null for playground agents (is_playground = false filter)
     // which is the same shape as a missing agent — NotFoundException is thrown.
-    const user = { id: 'u1' };
-    await expect(controller.getAgentKey(user as never, 'Playground')).rejects.toBeInstanceOf(
+    await expect(controller.getAgentKey(ctx as never, 'Playground')).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });
 
   it('rotateAgentKey throws NotFoundException for the reserved "Playground" agent', async () => {
-    const user = { id: 'u1' };
-    await expect(controller.rotateAgentKey(user as never, 'Playground')).rejects.toBeInstanceOf(
+    await expect(controller.rotateAgentKey(ctx as never, 'Playground')).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });
@@ -846,8 +828,8 @@ describe('AgentsController', () => {
     }).compile();
 
     const ctrl = module.get<AgentsController>(AgentsController);
-    const user = { id: 'user-123', email: 'test@example.com' };
-    await expect(ctrl.createAgent(user as never, { name: 'My Agent' } as never)).rejects.toThrow(
+    const userCtx = { tenantId: null, userId: 'user-123' };
+    await expect(ctrl.createAgent(userCtx as never, { name: 'My Agent' } as never)).rejects.toThrow(
       QueryFailedError,
     );
   });

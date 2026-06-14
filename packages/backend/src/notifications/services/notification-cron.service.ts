@@ -11,7 +11,6 @@ interface ActiveRule {
   id: string;
   tenant_id: string;
   agent_name: string;
-  user_id: string;
   metric_type: 'tokens' | 'cost';
   threshold: number;
   period: 'hour' | 'day' | 'week' | 'month';
@@ -41,9 +40,9 @@ export class NotificationCronService implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
-  async checkThresholds(userId?: string): Promise<number> {
-    const rules: ActiveRule[] = userId
-      ? await this.rulesService.getActiveRulesForUser(userId)
+  async checkThresholds(tenantId?: string): Promise<number> {
+    const rules: ActiveRule[] = tenantId
+      ? await this.rulesService.getActiveRulesForTenant(tenantId)
       : await this.rulesService.getAllActiveRules();
     if (!rules.length) return 0;
 
@@ -108,9 +107,9 @@ export class NotificationCronService implements OnModuleInit {
     if (actual < rule.threshold) return false;
 
     const now = formatNotificationTimestamp();
-    const fullConfig = await this.emailProviderConfigService.getFullConfig(rule.user_id);
-    const email = await this.notificationLog.resolveUserEmail(
-      rule.user_id,
+    const fullConfig = await this.emailProviderConfigService.getFullConfig(rule.tenant_id);
+    const email = await this.notificationLog.resolveRecipientEmail(
+      rule.tenant_id,
       fullConfig?.notificationEmail,
     );
     await this.notificationLog.insertLog({
@@ -144,7 +143,7 @@ export class NotificationCronService implements OnModuleInit {
       }
     } else {
       this.logger.warn(
-        `No email found for user ${rule.user_id}, skipping alert for rule ${rule.id}`,
+        `No email found for tenant ${rule.tenant_id}, skipping alert for rule ${rule.id}`,
       );
     }
 

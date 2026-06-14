@@ -41,7 +41,10 @@ interface PendingMinimaxOAuth {
   verifier: string;
   userCode: string;
   agentId: string;
-  userId: string;
+  /** Tenant that owns the agent — the scope the stored credential belongs to. */
+  tenantId: string;
+  /** Acting user, audit only (tenant_providers.created_by_user_id). */
+  createdByUserId: string | null;
   baseUrl: string;
   resourceUrl: string;
   expiresAt: number;
@@ -97,8 +100,9 @@ export class MinimaxOauthService {
 
   async startAuthorization(
     agentId: string,
-    userId: string,
+    tenantId: string,
     region: MinimaxRegion = DEFAULT_REGION,
+    createdByUserId?: string | null,
   ): Promise<MinimaxOAuthStartResult> {
     this.cleanupExpired();
     const verifier = randomBytes(32).toString('base64url');
@@ -141,7 +145,8 @@ export class MinimaxOauthService {
       verifier,
       userCode: payload.user_code,
       agentId,
-      userId,
+      tenantId,
+      createdByUserId: createdByUserId ?? null,
       baseUrl,
       resourceUrl,
       expiresAt,
@@ -156,14 +161,17 @@ export class MinimaxOauthService {
     };
   }
 
-  async pollAuthorization(flowId: string, userId: string): Promise<MinimaxOAuthPollResult> {
+  async pollAuthorization(flowId: string, tenantId: string): Promise<MinimaxOAuthPollResult> {
     this.cleanupExpired();
     const pending = this.pending.get(flowId);
     if (!pending) {
       return { status: 'error', message: 'MiniMax login expired. Start again.' };
     }
-    if (pending.userId !== userId) {
-      return { status: 'error', message: 'MiniMax login session does not match the current user.' };
+    if (pending.tenantId !== tenantId) {
+      return {
+        status: 'error',
+        message: 'MiniMax login session does not match the current account.',
+      };
     }
     if (Date.now() >= pending.expiresAt) {
       this.pending.delete(flowId);
@@ -216,15 +224,16 @@ export class MinimaxOauthService {
       e: toAbsoluteExpiryTimestamp(payload.expired_in),
       u: resourceUrl,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.userId, 'minimax');
+    const label = await this.providerService.nextOAuthLabel(pending.tenantId, 'minimax');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
-      pending.userId,
+      pending.tenantId,
       'minimax',
       JSON.stringify(blob),
       'subscription',
       undefined,
       label,
+      pending.createdByUserId,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
@@ -273,7 +282,7 @@ export class MinimaxOauthService {
   async unwrapToken(
     rawValue: string,
     agentId: string,
-    userId: string,
+    tenantId: string,
     keyLabel?: string,
   ): Promise<OAuthTokenBlob | null> {
     let blob: OAuthTokenBlob;
@@ -288,18 +297,18 @@ export class MinimaxOauthService {
     if (Date.now() < blob.e - 60_000) return blob;
     try {
       return await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('minimax', userId, keyLabel),
+        key: oauthRefreshKey('minimax', tenantId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(userId, 'minimax', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(tenantId, 'minimax', keyLabel),
         parse: parseMinimaxBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
         persist: (refreshed) =>
           this.providerService
             .upsertProvider(
               agentId,
-              userId,
+              tenantId,
               'minimax',
               JSON.stringify(refreshed),
               'subscription',

@@ -13,8 +13,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import { Request, Response } from 'express';
-import { AuthUser } from '../../../auth/auth.instance';
-import { CurrentUser } from '../../../auth/current-user.decorator';
+import { TenantCtx, TenantContext } from '../../../common/decorators/tenant-context.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
@@ -38,17 +37,22 @@ export class XaiOauthController {
   @Get('authorize')
   async authorize(
     @Query('agentName') agentName: string,
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Req() req: Request,
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
     const trustedBackendUrl = this.configService.get<string>('BETTER_AUTH_URL');
     const backendUrl = trustedBackendUrl || `${req.protocol}://${req.get('host')}`;
     try {
-      const url = await this.oauthService.generateAuthorizationUrl(agent.id, user.id, backendUrl);
+      const url = await this.oauthService.generateAuthorizationUrl(
+        agent.id,
+        agent.tenant_id,
+        backendUrl,
+        ctx.userId,
+      );
       return { url };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start OAuth callback server';
@@ -60,7 +64,7 @@ export class XaiOauthController {
   async callback(
     @Body('code') code: string,
     @Body('state') state: string,
-    @CurrentUser() _user: AuthUser,
+    @TenantCtx() _ctx: TenantContext,
   ) {
     if (!code || !state) {
       throw new HttpException('code and state are required', HttpStatus.BAD_REQUEST);
@@ -80,14 +84,18 @@ export class XaiOauthController {
   async revoke(
     @Query('agentName') agentName: string,
     @Query('label') label: string | string[] | undefined,
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    const keys = await this.providerKeyService.getProviderKeys(user.id, 'xai', 'subscription');
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
+    const keys = await this.providerKeyService.getProviderKeys(
+      agent.tenant_id,
+      'xai',
+      'subscription',
+    );
     const keysToRevoke = keyLabel
       ? keys.filter((key) => key.label.toLowerCase() === keyLabel.toLowerCase())
       : keys;
@@ -105,7 +113,7 @@ export class XaiOauthController {
 
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
-      user.id,
+      agent.tenant_id,
       'xai',
       'subscription',
       keyLabel,

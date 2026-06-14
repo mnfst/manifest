@@ -16,9 +16,10 @@ import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
 import type { CustomProvider } from '../entities/custom-provider.entity';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
-const USER_ID = 'user-1';
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
+const CTX: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 
 function makeDto(overrides: Partial<RunPlaygroundDto> = {}): RunPlaygroundDto {
   return {
@@ -185,7 +186,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // --- 1. The user-facing JSON response must NOT contain the full body. ---
     expect(res._status).toBe(502);
@@ -240,7 +241,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const message = (res._json as { message: string }).message;
     expect(message).toBe('Provider returned 500');
@@ -250,6 +251,43 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     const column = mocks.history.saveColumn.mock.calls[0][0];
     expect(column.errorMessage).toBe('Provider returned 500');
     expect(column.errorMessage).not.toContain('real error text');
+  });
+
+  it('scrubs credentials echoed in the error body before they reach any sink', async () => {
+    const { service, mocks } = buildService();
+    // Some providers (e.g. Anthropic 401s) echo the submitted key back in the
+    // error body. It must be redacted in the SSE response, the history column,
+    // and the persisted agent_messages row.
+    const leakyBody = JSON.stringify({
+      error: { message: 'invalid x-api-key: sk-ant-abcdef0123456789ghij' },
+    });
+    mocks.providerClient.forward.mockResolvedValue({
+      response: {
+        ok: false,
+        status: 401,
+        headers: new Headers(),
+        text: jest.fn().mockResolvedValue(leakyBody),
+        body: null,
+      },
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+    });
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    const message = (res._json as { message: string }).message;
+    expect(message).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(message).toContain('[REDACTED]');
+
+    const column = mocks.history.saveColumn.mock.calls[0][0];
+    expect(column.errorMessage).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(column.errorMessage).toContain('[REDACTED]');
+
+    const row = mocks.messageRepo.insert.mock.calls[0][0];
+    expect(row.error_message).not.toContain('sk-ant-abcdef0123456789ghij');
+    expect(row.error_message).toContain('[REDACTED]');
   });
 
   it('preserves short error bodies verbatim (no over-truncation)', async () => {
@@ -269,7 +307,7 @@ describe('PlaygroundService.runStream — error body truncation', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const message = (res._json as { message: string }).message;
     expect(message).toBe('Provider returned 429: quota exceeded');

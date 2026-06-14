@@ -7,7 +7,7 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
@@ -18,7 +18,6 @@ import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { AggregationService } from './services/aggregation.service';
-import { ConnectionDetailService } from './services/connection-detail.service';
 import { AgentDuplicationService } from './services/agent-duplication.service';
 import { AgentLifecycleService } from './services/agent-lifecycle.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
@@ -46,7 +45,7 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
       ToolExecution,
       AgentLog,
       CustomProvider,
-      UserProvider,
+      TenantProvider,
       AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,
@@ -69,7 +68,6 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
   ],
   providers: [
     AggregationService,
-    ConnectionDetailService,
     AgentDuplicationService,
     AgentLifecycleService,
     TimeseriesQueriesService,

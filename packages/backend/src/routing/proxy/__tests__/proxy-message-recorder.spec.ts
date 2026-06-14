@@ -271,7 +271,7 @@ describe('ProxyMessageRecorder', () => {
 
     it('emits SSE event after recording', async () => {
       await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard');
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('persists the provider column when passed via opts', async () => {
@@ -311,7 +311,7 @@ describe('ProxyMessageRecorder', () => {
         error_http_status: 500,
         model: 'gpt-4o',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('stores the HTTP status code for 400 errors', async () => {
@@ -326,7 +326,7 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordProviderError(ctx, 429, 'Rate limited');
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0].status).toBe('rate_limited');
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('skips insert during cooldown but does not emit', async () => {
@@ -394,7 +394,7 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect((insertMock.mock.calls[0][0] as unknown[]).length).toBe(2);
       expect(emitMock).toHaveBeenCalledTimes(1);
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('stores the HTTP status code for each fallback failure', async () => {
@@ -593,7 +593,7 @@ describe('ProxyMessageRecorder', () => {
         status: 'fallback_error',
         model: 'gpt-4o',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('persists the provider column when passed a provider', async () => {
@@ -694,7 +694,7 @@ describe('ProxyMessageRecorder', () => {
         completion_tokens: 50,
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('records message even when tokens are zero', async () => {
@@ -708,7 +708,7 @@ describe('ProxyMessageRecorder', () => {
         output_tokens: 0,
         status: 'ok',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('updates existing zero-token message and emits SSE event', async () => {
@@ -745,7 +745,7 @@ describe('ProxyMessageRecorder', () => {
         user_id: 'user-1',
       });
       expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('skips update when existing message already has recorded tokens', async () => {
@@ -804,7 +804,7 @@ describe('ProxyMessageRecorder', () => {
       expect(updateMock.mock.calls[0][1]).toMatchObject({
         session_key: 'session-abc',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('skips update when existing has only output_tokens > 0 (covers short-circuit OR branch)', async () => {

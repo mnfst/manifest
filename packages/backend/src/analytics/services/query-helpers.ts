@@ -52,45 +52,38 @@ export function downsample(data: number[], targetLen: number): number[] {
 export function filterByLiveAgentName<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   agentName: string,
-  userId: string,
-  tenantId?: string,
+  tenantId: string,
 ): SelectQueryBuilder<T> {
-  // Scope the live-agent lookup to the SAME tenant the outer query resolves to,
-  // NOT `at.tenant_id`: on the user_id fallback path (no resolved tenant)
-  // message rows can carry a NULL tenant_id, which would make the subquery match
-  // nothing and blank the chart. When a tenant is resolved, match it directly;
-  // otherwise resolve the tenant from the user (tenant.name = userId).
-  const tenantScope = tenantId
-    ? 'a.tenant_id = :liveTenantId'
-    : 'a.tenant_id = (SELECT t.id FROM tenants t WHERE t.name = :liveUserId LIMIT 1)';
-  const params: ObjectLiteral = { liveAgentName: agentName };
-  if (tenantId) params.liveTenantId = tenantId;
-  else params.liveUserId = userId;
   return qb.andWhere(
     `at.agent_id = (
         SELECT a.id FROM agents a
-        WHERE ${tenantScope}
+        WHERE a.tenant_id = :liveTenantId
           AND a.name = :liveAgentName
           AND a.deleted_at IS NULL
         LIMIT 1
       )`,
-    params,
+    { liveAgentName: agentName, liveTenantId: tenantId },
   );
 }
 
+/**
+ * Scope a message aggregate to the tenant. Pass `null` when the requesting
+ * user has no tenant yet (fresh account) — the filter then matches nothing,
+ * which is the correct "no data" answer. Tenancy is the ONLY scope; the
+ * informational `at.user_id` column is never consulted.
+ */
 export function addTenantFilter<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
-  userId: string,
+  tenantId: string | null,
   agentName?: string,
-  tenantId?: string,
 ): SelectQueryBuilder<T> {
-  if (tenantId) {
-    qb.andWhere('at.tenant_id = :tenantId', { tenantId });
-  } else {
-    qb.andWhere('at.user_id = :userId', { userId });
+  if (tenantId === null) {
+    // No tenant → no rows. Keeps callers branch-free.
+    return qb.andWhere('1 = 0');
   }
+  qb.andWhere('at.tenant_id = :tenantId', { tenantId });
   if (agentName) {
-    filterByLiveAgentName(qb, agentName, userId, tenantId);
+    filterByLiveAgentName(qb, agentName, tenantId);
   }
   return qb;
 }
@@ -148,8 +141,8 @@ export function filterByKeyLabel<T extends ObjectLiteral>(
 }
 
 /**
- * Scope a message aggregate to one exact connection by its `user_providers`
- * row id — the value stamped on `agent_messages.user_provider_id` at proxy
+ * Scope a message aggregate to one exact connection by its `tenant_providers`
+ * row id — the value stamped on `agent_messages.tenant_provider_id` at proxy
  * time. Unlike filterByKeyLabel (which matches the provider+auth_type+label
  * tuple and so merges sibling keys sharing a label, and treats a NULL label as
  * 'Default'), this pins to the single connection that actually served each
@@ -160,15 +153,15 @@ export function filterByKeyLabel<T extends ObjectLiteral>(
  * whenever a connection id is available; keep filterByKeyLabel for
  * provider-level ("all my OpenAI keys") aggregation.
  */
-export function filterByUserProviderId<T extends ObjectLiteral>(
+export function filterByTenantProviderId<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
-  userProviderId: string,
+  tenantProviderId: string,
 ): SelectQueryBuilder<T> {
-  return qb.andWhere('at.user_provider_id = :userProviderId', { userProviderId });
+  return qb.andWhere('at.tenant_provider_id = :tenantProviderId', { tenantProviderId });
 }
 
 /**
- * Scope a message aggregate to a single connection. When a `user_providers`
+ * Scope a message aggregate to a single connection. When a `tenant_providers`
  * row id is known, pin to it (the authoritative per-connection filter, exact
  * to the key that served each message); otherwise fall back to the
  * provider+auth_type+label tuple. The id deliberately wins over the label so a
@@ -177,10 +170,10 @@ export function filterByUserProviderId<T extends ObjectLiteral>(
  */
 export function scopeToConnection<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
-  userProviderId: string | undefined,
+  tenantProviderId: string | undefined,
   label: string | null | undefined,
 ): SelectQueryBuilder<T> {
-  if (userProviderId) return filterByUserProviderId(qb, userProviderId);
+  if (tenantProviderId) return filterByTenantProviderId(qb, tenantProviderId);
   if (label !== undefined) return filterByKeyLabel(qb, label);
   return qb;
 }

@@ -35,7 +35,6 @@ export class SpecificityService {
 
   async toggleCategory(
     agentId: string,
-    userId: string,
     category: string,
     active: boolean,
   ): Promise<SpecificityAssignment> {
@@ -51,7 +50,6 @@ export class SpecificityService {
 
     const record = Object.assign(new SpecificityAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       category,
       is_active: active,
@@ -66,7 +64,7 @@ export class SpecificityService {
       await this.repo.insert(record);
     } catch {
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.toggleCategory(agentId, userId, category, active);
+      if (retry) return this.toggleCategory(agentId, category, active);
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -74,7 +72,7 @@ export class SpecificityService {
 
   async setOverride(
     agentId: string,
-    userId: string,
+    tenantId: string,
     category: string,
     model: string,
     provider?: string,
@@ -86,7 +84,7 @@ export class SpecificityService {
       explicit ??
       unambiguousRoute(
         model,
-        await this.discoveryService.getModelsForAgent(userId, agentId),
+        await this.discoveryService.getModelsForAgent(tenantId, agentId),
         providerKeyLabel,
       );
     if (!route) {
@@ -114,7 +112,6 @@ export class SpecificityService {
 
     const record = Object.assign(new SpecificityAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       category,
       is_active: true,
@@ -132,7 +129,7 @@ export class SpecificityService {
       if (retry)
         return this.setOverride(
           agentId,
-          userId,
+          tenantId,
           category,
           model,
           provider,
@@ -146,7 +143,6 @@ export class SpecificityService {
 
   async setResponseMode(
     agentId: string,
-    userId: string,
     category: string,
     responseMode: ResponseMode,
   ): Promise<SpecificityAssignment> {
@@ -167,7 +163,6 @@ export class SpecificityService {
 
     const record = Object.assign(new SpecificityAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       category,
       is_active: false,
@@ -202,14 +197,14 @@ export class SpecificityService {
 
   async setFallbacks(
     agentId: string,
-    userId: string,
+    tenantId: string,
     category: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return [];
-    const fallbackRoutes = await this.buildFallbackRoutes(agentId, userId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, tenantId, models, routes);
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
@@ -257,12 +252,12 @@ export class SpecificityService {
    */
   private async buildFallbackRoutes(
     agentId: string,
-    userId: string,
+    tenantId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

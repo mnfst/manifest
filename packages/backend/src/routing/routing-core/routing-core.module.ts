@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserProvider } from '../../entities/user-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -25,7 +25,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      UserProvider,
+      TenantProvider,
       AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,

@@ -1,40 +1,52 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
-import { Subject } from 'rxjs';
+import { Subject, EMPTY } from 'rxjs';
 import { SseController } from './sse.controller';
 import { IngestEventBusService, IngestEvent } from '../common/services/ingest-event-bus.service';
 
 describe('SseController', () => {
   let controller: SseController;
   let mockSubject: Subject<IngestEvent>;
+  let forTenant: jest.Mock;
 
   beforeEach(async () => {
     mockSubject = new Subject<IngestEvent>();
+    // forTenant returns the live stream for a known tenant, and an empty
+    // observable for the null (no-tenant-yet) case — mirroring the bus.
+    forTenant = jest
+      .fn()
+      .mockImplementation((tenantId: string | null) =>
+        tenantId === null ? EMPTY : mockSubject.asObservable(),
+      );
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SseController],
-      providers: [
-        {
-          provide: IngestEventBusService,
-          useValue: { forUser: jest.fn().mockReturnValue(mockSubject.asObservable()) },
-        },
-      ],
+      providers: [{ provide: IngestEventBusService, useValue: { forTenant } }],
     }).compile();
 
     controller = module.get<SseController>(SseController);
   });
 
-  it('throws UnauthorizedException when user is null', () => {
-    expect(() => controller.events(null as never)).toThrow(UnauthorizedException);
+  it('subscribes to the bus scoped to the request tenant', () => {
+    controller.events({ tenantId: 'tenant-1', userId: 'user-1' });
+    expect(forTenant).toHaveBeenCalledWith('tenant-1');
   });
 
-  it('throws UnauthorizedException when user has no id', () => {
-    expect(() => controller.events({} as never)).toThrow(UnauthorizedException);
+  it('returns an empty stream for a null tenantId (fresh account)', (done) => {
+    const stream$ = controller.events({ tenantId: null, userId: 'user-1' });
+    let emitted = false;
+    stream$.subscribe({
+      next: () => {
+        emitted = true;
+      },
+      complete: () => {
+        expect(emitted).toBe(false);
+        done();
+      },
+    });
   });
 
   it('fans each bus event into a typed event and a legacy ping', (done) => {
-    const user = { id: 'user-1', name: 'Test', email: 'test@test.com' } as never;
-    const stream$ = controller.events(user);
+    const stream$ = controller.events({ tenantId: 'tenant-1', userId: 'user-1' });
     const received: unknown[] = [];
 
     stream$.subscribe({
@@ -54,8 +66,8 @@ describe('SseController', () => {
       },
     });
 
-    mockSubject.next({ userId: 'user-1', kind: 'message' });
-    mockSubject.next({ userId: 'user-1', kind: 'agent' });
-    mockSubject.next({ userId: 'user-1', kind: 'routing' });
+    mockSubject.next({ tenantId: 'tenant-1', kind: 'message' });
+    mockSubject.next({ tenantId: 'tenant-1', kind: 'agent' });
+    mockSubject.next({ tenantId: 'tenant-1', kind: 'routing' });
   });
 });

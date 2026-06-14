@@ -1,6 +1,6 @@
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Agent } from './agent.entity';
-import { UserProvider } from './user-provider.entity';
+import { TenantProvider } from './tenant-provider.entity';
 
 @Entity('agent_enabled_providers')
 export class AgentEnabledProvider {
@@ -12,9 +12,9 @@ export class AgentEnabledProvider {
   agent!: Agent;
 
   @PrimaryColumn('varchar')
-  user_provider_id!: string;
+  tenant_provider_id!: string;
 
-  @ManyToOne(() => UserProvider, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_provider_id' })
-  userProvider!: UserProvider;
+  @ManyToOne(() => TenantProvider, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'tenant_provider_id' })
+  tenantProvider!: TenantProvider;
 }

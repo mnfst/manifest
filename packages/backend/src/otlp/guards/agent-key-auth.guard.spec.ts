@@ -145,7 +145,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -171,7 +171,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent-2' },
-        tenant: { name: 'user-2' },
+        tenant: { owner_user_id: 'user-2' },
       },
     ]);
 
@@ -198,7 +198,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: pastDate,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -217,7 +217,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -252,7 +252,7 @@ describe('AgentKeyAuthGuard', () => {
         tenant_id: 'dev-tenant',
         agent_id: 'dev-agent',
         agent: { name: 'demo-agent' },
-        tenant: { name: 'dev-user' },
+        tenant: { owner_user_id: 'dev-user' },
       });
       const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
       const result = await guard.canActivate(ctx);
@@ -275,7 +275,7 @@ describe('AgentKeyAuthGuard', () => {
         tenant_id: 'dev-tenant',
         agent_id: 'dev-agent',
         agent: { name: 'demo-agent' },
-        tenant: { name: 'dev-user' },
+        tenant: { owner_user_id: 'dev-user' },
       });
       const { ctx, req } = makeContext({}, '127.0.0.1');
       const result = await guard.canActivate(ctx);
@@ -325,7 +325,7 @@ describe('AgentKeyAuthGuard', () => {
         tenant_id: 'dev-tenant',
         agent_id: 'dev-agent',
         agent: { name: 'demo-agent' },
-        tenant: { name: 'dev-user' },
+        tenant: { owner_user_id: 'dev-user' },
       });
 
       const { ctx: ctx1 } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
@@ -359,7 +359,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
     mockExecute.mockRejectedValueOnce(new Error('DB write error'));
@@ -396,7 +396,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent-max' },
-        tenant: { name: 'user-max' },
+        tenant: { owner_user_id: 'user-max' },
       },
     ]);
 
@@ -439,7 +439,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(evictToken),
         expires_at: null,
         agent: { name: 'test-agent-evict' },
-        tenant: { name: 'user-evict' },
+        tenant: { owner_user_id: 'user-evict' },
       },
     ]);
 
@@ -507,7 +507,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -529,7 +529,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -555,7 +555,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: hashKey(token),
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -590,7 +590,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: storedHash,
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 
@@ -609,7 +609,7 @@ describe('AgentKeyAuthGuard', () => {
         key_hash: storedHash,
         expires_at: null,
         agent: { name: 'test-agent' },
-        tenant: { name: 'user-1' },
+        tenant: { owner_user_id: 'user-1' },
       },
     ]);
 

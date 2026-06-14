@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserProvider } from '../../entities/user-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
@@ -44,7 +44,7 @@ export type AgentInvalidationListener = (agentId: string) => void;
 @Injectable()
 export class RoutingCacheService {
   private readonly tiers = new Map<string, CachedEntry<TierAssignment[]>>();
-  private readonly providers = new Map<string, CachedEntry<UserProvider[]>>();
+  private readonly providers = new Map<string, CachedEntry<TenantProvider[]>>();
   private readonly customProviders = new Map<string, CachedEntry<CustomProvider[]>>();
   private readonly providerKeys = new Map<string, CachedEntry<CachedProviderKey[]>>();
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
@@ -65,20 +65,20 @@ export class RoutingCacheService {
     setWithEviction(this.tiers, agentId, data);
   }
 
-  getProviders(userId: string): UserProvider[] | null {
-    return getOrExpire(this.providers, userId) ?? null;
+  getProviders(tenantId: string): TenantProvider[] | null {
+    return getOrExpire(this.providers, tenantId) ?? null;
   }
 
-  setProviders(userId: string, data: UserProvider[]): void {
-    setWithEviction(this.providers, userId, data);
+  setProviders(tenantId: string, data: TenantProvider[]): void {
+    setWithEviction(this.providers, tenantId, data);
   }
 
-  getCustomProviders(userId: string): CustomProvider[] | null {
-    return getOrExpire(this.customProviders, userId) ?? null;
+  getCustomProviders(tenantId: string): CustomProvider[] | null {
+    return getOrExpire(this.customProviders, tenantId) ?? null;
   }
 
-  setCustomProviders(userId: string, data: CustomProvider[]): void {
-    setWithEviction(this.customProviders, userId, data);
+  setCustomProviders(tenantId: string, data: CustomProvider[]): void {
+    setWithEviction(this.customProviders, tenantId, data);
   }
 
   /**
@@ -88,28 +88,28 @@ export class RoutingCacheService {
    * provider toggle can never leak another agent's key chain.
    */
   private providerKeysKey(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: string,
     agentId?: string,
   ): string {
-    return [userId, agentId ?? '', provider, authType ?? 'default'].join('\u0000');
+    return [tenantId, agentId ?? '', provider, authType ?? 'default'].join('\u0000');
   }
 
   getProviderKeys(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: string,
     agentId?: string,
   ): CachedProviderKey[] | undefined {
     return getOrExpire(
       this.providerKeys,
-      this.providerKeysKey(userId, provider, authType, agentId),
+      this.providerKeysKey(tenantId, provider, authType, agentId),
     );
   }
 
   setProviderKeys(
-    userId: string,
+    tenantId: string,
     provider: string,
     keys: CachedProviderKey[],
     authType?: string,
@@ -117,7 +117,7 @@ export class RoutingCacheService {
   ): void {
     setWithEviction(
       this.providerKeys,
-      this.providerKeysKey(userId, provider, authType, agentId),
+      this.providerKeysKey(tenantId, provider, authType, agentId),
       keys,
     );
   }
@@ -181,16 +181,16 @@ export class RoutingCacheService {
   }
 
   /**
-   * Invalidate user-scoped caches (providers, custom providers, provider keys).
-   * Call after any change to the user's global provider set (connect, disconnect,
+   * Invalidate tenant-scoped caches (providers, custom providers, provider keys).
+   * Call after any change to the tenant's global provider set (connect, disconnect,
    * rename, reorder).
    */
-  invalidateUser(userId: string): void {
-    this.providers.delete(userId);
-    this.customProviders.delete(userId);
-    // Clears both user-global and agent-scoped key chains: every entry for
-    // this user starts with the same NUL-delimited userId segment.
-    const prefix = `${userId}\u0000`;
+  invalidateTenant(tenantId: string): void {
+    this.providers.delete(tenantId);
+    this.customProviders.delete(tenantId);
+    // Clears both tenant-global and agent-scoped key chains: every entry for
+    // this tenant starts with the same NUL-delimited tenantId segment.
+    const prefix = `${tenantId}\u0000`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);
   }

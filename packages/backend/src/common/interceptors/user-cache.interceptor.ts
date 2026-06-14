@@ -2,6 +2,7 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 import { ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { RequestWithTenantContext } from '../decorators/tenant-context.decorator';
 
 @Injectable()
 export class UserCacheInterceptor extends CacheInterceptor {
@@ -10,25 +11,24 @@ export class UserCacheInterceptor extends CacheInterceptor {
   }
 
   /**
-   * Shared precondition gate for cacheable per-user GET responses. Returns the
-   * authenticated user id when the request is a GET carrying a logged-in user,
-   * or undefined (skip caching) otherwise. Subclasses build their cache key on
-   * top of this so the GET/auth preconditions live in exactly one place.
+   * Shared precondition gate for cacheable per-tenant GET responses. Returns
+   * the resolved tenant id when the request is a GET carrying an authenticated
+   * tenant context, or undefined (skip caching) otherwise. Subclasses build
+   * their cache key on top of this so the GET/auth preconditions live in
+   * exactly one place. Keyed by tenant — never by user — so the cache scope
+   * matches the data scope.
    */
-  protected resolveUserId(context: ExecutionContext): string | undefined {
-    const request = context.switchToHttp().getRequest<Request>();
+  protected resolveTenantId(context: ExecutionContext): string | undefined {
+    const request = context.switchToHttp().getRequest<RequestWithTenantContext>();
     if (request.method !== 'GET') return undefined;
-    const user = (request as unknown as Record<string, unknown>).user as
-      | { id?: string }
-      | undefined;
-    return user?.id;
+    return request.tenantContext?.tenantId ?? undefined;
   }
 
   protected trackBy(context: ExecutionContext): string | undefined {
-    const userId = this.resolveUserId(context);
-    if (!userId) return undefined;
+    const tenantId = this.resolveTenantId(context);
+    if (!tenantId) return undefined;
 
     const request = context.switchToHttp().getRequest<Request>();
-    return `${userId}:${request.originalUrl}`;
+    return `${tenantId}:${request.originalUrl}`;
   }
 }

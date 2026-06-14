@@ -12,16 +12,20 @@ export interface CustomProviderModel {
 export type CustomProviderApiKind = 'openai' | 'anthropic';
 
 // Uniqueness is owned by the migration as a case-insensitive index on
-// (user_id, LOWER(name)) — which a column-list @Index can't express. Declaring a
+// (tenant_id, LOWER(name)) — which a column-list @Index can't express. Declaring a
 // case-sensitive @Index here would drift from the real schema (synchronize ≠
-// migrations), so it's intentionally omitted (same pattern as user_providers).
+// migrations), so it's intentionally omitted (same pattern as tenant_providers).
 @Entity('custom_providers')
 export class CustomProvider {
   @PrimaryColumn('varchar')
   id!: string;
 
   @Column('varchar')
-  user_id!: string;
+  tenant_id!: string;
+
+  /** Audit-only: which user created the provider. Never used for scoping. */
+  @Column('varchar', { nullable: true })
+  created_by_user_id!: string | null;
 
   @Column('varchar')
   name!: string;

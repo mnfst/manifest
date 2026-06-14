@@ -9,9 +9,6 @@ export class TierAssignment {
   id!: string;
 
   @Column('varchar')
-  user_id!: string;
-
-  @Column('varchar')
   agent_id!: string;
 
   @Column('varchar')

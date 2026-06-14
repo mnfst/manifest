@@ -1,12 +1,12 @@
 import type { ModelRoute } from 'manifest-shared';
 import { ProviderService } from '../provider.service';
-import { UserProvider } from '../../../entities/user-provider.entity';
+import { TenantProvider } from '../../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
 import { Agent } from '../../../entities/agent.entity';
 import { HeaderTier } from '../../../entities/header-tier.entity';
 import { AgentEnabledProvider } from '../../../entities/agent-enabled-provider.entity';
-import type { Repository } from 'typeorm';
+import { In, type Repository } from 'typeorm';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { encrypt, getEncryptionSecret } from '../../../common/utils/crypto.util';
@@ -51,7 +51,7 @@ describe('ProviderService — route-only cleanup paths', () => {
     getProviders: jest.Mock;
     setProviders: jest.Mock;
     invalidateAgent: jest.Mock;
-    invalidateUser: jest.Mock;
+    invalidateTenant: jest.Mock;
   };
   let svc: ProviderService;
 
@@ -65,11 +65,11 @@ describe('ProviderService — route-only cleanup paths', () => {
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
       invalidateAgent: jest.fn(),
-      invalidateUser: jest.fn(),
+      invalidateTenant: jest.fn(),
     };
 
     svc = new ProviderService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       tierRepo as unknown as Repository<TierAssignment>,
       specRepo as unknown as Repository<SpecificityAssignment>,
       makeRepo() as unknown as Repository<Agent>,
@@ -90,7 +90,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValueOnce([
         {
@@ -102,7 +102,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await expect(svc.removeProvider('agent-1', 'user-1', 'openai')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
         /Cannot disconnect provider/,
       );
       expect(providerRepo.save).not.toHaveBeenCalled();
@@ -118,7 +118,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValueOnce([
         {
@@ -130,7 +130,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await expect(svc.removeProvider('agent-1', 'user-1', 'custom-x')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'custom-x')).rejects.toThrow(
         /Cannot disconnect provider/,
       );
       expect(providerRepo.save).not.toHaveBeenCalled();
@@ -146,7 +146,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       pricingCache.getByModel.mockReturnValue({ provider: 'openai' } as never);
       tierRepo.find.mockResolvedValueOnce([
@@ -159,7 +159,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await expect(svc.removeProvider('agent-1', 'user-1', 'openai')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
         /Cannot disconnect provider/,
       );
       expect(providerRepo.save).not.toHaveBeenCalled();
@@ -175,7 +175,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValueOnce([]);
       specRepo.find.mockResolvedValueOnce([
@@ -187,7 +187,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await expect(svc.removeProvider('agent-1', 'user-1', 'openai')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
         /Cannot disconnect provider/,
       );
       expect(providerRepo.save).not.toHaveBeenCalled();
@@ -202,7 +202,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         label: 'Default',
         priority: 0,
         is_active: true,
-      } as unknown as UserProvider;
+      } as unknown as TenantProvider;
       providerRepo.find.mockResolvedValueOnce([row]);
       tierRepo.find.mockResolvedValueOnce([
         {
@@ -214,7 +214,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'user-1', 'openai');
+      const result = await svc.removeProvider('agent-1', 'tenant-1', 'openai');
 
       expect(row.is_active).toBe(false);
       expect(providerRepo.save).toHaveBeenCalledWith([row]);
@@ -222,7 +222,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(specRepo.save).not.toHaveBeenCalled();
       expect(result.notifications).toEqual([]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
 
     it('blocks only disconnected auth-type routes when another auth type stays active', async () => {
@@ -235,7 +235,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValueOnce([
         {
@@ -248,14 +248,14 @@ describe('ProviderService — route-only cleanup paths', () => {
       headerTierRepo.find.mockResolvedValue([]);
 
       await expect(
-        svc.removeProvider('agent-1', 'user-1', 'anthropic', 'subscription'),
+        svc.removeProvider('agent-1', 'tenant-1', 'anthropic', 'subscription'),
       ).rejects.toThrow(/Cannot disconnect provider/);
       expect(providerRepo.save).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when no provider record exists', async () => {
       providerRepo.findOne.mockResolvedValue(null);
-      await expect(svc.removeProvider('agent-1', 'user-1', 'missing')).rejects.toThrow();
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'missing')).rejects.toThrow();
     });
 
     it('returns no notifications when no tiers/specs reference the provider', async () => {
@@ -271,7 +271,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       tierRepo.find.mockResolvedValueOnce([]);
       specRepo.find.mockResolvedValue([]);
 
-      const result = await svc.removeProvider('agent-1', 'user-1', 'openai');
+      const result = await svc.removeProvider('agent-1', 'tenant-1', 'openai');
       expect(result.notifications).toEqual([]);
     });
   });
@@ -280,7 +280,7 @@ describe('ProviderService — route-only cleanup paths', () => {
     it('throws NotFoundException when no keys match the (provider, auth_type)', async () => {
       providerRepo.find.mockResolvedValue([]);
       await expect(
-        svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'default'),
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'default'),
       ).rejects.toThrow('Provider not found');
     });
 
@@ -293,10 +293,10 @@ describe('ProviderService — route-only cleanup paths', () => {
           auth_type: 'api_key',
           label: 'primary',
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       await expect(
-        svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'secondary'),
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'secondary'),
       ).rejects.toThrow('Provider key not found');
     });
 
@@ -309,7 +309,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         label: 'Default',
         priority: 1,
         is_active: true,
-      } as unknown as UserProvider;
+      } as unknown as TenantProvider;
       providerRepo.find.mockResolvedValue([
         target,
         {
@@ -320,7 +320,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Work',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValue([
         {
@@ -333,12 +333,12 @@ describe('ProviderService — route-only cleanup paths', () => {
       headerTierRepo.find.mockResolvedValue([]);
 
       await expect(
-        svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'Default'),
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'Default'),
       ).resolves.toEqual({ notifications: [] });
 
       expect(providerRepo.remove).toHaveBeenCalledWith(target);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
   });
 
@@ -352,22 +352,22 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValue([]);
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await svc.deactivateAllProviders('agent-1', 'user-1');
+      await svc.deactivateAllProviders('agent-1', 'tenant-1');
 
       expect(providerRepo.update).toHaveBeenCalledWith(
-        { user_id: 'user-1' },
+        { tenant_id: 'tenant-1' },
         expect.objectContaining({ is_active: false }),
       );
       expect(tierRepo.update).not.toHaveBeenCalled();
       expect(headerTierRepo.update).not.toHaveBeenCalled();
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
 
     it('invalidates every owned agent, not just the triggering one', async () => {
@@ -378,10 +378,10 @@ describe('ProviderService — route-only cleanup paths', () => {
         getProviders: jest.fn().mockReturnValue(null),
         setProviders: jest.fn(),
         invalidateAgent: jest.fn(),
-        invalidateUser: jest.fn(),
+        invalidateTenant: jest.fn(),
       };
       const localSvc = new ProviderService(
-        providerRepo as unknown as Repository<UserProvider>,
+        providerRepo as unknown as Repository<TenantProvider>,
         tierRepo as unknown as Repository<TierAssignment>,
         specRepo as unknown as Repository<SpecificityAssignment>,
         agentRepo as unknown as Repository<Agent>,
@@ -397,7 +397,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValue([]);
       specRepo.find.mockResolvedValue([]);
@@ -407,7 +407,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
       expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-2');
-      expect(cache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(cache.invalidateTenant).toHaveBeenCalledWith('user-1');
     });
 
     it('blocks bulk disable when a route references an active provider', async () => {
@@ -419,7 +419,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValueOnce([
         {
@@ -431,7 +431,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await expect(svc.deactivateAllProviders('agent-1', 'user-1')).rejects.toThrow(
+      await expect(svc.deactivateAllProviders('agent-1', 'tenant-1')).rejects.toThrow(
         /Cannot disconnect provider/,
       );
       expect(providerRepo.update).not.toHaveBeenCalled();
@@ -482,7 +482,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
 
       await expect(
-        svc.removeProvider('agent-1', 'user-1', 'openai', 'subscription', 'Key 2'),
+        svc.removeProvider('agent-1', 'tenant-1', 'openai', 'subscription', 'Key 2'),
       ).rejects.toThrow(/Cannot disconnect provider/);
 
       expect(headerTierRepo.save).not.toHaveBeenCalled();
@@ -510,7 +510,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         } as unknown as HeaderTier,
       ]);
 
-      await svc.renameKey('agent-1', 'user-1', 'openai', 'subscription', 'Key 2', 'Renamed');
+      await svc.renameKey('agent-1', 'tenant-1', 'openai', 'subscription', 'Key 2', 'Renamed');
 
       const saved = headerTierRepo.save.mock.calls[0][0] as HeaderTier[];
       expect(saved[0].override_route?.keyLabel).toBe('Renamed');
@@ -556,9 +556,11 @@ describe('ProviderService — route-only cleanup paths', () => {
       ]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await svc.renameKey('agent-1', 'user-1', 'openai', 'api_key', 'Key 2', 'Renamed');
+      await svc.renameKey('agent-1', 'tenant-1', 'openai', 'api_key', 'Key 2', 'Renamed');
 
-      expect(tierRepo.find).toHaveBeenCalledWith({ where: { user_id: 'user-1' } });
+      // Keys are tenant-global: the rename fans out across every owned agent,
+      // so tiers are fetched by agent_id IN (...owned agent ids).
+      expect(tierRepo.find).toHaveBeenCalledWith({ where: { agent_id: In(['agent-1']) } });
       const savedTiers = tierRepo.save.mock.calls[0][0] as TierAssignment[];
       expect(savedTiers.map((t) => t.override_route?.keyLabel)).toEqual(['Renamed', 'Renamed']);
       expect(savedTiers[1].fallback_routes?.[0]?.keyLabel).toBe('Renamed');
@@ -580,7 +582,7 @@ describe('ProviderService — route-only cleanup paths', () => {
           label: 'Default',
           priority: 0,
           is_active: true,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
       tierRepo.find.mockResolvedValue([]);
       specRepo.find.mockResolvedValue([]);
@@ -598,7 +600,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         } as unknown as HeaderTier,
       ]);
 
-      await expect(svc.removeProvider('agent-1', 'user-1', 'openai')).rejects.toThrow(
+      await expect(svc.removeProvider('agent-1', 'tenant-1', 'openai')).rejects.toThrow(
         /Cannot disconnect provider/,
       );
 
@@ -618,10 +620,10 @@ describe('ProviderService — route-only cleanup paths', () => {
           is_active: true,
         },
       ]);
-      const result = await svc.getProviders('user-1');
+      const result = await svc.getProviders('tenant-1');
       expect(result).toHaveLength(1);
       expect(providerRepo.save).not.toHaveBeenCalled();
-      expect(routingCache.invalidateUser).not.toHaveBeenCalled();
+      expect(routingCache.invalidateTenant).not.toHaveBeenCalled();
     });
 
     it('keeps supported subscription rows that use provider aliases', async () => {
@@ -631,7 +633,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         provider: 'google',
         auth_type: 'subscription',
         is_active: true,
-      } as UserProvider;
+      } as TenantProvider;
       providerRepo.find.mockResolvedValue([googleSubscription]);
 
       const result = await svc.getProviders('agent-1');
@@ -665,7 +667,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         },
       ]);
 
-      const result = await svc.getProviders('user-1');
+      const result = await svc.getProviders('tenant-1');
       // The unsupported row was deactivated.
       expect(providerRepo.save).toHaveBeenCalled();
       // After filter only usable providers are returned (none in this case).
@@ -674,10 +676,10 @@ describe('ProviderService — route-only cleanup paths', () => {
 
     it('reads from cache when present', async () => {
       const cached = [
-        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
+        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
       ];
       routingCache.getProviders.mockReturnValue(cached);
-      const result = await svc.getProviders('user-1');
+      const result = await svc.getProviders('tenant-1');
       expect(result).toBe(cached);
       expect(providerRepo.find).not.toHaveBeenCalled();
     });
@@ -687,12 +689,12 @@ describe('ProviderService — route-only cleanup paths', () => {
     it('registers keyless subscription providers that use provider aliases', async () => {
       providerRepo.findOne.mockResolvedValue(null);
 
-      const result = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'google');
+      const result = await svc.registerSubscriptionProvider('agent-1', 'tenant-1', 'google');
 
       expect(result).toEqual({ isNew: true });
       expect(providerRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          user_id: 'user-1',
+          tenant_id: 'tenant-1',
           agent_id: undefined,
           provider: 'google',
           auth_type: 'subscription',
@@ -707,7 +709,7 @@ describe('ProviderService — route-only cleanup paths', () => {
     });
 
     it('still ignores unsupported keyless subscription providers', async () => {
-      const result = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'deepseek');
+      const result = await svc.registerSubscriptionProvider('agent-1', 'tenant-1', 'deepseek');
 
       expect(result).toEqual({ isNew: false });
       expect(providerRepo.insert).not.toHaveBeenCalled();
@@ -736,7 +738,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'minimax',
         'sk-cp-token-from-cn',
         'subscription',
@@ -765,7 +767,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'minimax',
         'sk-cp-new-token',
         'subscription',
@@ -790,7 +792,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'minimax', 'sk-cp-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -803,7 +805,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        svc.upsertProvider('agent-1', 'user-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
+        svc.upsertProvider('agent-1', 'tenant-1', 'minimax', 'sk-cp-token', 'subscription', 'eu'),
       ).rejects.toThrow('MiniMax subscription region must be one of: global, cn');
     });
   });
@@ -825,7 +827,14 @@ describe('ProviderService — route-only cleanup paths', () => {
     it('persists region=global on a new Z.ai subscription row', async () => {
       providerRepo.findOne.mockResolvedValue(null);
 
-      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-sub-key', 'subscription', 'global');
+      await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'zai',
+        'zai-sub-key',
+        'subscription',
+        'global',
+      );
 
       expect(providerRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -847,7 +856,14 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-new-key', 'subscription', 'global');
+      await svc.upsertProvider(
+        'agent-1',
+        'tenant-1',
+        'zai',
+        'zai-new-key',
+        'subscription',
+        'global',
+      );
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -867,7 +883,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'zai', 'zai-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -887,7 +903,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'z.ai', 'zai-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'z.ai', 'zai-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -901,7 +917,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        svc.upsertProvider('agent-1', 'user-1', 'zai', 'zai-sub-key', 'subscription', 'eu'),
+        svc.upsertProvider('agent-1', 'tenant-1', 'zai', 'zai-sub-key', 'subscription', 'eu'),
       ).rejects.toThrow('Z.ai subscription region must be one of: global, cn');
     });
   });
@@ -925,7 +941,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'xiaomi',
         'tp-mimo-token',
         'subscription',
@@ -954,7 +970,7 @@ describe('ProviderService — route-only cleanup paths', () => {
 
       await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'xiaomi',
         'tp-mimo-new-token',
         'subscription',
@@ -979,7 +995,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'xiaomi', 'tp-mimo-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'xiaomi', 'tp-mimo-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -999,7 +1015,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         is_active: true,
       });
 
-      await svc.upsertProvider('agent-1', 'user-1', 'mimo', 'tp-mimo-rotated', 'subscription');
+      await svc.upsertProvider('agent-1', 'tenant-1', 'mimo', 'tp-mimo-rotated', 'subscription');
 
       expect(providerRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1013,7 +1029,7 @@ describe('ProviderService — route-only cleanup paths', () => {
       providerRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        svc.upsertProvider('agent-1', 'user-1', 'xiaomi', 'tp-mimo-token', 'subscription', 'eu'),
+        svc.upsertProvider('agent-1', 'tenant-1', 'xiaomi', 'tp-mimo-token', 'subscription', 'eu'),
       ).rejects.toThrow('Xiaomi MiMo Token Plan region must be one of: cn, sgp, ams');
     });
   });
@@ -1021,13 +1037,13 @@ describe('ProviderService — route-only cleanup paths', () => {
   describe('nextOAuthLabel', () => {
     it('returns undefined when no subscription rows exist', async () => {
       providerRepo.find.mockResolvedValue([]);
-      const label = await svc.nextOAuthLabel('user-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBeUndefined();
     });
 
     it('returns "Key 2" when one subscription row exists', async () => {
       providerRepo.find.mockResolvedValue([{ label: 'Default', is_active: true }]);
-      const label = await svc.nextOAuthLabel('user-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBe('Key 2');
     });
 
@@ -1036,7 +1052,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         { label: 'Default', is_active: true },
         { label: 'Key 2', is_active: true },
       ]);
-      const label = await svc.nextOAuthLabel('user-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBe('Key 3');
     });
 
@@ -1045,7 +1061,7 @@ describe('ProviderService — route-only cleanup paths', () => {
         { label: 'Default', is_active: true },
         { label: 'key 2', is_active: true },
       ]);
-      const label = await svc.nextOAuthLabel('user-1', 'openai');
+      const label = await svc.nextOAuthLabel('tenant-1', 'openai');
       expect(label).toBe('Key 3');
     });
   });
@@ -1061,8 +1077,8 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
     const insertChain: any = {
       insert: jest.fn().mockReturnThis(),
       into: jest.fn().mockReturnThis(),
-      values: jest.fn((v: { agent_id: string; user_provider_id: string }) => {
-        enabled.push({ agent: v.agent_id, provider: v.user_provider_id });
+      values: jest.fn((v: { agent_id: string; tenant_provider_id: string }) => {
+        enabled.push({ agent: v.agent_id, provider: v.tenant_provider_id });
         return insertChain;
       }),
       orIgnore: jest.fn().mockReturnThis(),
@@ -1081,11 +1097,11 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       getProviders: jest.fn().mockReturnValue(null),
       setProviders: jest.fn(),
       invalidateAgent: jest.fn(),
-      invalidateUser: jest.fn(),
+      invalidateTenant: jest.fn(),
     };
     const enabledProviderRepo = makeEnabledProviderRepo(enabled);
     const svc = new ProviderService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
       makeRepo() as unknown as Repository<SpecificityAssignment>,
       agentRepo as unknown as Repository<Agent>,
@@ -1110,18 +1126,23 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       const enabled: Array<{ agent: string; provider: string }> = [];
       const { svc, providerRepo, routingCache } = build(['agent-x'], enabled);
       providerRepo.find.mockResolvedValue([
-        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
-        { id: 'p2', provider: 'anthropic', auth_type: 'api_key', is_active: true } as UserProvider,
+        { id: 'p1', provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
+        {
+          id: 'p2',
+          provider: 'anthropic',
+          auth_type: 'api_key',
+          is_active: true,
+        } as TenantProvider,
       ]);
 
-      await svc.enableAllProvidersForAgent('new-agent', 'user-1');
+      await svc.enableAllProvidersForAgent('new-agent', 'tenant-1');
 
       expect(enabled).toEqual([
         { agent: 'new-agent', provider: 'p1' },
         { agent: 'new-agent', provider: 'p2' },
       ]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('new-agent');
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
 
     it('is a no-op when the user has no usable providers', async () => {
@@ -1129,10 +1150,12 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       const { svc, providerRepo, routingCache } = build(['agent-x'], enabled);
       providerRepo.find.mockResolvedValue([]);
 
-      await expect(svc.enableAllProvidersForAgent('new-agent', 'user-1')).resolves.toBeUndefined();
+      await expect(
+        svc.enableAllProvidersForAgent('new-agent', 'tenant-1'),
+      ).resolves.toBeUndefined();
       expect(enabled).toEqual([]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('new-agent');
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
   });
 
@@ -1141,7 +1164,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       const enabled: Array<{ agent: string; provider: string }> = [];
       const { svc, routingCache } = build(['agent-1', 'agent-2'], enabled);
 
-      await svc.enableProviderForAllAgents('user-1', 'new-provider');
+      await svc.enableProviderForAllAgents('tenant-1', 'new-provider');
 
       expect(enabled).toEqual([
         { agent: 'agent-1', provider: 'new-provider' },
@@ -1149,7 +1172,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       ]);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-2');
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
 
     it('is a no-op when the user owns no agents', async () => {
@@ -1157,11 +1180,11 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       const { svc, routingCache } = build([], enabled);
 
       await expect(
-        svc.enableProviderForAllAgents('user-1', 'new-provider'),
+        svc.enableProviderForAllAgents('tenant-1', 'new-provider'),
       ).resolves.toBeUndefined();
       expect(enabled).toEqual([]);
       expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
-      expect(routingCache.invalidateUser).toHaveBeenCalledWith('user-1');
+      expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
   });
 
@@ -1174,7 +1197,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
 
       const { isNew, provider } = await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         'sk-new-key',
         'api_key',
@@ -1196,7 +1219,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
 
       const { isNew, provider } = await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         'sk-labeled-key',
         'api_key',
@@ -1217,7 +1240,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
       // registerSubscriptionProvider new-row branch: no existing sub/api_key row.
       providerRepo.findOne.mockResolvedValue(null);
 
-      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'tenant-1', 'anthropic');
 
       expect(isNew).toBe(true);
       expect(enabled.map((g) => g.agent)).toEqual(['agent-1', 'agent-2']);
@@ -1262,7 +1285,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
           api_key_encrypted: sameKeyEncrypted,
           is_active: false,
           priority: 0,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
 
       const { isNew } = await svc.upsertProvider(
@@ -1342,7 +1365,7 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
         is_active: true,
       });
 
-      const { isNew } = await svc.upsertProvider('agent-1', 'user-1', 'openai', 'sk-rotated');
+      const { isNew } = await svc.upsertProvider('agent-1', 'tenant-1', 'openai', 'sk-rotated');
 
       expect(isNew).toBe(false);
       // The fan-out-to-all-agents path is NOT taken on reconnect.
@@ -1369,12 +1392,12 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
           api_key_encrypted: sameKeyEncrypted,
           is_active: true,
           priority: 0,
-        } as unknown as UserProvider,
+        } as unknown as TenantProvider,
       ]);
 
       const { isNew } = await svc.upsertProvider(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         'sk-same-key',
         'api_key',
@@ -1409,7 +1432,7 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
   beforeEach(() => {
     providerRepo = makeRepo();
     svc = new ProviderService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
       makeRepo() as unknown as Repository<SpecificityAssignment>,
       makeRepo() as unknown as Repository<Agent>,
@@ -1419,7 +1442,7 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
         getProviders: jest.fn(),
         setProviders: jest.fn(),
         invalidateAgent: jest.fn(),
-        invalidateUser: jest.fn(),
+        invalidateTenant: jest.fn(),
       } as unknown as RoutingCacheService,
     );
   });
@@ -1430,11 +1453,11 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
       { label: 'Work', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
     ]);
 
-    const out = await svc.getFreshSubscriptionCredential('user-1', 'openai', 'Work');
+    const out = await svc.getFreshSubscriptionCredential('tenant-1', 'openai', 'Work');
 
     expect(out).toBe(raw);
     expect(providerRepo.find).toHaveBeenCalledWith({
-      where: { user_id: 'user-1', provider: 'openai', auth_type: 'subscription' },
+      where: { tenant_id: 'tenant-1', provider: 'openai', auth_type: 'subscription' },
     });
   });
 
@@ -1446,7 +1469,7 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
     ]);
 
     // Stored row is "work"; the pinned route asks for "WORK".
-    const out = await svc.getFreshSubscriptionCredential('user-1', 'openai', 'WORK');
+    const out = await svc.getFreshSubscriptionCredential('tenant-1', 'openai', 'WORK');
 
     expect(out).toBe(raw);
   });
@@ -1457,30 +1480,30 @@ describe('ProviderService — getFreshSubscriptionCredential', () => {
       { label: 'Default', api_key_encrypted: encrypt(raw, getEncryptionSecret()) },
     ]);
 
-    expect(await svc.getFreshSubscriptionCredential('user-1', 'anthropic')).toBe(raw);
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'anthropic')).toBe(raw);
   });
 
   it('returns null when no row matches the label', async () => {
     providerRepo.find.mockResolvedValue([
       { label: 'Something else', api_key_encrypted: encrypt('x', getEncryptionSecret()) },
     ]);
-    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
   });
 
   it('returns null when there are no subscription rows', async () => {
     providerRepo.find.mockResolvedValue([]);
-    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
   });
 
   it('returns null when the matched row has no stored credential', async () => {
     providerRepo.find.mockResolvedValue([{ label: 'Default', api_key_encrypted: null }]);
-    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
   });
 
   it('returns null when the stored credential cannot be decrypted', async () => {
     providerRepo.find.mockResolvedValue([
       { label: 'Default', api_key_encrypted: 'not-a-valid-ciphertext' },
     ]);
-    expect(await svc.getFreshSubscriptionCredential('user-1', 'openai')).toBeNull();
+    expect(await svc.getFreshSubscriptionCredential('tenant-1', 'openai')).toBeNull();
   });
 });

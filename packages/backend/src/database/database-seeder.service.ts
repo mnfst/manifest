@@ -8,7 +8,7 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
 import { getSeedConnections, seedAgentMessages } from './seed-messages';
 
@@ -29,7 +29,7 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
-    @InjectRepository(UserProvider) private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider) private readonly providerRepo: Repository<TenantProvider>,
   ) {}
 
   async onModuleInit() {
@@ -50,11 +50,12 @@ export class DatabaseSeederService implements OnModuleInit {
     // so `/serve` and E2E tests get a non-empty dashboard without going
     // through the setup wizard on every run.
     await this.seedAdminUser();
-    await this.seedApiKey();
+    // Tenant first: the dashboard API key is tenant-scoped.
     await this.seedTenantAndAgent();
+    await this.seedApiKey();
     // Connections must exist before messages: each seeded message references a
-    // user_providers row via the FK on agent_messages.user_provider_id.
-    await this.seedUserProviders();
+    // tenant_providers row via the FK on agent_messages.tenant_provider_id.
+    await this.seedTenantProviders();
     await this.seedAgentMessages();
     this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
     this.logger.warn(
@@ -108,7 +109,8 @@ export class DatabaseSeederService implements OnModuleInit {
       key: null,
       key_hash: hashKey(SEED_API_KEY),
       key_prefix: keyPrefix(SEED_API_KEY),
-      user_id: userId,
+      tenant_id: SEED_TENANT_ID,
+      created_by_user_id: userId,
       name: 'Development API Key',
     });
   }
@@ -135,6 +137,7 @@ export class DatabaseSeederService implements OnModuleInit {
     await this.tenantRepo.insert({
       id: SEED_TENANT_ID,
       name: userId,
+      owner_user_id: userId,
       organization_name: 'Demo Organization',
       email: 'admin@manifest.build',
       is_active: true,
@@ -164,7 +167,7 @@ export class DatabaseSeederService implements OnModuleInit {
     this.logger.log(`Seeded tenant/agent with OTLP key: ${SEED_OTLP_KEY.substring(0, 8)}***`);
   }
 
-  private async seedUserProviders() {
+  private async seedTenantProviders() {
     const userId = await this.getAdminUserId();
     if (!userId) return;
     const connections = getSeedConnections();
@@ -175,7 +178,8 @@ export class DatabaseSeederService implements OnModuleInit {
       if (existing) continue;
       await this.providerRepo.insert({
         id: conn.id,
-        user_id: userId,
+        tenant_id: SEED_TENANT_ID,
+        created_by_user_id: userId,
         provider: conn.provider,
         auth_type: conn.auth_type,
         label: 'Default',

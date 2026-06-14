@@ -69,25 +69,39 @@ describe('ProxyMessageDedup', () => {
     it('should return success-based key without traceId', () => {
       const key = dedup.getSuccessWriteLockKey(testCtx, 'gpt-4o');
 
-      expect(key).toBe('success:tenant-1:agent-1:user-1:no-session:gpt-4o');
+      expect(key).toBe('success:tenant-1:agent-1:no-session:gpt-4o');
     });
 
     it('should include session key when provided', () => {
       const key = dedup.getSuccessWriteLockKey(testCtx, 'gpt-4o', undefined, 'session-1');
 
-      expect(key).toBe('success:tenant-1:agent-1:user-1:session-1:gpt-4o');
+      expect(key).toBe('success:tenant-1:agent-1:session-1:gpt-4o');
     });
 
     it('should use no-session when session key is null', () => {
       const key = dedup.getSuccessWriteLockKey(testCtx, 'gpt-4o', undefined, null);
 
-      expect(key).toBe('success:tenant-1:agent-1:user-1:no-session:gpt-4o');
+      expect(key).toBe('success:tenant-1:agent-1:no-session:gpt-4o');
     });
 
     it('should prefer trace-based key even when sessionKey is provided', () => {
       const key = dedup.getSuccessWriteLockKey(testCtx, 'gpt-4o', 'trace-abc', 'session-1');
 
       expect(key).toBe('trace:tenant-1:agent-1:trace-abc');
+    });
+
+    it('dedupes across users: same tenant/agent but different userId yields the same lock key', () => {
+      // The dedup scope is the tenant, not the user. Two requests under the
+      // same tenant+agent+session+model collide regardless of which user
+      // (attribution only) triggered them.
+      const ctxUserA: IngestionContext = { ...testCtx, userId: 'user-a' };
+      const ctxUserB: IngestionContext = { ...testCtx, userId: 'user-b' };
+
+      const keyA = dedup.getSuccessWriteLockKey(ctxUserA, 'gpt-4o');
+      const keyB = dedup.getSuccessWriteLockKey(ctxUserB, 'gpt-4o');
+
+      expect(keyA).toBe(keyB);
+      expect(keyA).toBe('success:tenant-1:agent-1:no-session:gpt-4o');
     });
   });
 
@@ -250,6 +264,11 @@ describe('ProxyMessageDedup', () => {
       );
 
       expect(result).toBe(existing);
+      // Dedup is tenant-scoped: the model-based lookup keys on tenant_id +
+      // agent_id, never the attribution-only user_id.
+      const where = repo.find.mock.calls[0][0].where as Record<string, unknown>;
+      expect(where).toMatchObject({ tenant_id: 'tenant-1', agent_id: 'agent-1' });
+      expect(where).not.toHaveProperty('user_id');
     });
 
     it('should not match when row is outside dedup window', async () => {

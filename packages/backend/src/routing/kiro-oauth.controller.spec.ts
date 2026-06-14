@@ -29,7 +29,7 @@ describe('KiroOauthController', () => {
 
   describe('start', () => {
     it('starts the device flow for the resolved agent', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.startAuthorization.mockResolvedValue({
         flowId: 'flow-1',
         userCode: 'AAAA-BBBB',
@@ -38,30 +38,43 @@ describe('KiroOauthController', () => {
         pollIntervalMs: 5000,
       });
 
-      const result = await controller.start('my-agent', { id: 'user-1' } as never);
+      const result = await controller.start('my-agent', {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
-      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-      expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1');
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'my-agent');
+      expect(oauthService.startAuthorization).toHaveBeenCalledWith(
+        'agent-id-1',
+        'tenant-1',
+        'user-1',
+      );
       expect(result.flowId).toBe('flow-1');
     });
 
     it('throws 400 when agentName is missing', async () => {
-      await expect(controller.start('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+      await expect(
+        controller.start('', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
     });
 
     it('maps start failures to 503', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.startAuthorization.mockRejectedValue(new Error('Failed to start Kiro login'));
-      await expect(controller.start('my-agent', { id: 'user-1' } as never)).rejects.toMatchObject({
+      await expect(
+        controller.start('my-agent', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toMatchObject({
         message: 'Failed to start Kiro login',
         status: HttpStatus.SERVICE_UNAVAILABLE,
       });
     });
 
     it('maps non-Error start failures to a 503 with a default message', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.startAuthorization.mockRejectedValue('boom');
-      await expect(controller.start('my-agent', { id: 'user-1' } as never)).rejects.toMatchObject({
+      await expect(
+        controller.start('my-agent', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toMatchObject({
         message: 'Failed to start Kiro login',
         status: HttpStatus.SERVICE_UNAVAILABLE,
       });
@@ -69,20 +82,27 @@ describe('KiroOauthController', () => {
   });
 
   describe('poll', () => {
-    it('polls by flowId for the current user', async () => {
+    it('polls by flowId for the current tenant', async () => {
       oauthService.pollAuthorization.mockResolvedValue({ status: 'pending' });
-      const result = await controller.poll('flow-1', { id: 'user-1' } as never);
-      expect(oauthService.pollAuthorization).toHaveBeenCalledWith('flow-1', 'user-1');
+      const result = await controller.poll('flow-1', {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
+      expect(oauthService.pollAuthorization).toHaveBeenCalledWith('flow-1', 'tenant-1');
       expect(result.status).toBe('pending');
     });
 
     it('throws 400 when flowId is missing', async () => {
-      await expect(controller.poll('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+      await expect(
+        controller.poll('', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
     });
 
     it('maps poll failures to 503', async () => {
       oauthService.pollAuthorization.mockRejectedValue(new Error('kaboom'));
-      await expect(controller.poll('flow-1', { id: 'user-1' } as never)).rejects.toMatchObject({
+      await expect(
+        controller.poll('flow-1', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toMatchObject({
         message: 'kaboom',
         status: HttpStatus.SERVICE_UNAVAILABLE,
       });
@@ -90,7 +110,9 @@ describe('KiroOauthController', () => {
 
     it('maps non-Error poll failures to a default 503 message', async () => {
       oauthService.pollAuthorization.mockRejectedValue('nope');
-      await expect(controller.poll('flow-1', { id: 'user-1' } as never)).rejects.toMatchObject({
+      await expect(
+        controller.poll('flow-1', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toMatchObject({
         message: 'Failed to poll Kiro login',
         status: HttpStatus.SERVICE_UNAVAILABLE,
       });
@@ -99,14 +121,17 @@ describe('KiroOauthController', () => {
 
   describe('revoke', () => {
     it('removes the kiro subscription provider for the resolved agent', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       providerService.removeProvider.mockResolvedValue({ notifications: ['gone'] } as never);
 
-      const result = await controller.revoke('my-agent', 'Kiro 1', { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', 'Kiro 1', {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'kiro',
         'subscription',
         'Kiro 1',
@@ -115,9 +140,9 @@ describe('KiroOauthController', () => {
     });
 
     it('throws 400 when agentName is missing', async () => {
-      await expect(controller.revoke('', undefined, { id: 'user-1' } as never)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.revoke('', undefined, { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
     });
   });
 });

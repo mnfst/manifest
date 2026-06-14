@@ -1,6 +1,6 @@
 import type { Repository } from 'typeorm';
 import { ProviderKeyService } from '../provider-key.service';
-import { UserProvider } from '../../../entities/user-provider.entity';
+import { TenantProvider } from '../../../entities/tenant-provider.entity';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import type { RoutingCacheService } from '../routing-cache.service';
@@ -49,7 +49,7 @@ describe('ProviderKeyService', () => {
     providerService = { getProviders: jest.fn().mockResolvedValue([]) };
 
     svc = new ProviderKeyService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       pricingCache as unknown as ModelPricingCacheService,
       discoveryService as unknown as ModelDiscoveryService,
       routingCache as unknown as RoutingCacheService,
@@ -313,7 +313,7 @@ describe('ProviderKeyService', () => {
           auth_type: 'local',
           is_active: true,
           api_key_encrypted: null,
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       expect(await svc.getAuthType('agent-1', 'openai')).toBe('local');
     });
@@ -325,13 +325,13 @@ describe('ProviderKeyService', () => {
           auth_type: 'subscription',
           is_active: true,
           api_key_encrypted: 'enc',
-        } as UserProvider,
+        } as TenantProvider,
         {
           provider: 'openai',
           auth_type: 'api_key',
           is_active: true,
           api_key_encrypted: 'enc-2',
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       expect(await svc.getAuthType('agent-1', 'openai')).toBe('subscription');
     });
@@ -343,13 +343,13 @@ describe('ProviderKeyService', () => {
           auth_type: 'subscription',
           is_active: true,
           api_key_encrypted: null,
-        } as UserProvider,
+        } as TenantProvider,
         {
           provider: 'openai',
           auth_type: 'api_key',
           is_active: true,
           api_key_encrypted: 'enc',
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       expect(await svc.getAuthType('agent-1', 'openai')).toBe('api_key');
     });
@@ -361,7 +361,7 @@ describe('ProviderKeyService', () => {
           auth_type: 'subscription',
           is_active: true,
           api_key_encrypted: null,
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       expect(await svc.getAuthType('agent-1', 'openai')).toBe('subscription');
     });
@@ -378,13 +378,13 @@ describe('ProviderKeyService', () => {
           auth_type: 'api_key',
           is_active: true,
           api_key_encrypted: 'enc-key',
-        } as UserProvider,
+        } as TenantProvider,
         {
           provider: 'openai',
           auth_type: 'subscription',
           is_active: true,
           api_key_encrypted: 'enc-sub',
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       const excluded = new Set(['api_key']);
       expect(await svc.getAuthType('agent-1', 'openai', excluded)).toBe('subscription');
@@ -397,7 +397,7 @@ describe('ProviderKeyService', () => {
           auth_type: 'api_key',
           is_active: true,
           api_key_encrypted: 'enc-key',
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       const excluded = new Set(['api_key']);
       expect(await svc.getAuthType('agent-1', 'openai', excluded)).toBe('api_key');
@@ -407,7 +407,7 @@ describe('ProviderKeyService', () => {
   describe('hasActiveProvider', () => {
     it('returns true when an active provider record matches', async () => {
       providerService.getProviders.mockResolvedValue([
-        { provider: 'openai', is_active: true } as UserProvider,
+        { provider: 'openai', is_active: true } as TenantProvider,
       ]);
       expect(await svc.hasActiveProvider('agent-1', 'openai')).toBe(true);
     });
@@ -430,7 +430,7 @@ describe('ProviderKeyService', () => {
           api_key_encrypted: 'enc',
           label: 'Default',
           priority: 0,
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       mockedDecrypt.mockReturnValue('plaintext');
       expect(await svc.getProviderRegion('agent-1', 'qwen', 'api_key')).toBe('singapore');
@@ -447,7 +447,7 @@ describe('ProviderKeyService', () => {
           api_key_encrypted: 'enc',
           label: 'Default',
           priority: 0,
-        } as UserProvider,
+        } as TenantProvider,
       ]);
       mockedDecrypt.mockReturnValue('plaintext');
       expect(await svc.getProviderRegion('agent-1', 'qwen')).toBe('us');
@@ -462,22 +462,22 @@ describe('ProviderKeyService', () => {
   describe('findProviderForModel', () => {
     it('returns the provider whose cached_models contain the model', async () => {
       providerService.getProviders.mockResolvedValue([
-        { provider: 'openai', cached_models: [{ id: 'gpt-4o' }] } as unknown as UserProvider,
-        { provider: 'anthropic', cached_models: [{ id: 'claude' }] } as unknown as UserProvider,
+        { provider: 'openai', cached_models: [{ id: 'gpt-4o' }] } as unknown as TenantProvider,
+        { provider: 'anthropic', cached_models: [{ id: 'claude' }] } as unknown as TenantProvider,
       ]);
       expect(await svc.findProviderForModel('agent-1', 'claude')).toBe('anthropic');
     });
 
     it('returns undefined when no provider lists the model', async () => {
       providerService.getProviders.mockResolvedValue([
-        { provider: 'openai', cached_models: [{ id: 'gpt-4o' }] } as unknown as UserProvider,
+        { provider: 'openai', cached_models: [{ id: 'gpt-4o' }] } as unknown as TenantProvider,
       ]);
       expect(await svc.findProviderForModel('agent-1', 'missing')).toBeUndefined();
     });
 
     it('skips providers without cached_models', async () => {
       providerService.getProviders.mockResolvedValue([
-        { provider: 'no-cache', cached_models: null } as unknown as UserProvider,
+        { provider: 'no-cache', cached_models: null } as unknown as TenantProvider,
       ]);
       expect(await svc.findProviderForModel('agent-1', 'anything')).toBeUndefined();
     });
@@ -495,14 +495,14 @@ describe('ProviderKeyService', () => {
         model_name: 'gpt-4o',
       } as never);
       providerRepo.find.mockResolvedValue([
-        { provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
+        { provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
       ]);
       expect(await svc.isModelAvailable('agent-1', 'gpt-4o')).toBe(true);
     });
 
     it('returns true when the prefix matches a connected provider', async () => {
       providerRepo.find.mockResolvedValue([
-        { provider: 'anthropic', auth_type: 'api_key', is_active: true } as UserProvider,
+        { provider: 'anthropic', auth_type: 'api_key', is_active: true } as TenantProvider,
       ]);
       expect(await svc.isModelAvailable('agent-1', 'anthropic/claude')).toBe(true);
     });
@@ -513,7 +513,7 @@ describe('ProviderKeyService', () => {
         model_name: 'qwen-max',
       } as never);
       providerRepo.find.mockResolvedValue([
-        { provider: 'qwen', auth_type: 'api_key', is_active: true } as UserProvider,
+        { provider: 'qwen', auth_type: 'api_key', is_active: true } as TenantProvider,
       ]);
       expect(await svc.isModelAvailable('agent-1', 'qwen-max')).toBe(false);
     });
@@ -529,7 +529,7 @@ describe('ProviderKeyService', () => {
         model_name: 'openai/gpt-4o',
       } as never);
       providerRepo.find.mockResolvedValue([
-        { provider: 'openai', auth_type: 'api_key', is_active: true } as UserProvider,
+        { provider: 'openai', auth_type: 'api_key', is_active: true } as TenantProvider,
       ]);
       expect(await svc.isModelAvailable('agent-1', 'gpt-4o')).toBe(true);
     });

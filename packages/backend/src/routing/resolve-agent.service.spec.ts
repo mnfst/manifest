@@ -3,16 +3,13 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { Agent } from '../entities/agent.entity';
-import { TenantCacheService } from '../common/services/tenant-cache.service';
 
 describe('ResolveAgentService', () => {
   let service: ResolveAgentService;
   let mockFindOne: jest.Mock;
-  let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
     mockFindOne = jest.fn();
-    mockTenantResolve = jest.fn();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -20,10 +17,6 @@ describe('ResolveAgentService', () => {
         {
           provide: getRepositoryToken(Agent),
           useValue: { findOne: mockFindOne },
-        },
-        {
-          provide: TenantCacheService,
-          useValue: { resolve: mockTenantResolve },
         },
       ],
     }).compile();
@@ -35,30 +28,26 @@ describe('ResolveAgentService', () => {
     jest.useRealTimers();
   });
 
-  it('throws NotFoundException when tenant not found', async () => {
-    mockTenantResolve.mockResolvedValue(null);
-
-    await expect(service.resolve('user-1', 'my-agent')).rejects.toThrow(NotFoundException);
-    await expect(service.resolve('user-1', 'my-agent')).rejects.toThrow('Tenant not found');
+  it('throws NotFoundException when tenant id is null', async () => {
+    await expect(service.resolve(null, 'my-agent')).rejects.toThrow(NotFoundException);
+    await expect(service.resolve(null, 'my-agent')).rejects.toThrow('Tenant not found');
     expect(mockFindOne).not.toHaveBeenCalled();
   });
 
   it('throws NotFoundException when agent not found', async () => {
-    mockTenantResolve.mockResolvedValue('tenant-123');
     mockFindOne.mockResolvedValue(null);
 
-    await expect(service.resolve('user-1', 'nonexistent')).rejects.toThrow(NotFoundException);
-    await expect(service.resolve('user-1', 'nonexistent')).rejects.toThrow(
+    await expect(service.resolve('tenant-123', 'nonexistent')).rejects.toThrow(NotFoundException);
+    await expect(service.resolve('tenant-123', 'nonexistent')).rejects.toThrow(
       'Agent "nonexistent" not found',
     );
   });
 
   it('returns agent when found', async () => {
     const agent = { id: 'agent-1', name: 'my-agent', tenant_id: 'tenant-123' } as Agent;
-    mockTenantResolve.mockResolvedValueOnce('tenant-123');
     mockFindOne.mockResolvedValueOnce(agent);
 
-    const result = await service.resolve('user-1', 'my-agent');
+    const result = await service.resolve('tenant-123', 'my-agent');
 
     expect(result).toEqual(agent);
     expect(mockFindOne).toHaveBeenCalledWith({
@@ -68,11 +57,10 @@ describe('ResolveAgentService', () => {
 
   it('returns cached agent on second call without hitting DB again', async () => {
     const agent = { id: 'agent-1', name: 'my-agent', tenant_id: 'tenant-123' } as Agent;
-    mockTenantResolve.mockResolvedValue('tenant-123');
     mockFindOne.mockResolvedValueOnce(agent);
 
-    const first = await service.resolve('user-1', 'my-agent');
-    const second = await service.resolve('user-1', 'my-agent');
+    const first = await service.resolve('tenant-123', 'my-agent');
+    const second = await service.resolve('tenant-123', 'my-agent');
 
     expect(first).toEqual(agent);
     expect(second).toEqual(agent);
@@ -87,10 +75,9 @@ describe('ResolveAgentService', () => {
     expect(cache.size).toBe(5_000);
 
     const agent = { id: 'new-agent', name: 'new', tenant_id: 'tenant-123' } as Agent;
-    mockTenantResolve.mockResolvedValueOnce('tenant-123');
     mockFindOne.mockResolvedValueOnce(agent);
 
-    await service.resolve('user-1', 'new');
+    await service.resolve('tenant-123', 'new');
 
     expect(cache.size).toBe(5_000);
     expect(cache.has('t-0:a-0')).toBe(false);
@@ -100,16 +87,15 @@ describe('ResolveAgentService', () => {
     jest.useFakeTimers();
     const agentV1 = { id: 'agent-1', name: 'my-agent', tenant_id: 'tenant-123' } as Agent;
     const agentV2 = { id: 'agent-1', name: 'my-agent', tenant_id: 'tenant-123' } as Agent;
-    mockTenantResolve.mockResolvedValue('tenant-123');
     mockFindOne.mockResolvedValueOnce(agentV1).mockResolvedValueOnce(agentV2);
 
-    await service.resolve('user-1', 'my-agent');
+    await service.resolve('tenant-123', 'my-agent');
     expect(mockFindOne).toHaveBeenCalledTimes(1);
 
     // Advance past TTL
     jest.advanceTimersByTime(120_001);
 
-    const result = await service.resolve('user-1', 'my-agent');
+    const result = await service.resolve('tenant-123', 'my-agent');
     expect(result).toEqual(agentV2);
     expect(mockFindOne).toHaveBeenCalledTimes(2);
   });

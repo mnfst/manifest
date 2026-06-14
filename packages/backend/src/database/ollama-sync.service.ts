@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { OLLAMA_HOST } from '../common/constants/ollama';
 
@@ -10,8 +10,8 @@ export class OllamaSyncService {
   private readonly logger = new Logger(OllamaSyncService.name);
 
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly providerRepo: Repository<TenantProvider>,
     private readonly discoveryService: ModelDiscoveryService,
   ) {}
 

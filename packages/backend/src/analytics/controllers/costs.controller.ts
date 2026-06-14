@@ -3,8 +3,7 @@ import { CacheTTL } from '@nestjs/cache-manager';
 import { RangeQueryDto } from '../../common/dto/range-query.dto';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { AuthUser } from '../../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { UserCacheInterceptor } from '../../common/interceptors/user-cache.interceptor';
 import { DASHBOARD_CACHE_TTL_MS } from '../../common/constants/cache.constants';
 import { computeTrend } from '../services/query-helpers';
@@ -19,15 +18,15 @@ export class CostsController {
   ) {}
 
   @Get('costs')
-  async getCosts(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
+  async getCosts(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
     const range = query.range ?? '7d';
     const agentName = query.agent_name;
 
     const [{ costUsage: hourly }, { costUsage: daily }, byModel, prevCost] = await Promise.all([
-      this.timeseries.getTimeseries({ range, userId: user.id, hourly: true, agentName }),
-      this.timeseries.getTimeseries({ range, userId: user.id, hourly: false, agentName }),
-      this.timeseries.getCostByModel(range, user.id, agentName),
-      this.aggregation.getPreviousCostTotal(range, user.id, agentName),
+      this.timeseries.getTimeseries(range, ctx.tenantId, true, agentName),
+      this.timeseries.getTimeseries(range, ctx.tenantId, false, agentName),
+      this.timeseries.getCostByModel(range, ctx.tenantId, agentName),
+      this.aggregation.getPreviousCostTotal(range, ctx.tenantId, agentName),
     ]);
 
     // Derive cost summary from hourly timeseries data (avoids separate aggregation query)

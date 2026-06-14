@@ -40,7 +40,6 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: route('openai', 'gpt-4o'),
         fallback_routes: null,
@@ -58,7 +57,6 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: null,
         fallback_routes: [route('openai', 'gpt-4o'), route('anthropic', 'claude')],
@@ -74,7 +72,6 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: null,
         fallback_routes: [route('openai', 'gpt-4o')],
@@ -90,7 +87,6 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: route('openai', 'gpt-4o'),
         fallback_routes: [route('openai', 'gpt-4o-mini')],
@@ -107,7 +103,6 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: route('openai', 'still-here'),
         fallback_routes: [route('anthropic', 'also-here')],
@@ -123,21 +118,18 @@ describe('RoutingInvalidationService', () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: route('openai', 'm-1'),
         fallback_routes: null,
       } as TierAssignment,
       {
         agent_id: 'agent-1',
-        user_id: 'user-1',
         tier: 'complex',
         override_route: route('openai', 'm-2'),
         fallback_routes: null,
       } as TierAssignment,
       {
         agent_id: 'agent-2',
-        user_id: 'user-1',
         tier: 'standard',
         override_route: route('openai', 'm-1'),
         fallback_routes: null,

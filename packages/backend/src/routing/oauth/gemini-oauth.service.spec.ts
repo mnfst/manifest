@@ -196,6 +196,7 @@ describe('GeminiOauthService', () => {
         'subscription',
         undefined,
         undefined,
+        null,
       );
       expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'gemini');
     });
@@ -221,6 +222,7 @@ describe('GeminiOauthService', () => {
         'subscription',
         undefined,
         undefined,
+        null,
       );
     });
 

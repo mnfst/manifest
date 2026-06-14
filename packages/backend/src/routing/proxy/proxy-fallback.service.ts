@@ -34,7 +34,7 @@ interface ForwardProviderOptions {
   rawApiKey?: string;
   providerKeyLabel?: string;
   agentId?: string;
-  userId?: string;
+  tenantId?: string;
   resourceUrl?: string;
   providerRegion?: string | null;
   apiMode?: ProxyApiMode;
@@ -94,9 +94,9 @@ export interface FailedFallback {
   // legacy inference path. Either way the recorder can attribute the error
   // to the actual credential that failed instead of inheriting the primary's.
   authType?: AuthType;
-  // The user_providers row that served this failed attempt, so the recorded
+  // The tenant_providers row that served this failed attempt, so the recorded
   // error row is scoped to the right connection. NULL for local/Ollama.
-  userProviderId?: string | null;
+  tenantProviderId?: string | null;
 }
 
 @Injectable()
@@ -153,7 +153,7 @@ export class ProxyFallbackService {
 
   async tryFallbacks(
     agentId: string,
-    userId: string,
+    tenantId: string,
     fallbackModels: string[],
     body: Record<string, unknown>,
     stream: boolean,
@@ -177,7 +177,7 @@ export class ProxyFallbackService {
       fallbackIndex: number;
       authType?: AuthType;
       keyLabel?: string;
-      userProviderId: string | null;
+      tenantProviderId: string | null;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -218,11 +218,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix, agentId))
+            (prefix && (await this.providerKeyService.hasActiveProvider(tenantId, prefix, agentId))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(userId, requestedModel, agentId));
+            (await this.providerKeyService.findProviderForModel(tenantId, requestedModel, agentId));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -230,7 +230,7 @@ export class ProxyFallbackService {
         }
         const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
         authType = (await this.providerKeyService.getAuthType(
-          userId,
+          tenantId,
           provider,
           excludeAuth,
           agentId,
@@ -238,11 +238,11 @@ export class ProxyFallbackService {
       }
       const model = normalizeProviderModel(provider, requestedModel);
       // Single key selection per attempt: the forwarded apiKey, the stamped
-      // user_provider_id, the recorded key label, and the region are all
+      // tenant_provider_id, the recorded key label, and the region are all
       // projected from this one row, so they can never diverge. With no
       // pinned label this returns the priority-0 (default) key.
       const key = await this.providerKeyService.selectProviderKey(
-        userId,
+        tenantId,
         provider,
         authType,
         providerKeyLabel,
@@ -256,7 +256,7 @@ export class ProxyFallbackService {
       }
       const apiKey = key.apiKey;
       // NULL for synthetic Ollama — no persisted row to stamp.
-      const userProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
+      const tenantProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
       // Resolve an unpinned subscription label to the selected row's label so
       // OAuth refresh persistence updates the same key the selection used.
       if (!providerKeyLabel && authType === 'subscription') {
@@ -268,7 +268,7 @@ export class ProxyFallbackService {
         apiKey,
         authType,
         agentId,
-        userId,
+        tenantId,
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
@@ -290,7 +290,7 @@ export class ProxyFallbackService {
         // freshest stored value is fetched for the 401-retry path.
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            userId,
+            tenantId,
             provider,
             authType,
             providerKeyLabel,
@@ -313,7 +313,7 @@ export class ProxyFallbackService {
         sessionKey,
         signal,
         agentId,
-        userId,
+        tenantId,
         rawApiKey,
         providerKeyLabel,
         authType,
@@ -335,10 +335,10 @@ export class ProxyFallbackService {
             fallbackIndex: i,
             authType,
             // Label of the connection row that served the attempt — stamped
-            // alongside its user_provider_id so the pair always matches.
+            // alongside its tenant_provider_id so the pair always matches.
             // Synthetic rows (Ollama) keep the pinned label, if any.
-            keyLabel: userProviderId ? key.label : providerKeyLabel,
-            userProviderId,
+            keyLabel: tenantProviderId ? key.label : providerKeyLabel,
+            tenantProviderId,
           },
           failures,
         };
@@ -352,7 +352,7 @@ export class ProxyFallbackService {
         status: forward.response.status,
         errorBody,
         authType,
-        userProviderId,
+        tenantProviderId,
       });
 
       const existing = failedAuthByProvider.get(provider.toLowerCase());
@@ -494,7 +494,7 @@ export class ProxyFallbackService {
       forward.response.status !== 401 ||
       !opts.rawApiKey ||
       !opts.agentId ||
-      !opts.userId
+      !opts.tenantId
     ) {
       return forward;
     }
@@ -503,7 +503,7 @@ export class ProxyFallbackService {
       opts.provider,
       opts.rawApiKey,
       opts.agentId,
-      opts.userId,
+      opts.tenantId,
       opts.providerKeyLabel,
       {
         openaiOauth: this.openaiOauth,
@@ -571,11 +571,17 @@ export class ProxyFallbackService {
     // Custom providers store their endpoint on a DB row; fetch it so the shared
     // resolver can build the override. (Kept in the caller to keep the resolver
     // synchronous + DB-free.)
-    const customProvider = CustomProviderService.isCustom(provider)
-      ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(provider) },
-        })
-      : null;
+    // Fail closed: TypeORM strips an `undefined` where-value, so without the
+    // explicit tenantId guard a missing tenantId would silently degrade to an
+    // unscoped lookup by id alone. A real custom-provider forward always carries
+    // the caller's tenantId; if it's absent we skip the lookup rather than read a
+    // row that could belong to another tenant.
+    const customProvider =
+      CustomProviderService.isCustom(provider) && opts.tenantId
+        ? await this.customProviderRepo.findOne({
+            where: { id: CustomProviderService.extractId(provider), tenant_id: opts.tenantId },
+          })
+        : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({
       provider,
       authType,

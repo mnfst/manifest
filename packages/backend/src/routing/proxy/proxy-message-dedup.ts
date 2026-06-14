@@ -57,7 +57,6 @@ export class ProxyMessageDedup {
       where: {
         tenant_id: ctx.tenantId,
         agent_id: ctx.agentId,
-        user_id: ctx.userId,
         model,
         status: 'ok',
         ...(sessionKey ? { session_key: sessionKey } : {}),
@@ -112,7 +111,7 @@ export class ProxyMessageDedup {
     sessionKey?: string | null,
   ): string {
     if (traceId) return `trace:${ctx.tenantId}:${ctx.agentId}:${traceId}`;
-    return `success:${ctx.tenantId}:${ctx.agentId}:${ctx.userId}:${sessionKey ?? 'no-session'}:${model}`;
+    return `success:${ctx.tenantId}:${ctx.agentId}:${sessionKey ?? 'no-session'}:${model}`;
   }
 
   async withSuccessWriteLock<T>(key: string, fn: () => Promise<T>): Promise<T> {

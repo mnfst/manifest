@@ -1,14 +1,14 @@
 // Transaction-manager threading for ProviderService.
 //
 // CustomProviderService wraps its two-row dance (custom_providers +
-// companion user_providers) in a single transaction and passes the
+// companion tenant_providers) in a single transaction and passes the
 // EntityManager down to upsertProvider / removeProvider. These tests pin
-// the contract that, when a manager is supplied, every UserProvider /
+// the contract that, when a manager is supplied, every TenantProvider /
 // AgentEnabledProvider write goes through manager.getRepository(...) —
 // NOT the injected repositories — so the writes commit or roll back
 // together with the caller's transaction.
 import { ProviderService } from '../provider.service';
-import { UserProvider } from '../../../entities/user-provider.entity';
+import { TenantProvider } from '../../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../../entities/specificity-assignment.entity';
 import { Agent } from '../../../entities/agent.entity';
@@ -46,7 +46,7 @@ const makeRepo = (agentIds: string[] = ['agent-1']) => ({
 describe('ProviderService — transaction manager threading', () => {
   let providerRepo: ReturnType<typeof makeRepo>;
   let accessRepo: ReturnType<typeof makeRepo>;
-  let txUserRepo: ReturnType<typeof makeRepo>;
+  let txProviderRepo: ReturnType<typeof makeRepo>;
   let txAccessRepo: ReturnType<typeof makeRepo>;
   let manager: EntityManager;
   let svc: ProviderService;
@@ -58,16 +58,16 @@ describe('ProviderService — transaction manager threading', () => {
 
     providerRepo = makeRepo();
     accessRepo = makeRepo();
-    txUserRepo = makeRepo();
+    txProviderRepo = makeRepo();
     txAccessRepo = makeRepo();
     manager = {
       getRepository: jest.fn((entity: unknown) =>
-        entity === UserProvider ? txUserRepo : txAccessRepo,
+        entity === TenantProvider ? txProviderRepo : txAccessRepo,
       ),
     } as unknown as EntityManager;
 
     svc = new ProviderService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
       makeRepo() as unknown as Repository<SpecificityAssignment>,
       makeRepo() as unknown as Repository<Agent>,
@@ -77,7 +77,7 @@ describe('ProviderService — transaction manager threading', () => {
         getProviders: jest.fn().mockReturnValue(null),
         setProviders: jest.fn(),
         invalidateAgent: jest.fn(),
-        invalidateUser: jest.fn(),
+        invalidateTenant: jest.fn(),
       } as unknown as RoutingCacheService,
       accessRepo as unknown as Repository<AgentEnabledProvider>,
     );
@@ -94,17 +94,18 @@ describe('ProviderService — transaction manager threading', () => {
   it('upsertProvider (new row) writes through the manager repositories only', async () => {
     const { isNew } = await svc.upsertProvider(
       null,
-      'user-1',
+      'tenant-1',
       'custom:cp-1',
       'sk-key',
       'api_key',
+      undefined,
       undefined,
       undefined,
       manager,
     );
 
     expect(isNew).toBe(true);
-    expect(txUserRepo.insert).toHaveBeenCalledTimes(1);
+    expect(txProviderRepo.insert).toHaveBeenCalledTimes(1);
     expect(providerRepo.insert).not.toHaveBeenCalled();
     // The all-agents grant must join the same transaction.
     expect(txAccessRepo.createQueryBuilder).toHaveBeenCalled();
@@ -112,94 +113,97 @@ describe('ProviderService — transaction manager threading', () => {
   });
 
   it('upsertProvider (existing row) saves through the manager repository', async () => {
-    txUserRepo.findOne.mockResolvedValueOnce({
+    txProviderRepo.findOne.mockResolvedValueOnce({
       id: 'up-1',
-      user_id: 'user-1',
+      tenant_id: 'tenant-1',
       provider: 'custom:cp-1',
       auth_type: 'api_key',
       label: 'Default',
       is_active: false,
-    } as unknown as UserProvider);
+    } as unknown as TenantProvider);
 
     const { isNew } = await svc.upsertProvider(
       null,
-      'user-1',
+      'tenant-1',
       'custom:cp-1',
       'sk-rotated',
       'api_key',
       undefined,
       undefined,
+      undefined,
       manager,
     );
 
     expect(isNew).toBe(false);
-    expect(txUserRepo.save).toHaveBeenCalledTimes(1);
+    expect(txProviderRepo.save).toHaveBeenCalledTimes(1);
     expect(providerRepo.save).not.toHaveBeenCalled();
   });
 
   it('upsertProvider with a label updates an existing labeled row through the manager', async () => {
-    txUserRepo.find.mockResolvedValueOnce([
+    txProviderRepo.find.mockResolvedValueOnce([
       {
         id: 'up-7',
-        user_id: 'user-1',
+        tenant_id: 'tenant-1',
         provider: 'openai',
         auth_type: 'api_key',
         label: 'Work',
         priority: 0,
         is_active: false,
-      } as unknown as UserProvider,
+      } as unknown as TenantProvider,
     ]);
 
     const { isNew } = await svc.upsertProvider(
       'agent-1',
-      'user-1',
+      'tenant-1',
       'openai',
       'sk-rotated',
       'api_key',
       undefined,
       'Work',
+      undefined,
       manager,
     );
 
     expect(isNew).toBe(false);
-    expect(txUserRepo.save).toHaveBeenCalledTimes(1);
+    expect(txProviderRepo.save).toHaveBeenCalledTimes(1);
     expect(providerRepo.save).not.toHaveBeenCalled();
   });
 
   it('upsertProvider with a label routes the labeled path through the manager too', async () => {
     await svc.upsertProvider(
       'agent-1',
-      'user-1',
+      'tenant-1',
       'openai',
       'sk-labeled',
       'api_key',
       undefined,
       'Work',
+      undefined,
       manager,
     );
 
-    expect(txUserRepo.find).toHaveBeenCalled();
-    expect(txUserRepo.insert).toHaveBeenCalledTimes(1);
+    expect(txProviderRepo.find).toHaveBeenCalled();
+    expect(txProviderRepo.insert).toHaveBeenCalledTimes(1);
     expect(providerRepo.find).not.toHaveBeenCalled();
     expect(providerRepo.insert).not.toHaveBeenCalled();
   });
 
   it('removeProvider deactivates rows and deletes grants through the manager', async () => {
-    txUserRepo.find.mockResolvedValueOnce([
+    txProviderRepo.find.mockResolvedValueOnce([
       {
         id: 'up-1',
-        user_id: 'user-1',
+        tenant_id: 'tenant-1',
         provider: 'custom:cp-1',
         auth_type: 'api_key',
         label: 'Default',
         priority: 0,
         is_active: true,
-      } as unknown as UserProvider,
+      } as unknown as TenantProvider,
     ]);
 
-    await svc.removeProvider(null, 'user-1', 'custom:cp-1', undefined, undefined, manager);
+    await svc.removeProvider(null, 'tenant-1', 'custom:cp-1', undefined, undefined, manager);
 
-    expect(txUserRepo.save).toHaveBeenCalledTimes(1);
+    expect(txProviderRepo.save).toHaveBeenCalledTimes(1);
     expect(txAccessRepo.delete).toHaveBeenCalledTimes(1);
     expect(providerRepo.save).not.toHaveBeenCalled();
     expect(accessRepo.delete).not.toHaveBeenCalled();
@@ -208,28 +212,28 @@ describe('ProviderService — transaction manager threading', () => {
   it('removeProvider with a label deletes the key and renumbers through the manager', async () => {
     const target = {
       id: 'up-2',
-      user_id: 'user-1',
+      tenant_id: 'tenant-1',
       provider: 'openai',
       auth_type: 'api_key',
       label: 'Work',
       priority: 1,
       is_active: true,
-    } as unknown as UserProvider;
+    } as unknown as TenantProvider;
     const survivor = {
       id: 'up-1',
-      user_id: 'user-1',
+      tenant_id: 'tenant-1',
       provider: 'openai',
       auth_type: 'api_key',
       label: 'Default',
       priority: 0,
       is_active: true,
-    } as unknown as UserProvider;
+    } as unknown as TenantProvider;
     // First find: removeKeyByLabel lookup; second find: renumberPriorities.
-    txUserRepo.find.mockResolvedValueOnce([survivor, target]).mockResolvedValueOnce([survivor]);
+    txProviderRepo.find.mockResolvedValueOnce([survivor, target]).mockResolvedValueOnce([survivor]);
 
-    await svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'Work', manager);
+    await svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'Work', manager);
 
-    expect(txUserRepo.remove).toHaveBeenCalledWith(target);
+    expect(txProviderRepo.remove).toHaveBeenCalledWith(target);
     expect(txAccessRepo.delete).toHaveBeenCalledTimes(1);
     expect(providerRepo.remove).not.toHaveBeenCalled();
     expect(accessRepo.delete).not.toHaveBeenCalled();
@@ -238,28 +242,28 @@ describe('ProviderService — transaction manager threading', () => {
   it('removeProvider with a label delegates the LAST key to the no-label path, keeping the manager', async () => {
     const onlyKey = {
       id: 'up-only',
-      user_id: 'user-1',
+      tenant_id: 'tenant-1',
       provider: 'openai',
       auth_type: 'api_key',
       label: 'Work',
       priority: 0,
       is_active: true,
-    } as unknown as UserProvider;
+    } as unknown as TenantProvider;
     // First find: removeKeyByLabel lookup; second find: the delegated
     // no-label teardown listing active rows.
-    txUserRepo.find.mockResolvedValueOnce([onlyKey]).mockResolvedValueOnce([onlyKey]);
+    txProviderRepo.find.mockResolvedValueOnce([onlyKey]).mockResolvedValueOnce([onlyKey]);
 
-    await svc.removeProvider('agent-1', 'user-1', 'openai', 'api_key', 'Work', manager);
+    await svc.removeProvider('agent-1', 'tenant-1', 'openai', 'api_key', 'Work', manager);
 
     // The delegated teardown deactivates through the manager repo.
-    expect(txUserRepo.save).toHaveBeenCalledTimes(1);
+    expect(txProviderRepo.save).toHaveBeenCalledTimes(1);
     expect(txAccessRepo.delete).toHaveBeenCalledTimes(1);
     expect(providerRepo.save).not.toHaveBeenCalled();
   });
 
   it('enableProviderForAgent stays a no-op when no enabled-provider repository is injected, manager or not', async () => {
     const svcWithoutAccess = new ProviderService(
-      providerRepo as unknown as Repository<UserProvider>,
+      providerRepo as unknown as Repository<TenantProvider>,
       makeRepo() as unknown as Repository<TierAssignment>,
       makeRepo() as unknown as Repository<SpecificityAssignment>,
       makeRepo() as unknown as Repository<Agent>,
@@ -269,7 +273,7 @@ describe('ProviderService — transaction manager threading', () => {
         getProviders: jest.fn().mockReturnValue(null),
         setProviders: jest.fn(),
         invalidateAgent: jest.fn(),
-        invalidateUser: jest.fn(),
+        invalidateTenant: jest.fn(),
       } as unknown as RoutingCacheService,
       null,
     );

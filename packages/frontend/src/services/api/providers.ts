@@ -1,7 +1,7 @@
 import type { AuthType } from 'manifest-shared';
 import { fetchJson } from './core.js';
 
-export interface UserProviderConnection {
+export interface TenantProviderConnection {
   id: string;
   label: string;
   key_prefix: string | null;
@@ -12,11 +12,11 @@ export interface UserProviderConnection {
   is_active: boolean;
 }
 
-export interface UserProviderSummary {
+export interface TenantProviderSummary {
   provider: string;
   auth_type: AuthType;
   connection_count: number;
-  connections: UserProviderConnection[];
+  connections: TenantProviderConnection[];
   total_models: number;
   consumption_tokens: number;
   consumption_messages: number;
@@ -26,7 +26,7 @@ export interface UserProviderSummary {
 }
 
 export interface ProvidersResponse {
-  providers: UserProviderSummary[];
+  providers: TenantProviderSummary[];
   model_counts: Record<string, number>;
 }
 

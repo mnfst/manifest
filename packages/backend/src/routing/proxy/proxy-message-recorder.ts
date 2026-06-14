@@ -42,11 +42,11 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   specificityCategory?: string;
   providerKeyLabel?: string;
   /**
-   * The user_providers row (connection/key) that served this message.
-   * Persisted to agent_messages.user_provider_id so per-connection analytics
+   * The tenant_providers row (connection/key) that served this message.
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
-  userProviderId?: string | null;
+  tenantProviderId?: string | null;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   /**
@@ -71,11 +71,11 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   reason?: string;
   providerKeyLabel?: string;
   /**
-   * The user_providers row (connection/key) that served this message.
-   * Persisted to agent_messages.user_provider_id so per-connection analytics
+   * The tenant_providers row (connection/key) that served this message.
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
-  userProviderId?: string | null;
+  tenantProviderId?: string | null;
   usage?: StreamUsage;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
@@ -103,11 +103,11 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   specificityCategory?: string;
   providerKeyLabel?: string;
   /**
-   * The user_providers row (connection/key) that served this message.
-   * Persisted to agent_messages.user_provider_id so per-connection analytics
+   * The tenant_providers row (connection/key) that served this message.
+   * Persisted to agent_messages.tenant_provider_id so per-connection analytics
    * scope by the exact key rather than the non-unique provider/auth/label tuple.
    */
-  userProviderId?: string | null;
+  tenantProviderId?: string | null;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   requestParams?: RequestParamDefaults | null;
@@ -136,6 +136,7 @@ function buildMessageRow(
     tenant_id: ctx.tenantId,
     agent_id: ctx.agentId,
     agent_name: ctx.agentName,
+    // Informational attribution only — never filtered on (see IngestionContext).
     user_id: ctx.userId,
     trace_id: null,
     input_tokens: 0,
@@ -191,7 +192,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       reason,
       specificityCategory,
       providerKeyLabel,
-      userProviderId,
+      tenantProviderId,
       callerAttribution,
       requestHeaders,
       requestParams,
@@ -217,7 +218,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const messageStatus = httpStatus === 429 ? 'rate_limited' : 'error';
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.tenantId,
       provider,
       model,
     );
@@ -238,7 +239,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         auth_type: authType ?? null,
         specificity_category: specificityCategory ?? null,
         provider_key_label: providerKeyLabel ?? null,
-        user_provider_id: userProviderId ?? null,
+        tenant_provider_id: tenantProviderId ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
         request_params: requestParams ?? null,
@@ -247,7 +248,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_color: headerTierColor ?? null,
       }),
     );
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordFailedFallbacks(
@@ -287,13 +288,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
     const canonicalPrimary = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.tenantId,
       null,
       primaryModel,
     );
     const canonicalFailures = await Promise.all(
       failures.map((f) =>
-        this.customProviders.canonicalizeAgentMessageKeys(ctx.userId, f.provider, f.model),
+        this.customProviders.canonicalizeAgentMessageKeys(ctx.tenantId, f.provider, f.model),
       ),
     );
     const rows: Partial<AgentMessage>[] = [];
@@ -331,7 +332,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           fallback_index: f.fallbackIndex,
           auth_type: recordedAuth,
           // Per-failure connection: each failed fallback carries its own key id.
-          user_provider_id: f.userProviderId ?? null,
+          tenant_provider_id: f.tenantProviderId ?? null,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
           request_params: requestParams ?? null,
@@ -342,7 +343,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       );
     }
     await this.messageRepo.insert(rows);
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordPrimaryFailure(
@@ -355,7 +356,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     opts?: {
       provider?: string;
       reason?: string;
-      userProviderId?: string | null;
+      tenantProviderId?: string | null;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
       requestParams?: RequestParamDefaults | null;
@@ -365,7 +366,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.tenantId,
       opts?.provider,
       model,
     );
@@ -381,7 +382,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_from_model: null,
         fallback_index: null,
         auth_type: authType ?? null,
-        user_provider_id: opts?.userProviderId ?? null,
+        tenant_provider_id: opts?.tenantProviderId ?? null,
         caller_attribution: opts?.callerAttribution ?? null,
         request_headers: opts?.requestHeaders ?? null,
         request_params: opts?.requestParams ?? null,
@@ -390,7 +391,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_color: opts?.headerTierColor ?? null,
       }),
     );
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordFallbackSuccess(
@@ -408,7 +409,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       authType,
       reason,
       providerKeyLabel,
-      userProviderId,
+      tenantProviderId,
       usage,
       callerAttribution,
       requestHeaders,
@@ -433,12 +434,12 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     });
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.tenantId,
       provider,
       model,
     );
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.tenantId,
       null,
       fallbackFromModel,
     );
@@ -461,7 +462,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         fallback_from_model: canonicalFallbackFrom.model,
         fallback_index: fallbackIndex ?? null,
         provider_key_label: providerKeyLabel ?? null,
-        user_provider_id: userProviderId ?? null,
+        tenant_provider_id: tenantProviderId ?? null,
         caller_attribution: callerAttribution ?? null,
         request_headers: requestHeaders ?? null,
         request_params: requestParams ?? null,
@@ -470,7 +471,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         header_tier_color: headerTierColor ?? null,
       }),
     );
-    this.eventBus.emit(ctx.userId);
+    this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
   async recordSuccessMessage(
@@ -489,7 +490,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       durationMs,
       specificityCategory,
       providerKeyLabel,
-      userProviderId,
+      tenantProviderId,
       callerAttribution,
       requestHeaders,
       requestParams,
@@ -514,7 +515,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.userId,
+      ctx.tenantId,
       provider,
       model,
     );
@@ -564,7 +565,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
               provider_key_label: providerKeyLabel ?? null,
-              user_provider_id: userProviderId ?? null,
+              tenant_provider_id: tenantProviderId ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               request_params: requestParams ?? null,
@@ -605,7 +606,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
               duration_ms: durationMs ?? null,
               specificity_category: specificityCategory ?? null,
               provider_key_label: providerKeyLabel ?? null,
-              user_provider_id: userProviderId ?? null,
+              tenant_provider_id: tenantProviderId ?? null,
               caller_attribution: callerAttribution ?? null,
               request_headers: requestHeaders ?? null,
               request_params: requestParams ?? null,
@@ -621,7 +622,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       },
     );
     if (wrote) {
-      this.eventBus.emit(ctx.userId);
+      this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
       if (recordingPayload && writtenMessageId) {
         try {
           await this.recordingService.save(writtenMessageId, recordingPayload);

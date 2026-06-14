@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import type { DiscoveredModel } from './model-fetcher';
 
 export interface ProviderModelRegistryEntry {
@@ -25,8 +25,8 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
   private readonly registry = new Map<string, Map<string, ProviderModelRegistryEntry>>();
 
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly providerRepo: Repository<TenantProvider>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -78,7 +78,7 @@ export class ProviderModelRegistryService implements OnApplicationBootstrap {
   }
 
   /**
-   * Populate the registry from existing user_providers.cached_models
+   * Populate the registry from existing tenant_providers.cached_models
    * data that was previously fetched from native APIs.
    */
   private async loadFromCache(): Promise<void> {

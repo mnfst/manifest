@@ -156,22 +156,25 @@ describe('TierService', () => {
       tierRepo.find.mockResolvedValueOnce([
         { tier: 'simple', override_route: null, auto_assigned_route: null } as TierAssignment,
       ]);
-      const result = await svc.getTiers('agent-1', 'user-1');
+      const result = await svc.getTiers('agent-1', 'tenant-1');
       expect(tierRepo.insert).toHaveBeenCalledTimes(1);
       const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
       const insertedSlots = inserted.map((r) => r.tier).sort();
       expect(insertedSlots).toEqual(['complex', 'default', 'reasoning', 'standard']);
-      // user_id should be passed through to inserted rows
-      expect(inserted.every((r) => r.user_id === 'user-1')).toBe(true);
+      // inserted rows are agent-scoped only
+      expect(inserted.every((r) => r.agent_id === 'agent-1')).toBe(true);
+      // passing a tenantId triggers the provider cleanup pass
+      expect(providerService.getProviders).toHaveBeenCalledWith('tenant-1');
       // result merges existing + created
       expect(result).toHaveLength(TIER_SLOTS.length);
     });
 
-    it('uses an empty userId when none is passed', async () => {
+    it('skips the provider cleanup pass when no tenantId is passed', async () => {
       tierRepo.find.mockResolvedValueOnce([]);
       await svc.getTiers('agent-1');
       const inserted = tierRepo.insert.mock.calls[0][0] as TierAssignment[];
-      expect(inserted.every((r) => r.user_id === '')).toBe(true);
+      expect(inserted.every((r) => r.agent_id === 'agent-1')).toBe(true);
+      expect(providerService.getProviders).not.toHaveBeenCalled();
     });
 
     it('falls back to existing rows on a unique-index race during insert', async () => {
@@ -196,11 +199,11 @@ describe('TierService', () => {
     it('fills missing slots without auto-assigning even when a usable provider exists', async () => {
       tierRepo.find.mockResolvedValueOnce([]);
       providerService.getProviders.mockResolvedValue([
-        { user_id: 'user-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
+        { tenant_id: 'tenant-1', is_active: true, provider: 'openai', auth_type: 'api_key' },
       ] as never);
 
-      const result = await svc.getTiers('agent-1', 'user-1');
-      expect(providerService.getProviders).toHaveBeenCalledWith('user-1');
+      const result = await svc.getTiers('agent-1', 'tenant-1');
+      expect(providerService.getProviders).toHaveBeenCalledWith('tenant-1');
       expect(tierRepo.insert).toHaveBeenCalledTimes(1);
       expect(routingCache.setTiers).toHaveBeenCalledWith('agent-1', result);
       expect(result).toHaveLength(TIER_SLOTS.length);
@@ -213,7 +216,7 @@ describe('TierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       await expect(
-        svc.setOverride('agent-1', 'user-1', 'standard', 'unknown-model'),
+        svc.setOverride('agent-1', 'tenant-1', 'standard', 'unknown-model'),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -236,7 +239,7 @@ describe('TierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       await expect(
-        svc.setOverride('agent-1', 'user-1', 'standard', 'gpt-4o', 'anthropic'),
+        svc.setOverride('agent-1', 'tenant-1', 'standard', 'gpt-4o', 'anthropic'),
       ).rejects.toThrow('not offered by provider');
     });
 
@@ -245,7 +248,7 @@ describe('TierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
       ]);
-      await expect(svc.setOverride('agent-1', 'user-1', 'standard', 'gpt-4o')).rejects.toThrow(
+      await expect(svc.setOverride('agent-1', 'tenant-1', 'standard', 'gpt-4o')).rejects.toThrow(
         /multiple providers/,
       );
     });
@@ -267,7 +270,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -294,7 +297,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -311,7 +314,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -342,7 +345,7 @@ describe('TierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -361,7 +364,7 @@ describe('TierService', () => {
       // No throw — service returns the local record and invalidates cache.
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         'gpt-4o',
         'openai',
@@ -425,7 +428,7 @@ describe('TierService', () => {
   describe('setFallbacks', () => {
     it('returns [] when no tier row exists', async () => {
       tierRepo.findOne.mockResolvedValue(null);
-      expect(await svc.setFallbacks('agent-1', 'user-1', 'standard', ['gpt-4o'])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'tenant-1', 'standard', ['gpt-4o'])).toEqual([]);
       expect(tierRepo.save).not.toHaveBeenCalled();
     });
 
@@ -440,7 +443,13 @@ describe('TierService', () => {
       } as TierAssignment);
 
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'user-1', 'standard', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks(
+        'agent-1',
+        'tenant-1',
+        'standard',
+        ['gpt-4o'],
+        provided,
+      );
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
@@ -459,7 +468,7 @@ describe('TierService', () => {
       // ignore the explicit routes and resolve from discovery instead.
       const result = await svc.setFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         ['gpt-4o'],
         [route('openai', 'api_key', 'different-model')],
@@ -479,7 +488,7 @@ describe('TierService', () => {
       // Aligned by name but provider doesn't match available list.
       const result = await svc.setFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         ['gpt-4o'],
         [route('different-provider', 'api_key', 'gpt-4o')],
@@ -494,7 +503,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      const result = await svc.setFallbacks('agent-1', 'user-1', 'standard', []);
+      const result = await svc.setFallbacks('agent-1', 'tenant-1', 'standard', []);
       expect(result).toEqual([]);
     });
 
@@ -509,7 +518,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      await expect(svc.setFallbacks('agent-1', 'user-1', 'standard', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'tenant-1', 'standard', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(tierRepo.save).not.toHaveBeenCalled();
@@ -542,7 +551,7 @@ describe('TierService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
-          'user-1',
+          'tenant-1',
           'standard',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],
@@ -596,7 +605,7 @@ describe('TierService', () => {
         fallback_routes: null,
       } as TierAssignment);
 
-      await expect(svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream')).rejects.toThrow(
+      await expect(svc.setResponseMode('agent-1', 'standard', 'stream')).rejects.toThrow(
         /add at least one stream-capable model/,
       );
       expect(tierRepo.save).not.toHaveBeenCalled();
@@ -611,7 +620,7 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+      const result = await svc.setResponseMode('agent-1', 'standard', 'stream');
 
       expect(result.response_mode).toBe('stream');
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
@@ -627,7 +636,7 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'standard', 'stream');
+      const result = await svc.setResponseMode('agent-1', 'standard', 'stream');
 
       expect(result.response_mode).toBe('stream');
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
@@ -647,7 +656,7 @@ describe('TierService', () => {
 
       const result = await svc.setFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'standard',
         ['local-model'],
         [route('custom:local', 'api_key', 'local-model')],

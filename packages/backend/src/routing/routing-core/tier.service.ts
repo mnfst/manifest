@@ -31,12 +31,12 @@ export class TierService {
     return rows.some((r) => effectiveRoute(r) !== null);
   }
 
-  async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
+  async getTiers(agentId: string, tenantId?: string): Promise<TierAssignment[]> {
     const cached = this.routingCache.getTiers(agentId);
     if (cached) return cached;
 
     // Trigger provider cleanup to deactivate unsupported subscription providers
-    if (userId) await this.providerService.getProviders(userId);
+    if (tenantId) await this.providerService.getProviders(tenantId);
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     // Figure out which slots are missing. Every agent should have a row for
@@ -54,7 +54,6 @@ export class TierService {
     const created: TierAssignment[] = missing.map((slot: TierSlot) =>
       Object.assign(new TierAssignment(), {
         id: randomUUID(),
-        user_id: userId ?? '',
         agent_id: agentId,
         tier: slot,
         override_route: null,
@@ -86,14 +85,14 @@ export class TierService {
 
   async setOverride(
     agentId: string,
-    userId: string,
+    tenantId: string,
     tier: string,
     model: string,
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string,
   ): Promise<TierAssignment> {
-    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     const matches = available.filter((m) => m.id === model);
     if (matches.length === 0) {
       const providerHint = provider ? ` (provider: ${provider})` : '';
@@ -155,7 +154,6 @@ export class TierService {
 
     const record: TierAssignment = Object.assign(new TierAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       tier,
       override_route: route,
@@ -170,7 +168,15 @@ export class TierService {
     } catch {
       const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
       if (retry)
-        return this.setOverride(agentId, userId, tier, model, provider, authType, providerKeyLabel);
+        return this.setOverride(
+          agentId,
+          tenantId,
+          tier,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -178,7 +184,6 @@ export class TierService {
 
   async setResponseMode(
     agentId: string,
-    userId: string,
     tier: string,
     responseMode: ResponseMode,
   ): Promise<TierAssignment> {
@@ -199,7 +204,6 @@ export class TierService {
 
     const record: TierAssignment = Object.assign(new TierAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       tier,
       override_route: null,
@@ -253,14 +257,14 @@ export class TierService {
 
   async setFallbacks(
     agentId: string,
-    userId: string,
+    tenantId: string,
     tier: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
-    const fallbackRoutes = await this.buildFallbackRoutes(agentId, userId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, tenantId, models, routes);
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
@@ -310,12 +314,12 @@ export class TierService {
    */
   private async buildFallbackRoutes(
     agentId: string,
-    userId: string,
+    tenantId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       // Cross-check each caller-provided route against the discovered model

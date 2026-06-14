@@ -3,13 +3,13 @@ import { Reflector } from '@nestjs/core';
 import { UserCacheInterceptor } from './user-cache.interceptor';
 
 function createMockContext(
-  user: { id?: string } | undefined,
+  tenantContext: { tenantId?: string } | undefined,
   originalUrl: string,
   method = 'GET',
 ): ExecutionContext {
   return {
     switchToHttp: () => ({
-      getRequest: () => ({ user, originalUrl, method }),
+      getRequest: () => ({ tenantContext, originalUrl, method }),
       getResponse: () => ({}),
     }),
     getHandler: () => ({}),
@@ -33,31 +33,34 @@ describe('UserCacheInterceptor', () => {
   });
 
   describe('trackBy', () => {
-    it('should return userId:originalUrl when user is present', () => {
-      const context = createMockContext({ id: 'user-abc' }, '/api/v1/overview');
+    it('should return tenantId:originalUrl when tenant context is present', () => {
+      const context = createMockContext({ tenantId: 'tenant-abc' }, '/api/v1/overview');
 
       const key = interceptor['trackBy'](context);
 
-      expect(key).toBe('user-abc:/api/v1/overview');
+      expect(key).toBe('tenant-abc:/api/v1/overview');
     });
 
     it('should include query parameters in the cache key', () => {
-      const context = createMockContext({ id: 'user-1' }, '/api/v1/tokens?range=7d&agent=demo');
+      const context = createMockContext(
+        { tenantId: 'tenant-1' },
+        '/api/v1/tokens?range=7d&agent=demo',
+      );
 
       const key = interceptor['trackBy'](context);
 
-      expect(key).toBe('user-1:/api/v1/tokens?range=7d&agent=demo');
+      expect(key).toBe('tenant-1:/api/v1/tokens?range=7d&agent=demo');
     });
 
     it('should return undefined for non-GET requests', () => {
-      const context = createMockContext({ id: 'user-abc' }, '/api/v1/overview', 'POST');
+      const context = createMockContext({ tenantId: 'tenant-abc' }, '/api/v1/overview', 'POST');
 
       const key = interceptor['trackBy'](context);
 
       expect(key).toBeUndefined();
     });
 
-    it('should return undefined when user is not present', () => {
+    it('should return undefined when tenant context is not present', () => {
       const context = createMockContext(undefined, '/api/v1/overview');
 
       const key = interceptor['trackBy'](context);
@@ -65,7 +68,7 @@ describe('UserCacheInterceptor', () => {
       expect(key).toBeUndefined();
     });
 
-    it('should return undefined when user has no id', () => {
+    it('should return undefined when tenant context has no tenantId', () => {
       const context = createMockContext({}, '/api/v1/overview');
 
       const key = interceptor['trackBy'](context);
@@ -74,26 +77,26 @@ describe('UserCacheInterceptor', () => {
     });
 
     it('should generate distinct keys for different URLs', () => {
-      const ctx1 = createMockContext({ id: 'user-1' }, '/api/v1/overview');
-      const ctx2 = createMockContext({ id: 'user-1' }, '/api/v1/tokens');
+      const ctx1 = createMockContext({ tenantId: 'tenant-1' }, '/api/v1/overview');
+      const ctx2 = createMockContext({ tenantId: 'tenant-1' }, '/api/v1/tokens');
 
       const key1 = interceptor['trackBy'](ctx1);
       const key2 = interceptor['trackBy'](ctx2);
 
       expect(key1).not.toBe(key2);
-      expect(key1).toBe('user-1:/api/v1/overview');
-      expect(key2).toBe('user-1:/api/v1/tokens');
+      expect(key1).toBe('tenant-1:/api/v1/overview');
+      expect(key2).toBe('tenant-1:/api/v1/tokens');
     });
 
-    it('should generate distinct keys for different users on the same URL', () => {
-      const ctx1 = createMockContext({ id: 'user-1' }, '/api/v1/overview');
-      const ctx2 = createMockContext({ id: 'user-2' }, '/api/v1/overview');
+    it('should generate distinct keys for different tenants on the same URL', () => {
+      const ctx1 = createMockContext({ tenantId: 'tenant-1' }, '/api/v1/overview');
+      const ctx2 = createMockContext({ tenantId: 'tenant-2' }, '/api/v1/overview');
 
       const key1 = interceptor['trackBy'](ctx1);
       const key2 = interceptor['trackBy'](ctx2);
 
-      expect(key1).toBe('user-1:/api/v1/overview');
-      expect(key2).toBe('user-2:/api/v1/overview');
+      expect(key1).toBe('tenant-1:/api/v1/overview');
+      expect(key2).toBe('tenant-2:/api/v1/overview');
     });
   });
 });

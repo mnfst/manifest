@@ -74,7 +74,6 @@ export class AgentModelParamsService {
    */
   async set(
     agentId: string,
-    userId: string,
     scopeKey: string,
     provider: string,
     authType: AuthType,
@@ -88,7 +87,6 @@ export class AgentModelParamsService {
       .into(AgentModelParams)
       .values({
         id: randomUUID(),
-        user_id: userId,
         agent_id: agentId,
         scope_key: scopeKey,
         provider: normalizedProvider,

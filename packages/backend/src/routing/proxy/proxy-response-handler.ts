@@ -113,7 +113,7 @@ export async function handleProviderError(
       reason: meta.reason,
       specificityCategory: meta.specificity_category,
       providerKeyLabel: meta.provider_key_label,
-      userProviderId: meta.userProviderId,
+      tenantProviderId: meta.tenantProviderId,
       callerAttribution,
       requestHeaders,
       requestParams: meta.request_params,
@@ -182,8 +182,8 @@ function handleFallbackExhausted(
       {
         provider: meta.provider,
         reason: meta.reason,
-        // Exhausted chain: primary connection (meta.userProviderId holds it here).
-        userProviderId: meta.userProviderId,
+        // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
+        tenantProviderId: meta.tenantProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
@@ -245,15 +245,15 @@ export function recordFallbackFailures(
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
         reason: meta.reason,
-        // meta.userProviderId holds the winning fallback here; the primary's id
+        // meta.tenantProviderId holds the winning fallback here; the primary's id
         // is preserved separately (mirrors primaryProvider / primaryAuthType).
         // Compare against undefined, not ??, so an explicit null primary
         // connection (e.g. Ollama) stays null rather than being misattributed
         // to the fallback's connection.
-        userProviderId:
-          meta.primaryUserProviderId === undefined
-            ? meta.userProviderId
-            : meta.primaryUserProviderId,
+        tenantProviderId:
+          meta.primaryTenantProviderId === undefined
+            ? meta.tenantProviderId
+            : meta.primaryTenantProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
@@ -578,7 +578,7 @@ export function recordSuccess(
         authType: meta.auth_type,
         reason: meta.reason,
         providerKeyLabel: meta.provider_key_label,
-        userProviderId: meta.userProviderId,
+        tenantProviderId: meta.tenantProviderId,
         usage: streamUsage ?? undefined,
         callerAttribution,
         requestHeaders,
@@ -618,7 +618,7 @@ export function recordSuccess(
         durationMs,
         specificityCategory: meta.specificity_category,
         providerKeyLabel: meta.provider_key_label,
-        userProviderId: meta.userProviderId,
+        tenantProviderId: meta.tenantProviderId,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,

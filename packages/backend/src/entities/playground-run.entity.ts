@@ -3,7 +3,7 @@ import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import { PlaygroundColumn } from './playground-column.entity';
 
 @Entity('playground_runs')
-@Index(['user_id', 'agent_id', 'created_at'])
+@Index(['tenant_id', 'agent_id', 'created_at'])
 export class PlaygroundRun {
   @PrimaryColumn('varchar')
   id!: string;
@@ -11,8 +11,9 @@ export class PlaygroundRun {
   @Column('varchar')
   tenant_id!: string;
 
-  @Column('varchar')
-  user_id!: string;
+  /** Audit-only: which user authored the run. Never used for scoping. */
+  @Column('varchar', { nullable: true })
+  created_by_user_id!: string | null;
 
   @Column('varchar')
   agent_id!: string;

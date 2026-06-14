@@ -2,6 +2,15 @@ import { DataSource } from 'typeorm';
 import { LiftProvidersToUserLevel1791000000000 } from '../src/database/migrations/1791000000000-LiftProvidersToUserLevel';
 import { RenameProviderAccessToEnabledProviders1791800000000 } from '../src/database/migrations/1791800000000-RenameProviderAccessToEnabledProviders';
 import { AddUserProviderIdToAgentMessages1792000000000 } from '../src/database/migrations/1792000000000-AddUserProviderIdToAgentMessages';
+// origin/next's tenant-canonical rename sits on top of this migration
+// (user_providers → tenant_providers, agent_messages.user_provider_id →
+// tenant_provider_id). This pre-lift reproduction operates in the
+// user_providers world, so we unwind that rename first before rewinding our
+// own migrations back to the pre-lift shape.
+import { TenantOwnerColumn1792400000000 } from '../src/database/migrations/1792400000000-TenantOwnerColumn';
+import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
+import { DropUserScopeFromRouting1792700000000 } from '../src/database/migrations/1792700000000-DropUserScopeFromRouting';
 
 const DB_URL =
   process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/manifest_duprepro';
@@ -37,14 +46,22 @@ describe('AddUserProviderIdToAgentMessages backfill after provider lift (e2e)', 
     await ds.runMigrations();
 
     // Clean slate (FK-safe order), then rewind to the pre-lift schema by
-    // reverting the relevant migrations in reverse chronological order.
+    // reverting the relevant migrations in reverse chronological order. The
+    // providers table is named `tenant_providers` at HEAD (after next's rename).
     await ds.query(`DELETE FROM "agent_messages"`);
     await ds.query(`DELETE FROM "agent_enabled_providers"`);
-    await ds.query(`DELETE FROM "user_providers"`);
+    await ds.query(`DELETE FROM "tenant_providers"`);
     await ds.query(`DELETE FROM "agents"`);
     await ds.query(`DELETE FROM "tenants"`);
 
     const rewindQr = ds.createQueryRunner();
+    // First unwind next's tenant-canonical layer so the schema is back in the
+    // user_providers world (tenant_providers → user_providers, tenant_provider_id
+    // → user_provider_id), then rewind our own migrations to the pre-lift shape.
+    await new DropUserScopeFromRouting1792700000000().down(rewindQr);
+    await new TenantScopedConfigs1792600000000().down(rewindQr);
+    await new TenantProviders1792500000000().down(rewindQr);
+    await new TenantOwnerColumn1792400000000().down(rewindQr);
     await new AddUserProviderIdToAgentMessages1792000000000().down(rewindQr);
     await new RenameProviderAccessToEnabledProviders1791800000000().down(rewindQr);
     await new LiftProvidersToUserLevel1791000000000().down(rewindQr);

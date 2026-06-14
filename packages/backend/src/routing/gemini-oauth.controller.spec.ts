@@ -48,7 +48,7 @@ describe('GeminiOauthController', () => {
 
   describe('authorize', () => {
     it('resolves agent and returns authorize URL for Gemini', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.generateAuthorizationUrl.mockResolvedValue(
         'https://accounts.google.com/o/oauth2/v2/auth?...',
       );
@@ -58,13 +58,18 @@ describe('GeminiOauthController', () => {
         get: jest.fn().mockReturnValue('localhost:3001'),
       } as unknown as Request;
 
-      const result = await controller.authorize('my-agent', { id: 'user-1' } as never, req);
+      const result = await controller.authorize(
+        'my-agent',
+        { tenantId: 'tenant-1', userId: 'user-1' } as never,
+        req,
+      );
 
-      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'my-agent');
       expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'http://localhost:3001',
+        'user-1',
       );
       expect(result).toEqual({ url: 'https://accounts.google.com/o/oauth2/v2/auth?...' });
     });
@@ -76,7 +81,11 @@ describe('GeminiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize(undefined as unknown as string, { id: 'user-1' } as never, req),
+        controller.authorize(
+          undefined as unknown as string,
+          { tenantId: 'tenant-1', userId: 'user-1' } as never,
+          req,
+        ),
       ).rejects.toThrow(HttpException);
     });
 
@@ -86,13 +95,13 @@ describe('GeminiOauthController', () => {
         get: jest.fn().mockReturnValue('localhost:3001'),
       } as unknown as Request;
 
-      await expect(controller.authorize('', { id: 'user-1' } as never, req)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.authorize('', { tenantId: 'tenant-1', userId: 'user-1' } as never, req),
+      ).rejects.toThrow(HttpException);
     });
 
     it('throws 503 when callback server port is unavailable', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.generateAuthorizationUrl.mockRejectedValue(
         new Error("Port 1455 is already in use. Run 'lsof -i :1455' to find the process."),
       );
@@ -103,12 +112,12 @@ describe('GeminiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+        controller.authorize('my-agent', { tenantId: 'tenant-1', userId: 'user-1' } as never, req),
       ).rejects.toThrow(HttpException);
     });
 
     it('throws 503 with generic message when non-Error is thrown', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.generateAuthorizationUrl.mockRejectedValue('string-error');
 
       const req = {
@@ -117,12 +126,12 @@ describe('GeminiOauthController', () => {
       } as unknown as Request;
 
       await expect(
-        controller.authorize('my-agent', { id: 'user-1' } as never, req),
+        controller.authorize('my-agent', { tenantId: 'tenant-1', userId: 'user-1' } as never, req),
       ).rejects.toThrow('Failed to start OAuth callback server');
     });
 
     it('uses BETTER_AUTH_URL from config when set, ignoring Host header', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       oauthService.generateAuthorizationUrl.mockResolvedValue(
         'https://accounts.google.com/o/oauth2/v2/auth?...',
       );
@@ -133,12 +142,17 @@ describe('GeminiOauthController', () => {
         get: jest.fn().mockReturnValue('evil.example'),
       } as unknown as Request;
 
-      await controller.authorize('my-agent', { id: 'user-1' } as never, req);
+      await controller.authorize(
+        'my-agent',
+        { tenantId: 'tenant-1', userId: 'user-1' } as never,
+        req,
+      );
 
       expect(oauthService.generateAuthorizationUrl).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'https://manifest.example.com',
+        'user-1',
       );
     });
   });
@@ -146,27 +160,33 @@ describe('GeminiOauthController', () => {
   describe('revoke', () => {
     it('throws 400 when agentName is missing', async () => {
       await expect(
-        controller.revoke(undefined as unknown as string, undefined, { id: 'user-1' } as never),
+        controller.revoke(undefined as unknown as string, undefined, {
+          tenantId: 'tenant-1',
+          userId: 'user-1',
+        } as never),
       ).rejects.toThrow(HttpException);
     });
 
     it('throws 400 when agentName is empty string', async () => {
-      await expect(controller.revoke('', undefined, { id: 'user-1' } as never)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.revoke('', undefined, { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
     });
 
     it('revokes both access and refresh tokens from stored blob', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       const blob = JSON.stringify({ t: 'access-tok', r: 'refresh-tok', e: Date.now() + 3600000 });
       providerKeyService.getProviderKeys.mockResolvedValue([
         { label: 'Gemini', apiKey: blob } as never,
       ]);
 
-      const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', undefined, {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
       expect(providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-        'user-1',
+        'tenant-1',
         'gemini',
         'subscription',
       );
@@ -174,7 +194,7 @@ describe('GeminiOauthController', () => {
       expect(oauthService.revokeToken).toHaveBeenCalledWith('refresh-tok');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'gemini',
         'subscription',
         undefined,
@@ -183,15 +203,18 @@ describe('GeminiOauthController', () => {
     });
 
     it('returns ok even when no stored token exists', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       providerKeyService.getProviderKeys.mockResolvedValue([]);
 
-      const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', undefined, {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'gemini',
         'subscription',
         undefined,
@@ -200,17 +223,20 @@ describe('GeminiOauthController', () => {
     });
 
     it('returns ok when token blob is not valid JSON', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       providerKeyService.getProviderKeys.mockResolvedValue([
         { label: 'Gemini', apiKey: 'not-json' } as never,
       ]);
 
-      const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', undefined, {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
       expect(oauthService.revokeToken).not.toHaveBeenCalled();
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'gemini',
         'subscription',
         undefined,
@@ -219,7 +245,7 @@ describe('GeminiOauthController', () => {
     });
 
     it('revokes only the selected labeled token', async () => {
-      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
       const selectedBlob = JSON.stringify({ t: 'selected-access', e: Date.now() + 3600000 });
       const otherBlob = JSON.stringify({ t: 'other-access', e: Date.now() + 3600000 });
       providerKeyService.getProviderKeys.mockResolvedValue([
@@ -227,13 +253,16 @@ describe('GeminiOauthController', () => {
         { label: 'Work', apiKey: selectedBlob } as never,
       ]);
 
-      const result = await controller.revoke('my-agent', 'work', { id: 'user-1' } as never);
+      const result = await controller.revoke('my-agent', 'work', {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
       expect(oauthService.revokeToken).toHaveBeenCalledTimes(1);
       expect(oauthService.revokeToken).toHaveBeenCalledWith('selected-access');
       expect(providerService.removeProvider).toHaveBeenCalledWith(
         'agent-id-1',
-        'user-1',
+        'tenant-1',
         'gemini',
         'subscription',
         'work',
@@ -248,29 +277,35 @@ describe('GeminiOauthController', () => {
     });
 
     it('exchanges code and returns ok', async () => {
-      const result = await controller.callback('auth-code', 'state-123', { id: 'user-1' } as never);
+      const result = await controller.callback('auth-code', 'state-123', {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never);
 
       expect(oauthService.exchangeCode).toHaveBeenCalledWith('state-123', 'auth-code');
       expect(result).toEqual({ ok: true });
     });
 
     it('throws 400 when code is missing', async () => {
-      await expect(controller.callback('', 'state-123', { id: 'user-1' } as never)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.callback('', 'state-123', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
     });
 
     it('throws 400 when state is missing', async () => {
-      await expect(controller.callback('auth-code', '', { id: 'user-1' } as never)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        controller.callback('auth-code', '', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+      ).rejects.toThrow(HttpException);
     });
 
     it('throws 400 when exchange fails', async () => {
       oauthService.exchangeCode = jest.fn().mockRejectedValue(new Error('Invalid state'));
 
       await expect(
-        controller.callback('auth-code', 'bad-state', { id: 'user-1' } as never),
+        controller.callback('auth-code', 'bad-state', {
+          tenantId: 'tenant-1',
+          userId: 'user-1',
+        } as never),
       ).rejects.toThrow(HttpException);
     });
 
@@ -278,7 +313,10 @@ describe('GeminiOauthController', () => {
       oauthService.exchangeCode = jest.fn().mockRejectedValue('string-error');
 
       await expect(
-        controller.callback('auth-code', 'bad-state', { id: 'user-1' } as never),
+        controller.callback('auth-code', 'bad-state', {
+          tenantId: 'tenant-1',
+          userId: 'user-1',
+        } as never),
       ).rejects.toThrow('Token exchange failed');
     });
   });

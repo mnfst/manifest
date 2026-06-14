@@ -111,7 +111,7 @@ describe('AgentKeyAuthGuard edge cases', () => {
           key_hash: hashKey(token),
           expires_at: null,
           agent: null,
-          tenant: { name: 'user-1' },
+          tenant: { owner_user_id: 'user-1' },
         },
       ]);
 
@@ -169,7 +169,7 @@ describe('AgentKeyAuthGuard edge cases', () => {
           key_hash: hashKey(token),
           expires_at: null,
           agent: null,
-          tenant: { name: 'user-1' },
+          tenant: { owner_user_id: 'user-1' },
         },
       ]);
 
@@ -205,7 +205,7 @@ describe('AgentKeyAuthGuard edge cases', () => {
         tenant_id: 'dev-tenant',
         agent_id: 'dev-agent',
         agent: { name: 'demo-agent' },
-        tenant: { name: 'dev-user' },
+        tenant: { owner_user_id: 'dev-user' },
       });
 
       const { ctx } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');
@@ -243,7 +243,7 @@ describe('AgentKeyAuthGuard edge cases', () => {
         tenant_id: 'first-tenant',
         agent_id: 'first-agent',
         agent: { name: 'first-agent-name' },
-        tenant: { name: 'first-user' },
+        tenant: { owner_user_id: 'first-user' },
       });
 
       const { ctx, req } = makeContext({ authorization: 'Bearer dev-no-auth' }, '127.0.0.1');

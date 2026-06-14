@@ -94,7 +94,7 @@ describe('OpenaiOauthService', () => {
 
   describe('exchangeCode', () => {
     it('exchanges code for tokens and stores them', async () => {
-      const url = await service.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await service.generateAuthorizationUrl('agent-1', 'tenant-1');
       const state = new URL(url).searchParams.get('state')!;
 
       fetchMock.mockResolvedValueOnce({
@@ -115,12 +115,13 @@ describe('OpenaiOauthService', () => {
 
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         expect.any(String),
         'subscription',
         undefined,
         undefined,
+        null,
       );
 
       const storedBlob: OAuthTokenBlob = JSON.parse(
@@ -281,12 +282,12 @@ describe('OpenaiOauthService', () => {
         }),
       });
 
-      const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'user-1', 'Work');
+      const result = await service.unwrapToken(JSON.stringify(blob), 'agent-1', 'tenant-1', 'Work');
 
       expect(result).toBe('new-access');
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         expect.any(String),
         'subscription',

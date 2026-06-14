@@ -2,7 +2,7 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
-import { UserProvider } from '../../entities/user-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -18,7 +18,7 @@ import { isManifestUsableProvider } from '../../common/utils/subscription-suppor
 /**
  * Sentinel id for the built-in Ollama tile. getProviderKeys() short-circuits
  * Ollama to a synthetic key without a DB lookup, so this id matches no
- * `user_providers` row — callers stamping `agent_messages.user_provider_id`
+ * `tenant_providers` row — callers stamping `agent_messages.tenant_provider_id`
  * must treat it as "no persisted connection" (NULL) to avoid an FK violation.
  */
 export const SYNTHETIC_OLLAMA_PROVIDER_ID = 'ollama';
@@ -28,8 +28,8 @@ export class ProviderKeyService {
   private readonly logger = new Logger(ProviderKeyService.name);
 
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly providerRepo: Repository<TenantProvider>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly discoveryService: ModelDiscoveryService,
     private readonly routingCache: RoutingCacheService,
@@ -40,13 +40,13 @@ export class ProviderKeyService {
   ) {}
 
   /**
-   * Returns the ordered list of API keys for (user, provider, authType),
+   * Returns the ordered list of API keys for (tenant, provider, authType),
    * optionally filtered to only those the given agent has access to.
    * Each entry's apiKey is decrypted; entries that fail to decrypt are
    * dropped silently. Local providers (Ollama) yield a single empty-key entry.
    */
   async getProviderKeys(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: AuthType,
     agentId?: string,
@@ -64,43 +64,43 @@ export class ProviderKeyService {
     }
 
     // Agent-scoped lookups (the proxy path) cache under an agent-qualified
-    // key. invalidateAgent clears the agent segment; invalidateUser clears
-    // every entry for the user, so both invalidation paths stay effective.
-    const cached = this.routingCache.getProviderKeys(userId, provider, authType, agentId);
+    // key. invalidateAgent clears the agent segment; invalidateTenant clears
+    // every entry for the tenant, so both invalidation paths stay effective.
+    const cached = this.routingCache.getProviderKeys(tenantId, provider, authType, agentId);
     if (cached !== undefined) return cached;
 
-    const result = await this.resolveProviderKeys(userId, provider, authType, agentId);
-    this.routingCache.setProviderKeys(userId, provider, result, authType, agentId);
+    const result = await this.resolveProviderKeys(tenantId, provider, authType, agentId);
+    this.routingCache.setProviderKeys(tenantId, provider, result, authType, agentId);
     return result;
   }
 
   /** Returns the label of the first (default) key for the given provider+authType. */
   async getDefaultKeyLabel(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: AuthType,
     agentId?: string,
   ): Promise<string | undefined> {
-    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
+    const keys = await this.getProviderKeys(tenantId, provider, authType, agentId);
     return keys[0]?.label;
   }
 
   /**
-   * Selects the key for (user, provider, authType): the case-insensitive label
+   * Selects the key for (tenant, provider, authType): the case-insensitive label
    * match when a label is given, else the first (priority-ordered) default key.
    * Returns null when no key resolves. getProviderApiKey/getProviderRegion are
-   * thin projections of this — callers that also need the `user_providers` row
-   * id (e.g. the proxy, to stamp `agent_messages.user_provider_id`) call it
+   * thin projections of this — callers that also need the `tenant_providers` row
+   * id (e.g. the proxy, to stamp `agent_messages.tenant_provider_id`) call it
    * directly so the id selected and the key forwarded can never diverge.
    */
   async selectProviderKey(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
     agentId?: string,
   ): Promise<CachedProviderKey | null> {
-    const keys = await this.getProviderKeys(userId, provider, authType, agentId);
+    const keys = await this.getProviderKeys(tenantId, provider, authType, agentId);
     if (keys.length === 0) return null;
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
@@ -110,43 +110,43 @@ export class ProviderKeyService {
   }
 
   async getProviderApiKey(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
     agentId?: string,
   ): Promise<string | null> {
-    const key = await this.selectProviderKey(userId, provider, authType, label, agentId);
+    const key = await this.selectProviderKey(tenantId, provider, authType, label, agentId);
     return key ? key.apiKey : null;
   }
 
   /**
-   * Returns the `user_providers` row id of the selected key, for stamping
-   * `agent_messages.user_provider_id` at proxy time. Returns null when no key
+   * Returns the `tenant_providers` row id of the selected key, for stamping
+   * `agent_messages.tenant_provider_id` at proxy time. Returns null when no key
    * resolves OR when the selection is the synthetic Ollama tile (which has no
    * persisted row — stamping its id would violate the agent_messages FK).
    */
   async getProviderKeyId(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
     agentId?: string,
   ): Promise<string | null> {
-    const key = await this.selectProviderKey(userId, provider, authType, label, agentId);
+    const key = await this.selectProviderKey(tenantId, provider, authType, label, agentId);
     if (!key || key.id === SYNTHETIC_OLLAMA_PROVIDER_ID) return null;
     return key.id;
   }
 
   async getAuthType(
-    userId: string,
+    tenantId: string,
     provider: string,
     excludeAuthTypes?: Set<string>,
     agentId?: string,
   ): Promise<AuthType> {
     const names = expandProviderNames([provider]);
     const records = await this.filterProvidersForAgent(
-      await this.providerService.getProviders(userId),
+      await this.providerService.getProviders(tenantId),
       agentId,
     );
     let matches = records.filter((r) => r.is_active && names.has(r.provider.toLowerCase()));
@@ -170,33 +170,33 @@ export class ProviderKeyService {
     return withKey?.auth_type ?? matches[0]?.auth_type ?? 'api_key';
   }
 
-  async hasActiveProvider(userId: string, provider: string, agentId?: string): Promise<boolean> {
+  async hasActiveProvider(tenantId: string, provider: string, agentId?: string): Promise<boolean> {
     const names = expandProviderNames([provider]);
     const records = await this.filterProvidersForAgent(
-      await this.providerService.getProviders(userId),
+      await this.providerService.getProviders(tenantId),
       agentId,
     );
     return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
   }
 
   async getProviderRegion(
-    userId: string,
+    tenantId: string,
     provider: string,
     authType?: AuthType,
     label?: string,
     agentId?: string,
   ): Promise<string | null> {
-    const key = await this.selectProviderKey(userId, provider, authType, label, agentId);
+    const key = await this.selectProviderKey(tenantId, provider, authType, label, agentId);
     return key ? key.region : null;
   }
 
   async findProviderForModel(
-    userId: string,
+    tenantId: string,
     model: string,
     agentId?: string,
   ): Promise<string | undefined> {
     const providers = await this.filterProvidersForAgent(
-      await this.providerService.getProviders(userId),
+      await this.providerService.getProviders(tenantId),
       agentId,
     );
     for (const p of providers) {
@@ -207,7 +207,7 @@ export class ProviderKeyService {
   }
 
   private async resolveProviderKeys(
-    userId: string,
+    tenantId: string,
     provider: string,
     preferredAuthType?: AuthType,
     agentId?: string,
@@ -215,7 +215,7 @@ export class ProviderKeyService {
     // Custom providers: exact match on provider key, allow empty key for local endpoints
     if (provider.startsWith('custom:')) {
       const records = await this.providerRepo.find({
-        where: { user_id: userId, provider, is_active: true },
+        where: { tenant_id: tenantId, provider, is_active: true },
         // id tiebreaker keeps selection deterministic when keys share a priority,
         // so the key forwarded and the id stamped never resolve to different rows.
         order: { priority: 'ASC', id: 'ASC' },
@@ -227,7 +227,7 @@ export class ProviderKeyService {
 
     const names = expandProviderNames([provider]);
     const records = await this.providerRepo.find({
-      where: { user_id: userId, is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
       // id tiebreaker keeps selection deterministic when keys share a priority,
       // so the key forwarded and the id stamped never resolve to different rows.
       order: { priority: 'ASC', id: 'ASC' },
@@ -253,7 +253,7 @@ export class ProviderKeyService {
     return candidates.flatMap((record) => this.decryptOne(record));
   }
 
-  private decryptOne(record: UserProvider): CachedProviderKey[] {
+  private decryptOne(record: TenantProvider): CachedProviderKey[] {
     if (!record.api_key_encrypted) {
       // Local providers (auth_type='local') legitimately have no key — surface
       // an empty string so callers treat the provider as "available". Other
@@ -301,9 +301,9 @@ export class ProviderKeyService {
     }
   }
 
-  async isModelAvailable(userId: string, model: string, agentId?: string): Promise<boolean> {
+  async isModelAvailable(tenantId: string, model: string, agentId?: string): Promise<boolean> {
     // Check discovered models first.
-    const discovered = await this.discoveryService.getModelForAgent(userId, model, agentId);
+    const discovered = await this.discoveryService.getModelForAgent(tenantId, model, agentId);
     if (discovered) return true;
 
     const pricing = this.pricingCache.getByModel(model);
@@ -320,7 +320,7 @@ export class ProviderKeyService {
     const records = (
       await this.filterProvidersForAgent(
         await this.providerRepo.find({
-          where: { user_id: userId, is_active: true },
+          where: { tenant_id: tenantId, is_active: true },
         }),
         agentId,
       )
@@ -342,18 +342,18 @@ export class ProviderKeyService {
   }
 
   /**
-   * Filters a list of global user providers down to only those the given
+   * Filters a list of global tenant providers down to only those the given
    * agent has enabled. If no agentId is provided, or if the
    * enabled-provider repo is not available, returns the full list unchanged.
    */
   private async filterProvidersForAgent(
-    providers: UserProvider[],
+    providers: TenantProvider[],
     agentId?: string,
-  ): Promise<UserProvider[]> {
+  ): Promise<TenantProvider[]> {
     if (!agentId || !this.enabledProviderRepo) return providers;
     const rows = await this.enabledProviderRepo.find({ where: { agent_id: agentId } });
     if (rows.length === 0) return [];
-    const enabledIds = new Set(rows.map((r) => r.user_provider_id));
+    const enabledIds = new Set(rows.map((r) => r.tenant_provider_id));
     return providers.filter((p) => enabledIds.has(p.id));
   }
 }
