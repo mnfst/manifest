@@ -24,6 +24,7 @@ import { KiroOauthService } from '../routing/oauth/kiro-oauth.service';
 import { XaiOauthService } from '../routing/oauth/xai/xai-oauth.service';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { computeTokenCost } from '../common/utils/cost-calculator';
+import { scrubSecrets } from '../common/utils/secret-scrub';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
 import { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { initSseHeaders } from '../routing/proxy/stream-writer';
@@ -174,7 +175,7 @@ export class PlaygroundService {
     // endpoint on a DB row, fetched here and passed in.
     const customProvider = CustomProviderService.isCustom(dto.provider)
       ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(dto.provider) },
+          where: { id: CustomProviderService.extractId(dto.provider), tenant_id: agent.tenant_id },
         })
       : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({
@@ -472,7 +473,9 @@ export class PlaygroundService {
         user_id: createdByUserId,
         timestamp: new Date().toISOString(),
         status: 'error',
-        error_message: errorBody.slice(0, 2000),
+        // Some providers echo the submitted key back in their error body, so
+        // scrub before persisting — mirrors the proxy recorder's hardening.
+        error_message: scrubSecrets(errorBody).slice(0, 2000),
         error_http_status: status,
         model: dto.model,
         provider: dto.provider,
@@ -490,7 +493,10 @@ export class PlaygroundService {
   }
 
   private truncateError(bodyText: string, status: number): string {
-    const snippet = bodyText.slice(0, 500).trim();
+    // Scrub before truncating: this snippet is both streamed back to the client
+    // and stored on the history column, so a key-echoing upstream error must not
+    // leak through either sink.
+    const snippet = scrubSecrets(bodyText).slice(0, 500).trim();
     return snippet ? `Provider returned ${status}: ${snippet}` : `Provider returned ${status}`;
   }
 }

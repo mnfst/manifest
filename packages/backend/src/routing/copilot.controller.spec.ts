@@ -26,13 +26,11 @@ describe('CopilotController', () => {
       recalculateTiersForUser: jest.fn().mockResolvedValue(undefined),
     };
     mockResolveAgent = {
-      resolve: jest
-        .fn()
-        .mockResolvedValue({
-          id: TEST_AGENT_ID,
-          name: 'test-agent',
-          tenant_id: TEST_TENANT_ID,
-        } as Agent),
+      resolve: jest.fn().mockResolvedValue({
+        id: TEST_AGENT_ID,
+        name: 'test-agent',
+        tenant_id: TEST_TENANT_ID,
+      } as Agent),
     };
     mockCopilotAuth = {
       requestDeviceCode: jest.fn(),

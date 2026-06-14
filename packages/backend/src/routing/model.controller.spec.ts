@@ -57,13 +57,11 @@ describe('ModelController', () => {
       sync: jest.fn().mockResolvedValue({ count: 0 }),
     };
     mockResolveAgent = {
-      resolve: jest
-        .fn()
-        .mockResolvedValue({
-          id: TEST_AGENT_ID,
-          name: 'test-agent',
-          tenant_id: TEST_TENANT_ID,
-        } as Agent),
+      resolve: jest.fn().mockResolvedValue({
+        id: TEST_AGENT_ID,
+        name: 'test-agent',
+        tenant_id: TEST_TENANT_ID,
+      } as Agent),
     };
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),

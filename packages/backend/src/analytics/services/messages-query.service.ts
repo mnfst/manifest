@@ -91,7 +91,7 @@ export class MessagesQueryService {
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore && lastItem ? this.encodeCursor(lastItem) : null;
     const providers = this.deriveProviders(distinctRows.models, distinctRows.providers);
-    const providerLabels = await this.resolveCustomProviderLabels(providers);
+    const providerLabels = await this.resolveCustomProviderLabels(providers, params.tenantId);
 
     return {
       items,
@@ -107,12 +107,19 @@ export class MessagesQueryService {
    * filter dropdown can label them. Deleted providers simply have no entry
    * and fall back to the raw id in the UI.
    */
-  private async resolveCustomProviderLabels(providers: string[]): Promise<Record<string, string>> {
+  private async resolveCustomProviderLabels(
+    providers: string[],
+    tenantId: string | null,
+  ): Promise<Record<string, string>> {
     const uuids = providers
       .filter((p) => p.startsWith('custom:'))
       .map((p) => p.slice('custom:'.length));
-    if (uuids.length === 0) return {};
-    const rows = await this.customProviderRepo.find({ where: { id: In(uuids) } });
+    if (uuids.length === 0 || !tenantId) return {};
+    // Scope to the caller's tenant so a custom-provider display name can never
+    // resolve across tenants, regardless of how the provider ids were sourced.
+    const rows = await this.customProviderRepo.find({
+      where: { id: In(uuids), tenant_id: tenantId },
+    });
     return Object.fromEntries(rows.map((cp) => [`custom:${cp.id}`, cp.name]));
   }
 

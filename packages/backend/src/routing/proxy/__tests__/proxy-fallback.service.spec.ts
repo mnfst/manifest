@@ -650,6 +650,13 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        tenantId: 'tenant-1',
+      });
+
+      // The custom-provider row is fetched scoped to the caller's tenant so a
+      // foreign custom:<id> can never have its base_url read here.
+      expect(customProviderRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'cp-1', tenant_id: 'tenant-1' },
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith({
@@ -660,6 +667,28 @@ describe('ProxyFallbackService', () => {
         stream: false,
         customEndpoint: expect.objectContaining({ baseUrl: 'https://api.groq.com/openai' }),
       });
+    });
+
+    it('skips the custom-provider lookup entirely when no tenantId is supplied (fail closed)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      // Without a tenantId, `tenant_id: undefined` would be stripped by TypeORM
+      // and degrade to an unscoped lookup. The guard must skip the query instead.
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      expect(customProviderRepo.findOne).not.toHaveBeenCalled();
     });
 
     it('routes Anthropic-kind custom providers to /v1/messages with anthropic format', async () => {
@@ -682,6 +711,7 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        tenantId: 'tenant-1',
       });
 
       const forwardArgs = providerClient.forward.mock.calls[0][0];

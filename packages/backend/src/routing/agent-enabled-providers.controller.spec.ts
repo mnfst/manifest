@@ -158,10 +158,11 @@ describe('AgentEnabledProvidersController', () => {
       );
     });
 
-    it('returns empty affected_tiers when provider not found', async () => {
+    it('throws 404 when provider not found (symmetric with enable/disable, no existence oracle)', async () => {
       const { controller } = makeController();
-      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
-      expect(result).toEqual({ affected_tiers: [] });
+      await expect(
+        controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID),
+      ).rejects.toBeInstanceOf(HttpException);
     });
 
     it('returns empty affected_tiers when provider has no cached models and no tiers route to it', async () => {
