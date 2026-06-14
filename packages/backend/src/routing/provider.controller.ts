@@ -4,18 +4,14 @@ import {
   Controller,
   Delete,
   Get,
-  Optional,
   Param,
   Patch,
   Post,
   Put,
   Query,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/auth.instance';
-import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { TierService } from './routing-core/tier.service';
@@ -43,9 +39,6 @@ export class ProviderController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly tierService: TierService,
     private readonly pricingSync: PricingSyncService,
-    @Optional()
-    @InjectRepository(AgentEnabledProvider)
-    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
   @Get(':agentName/status')
@@ -138,6 +131,9 @@ export class ProviderController {
       await this.ollamaSync.sync();
     }
 
+    // The service handles enabled-provider rows itself: new rows fan out to
+    // every owned agent, updates re-enable the connecting agent via
+    // afterProviderChange — no controller-side insert needed.
     const { provider: result } = await this.providerService.upsertProvider(
       agent.id,
       user.id,
@@ -147,17 +143,6 @@ export class ProviderController {
       body.region,
       body.label,
     );
-    // Insert a sparse enabled-provider row for this agent so per-agent filtering works.
-    // .orIgnore() is intentional — reconnect/update flows must not throw on duplicate.
-    if (this.enabledProviderRepo) {
-      await this.enabledProviderRepo
-        .createQueryBuilder()
-        .insert()
-        .into(AgentEnabledProvider)
-        .values({ agent_id: agent.id, user_provider_id: result.id })
-        .orIgnore()
-        .execute();
-    }
 
     // Discover models before returning so the frontend sees updated model
     // availability immediately (typically ~1-3s). Route choices remain

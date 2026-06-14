@@ -1,11 +1,4 @@
-import { IsNotEmpty, IsString, IsUUID, Matches, ValidateIf } from 'class-validator';
-
-export class ListHistoryQueryDto {
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
-  agentName!: string;
-}
+import { IsUUID, ValidateIf } from 'class-validator';
 
 export class RunIdParamDto {
   @IsUUID()

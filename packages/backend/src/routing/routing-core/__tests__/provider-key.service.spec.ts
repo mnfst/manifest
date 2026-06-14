@@ -1,8 +1,6 @@
 import type { Repository } from 'typeorm';
-import type { ModelRoute } from 'manifest-shared';
 import { ProviderKeyService } from '../provider-key.service';
 import { UserProvider } from '../../../entities/user-provider.entity';
-import { TierAssignment } from '../../../entities/tier-assignment.entity';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import type { RoutingCacheService } from '../routing-cache.service';
@@ -17,12 +15,6 @@ jest.mock('../../../common/utils/crypto.util', () => ({
 
 import { decrypt } from '../../../common/utils/crypto.util';
 const mockedDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
-
-const route = (provider: string, authType: ModelRoute['authType'], model: string): ModelRoute => ({
-  provider,
-  authType,
-  model,
-});
 
 describe('ProviderKeyService', () => {
   let providerRepo: {
@@ -103,6 +95,68 @@ describe('ProviderKeyService', () => {
         'openai',
         expect.arrayContaining([expect.objectContaining({ apiKey: 'plaintext-key' })]),
         undefined,
+        undefined,
+      );
+    });
+
+    it('caches agent-scoped lookups under the agent segment and reads them back', async () => {
+      // Miss → resolve → set with the agentId threaded through to the cache.
+      routingCache.getProviderKeys.mockReturnValue(undefined);
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          api_key_encrypted: 'enc',
+          is_active: true,
+          label: 'Default',
+          priority: 0,
+        },
+      ]);
+      mockedDecrypt.mockReturnValue('scoped-key');
+
+      const result = await svc.getProviderApiKey(
+        'user-1',
+        'openai',
+        undefined,
+        undefined,
+        'agent-7',
+      );
+      expect(result).toBe('scoped-key');
+      // The cache read and write are both agent-qualified.
+      expect(routingCache.getProviderKeys).toHaveBeenCalledWith(
+        'user-1',
+        'openai',
+        undefined,
+        'agent-7',
+      );
+      expect(routingCache.setProviderKeys).toHaveBeenCalledWith(
+        'user-1',
+        'openai',
+        expect.arrayContaining([expect.objectContaining({ apiKey: 'scoped-key' })]),
+        undefined,
+        'agent-7',
+      );
+    });
+
+    it('returns the agent-scoped cached chain without hitting the repo', async () => {
+      routingCache.getProviderKeys.mockReturnValue([
+        { id: 'p1', label: 'Default', priority: 0, apiKey: 'scoped-cached', region: null },
+      ]);
+      const result = await svc.getProviderApiKey(
+        'user-1',
+        'openai',
+        undefined,
+        undefined,
+        'agent-7',
+      );
+      expect(result).toBe('scoped-cached');
+      expect(providerRepo.find).not.toHaveBeenCalled();
+      expect(routingCache.getProviderKeys).toHaveBeenCalledWith(
+        'user-1',
+        'openai',
+        undefined,
+        'agent-7',
       );
     });
   });
@@ -426,65 +480,6 @@ describe('ProviderKeyService', () => {
         { provider: 'no-cache', cached_models: null } as unknown as UserProvider,
       ]);
       expect(await svc.findProviderForModel('agent-1', 'anything')).toBeUndefined();
-    });
-  });
-
-  describe('getEffectiveModel', () => {
-    it('returns the override model when available', async () => {
-      const assignment = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        override_route: route('openai', 'api_key', 'gpt-4o'),
-        auto_assigned_route: route('openai', 'api_key', 'auto-model'),
-      } as unknown as TierAssignment;
-
-      // Make the override model available.
-      discoveryService.getModelForAgent.mockResolvedValue({ id: 'gpt-4o' } as never);
-
-      expect(await svc.getEffectiveModel('agent-1', assignment)).toBe('gpt-4o');
-    });
-
-    it('returns null when override is unavailable even if an auto route exists', async () => {
-      const assignment = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        override_route: route('openai', 'api_key', 'gpt-4o'),
-        auto_assigned_route: route('openai', 'api_key', 'auto-model'),
-      } as unknown as TierAssignment;
-
-      // override and auto both fail discovery + pricing — but isModelAvailable
-      // also checks records by provider; ensure none match so we test pure
-      // fallthrough.
-      discoveryService.getModelForAgent.mockResolvedValue(undefined);
-      pricingCache.getByModel.mockReturnValue(undefined);
-      providerRepo.find.mockResolvedValue([]);
-
-      const result = await svc.getEffectiveModel('agent-1', assignment);
-      expect(result).toBeNull();
-    });
-
-    it('returns null when both override and auto are null', async () => {
-      const assignment = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        override_route: null,
-        auto_assigned_route: null,
-      } as unknown as TierAssignment;
-
-      const result = await svc.getEffectiveModel('agent-1', assignment);
-      expect(result).toBeNull();
-    });
-
-    it('returns null when override is null even if an auto route exists', async () => {
-      const assignment = {
-        agent_id: 'agent-1',
-        tier: 'standard',
-        override_route: null,
-        auto_assigned_route: route('openai', 'api_key', 'auto-model'),
-      } as unknown as TierAssignment;
-
-      const result = await svc.getEffectiveModel('agent-1', assignment);
-      expect(result).toBeNull();
     });
   });
 

@@ -24,8 +24,8 @@ export class TokensController {
     const agentName = query.agent_name;
 
     const [{ tokenUsage: hourly }, { tokenUsage: daily }, prevTokens] = await Promise.all([
-      this.timeseries.getTimeseries(range, user.id, true, undefined, agentName),
-      this.timeseries.getTimeseries(range, user.id, false, undefined, agentName),
+      this.timeseries.getTimeseries({ range, userId: user.id, hourly: true, agentName }),
+      this.timeseries.getTimeseries({ range, userId: user.id, hourly: false, agentName }),
       this.aggregation.getPreviousTokenTotal(range, user.id, agentName),
     ]);
 

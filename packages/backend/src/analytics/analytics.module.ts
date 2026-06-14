@@ -18,6 +18,7 @@ import { OtlpModule } from '../otlp/otlp.module';
 import { RoutingCoreModule } from '../routing/routing-core/routing-core.module';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { AggregationService } from './services/aggregation.service';
+import { ConnectionDetailService } from './services/connection-detail.service';
 import { AgentDuplicationService } from './services/agent-duplication.service';
 import { AgentLifecycleService } from './services/agent-lifecycle.service';
 import { TimeseriesQueriesService } from './services/timeseries-queries.service';
@@ -34,7 +35,6 @@ import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
 import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
-import { ProxyModule } from '../routing/proxy/proxy.module';
 
 @Module({
   imports: [
@@ -57,7 +57,6 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
     OtlpModule,
     RoutingCoreModule,
     ModelPricesModule,
-    ProxyModule,
   ],
   controllers: [
     OverviewController,
@@ -70,6 +69,7 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
   ],
   providers: [
     AggregationService,
+    ConnectionDetailService,
     AgentDuplicationService,
     AgentLifecycleService,
     TimeseriesQueriesService,

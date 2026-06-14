@@ -20,6 +20,27 @@ interface RangeWindow {
   prevCutoff: string;
 }
 
+/** Filters for the dashboard summary cards (current + previous window). */
+export interface SummaryMetricsOptions {
+  range: string;
+  userId: string;
+  tenantId?: string;
+  agentName?: string;
+  authType?: string;
+  provider?: string;
+  /** Exclude the reserved Playground (is_playground) agent's traffic. */
+  excludePlayground?: boolean;
+  /**
+   * Connection scoping: the user_providers id wins over the label tuple
+   * (see scopeToConnection).
+   */
+  label?: string;
+  userProviderId?: string;
+}
+
+/** The window-independent filters buildPreviousWindowQuery re-applies. */
+type WindowFilterOptions = Omit<SummaryMetricsOptions, 'range'>;
+
 @Injectable()
 export class AggregationService {
   constructor(
@@ -39,7 +60,11 @@ export class AggregationService {
   async getPreviousTokenTotal(range: string, userId: string, agentName?: string): Promise<number> {
     const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
     const { cutoff, prevCutoff } = this.computeWindow(range);
-    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const row = await this.buildPreviousWindowQuery(
+      { userId, agentName, tenantId },
+      cutoff,
+      prevCutoff,
+    )
       .select('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total')
       .getRawOne();
     return Number(row?.total ?? 0);
@@ -49,24 +74,18 @@ export class AggregationService {
     const tenantId = (await this.tenantCache.resolve(userId)) ?? undefined;
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
-    const row = await this.buildPreviousWindowQuery(userId, agentName, tenantId, cutoff, prevCutoff)
+    const row = await this.buildPreviousWindowQuery(
+      { userId, agentName, tenantId },
+      cutoff,
+      prevCutoff,
+    )
       .select(`COALESCE(SUM(${safeCost}), 0)`, 'total')
       .getRawOne();
     return Number(row?.total ?? 0);
   }
 
-  async getSummaryMetrics(
-    range: string,
-    userId: string,
-    tenantId?: string,
-    agentName?: string,
-    authType?: string,
-    provider?: string,
-    excludePlayground = false,
-    label?: string,
-    userProviderId?: string,
-  ) {
-    const { cutoff, prevCutoff } = this.computeWindow(range);
+  async getSummaryMetrics(options: SummaryMetricsOptions) {
+    const { cutoff, prevCutoff } = this.computeWindow(options.range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
 
     const currentQb = this.turnRepo
@@ -76,24 +95,9 @@ export class AggregationService {
       .addSelect('COALESCE(SUM(at.output_tokens), 0)', 'out')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff });
-    addTenantFilter(currentQb, userId, agentName, tenantId);
-    if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
-    if (provider) currentQb.andWhere('at.provider = :provider', { provider });
-    if (excludePlayground) excludePlaygroundAgents(currentQb);
-    scopeToConnection(currentQb, userProviderId, label);
+    this.applyWindowFilters(currentQb, options);
 
-    const prevQb = this.buildPreviousWindowQuery(
-      userId,
-      agentName,
-      tenantId,
-      cutoff,
-      prevCutoff,
-      authType,
-      provider,
-      excludePlayground,
-      label,
-      userProviderId,
-    )
+    const prevQb = this.buildPreviousWindowQuery(options, cutoff, prevCutoff)
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost');
@@ -132,26 +136,27 @@ export class AggregationService {
   }
 
   private buildPreviousWindowQuery(
-    userId: string,
-    agentName: string | undefined,
-    tenantId: string | undefined,
+    options: WindowFilterOptions,
     cutoff: string,
     prevCutoff: string,
-    authType?: string,
-    provider?: string,
-    excludePlayground = false,
-    label?: string,
-    userProviderId?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
       .where('at.timestamp >= :prevCutoff', { prevCutoff })
       .andWhere('at.timestamp < :cutoff', { cutoff });
-    addTenantFilter(qb, userId, agentName, tenantId);
-    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
-    if (provider) qb.andWhere('at.provider = :provider', { provider });
-    if (excludePlayground) excludePlaygroundAgents(qb);
-    scopeToConnection(qb, userProviderId, label);
+    return this.applyWindowFilters(qb, options);
+  }
+
+  /** Apply the shared filters to a window query (current or previous). */
+  private applyWindowFilters(
+    qb: SelectQueryBuilder<AgentMessage>,
+    options: WindowFilterOptions,
+  ): SelectQueryBuilder<AgentMessage> {
+    addTenantFilter(qb, options.userId, options.agentName, options.tenantId);
+    if (options.authType) qb.andWhere('at.auth_type = :authType', { authType: options.authType });
+    if (options.provider) qb.andWhere('at.provider = :provider', { provider: options.provider });
+    if (options.excludePlayground) excludePlaygroundAgents(qb);
+    scopeToConnection(qb, options.userProviderId, options.label);
     return qb;
   }
 }

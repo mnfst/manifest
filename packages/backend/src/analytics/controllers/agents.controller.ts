@@ -6,6 +6,7 @@ import {
   Delete,
   Get,
   Inject,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -36,6 +37,8 @@ import { ProviderService } from '../../routing/routing-core/provider.service';
 
 @Controller('api/v1')
 export class AgentsController {
+  private readonly logger = new Logger(AgentsController.name);
+
   constructor(
     private readonly timeseries: TimeseriesQueriesService,
     private readonly lifecycle: AgentLifecycleService,
@@ -102,7 +105,29 @@ export class AgentsController {
     }
     // Providers are global + ON by default: a brand-new agent immediately
     // inherits access to every usable provider the user already connected.
-    await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
+    //
+    // This runs OUTSIDE the onboarding transaction (onboardAgent commits before
+    // returning and does not expose its EntityManager), so a failure here would
+    // otherwise leave a routable agent with zero enabled providers. Compensate
+    // by rolling the agent back (soft-delete + key deactivation) and surface
+    // the original error so the client can retry cleanly.
+    try {
+      await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
+    } catch (error) {
+      this.logger.error(
+        `Failed to enable providers for new agent "${slug}" (${result.agentId}); rolling back agent creation`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      try {
+        await this.lifecycle.deleteAgent(user.id, slug);
+      } catch (cleanupError) {
+        this.logger.error(
+          `Compensating cleanup failed for agent "${slug}" (${result.agentId}); it may be left without providers`,
+          cleanupError instanceof Error ? cleanupError.stack : String(cleanupError),
+        );
+      }
+      throw error;
+    }
     await this.invalidateAgentListCache(user.id);
     this.eventBus.emit(user.id, 'agent');
     return {

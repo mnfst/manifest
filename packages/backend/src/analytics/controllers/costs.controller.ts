@@ -24,8 +24,8 @@ export class CostsController {
     const agentName = query.agent_name;
 
     const [{ costUsage: hourly }, { costUsage: daily }, byModel, prevCost] = await Promise.all([
-      this.timeseries.getTimeseries(range, user.id, true, undefined, agentName),
-      this.timeseries.getTimeseries(range, user.id, false, undefined, agentName),
+      this.timeseries.getTimeseries({ range, userId: user.id, hourly: true, agentName }),
+      this.timeseries.getTimeseries({ range, userId: user.id, hourly: false, agentName }),
       this.timeseries.getCostByModel(range, user.id, agentName),
       this.aggregation.getPreviousCostTotal(range, user.id, agentName),
     ]);

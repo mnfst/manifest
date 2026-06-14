@@ -1,7 +1,10 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResolveService } from '../resolve/resolve.service';
-import { ProviderKeyService } from '../routing-core/provider-key.service';
+import {
+  ProviderKeyService,
+  SYNTHETIC_OLLAMA_PROVIDER_ID,
+} from '../routing-core/provider-key.service';
 import { TierService } from '../routing-core/tier.service';
 import { OpenaiOauthService } from '../oauth/openai-oauth.service';
 import { MinimaxOauthService } from '../oauth/minimax-oauth.service';
@@ -451,24 +454,21 @@ export class ProxyService {
     providerRegion?: string | null;
     userProviderId: string | null;
   } | null> {
-    const apiKey = await this.providerKeyService.getProviderApiKey(
+    // Single key selection per request: apiKey, the stamped user_provider_id,
+    // and the region are all projected from this one row, so the forwarded
+    // key and the recorded connection can never come from different rows.
+    const key = await this.providerKeyService.selectProviderKey(
       userId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
       agentId,
     );
-    if (apiKey === null) return null;
-    // The exact connection (user_providers row) this key belongs to, stamped on
-    // the recorded message so per-connection analytics resolve by id rather than
-    // the non-unique provider/auth_type/label tuple. NULL for synthetic Ollama.
-    const userProviderId = await this.providerKeyService.getProviderKeyId(
-      userId,
-      resolved.provider,
-      resolved.auth_type,
-      resolved.provider_key_label,
-      agentId,
-    );
+    if (!key || key.apiKey === null) return null;
+    const apiKey = key.apiKey;
+    // NULL for the synthetic Ollama tile — it has no persisted row, so
+    // stamping its id would violate the agent_messages FK.
+    const userProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
 
     const unwrapped = await resolveApiKey(
       resolved.provider,
@@ -488,6 +488,9 @@ export class ProxyService {
     if (unwrappedApiKey === null) return null;
     let rawApiKey = apiKey;
     if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
+      // Deliberate re-read: resolveApiKey may have refreshed + persisted a
+      // rotated OAuth blob (which also invalidates the key cache), so the
+      // freshest stored value is fetched for the 401-retry path.
       rawApiKey =
         (await this.providerKeyService.getProviderApiKey(
           userId,
@@ -497,18 +500,11 @@ export class ProxyService {
           agentId,
         )) ?? apiKey;
     }
-    const providerRegion = await this.providerKeyService.getProviderRegion(
-      userId,
-      resolved.provider,
-      resolved.auth_type,
-      resolved.provider_key_label,
-      agentId,
-    );
     return {
       apiKey: unwrappedApiKey,
       rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
-      providerRegion,
+      providerRegion: key.region,
       userProviderId,
     };
   }
@@ -624,6 +620,10 @@ export class ProxyService {
         meta: this.buildBaseMeta(resolved, success.model, {
           provider: success.provider,
           auth_type: success.authType,
+          // The label of the connection that actually served the fallback —
+          // buildBaseMeta would otherwise stamp the PRIMARY route's label
+          // next to the fallback's user_provider_id.
+          provider_key_label: success.keyLabel,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
           primaryErrorStatus: primaryStatus,

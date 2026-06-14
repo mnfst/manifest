@@ -9,7 +9,6 @@ import {
   selectMessageRowColumns,
   excludePlaygroundAgents,
   scopeToConnection,
-  filterByLiveAgentName,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
@@ -32,6 +31,71 @@ interface TimeseriesBucketRow {
   count: number;
 }
 
+/** Filters shared by the aggregate and per-dimension timeseries queries. */
+export interface TimeseriesQueryOptions {
+  range: string;
+  userId: string;
+  hourly: boolean;
+  tenantId?: string;
+  /**
+   * Scope to the LIVE agent owning this slug (resolved to its agent_id, so a
+   * soft-deleted namesake can't leak rows — see filterByLiveAgentName).
+   */
+  agentName?: string;
+  authType?: string;
+  provider?: string;
+  /** Exclude the reserved Playground (is_playground) agent's traffic. */
+  excludePlayground?: boolean;
+  /**
+   * Connection scoping: the user_providers id wins over the label tuple
+   * (see scopeToConnection).
+   */
+  label?: string;
+  userProviderId?: string;
+}
+
+/**
+ * Per-dimension series always exclude Playground traffic, so the flag is not
+ * part of their options surface.
+ */
+export type DimensionTimeseriesOptions = Omit<TimeseriesQueryOptions, 'excludePlayground'>;
+
+export type SeriesDimension = 'agent' | 'provider';
+export type SeriesMetric = 'tokens' | 'messages' | 'cost';
+
+/**
+ * Typed whitelist of the SQL fragments each series dimension may use. The
+ * dimension is a compile-time key into this map — never user input — so no
+ * caller-controlled string ever reaches the SELECT/GROUP BY clauses.
+ */
+const SERIES_DIMENSIONS: Record<
+  SeriesDimension,
+  { keyExpr: string; keyAlias: string; notNullColumn: string; resolvesCustomProviders: boolean }
+> = {
+  agent: {
+    keyExpr: 'at.agent_name',
+    keyAlias: 'agent_name',
+    notNullColumn: 'at.agent_name',
+    resolvesCustomProviders: false,
+  },
+  provider: {
+    // Custom providers surface their display name (or a stable fallback when
+    // deleted) as the series key; built-in providers keep their id. Requires
+    // the cp join (resolvesCustomProviders).
+    keyExpr: PROVIDER_SERIES_KEY_EXPR,
+    keyAlias: 'provider',
+    notNullColumn: 'at.provider',
+    resolvesCustomProviders: true,
+  },
+};
+
+/** Typed whitelist of the aggregate expression each series metric selects. */
+const SERIES_METRIC_EXPRS: Record<SeriesMetric, string> = {
+  tokens: 'COALESCE(SUM(at.input_tokens + at.output_tokens), 0)',
+  messages: 'COUNT(*)',
+  cost: `COALESCE(SUM(${sqlCastFloat(sqlSanitizeCost('at.cost_usd'))}), 0)`,
+};
+
 @Injectable()
 export class TimeseriesQueriesService {
   constructor(
@@ -42,19 +106,9 @@ export class TimeseriesQueriesService {
     private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async getTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-    authType?: string,
-    provider?: string,
-    excludePlayground = false,
-    label?: string,
-    userProviderId?: string,
-  ) {
-    const interval = rangeToInterval(range);
+  async getTimeseries(options: TimeseriesQueryOptions) {
+    const { userId, hourly, tenantId, agentName } = options;
+    const interval = rangeToInterval(options.range);
     const cutoff = computeCutoff(interval);
     const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
     const bucketAlias = hourly ? 'hour' : 'date';
@@ -68,12 +122,12 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
     addTenantFilter(qb, userId, agentName, tenantId);
-    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
-    if (provider) qb.andWhere('at.provider = :provider', { provider });
-    if (excludePlayground) excludePlaygroundAgents(qb);
+    if (options.authType) qb.andWhere('at.auth_type = :authType', { authType: options.authType });
+    if (options.provider) qb.andWhere('at.provider = :provider', { provider: options.provider });
+    if (options.excludePlayground) excludePlaygroundAgents(qb);
     // Scope to this connection: pin to the user_providers id when present,
     // else the provider+auth_type+label tuple (see scopeToConnection).
-    scopeToConnection(qb, userProviderId, label);
+    scopeToConnection(qb, options.userProviderId, options.label);
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {
@@ -100,7 +154,13 @@ export class TimeseriesQueriesService {
     return { tokenUsage, costUsage, messageUsage };
   }
 
-  async getActiveSkills(range: string, userId: string, agentName?: string, tenantId?: string) {
+  async getActiveSkills(
+    range: string,
+    userId: string,
+    agentName?: string,
+    tenantId?: string,
+    excludePlayground = false,
+  ) {
     const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -114,6 +174,7 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.skill_name IS NOT NULL');
     addTenantFilter(qb, userId, agentName, resolved);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const rows = await qb.groupBy('at.skill_name').orderBy('run_count', 'DESC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
       name: String(r['name']),
@@ -130,6 +191,7 @@ export class TimeseriesQueriesService {
     limit = 5,
     agentName?: string,
     tenantId?: string,
+    excludePlayground = false,
   ) {
     const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
@@ -142,10 +204,17 @@ export class TimeseriesQueriesService {
       { cutoff },
     );
     addTenantFilter(qb, userId, agentName, resolved);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
 
-  async getCostByModel(range: string, userId: string, agentName?: string, tenantId?: string) {
+  async getCostByModel(
+    range: string,
+    userId: string,
+    agentName?: string,
+    tenantId?: string,
+    excludePlayground = false,
+  ) {
     const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -164,6 +233,7 @@ export class TimeseriesQueriesService {
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
     addTenantFilter(qb, userId, agentName, resolved);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const rows = await qb
       .groupBy('at.model')
       .addGroupBy('at.auth_type')
@@ -299,355 +369,56 @@ export class TimeseriesQueriesService {
     });
   }
 
-  async getPerAgentTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    authType?: string,
-    provider?: string,
-    label?: string,
-    userProviderId?: string,
+  /**
+   * Bucketed timeseries of one metric grouped by one dimension (the data
+   * behind every per-agent / per-provider chart). The dimension and metric are
+   * keys into typed whitelists (SERIES_DIMENSIONS / SERIES_METRIC_EXPRS), so
+   * the SQL fragments are fixed at compile time.
+   *
+   * The reserved Playground (is_playground) agent is ALWAYS excluded: the
+   * NOT EXISTS semi-join matches by id OR name (so name-only Playground rows
+   * are dropped too) and, being a pure existence test, can never multiply the
+   * aggregated SUM/COUNT the way a name-based LEFT JOIN would.
+   */
+  async getPerDimensionTimeseries(
+    dimension: SeriesDimension,
+    metric: SeriesMetric,
+    options: DimensionTimeseriesOptions,
   ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
+    const dim = SERIES_DIMENSIONS[dimension];
+    const cutoff = computeCutoff(rangeToInterval(options.range));
+    const bucketExpr = options.hourly
+      ? sqlHourBucket('at.timestamp')
+      : sqlDateBucket('at.timestamp');
+    const bucketAlias = options.hourly ? 'hour' : 'date';
 
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, bucketAlias)
-      .addSelect('at.agent_name', 'agent_name')
-      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+    const qb = this.turnRepo.createQueryBuilder('at');
+    if (dim.resolvesCustomProviders) {
+      qb.leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION);
+    }
+    qb.select(bucketExpr, bucketAlias)
+      .addSelect(dim.keyExpr, dim.keyAlias)
+      .addSelect(SERIES_METRIC_EXPRS[metric], metric)
       .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.agent_name IS NOT NULL');
-    // Drop the reserved Playground (is_playground) agent. The NOT EXISTS semi-join
-    // matches by id OR name (so name-only Playground rows are excluded too) and
-    // can't multiply the per-agent SUM the way a name-based LEFT JOIN would.
+      .andWhere(`${dim.notNullColumn} IS NOT NULL`);
     excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
-    if (provider) qb.andWhere('at.provider = :provider', { provider });
-    // Scope to this connection: pin to the user_providers id when present,
-    // else the provider+auth_type+label tuple (see scopeToConnection).
-    scopeToConnection(qb, userProviderId, label);
+    // addTenantFilter also scopes to the LIVE agent owning the slug (id-based)
+    // when an agentName is given, so a soft-deleted agent sharing the name
+    // doesn't leak its old rows into the chart.
+    addTenantFilter(qb, options.userId, options.agentName, options.tenantId);
+    if (options.authType) qb.andWhere('at.auth_type = :authType', { authType: options.authType });
+    if (options.provider) qb.andWhere('at.provider = :provider', { provider: options.provider });
+    // Connection scope: pin to the user_providers id when present, else the
+    // provider+auth_type+label tuple (see scopeToConnection).
+    scopeToConnection(qb, options.userProviderId, options.label);
 
     const rows = await qb
       .groupBy(bucketAlias)
-      .addGroupBy('at.agent_name')
+      .addGroupBy(dim.keyExpr)
       .orderBy(bucketAlias, 'ASC')
       .getRawMany();
 
-    return pivotByKey(rows, bucketAlias, 'agent_name', 'tokens');
-  }
-
-  async getPerAgentMessageTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    authType?: string,
-    provider?: string,
-    label?: string,
-    userProviderId?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, bucketAlias)
-      .addSelect('at.agent_name', 'agent_name')
-      .addSelect('COUNT(*)', 'messages')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.agent_name IS NOT NULL');
-    // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
-    if (provider) qb.andWhere('at.provider = :provider', { provider });
-    // Connection scope (see getPerAgentTimeseries): id when present, else tuple.
-    scopeToConnection(qb, userProviderId, label);
-
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy('at.agent_name')
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-
-    return pivotByKey(rows, bucketAlias, 'agent_name', 'messages');
-  }
-
-  async getPerAgentCostTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    authType?: string,
-    provider?: string,
-    label?: string,
-    userProviderId?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, bucketAlias)
-      .addSelect('at.agent_name', 'agent_name')
-      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.agent_name IS NOT NULL');
-    // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    if (authType) qb.andWhere('at.auth_type = :authType', { authType });
-    if (provider) qb.andWhere('at.provider = :provider', { provider });
-    // Connection scope (see getPerAgentTimeseries): id when present, else tuple.
-    scopeToConnection(qb, userProviderId, label);
-
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy('at.agent_name')
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-
-    return pivotByKey(rows, bucketAlias, 'agent_name', 'cost');
-  }
-
-  async getPerProviderTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
-      .select(bucketExpr, bucketAlias)
-      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
-      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent so per-provider totals
-    // stay consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
-    // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
-
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-
-    return pivotByKey(rows, bucketAlias, 'provider', 'tokens');
-  }
-
-  async getPerProviderMessageTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
-      .select(bucketExpr, bucketAlias)
-      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
-      .addSelect('COUNT(*)', 'messages')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
-    // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
-
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-
-    return pivotByKey(rows, bucketAlias, 'provider', 'messages');
-  }
-
-  async getPerModelTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, bucketAlias)
-      .addSelect('at.model', 'model')
-      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent so per-model totals stay
-    // consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
-    // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
-
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy('at.model')
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-
-    return pivotByKey(rows, bucketAlias, 'model', 'tokens');
-  }
-
-  async getPerModelMessageTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, bucketAlias)
-      .addSelect('at.model', 'model')
-      .addSelect('COUNT(*)', 'messages')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
-    // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
-
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy('at.model')
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-
-    return pivotByKey(rows, bucketAlias, 'model', 'messages');
-  }
-
-  async getPerProviderCostTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
-      .select(bucketExpr, bucketAlias)
-      .addSelect(PROVIDER_SERIES_KEY_EXPR, 'provider')
-      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
-    // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy(PROVIDER_SERIES_KEY_EXPR)
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-    return pivotByKey(rows, bucketAlias, 'provider', 'cost');
-  }
-
-  async getPerModelCostTimeseries(
-    range: string,
-    userId: string,
-    hourly: boolean,
-    tenantId?: string,
-    agentName?: string,
-  ) {
-    const interval = rangeToInterval(range);
-    const cutoff = computeCutoff(interval);
-    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
-    const bucketAlias = hourly ? 'hour' : 'date';
-    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select(bucketExpr, bucketAlias)
-      .addSelect('at.model', 'model')
-      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
-      .where('at.timestamp >= :cutoff', { cutoff })
-      .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    // Scope to the LIVE agent owning the slug (id-based), so a soft-deleted
-    // agent sharing the name doesn't leak its old rows into this chart.
-    if (agentName) filterByLiveAgentName(qb, agentName, userId, tenantId);
-    const rows = await qb
-      .groupBy(bucketAlias)
-      .addGroupBy('at.model')
-      .orderBy(bucketAlias, 'ASC')
-      .getRawMany();
-    return pivotByKey(rows, bucketAlias, 'model', 'cost');
-  }
-
-  async getAgentNamesByAuthType(
-    authType: string,
-    userId: string,
-    tenantId?: string,
-  ): Promise<string[]> {
-    const qb = this.turnRepo
-      .createQueryBuilder('at')
-      .select('DISTINCT at.agent_name', 'agent_name')
-      .where('at.auth_type = :authType', { authType })
-      .andWhere('at.agent_name IS NOT NULL');
-    // Exclude the reserved Playground (is_playground) agent. The NOT EXISTS semi-join
-    // matches by id OR name, so a Playground row carrying only agent_name (NULL
-    // agent_id) is still dropped, and it can't multiply rows.
-    excludePlaygroundAgents(qb);
-    addTenantFilter(qb, userId, undefined, tenantId);
-    const rows = await qb.orderBy('at.agent_name', 'ASC').getRawMany();
-    return rows.map((r: Record<string, unknown>) => String(r['agent_name']));
+    return pivotByKey(rows, bucketAlias, dim.keyAlias, metric);
   }
 
   private parseBucketRow(
@@ -670,6 +441,11 @@ export class TimeseriesQueriesService {
  * distinct series key. Series keys are sorted alphabetically and every bucket
  * row carries every series (zero-filled), so the frontend can render a stable
  * multi-series chart without re-deriving the column set.
+ *
+ * NOTE: the series keys are returned under `agents` even for provider series —
+ * the field name is part of the HTTP response shape the frontend
+ * `PivotedTimeseries` type already consumes, so it must not be renamed without
+ * a coordinated frontend change.
  */
 function pivotByKey(
   rows: Array<Record<string, unknown>>,
@@ -677,9 +453,9 @@ function pivotByKey(
   keyField: string,
   valueField: string,
 ): { agents: string[]; timeseries: Array<Record<string, number | string>> } {
-  const keySet = new Set<string>();
-  for (const r of rows) keySet.add(String(r[keyField]));
-  const keys = [...keySet].sort();
+  const seriesKeySet = new Set<string>();
+  for (const r of rows) seriesKeySet.add(String(r[keyField]));
+  const seriesKeys = [...seriesKeySet].sort();
 
   const byBucket = new Map<string, Record<string, number>>();
   for (const r of rows) {
@@ -690,9 +466,9 @@ function pivotByKey(
 
   const timeseries = [...byBucket.entries()].map(([bucket, map]) => {
     const row: Record<string, number | string> = { [bucketAlias]: bucket };
-    for (const k of keys) row[k] = map[k] ?? 0;
+    for (const k of seriesKeys) row[k] = map[k] ?? 0;
     return row;
   });
 
-  return { agents: keys, timeseries };
+  return { agents: seriesKeys, timeseries };
 }

@@ -13,7 +13,7 @@ import {
   TIER_SLOTS,
   TierSlot,
 } from 'manifest-shared';
-import { explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
+import { effectiveRoute, explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
 import { assertStreamableResponseMode } from './response-mode-guard';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class TierService {
 
   async hasRoutableTier(agentId: string): Promise<boolean> {
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
-    return rows.some((r) => !!r.override_route);
+    return rows.some((r) => effectiveRoute(r) !== null);
   }
 
   async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {

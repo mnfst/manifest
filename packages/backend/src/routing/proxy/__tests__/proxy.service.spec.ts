@@ -67,7 +67,10 @@ const specCatalog: ProviderParamSpecCatalog = [
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
   let providerKeyService: jest.Mocked<
-    Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId'>
+    Pick<
+      ProviderKeyService,
+      'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId' | 'selectProviderKey'
+    >
   >;
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
@@ -105,6 +108,15 @@ describe('ProxyService — orchestration', () => {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
       getProviderRegion: jest.fn().mockResolvedValue(null),
       getProviderKeyId: jest.fn().mockResolvedValue('up-default'),
+      // Single key selection per request: apiKey, id, and region are all
+      // projected from this one row so they can never diverge.
+      selectProviderKey: jest.fn().mockResolvedValue({
+        apiKey: 'decrypted-key',
+        id: 'up-default',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      }),
     };
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
@@ -281,7 +293,7 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      providerKeyService.getProviderApiKey.mockResolvedValue(null);
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
       const result = await svc.proxyRequest(baseOpts());
       const body = await result.forward.response.text();
       expect(body).toContain('M100');
@@ -326,6 +338,15 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
+      // The single key selection surfaces the stored OAuth blob; the subscription
+      // re-read path then re-fetches the freshest blob for the 401-retry rawApiKey.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: rawBlob,
+        id: 'up-default',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
       openaiOauth.unwrapToken.mockResolvedValue('cached-access');
       fallbackService.tryForwardToProvider.mockResolvedValue({
@@ -369,9 +390,16 @@ describe('ProxyService — orchestration', () => {
         score: 5,
         reason: 'scored',
       });
-      providerKeyService.getProviderApiKey
-        .mockResolvedValueOnce(staleBlob)
-        .mockResolvedValueOnce(refreshedBlob);
+      // selectProviderKey surfaces the stale blob (used for the preflight unwrap);
+      // the subscription re-read then returns the rotated blob for the retry path.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: staleBlob,
+        id: 'up-default',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
+      providerKeyService.getProviderApiKey.mockResolvedValue(refreshedBlob);
       openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
       fallbackService.tryForwardToProvider.mockResolvedValue({
         response: okResponse(200),
@@ -382,7 +410,9 @@ describe('ProxyService — orchestration', () => {
 
       await svc.proxyRequest(baseOpts());
 
-      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledTimes(2);
+      // Single selection + a single subscription re-read for the freshest blob.
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledTimes(1);
+      expect(providerKeyService.getProviderApiKey).toHaveBeenCalledTimes(1);
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: 'openai',

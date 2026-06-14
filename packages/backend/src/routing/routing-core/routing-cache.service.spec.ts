@@ -85,13 +85,22 @@ describe('RoutingCacheService', () => {
       expect(svc.getProviderKeys('a', 'openai')).toEqual([]);
     });
 
-    it('keys by (agentId, provider, authType) — different authType is a separate slot', () => {
+    it('keys by (userId, provider, authType) — different authType is a separate slot', () => {
       const def = [providerKey('Default', 'key-default')];
       const sub = [providerKey('Default', 'key-sub')];
       svc.setProviderKeys('a', 'openai', def);
       svc.setProviderKeys('a', 'openai', sub, 'subscription');
       expect(svc.getProviderKeys('a', 'openai')).toBe(def);
       expect(svc.getProviderKeys('a', 'openai', 'subscription')).toBe(sub);
+    });
+
+    it('scopes the agent-qualified chain separately from the user-global one', () => {
+      const global = [providerKey('Default', 'k-global')];
+      const scoped = [providerKey('Default', 'k-scoped')];
+      svc.setProviderKeys('u1', 'openai', global);
+      svc.setProviderKeys('u1', 'openai', scoped, undefined, 'agent-1');
+      expect(svc.getProviderKeys('u1', 'openai')).toBe(global);
+      expect(svc.getProviderKeys('u1', 'openai', undefined, 'agent-1')).toBe(scoped);
     });
   });
 
@@ -103,13 +112,14 @@ describe('RoutingCacheService', () => {
       svc.setCustomProviders('u1', [customProvider('c1')]);
       svc.setSpecificity('a', [specificity('s1')]);
       svc.setModelParams('a', [modelParams('mp1')]);
-      svc.setProviderKeys('a', 'openai', [providerKey('Default', 'k')]);
-      svc.setProviderKeys('a', 'anthropic', [providerKey('Default', 'k')], 'subscription');
+      // Agent-scoped key chains carry the agentId as the trailing segment.
+      svc.setProviderKeys('u1', 'openai', [providerKey('Default', 'k')], undefined, 'a');
+      svc.setProviderKeys('u1', 'anthropic', [providerKey('Default', 'k')], 'subscription', 'a');
 
       // Unrelated agent entries should survive.
       svc.setTiers('b', [tier('t-b')]);
       const bKeys = [providerKey('Default', 'k-b')];
-      svc.setProviderKeys('b', 'openai', bKeys);
+      svc.setProviderKeys('u1', 'openai', bKeys, undefined, 'b');
 
       svc.invalidateAgent('a');
 
@@ -117,8 +127,8 @@ describe('RoutingCacheService', () => {
       expect(svc.getTiers('a')).toBeNull();
       expect(svc.getSpecificity('a')).toBeNull();
       expect(svc.getModelParams('a')).toBeNull();
-      expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
-      expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
+      expect(svc.getProviderKeys('u1', 'openai', undefined, 'a')).toBeUndefined();
+      expect(svc.getProviderKeys('u1', 'anthropic', 'subscription', 'a')).toBeUndefined();
 
       // User-scoped provider caches NOT cleared by invalidateAgent
       expect(svc.getProviders('u1')).not.toBeNull();
@@ -126,7 +136,7 @@ describe('RoutingCacheService', () => {
 
       // Unrelated agent entries survive
       expect(svc.getTiers('b')).not.toBeNull();
-      expect(svc.getProviderKeys('b', 'openai')).toBe(bKeys);
+      expect(svc.getProviderKeys('u1', 'openai', undefined, 'b')).toBe(bKeys);
     });
   });
 
@@ -135,8 +145,18 @@ describe('RoutingCacheService', () => {
       svc.setProviders('u1', [provider('p1')]);
       svc.setCustomProviders('u1', [customProvider('c1')]);
       svc.setProviderKeys('u1', 'openai', [providerKey('Default', 'k')]);
+      // Agent-scoped chain for the same user — also cleared by invalidateUser.
+      svc.setProviderKeys(
+        'u1',
+        'openai',
+        [providerKey('Default', 'k-scoped')],
+        undefined,
+        'agent-x',
+      );
+      // A different user's chain must survive.
+      svc.setProviderKeys('u2', 'openai', [providerKey('Default', 'k-other')]);
 
-      // Agent-scoped cache should survive invalidateUser
+      // Agent-scoped tier cache should survive invalidateUser (it is not user-keyed).
       svc.setTiers('agent-x', [tier('t1')]);
 
       svc.invalidateUser('u1');
@@ -144,6 +164,10 @@ describe('RoutingCacheService', () => {
       expect(svc.getProviders('u1')).toBeNull();
       expect(svc.getCustomProviders('u1')).toBeNull();
       expect(svc.getProviderKeys('u1', 'openai')).toBeUndefined();
+      expect(svc.getProviderKeys('u1', 'openai', undefined, 'agent-x')).toBeUndefined();
+
+      // Other user's chain survives
+      expect(svc.getProviderKeys('u2', 'openai')?.[0].apiKey).toBe('k-other');
 
       // Agent tiers are untouched
       expect(svc.getTiers('agent-x')).not.toBeNull();

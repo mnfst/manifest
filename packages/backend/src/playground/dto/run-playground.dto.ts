@@ -9,7 +9,6 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  Matches,
   Max,
   MaxLength,
   Min,
@@ -59,20 +58,24 @@ export class PlaygroundPayloadShapeConstraint implements ValidatorConstraintInte
 }
 
 export class RunPlaygroundDto {
+  /**
+   * @deprecated Ignored by the backend — the Playground always runs under
+   * the reserved per-tenant Playground agent. Kept optional so existing
+   * clients that still send it don't fail whitelist validation.
+   */
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  @Matches(/^[a-zA-Z0-9_-]+$/, { message: 'Invalid agent name' })
-  // The XOR shape check is attached here (a non-optional field) rather than
-  // to `messages` or `rawRequestBody`, because @IsOptional() on those fields
-  // short-circuits @Validate when the field is undefined — letting a payload
-  // with neither set (or both set) slip past the DTO. Agent name is always
-  // present, so the validator always runs. The message text makes it clear
-  // the violation is about the payload shape, not the agent name.
-  @Validate(PlaygroundPayloadShapeConstraint)
-  agentName!: string;
+  agentName?: string;
 
   @IsString()
   @IsNotEmpty()
+  // The XOR shape check is attached here (a non-optional field) rather than
+  // to `messages` or `rawRequestBody`, because @IsOptional() on those fields
+  // short-circuits @Validate when the field is undefined — letting a payload
+  // with neither set (or both set) slip past the DTO. Model is always
+  // present, so the validator always runs. The message text makes it clear
+  // the violation is about the payload shape, not the model.
+  @Validate(PlaygroundPayloadShapeConstraint)
   model!: string;
 
   @IsString()

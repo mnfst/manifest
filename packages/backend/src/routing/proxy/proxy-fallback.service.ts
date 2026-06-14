@@ -44,7 +44,10 @@ interface ForwardProviderOptions {
   paramMergeContext?: ParamMergeContext;
 }
 
-import { ProviderKeyService } from '../routing-core/provider-key.service';
+import {
+  ProviderKeyService,
+  SYNTHETIC_OLLAMA_PROVIDER_ID,
+} from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { resolveForwardEndpoint } from './forward-endpoint-resolver';
@@ -233,38 +236,32 @@ export class ProxyFallbackService {
           agentId,
         )) as AuthType;
       }
-      if (!providerKeyLabel && authType === 'subscription') {
-        providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          userId,
-          provider,
-          authType,
-          agentId,
-        );
-      }
-
       const model = normalizeProviderModel(provider, requestedModel);
-      const apiKey = await this.providerKeyService.getProviderApiKey(
+      // Single key selection per attempt: the forwarded apiKey, the stamped
+      // user_provider_id, the recorded key label, and the region are all
+      // projected from this one row, so they can never diverge. With no
+      // pinned label this returns the priority-0 (default) key.
+      const key = await this.providerKeyService.selectProviderKey(
         userId,
         provider,
         authType,
         providerKeyLabel,
         agentId,
       );
-      if (apiKey === null) {
+      if (!key || key.apiKey === null) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
         );
         continue;
       }
-      // Connection (user_providers row) that served this fallback attempt, for
-      // stamping the recorded row. NULL for synthetic Ollama / no persisted row.
-      const userProviderId = await this.providerKeyService.getProviderKeyId(
-        userId,
-        provider,
-        authType,
-        providerKeyLabel,
-        agentId,
-      );
+      const apiKey = key.apiKey;
+      // NULL for synthetic Ollama — no persisted row to stamp.
+      const userProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
+      // Resolve an unpinned subscription label to the selected row's label so
+      // OAuth refresh persistence updates the same key the selection used.
+      if (!providerKeyLabel && authType === 'subscription') {
+        providerKeyLabel = key.label;
+      }
 
       const resolvedCredentials = await resolveApiKey(
         provider,
@@ -288,6 +285,9 @@ export class ProxyFallbackService {
       }
       let rawApiKey = apiKey;
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
+        // Deliberate re-read: resolveApiKey may have refreshed + persisted a
+        // rotated OAuth blob (which also invalidates the key cache), so the
+        // freshest stored value is fetched for the 401-retry path.
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
             userId,
@@ -297,13 +297,7 @@ export class ProxyFallbackService {
             agentId,
           )) ?? apiKey;
       }
-      const providerRegion = await this.providerKeyService.getProviderRegion(
-        userId,
-        provider,
-        authType,
-        providerKeyLabel,
-        agentId,
-      );
+      const providerRegion = key.region;
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -340,7 +334,10 @@ export class ProxyFallbackService {
             provider,
             fallbackIndex: i,
             authType,
-            keyLabel: providerKeyLabel,
+            // Label of the connection row that served the attempt — stamped
+            // alongside its user_provider_id so the pair always matches.
+            // Synthetic rows (Ollama) keep the pinned label, if any.
+            keyLabel: userProviderId ? key.label : providerKeyLabel,
             userProviderId,
           },
           failures,

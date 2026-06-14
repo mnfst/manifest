@@ -14,10 +14,6 @@ jest.mock('../database/quality-score.util', () => ({
   computeQualityScore: jest.fn().mockReturnValue(3),
 }));
 
-jest.mock('./anthropic-subscription-probe', () => ({
-  filterBySubscriptionAccess: jest.fn().mockImplementation((models: unknown[]) => models),
-}));
-
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 

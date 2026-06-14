@@ -10,7 +10,11 @@ import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.s
 import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { readFallbackRoutes, readOverrideRoute } from '../routing-core/route-helpers';
+import {
+  readAutoAssignedRoute,
+  readFallbackRoutes,
+  readOverrideRoute,
+} from '../routing-core/route-helpers';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
 import { ResolveResponse } from '../dto/resolve-response';
@@ -367,6 +371,10 @@ export class ResolveService {
     fallbackRoutes: ModelRoute[] | null,
   ): Promise<ResolvedRouteChain> {
     const override = readOverrideRoute(assignment);
+    // Legacy reads go through the shared helper so the "auto_assigned_route is
+    // honored when override is empty" semantics stay in lockstep with
+    // TierService.hasRoutableTier / effectiveRoute (see route-helpers.ts).
+    const autoAssigned = readAutoAssignedRoute(assignment);
     if (override) {
       if (await this.providerKeyService.isModelAvailable(userId, override.model, agentId)) {
         return {
@@ -378,10 +386,7 @@ export class ResolveService {
         `Override ${override.model} unavailable for agent=${agentId} — ` +
           `falling back to configured routes`,
       );
-      const candidates = [
-        ...(fallbackRoutes ?? []),
-        ...(assignment.auto_assigned_route ? [assignment.auto_assigned_route] : []),
-      ];
+      const candidates = [...(fallbackRoutes ?? []), ...(autoAssigned ? [autoAssigned] : [])];
       const [primaryRoute, ...remainingFallbacks] = candidates;
       return {
         primaryRoute: primaryRoute
@@ -391,8 +396,8 @@ export class ResolveService {
       };
     }
     return {
-      primaryRoute: assignment.auto_assigned_route
-        ? await this.enrichRouteKeyLabel(agentId, userId, assignment.auto_assigned_route)
+      primaryRoute: autoAssigned
+        ? await this.enrichRouteKeyLabel(agentId, userId, autoAssigned)
         : null,
       fallbackRoutes,
     };

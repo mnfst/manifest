@@ -38,11 +38,28 @@ export class OverviewController {
 
     const [summary, tsData, costByModel, recentActivity, activeSkills, hasData, hasProviders] =
       await Promise.all([
-        this.aggregation.getSummaryMetrics(range, user.id, tenantId, agentName),
-        this.timeseries.getTimeseries(range, user.id, hourly, tenantId, agentName),
-        this.timeseries.getCostByModel(range, user.id, agentName, tenantId),
-        this.timeseries.getRecentActivity(range, user.id, 5, agentName, tenantId),
-        this.timeseries.getActiveSkills(range, user.id, agentName, tenantId),
+        // The overview excludes the reserved Playground (is_playground) agent's
+        // traffic EVERYWHERE: the per-agent/per-provider charts on the same page
+        // always drop it, so the summary cards, the aggregate timeseries and the
+        // breakdown widgets must agree or the page contradicts itself.
+        this.aggregation.getSummaryMetrics({
+          range,
+          userId: user.id,
+          tenantId,
+          agentName,
+          excludePlayground: true,
+        }),
+        this.timeseries.getTimeseries({
+          range,
+          userId: user.id,
+          hourly,
+          tenantId,
+          agentName,
+          excludePlayground: true,
+        }),
+        this.timeseries.getCostByModel(range, user.id, agentName, tenantId, true),
+        this.timeseries.getRecentActivity(range, user.id, 5, agentName, tenantId, true),
+        this.timeseries.getActiveSkills(range, user.id, agentName, tenantId, true),
         this.aggregation.hasAnyData(user.id, agentName, tenantId),
         this.hasActiveProviders(user.id, agentName),
       ]);
@@ -68,25 +85,46 @@ export class OverviewController {
   @Get('overview/per-agent-timeseries')
   async getPerAgentTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
     const { range, hourly, tenantId } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerAgentTimeseries(range, user.id, hourly, tenantId);
+    return this.timeseries.getPerDimensionTimeseries('agent', 'tokens', {
+      range,
+      userId: user.id,
+      hourly,
+      tenantId,
+    });
   }
 
   @Get('overview/per-agent-message-timeseries')
   async getPerAgentMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
     const { range, hourly, tenantId } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerAgentMessageTimeseries(range, user.id, hourly, tenantId);
+    return this.timeseries.getPerDimensionTimeseries('agent', 'messages', {
+      range,
+      userId: user.id,
+      hourly,
+      tenantId,
+    });
   }
 
   @Get('overview/per-agent-cost-timeseries')
   async getPerAgentCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
     const { range, hourly, tenantId } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerAgentCostTimeseries(range, user.id, hourly, tenantId);
+    return this.timeseries.getPerDimensionTimeseries('agent', 'cost', {
+      range,
+      userId: user.id,
+      hourly,
+      tenantId,
+    });
   }
 
   @Get('overview/per-provider-timeseries')
   async getPerProviderTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
     const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerProviderTimeseries(range, user.id, hourly, tenantId, agentName);
+    return this.timeseries.getPerDimensionTimeseries('provider', 'tokens', {
+      range,
+      userId: user.id,
+      hourly,
+      tenantId,
+      agentName,
+    });
   }
 
   @Get('overview/per-provider-message-timeseries')
@@ -95,49 +133,25 @@ export class OverviewController {
     @CurrentUser() user: AuthUser,
   ) {
     const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerProviderMessageTimeseries(
+    return this.timeseries.getPerDimensionTimeseries('provider', 'messages', {
       range,
-      user.id,
+      userId: user.id,
       hourly,
       tenantId,
       agentName,
-    );
+    });
   }
 
   @Get('overview/per-provider-cost-timeseries')
   async getPerProviderCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
     const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerProviderCostTimeseries(
+    return this.timeseries.getPerDimensionTimeseries('provider', 'cost', {
       range,
-      user.id,
+      userId: user.id,
       hourly,
       tenantId,
       agentName,
-    );
-  }
-
-  @Get('overview/per-model-cost-timeseries')
-  async getPerModelCostTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerModelCostTimeseries(range, user.id, hourly, tenantId, agentName);
-  }
-
-  @Get('overview/per-model-timeseries')
-  async getPerModelTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerModelTimeseries(range, user.id, hourly, tenantId, agentName);
-  }
-
-  @Get('overview/per-model-message-timeseries')
-  async getPerModelMessageTimeseries(@Query() query: RangeQueryDto, @CurrentUser() user: AuthUser) {
-    const { range, hourly, tenantId, agentName } = await this.deriveTimeseriesArgs(query, user);
-    return this.timeseries.getPerModelMessageTimeseries(
-      range,
-      user.id,
-      hourly,
-      tenantId,
-      agentName,
-    );
+    });
   }
 
   /**
