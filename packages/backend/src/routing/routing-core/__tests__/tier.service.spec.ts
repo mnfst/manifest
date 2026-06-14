@@ -356,6 +356,8 @@ describe('TierService', () => {
       );
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(tierRepo.save).toHaveBeenCalled();
+      // The existing-row branch invalidates the routing cache; assert that side effect.
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
     it('rethrows when insert fails and no row exists on retry (no phantom success)', async () => {
