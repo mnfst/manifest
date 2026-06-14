@@ -325,7 +325,10 @@ describe('TierService', () => {
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
-    it('retries when insert hits the unique index and another row exists', async () => {
+    it('retries on a unique-index conflict and returns the persisted row', async () => {
+      // Conflict path: the concurrent row already exists on re-read, so the
+      // service adopts it (recursing into the existing-row branch) and returns
+      // the persisted override rather than throwing.
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
@@ -352,25 +355,24 @@ describe('TierService', () => {
         'api_key',
       );
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(tierRepo.save).toHaveBeenCalled();
     });
 
-    it('returns the freshly built record when insert fails and no row exists on retry', async () => {
+    it('rethrows when insert fails and no row exists on retry (no phantom success)', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       tierRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      tierRepo.insert.mockRejectedValueOnce(new Error('unrelated'));
+      const err = new Error('FK violation');
+      tierRepo.insert.mockRejectedValueOnce(err);
 
-      // No throw — service returns the local record and invalidates cache.
-      const result = await svc.setOverride(
-        'agent-1',
-        'tenant-1',
-        'standard',
-        'gpt-4o',
-        'openai',
-        'api_key',
-      );
-      expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      // A non-conflict DB error with no conflicting row on re-read must
+      // propagate — the row was never persisted, so reporting success would
+      // strand the caller with a phantom record and a stale cache.
+      await expect(
+        svc.setOverride('agent-1', 'tenant-1', 'standard', 'gpt-4o', 'openai', 'api_key'),
+      ).rejects.toThrow(err);
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 

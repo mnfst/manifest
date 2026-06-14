@@ -150,6 +150,28 @@ describe('AgentDuplicationService', () => {
         NotFoundException,
       );
     });
+
+    it('summary exposes exactly the DuplicateAgentSummary key set (no customProviders drift)', async () => {
+      // Pins the public contract the AgentsController forwards verbatim to the
+      // dashboard. The Recent-Messages-style drift where a stray `customProviders`
+      // field crept into the controller mock is impossible to reintroduce while
+      // this exact-key assertion stands.
+      mockAgentGetOne.mockResolvedValueOnce({ id: 'src-1', tenant_id: 't1' });
+      repoCounts = {
+        AgentEnabledProvider: 1,
+        TierAssignment: 0,
+        SpecificityAssignment: 0,
+        AgentModelParams: 0,
+      };
+
+      const result = await service.getCopySummary('tenant-1', 'source-agent');
+      expect(Object.keys(result).sort()).toEqual([
+        'modelParams',
+        'providers',
+        'specificityAssignments',
+        'tierAssignments',
+      ]);
+    });
   });
 
   describe('suggestName', () => {

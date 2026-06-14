@@ -28,7 +28,14 @@ interface CachedKey {
   agentId: string;
   agentName: string;
   userId: string | null;
+  // When this cache entry stops being trusted (the 5-min cache TTL).
   expiresAt: number;
+  // The API key's OWN expiry (epoch ms) copied off the DB row, or null when
+  // the key never expires. Distinct from `expiresAt`: a key can be set to
+  // expire while still inside the cache TTL window, so the fast path must
+  // honor this independently instead of trusting the cache entry until the
+  // TTL lapses.
+  keyExpiresAt: number | null;
 }
 
 @Injectable()
@@ -138,8 +145,15 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
 
   private async validateMnfstToken(request: Request, token: string): Promise<boolean> {
     const hashed = cacheKey(token);
+    const now = Date.now();
     const cached = this.cache.get(hashed);
-    if (cached && cached.expiresAt > Date.now()) {
+    // A key whose own expiry has passed must stop authenticating immediately,
+    // even if its cache entry is still inside the 5-min TTL. Drop the stale
+    // entry and fall through to the DB path (which re-checks expiry and rejects
+    // with "API key expired") rather than honoring it here.
+    if (cached && cached.keyExpiresAt !== null && cached.keyExpiresAt <= now) {
+      this.cache.delete(hashed);
+    } else if (cached && cached.expiresAt > now) {
       // LRU touch — re-insert to move to tail of insertion order
       this.cache.delete(hashed);
       this.cache.set(hashed, cached);
@@ -206,6 +220,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
       agentName: keyRecord.agent.name,
       userId: keyRecord.tenant.owner_user_id,
       expiresAt: Date.now() + this.CACHE_TTL_MS,
+      keyExpiresAt: keyRecord.expires_at ? new Date(keyRecord.expires_at).getTime() : null,
     });
 
     this.setContext(request, {

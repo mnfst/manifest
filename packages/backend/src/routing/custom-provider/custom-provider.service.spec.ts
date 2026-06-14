@@ -821,11 +821,21 @@ describe('CustomProviderService', () => {
   });
 
   describe('getById', () => {
-    it('returns the provider directly from the repository', async () => {
+    it('returns the provider scoped to the tenant', async () => {
       const cp = { id: 'cp1' } as CustomProvider;
       const { svc, findOne } = makeDeps({ findOneResults: [cp] });
-      await expect(svc.getById('cp1')).resolves.toBe(cp);
-      expect(findOne).toHaveBeenCalledWith({ where: { id: 'cp1' } });
+      await expect(svc.getById('cp1', 'tenant-1')).resolves.toBe(cp);
+      // Tenant-scoped lookup mirrors list/update/remove — the where-clause must
+      // include tenant_id so one tenant cannot read another's custom provider.
+      expect(findOne).toHaveBeenCalledWith({ where: { id: 'cp1', tenant_id: 'tenant-1' } });
+    });
+
+    it('returns null when the id belongs to a different tenant', async () => {
+      // findOneResults is empty → the mock resolves null, modelling a row that
+      // exists under another tenant_id and is therefore filtered out.
+      const { svc, findOne } = makeDeps({ findOneResults: [] });
+      await expect(svc.getById('cp1', 'tenant-other')).resolves.toBeNull();
+      expect(findOne).toHaveBeenCalledWith({ where: { id: 'cp1', tenant_id: 'tenant-other' } });
     });
   });
 

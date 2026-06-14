@@ -1,6 +1,14 @@
 import { Title } from '@solidjs/meta';
 import { useNavigate, useSearchParams } from '@solidjs/router';
-import { createMemo, createResource, createSignal, For, Show, type Component } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  Show,
+  type Component,
+} from 'solid-js';
 import {
   getAgents,
   getCustomProviders,
@@ -302,13 +310,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     },
   );
 
-  if (searchParams.add === 'true') {
-    queueMicrotask(() => {
-      setSearchParams({ add: undefined });
-      openModal();
-    });
-  }
-
   const connectedSummaries = () =>
     (data()?.providers ?? []).filter((provider) => provider.auth_type === copy().authType);
 
@@ -382,6 +383,19 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     void refetchModalProviders();
     setShowModal(true);
   };
+
+  // Deep-link support: visiting a provider page with ?add=true auto-opens the
+  // connect modal so onboarding surfaces can route a user straight into adding
+  // a provider. React on every navigation (not just initial mount) and clear the
+  // param (replace) so a refresh or back-nav doesn't re-trigger it. Runs in an
+  // effect — never the render body — so the param write/modal open stay reactive
+  // side effects rather than firing during render.
+  createEffect(() => {
+    if (searchParams.add === 'true') {
+      setSearchParams({ add: undefined }, { replace: true });
+      openModal();
+    }
+  });
 
   const openCustomProvider = () => {
     setDeepLink(null);

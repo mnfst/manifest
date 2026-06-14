@@ -404,8 +404,11 @@ export class CustomProviderService {
     this.notifyChange(tenantId, actorUserId);
   }
 
-  async getById(id: string): Promise<CustomProvider | null> {
-    return this.repo.findOne({ where: { id } });
+  async getById(id: string, tenantId: string): Promise<CustomProvider | null> {
+    // Tenant-scoped to match list/update/remove — a bare `{ id }` lookup would
+    // let one tenant read another's custom provider row if a caller ever passed
+    // an attacker-controlled id. No in-repo callers today; scoped defensively.
+    return this.repo.findOne({ where: { id, tenant_id: tenantId } });
   }
 
   /**

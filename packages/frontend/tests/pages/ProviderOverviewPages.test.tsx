@@ -1001,6 +1001,23 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getByText('Back to overview')).toBeDefined();
   });
 
+  it('shows a retryable error state when the connection detail fetch fails', async () => {
+    // A rejected fetch must render a retryable error state, not spin the loading
+    // skeleton forever (calling detail() re-throws on error in Solid).
+    apiMocks.getConnectionDetail.mockRejectedValueOnce(new Error('network down'));
+
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() =>
+      expect(screen.getByText("Couldn't load this connection")).toBeDefined(),
+    );
+    expect(container.querySelector('[style*="skeleton-pulse"]')).toBeNull();
+
+    // Retry re-fetches; on success the connection renders.
+    apiMocks.getConnectionDetail.mockResolvedValueOnce(connectionDetail);
+    fireEvent.click(screen.getByText('Retry'));
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+  });
+
   it('scopes every chart query to the connection label (P2)', async () => {
     // The detail page must pass the connection's label to all chart/summary
     // queries so two connections sharing provider+auth_type but differing by

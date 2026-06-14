@@ -126,12 +126,14 @@ describe('SpecificityService', () => {
       expect(result.is_active).toBe(true);
     });
 
-    it('returns the freshly built record when insert fails and no retry row exists', async () => {
+    it('rethrows when insert fails and no retry row exists (no phantom success)', async () => {
       repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      repo.insert.mockRejectedValueOnce(new Error('unrelated'));
-      const result = await svc.toggleCategory('agent-1', 'coding', true);
-      expect(result.category).toBe('coding');
-      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      const err = new Error('FK violation');
+      repo.insert.mockRejectedValueOnce(err);
+      // A non-conflict DB error with no conflicting row on re-read must
+      // propagate rather than returning a record that was never persisted.
+      await expect(svc.toggleCategory('agent-1', 'coding', true)).rejects.toThrow(err);
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 
@@ -214,18 +216,16 @@ describe('SpecificityService', () => {
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
     });
 
-    it('returns built record when insert fails without a retry row', async () => {
+    it('rethrows when insert fails without a retry row (no phantom success)', async () => {
       repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      repo.insert.mockRejectedValueOnce(new Error('unrelated'));
-      const result = await svc.setOverride(
-        'agent-1',
-        'tenant-1',
-        'coding',
-        'gpt-4o',
-        'openai',
-        'api_key',
-      );
-      expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      const err = new Error('FK violation');
+      repo.insert.mockRejectedValueOnce(err);
+      // A non-conflict DB error with no conflicting row on re-read must
+      // propagate rather than returning a record that was never persisted.
+      await expect(
+        svc.setOverride('agent-1', 'tenant-1', 'coding', 'gpt-4o', 'openai', 'api_key'),
+      ).rejects.toThrow(err);
+      expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
     });
   });
 

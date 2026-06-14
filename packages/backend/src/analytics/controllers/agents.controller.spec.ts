@@ -47,6 +47,10 @@ describe('AgentsController', () => {
     mockDeleteAgent = jest.fn().mockResolvedValue(undefined);
     mockRenameAgent = jest.fn().mockResolvedValue(undefined);
     mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
+    // Mirrors the real DuplicateAgentSummary shape (agent-duplication.service.ts):
+    // exactly { providers, tierAssignments, specificityAssignments, modelParams } —
+    // there is no `customProviders` field (custom providers are tenant-global and
+    // counted under `providers` via the enabled-provider junction).
     mockDuplicate = jest.fn().mockResolvedValue({
       agentId: 'new-id',
       agentName: 'bot-copy',
@@ -54,7 +58,6 @@ describe('AgentsController', () => {
       apiKey: 'mnfst_new',
       copied: {
         providers: 1,
-        customProviders: 0,
         tierAssignments: 2,
         specificityAssignments: 0,
         modelParams: 0,
@@ -62,7 +65,6 @@ describe('AgentsController', () => {
     });
     mockGetCopySummary = jest.fn().mockResolvedValue({
       providers: 1,
-      customProviders: 0,
       tierAssignments: 2,
       specificityAssignments: 0,
       modelParams: 0,
@@ -713,7 +715,6 @@ describe('AgentsController', () => {
     expect(result).toEqual({
       copied: {
         providers: 1,
-        customProviders: 0,
         tierAssignments: 2,
         specificityAssignments: 0,
         modelParams: 0,

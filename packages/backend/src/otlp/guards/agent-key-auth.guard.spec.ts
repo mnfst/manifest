@@ -236,6 +236,83 @@ describe('AgentKeyAuthGuard', () => {
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
   });
 
+  it('stops authenticating from cache once the key own expiry passes within the cache TTL', async () => {
+    // A key that expires (or is set to expire) while still cached must not keep
+    // authenticating until the 5-min cache TTL lapses. The fast path reads the
+    // key's own expires_at, not just the cache entry's TTL.
+    const token = 'mnfst_soon-expiring-key';
+    const keyHash = hashKey(token);
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-exp',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: keyHash,
+        expires_at: null,
+        agent: { name: 'test-agent' },
+        tenant: { owner_user_id: 'user-1' },
+      },
+    ]);
+
+    // First call caches the key (DB lookup happens).
+    const { ctx: ctx1 } = makeContext({ authorization: `Bearer ${token}` });
+    expect(await guard.canActivate(ctx1)).toBe(true);
+    expect(mockGetMany).toHaveBeenCalledTimes(1);
+
+    // Simulate the key being set to expire in the past while still cached: its
+    // cache entry TTL is well in the future, but keyExpiresAt is now stale.
+    const internalCache = (guard as unknown as { cache: Map<string, { keyExpiresAt: number }> })
+      .cache;
+    const entry = internalCache.get(testCacheKey(token))!;
+    expect(entry).toBeDefined();
+    entry.keyExpiresAt = Date.now() - 1000;
+
+    // The DB now reports the key as expired — the fast path must drop the stale
+    // entry and fall through to the DB re-check, which rejects.
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-exp',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: keyHash,
+        expires_at: new Date(Date.now() - 1000).toISOString(),
+        agent: { name: 'test-agent' },
+        tenant: { owner_user_id: 'user-1' },
+      },
+    ]);
+
+    const { ctx: ctx2 } = makeContext({ authorization: `Bearer ${token}` });
+    await expect(guard.canActivate(ctx2)).rejects.toThrow('API key expired');
+    // The cache entry was discarded rather than honored, so a DB re-check ran.
+    expect(internalCache.has(testCacheKey(token))).toBe(false);
+  });
+
+  it('stores the key own expires_at on the cached entry for non-expiring keys', async () => {
+    const token = 'mnfst_no-expiry-key';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-noexp',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'test-agent' },
+        tenant: { owner_user_id: 'user-1' },
+      },
+    ]);
+
+    const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+    await guard.canActivate(ctx);
+
+    const internalCache = (
+      guard as unknown as { cache: Map<string, { keyExpiresAt: number | null }> }
+    ).cache;
+    const entry = internalCache.get(testCacheKey(token));
+    expect(entry).toBeDefined();
+    // A null DB expiry stays null on the cache entry (key never expires).
+    expect(entry!.keyExpiresAt).toBeNull();
+  });
+
   it('requires auth for loopback IPs in non-development mode', async () => {
     const { ctx } = makeContext({}, '127.0.0.1');
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
