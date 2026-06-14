@@ -17,9 +17,12 @@ import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../entities/agent-message.entity';
 import type { CustomProvider } from '../entities/custom-provider.entity';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
-const USER_ID = 'user-1';
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
+// The request context threaded into runStream. The Playground agent resolves to
+// AGENT (tenant_id 'tenant-1'); ctx.userId is audit-only attribution.
+const CTX: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 const DEFAULT_PROVIDER_KEY = {
   id: 'key-1',
   label: 'Default',
@@ -250,7 +253,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     const deltas = events.filter((e) => e.type === 'delta');
@@ -279,7 +282,7 @@ describe('PlaygroundService.runStream', () => {
       input_tokens: 10,
       output_tokens: 5,
     });
-    expect(mocks.eventBus.emit).toHaveBeenCalledWith(USER_ID);
+    expect(mocks.eventBus.emit).toHaveBeenCalledWith(AGENT.tenant_id);
     expect(mocks.history.saveColumn).toHaveBeenCalledTimes(1);
     expect(mocks.history.saveColumn.mock.calls[0][0]).toMatchObject({
       prompt: 'hi',
@@ -301,7 +304,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ provider: 'custom:abc', model: 'custom:abc/meta-llama/Llama-3.1-8B' }),
       asRes(res),
     );
@@ -327,7 +330,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ provider: 'minimax', authType: 'subscription', model: 'minimax/abab' }),
       asRes(res),
     );
@@ -355,7 +358,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ provider: 'minimax', authType: 'subscription', model: 'minimax/abab' }),
       asRes(res),
     );
@@ -375,7 +378,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ provider: 'openai', authType: 'subscription' }),
       asRes(res),
     );
@@ -391,7 +394,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     const metrics = done.metrics as Record<string, number | null>;
@@ -412,7 +415,7 @@ describe('PlaygroundService.runStream', () => {
     // Provider connected but key missing → sendPreStreamError path.
     mocks.providerKeyService.getProviderKeys.mockResolvedValue([]);
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res.status).not.toHaveBeenCalled();
     expect(res.json).not.toHaveBeenCalled();
@@ -435,7 +438,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // recordError's catch swallowed the Error; the user still gets the 502.
     expect(res._status).toBe(502);
@@ -452,7 +455,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     expect((done.metrics as Record<string, unknown>).tokensPerSec).toBeNull();
@@ -469,7 +472,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(404);
     expect(res._json).toMatchObject({ statusCode: 404 });
@@ -488,7 +491,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(404);
     expect((res._json as { message: string }).message).toContain('No usable API key');
@@ -505,10 +508,10 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto({ authType: undefined }), asRes(res));
+    await service.runStream(CTX, makeDto({ authType: undefined }), asRes(res));
 
     expect(mocks.providerKeyService.getAuthType).toHaveBeenCalledWith(
-      USER_ID,
+      AGENT.tenant_id,
       'openai',
       undefined,
       AGENT.id,
@@ -540,13 +543,13 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ model: 'gpt-5.5', authType: 'subscription' }),
       asRes(res),
     );
 
     expect(mocks.providerKeyService.getProviderKeys).toHaveBeenCalledWith(
-      USER_ID,
+      AGENT.tenant_id,
       'openai',
       'subscription',
       AGENT.id,
@@ -554,7 +557,7 @@ describe('PlaygroundService.runStream', () => {
     expect(mocks.openaiOauth.unwrapToken).toHaveBeenCalledWith(
       oauthBlob,
       AGENT.id,
-      USER_ID,
+      AGENT.tenant_id,
       'Work',
     );
     expect(mocks.providerClient.forward).toHaveBeenCalledWith(
@@ -598,7 +601,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ model: 'gpt-5.5', authType: 'subscription' }),
       asRes(res),
     );
@@ -629,7 +632,7 @@ describe('PlaygroundService.runStream', () => {
       2,
       expect.any(String),
       AGENT.id,
-      USER_ID,
+      AGENT.tenant_id,
       'Work',
     );
     expect(res._status).toBeNull();
@@ -643,7 +646,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(404);
     expect((res._json as { message: string }).message).toBe('agent gone');
@@ -657,7 +660,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(403);
   });
@@ -670,7 +673,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(500);
     expect((res._json as { message: string }).message).toBe('boom');
@@ -684,7 +687,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(500);
     expect((res._json as { message: string }).message).toBe('weird-string');
@@ -695,7 +698,7 @@ describe('PlaygroundService.runStream', () => {
     mocks.providerClient.forward.mockRejectedValue(new Error('connection refused'));
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('connection refused');
@@ -706,7 +709,7 @@ describe('PlaygroundService.runStream', () => {
     mocks.providerClient.forward.mockRejectedValue('not-an-error');
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('not-an-error');
@@ -728,7 +731,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('Provider returned 429');
@@ -758,7 +761,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect((res._json as { message: string }).message).toBe('Provider returned 500');
   });
@@ -778,7 +781,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     expect(events).toHaveLength(1);
@@ -809,7 +812,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     expect(events.some((e) => e.type === 'error')).toBe(true);
@@ -857,7 +860,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
     mocks.providerClient.forward.mockResolvedValue(abortingForward(res));
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // Aborted → no error event, no telemetry row, no history column, just end().
     expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
@@ -871,7 +874,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
     mocks.providerClient.forward.mockResolvedValue(abortingForward(res, { endFirst: true }));
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res.end).not.toHaveBeenCalled();
   });
@@ -897,7 +900,7 @@ describe('PlaygroundService.runStream', () => {
       isChatGpt: false,
     });
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // recordError + saveColumn still run, but res.end() must not be called twice.
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
@@ -924,7 +927,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const errEvent = parseSse(res).find((e) => e.type === 'error') as Record<string, unknown>;
     expect(errEvent.message).toBe('string-failure');
@@ -941,7 +944,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const events = parseSse(res);
     expect(events.some((e) => e.type === 'done')).toBe(true);
@@ -965,7 +968,7 @@ describe('PlaygroundService.runStream', () => {
     });
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('Provider returned 503');
@@ -982,7 +985,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     expect(parseSse(res).some((e) => e.type === 'done')).toBe(true);
   });
@@ -1004,7 +1007,7 @@ describe('PlaygroundService.runStream', () => {
     );
     const res = mockRes();
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
     const headers = done.headers as Record<string, string>;
@@ -1021,7 +1024,7 @@ describe('PlaygroundService.runStream', () => {
     const res = mockRes();
 
     await service.runStream(
-      USER_ID,
+      CTX,
       makeDto({ requestHeaders: { 'X-Custom': 'keep', authorization: 'drop-me' } }),
       asRes(res),
     );
@@ -1055,7 +1058,7 @@ describe('PlaygroundService.runStream', () => {
       isChatGpt: false,
     });
 
-    await service.runStream(USER_ID, makeDto(), asRes(res));
+    await service.runStream(CTX, makeDto(), asRes(res));
 
     // writableEnded was true before send({type:'done'}) — nothing extra written.
     expect(res._written).toEqual([]);

@@ -8,19 +8,19 @@ import { agentListCacheKey } from '../constants/cache.constants';
  * UserCacheInterceptor, it collapses every query-string variant (no param,
  * ?includePlayground=true, ?includePlayground=false, anything else) onto one of two
  * canonical keys based on the normalized `includePlayground` boolean. That keeps the
- * cached key set bounded to exactly two entries per user, so mutation handlers
+ * cached key set bounded to exactly two entries per tenant, so mutation handlers
  * can invalidate it exhaustively (see agentListCacheKey) without a stray URL
  * variant being left stale.
  */
 @Injectable()
 export class AgentListCacheInterceptor extends UserCacheInterceptor {
   protected trackBy(context: ExecutionContext): string | undefined {
-    const userId = this.resolveUserId(context);
-    if (!userId) return undefined;
+    const tenantId = this.resolveTenantId(context);
+    if (!tenantId) return undefined;
 
     const request = context.switchToHttp().getRequest<Request>();
     const includePlayground =
       (request.query as { includePlayground?: string } | undefined)?.includePlayground === 'true';
-    return agentListCacheKey(userId, includePlayground);
+    return agentListCacheKey(tenantId, includePlayground);
   }
 }

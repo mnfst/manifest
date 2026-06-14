@@ -9,8 +9,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { SpecificityService } from './routing-core/specificity.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import {
@@ -30,20 +29,20 @@ export class SpecificityController {
   ) {}
 
   @Get(':agentName/specificity')
-  async getAssignments(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+  async getAssignments(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     return this.specificityService.getAssignments(agent.id);
   }
 
   @Put(':agentName/specificity/:category')
   async setOverride(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
     @Body() body: SetSpecificityOverrideDto,
   ) {
     this.validateCategory(category);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     // Prefer the structured route when the client sent it, otherwise use the
     // flat fields. `route.keyLabel` and the legacy flat `providerKeyLabel`
     // carry the same multi-key pin.
@@ -53,7 +52,7 @@ export class SpecificityController {
     const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
     return this.specificityService.setOverride(
       agent.id,
-      user.id,
+      agent.tenant_id,
       category,
       model,
       provider,
@@ -64,31 +63,31 @@ export class SpecificityController {
 
   @Post(':agentName/specificity/:category/toggle')
   async toggleCategory(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
     @Body() body: ToggleSpecificityDto,
   ) {
     this.validateCategory(category);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.specificityService.toggleCategory(agent.id, user.id, category, body.active);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    return this.specificityService.toggleCategory(agent.id, category, body.active);
   }
 
   @Delete(':agentName/specificity/:category')
   async clearOverride(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
   ) {
     this.validateCategory(category);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     await this.specificityService.clearOverride(agent.id, category);
     return { ok: true };
   }
 
   @Patch(':agentName/specificity/:category/response-mode')
   async setResponseMode(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
     @Body() body: SetResponseModeDto,
@@ -96,22 +95,22 @@ export class SpecificityController {
     this.validateCategory(category);
     const responseMode = responseModeFromDto(body);
     if (!responseMode) throw new BadRequestException('response_mode is required');
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.specificityService.setResponseMode(agent.id, user.id, category, responseMode);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    return this.specificityService.setResponseMode(agent.id, category, responseMode);
   }
 
   @Put(':agentName/specificity/:category/fallbacks')
   async setFallbacks(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
     @Body() body: SetFallbacksDto,
   ) {
     this.validateCategory(category);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     return this.specificityService.setFallbacks(
       agent.id,
-      user.id,
+      agent.tenant_id,
       category,
       body.models,
       body.routes,
@@ -120,19 +119,19 @@ export class SpecificityController {
 
   @Delete(':agentName/specificity/:category/fallbacks')
   async clearFallbacks(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('category') category: string,
   ) {
     this.validateCategory(category);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     await this.specificityService.clearFallbacks(agent.id, category);
     return { ok: true };
   }
 
   @Post(':agentName/specificity/reset-all')
-  async resetAll(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+  async resetAll(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     await this.specificityService.resetAll(agent.id);
     return { ok: true };
   }

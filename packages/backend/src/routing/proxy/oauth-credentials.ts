@@ -43,7 +43,7 @@ export async function refreshRejectedOAuthCredential(
   provider: string,
   rawValue: string,
   agentId: string,
-  userId: string,
+  tenantId: string,
   keyLabel: string | undefined,
   services: OAuthServiceSet,
 ): Promise<ResolvedCredentials | null> {
@@ -55,7 +55,7 @@ export async function refreshRejectedOAuthCredential(
     const unwrapped = await services.openaiOauth.unwrapToken(
       expiredRawValue,
       agentId,
-      userId,
+      tenantId,
       keyLabel,
     );
     return unwrapped ? { apiKey: unwrapped } : null;
@@ -64,7 +64,7 @@ export async function refreshRejectedOAuthCredential(
     const unwrapped = await services.minimaxOauth.unwrapToken(
       expiredRawValue,
       agentId,
-      userId,
+      tenantId,
       keyLabel,
     );
     return unwrapped ? { apiKey: unwrapped.t, resourceUrl: unwrapped.u } : null;
@@ -73,7 +73,7 @@ export async function refreshRejectedOAuthCredential(
     const unwrapped = await services.anthropicOauth.unwrapToken(
       expiredRawValue,
       agentId,
-      userId,
+      tenantId,
       keyLabel,
     );
     return unwrapped ? { apiKey: unwrapped } : null;
@@ -82,7 +82,7 @@ export async function refreshRejectedOAuthCredential(
     const unwrapped = await services.geminiOauth.unwrapToken(
       expiredRawValue,
       agentId,
-      userId,
+      tenantId,
       keyLabel,
     );
     return unwrapped ? { apiKey: unwrapped, resourceUrl: parseOAuthTokenBlob(rawValue)?.u } : null;
@@ -91,7 +91,7 @@ export async function refreshRejectedOAuthCredential(
     const unwrapped = await services.kiroOauth.unwrapToken(
       expiredRawValue,
       agentId,
-      userId,
+      tenantId,
       keyLabel,
     );
     return unwrapped ? { apiKey: unwrapped } : null;
@@ -100,7 +100,7 @@ export async function refreshRejectedOAuthCredential(
     const unwrapped = await services.xaiOauth.unwrapToken(
       expiredRawValue,
       agentId,
-      userId,
+      tenantId,
       keyLabel,
     );
     return unwrapped ? { apiKey: unwrapped } : null;
@@ -113,7 +113,7 @@ export async function resolveApiKey(
   apiKey: string,
   authType: string | undefined,
   agentId: string,
-  userId: string,
+  tenantId: string,
   openaiOauth: OpenaiOauthService,
   minimaxOauth: MinimaxOauthService,
   anthropicOauth: AnthropicOauthService,
@@ -125,22 +125,22 @@ export async function resolveApiKey(
   if (authType === 'subscription') {
     const lower = provider.toLowerCase();
     if (lower === 'openai') {
-      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, userId, keyLabel);
+      const unwrapped = await openaiOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
       if (unwrapped) return { apiKey: unwrapped };
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }
     if (lower === 'minimax') {
-      const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, userId, keyLabel);
+      const unwrapped = await minimaxOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
       if (unwrapped) return { apiKey: unwrapped.t, resourceUrl: unwrapped.u };
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }
     if (lower === 'anthropic') {
-      const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, userId, keyLabel);
+      const unwrapped = await anthropicOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
       if (unwrapped) return { apiKey: unwrapped };
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }
     if (lower === 'gemini') {
-      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, userId, keyLabel);
+      const unwrapped = await geminiOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
       if (unwrapped) {
         // The CodeAssist project id was stored in `blob.u` by enrichBlob.
         // Read it from the input blob (refreshes preserve the field).
@@ -150,12 +150,12 @@ export async function resolveApiKey(
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }
     if (lower === 'kiro') {
-      const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, userId, keyLabel);
+      const unwrapped = await kiroOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
       if (unwrapped) return { apiKey: unwrapped };
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }
     if (lower === 'xai') {
-      const unwrapped = await xaiOauth.unwrapToken(apiKey, agentId, userId, keyLabel);
+      const unwrapped = await xaiOauth.unwrapToken(apiKey, agentId, tenantId, keyLabel);
       if (unwrapped) return { apiKey: unwrapped };
       if (parseOAuthTokenBlob(apiKey)) return { apiKey: null };
     }

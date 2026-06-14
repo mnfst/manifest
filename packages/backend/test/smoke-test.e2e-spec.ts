@@ -196,11 +196,19 @@ describe('ST-04: Routing enabled', () => {
 
     customProviderId = res.body.id;
 
-    // Connecting a provider no longer auto-assigns tier routes (model routing is
-    // now user-controlled). Set an explicit override on every scoring tier so
-    // routing is enabled and ST-05/ST-06 can resolve + proxy a request. This
-    // mirrors the override pattern ST-09 already relies on.
-    for (const tier of ['simple', 'standard', 'complex', 'reasoning']) {
+    // A connected provider alone is not "enabled" anymore — routing turns on
+    // once the user pins a routable model (next test).
+    const status = await auth(
+      api().get(`/api/v1/routing/${smokeAgentName}/status`),
+    ).expect(200);
+    expect(status.body).toEqual({ enabled: false, reason: 'no_routable_models' });
+  });
+
+  it('pins a route on every tier (model routing is user-controlled) → routing enabled', async () => {
+    // No auto-assigner anymore: pin the cheapest custom model on every tier
+    // slot so resolve/proxy below have routes — the same calls the dashboard
+    // makes when the user picks models.
+    for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'default']) {
       await auth(api().put(`/api/v1/routing/${smokeAgentName}/tiers/${tier}`))
         .send({ model: `custom:${customProviderId}/model-primary` })
         .expect(200);
@@ -370,5 +378,44 @@ describe('ST-09: Fallback chain', () => {
     // Verify call order: model-a (primary) → model-b (fallback 0) → model-c (fallback 1)
     const models = mockCallLog.map((c) => c.model);
     expect(models).toEqual(['model-a', 'model-b', 'model-c']);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  ST-10 · Analytics overview reflects the traffic above              */
+/* ------------------------------------------------------------------ */
+describe('ST-10: Analytics overview', () => {
+  it('returns the standard overview shape with data from the smoke traffic', async () => {
+    const res = await auth(api().get('/api/v1/overview?range=24h')).expect(200);
+
+    // Pre-refactor response contract: summary cards with value + trend_pct,
+    // cost/recent/token sections, has_data flag.
+    expect(res.body).toHaveProperty('summary');
+    expect(res.body.summary).toHaveProperty('tokens_today');
+    expect(res.body.summary).toHaveProperty('cost_today');
+    expect(res.body.summary).toHaveProperty('messages');
+    expect(res.body.summary.tokens_today).toHaveProperty('value');
+    expect(res.body.summary.tokens_today).toHaveProperty('trend_pct');
+    expect(res.body.has_data).toBe(true);
+    expect(res.body.summary.messages.value).toBeGreaterThan(0);
+    expect(Array.isArray(res.body.cost_by_model)).toBe(true);
+    expect(Array.isArray(res.body.recent_activity)).toBe(true);
+    expect(Array.isArray(res.body.token_usage)).toBe(true);
+
+    // The proxied smoke-agent traffic is attributed to this tenant.
+    const recentAgents = (res.body.recent_activity as Array<{ agent_name: string }>).map(
+      (r) => r.agent_name,
+    );
+    expect(recentAgents).toContain(smokeAgentName);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  ST-11 · Playground history starts empty                            */
+/* ------------------------------------------------------------------ */
+describe('ST-11: Playground history', () => {
+  it('returns an empty run list for a tenant that never used the playground', async () => {
+    const res = await auth(api().get('/api/v1/playground/runs')).expect(200);
+    expect(res.body).toEqual([]);
   });
 });

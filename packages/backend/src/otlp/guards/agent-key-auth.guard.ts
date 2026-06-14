@@ -27,7 +27,7 @@ interface CachedKey {
   tenantId: string;
   agentId: string;
   agentName: string;
-  userId: string;
+  userId: string | null;
   expiresAt: number;
 }
 
@@ -162,7 +162,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
         'k.agent_id',
         'k.expires_at',
         'a.name',
-        't.name',
+        't.owner_user_id',
       ])
       .leftJoin('k.agent', 'a')
       .leftJoin('k.tenant', 't')
@@ -204,7 +204,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,
-      userId: keyRecord.tenant.name,
+      userId: keyRecord.tenant.owner_user_id,
       expiresAt: Date.now() + this.CACHE_TTL_MS,
     });
 
@@ -212,7 +212,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,
-      userId: keyRecord.tenant.name,
+      userId: keyRecord.tenant.owner_user_id,
     });
 
     return true;
@@ -247,7 +247,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,
-      userId: keyRecord.tenant.name,
+      userId: keyRecord.tenant.owner_user_id,
     };
 
     this.devContext = { context: ctx, expiresAt: Date.now() + this.CACHE_TTL_MS };

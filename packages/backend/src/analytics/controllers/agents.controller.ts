@@ -21,8 +21,7 @@ import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { AuthUser } from '../../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { CreateAgentDto } from '../../common/dto/create-agent.dto';
 import { DuplicateAgentDto } from '../../common/dto/duplicate-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
@@ -30,7 +29,6 @@ import { AgentListCacheInterceptor } from '../../common/interceptors/agent-list-
 import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constants/cache.constants';
 import { slugify } from '../../common/utils/slugify';
 import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 
@@ -41,41 +39,43 @@ export class AgentsController {
     private readonly lifecycle: AgentLifecycleService,
     private readonly duplication: AgentDuplicationService,
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
-    private readonly tenantCache: TenantCacheService,
     private readonly eventBus: IngestEventBusService,
     private readonly recordingCache: AgentRecordingCacheService,
     private readonly providerService: ProviderService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  private async invalidateAgentListCache(userId: string): Promise<void> {
-    // GET /agents has exactly two canonical cache entries per user (playground agents
+  private async invalidateAgentListCache(tenantId: string | null): Promise<void> {
+    // GET /agents has exactly two canonical cache entries per tenant (playground agents
     // included or not — see AgentListCacheInterceptor). Clear both so neither the
-    // Workspace list nor the Messages filter goes stale after a mutation.
+    // Workspace list nor the Messages filter goes stale after a mutation. No
+    // tenant → nothing was ever cached.
+    if (!tenantId) return;
     await Promise.all([
-      this.cacheManager.del(agentListCacheKey(userId, false)),
-      this.cacheManager.del(agentListCacheKey(userId, true)),
+      this.cacheManager.del(agentListCacheKey(tenantId, false)),
+      this.cacheManager.del(agentListCacheKey(tenantId, true)),
     ]);
+  }
+
+  private emitAgentEvent(tenantId: string | null, userId: string | null): void {
+    // The event bus is tenant-keyed; the user id rides along as attribution
+    // only. No tenant → nobody can be subscribed to the change.
+    if (tenantId) this.eventBus.emit(tenantId, 'agent', userId);
   }
 
   @Get('agents')
   @UseInterceptors(AgentListCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
   async getAgents(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Query('includePlayground') includePlayground?: string,
   ) {
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
-    const agents = await this.timeseries.getAgentList(
-      user.id,
-      tenantId,
-      includePlayground === 'true',
-    );
+    const agents = await this.timeseries.getAgentList(ctx.tenantId, includePlayground === 'true');
     return { agents };
   }
 
   @Post('agents')
-  async createAgent(@CurrentUser() user: AuthUser, @Body() body: CreateAgentDto) {
+  async createAgent(@TenantCtx() ctx: TenantContext, @Body() body: CreateAgentDto) {
     const slug = slugify(body.name);
     if (!slug) {
       throw new BadRequestException('Agent name produces an empty slug');
@@ -87,10 +87,10 @@ export class AgentsController {
     let result: { tenantId: string; agentId: string; apiKey: string };
     try {
       result = await this.apiKeyGenerator.onboardAgent({
-        tenantName: user.id,
+        tenantId: ctx.tenantId,
+        ownerUserId: ctx.userId,
         agentName: slug,
         displayName,
-        email: user.email,
         agentCategory: body.agent_category,
         agentPlatform: body.agent_platform,
       });
@@ -100,11 +100,11 @@ export class AgentsController {
       }
       throw error;
     }
-    // Providers are global + ON by default: a brand-new agent immediately
-    // inherits access to every usable provider the user already connected.
-    await this.providerService.enableAllProvidersForAgent(result.agentId, user.id);
-    await this.invalidateAgentListCache(user.id);
-    this.eventBus.emit(user.id, 'agent');
+    // Providers are tenant-global + ON by default: a brand-new agent immediately
+    // inherits access to every usable provider the tenant already connected.
+    await this.providerService.enableAllProvidersForAgent(result.agentId, result.tenantId);
+    await this.invalidateAgentListCache(result.tenantId);
+    this.emitAgentEvent(result.tenantId, ctx.userId);
     return {
       agent: {
         id: result.agentId,
@@ -118,17 +118,20 @@ export class AgentsController {
   }
 
   @Get('agents/:agentName/duplicate-preview')
-  async getDuplicatePreview(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+  async getDuplicatePreview(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+  ) {
     const [copied, suggested_name] = await Promise.all([
-      this.duplication.getCopySummary(user.id, agentName),
-      this.duplication.suggestName(user.id, agentName),
+      this.duplication.getCopySummary(ctx.tenantId, agentName),
+      this.duplication.suggestName(ctx.tenantId, agentName),
     ]);
     return { copied, suggested_name };
   }
 
   @Post('agents/:agentName/duplicate')
   async duplicateAgent(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') sourceName: string,
     @Body() body: DuplicateAgentDto,
   ) {
@@ -140,7 +143,7 @@ export class AgentsController {
     const displayName = body.name.trim();
     let result;
     try {
-      result = await this.duplication.duplicate(user.id, sourceName, {
+      result = await this.duplication.duplicate(ctx.tenantId, sourceName, {
         name: slug,
         displayName,
       });
@@ -150,8 +153,8 @@ export class AgentsController {
       }
       throw error;
     }
-    await this.invalidateAgentListCache(user.id);
-    this.eventBus.emit(user.id, 'agent');
+    await this.invalidateAgentListCache(ctx.tenantId);
+    this.emitAgentEvent(ctx.tenantId, ctx.userId);
     return {
       agent: {
         id: result.agentId,
@@ -164,20 +167,20 @@ export class AgentsController {
   }
 
   @Get('agents/:agentName')
-  async getAgentInfo(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
+  async getAgentInfo(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    const info = await this.lifecycle.findAgentInfo(ctx.tenantId, agentName);
     if (!info) return { agent: null };
     return { agent: info };
   }
 
   @Get('agents/:agentName/key')
-  async getAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+  async getAgentKey(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     // Guard: playground agents cannot expose their API key through the user-facing
     // key endpoint (findAgentInfo filters is_playground = false and returns null for
     // the reserved "Playground" agent, same as for any missing agent).
-    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
-    if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
-    const keyData = await this.apiKeyGenerator.getKeyForAgent(user.id, agentName);
+    const info = await this.lifecycle.findAgentInfo(ctx.tenantId, agentName);
+    if (!info || !ctx.tenantId) throw new NotFoundException(`Agent "${agentName}" not found`);
+    const keyData = await this.apiKeyGenerator.getKeyForAgent(ctx.tenantId, agentName);
     const apiKey = keyData.fullKey ?? undefined;
     return {
       keyPrefix: keyData.keyPrefix,
@@ -186,19 +189,19 @@ export class AgentsController {
   }
 
   @Post('agents/:agentName/rotate-key')
-  async rotateAgentKey(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
+  async rotateAgentKey(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     // Guard: playground agents cannot have their key rotated through the user-facing
     // endpoint (findAgentInfo filters is_playground = false and returns null for the
     // reserved "Playground" agent, same as for any missing agent).
-    const info = await this.lifecycle.findAgentInfo(user.id, agentName);
-    if (!info) throw new NotFoundException(`Agent "${agentName}" not found`);
-    const result = await this.apiKeyGenerator.rotateKey(user.id, agentName);
+    const info = await this.lifecycle.findAgentInfo(ctx.tenantId, agentName);
+    if (!info || !ctx.tenantId) throw new NotFoundException(`Agent "${agentName}" not found`);
+    const result = await this.apiKeyGenerator.rotateKey(ctx.tenantId, agentName);
     return { apiKey: result.apiKey };
   }
 
   @Patch('agents/:agentName')
   async updateAgent(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Body() body: RenameAgentDto,
   ) {
@@ -211,17 +214,21 @@ export class AgentsController {
         throw new BadRequestException('"Playground" is a reserved agent name');
       }
       const displayName = body.name.trim();
-      await this.lifecycle.renameAgent(user.id, agentName, slug, displayName);
+      await this.lifecycle.renameAgent(ctx.tenantId, agentName, slug, displayName);
       result['renamed'] = true;
       result['name'] = slug;
       result['display_name'] = displayName;
     }
 
     if (body.agent_category !== undefined || body.agent_platform !== undefined) {
-      await this.lifecycle.updateAgentType(user.id, body.name ? slugify(body.name)! : agentName, {
-        agent_category: body.agent_category,
-        agent_platform: body.agent_platform,
-      });
+      await this.lifecycle.updateAgentType(
+        ctx.tenantId,
+        body.name ? slugify(body.name)! : agentName,
+        {
+          agent_category: body.agent_category,
+          agent_platform: body.agent_platform,
+        },
+      );
       if (body.agent_category !== undefined) result['agent_category'] = body.agent_category;
       if (body.agent_platform !== undefined) result['agent_platform'] = body.agent_platform;
     }
@@ -229,7 +236,7 @@ export class AgentsController {
     if (body.record_messages !== undefined) {
       const effectiveName = body.name ? slugify(body.name)! : agentName;
       const { agentId } = await this.lifecycle.setRecordMessages(
-        user.id,
+        ctx.tenantId,
         effectiveName,
         body.record_messages,
       );
@@ -237,16 +244,16 @@ export class AgentsController {
       result['record_messages'] = body.record_messages;
     }
 
-    await this.invalidateAgentListCache(user.id);
-    this.eventBus.emit(user.id, 'agent');
+    await this.invalidateAgentListCache(ctx.tenantId);
+    this.emitAgentEvent(ctx.tenantId, ctx.userId);
     return result;
   }
 
   @Delete('agents/:agentName')
-  async deleteAgent(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    await this.lifecycle.deleteAgent(user.id, agentName);
-    await this.invalidateAgentListCache(user.id);
-    this.eventBus.emit(user.id, 'agent');
+  async deleteAgent(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    await this.lifecycle.deleteAgent(ctx.tenantId, agentName);
+    await this.invalidateAgentListCache(ctx.tenantId);
+    this.emitAgentEvent(ctx.tenantId, ctx.userId);
     return { deleted: true };
   }
 }

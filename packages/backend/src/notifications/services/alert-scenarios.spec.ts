@@ -24,7 +24,6 @@ import { ManifestRuntimeService } from '../../common/services/manifest-runtime.s
 
 const TENANT = 'tenant-1';
 const AGENT = 'my-agent';
-const USER_ID = 'user-1';
 const EMAIL = 'alerts@example.com';
 
 function makeRule(overrides: Record<string, unknown> = {}) {
@@ -32,7 +31,6 @@ function makeRule(overrides: Record<string, unknown> = {}) {
     id: 'rule-1',
     tenant_id: TENANT,
     agent_name: AGENT,
-    user_id: USER_ID,
     metric_type: 'tokens' as const,
     threshold: 50000,
     period: 'day' as const,
@@ -49,7 +47,7 @@ describe('Alert scenarios — email only (notify)', () => {
   let mockSendThresholdAlert: jest.Mock;
   let mockHasAlreadySent: jest.Mock;
   let mockInsertLog: jest.Mock;
-  let mockResolveUserEmail: jest.Mock;
+  let mockResolveRecipientEmail: jest.Mock;
   let mockGetFullConfig: jest.Mock;
 
   beforeEach(async () => {
@@ -58,7 +56,7 @@ describe('Alert scenarios — email only (notify)', () => {
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
     mockHasAlreadySent = jest.fn().mockResolvedValue(false);
     mockInsertLog = jest.fn().mockResolvedValue(undefined);
-    mockResolveUserEmail = jest.fn().mockResolvedValue(EMAIL);
+    mockResolveRecipientEmail = jest.fn().mockResolvedValue(EMAIL);
     mockGetFullConfig = jest.fn().mockResolvedValue(null);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -68,7 +66,7 @@ describe('Alert scenarios — email only (notify)', () => {
           provide: NotificationRulesService,
           useValue: {
             getAllActiveRules: mockGetAllActiveRules,
-            getActiveRulesForUser: jest.fn().mockResolvedValue([]),
+            getActiveRulesForTenant: jest.fn().mockResolvedValue([]),
             getConsumption: mockGetConsumption,
           },
         },
@@ -85,7 +83,7 @@ describe('Alert scenarios — email only (notify)', () => {
           useValue: {
             hasAlreadySent: mockHasAlreadySent,
             insertLog: mockInsertLog,
-            resolveUserEmail: mockResolveUserEmail,
+            resolveRecipientEmail: mockResolveRecipientEmail,
           },
         },
         {
@@ -187,7 +185,7 @@ describe('Alert scenarios — email + block (both)', () => {
   let mockSendThresholdAlert: jest.Mock;
   let mockHasAlreadySent: jest.Mock;
   let mockInsertLog: jest.Mock;
-  let mockResolveUserEmail: jest.Mock;
+  let mockResolveRecipientEmail: jest.Mock;
   let ingestSubject: Subject<string>;
 
   beforeEach(() => {
@@ -196,7 +194,7 @@ describe('Alert scenarios — email + block (both)', () => {
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
     mockHasAlreadySent = jest.fn().mockResolvedValue(false);
     mockInsertLog = jest.fn().mockResolvedValue(undefined);
-    mockResolveUserEmail = jest.fn().mockResolvedValue(EMAIL);
+    mockResolveRecipientEmail = jest.fn().mockResolvedValue(EMAIL);
 
     ingestSubject = new Subject<string>();
 
@@ -218,7 +216,7 @@ describe('Alert scenarios — email + block (both)', () => {
       {
         hasAlreadySent: mockHasAlreadySent,
         insertLog: mockInsertLog,
-        resolveUserEmail: mockResolveUserEmail,
+        resolveRecipientEmail: mockResolveRecipientEmail,
       } as unknown as NotificationLogService,
     );
     limitCheckService.onModuleInit();
@@ -396,7 +394,7 @@ describe('Alert scenarios — no rules defined', () => {
           provide: NotificationRulesService,
           useValue: {
             getAllActiveRules: mockGetAllActiveRules,
-            getActiveRulesForUser: jest.fn().mockResolvedValue([]),
+            getActiveRulesForTenant: jest.fn().mockResolvedValue([]),
             getConsumption: jest.fn().mockResolvedValue(999999),
           },
         },
@@ -413,7 +411,7 @@ describe('Alert scenarios — no rules defined', () => {
           useValue: {
             hasAlreadySent: jest.fn().mockResolvedValue(false),
             insertLog: jest.fn().mockResolvedValue(undefined),
-            resolveUserEmail: jest.fn().mockResolvedValue(EMAIL),
+            resolveRecipientEmail: jest.fn().mockResolvedValue(EMAIL),
           },
         },
         {
@@ -445,7 +443,7 @@ describe('Alert scenarios — no rules defined', () => {
       {
         hasAlreadySent: jest.fn().mockResolvedValue(false),
         insertLog: jest.fn().mockResolvedValue(undefined),
-        resolveUserEmail: jest.fn().mockResolvedValue(EMAIL),
+        resolveRecipientEmail: jest.fn().mockResolvedValue(EMAIL),
       } as unknown as NotificationLogService,
     );
     limitCheckService.onModuleInit();

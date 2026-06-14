@@ -3,7 +3,6 @@ import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('notification_rules')
 @Index(['tenant_id', 'agent_id'])
-@Index(['user_id', 'agent_name'])
 @Index(['tenant_id', 'agent_name'])
 export class NotificationRule {
   @PrimaryColumn('varchar')
@@ -17,9 +16,6 @@ export class NotificationRule {
 
   @Column('varchar')
   agent_name!: string;
-
-  @Column('varchar')
-  user_id!: string;
 
   @Column('varchar')
   metric_type!: 'tokens' | 'cost';

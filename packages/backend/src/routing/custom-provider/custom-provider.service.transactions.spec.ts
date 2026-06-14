@@ -1,7 +1,7 @@
 // Transactional coupling between the custom_providers row and its companion
-// user_providers row. create()/remove() must run both writes inside ONE
+// tenant_providers row. create()/remove() must run both writes inside ONE
 // repo.manager.transaction so a failure on either side rolls back the other —
-// the DB-level FK (user_providers.custom_provider_id → custom_providers.id)
+// the DB-level FK (tenant_providers.custom_provider_id → custom_providers.id)
 // covers the reverse direction. The real rollback/cascade semantics are
 // asserted against Postgres in test/custom-provider-fk-migrations.e2e-spec.ts;
 // these tests pin the service-level contract.
@@ -47,7 +47,7 @@ function makeDeps(overrides: { findOneResult?: CustomProvider | null } = {}) {
     {
       getCustomProviders: jest.fn().mockReturnValue(null),
       setCustomProviders: jest.fn(),
-      invalidateUser: jest.fn(),
+      invalidateTenant: jest.fn(),
     } as unknown as RoutingCacheService,
     { reload: reloadPricing } as unknown as ModelPricingCacheService,
     { emit } as unknown as IngestEventBusService,
@@ -79,10 +79,10 @@ describe('CustomProviderService — transactional create/remove', () => {
 
   it('create() inserts the custom_providers row before the companion upsert, inside the tx', async () => {
     const { svc, insert, upsertProvider, txManager } = makeDeps();
-    await svc.create('user-1', dto);
+    await svc.create('tenant-1', dto);
 
     expect(txManager.getRepository).toHaveBeenCalledWith(CustomProvider);
-    // FK ordering: the companion user_providers row references the
+    // FK ordering: the companion tenant_providers row references the
     // custom_providers id, so the cp insert must land first.
     expect(insert.mock.invocationCallOrder[0]).toBeLessThan(
       upsertProvider.mock.invocationCallOrder[0],
@@ -93,7 +93,7 @@ describe('CustomProviderService — transactional create/remove', () => {
     const { svc, insert, upsertProvider, reloadPricing, emit, transaction } = makeDeps();
     upsertProvider.mockRejectedValue(new Error('encryption secret missing'));
 
-    await expect(svc.create('user-1', dto)).rejects.toThrow('encryption secret missing');
+    await expect(svc.create('tenant-1', dto)).rejects.toThrow('encryption secret missing');
 
     // The insert ran inside the failed transaction (Postgres discards it on
     // rollback) and none of the post-commit side effects fired.
@@ -108,14 +108,14 @@ describe('CustomProviderService — transactional create/remove', () => {
     const { svc, remove, removeProvider, txManager, transaction } = makeDeps({
       findOneResult: cp,
     });
-    await svc.remove('user-1', 'cp1');
+    await svc.remove('tenant-1', 'cp1');
 
     expect(transaction).toHaveBeenCalledTimes(1);
     expect(txManager.getRepository).toHaveBeenCalledWith(CustomProvider);
     expect(remove).toHaveBeenCalledWith(cp);
     expect(removeProvider).toHaveBeenCalledWith(
       null,
-      'user-1',
+      'tenant-1',
       'custom:cp1',
       undefined,
       undefined,
@@ -128,7 +128,7 @@ describe('CustomProviderService — transactional create/remove', () => {
     const { svc, remove, reloadPricing, emit } = makeDeps({ findOneResult: cp });
     remove.mockRejectedValue(new Error('db down'));
 
-    await expect(svc.remove('user-1', 'cp1')).rejects.toThrow('db down');
+    await expect(svc.remove('tenant-1', 'cp1')).rejects.toThrow('db down');
     expect(reloadPricing).not.toHaveBeenCalled();
     expect(emit).not.toHaveBeenCalled();
   });
@@ -141,7 +141,7 @@ describe('CustomProviderService — transactional create/remove', () => {
     const { svc, remove, removeProvider, reloadPricing, emit } = makeDeps({ findOneResult: cp });
     removeProvider.mockRejectedValue(new NotFoundException('Provider not found'));
 
-    await expect(svc.remove('user-1', 'cp1')).resolves.toBeUndefined();
+    await expect(svc.remove('tenant-1', 'cp1')).resolves.toBeUndefined();
     expect(remove).toHaveBeenCalledWith(cp);
     expect(reloadPricing).toHaveBeenCalledTimes(1);
     expect(emit).toHaveBeenCalledTimes(1);
@@ -155,7 +155,7 @@ describe('CustomProviderService — transactional create/remove', () => {
     const { svc, remove, removeProvider, reloadPricing, emit } = makeDeps({ findOneResult: cp });
     removeProvider.mockRejectedValue(new Error('provider is still routed'));
 
-    await expect(svc.remove('user-1', 'cp1')).rejects.toThrow('provider is still routed');
+    await expect(svc.remove('tenant-1', 'cp1')).rejects.toThrow('provider is still routed');
     expect(remove).not.toHaveBeenCalled();
     expect(reloadPricing).not.toHaveBeenCalled();
     expect(emit).not.toHaveBeenCalled();

@@ -15,11 +15,11 @@ import { ModelController } from './model.controller';
 import { CopilotController } from './copilot.controller';
 import { SpecificityController } from './specificity.controller';
 import { ModelParamsController } from './model-params.controller';
-import { UserProvidersController } from './user-providers.controller';
+import { TenantProvidersController } from './tenant-providers.controller';
 import { AgentEnabledProvidersController } from './agent-enabled-providers.controller';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
@@ -31,7 +31,7 @@ import { HeaderTier } from '../entities/header-tier.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      UserProvider,
+      TenantProvider,
       AgentEnabledProvider,
       Agent,
       AgentMessage,
@@ -58,7 +58,7 @@ import { HeaderTier } from '../entities/header-tier.entity';
     CopilotController,
     SpecificityController,
     ModelParamsController,
-    UserProvidersController,
+    TenantProvidersController,
     AgentEnabledProvidersController,
   ],
   providers: [OllamaSyncService],

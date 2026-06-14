@@ -2,7 +2,6 @@ import { NotFoundException } from '@nestjs/common';
 import { SpecificityFeedbackService } from './specificity-feedback.service';
 import type { Repository } from 'typeorm';
 import type { AgentMessage } from '../../entities/agent-message.entity';
-import type { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 describe('SpecificityFeedbackService', () => {
   let service: SpecificityFeedbackService;
@@ -10,7 +9,6 @@ describe('SpecificityFeedbackService', () => {
     createQueryBuilder: jest.Mock;
     update: jest.Mock;
   };
-  let tenantCache: { resolve: jest.Mock };
 
   function setOwnedMessage(message: Partial<AgentMessage> | null) {
     const qb = {
@@ -27,20 +25,14 @@ describe('SpecificityFeedbackService', () => {
       createQueryBuilder: jest.fn(),
       update: jest.fn().mockResolvedValue(undefined),
     };
-    tenantCache = {
-      resolve: jest.fn().mockResolvedValue('tenant-1'),
-    };
-    service = new SpecificityFeedbackService(
-      messageRepo as unknown as Repository<AgentMessage>,
-      tenantCache as unknown as TenantCacheService,
-    );
+    service = new SpecificityFeedbackService(messageRepo as unknown as Repository<AgentMessage>);
   });
 
   describe('flagMiscategorized', () => {
     it('sets the flag on a specificity-routed owned message', async () => {
       setOwnedMessage({ id: 'msg-1', specificity_category: 'web_browsing' });
 
-      await service.flagMiscategorized('msg-1', 'user-1');
+      await service.flagMiscategorized('msg-1', 'tenant-1');
 
       expect(messageRepo.update).toHaveBeenCalledWith('msg-1', {
         specificity_miscategorized: true,
@@ -50,30 +42,33 @@ describe('SpecificityFeedbackService', () => {
     it('rejects messages that were not routed by specificity', async () => {
       setOwnedMessage({ id: 'msg-1', specificity_category: null });
 
-      await expect(service.flagMiscategorized('msg-1', 'user-1')).rejects.toThrow(
+      await expect(service.flagMiscategorized('msg-1', 'tenant-1')).rejects.toThrow(
         'Message was not routed by specificity',
       );
       expect(messageRepo.update).not.toHaveBeenCalled();
     });
 
-    it('throws 404 when the message is not owned by the user', async () => {
+    it('throws 404 when the message is not owned by the tenant', async () => {
       setOwnedMessage(null);
 
-      await expect(service.flagMiscategorized('msg-1', 'user-1')).rejects.toBeInstanceOf(
+      await expect(service.flagMiscategorized('msg-1', 'tenant-1')).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
 
-    it('falls back to user_id ownership lookup when the user has no tenant', async () => {
-      // Legacy / pre-tenant rows fall into this branch — the message must
-      // still be reachable by its owner.
-      tenantCache.resolve.mockResolvedValueOnce(null);
+    it('scopes the ownership lookup by tenant_id', async () => {
       const qb = setOwnedMessage({ id: 'msg-1', specificity_category: 'coding' });
 
-      await service.flagMiscategorized('msg-1', 'user-1');
+      await service.flagMiscategorized('msg-1', 'tenant-1');
 
-      expect(qb.andWhere).toHaveBeenCalledWith('m.user_id = :userId', { userId: 'user-1' });
-      expect(qb.andWhere).not.toHaveBeenCalledWith('m.tenant_id = :tenantId', expect.anything());
+      expect(qb.andWhere).toHaveBeenCalledWith('m.tenant_id = :tenantId', { tenantId: 'tenant-1' });
+    });
+
+    it('throws 404 without querying when the tenant is null', async () => {
+      await expect(service.flagMiscategorized('msg-1', null)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(messageRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
   });
 
@@ -81,7 +76,7 @@ describe('SpecificityFeedbackService', () => {
     it('clears the flag on an owned message', async () => {
       setOwnedMessage({ id: 'msg-1', specificity_category: 'web_browsing' });
 
-      await service.clearFlag('msg-1', 'user-1');
+      await service.clearFlag('msg-1', 'tenant-1');
 
       expect(messageRepo.update).toHaveBeenCalledWith('msg-1', {
         specificity_miscategorized: false,

@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
 import { AddCustomProviderFkToUserProviders1792100000000 } from '../src/database/migrations/1792100000000-AddCustomProviderFkToUserProviders';
+import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
 
 const DB_URL =
   process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/manifest_duprepro';
@@ -54,6 +56,17 @@ describe('AddCustomProviderFkToUserProviders deployment data-loss invariant (e2e
     ds = makeDataSource();
     await ds.initialize();
     await ds.runMigrations();
+
+    // The tenant-canonical chain (later migrations) renames user_providers →
+    // tenant_providers and demotes custom_providers.user_id → created_by_user_id;
+    // undo both (newest first) so this migration runs against the user_providers /
+    // custom_providers.user_id schema it was authored for.
+    const tenantConfigsQr = ds.createQueryRunner();
+    await new TenantScopedConfigs1792600000000().down(tenantConfigsQr);
+    await tenantConfigsQr.release();
+    const tenantRenameQr = ds.createQueryRunner();
+    await new TenantProviders1792500000000().down(tenantRenameQr);
+    await tenantRenameQr.release();
 
     // Revert just this migration so we seed the realistic pre-FK schema.
     const revertQr = ds.createQueryRunner();

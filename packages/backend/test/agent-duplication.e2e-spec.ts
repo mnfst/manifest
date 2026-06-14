@@ -2,7 +2,7 @@ import request from 'supertest';
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { createTestApp, TEST_API_KEY, TEST_AGENT_ID, TEST_TENANT_ID } from './helpers';
-import { UserProvider } from '../src/entities/user-provider.entity';
+import { TenantProvider } from '../src/entities/tenant-provider.entity';
 import { CustomProvider } from '../src/entities/custom-provider.entity';
 import { TierAssignment } from '../src/entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
@@ -22,10 +22,11 @@ describe('Agent Duplication (e2e)', () => {
 
     const now = new Date().toISOString();
 
-    // Seed a global UserProvider credential row.
-    await ds.getRepository(UserProvider).insert({
+    // Seed a global TenantProvider credential row.
+    await ds.getRepository(TenantProvider).insert({
       id: 'up-e2e-1',
-      user_id: 'test-user-001',
+      tenant_id: TEST_TENANT_ID,
+      created_by_user_id: 'test-user-001',
       agent_id: TEST_AGENT_ID,
       provider: 'anthropic',
       api_key_encrypted: 'enc-value',
@@ -44,12 +45,13 @@ describe('Agent Duplication (e2e)', () => {
     // Enable the global provider for the source agent via agent_enabled_providers.
     await ds.getRepository(AgentEnabledProvider).insert({
       agent_id: TEST_AGENT_ID,
-      user_provider_id: 'up-e2e-1',
+      tenant_provider_id: 'up-e2e-1',
     });
 
     await ds.getRepository(CustomProvider).insert({
       id: 'cp-e2e-1',
-      user_id: 'test-user-001',
+      tenant_id: TEST_TENANT_ID,
+      created_by_user_id: 'test-user-001',
       name: 'custom-groq',
       base_url: 'https://api.groq.com/openai/v1',
       models: [{ model_name: 'llama-3.1-70b' }],
@@ -57,7 +59,6 @@ describe('Agent Duplication (e2e)', () => {
     });
     await ds.getRepository(TierAssignment).insert({
       id: 'ta-e2e-1',
-      user_id: 'test-user-001',
       agent_id: TEST_AGENT_ID,
       tier: 'standard',
       override_route: {
@@ -73,7 +74,6 @@ describe('Agent Duplication (e2e)', () => {
     });
     await ds.getRepository(SpecificityAssignment).insert({
       id: 'sa-e2e-1',
-      user_id: 'test-user-001',
       agent_id: TEST_AGENT_ID,
       category: 'coding',
       is_active: true,
@@ -115,7 +115,7 @@ describe('Agent Duplication (e2e)', () => {
       .expect(404);
   });
 
-  it('POST /agents/:name/duplicate copies enabled-provider rows to a new agent (providers are user-global, not cloned)', async () => {
+  it('POST /agents/:name/duplicate copies enabled-provider rows to a new agent (providers are tenant-global, not cloned)', async () => {
     const res = await request(app.getHttpServer())
       .post(`/api/v1/agents/${sourceAgent}/duplicate`)
       .set(headers)
@@ -146,9 +146,9 @@ describe('Agent Duplication (e2e)', () => {
     expect(apiKey!.agent_id).not.toBe(TEST_AGENT_ID);
 
     // Global provider: the original credential row is NOT cloned under the new agent_id.
-    // Only one user_providers row exists for 'anthropic' — the original up-e2e-1.
+    // Only one tenant_providers row exists for 'anthropic' — the original up-e2e-1.
     const allAnthropicProviders = await ds
-      .getRepository(UserProvider)
+      .getRepository(TenantProvider)
       .find({ where: { provider: 'anthropic' } });
     expect(allAnthropicProviders).toHaveLength(1);
     expect(allAnthropicProviders[0].id).toBe('up-e2e-1');
@@ -158,13 +158,13 @@ describe('Agent Duplication (e2e)', () => {
       .getRepository(AgentEnabledProvider)
       .find({ where: { agent_id: res.body.agent.id } });
     expect(newGrants).toHaveLength(1);
-    expect(newGrants[0].user_provider_id).toBe('up-e2e-1');
+    expect(newGrants[0].tenant_provider_id).toBe('up-e2e-1');
 
-    // Custom providers are user-global: no new CustomProvider row was created —
-    // still exactly one for this user.
+    // Custom providers are tenant-global: no new CustomProvider row was created —
+    // still exactly one for this tenant.
     const allCustom = await ds
       .getRepository(CustomProvider)
-      .find({ where: { user_id: 'test-user-001' } });
+      .find({ where: { tenant_id: TEST_TENANT_ID } });
     expect(allCustom).toHaveLength(1);
     expect(allCustom[0].id).toBe('cp-e2e-1');
 
@@ -183,9 +183,9 @@ describe('Agent Duplication (e2e)', () => {
   });
 
   it('POST /agents/:name/duplicate copies a custom provider enablement verbatim (shared row, not re-credentialed)', async () => {
-    // Custom providers are user-global. Their agent_enabled_providers row is copied
-    // verbatim pointing at the SAME user_providers row — no new CustomProvider row,
-    // no new UserProvider row.
+    // Custom providers are tenant-global. Their agent_enabled_providers row is copied
+    // verbatim pointing at the SAME tenant_providers row — no new CustomProvider row,
+    // no new TenantProvider row.
     const now = new Date().toISOString();
     const srcAgentId = 'src-remap-agent';
     await ds.getRepository(Agent).insert({
@@ -209,7 +209,8 @@ describe('Agent Duplication (e2e)', () => {
     // A custom provider row (user-global in the new model).
     await ds.getRepository(CustomProvider).insert({
       id: 'cp-lmstudio-e2e',
-      user_id: 'test-user-001',
+      tenant_id: TEST_TENANT_ID,
+      created_by_user_id: 'test-user-001',
       name: 'LM Studio',
       base_url: 'http://localhost:1234/v1',
       api_kind: 'openai',
@@ -217,10 +218,11 @@ describe('Agent Duplication (e2e)', () => {
       created_at: now,
     });
 
-    // UserProvider companion row for the LM Studio custom provider.
-    await ds.getRepository(UserProvider).insert({
+    // TenantProvider companion row for the LM Studio custom provider.
+    await ds.getRepository(TenantProvider).insert({
       id: 'up-lmstudio-e2e',
-      user_id: 'test-user-001',
+      tenant_id: TEST_TENANT_ID,
+      created_by_user_id: 'test-user-001',
       agent_id: srcAgentId,
       provider: 'custom:cp-lmstudio-e2e',
       api_key_encrypted: null,
@@ -235,9 +237,10 @@ describe('Agent Duplication (e2e)', () => {
     });
 
     // A regular global provider enabled alongside the custom one.
-    await ds.getRepository(UserProvider).insert({
+    await ds.getRepository(TenantProvider).insert({
       id: 'up-ollama-e2e',
-      user_id: 'test-user-001',
+      tenant_id: TEST_TENANT_ID,
+      created_by_user_id: 'test-user-001',
       agent_id: srcAgentId,
       provider: 'ollama',
       api_key_encrypted: null,
@@ -253,8 +256,8 @@ describe('Agent Duplication (e2e)', () => {
 
     // Enable both providers for the source agent.
     await ds.getRepository(AgentEnabledProvider).insert([
-      { agent_id: srcAgentId, user_provider_id: 'up-lmstudio-e2e' },
-      { agent_id: srcAgentId, user_provider_id: 'up-ollama-e2e' },
+      { agent_id: srcAgentId, tenant_provider_id: 'up-lmstudio-e2e' },
+      { agent_id: srcAgentId, tenant_provider_id: 'up-ollama-e2e' },
     ]);
 
     const res = await request(app.getHttpServer())
@@ -265,19 +268,19 @@ describe('Agent Duplication (e2e)', () => {
 
     const newAgentId = res.body.agent.id;
 
-    // 2 enabled-provider rows copied verbatim — same user_provider_id values as the source.
+    // 2 enabled-provider rows copied verbatim — same tenant_provider_id values as the source.
     const newGrants = await ds
       .getRepository(AgentEnabledProvider)
       .find({ where: { agent_id: newAgentId } });
     expect(newGrants).toHaveLength(2);
 
-    const lmsGrant = newGrants.find((g) => g.user_provider_id === 'up-lmstudio-e2e');
+    const lmsGrant = newGrants.find((g) => g.tenant_provider_id === 'up-lmstudio-e2e');
     expect(lmsGrant).toBeDefined();
 
-    const ollamaGrant = newGrants.find((g) => g.user_provider_id === 'up-ollama-e2e');
+    const ollamaGrant = newGrants.find((g) => g.tenant_provider_id === 'up-ollama-e2e');
     expect(ollamaGrant).toBeDefined();
 
-    // Custom providers are user-global: the original row is NOT cloned.
+    // Custom providers are tenant-global: the original row is NOT cloned.
     // The user still has exactly the same custom providers as before duplication.
     const lmsCustom = await ds
       .getRepository(CustomProvider)
@@ -285,11 +288,11 @@ describe('Agent Duplication (e2e)', () => {
     expect(lmsCustom).toBeTruthy();
     expect(lmsCustom!.id).toBe('cp-lmstudio-e2e');
 
-    // No new UserProvider rows cloned for the new agent.
-    const newUserProviders = await ds
-      .getRepository(UserProvider)
+    // No new TenantProvider rows cloned for the new agent.
+    const newTenantProviders = await ds
+      .getRepository(TenantProvider)
       .find({ where: { agent_id: newAgentId } });
-    expect(newUserProviders).toHaveLength(0);
+    expect(newTenantProviders).toHaveLength(0);
 
     // Summary reflects 2 enabled-provider rows copied.
     expect(res.body.copied.providers).toBe(2);

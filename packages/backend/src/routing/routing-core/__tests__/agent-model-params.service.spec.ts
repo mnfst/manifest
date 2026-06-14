@@ -169,7 +169,6 @@ describe('AgentModelParamsService', () => {
 
       const result = await service.set(
         'agent-1',
-        'user-1',
         'tier:default',
         'DeepSeek',
         'api_key',

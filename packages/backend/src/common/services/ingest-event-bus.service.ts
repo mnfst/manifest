@@ -5,8 +5,10 @@ import { filter } from 'rxjs/operators';
 export type IngestEventKind = 'message' | 'agent' | 'routing';
 
 export interface IngestEvent {
-  userId: string;
+  tenantId: string;
   kind: IngestEventKind;
+  /** Optional attribution: which user triggered the change. Never used for scoping. */
+  userId?: string | null;
 }
 
 @Injectable()
@@ -16,13 +18,13 @@ export class IngestEventBusService implements OnModuleDestroy {
   private readonly DEBOUNCE_MS = 250;
 
   /**
-   * Notify subscribers that the given user's data changed. The kind narrows
+   * Notify subscribers that the given tenant's data changed. The kind narrows
    * which dashboard surfaces should refetch — message-feed pages can ignore
    * routing config updates and vice-versa, avoiding the previous "any change
    * refetches every open page" cascade.
    */
-  emit(userId: string, kind: IngestEventKind = 'message'): void {
-    const debounceKey = `${userId}:${kind}`;
+  emit(tenantId: string, kind: IngestEventKind = 'message', userId?: string | null): void {
+    const debounceKey = `${tenantId}:${kind}`;
     const existing = this.debounceTimers.get(debounceKey);
     if (existing) clearTimeout(existing);
 
@@ -30,13 +32,14 @@ export class IngestEventBusService implements OnModuleDestroy {
       debounceKey,
       setTimeout(() => {
         this.debounceTimers.delete(debounceKey);
-        this.subject.next({ userId, kind });
+        this.subject.next({ tenantId, kind, userId });
       }, this.DEBOUNCE_MS),
     );
   }
 
-  forUser(userId: string): Observable<IngestEvent> {
-    return this.subject.asObservable().pipe(filter((e) => e.userId === userId));
+  /** Null tenantId (fresh account, no tenant yet) matches no events. */
+  forTenant(tenantId: string | null): Observable<IngestEvent> {
+    return this.subject.asObservable().pipe(filter((e) => e.tenantId === tenantId));
   }
 
   all(): Observable<IngestEvent> {

@@ -34,7 +34,7 @@ interface ForwardProviderOptions {
   rawApiKey?: string;
   providerKeyLabel?: string;
   agentId?: string;
-  userId?: string;
+  tenantId?: string;
   resourceUrl?: string;
   providerRegion?: string | null;
   apiMode?: ProxyApiMode;
@@ -91,9 +91,9 @@ export interface FailedFallback {
   // legacy inference path. Either way the recorder can attribute the error
   // to the actual credential that failed instead of inheriting the primary's.
   authType?: AuthType;
-  // The user_providers row that served this failed attempt, so the recorded
+  // The tenant_providers row that served this failed attempt, so the recorded
   // error row is scoped to the right connection. NULL for local/Ollama.
-  userProviderId?: string | null;
+  tenantProviderId?: string | null;
 }
 
 @Injectable()
@@ -150,7 +150,7 @@ export class ProxyFallbackService {
 
   async tryFallbacks(
     agentId: string,
-    userId: string,
+    tenantId: string,
     fallbackModels: string[],
     body: Record<string, unknown>,
     stream: boolean,
@@ -174,7 +174,7 @@ export class ProxyFallbackService {
       fallbackIndex: number;
       authType?: AuthType;
       keyLabel?: string;
-      userProviderId: string | null;
+      tenantProviderId: string | null;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -215,11 +215,11 @@ export class ProxyFallbackService {
         } else {
           const prefix = inferProviderFromModelName(requestedModel);
           provider =
-            (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix, agentId))
+            (prefix && (await this.providerKeyService.hasActiveProvider(tenantId, prefix, agentId))
               ? prefix
               : undefined) ??
             pricing?.provider ??
-            (await this.providerKeyService.findProviderForModel(userId, requestedModel, agentId));
+            (await this.providerKeyService.findProviderForModel(tenantId, requestedModel, agentId));
         }
         if (!provider) {
           this.logger.debug(`Fallback ${i}: skipping model=${requestedModel} (no provider data)`);
@@ -227,7 +227,7 @@ export class ProxyFallbackService {
         }
         const excludeAuth = failedAuthByProvider.get(provider.toLowerCase());
         authType = (await this.providerKeyService.getAuthType(
-          userId,
+          tenantId,
           provider,
           excludeAuth,
           agentId,
@@ -235,7 +235,7 @@ export class ProxyFallbackService {
       }
       if (!providerKeyLabel && authType === 'subscription') {
         providerKeyLabel = await this.providerKeyService.getDefaultKeyLabel(
-          userId,
+          tenantId,
           provider,
           authType,
           agentId,
@@ -244,7 +244,7 @@ export class ProxyFallbackService {
 
       const model = normalizeProviderModel(provider, requestedModel);
       const apiKey = await this.providerKeyService.getProviderApiKey(
-        userId,
+        tenantId,
         provider,
         authType,
         providerKeyLabel,
@@ -256,10 +256,10 @@ export class ProxyFallbackService {
         );
         continue;
       }
-      // Connection (user_providers row) that served this fallback attempt, for
+      // Connection (tenant_providers row) that served this fallback attempt, for
       // stamping the recorded row. NULL for synthetic Ollama / no persisted row.
-      const userProviderId = await this.providerKeyService.getProviderKeyId(
-        userId,
+      const tenantProviderId = await this.providerKeyService.getProviderKeyId(
+        tenantId,
         provider,
         authType,
         providerKeyLabel,
@@ -271,7 +271,7 @@ export class ProxyFallbackService {
         apiKey,
         authType,
         agentId,
-        userId,
+        tenantId,
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
@@ -290,7 +290,7 @@ export class ProxyFallbackService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            userId,
+            tenantId,
             provider,
             authType,
             providerKeyLabel,
@@ -298,7 +298,7 @@ export class ProxyFallbackService {
           )) ?? apiKey;
       }
       const providerRegion = await this.providerKeyService.getProviderRegion(
-        userId,
+        tenantId,
         provider,
         authType,
         providerKeyLabel,
@@ -319,7 +319,7 @@ export class ProxyFallbackService {
         sessionKey,
         signal,
         agentId,
-        userId,
+        tenantId,
         rawApiKey,
         providerKeyLabel,
         authType,
@@ -341,7 +341,7 @@ export class ProxyFallbackService {
             fallbackIndex: i,
             authType,
             keyLabel: providerKeyLabel,
-            userProviderId,
+            tenantProviderId,
           },
           failures,
         };
@@ -355,7 +355,7 @@ export class ProxyFallbackService {
         status: forward.response.status,
         errorBody,
         authType,
-        userProviderId,
+        tenantProviderId,
       });
 
       const existing = failedAuthByProvider.get(provider.toLowerCase());
@@ -497,7 +497,7 @@ export class ProxyFallbackService {
       forward.response.status !== 401 ||
       !opts.rawApiKey ||
       !opts.agentId ||
-      !opts.userId
+      !opts.tenantId
     ) {
       return forward;
     }
@@ -506,7 +506,7 @@ export class ProxyFallbackService {
       opts.provider,
       opts.rawApiKey,
       opts.agentId,
-      opts.userId,
+      opts.tenantId,
       opts.providerKeyLabel,
       {
         openaiOauth: this.openaiOauth,

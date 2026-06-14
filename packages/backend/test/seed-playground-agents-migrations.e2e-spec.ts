@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import { SeedPlaygroundAgents1791400000000 } from '../src/database/migrations/1791400000000-SeedPlaygroundAgents';
 import { RenameProviderAccessToEnabledProviders1791800000000 } from '../src/database/migrations/1791800000000-RenameProviderAccessToEnabledProviders';
 import { RenameIsSystemToIsPlayground1791900000000 } from '../src/database/migrations/1791900000000-RenameIsSystemToIsPlayground';
+import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
 
 /**
  * Runs the REAL migration chain so SeedPlaygroundAgents executes against
@@ -32,9 +33,18 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
     await ds.initialize();
     await ds.runMigrations();
 
-    // Revert back to the pre-seed schema so this historical migration can be
+    // Revert the later tenant re-scope first (newest first) so this historical
+    // migration can be replayed against the schema naming it expects
+    // (user_providers / user_provider_id, agent_provider_access, no is_playground
+    // column). TenantProviders.down() restores user_providers + user_provider_id
+    // and the agent_messages.tenant_provider_id → user_provider_id rename.
+    const tenantProvidersQr = ds.createQueryRunner();
+    await new TenantProviders1792500000000().down(tenantProvidersQr);
+    await tenantProvidersQr.release();
+
+    // Then revert back to the pre-seed schema so this historical migration can be
     // replayed against the naming it expects (agent_provider_access, no
-    // is_system column): the column rename first, then the table rename, then
+    // is_playground column): the column rename first, then the table rename, then
     // the seed itself.
     const revertQr = ds.createQueryRunner();
     await renameMigration.down(revertQr);
@@ -47,9 +57,13 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
     await ds.query(`DELETE FROM "agents"`);
     await ds.query(`DELETE FROM "tenants"`);
 
-    // Two tenants. tenants.name = user_id.
-    await ds.query(`INSERT INTO "tenants" ("id","name","is_active") VALUES ('t1','u1',true)`);
-    await ds.query(`INSERT INTO "tenants" ("id","name","is_active") VALUES ('t2','u2',true)`);
+    // Two tenants. tenants.name = user_id (pre-owner-column resolution).
+    await ds.query(
+      `INSERT INTO "tenants" ("id","name","owner_user_id","is_active") VALUES ('t1','u1','u1',true)`,
+    );
+    await ds.query(
+      `INSERT INTO "tenants" ("id","name","owner_user_id","is_active") VALUES ('t2','u2','u2',true)`,
+    );
     // t1 already has a user agent literally named 'Playground' → must be relabeled.
     await ds.query(
       `INSERT INTO "agents" ("id","name","display_name","tenant_id") VALUES ('a-user','Playground','Playground','t1')`,

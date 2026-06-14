@@ -73,7 +73,7 @@ export class ResolveService {
 
   async resolve(
     agentId: string,
-    userId: string,
+    tenantId: string,
     messages: ScorerInput['messages'],
     tools?: ScorerInput['tools'],
     toolChoice?: unknown,
@@ -84,18 +84,18 @@ export class ResolveService {
     headers?: IncomingHttpHeaders,
   ): Promise<ResolveResponse> {
     if (headers) {
-      const headerTierResult = await this.resolveHeaderTier(agentId, userId, headers);
+      const headerTierResult = await this.resolveHeaderTier(agentId, tenantId, headers);
       if (headerTierResult) return headerTierResult;
     }
 
     const agent = await this.agentRepo.findOne({ where: { id: agentId } });
     if (agent && !agent.complexity_routing_enabled) {
-      return this.resolveForTier(agentId, userId, 'default', 'default');
+      return this.resolveForTier(agentId, tenantId, 'default', 'default');
     }
 
     const specificityResult = await this.resolveSpecificity(
       agentId,
-      userId,
+      tenantId,
       messages,
       tools,
       specificityOverride,
@@ -119,7 +119,7 @@ export class ResolveService {
       );
       // Final catch-all: fall back to the default tier so the request still
       // resolves a model instead of 500ing when a scored tier is missing.
-      return this.resolveForTier(agentId, userId, 'default', 'default');
+      return this.resolveForTier(agentId, tenantId, 'default', 'default');
     }
 
     const outputModality = outputModalityFor(assignment);
@@ -127,7 +127,7 @@ export class ResolveService {
     const fallbackRoutes = readFallbackRoutes(assignment);
     const routeChain = await this.buildResolvedRouteChain(
       agentId,
-      userId,
+      tenantId,
       assignment,
       fallbackRoutes,
     );
@@ -167,7 +167,7 @@ export class ResolveService {
 
   async resolveForTier(
     agentId: string,
-    userId: string,
+    tenantId: string,
     tier: TierSlot,
     reason: 'heartbeat' | 'default' = 'heartbeat',
   ): Promise<ResolveResponse> {
@@ -192,7 +192,7 @@ export class ResolveService {
     const fallbackRoutes = readFallbackRoutes(assignment);
     const routeChain = await this.buildResolvedRouteChain(
       agentId,
-      userId,
+      tenantId,
       assignment,
       fallbackRoutes,
     );
@@ -215,7 +215,7 @@ export class ResolveService {
 
   private async resolveHeaderTier(
     agentId: string,
-    userId: string,
+    tenantId: string,
     headers: IncomingHttpHeaders,
   ): Promise<ResolveResponse | null> {
     const allTiers = await this.headerTierService.list(agentId);
@@ -235,7 +235,7 @@ export class ResolveService {
 
     // Guard against orphaned overrides (a model removed after the tier was
     // configured). Mirrors the same check in resolveSpecificity().
-    if (!(await this.providerKeyService.isModelAvailable(userId, overrideRoute.model, agentId))) {
+    if (!(await this.providerKeyService.isModelAvailable(tenantId, overrideRoute.model, agentId))) {
       this.logger.warn(
         `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
           `for agent=${agentId}; falling through to existing routing`,
@@ -245,15 +245,15 @@ export class ResolveService {
 
     const provider =
       overrideRoute.provider ||
-      (await this.resolveProviderForModel(agentId, userId, overrideRoute.model));
+      (await this.resolveProviderForModel(agentId, tenantId, overrideRoute.model));
     const authType: AuthType =
       overrideRoute.authType ??
-      (await this.providerKeyService.getAuthType(userId, provider ?? '', undefined, agentId));
+      (await this.providerKeyService.getAuthType(tenantId, provider ?? '', undefined, agentId));
     const baseRoute: ModelRoute | null =
       provider && authType
         ? { provider, authType, model: overrideRoute.model, keyLabel: overrideRoute.keyLabel }
         : null;
-    const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, userId, baseRoute) : null;
+    const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, tenantId, baseRoute) : null;
 
     const outputModality = outputModalityFor(match);
     const responseMode = responseModeFor(match);
@@ -277,7 +277,7 @@ export class ResolveService {
 
   private async resolveSpecificity(
     agentId: string,
-    userId: string,
+    tenantId: string,
     messages: ScorerInput['messages'],
     tools?: ScorerInput['tools'],
     headerOverride?: string,
@@ -319,7 +319,9 @@ export class ResolveService {
       // override (e.g. a deleted custom provider) returns null so resolve()
       // falls through to tier-based routing instead of pinning every matching
       // request to a dead provider (#1603).
-      if (!(await this.providerKeyService.isModelAvailable(userId, overrideRoute.model, agentId))) {
+      if (
+        !(await this.providerKeyService.isModelAvailable(tenantId, overrideRoute.model, agentId))
+      ) {
         this.logger.warn(
           `Specificity override ${overrideRoute.model} is unavailable ` +
             `for agent=${agentId}; falling through to tier routing`,
@@ -334,7 +336,7 @@ export class ResolveService {
     const outputModality = outputModalityFor(assignment);
     const responseMode = responseModeFor(assignment);
     const fallbackRoutes = readFallbackRoutes(assignment);
-    const enrichedRoute = await this.enrichRouteKeyLabel(agentId, userId, route);
+    const enrichedRoute = await this.enrichRouteKeyLabel(agentId, tenantId, route);
     const effectiveRoutes = effectiveRoutesForResponseMode(
       responseMode,
       enrichedRoute,
@@ -362,15 +364,15 @@ export class ResolveService {
    */
   private async buildResolvedRouteChain(
     agentId: string,
-    userId: string,
+    tenantId: string,
     assignment: TierAssignment | SpecificityAssignment,
     fallbackRoutes: ModelRoute[] | null,
   ): Promise<ResolvedRouteChain> {
     const override = readOverrideRoute(assignment);
     if (override) {
-      if (await this.providerKeyService.isModelAvailable(userId, override.model, agentId)) {
+      if (await this.providerKeyService.isModelAvailable(tenantId, override.model, agentId)) {
         return {
-          primaryRoute: await this.enrichRouteKeyLabel(agentId, userId, override),
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
           fallbackRoutes,
         };
       }
@@ -385,24 +387,24 @@ export class ResolveService {
       const [primaryRoute, ...remainingFallbacks] = candidates;
       return {
         primaryRoute: primaryRoute
-          ? await this.enrichRouteKeyLabel(agentId, userId, primaryRoute)
+          ? await this.enrichRouteKeyLabel(agentId, tenantId, primaryRoute)
           : null,
         fallbackRoutes: remainingFallbacks.length > 0 ? remainingFallbacks : null,
       };
     }
     return {
       primaryRoute: assignment.auto_assigned_route
-        ? await this.enrichRouteKeyLabel(agentId, userId, assignment.auto_assigned_route)
+        ? await this.enrichRouteKeyLabel(agentId, tenantId, assignment.auto_assigned_route)
         : null,
       fallbackRoutes,
     };
   }
 
   /**
-   * Fill in `route.keyLabel` from the user's default (priority-0) key for
+   * Fill in `route.keyLabel` from the tenant's default (priority-0) key for
    * (route.provider, route.authType) when the route doesn't already pin a
    * specific label. The proxy needs a concrete keyLabel to pick the right row
-   * in `user_providers`; without this, multi-key users would always hit the
+   * in `tenant_providers`; without this, multi-key users would always hit the
    * first key instead of the default key for the selected auth mode.
    *
    * authType is taken from the route itself, not from any assignment-level
@@ -410,12 +412,12 @@ export class ResolveService {
    */
   private async enrichRouteKeyLabel(
     agentId: string,
-    userId: string,
+    tenantId: string,
     route: ModelRoute,
   ): Promise<ModelRoute> {
     if (route.keyLabel) return route;
     const label = await this.providerKeyService.getDefaultKeyLabel(
-      userId,
+      tenantId,
       route.provider,
       route.authType,
       agentId,
@@ -430,16 +432,16 @@ export class ResolveService {
    */
   private async resolveProviderForModel(
     agentId: string,
-    userId: string,
+    tenantId: string,
     model: string,
   ): Promise<string | null> {
     // 1. Slash prefix on the model name when that provider is connected.
     const prefix = inferProviderFromModelName(model);
-    if (prefix && (await this.providerKeyService.hasActiveProvider(userId, prefix, agentId))) {
+    if (prefix && (await this.providerKeyService.hasActiveProvider(tenantId, prefix, agentId))) {
       return prefix;
     }
     // 2. Discovered models cache.
-    const discovered = await this.discoveryService.getModelForAgent(userId, model, agentId);
+    const discovered = await this.discoveryService.getModelForAgent(tenantId, model, agentId);
     if (discovered) return discovered.provider;
     // 3. Pricing cache (excluding the OpenRouter aggregator).
     const pricing = this.pricingCache.getByModel(model);

@@ -3,13 +3,17 @@ import type { AuthType } from 'manifest-shared';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 import type { DiscoveredModel } from '../model-discovery/model-fetcher';
 
-@Entity('user_providers')
-export class UserProvider {
+@Entity('tenant_providers')
+export class TenantProvider {
   @PrimaryColumn('varchar')
   id!: string;
 
   @Column('varchar')
-  user_id!: string;
+  tenant_id!: string;
+
+  /** Audit-only: which user connected the provider. Never used for scoping. */
+  @Column('varchar', { nullable: true, default: null })
+  created_by_user_id!: string | null;
 
   @Column('varchar', { nullable: true, default: null })
   agent_id!: string | null;

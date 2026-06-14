@@ -2,13 +2,17 @@ import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { timestampType, timestampDefault } from '../common/utils/postgres-sql';
 
 @Entity('email_provider_configs')
-@Index(['user_id'], { unique: true })
+@Index(['tenant_id'], { unique: true })
 export class EmailProviderConfig {
   @PrimaryColumn('varchar')
   id!: string;
 
   @Column('varchar')
-  user_id!: string;
+  tenant_id!: string;
+
+  /** Audit-only: which user configured the provider. Never used for scoping. */
+  @Column('varchar', { nullable: true })
+  created_by_user_id!: string | null;
 
   @Column('varchar')
   provider!: string; // 'resend' | 'mailgun' | 'sendgrid'

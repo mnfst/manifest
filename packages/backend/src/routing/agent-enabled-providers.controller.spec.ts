@@ -1,18 +1,20 @@
 import { HttpException } from '@nestjs/common';
 import { AgentEnabledProvidersController } from './agent-enabled-providers.controller';
 import type { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
-import type { UserProvider } from '../entities/user-provider.entity';
+import type { TenantProvider } from '../entities/tenant-provider.entity';
 import type { TierAssignment } from '../entities/tier-assignment.entity';
 import type { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import type { HeaderTier } from '../entities/header-tier.entity';
+
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 
 const AGENT_ID = 'agent-uuid-1';
 const USER_ID = 'user-1';
 const TENANT_ID = 'tenant-abc';
 const PROVIDER_ID = 'prov-uuid-1';
+const ctx: TenantContext = { tenantId: TENANT_ID, userId: USER_ID };
 
 function makeController(overrides: Record<string, unknown> = {}) {
-  const tenant = { id: TENANT_ID };
   const agent = { id: AGENT_ID, name: 'my-agent', tenant_id: TENANT_ID };
 
   const enabledProviderRepo = {
@@ -33,14 +35,9 @@ function makeController(overrides: Record<string, unknown> = {}) {
     ...((overrides.agentRepo as object) ?? {}),
   };
 
-  const tenantRepo = {
-    findOne: jest.fn().mockResolvedValue(tenant),
-    ...((overrides.tenantRepo as object) ?? {}),
-  };
-
-  const userProviderRepo = {
+  const tenantProviderRepo = {
     findOne: jest.fn().mockResolvedValue(null),
-    ...((overrides.userProviderRepo as object) ?? {}),
+    ...((overrides.tenantProviderRepo as object) ?? {}),
   };
 
   const tierRepo = {
@@ -68,8 +65,7 @@ function makeController(overrides: Record<string, unknown> = {}) {
     controller: new AgentEnabledProvidersController(
       enabledProviderRepo as never,
       agentRepo as never,
-      tenantRepo as never,
-      userProviderRepo as never,
+      tenantProviderRepo as never,
       tierRepo as never,
       specificityRepo as never,
       headerTierRepo as never,
@@ -77,14 +73,12 @@ function makeController(overrides: Record<string, unknown> = {}) {
     ),
     enabledProviderRepo,
     agentRepo,
-    tenantRepo,
-    userProviderRepo,
+    tenantProviderRepo,
     tierRepo,
     specificityRepo,
     headerTierRepo,
     providerService,
     agent,
-    tenant,
   };
 }
 
@@ -92,7 +86,7 @@ describe('AgentEnabledProvidersController', () => {
   describe('resolveAgent — is_playground: false filter', () => {
     it('passes is_playground: false in the agentRepo.findOne where-clause', async () => {
       const { controller, agentRepo } = makeController();
-      await controller.listEnabled({ id: USER_ID } as never, 'my-agent');
+      await controller.listEnabled(ctx, 'my-agent');
       expect(agentRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ is_playground: false }),
@@ -106,50 +100,50 @@ describe('AgentEnabledProvidersController', () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
-      const result = await controller.listEnabled({ id: USER_ID } as never, 'Playground');
+      const result = await controller.listEnabled(ctx, 'Playground');
       expect(result).toEqual({ enabled: [] });
     });
 
     it('throws 404 on enable when agentRepo.findOne returns null for a playground agent', async () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
-        userProviderRepo: {
-          findOne: jest.fn().mockResolvedValue({ id: PROVIDER_ID, user_id: USER_ID }),
+        tenantProviderRepo: {
+          findOne: jest.fn().mockResolvedValue({ id: PROVIDER_ID, tenant_id: TENANT_ID }),
         },
       });
-      await expect(
-        controller.enable({ id: USER_ID } as never, 'Playground', PROVIDER_ID),
-      ).rejects.toBeInstanceOf(HttpException);
+      await expect(controller.enable(ctx, 'Playground', PROVIDER_ID)).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
 
     it('throws 404 on disable when agentRepo.findOne returns null for a playground agent', async () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
-      await expect(
-        controller.disable({ id: USER_ID } as never, 'Playground', PROVIDER_ID),
-      ).rejects.toBeInstanceOf(HttpException);
+      await expect(controller.disable(ctx, 'Playground', PROVIDER_ID)).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
   });
 
   describe('listEnabled', () => {
     it('returns empty enabled list when agent not found', async () => {
       const { controller } = makeController({
-        tenantRepo: { findOne: jest.fn().mockResolvedValue(null) },
+        agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
-      const result = await controller.listEnabled({ id: USER_ID } as never, 'missing-agent');
+      const result = await controller.listEnabled(ctx, 'missing-agent');
       expect(result).toEqual({ enabled: [] });
     });
 
-    it('returns enabled user_provider_ids for agent', async () => {
+    it('returns enabled tenant_provider_ids for agent', async () => {
       const rows: Partial<AgentEnabledProvider>[] = [
-        { agent_id: AGENT_ID, user_provider_id: 'prov-1' },
-        { agent_id: AGENT_ID, user_provider_id: 'prov-2' },
+        { agent_id: AGENT_ID, tenant_provider_id: 'prov-1' },
+        { agent_id: AGENT_ID, tenant_provider_id: 'prov-2' },
       ];
       const { controller } = makeController({
         enabledProviderRepo: { find: jest.fn().mockResolvedValue(rows) },
       });
-      const result = await controller.listEnabled({ id: USER_ID } as never, 'my-agent');
+      const result = await controller.listEnabled(ctx, 'my-agent');
       expect(result).toEqual({ enabled: ['prov-1', 'prov-2'] });
     });
   });
@@ -159,57 +153,45 @@ describe('AgentEnabledProvidersController', () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
-      await expect(
-        controller.getDisableImpact({ id: USER_ID } as never, 'missing', PROVIDER_ID),
-      ).rejects.toBeInstanceOf(HttpException);
+      await expect(controller.getDisableImpact(ctx, 'missing', PROVIDER_ID)).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
 
     it('returns empty affected_tiers when provider not found', async () => {
       const { controller } = makeController();
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result).toEqual({ affected_tiers: [] });
     });
 
     it('returns empty affected_tiers when provider has no cached models and no tiers route to it', async () => {
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             provider: 'openai',
             auth_type: 'api_key',
             cached_models: [],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result).toEqual({ affected_tiers: [] });
     });
 
     it('handles non-array cached_models gracefully (treats as empty, no crash)', async () => {
       // Covers the Array.isArray(...) ? ... : [] else branch on line 64.
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
             provider: 'openai',
             auth_type: 'api_key',
             cached_models: null,
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result).toEqual({ affected_tiers: [] });
     });
 
@@ -225,26 +207,22 @@ describe('AgentEnabledProvidersController', () => {
         },
       ];
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue(tiers),
           save: jest.fn().mockResolvedValue(undefined),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result.affected_tiers).toEqual([]);
     });
 
@@ -260,26 +238,22 @@ describe('AgentEnabledProvidersController', () => {
         },
       ];
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue(tiers),
           save: jest.fn().mockResolvedValue(undefined),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result.affected_tiers).toEqual([
         { tier: 'complex', model: 'gpt-4o', position: 'fallback 1' },
       ]);
@@ -299,26 +273,22 @@ describe('AgentEnabledProvidersController', () => {
         },
       ];
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue(tiers),
           save: jest.fn().mockResolvedValue(undefined),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result.affected_tiers).toEqual([]);
     });
 
@@ -332,26 +302,22 @@ describe('AgentEnabledProvidersController', () => {
         },
       ];
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue(tiers),
           save: jest.fn().mockResolvedValue(undefined),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result.affected_tiers).toHaveLength(1);
       expect(result.affected_tiers[0]).toEqual({
         tier: 'standard',
@@ -373,26 +339,22 @@ describe('AgentEnabledProvidersController', () => {
         },
       ];
       const { controller } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue(tiers),
           save: jest.fn().mockResolvedValue(undefined),
         },
       });
-      const result = await controller.getDisableImpact(
-        { id: USER_ID } as never,
-        'my-agent',
-        PROVIDER_ID,
-      );
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
       expect(result.affected_tiers).toHaveLength(1);
       expect(result.affected_tiers[0]).toEqual({
         tier: 'complex',
@@ -407,16 +369,16 @@ describe('AgentEnabledProvidersController', () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
-      await expect(
-        controller.enable({ id: USER_ID } as never, 'missing', PROVIDER_ID),
-      ).rejects.toBeInstanceOf(HttpException);
+      await expect(controller.enable(ctx, 'missing', PROVIDER_ID)).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
 
     it('throws 404 when provider not found', async () => {
       const { controller } = makeController();
-      await expect(
-        controller.enable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
-      ).rejects.toBeInstanceOf(HttpException);
+      await expect(controller.enable(ctx, 'my-agent', PROVIDER_ID)).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
 
     it('inserts enabled-provider row and invalidates routing cache on success', async () => {
@@ -428,24 +390,24 @@ describe('AgentEnabledProvidersController', () => {
         execute: jest.fn().mockResolvedValue(undefined),
       };
       const { controller, enabledProviderRepo, providerService } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
-          } as Partial<UserProvider>),
+            tenant_id: TENANT_ID,
+          } as Partial<TenantProvider>),
         },
         enabledProviderRepo: {
           createQueryBuilder: jest.fn().mockReturnValue(qb),
         },
       });
 
-      const result = await controller.enable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      const result = await controller.enable(ctx, 'my-agent', PROVIDER_ID);
 
       expect(result).toEqual({ ok: true });
       expect(enabledProviderRepo.createQueryBuilder).toHaveBeenCalled();
       expect(qb.orIgnore).toHaveBeenCalled();
       expect(qb.execute).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, TENANT_ID);
     });
   });
 
@@ -454,22 +416,22 @@ describe('AgentEnabledProvidersController', () => {
       const { controller } = makeController({
         agentRepo: { findOne: jest.fn().mockResolvedValue(null) },
       });
-      await expect(
-        controller.disable({ id: USER_ID } as never, 'missing', PROVIDER_ID),
-      ).rejects.toBeInstanceOf(HttpException);
+      await expect(controller.disable(ctx, 'missing', PROVIDER_ID)).rejects.toBeInstanceOf(
+        HttpException,
+      );
     });
 
     it('deletes access row and invalidates routing cache when provider not found', async () => {
       const { controller, enabledProviderRepo, providerService } = makeController();
 
-      const result = await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      const result = await controller.disable(ctx, 'my-agent', PROVIDER_ID);
 
       expect(result).toEqual({ ok: true });
       expect(enabledProviderRepo.delete).toHaveBeenCalledWith({
         agent_id: AGENT_ID,
-        user_provider_id: PROVIDER_ID,
+        tenant_provider_id: PROVIDER_ID,
       });
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, TENANT_ID);
     });
 
     it('throws conflict and leaves access enabled when a tier route uses the provider', async () => {
@@ -480,24 +442,24 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: null,
       };
       const { controller, enabledProviderRepo, providerService } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await expect(
-        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
-      ).rejects.toThrow(/assigned to this harness/);
+      await expect(controller.disable(ctx, 'my-agent', PROVIDER_ID)).rejects.toThrow(
+        /assigned to this harness/,
+      );
 
       expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(providerService.recalculateTiers).not.toHaveBeenCalled();
@@ -512,29 +474,29 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: null,
       };
       const { controller, enabledProviderRepo, providerService } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      const result = await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      const result = await controller.disable(ctx, 'my-agent', PROVIDER_ID);
 
       expect(result).toEqual({ ok: true });
       expect(enabledProviderRepo.delete).toHaveBeenCalledWith({
         agent_id: AGENT_ID,
-        user_provider_id: PROVIDER_ID,
+        tenant_provider_id: PROVIDER_ID,
       });
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, USER_ID);
+      expect(providerService.recalculateTiers).toHaveBeenCalledWith(AGENT_ID, TENANT_ID);
       expect(tier.override_route).not.toBeNull();
     });
 
@@ -546,24 +508,24 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: null,
       };
       const { controller, enabledProviderRepo } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: null,
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await expect(
-        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
-      ).rejects.toThrow(/assigned to this harness/);
+      await expect(controller.disable(ctx, 'my-agent', PROVIDER_ID)).rejects.toThrow(
+        /assigned to this harness/,
+      );
 
       expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
@@ -577,22 +539,22 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: null,
       };
       const { controller, enabledProviderRepo } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await controller.disable(ctx, 'my-agent', PROVIDER_ID);
 
       expect(enabledProviderRepo.delete).toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
@@ -606,22 +568,22 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: null,
       };
       const { controller, enabledProviderRepo } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await controller.disable(ctx, 'my-agent', PROVIDER_ID);
 
       expect(enabledProviderRepo.delete).toHaveBeenCalled();
       expect(tier.auto_assigned_route).not.toBeNull();
@@ -635,24 +597,24 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
       };
       const { controller, enabledProviderRepo } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await expect(
-        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
-      ).rejects.toThrow(/assigned to this harness/);
+      await expect(controller.disable(ctx, 'my-agent', PROVIDER_ID)).rejects.toThrow(
+        /assigned to this harness/,
+      );
 
       expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(tier.fallback_routes).toHaveLength(1);
@@ -671,22 +633,22 @@ describe('AgentEnabledProvidersController', () => {
         fallback_routes: null,
       };
       const { controller, enabledProviderRepo } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID);
+      await controller.disable(ctx, 'my-agent', PROVIDER_ID);
 
       expect(enabledProviderRepo.delete).toHaveBeenCalled();
       expect(tier.override_route).not.toBeNull();
@@ -703,24 +665,24 @@ describe('AgentEnabledProvidersController', () => {
         ],
       };
       const { controller, enabledProviderRepo } = makeController({
-        userProviderRepo: {
+        tenantProviderRepo: {
           findOne: jest.fn().mockResolvedValue({
             id: PROVIDER_ID,
-            user_id: USER_ID,
+            tenant_id: TENANT_ID,
             provider: 'openai',
             auth_type: 'api_key',
             label: 'Default',
             cached_models: [{ id: 'gpt-4o' }],
-          } as Partial<UserProvider>),
+          } as Partial<TenantProvider>),
         },
         tierRepo: {
           find: jest.fn().mockResolvedValue([tier]),
         },
       });
 
-      await expect(
-        controller.disable({ id: USER_ID } as never, 'my-agent', PROVIDER_ID),
-      ).rejects.toThrow(/assigned to this harness/);
+      await expect(controller.disable(ctx, 'my-agent', PROVIDER_ID)).rejects.toThrow(
+        /assigned to this harness/,
+      );
 
       expect(enabledProviderRepo.delete).not.toHaveBeenCalled();
       expect(tier.fallback_routes).toHaveLength(2);

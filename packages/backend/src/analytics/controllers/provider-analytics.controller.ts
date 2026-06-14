@@ -1,16 +1,14 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import type { AuthUser } from '../../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AggregationService } from '../services/aggregation.service';
 import { TimeseriesQueriesService } from '../services/timeseries-queries.service';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
-import { UserProvider } from '../../entities/user-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import {
   selectMessageRowColumns,
-  filterByUserProviderId,
+  filterByTenantProviderId,
   excludePlaygroundAgents,
 } from '../services/query-helpers';
 import { computeCutoff } from '../../common/utils/postgres-sql';
@@ -21,29 +19,27 @@ export class ProviderAnalyticsController {
   constructor(
     private readonly aggregation: AggregationService,
     private readonly timeseries: TimeseriesQueriesService,
-    private readonly tenantCache: TenantCacheService,
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly providerRepo: Repository<TenantProvider>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
   ) {}
 
   @Get()
   async getAnalytics(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Query('auth_type') authType?: string,
     @Query('range') range?: string,
     @Query('agent_name') agentName?: string,
     @Query('provider') provider?: string,
     @Query('label') label?: string,
     // When present, scope the summary cards + chart to one exact connection by
-    // its user_providers id (the connection-detail page passes this). The
+    // its tenant_providers id (the connection-detail page passes this). The
     // services prefer it over the provider/auth_type/label tuple.
     @Query('connection_id') connectionId?: string,
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
     const agent = agentName || undefined;
 
     const [summary, ts] = await Promise.all([
@@ -51,8 +47,7 @@ export class ProviderAnalyticsController {
       // provider analytics aggregates.
       this.aggregation.getSummaryMetrics(
         validRange,
-        user.id,
-        tenantId,
+        ctx.tenantId,
         agent,
         authType,
         provider,
@@ -62,9 +57,8 @@ export class ProviderAnalyticsController {
       ),
       this.timeseries.getTimeseries(
         validRange,
-        user.id,
+        ctx.tenantId,
         hourly,
-        tenantId,
         agent,
         authType,
         provider,
@@ -86,7 +80,7 @@ export class ProviderAnalyticsController {
 
   @Get('per-agent-timeseries')
   async getPerAgentTimeseries(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Query('auth_type') authType?: string,
     @Query('provider') provider?: string,
     @Query('range') range?: string,
@@ -95,13 +89,11 @@ export class ProviderAnalyticsController {
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
 
     return this.timeseries.getPerAgentTimeseries(
       validRange,
-      user.id,
+      ctx.tenantId,
       hourly,
-      tenantId,
       authType,
       provider,
       label,
@@ -111,7 +103,7 @@ export class ProviderAnalyticsController {
 
   @Get('per-agent-message-timeseries')
   async getPerAgentMessageTimeseries(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Query('auth_type') authType?: string,
     @Query('provider') provider?: string,
     @Query('range') range?: string,
@@ -120,13 +112,11 @@ export class ProviderAnalyticsController {
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
 
     return this.timeseries.getPerAgentMessageTimeseries(
       validRange,
-      user.id,
+      ctx.tenantId,
       hourly,
-      tenantId,
       authType,
       provider,
       label,
@@ -136,7 +126,7 @@ export class ProviderAnalyticsController {
 
   @Get('per-agent-cost-timeseries')
   async getPerAgentCostTimeseries(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Query('auth_type') authType?: string,
     @Query('provider') provider?: string,
     @Query('range') range?: string,
@@ -145,13 +135,11 @@ export class ProviderAnalyticsController {
   ) {
     const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
     const hourly = validRange === '24h';
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
 
     return this.timeseries.getPerAgentCostTimeseries(
       validRange,
-      user.id,
+      ctx.tenantId,
       hourly,
-      tenantId,
       authType,
       provider,
       label,
@@ -160,57 +148,36 @@ export class ProviderAnalyticsController {
   }
 
   @Get('agents')
-  async getAgents(@CurrentUser() user: AuthUser, @Query('auth_type') authType?: string) {
-    const tenantId = (await this.tenantCache.resolve(user.id)) ?? undefined;
+  async getAgents(@TenantCtx() ctx: TenantContext, @Query('auth_type') authType?: string) {
     const agents = await this.timeseries.getAgentNamesByAuthType(
       authType ?? 'subscription',
-      user.id,
-      tenantId,
+      ctx.tenantId,
     );
     return { agents };
   }
 
   @Get('connection-detail')
   async getConnectionDetail(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Query('connection_id') connectionId?: string,
   ) {
     // Every branch returns the same shape (incl. `model_usage`) so the client
     // never has to special-case a missing field.
-    if (!connectionId)
+    if (!connectionId || !ctx.tenantId)
       return { connection: null, agents: [], model_usage: [], recent_messages: [] };
+    const tenantId = ctx.tenantId;
 
-    // Look up the connection (security: must belong to the user)
+    // Look up the connection (security: must belong to the tenant)
     const conn = await this.providerRepo.findOne({
-      where: { id: connectionId, user_id: user.id },
+      where: { id: connectionId, tenant_id: tenantId },
     });
     if (!conn) return { connection: null, agents: [], model_usage: [], recent_messages: [] };
-
-    // Resolve the tenant via the shared cache like every other endpoint here,
-    // instead of re-querying the tenants table by name on every request.
-    const tenantId = await this.tenantCache.resolve(user.id);
-    if (!tenantId) {
-      return {
-        connection: {
-          id: conn.id,
-          provider: conn.provider,
-          auth_type: conn.auth_type,
-          label: conn.label,
-          cached_model_count: Array.isArray(conn.cached_models) ? conn.cached_models.length : 0,
-          key_prefix: conn.key_prefix,
-          connected_at: conn.connected_at,
-        },
-        agents: [],
-        model_usage: [],
-        recent_messages: [],
-      };
-    }
 
     const cutoff30d = computeCutoff('30 days');
     const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
 
-    // A connection is identified by its user_providers row id, stamped on
-    // agent_messages.user_provider_id at proxy time. Filtering on it pins every
+    // A connection is identified by its tenant_providers row id, stamped on
+    // agent_messages.tenant_provider_id at proxy time. Filtering on it pins every
     // widget below to the exact key that served each message — unlike the old
     // (provider, auth_type, label) tuple, two keys that share a label no longer
     // merge. Pre-upgrade rows the backfill could not disambiguate carry a NULL
@@ -218,7 +185,7 @@ export class ProviderAnalyticsController {
     const connId = conn.id;
 
     // Global last_used_at for this connection (all time, not just 30d)
-    const lastUsedRow = await filterByUserProviderId(
+    const lastUsedRow = await filterByTenantProviderId(
       this.messageRepo
         .createQueryBuilder('at')
         .select('MAX(at.timestamp)', 'last_used_at')
@@ -253,7 +220,7 @@ export class ProviderAnalyticsController {
       .andWhere('at.agent_name IS NOT NULL');
     // Exclude the reserved Playground (is_playground) agent from the breakdown.
     excludePlaygroundAgents(agentQb);
-    filterByUserProviderId(agentQb, connId);
+    filterByTenantProviderId(agentQb, connId);
     const agentRows = await agentQb.groupBy('at.agent_name').orderBy('tokens', 'DESC').getRawMany();
 
     // Model usage (30d)
@@ -269,7 +236,7 @@ export class ProviderAnalyticsController {
     // Same Playground exclusion as the agent breakdown, so the per-model token
     // sum stays equal to the per-agent sum (both cover the same messages).
     excludePlaygroundAgents(modelQb);
-    filterByUserProviderId(modelQb, connId);
+    filterByTenantProviderId(modelQb, connId);
     const modelRows = await modelQb.groupBy('at.model').orderBy('tokens', 'DESC').getRawMany();
 
     const totalModelTokens = modelRows.reduce(
@@ -284,7 +251,7 @@ export class ProviderAnalyticsController {
     ).where('at.tenant_id = :tid', { tid: tenantId });
     // Keep reserved Playground runs out of the recent-messages list too.
     excludePlaygroundAgents(msgQb);
-    filterByUserProviderId(msgQb, connId);
+    filterByTenantProviderId(msgQb, connId);
     const recentMessages = await msgQb.orderBy('at.timestamp', 'DESC').limit(5).getRawMany();
 
     return {

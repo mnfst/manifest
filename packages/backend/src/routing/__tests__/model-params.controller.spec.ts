@@ -4,11 +4,11 @@ import { ModelParamsController } from '../model-params.controller';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { AuthUser } from '../../auth/auth.instance';
+import { TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
 
-const mockUser: AuthUser = { id: 'user-1' } as AuthUser;
-const mockAgent = { id: 'agent-1' };
+const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
+const mockAgent = { id: 'agent-1', tenant_id: 'tenant-1' };
 const specCatalog: ProviderParamSpecCatalog = [
   {
     provider: 'deepseek',
@@ -77,11 +77,11 @@ describe('ModelParamsController', () => {
   describe('GET /model-param-specs/by-model', () => {
     it('returns the specs for a single resolved route', async () => {
       const result = await controller.specsByModel(
-        mockUser,
+        ctx,
         { agentName: 'demo' },
         { provider: 'deepseek', authType: 'api_key', model: 'deepseek-v4' },
       );
-      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'demo');
       expect(providerParamSpecs.getSpecs).toHaveBeenCalledWith(
         'deepseek',
         'api_key',
@@ -93,8 +93,8 @@ describe('ModelParamsController', () => {
 
   describe('GET /model-param-specs/index', () => {
     it('returns the model identities for the resolved agent', async () => {
-      const result = await controller.specsIndex(mockUser, { agentName: 'demo' });
-      expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'demo');
+      const result = await controller.specsIndex(ctx, { agentName: 'demo' });
+      expect(resolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'demo');
       expect(providerParamSpecs.listModelIds).toHaveBeenCalled();
       expect(result).toEqual([{ provider: 'deepseek', authType: 'api_key', model: 'deepseek-v4' }]);
     });
@@ -112,7 +112,7 @@ describe('ModelParamsController', () => {
         },
       ]);
 
-      const result = await controller.list(mockUser, { agentName: 'demo' });
+      const result = await controller.list(ctx, { agentName: 'demo' });
 
       expect(result).toEqual([
         {
@@ -137,7 +137,7 @@ describe('ModelParamsController', () => {
       });
 
       const result = await controller.set(
-        mockUser,
+        ctx,
         { agentName: 'demo' },
         {
           scope: 'tier:default',
@@ -155,7 +155,6 @@ describe('ModelParamsController', () => {
       );
       expect(service.set).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
         'tier:default',
         'deepseek',
         'api_key',
@@ -172,7 +171,7 @@ describe('ModelParamsController', () => {
     });
 
     it('strips keys the provider does not consume and persists only the compatible subset', async () => {
-      service.set.mockImplementation(async (_agent, _user, scope, p, a, m, params) => ({
+      service.set.mockImplementation(async (_agent, scope, p, a, m, params) => ({
         provider: p,
         auth_type: a,
         model_name: m,
@@ -181,7 +180,7 @@ describe('ModelParamsController', () => {
       }));
 
       const out = await controller.set(
-        mockUser,
+        ctx,
         { agentName: 'demo' },
         {
           scope: 'tier:default',
@@ -198,7 +197,7 @@ describe('ModelParamsController', () => {
     it('throws when the params payload contains no configurable keys at all', async () => {
       await expect(
         controller.set(
-          mockUser,
+          ctx,
           { agentName: 'demo' },
           {
             scope: 'tier:default',
@@ -215,7 +214,7 @@ describe('ModelParamsController', () => {
       providerParamSpecs.getSpecs.mockResolvedValueOnce([]);
       await expect(
         controller.set(
-          mockUser,
+          ctx,
           { agentName: 'demo' },
           {
             scope: 'tier:default',
@@ -231,7 +230,7 @@ describe('ModelParamsController', () => {
     it('throws when a compatible param has an invalid value type', async () => {
       await expect(
         controller.set(
-          mockUser,
+          ctx,
           { agentName: 'demo' },
           {
             scope: 'tier:default',
@@ -249,7 +248,7 @@ describe('ModelParamsController', () => {
   describe('DELETE /model-params', () => {
     it('removes the row and returns ok', async () => {
       const result = await controller.remove(
-        mockUser,
+        ctx,
         { agentName: 'demo' },
         {
           scope: 'tier:default',

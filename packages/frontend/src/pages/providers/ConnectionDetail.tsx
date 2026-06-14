@@ -221,7 +221,7 @@ const ConnectionDetail: Component = () => {
         p.agent || undefined,
         p.provider,
         p.label,
-        // Scope the cards + chart to this exact connection (user_providers id),
+        // Scope the cards + chart to this exact connection (tenant_providers id),
         // so a freshly added key shows its own usage, not a sibling key's.
         params.connectionId,
       ) as Promise<AnalyticsResponse>;
