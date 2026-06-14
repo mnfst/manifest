@@ -95,6 +95,20 @@ describe('AggregationService', () => {
       const result = await service.hasAnyData('test-user', 'my-agent');
       expect(result).toBe(true);
     });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
+      await service.hasAnyData('test-user', undefined, 'tenant-1', true);
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
+      await service.hasAnyData('test-user', undefined, 'tenant-1');
+      const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
   });
 
   describe('getPreviousTokenTotal', () => {

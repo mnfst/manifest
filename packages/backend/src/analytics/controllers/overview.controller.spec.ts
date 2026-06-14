@@ -138,7 +138,7 @@ describe('OverviewController', () => {
     expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'u1', 'bot-1', 'tenant-123', true);
     expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'u1', 5, 'bot-1', 'tenant-123', true);
     expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'u1', 'bot-1', 'tenant-123', true);
-    expect(agg.hasAnyData).toHaveBeenCalledWith('u1', 'bot-1', 'tenant-123');
+    expect(agg.hasAnyData).toHaveBeenCalledWith('u1', 'bot-1', 'tenant-123', true);
   });
 
   it('includes services_hit placeholder in summary', async () => {

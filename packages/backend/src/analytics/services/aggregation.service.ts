@@ -49,10 +49,19 @@ export class AggregationService {
     private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async hasAnyData(userId: string, agentName?: string, tenantId?: string): Promise<boolean> {
+  async hasAnyData(
+    userId: string,
+    agentName?: string,
+    tenantId?: string,
+    excludePlayground = false,
+  ): Promise<boolean> {
     const resolved = tenantId ?? (await this.tenantCache.resolve(userId)) ?? undefined;
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
     addTenantFilter(qb, userId, agentName, resolved);
+    // Mirror the overview's exclusion: a user whose only traffic is Playground
+    // must read as empty, or has_data=true paints a non-empty state over cards
+    // and charts that all dropped Playground and so render blank.
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const row = await qb.getRawOne();
     return row != null;
   }

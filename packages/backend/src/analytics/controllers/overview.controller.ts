@@ -60,7 +60,7 @@ export class OverviewController {
         this.timeseries.getCostByModel(range, user.id, agentName, tenantId, true),
         this.timeseries.getRecentActivity(range, user.id, 5, agentName, tenantId, true),
         this.timeseries.getActiveSkills(range, user.id, agentName, tenantId, true),
-        this.aggregation.hasAnyData(user.id, agentName, tenantId),
+        this.aggregation.hasAnyData(user.id, agentName, tenantId, true),
         this.hasActiveProviders(user.id, agentName),
       ]);
 

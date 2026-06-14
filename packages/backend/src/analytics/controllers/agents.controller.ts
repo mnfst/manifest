@@ -126,6 +126,10 @@ export class AgentsController {
           cleanupError instanceof Error ? cleanupError.stack : String(cleanupError),
         );
       }
+      // The agent was committed (briefly visible) then rolled back, so drop any
+      // agent-list cache entry that captured it — deleteAgent only clears the
+      // resolve + routing caches, not the analytics agent list.
+      await this.invalidateAgentListCache(user.id);
       throw error;
     }
     await this.invalidateAgentListCache(user.id);
