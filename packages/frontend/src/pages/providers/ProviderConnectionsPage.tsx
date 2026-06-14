@@ -8,7 +8,7 @@ import {
 } from '../../services/api.js';
 import {
   getProviders as getGlobalProviders,
-  type UserProviderSummary,
+  type TenantProviderSummary,
 } from '../../services/api/providers.js';
 import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
@@ -312,13 +312,13 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const connectedSummaries = () =>
     (data()?.providers ?? []).filter((provider) => provider.auth_type === copy().authType);
 
-  const hasUsage = (summary: UserProviderSummary) =>
+  const hasUsage = (summary: TenantProviderSummary) =>
     summary.consumption_tokens > 0 || summary.consumption_messages > 0;
 
   const connectedRows = () => {
     const rows: Array<{
-      summary: UserProviderSummary;
-      connection: UserProviderSummary['connections'][number];
+      summary: TenantProviderSummary;
+      connection: TenantProviderSummary['connections'][number];
       name: string;
     }> = [];
     for (const summary of connectedSummaries()) {
@@ -335,7 +335,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   };
 
   const connectedByProvider = () => {
-    const map = new Map<string, UserProviderSummary>();
+    const map = new Map<string, TenantProviderSummary>();
     for (const summary of connectedSummaries()) map.set(summary.provider, summary);
     return map;
   };
@@ -349,20 +349,20 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
 
-  const connectionDenominator = (summary: UserProviderSummary) =>
+  const connectionDenominator = (summary: TenantProviderSummary) =>
     Math.max(
       summary.connections.filter((connection) => connection.is_active || hasUsage(summary)).length,
       summary.connection_count,
       1,
     );
 
-  const perConnectionTokens = (summary: UserProviderSummary) =>
+  const perConnectionTokens = (summary: TenantProviderSummary) =>
     Math.round(summary.consumption_tokens / connectionDenominator(summary));
 
-  const perConnectionCost = (summary: UserProviderSummary) =>
+  const perConnectionCost = (summary: TenantProviderSummary) =>
     summary.consumption_cost / connectionDenominator(summary);
 
-  const connectionLastUsedAt = (summary: UserProviderSummary) =>
+  const connectionLastUsedAt = (summary: TenantProviderSummary) =>
     summary.connections.length === 1 ? summary.last_used_at : null;
 
   const showMetricCard = () =>

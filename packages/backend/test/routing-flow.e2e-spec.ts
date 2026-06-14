@@ -6,13 +6,46 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_AGENT_ID, TEST_API_KEY, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
+import {
+  createTestApp,
+  TEST_AGENT_ID,
+  TEST_API_KEY,
+  TEST_OTLP_KEY,
+  TEST_TENANT_ID,
+} from './helpers';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
+import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
 import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
-import { TierService } from '../src/routing/routing-core/tier.service';
 
 let app: INestApplication;
+
+/**
+ * Model routing is user-controlled now (no auto-assign service): pin an
+ * override route on each tier the way the dashboard would, then flush the
+ * routing caches so resolve() sees the new rows.
+ */
+async function setTierOverrides(
+  ds: DataSource,
+  overrides: Record<string, { provider: string; model: string }>,
+): Promise<void> {
+  for (const [tier, route] of Object.entries(overrides)) {
+    await ds.query(
+      `INSERT INTO tier_assignments (id, agent_id, tier, override_route, updated_at)
+       VALUES ($1,$2,$3,$4::jsonb, now())
+       ON CONFLICT (agent_id, tier) DO UPDATE SET override_route = EXCLUDED.override_route`,
+      [
+        `tier-${tier}-${TEST_AGENT_ID}`,
+        TEST_AGENT_ID,
+        tier,
+        JSON.stringify({ ...route, authType: 'api_key' }),
+      ],
+    );
+  }
+  const cache = app.get(RoutingCacheService);
+  cache.invalidateAgent(TEST_AGENT_ID);
+  cache.invalidateTenant(TEST_TENANT_ID);
+}
 
 beforeAll(async () => {
   app = await createTestApp();
@@ -133,54 +166,25 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       },
     ]);
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
-      [openaiModels, TEST_USER_ID, 'openai'],
+      `UPDATE tenant_providers SET cached_models = $1 WHERE tenant_id = $2 AND provider = $3`,
+      [openaiModels, TEST_TENANT_ID, 'openai'],
     );
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
-      [anthropicModels, TEST_USER_ID, 'anthropic'],
+      `UPDATE tenant_providers SET cached_models = $1 WHERE tenant_id = $2 AND provider = $3`,
+      [anthropicModels, TEST_TENANT_ID, 'anthropic'],
     );
 
-    // Model routing is now user-controlled (auto-assign was removed). Drop the
-    // discovery cache so the seeded cached_models is visible, then set explicit
-    // per-tier overrides that mirror what auto-assign used to pick: cheapest for
-    // simple, mid quality for standard/complex, the reasoning-capable top model
-    // for reasoning. These let the scorer-selected tier resolve to a model.
-    const discovery = app.get(ModelDiscoveryService);
-    const tierService = app.get(TierService);
-    discovery.invalidate(TEST_AGENT_ID);
-    await tierService.setOverride(
-      TEST_AGENT_ID,
-      TEST_USER_ID,
-      'simple',
-      'gpt-4o-mini',
-      'openai',
-      'api_key',
-    );
-    await tierService.setOverride(
-      TEST_AGENT_ID,
-      TEST_USER_ID,
-      'standard',
-      'claude-sonnet-4',
-      'anthropic',
-      'api_key',
-    );
-    await tierService.setOverride(
-      TEST_AGENT_ID,
-      TEST_USER_ID,
-      'complex',
-      'claude-sonnet-4',
-      'anthropic',
-      'api_key',
-    );
-    await tierService.setOverride(
-      TEST_AGENT_ID,
-      TEST_USER_ID,
-      'reasoning',
-      'claude-opus-4-6',
-      'anthropic',
-      'api_key',
-    );
+    // Drop the discovery cache so the seeded cached_models is visible, then pin
+    // per-tier routes against the seeded models (cheapest on simple,
+    // higher-quality models on complex/reasoning — what the auto-assigner
+    // used to compute, now user-controlled).
+    app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
+    await setTierOverrides(ds, {
+      simple: { provider: 'openai', model: 'gpt-4o-mini' },
+      standard: { provider: 'anthropic', model: 'claude-sonnet-4' },
+      complex: { provider: 'anthropic', model: 'claude-sonnet-4' },
+      reasoning: { provider: 'anthropic', model: 'claude-opus-4-6' },
+    });
   });
 
   it('routes "hi" → simple tier with cheapest model', async () => {
@@ -309,11 +313,10 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 
 describe('Subscription providers respect supported capabilities', () => {
   beforeAll(async () => {
-    // Disconnecting providers now 409s while their models are still assigned to
-    // routing ("Update routing first"). The previous block set tier overrides
-    // on openai/anthropic, so clear them before deactivating all providers.
-    await app.get(TierService).resetAllOverrides(TEST_AGENT_ID);
-    // Start fresh: deactivate all, then register via subscription endpoint
+    // Start fresh: clear the pinned routes first (deactivating a provider that
+    // is still referenced by a route is a 409 now — "Update routing first"),
+    // then deactivate all and register via the subscription endpoint.
+    await auth(api().post('/api/v1/routing/test-agent/tiers/reset-all')).expect(201);
     await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
       .expect(201);
   });
@@ -385,13 +388,13 @@ describe('Persisted unsupported subscriptions are cleaned up on read', () => {
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
     await ds.query(
-      `DELETE FROM user_providers WHERE agent_id = $1 AND provider = $2 AND auth_type = $3`,
+      `DELETE FROM tenant_providers WHERE agent_id = $1 AND provider = $2 AND auth_type = $3`,
       [TEST_AGENT_ID, 'deepseek', 'subscription'],
     );
     await ds.query(
-      `INSERT INTO user_providers (id, user_id, agent_id, provider, api_key_encrypted, key_prefix, auth_type, is_active, connected_at, updated_at)
+      `INSERT INTO tenant_providers (id, tenant_id, agent_id, provider, api_key_encrypted, key_prefix, auth_type, is_active, connected_at, updated_at)
            VALUES ($1, $2, $3, $4, NULL, NULL, $5, true, $6, $7)`,
-      ['stale-deepseek-sub', TEST_USER_ID, TEST_AGENT_ID, 'deepseek', 'subscription', now, now],
+      ['stale-deepseek-sub', TEST_TENANT_ID, TEST_AGENT_ID, 'deepseek', 'subscription', now, now],
     );
 
     const providers = await auth(api().get('/api/v1/routing/test-agent/providers'))
@@ -403,7 +406,7 @@ describe('Persisted unsupported subscriptions are cleaned up on read', () => {
     expect(deepseek).toBeUndefined();
 
     const rows = await ds.query(
-      `SELECT is_active FROM user_providers WHERE id = $1`,
+      `SELECT is_active FROM tenant_providers WHERE id = $1`,
       ['stale-deepseek-sub'],
     );
     const isActive = rows[0]?.is_active === true || rows[0]?.is_active === 1;
@@ -447,15 +450,15 @@ describe('Routing disabled after deactivation → falls back to null', () => {
       },
     ]);
     await ds.query(
-      `UPDATE user_providers SET cached_models = $1 WHERE user_id = $2 AND provider = $3`,
-      [openaiModels, TEST_USER_ID, 'openai'],
+      `UPDATE tenant_providers SET cached_models = $1 WHERE tenant_id = $2 AND provider = $3`,
+      [openaiModels, TEST_TENANT_ID, 'openai'],
     );
-    // Re-establish the simple-tier override (deactivate-all dropped routability);
-    // invalidate discovery first so the re-seeded cached_models is picked up.
+
+    // The reset-all in the subscription describe cleared the pinned routes —
+    // re-pin the simple tier the way the user would after reconnecting.
+    // Invalidate discovery first so the re-seeded cached_models is picked up.
     app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
-    await app
-      .get(TierService)
-      .setOverride(TEST_AGENT_ID, TEST_USER_ID, 'simple', 'gpt-4o-mini', 'openai', 'api_key');
+    await setTierOverrides(ds, { simple: { provider: 'openai', model: 'gpt-4o-mini' } });
 
     const res = await bearer(api().post('/api/v1/routing/resolve'))
       .send({ messages: [{ role: 'user', content: 'hi' }] })

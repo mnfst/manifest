@@ -133,7 +133,7 @@ describe('OpenaiOauthService', () => {
           expires_in: 3600,
         }),
       );
-      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
       const state = new URL(url).searchParams.get('state')!;
 
       await svc.exchangeCode(state, 'auth-code');
@@ -148,12 +148,13 @@ describe('OpenaiOauthService', () => {
 
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         expect.stringContaining('"t":"access-1"'),
         'subscription',
         undefined,
         undefined,
+        null,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
       expect(providerService.recalculateTiers).not.toHaveBeenCalled();

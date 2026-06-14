@@ -10,9 +10,7 @@ const CACHE_CONTROL = { type: 'ephemeral' } as const;
  * OpenRouter requests targeting Anthropic models. OpenRouter passes
  * these through to the Anthropic backend.
  */
-export function injectOpenRouterCacheControl(
-  body: Record<string, unknown>,
-): void {
+export function injectOpenRouterCacheControl(body: Record<string, unknown>): void {
   const messages = body.messages as Array<Record<string, unknown>> | undefined;
   if (!messages) return;
 
@@ -22,11 +20,13 @@ export function injectOpenRouterCacheControl(
     if (msg.role !== 'system' && msg.role !== 'developer') continue;
 
     if (typeof msg.content === 'string') {
-      msg.content = [{
-        type: 'text',
-        text: msg.content,
-        cache_control: CACHE_CONTROL,
-      }];
+      msg.content = [
+        {
+          type: 'text',
+          text: msg.content,
+          cache_control: CACHE_CONTROL,
+        },
+      ];
     } else if (Array.isArray(msg.content)) {
       const blocks = msg.content as Array<Record<string, unknown>>;
       if (blocks.length > 0) {

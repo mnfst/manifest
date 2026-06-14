@@ -1,44 +1,38 @@
 import { Controller, Get } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CurrentUser } from '../auth/current-user.decorator';
-import type { AuthUser } from '../auth/auth.instance';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { Tenant } from '../entities/tenant.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 
 /**
- * User-level provider management endpoints.
- * Returns all providers for the authenticated user (not scoped to a specific agent).
+ * Tenant-level provider management endpoints.
+ * Returns all providers for the tenant (not scoped to a specific agent).
  */
 @Controller('api/v1/providers')
-export class UserProvidersController {
+export class TenantProvidersController {
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly providerRepo: Repository<TenantProvider>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
-    @InjectRepository(Tenant)
-    private readonly tenantRepo: Repository<Tenant>,
     private readonly pricingCache: ModelPricingCacheService,
     private readonly customProviderService: CustomProviderService,
   ) {}
 
   /**
-   * List all user-level providers with consumption summary.
+   * List all tenant-level providers with consumption summary.
    * Groups by (provider, auth_type) and returns connected count, model count,
    * and aggregate token consumption for the current period.
    */
   @Get()
-  async listProviders(@CurrentUser() user: AuthUser) {
-    const providers = await this.providerRepo.find({
-      where: { user_id: user.id },
-    });
-
-    // Get tenant for message queries
-    const tenant = await this.tenantRepo.findOne({ where: { name: user.id } });
+  async listProviders(@TenantCtx() ctx: TenantContext) {
+    const tenantId = ctx.tenantId;
+    const providers = tenantId
+      ? await this.providerRepo.find({ where: { tenant_id: tenantId } })
+      : [];
 
     // Group providers and build response
     const grouped = new Map<
@@ -103,7 +97,7 @@ export class UserProvidersController {
       string,
       { tokens: number; messages: number; cost: number; last_used_at: string | null }
     >();
-    if (tenant) {
+    if (tenantId) {
       const rows = await this.messageRepo
         .createQueryBuilder('m')
         .select('m.provider', 'provider')
@@ -112,7 +106,7 @@ export class UserProvidersController {
         .addSelect('COUNT(*)', 'messages')
         .addSelect('SUM(COALESCE(m.cost_usd, 0))', 'cost')
         .addSelect('MAX(m.timestamp)', 'last_used_at')
-        .where('m.tenant_id = :tenantId', { tenantId: tenant.id })
+        .where('m.tenant_id = :tenantId', { tenantId })
         .andWhere("m.timestamp >= NOW() - INTERVAL '30 days'")
         .groupBy('m.provider')
         .addGroupBy('m.auth_type')
@@ -138,14 +132,14 @@ export class UserProvidersController {
 
     // 7-day daily token sparkline per (provider, auth_type)
     const sparklines = new Map<string, number[]>();
-    if (tenant) {
+    if (tenantId) {
       const sparkRows = await this.messageRepo
         .createQueryBuilder('m')
         .select('m.provider', 'provider')
         .addSelect('m.auth_type', 'auth_type')
         .addSelect("to_char(date_trunc('day', m.timestamp), 'YYYY-MM-DD')", 'day')
         .addSelect('COALESCE(SUM(m.input_tokens + m.output_tokens), 0)', 'tokens')
-        .where('m.tenant_id = :tenantId', { tenantId: tenant.id })
+        .where('m.tenant_id = :tenantId', { tenantId })
         .andWhere("m.timestamp >= NOW() - INTERVAL '7 days'")
         .groupBy('m.provider')
         .addGroupBy('m.auth_type')
@@ -178,7 +172,7 @@ export class UserProvidersController {
     }
 
     // Resolve custom provider display names (provider key = `custom:<uuid>`).
-    const customProviders = await this.customProviderService.list(user.id);
+    const customProviders = tenantId ? await this.customProviderService.list(tenantId) : [];
     const customNameById = new Map(customProviders.map((cp) => [cp.id, cp.name]));
 
     const result = Array.from(grouped.values()).map((g) => {

@@ -18,7 +18,7 @@ export class AgentLifecycleService {
   ) {}
 
   async findAgentInfo(
-    userId: string,
+    tenantId: string | null,
     agentName: string,
   ): Promise<{
     agent_name: string;
@@ -27,7 +27,7 @@ export class AgentLifecycleService {
     agent_platform: string | null;
     record_messages: boolean;
   } | null> {
-    const agent = await this.findAgentByUser(userId, agentName);
+    const agent = await this.findAgentByTenant(tenantId, agentName);
     if (!agent) return null;
     return {
       agent_name: agent.name,
@@ -38,14 +38,14 @@ export class AgentLifecycleService {
     };
   }
 
-  async deleteAgent(userId: string, agentName: string): Promise<void> {
-    const agent = await this.findAgentByUser(userId, agentName);
+  async deleteAgent(tenantId: string | null, agentName: string): Promise<void> {
+    const agent = await this.findAgentByTenant(tenantId, agentName);
 
     if (!agent) {
       throw new NotFoundException(`Agent "${agentName}" not found`);
     }
 
-    const { id: agentId, tenant_id: tenantId } = agent;
+    const { id: agentId, tenant_id: agentTenantId } = agent;
 
     await this.dataSource.transaction(async (manager) => {
       await manager
@@ -65,16 +65,17 @@ export class AgentLifecycleService {
         .execute();
     });
 
-    this.resolveAgent.invalidate(tenantId, agentName);
+    this.resolveAgent.invalidate(agentTenantId, agentName);
     this.routingCache.invalidateAgent(agentId);
     this.otlpAuthGuard.clearCache();
   }
 
-  private async findAgentByUser(userId: string, agentName: string) {
+  private async findAgentByTenant(tenantId: string | null, agentName: string) {
+    // No tenant yet (fresh account) → no agents.
+    if (!tenantId) return null;
     return this.agentRepo
       .createQueryBuilder('a')
-      .leftJoin('a.tenant', 't')
-      .where('t.name = :userId', { userId })
+      .where('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.name = :agentName', { agentName })
       .andWhere('a.deleted_at IS NULL')
       .andWhere('a.is_playground = false')
@@ -82,11 +83,11 @@ export class AgentLifecycleService {
   }
 
   async updateAgentType(
-    userId: string,
+    tenantId: string | null,
     agentName: string,
     fields: { agent_category?: string; agent_platform?: string },
   ): Promise<void> {
-    const agent = await this.findAgentByUser(userId, agentName);
+    const agent = await this.findAgentByTenant(tenantId, agentName);
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
 
     const update: Record<string, unknown> = {};
@@ -103,11 +104,11 @@ export class AgentLifecycleService {
   }
 
   async setRecordMessages(
-    userId: string,
+    tenantId: string | null,
     agentName: string,
     enabled: boolean,
   ): Promise<{ agentId: string }> {
-    const agent = await this.findAgentByUser(userId, agentName);
+    const agent = await this.findAgentByTenant(tenantId, agentName);
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
 
     await this.agentRepo
@@ -121,19 +122,12 @@ export class AgentLifecycleService {
   }
 
   async renameAgent(
-    userId: string,
+    tenantId: string | null,
     currentName: string,
     newName: string,
     displayName?: string,
   ): Promise<void> {
-    const agent = await this.agentRepo
-      .createQueryBuilder('a')
-      .leftJoin('a.tenant', 't')
-      .where('t.name = :userId', { userId })
-      .andWhere('a.name = :currentName', { currentName })
-      .andWhere('a.deleted_at IS NULL')
-      .andWhere('a.is_playground = false')
-      .getOne();
+    const agent = await this.findAgentByTenant(tenantId, currentName);
 
     if (!agent) {
       throw new NotFoundException(`Agent "${currentName}" not found`);
@@ -154,8 +148,7 @@ export class AgentLifecycleService {
 
     const duplicate = await this.agentRepo
       .createQueryBuilder('a')
-      .leftJoin('a.tenant', 't')
-      .where('t.name = :userId', { userId })
+      .where('a.tenant_id = :tenantId', { tenantId: agent.tenant_id })
       .andWhere('a.name = :newName', { newName })
       .andWhere('a.deleted_at IS NULL')
       .getOne();

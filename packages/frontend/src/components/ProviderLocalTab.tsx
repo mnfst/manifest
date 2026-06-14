@@ -25,16 +25,16 @@ interface Props {
   localProviders: ProviderDef[];
   customProviders: CustomProviderData[];
   /**
-   * Reports whether the agent has an active user_providers row with
+   * Reports whether the agent has an active tenant_providers row with
    * `auth_type: 'local'` for the given key. The key is `prov.id`
    * (`ollama`) for standard tiles and `custom:<uuid>` for custom-backed
-   * tiles (LM Studio). A single check covers both because the user_providers
+   * tiles (LM Studio). A single check covers both because the tenant_providers
    * row is the source of truth for "is this provider actively routing?".
    */
   isConnected: (providerKey: string) => boolean;
   /**
    * Disable a connected local provider — flips the toggle OFF and
-   * marks the user_providers row inactive so routing stops selecting it.
+   * marks the tenant_providers row inactive so routing stops selecting it.
    * `providerKey` matches the argument to `isConnected()`.
    */
   onToggle: (providerKey: string) => void | Promise<void>;

@@ -83,13 +83,13 @@ export interface RoutingMeta {
   header_tier_color?: string;
   provider_key_label?: string;
   /**
-   * The `user_providers` row id that served this attempt. Stamped on
-   * `agent_messages.user_provider_id` so per-connection analytics scope by the
+   * The `tenant_providers` row id that served this attempt. Stamped on
+   * `agent_messages.tenant_provider_id` so per-connection analytics scope by the
    * exact key rather than the non-unique (provider, auth_type, label) tuple.
    * In a fallback-success flow this holds the winning fallback's connection.
    * NULL for local/Ollama and resolution-failure paths.
    */
-  userProviderId?: string | null;
+  tenantProviderId?: string | null;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -109,12 +109,12 @@ export interface RoutingMeta {
    */
   primaryAuthType?: string;
   /**
-   * The primary's `user_provider_id` when a fallback ultimately succeeded.
-   * Mirrors primaryProvider/primaryAuthType: `userProviderId` then holds the
+   * The primary's `tenant_provider_id` when a fallback ultimately succeeded.
+   * Mirrors primaryProvider/primaryAuthType: `tenantProviderId` then holds the
    * winning fallback's connection, so the recorded primary-failure row reads
    * this to stay attributed to the connection that actually failed.
    */
-  primaryUserProviderId?: string | null;
+  primaryTenantProviderId?: string | null;
   /**
    * Effective request body parameters for this attempt: client body values,
    * route-scoped `agent_model_params`, and MPS provider param defaults.
@@ -160,17 +160,8 @@ export class ProxyService {
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
-    const {
-      agentId,
-      userId,
-      body,
-      sessionKey,
-      tenantId,
-      agentName,
-      signal,
-      specificityOverride,
-      headers,
-    } = opts;
+    const { agentId, tenantId, body, sessionKey, agentName, signal, specificityOverride, headers } =
+      opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const chatBody =
       apiMode === 'responses'
@@ -188,7 +179,7 @@ export class ProxyService {
 
     const resolved = await this.resolveRouting(
       agentId,
-      userId,
+      tenantId,
       routingBody,
       sessionKey,
       specificityOverride,
@@ -205,7 +196,7 @@ export class ProxyService {
     }
 
     const route = resolved.route;
-    const credentials = await this.resolveCredentials(agentId, userId, {
+    const credentials = await this.resolveCredentials(agentId, tenantId, {
       provider: route.provider,
       auth_type: route.authType,
       provider_key_label: route.keyLabel ?? undefined,
@@ -269,7 +260,7 @@ export class ProxyService {
       sessionKey,
       signal,
       agentId,
-      userId,
+      tenantId,
       rawApiKey: credentials.rawApiKey,
       providerKeyLabel: route.keyLabel ?? undefined,
       authType: route.authType,
@@ -285,7 +276,7 @@ export class ProxyService {
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       const fallbackResult = await this.tryFallbackChain({
         agentId,
-        userId,
+        tenantId,
         resolved,
         primaryModel,
         forward,
@@ -299,7 +290,7 @@ export class ProxyService {
         reasoningContentLookup,
         apiMode,
         paramMergeContext,
-        primaryUserProviderId: credentials.userProviderId,
+        primaryTenantProviderId: credentials.tenantProviderId,
       });
       if (fallbackResult) return fallbackResult;
     }
@@ -328,7 +319,7 @@ export class ProxyService {
           forward: peeked,
           meta: this.buildBaseMeta(resolved, primaryModel, {
             request_params: primaryRequestParams,
-            userProviderId: credentials.userProviderId,
+            tenantProviderId: credentials.tenantProviderId,
           }),
         };
       }
@@ -350,7 +341,7 @@ export class ProxyService {
       };
       const fallbackResult = await this.tryFallbackChain({
         agentId,
-        userId,
+        tenantId,
         resolved,
         primaryModel,
         forward: syntheticForward,
@@ -364,7 +355,7 @@ export class ProxyService {
         reasoningContentLookup,
         apiMode,
         paramMergeContext,
-        primaryUserProviderId: credentials.userProviderId,
+        primaryTenantProviderId: credentials.tenantProviderId,
       });
       if (fallbackResult) return fallbackResult;
 
@@ -376,7 +367,7 @@ export class ProxyService {
         forward: syntheticForward,
         meta: this.buildBaseMeta(resolved, primaryModel, {
           request_params: primaryRequestParams,
-          userProviderId: credentials.userProviderId,
+          tenantProviderId: credentials.tenantProviderId,
         }),
       };
     }
@@ -387,7 +378,7 @@ export class ProxyService {
       forward,
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: primaryRequestParams,
-        userProviderId: credentials.userProviderId,
+        tenantProviderId: credentials.tenantProviderId,
       }),
     };
   }
@@ -411,7 +402,7 @@ export class ProxyService {
 
   private async resolveRouting(
     agentId: string,
-    userId: string,
+    tenantId: string,
     body: ProxyRequestOptions['body'],
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
@@ -425,10 +416,10 @@ export class ProxyService {
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
     return isHeartbeat
-      ? this.resolveService.resolveForTier(agentId, userId, 'simple')
+      ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
       : this.resolveService.resolve(
           agentId,
-          userId,
+          tenantId,
           scoringMessages,
           scoringTools,
           body.tool_choice,
@@ -442,28 +433,28 @@ export class ProxyService {
 
   private async resolveCredentials(
     agentId: string,
-    userId: string,
+    tenantId: string,
     resolved: { provider: string; auth_type?: AuthType; provider_key_label?: string },
   ): Promise<{
     apiKey: string;
     rawApiKey: string;
     resourceUrl?: string;
     providerRegion?: string | null;
-    userProviderId: string | null;
+    tenantProviderId: string | null;
   } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
-      userId,
+      tenantId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
       agentId,
     );
     if (apiKey === null) return null;
-    // The exact connection (user_providers row) this key belongs to, stamped on
+    // The exact connection (tenant_providers row) this key belongs to, stamped on
     // the recorded message so per-connection analytics resolve by id rather than
     // the non-unique provider/auth_type/label tuple. NULL for synthetic Ollama.
-    const userProviderId = await this.providerKeyService.getProviderKeyId(
-      userId,
+    const tenantProviderId = await this.providerKeyService.getProviderKeyId(
+      tenantId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
@@ -475,7 +466,7 @@ export class ProxyService {
       apiKey,
       resolved.auth_type,
       agentId,
-      userId,
+      tenantId,
       this.openaiOauth,
       this.minimaxOauth,
       this.anthropicOauth,
@@ -490,7 +481,7 @@ export class ProxyService {
     if (resolved.auth_type === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
       rawApiKey =
         (await this.providerKeyService.getProviderApiKey(
-          userId,
+          tenantId,
           resolved.provider,
           resolved.auth_type,
           resolved.provider_key_label,
@@ -498,7 +489,7 @@ export class ProxyService {
         )) ?? apiKey;
     }
     const providerRegion = await this.providerKeyService.getProviderRegion(
-      userId,
+      tenantId,
       resolved.provider,
       resolved.auth_type,
       resolved.provider_key_label,
@@ -509,13 +500,13 @@ export class ProxyService {
       rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
       providerRegion,
-      userProviderId,
+      tenantProviderId,
     };
   }
 
   private async tryFallbackChain(args: {
     agentId: string;
-    userId: string;
+    tenantId: string;
     resolved: ResolvedRouting;
     primaryModel: string;
     forward: ForwardResult;
@@ -531,11 +522,11 @@ export class ProxyService {
     paramMergeContext: ParamMergeContext;
     /** Primary connection id, carried so a fallback-success flow can attribute
      * its recorded primary-failure row to the connection that actually failed. */
-    primaryUserProviderId: string | null;
+    primaryTenantProviderId: string | null;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
-      userId,
+      tenantId,
       resolved,
       primaryModel,
       forward,
@@ -574,7 +565,7 @@ export class ProxyService {
     const primaryAuth = resolved.route?.authType;
     const { success, failures } = await this.fallbackService.tryFallbacks(
       agentId,
-      userId,
+      tenantId,
       fallbackModels,
       body,
       stream,
@@ -630,8 +621,8 @@ export class ProxyService {
           primaryErrorBody,
           primaryProvider,
           primaryAuthType: primaryAuth,
-          primaryUserProviderId: args.primaryUserProviderId,
-          userProviderId: success.userProviderId,
+          primaryTenantProviderId: args.primaryTenantProviderId,
+          tenantProviderId: success.tenantProviderId,
           request_params: fallbackRequestParams,
         }),
         failedFallbacks: failures,
@@ -686,7 +677,7 @@ export class ProxyService {
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: exhaustedRequestParams,
         // Exhausted chain is recorded against the primary connection.
-        userProviderId: args.primaryUserProviderId,
+        tenantProviderId: args.primaryTenantProviderId,
       }),
       failedFallbacks: failures,
     };
@@ -721,8 +712,8 @@ export class ProxyService {
     this.momentum.recordCategory(sessionKey, category as SpecificityCategory);
   }
 
-  private async enforceLimits(tenantId?: string, agentName?: string): Promise<string | null> {
-    if (!tenantId || !agentName) return null;
+  private async enforceLimits(tenantId: string, agentName?: string): Promise<string | null> {
+    if (!agentName) return null;
     const exceeded = await this.limitCheck.checkLimits(tenantId, agentName);
     if (!exceeded) return null;
 

@@ -115,7 +115,7 @@ describe('XaiOauthService', () => {
         expires_in: 3600,
       }),
     );
-    const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+    const url = await svc.generateAuthorizationUrl('agent-1', 'tenant-1', undefined, 'user-1');
     const parsed = new URL(url);
     const state = parsed.searchParams.get('state')!;
 
@@ -132,15 +132,16 @@ describe('XaiOauthService', () => {
     expect(body.has('code_challenge')).toBe(false);
     expect(body.has('code_challenge_method')).toBe(false);
 
-    expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'xai');
+    expect(providerService.nextOAuthLabel).toHaveBeenCalledWith('tenant-1', 'xai');
     expect(providerService.upsertProvider).toHaveBeenCalledWith(
       'agent-1',
-      'user-1',
+      'tenant-1',
       'xai',
       expect.stringContaining('"t":"access-1"'),
       'subscription',
       undefined,
       'X Account',
+      'user-1',
     );
     expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
     expect(providerService.recalculateTiers).not.toHaveBeenCalled();

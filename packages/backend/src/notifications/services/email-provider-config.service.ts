@@ -1,9 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { render } from '@react-email/render';
 import { encrypt, decrypt, isEncrypted, getEncryptionSecret } from '../../common/utils/crypto.util';
+import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { validateProviderConfig } from './email-provider-validation';
 import { createProvider } from './email-providers/resolve-provider';
 import { TestEmail } from '../emails/test-email';
@@ -31,6 +33,7 @@ export class EmailProviderConfigService {
   constructor(
     private readonly ds: DataSource,
     private readonly configService: ConfigService,
+    private readonly tenantCache: TenantCacheService,
   ) {
     this.fromEmail = this.configService.get<string>(
       'app.notificationFromEmail',
@@ -46,10 +49,11 @@ export class EmailProviderConfigService {
     return stored;
   }
 
-  async getConfig(userId: string): Promise<EmailProviderPublicConfig | null> {
+  async getConfig(tenantId: string | null): Promise<EmailProviderPublicConfig | null> {
+    if (!tenantId) return null;
     const rows = await this.ds.query(
-      `SELECT provider, domain, key_prefix, is_active, notification_email FROM email_provider_configs WHERE user_id = $1`,
-      [userId],
+      `SELECT provider, domain, key_prefix, is_active, notification_email FROM email_provider_configs WHERE tenant_id = $1`,
+      [tenantId],
     );
     if (!rows.length) return null;
 
@@ -64,15 +68,23 @@ export class EmailProviderConfigService {
   }
 
   async upsert(
-    userId: string,
+    ctx: TenantContext,
     dto: { provider: string; apiKey?: string; domain?: string; notificationEmail?: string },
   ): Promise<EmailProviderPublicConfig> {
+    // Email config is a pre-agent-capable setting: a fresh account may not
+    // have a tenant row yet, so lazily create it.
+    let tenantId = ctx.tenantId;
+    if (!tenantId) {
+      if (!ctx.userId) throw new NotFoundException('Tenant not found');
+      tenantId = await this.tenantCache.ensureForUser(ctx.userId);
+    }
+
     const notificationEmail = dto.notificationEmail?.trim().toLowerCase() || null;
     const now = new Date().toISOString();
 
     const existing = await this.ds.query(
-      `SELECT id, api_key_encrypted FROM email_provider_configs WHERE user_id = $1`,
-      [userId],
+      `SELECT id, api_key_encrypted FROM email_provider_configs WHERE tenant_id = $1`,
+      [tenantId],
     );
 
     // When updating without a new API key, keep the existing one
@@ -86,8 +98,8 @@ export class EmailProviderConfigService {
       const { domain, provider } = validation.normalized;
 
       await this.ds.query(
-        `UPDATE email_provider_configs SET provider = $1, domain = $2, is_active = $3, updated_at = $4, notification_email = $5 WHERE user_id = $6`,
-        [provider, domain || null, 1, now, notificationEmail, userId],
+        `UPDATE email_provider_configs SET provider = $1, domain = $2, is_active = $3, updated_at = $4, notification_email = $5 WHERE tenant_id = $6`,
+        [provider, domain || null, 1, now, notificationEmail, tenantId],
       );
 
       return {
@@ -116,15 +128,16 @@ export class EmailProviderConfigService {
 
     if (existing.length > 0) {
       await this.ds.query(
-        `UPDATE email_provider_configs SET provider = $1, api_key_encrypted = $2, key_prefix = $3, domain = $4, is_active = $5, updated_at = $6, notification_email = $7 WHERE user_id = $8`,
-        [provider, encryptedKey, prefix, domain || null, 1, now, notificationEmail, userId],
+        `UPDATE email_provider_configs SET provider = $1, api_key_encrypted = $2, key_prefix = $3, domain = $4, is_active = $5, updated_at = $6, notification_email = $7 WHERE tenant_id = $8`,
+        [provider, encryptedKey, prefix, domain || null, 1, now, notificationEmail, tenantId],
       );
     } else {
       await this.ds.query(
-        `INSERT INTO email_provider_configs (id, user_id, provider, api_key_encrypted, key_prefix, domain, is_active, created_at, updated_at, notification_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        `INSERT INTO email_provider_configs (id, tenant_id, created_by_user_id, provider, api_key_encrypted, key_prefix, domain, is_active, created_at, updated_at, notification_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
           uuid(),
-          userId,
+          tenantId,
+          ctx.userId,
           provider,
           encryptedKey,
           prefix,
@@ -146,14 +159,16 @@ export class EmailProviderConfigService {
     };
   }
 
-  async remove(userId: string): Promise<void> {
-    await this.ds.query(`DELETE FROM email_provider_configs WHERE user_id = $1`, [userId]);
+  async remove(tenantId: string | null): Promise<void> {
+    if (!tenantId) return;
+    await this.ds.query(`DELETE FROM email_provider_configs WHERE tenant_id = $1`, [tenantId]);
   }
 
-  async getFullConfig(userId: string): Promise<EmailProviderFullConfig | null> {
+  async getFullConfig(tenantId: string | null): Promise<EmailProviderFullConfig | null> {
+    if (!tenantId) return null;
     const rows = await this.ds.query(
-      `SELECT provider, api_key_encrypted, domain, notification_email FROM email_provider_configs WHERE user_id = $1 AND is_active = $2`,
-      [userId, 1],
+      `SELECT provider, api_key_encrypted, domain, notification_email FROM email_provider_configs WHERE tenant_id = $1 AND is_active = $2`,
+      [tenantId, 1],
     );
     if (!rows.length) return null;
 
@@ -166,39 +181,41 @@ export class EmailProviderConfigService {
     };
   }
 
-  async getNotificationEmail(userId: string): Promise<string | null> {
+  async getNotificationEmail(tenantId: string | null): Promise<string | null> {
+    if (!tenantId) return null;
     const rows = await this.ds.query(
-      `SELECT notification_email FROM email_provider_configs WHERE user_id = $1`,
-      [userId],
+      `SELECT notification_email FROM email_provider_configs WHERE tenant_id = $1`,
+      [tenantId],
     );
     return rows[0]?.notification_email ?? null;
   }
 
-  async setNotificationEmail(userId: string, email: string): Promise<void> {
+  async setNotificationEmail(tenantId: string | null, email: string): Promise<void> {
     const normalized = typeof email === 'string' ? email.trim().toLowerCase() : '';
     if (!normalized) {
       throw new BadRequestException('Notification email must be a non-empty string');
     }
+    if (!tenantId) return;
 
     const existing = await this.ds.query(
-      `SELECT id FROM email_provider_configs WHERE user_id = $1`,
-      [userId],
+      `SELECT id FROM email_provider_configs WHERE tenant_id = $1`,
+      [tenantId],
     );
     const now = new Date().toISOString();
 
     if (existing.length > 0) {
       await this.ds.query(
-        `UPDATE email_provider_configs SET notification_email = $1, updated_at = $2 WHERE user_id = $3`,
-        [normalized, now, userId],
+        `UPDATE email_provider_configs SET notification_email = $1, updated_at = $2 WHERE tenant_id = $3`,
+        [normalized, now, tenantId],
       );
     }
   }
 
   async testSavedConfig(
-    userId: string,
+    tenantId: string | null,
     toEmail: string,
   ): Promise<{ success: boolean; error?: string }> {
-    const config = await this.getFullConfig(userId);
+    const config = await this.getFullConfig(tenantId);
     if (!config) {
       return { success: false, error: 'No email provider configured' };
     }

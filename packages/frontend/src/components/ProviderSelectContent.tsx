@@ -202,7 +202,7 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   };
 
   const handleLocalToggle = async (providerKey: string) => {
-    // The Local tab's toggle-off action deactivates the user_providers row
+    // The Local tab's toggle-off action deactivates the tenant_providers row
     // without touching the custom_providers row (for LM Studio): the user
     // can flip it back on via the same tile, and the backend cleans up
     // dangling tier overrides as part of disconnect.

@@ -7,7 +7,7 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
@@ -46,7 +46,7 @@ import { ProxyModule } from '../routing/proxy/proxy.module';
       ToolExecution,
       AgentLog,
       CustomProvider,
-      UserProvider,
+      TenantProvider,
       AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,

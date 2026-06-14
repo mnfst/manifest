@@ -35,13 +35,12 @@ describe('agent delete + recreate (issue #1765)', () => {
        VALUES ($1, $2, $3, $4, 'ok', 'gpt-4o', 100, 50, 0, 0, $5, 'test-user-001', 0.001)`,
       [uuid(), TEST_TENANT_ID, v1Id, now, agentName],
     );
-    // Creating an agent now auto-assigns tier_assignments rows (symmetric
-    // global-providers auto-connect recalculates tiers on create), so a 'simple'
-    // row already exists. Upsert the override onto it rather than inserting a
-    // colliding duplicate.
+    // A 'simple' tier row may already exist (tier rows are created lazily per
+    // agent). Upsert the override onto it rather than inserting a colliding
+    // duplicate.
     await ds.query(
-      `INSERT INTO tier_assignments (id, user_id, agent_id, tier, override_route)
-       VALUES ($1, 'test-user-001', $2, 'simple', $3::jsonb)
+      `INSERT INTO tier_assignments (id, agent_id, tier, override_route)
+       VALUES ($1, $2, 'simple', $3::jsonb)
        ON CONFLICT (agent_id, tier) DO UPDATE SET override_route = EXCLUDED.override_route`,
       [
         uuid(),

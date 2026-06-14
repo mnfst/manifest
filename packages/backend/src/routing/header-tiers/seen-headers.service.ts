@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 export interface SeenHeader {
   key: string;
@@ -29,29 +28,22 @@ export class SeenHeadersService {
   constructor(
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async getSeenHeaders(userId: string, agentName?: string): Promise<SeenHeader[]> {
-    const tenantId = await this.tenantCache.resolve(userId);
-    const cacheKey = `${tenantId ?? 'user:' + userId}|${agentName ?? '*'}`;
+  async getSeenHeaders(tenantId: string, agentName?: string): Promise<SeenHeader[]> {
+    const cacheKey = `${tenantId}|${agentName ?? '*'}`;
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) return cached.data;
 
     // Raw SQL: expand request_headers (stored as simple-json text) into rows,
-    // aggregate per key. Tenant- or user-scoped; optional agent filter.
+    // aggregate per key. Tenant-scoped; optional agent filter.
     const filters: string[] = [
       `at.request_headers IS NOT NULL`,
       `at.timestamp > NOW() - INTERVAL '${WINDOW_DAYS} days'`,
     ];
     const params: unknown[] = [];
-    if (tenantId) {
-      params.push(tenantId);
-      filters.push(`at.tenant_id = $${params.length}`);
-    } else {
-      params.push(userId);
-      filters.push(`at.user_id = $${params.length}`);
-    }
+    params.push(tenantId);
+    filters.push(`at.tenant_id = $${params.length}`);
     if (agentName) {
       params.push(agentName);
       filters.push(`at.agent_name = $${params.length}`);

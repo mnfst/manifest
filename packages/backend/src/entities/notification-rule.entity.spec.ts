@@ -7,7 +7,6 @@ describe('NotificationRule entity', () => {
     rule.tenant_id = 'tenant-1';
     rule.agent_id = 'agent-1';
     rule.agent_name = 'demo-agent';
-    rule.user_id = 'user-1';
     rule.metric_type = 'cost';
     rule.threshold = 50.25;
     rule.period = 'day';

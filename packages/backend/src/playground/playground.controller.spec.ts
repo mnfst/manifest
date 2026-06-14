@@ -4,14 +4,10 @@ import { PlaygroundController } from './playground.controller';
 import { PlaygroundService } from './playground.service';
 import { PlaygroundHistoryService } from './playground-history.service';
 import { PlaygroundAgentService } from './playground-agent.service';
-import type { AuthUser } from '../auth/auth.instance';
+import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import type { RunPlaygroundDto } from './dto/run-playground.dto';
 
-const USER: AuthUser = {
-  id: 'user-1',
-  name: 'tester',
-  email: 't@example.com',
-} as unknown as AuthUser;
+const CTX: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'Playground' };
 
@@ -51,7 +47,7 @@ describe('PlaygroundController', () => {
   });
 
   describe('POST /playground/run', () => {
-    it('delegates to PlaygroundService.runStream with the user id, dto and response', async () => {
+    it('delegates to PlaygroundService.runStream with the tenant context, dto and response', async () => {
       const dto = {
         model: 'openai/gpt-4o-mini',
         provider: 'openai',
@@ -60,29 +56,29 @@ describe('PlaygroundController', () => {
       const res = {} as ExpressResponse;
       runStream.mockResolvedValue(undefined);
 
-      const out = await controller.run(USER, dto, res);
+      const out = await controller.run(CTX, dto, res);
 
-      expect(runStream).toHaveBeenCalledWith('user-1', dto, res);
+      expect(runStream).toHaveBeenCalledWith(CTX, dto, res);
       expect(out).toBeUndefined();
     });
   });
 
   describe('GET /playground/runs', () => {
-    it('resolves the agent first then forwards user+agent to listRuns', async () => {
+    it('resolves the agent first then forwards its tenant+agent to listRuns', async () => {
       listRuns.mockResolvedValue([
         { id: 'r1', prompt: 'p', createdAt: 'now', modelCount: 1, models: ['m'] },
       ]);
 
-      const out = await controller.listRuns(USER);
+      const out = await controller.listRuns(CTX);
 
-      expect(playgroundAgentResolve).toHaveBeenCalledWith('user-1');
-      expect(listRuns).toHaveBeenCalledWith('user-1', 'agent-1');
+      expect(playgroundAgentResolve).toHaveBeenCalledWith(CTX);
+      expect(listRuns).toHaveBeenCalledWith('tenant-1', 'agent-1');
       expect(out).toHaveLength(1);
     });
   });
 
   describe('GET /playground/runs/:runId', () => {
-    it('passes the resolved agentId through to the history lookup', async () => {
+    it('passes the resolved tenant+agentId through to the history lookup', async () => {
       getRun.mockResolvedValue({
         id: 'r1',
         prompt: 'p',
@@ -92,17 +88,17 @@ describe('PlaygroundController', () => {
         columns: [],
       });
 
-      const out = await controller.getRun(USER, { runId: 'r1' });
+      const out = await controller.getRun(CTX, { runId: 'r1' });
 
-      expect(playgroundAgentResolve).toHaveBeenCalledWith('user-1');
-      expect(getRun).toHaveBeenCalledWith('user-1', 'r1', 'agent-1');
+      expect(playgroundAgentResolve).toHaveBeenCalledWith(CTX);
+      expect(getRun).toHaveBeenCalledWith('tenant-1', 'r1', 'agent-1');
       expect(out.id).toBe('r1');
     });
 
     it('propagates errors from the history service', async () => {
       const err = new Error('not found');
       getRun.mockRejectedValue(err);
-      await expect(controller.getRun(USER, { runId: 'r1' })).rejects.toBe(err);
+      await expect(controller.getRun(CTX, { runId: 'r1' })).rejects.toBe(err);
     });
   });
 
@@ -110,9 +106,9 @@ describe('PlaygroundController', () => {
     it('toggles the star and returns the new value', async () => {
       toggleStar.mockResolvedValue(true);
 
-      const out = await controller.toggleStar(USER, { runId: 'r1' });
+      const out = await controller.toggleStar(CTX, { runId: 'r1' });
 
-      expect(toggleStar).toHaveBeenCalledWith('user-1', 'r1');
+      expect(toggleStar).toHaveBeenCalledWith('tenant-1', 'r1');
       expect(out).toEqual({ starred: true });
     });
   });
@@ -121,27 +117,25 @@ describe('PlaygroundController', () => {
     it('sets the best column and returns the resolved id', async () => {
       setBestColumn.mockResolvedValue('col-9');
 
-      const out = await controller.setBest(USER, { runId: 'r1' }, { columnId: 'col-9' });
+      const out = await controller.setBest(CTX, { runId: 'r1' }, { columnId: 'col-9' });
 
-      expect(setBestColumn).toHaveBeenCalledWith('user-1', 'r1', 'col-9');
+      expect(setBestColumn).toHaveBeenCalledWith('tenant-1', 'r1', 'col-9');
       expect(out).toEqual({ bestColumnId: 'col-9' });
     });
 
     it('clears the best column when columnId is null', async () => {
       setBestColumn.mockResolvedValue(null);
 
-      const out = await controller.setBest(USER, { runId: 'r1' }, { columnId: null });
+      const out = await controller.setBest(CTX, { runId: 'r1' }, { columnId: null });
 
-      expect(setBestColumn).toHaveBeenCalledWith('user-1', 'r1', null);
+      expect(setBestColumn).toHaveBeenCalledWith('tenant-1', 'r1', null);
       expect(out).toEqual({ bestColumnId: null });
     });
 
     it('propagates NotFound from the history service', async () => {
       const err = new Error('cross-run');
       setBestColumn.mockRejectedValue(err);
-      await expect(controller.setBest(USER, { runId: 'r1' }, { columnId: 'bad' })).rejects.toBe(
-        err,
-      );
+      await expect(controller.setBest(CTX, { runId: 'r1' }, { columnId: 'bad' })).rejects.toBe(err);
     });
   });
 });

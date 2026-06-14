@@ -63,8 +63,7 @@ export class HeaderTierService {
 
   async create(
     agentId: string,
-    userId: string,
-    tenantId: string | null,
+    tenantId: string,
     input: CreateHeaderTierInput,
   ): Promise<HeaderTier> {
     const name = this.validateName(input.name);
@@ -84,7 +83,6 @@ export class HeaderTierService {
       id: randomUUID(),
       tenant_id: tenantId,
       agent_id: agentId,
-      user_id: userId,
       name,
       header_key: headerKey,
       header_value: headerValue,
@@ -196,7 +194,7 @@ export class HeaderTierService {
 
   async setOverride(
     agentId: string,
-    userId: string,
+    tenantId: string,
     id: string,
     model: string,
     provider?: string,
@@ -211,7 +209,7 @@ export class HeaderTierService {
       explicit ??
       unambiguousRoute(
         model,
-        await this.discoveryService.getModelsForAgent(userId, row.agent_id),
+        await this.discoveryService.getModelsForAgent(tenantId, row.agent_id),
         providerKeyLabel,
       );
     assertStreamableResponseMode(
@@ -239,13 +237,13 @@ export class HeaderTierService {
 
   async setFallbacks(
     agentId: string,
-    userId: string,
+    tenantId: string,
     id: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const row = await this.findOrThrow(agentId, id);
-    const fallbackRoutes = await this.buildFallbackRoutes(row.agent_id, userId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(row.agent_id, tenantId, models, routes);
     assertStreamableResponseMode(
       row.response_mode,
       `custom tier "${row.name}"`,
@@ -279,12 +277,12 @@ export class HeaderTierService {
    */
   private async buildFallbackRoutes(
     agentId: string,
-    userId: string,
+    tenantId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(userId, agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

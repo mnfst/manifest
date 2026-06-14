@@ -6,7 +6,6 @@ import { LlmCall } from '../../entities/llm-call.entity';
 import { ToolExecution } from '../../entities/tool-execution.entity';
 import { AgentLog } from '../../entities/agent-log.entity';
 import { MessageRecording, RecordingResponseBody } from '../../entities/message-recording.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { RequestParamDefaults } from 'manifest-shared';
 
@@ -102,21 +101,17 @@ export class MessageDetailsService {
     private readonly logRepo: Repository<AgentLog>,
     @InjectRepository(MessageRecording)
     private readonly recordingRepo: Repository<MessageRecording>,
-    private readonly tenantCache: TenantCacheService,
   ) {}
 
-  async getDetails(messageId: string, userId: string): Promise<MessageDetailResponse> {
-    const tenantId = await this.tenantCache.resolve(userId);
+  async getDetails(messageId: string, tenantId: string | null): Promise<MessageDetailResponse> {
+    // No tenant → no messages, so any id is unknown.
+    if (!tenantId) throw new NotFoundException('Message not found');
 
-    const messageQb = this.messageRepo
+    const message = await this.messageRepo
       .createQueryBuilder('m')
-      .where('m.id = :id', { id: messageId });
-    if (tenantId) {
-      messageQb.andWhere('m.tenant_id = :tenantId', { tenantId });
-    } else {
-      messageQb.andWhere('m.user_id = :userId', { userId });
-    }
-    const message = await messageQb.getOne();
+      .where('m.id = :id', { id: messageId })
+      .andWhere('m.tenant_id = :tenantId', { tenantId })
+      .getOne();
     if (!message) throw new NotFoundException('Message not found');
 
     const llmCallsQb = this.llmCallRepo

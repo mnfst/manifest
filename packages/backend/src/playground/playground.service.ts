@@ -26,6 +26,7 @@ import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.se
 import { computeTokenCost } from '../common/utils/cost-calculator';
 import { scrubSecrets } from '../common/utils/secret-scrub';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
+import { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { initSseHeaders } from '../routing/proxy/stream-writer';
 import { whitelistResponseHeaders } from './playground-response-headers';
 import { sanitizeRequestHeaders } from './request-header-sanitizer';
@@ -63,7 +64,7 @@ export class PlaygroundService {
    * HTTP error — the client hasn't committed to an event stream yet. Failures
    * *after* the stream opens are delivered as a terminal `error` event.
    */
-  async runStream(userId: string, dto: RunPlaygroundDto, res: ExpressResponse): Promise<void> {
+  async runStream(ctx: TenantContext, dto: RunPlaygroundDto, res: ExpressResponse): Promise<void> {
     let agent: { id: string; tenant_id: string; name: string };
     let authType: AuthType;
     let apiKey: string;
@@ -80,9 +81,9 @@ export class PlaygroundService {
       // agent (created on first use), so runs record under it in global Messages
       // and route against the whole global provider pool — regardless of any
       // agentName the client sends.
-      agent = await this.playgroundAgent.resolve(userId);
+      agent = await this.playgroundAgent.resolve(ctx);
       const hasProvider = await this.providerKeyService.hasActiveProvider(
-        userId,
+        agent.tenant_id,
         dto.provider,
         agent.id,
       );
@@ -95,9 +96,14 @@ export class PlaygroundService {
       }
       authType =
         dto.authType ??
-        (await this.providerKeyService.getAuthType(userId, dto.provider, undefined, agent.id));
+        (await this.providerKeyService.getAuthType(
+          agent.tenant_id,
+          dto.provider,
+          undefined,
+          agent.id,
+        ));
       const keys = await this.providerKeyService.getProviderKeys(
-        userId,
+        agent.tenant_id,
         dto.provider,
         authType,
         agent.id,
@@ -118,7 +124,7 @@ export class PlaygroundService {
         rawApiKey,
         authType,
         agent.id,
-        userId,
+        agent.tenant_id,
         this.openaiOauth,
         this.minimaxOauth,
         this.anthropicOauth,
@@ -138,7 +144,7 @@ export class PlaygroundService {
       if (authType === 'subscription' && isRefreshableOAuthCredential(rawApiKey)) {
         rawApiKey =
           (await this.providerKeyService.getProviderApiKey(
-            userId,
+            agent.tenant_id,
             dto.provider,
             authType,
             providerKeyLabel,
@@ -169,7 +175,7 @@ export class PlaygroundService {
     // endpoint on a DB row, fetched here and passed in.
     const customProvider = CustomProviderService.isCustom(dto.provider)
       ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(dto.provider), user_id: userId },
+          where: { id: CustomProviderService.extractId(dto.provider), tenant_id: agent.tenant_id },
         })
       : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({
@@ -203,7 +209,7 @@ export class PlaygroundService {
           dto.provider,
           rawApiKey,
           agent.id,
-          userId,
+          agent.tenant_id,
           providerKeyLabel,
           {
             openaiOauth: this.openaiOauth,
@@ -248,7 +254,7 @@ export class PlaygroundService {
       const durationMs = Date.now() - startedAt;
       const errorSummary = this.truncateError(bodyText, forward.response.status);
       await this.recordError(
-        userId,
+        ctx.userId,
         agent,
         dto,
         authType,
@@ -257,7 +263,7 @@ export class PlaygroundService {
         durationMs,
       );
       await this.history.saveColumn(
-        this.errorColumn(userId, agent, dto, authType, headers, errorSummary),
+        this.errorColumn(ctx.userId, agent, dto, authType, headers, errorSummary),
       );
       return this.sendPreStreamError(res, 502, errorSummary);
     }
@@ -271,9 +277,17 @@ export class PlaygroundService {
 
     if (!forward.response.body) {
       const message = 'Provider returned an empty stream';
-      await this.recordError(userId, agent, dto, authType, 502, message, Date.now() - startedAt);
+      await this.recordError(
+        ctx.userId,
+        agent,
+        dto,
+        authType,
+        502,
+        message,
+        Date.now() - startedAt,
+      );
       await this.history.saveColumn(
-        this.errorColumn(userId, agent, dto, authType, headers, message),
+        this.errorColumn(ctx.userId, agent, dto, authType, headers, message),
       );
       send({ type: 'error', message });
       res.end();
@@ -305,7 +319,7 @@ export class PlaygroundService {
       });
       const tokensPerSec = outputTokens > 0 ? outputTokens / (Math.max(totalMs, 1) / 1000) : null;
 
-      await this.recordSuccess(userId, agent, dto, authType, {
+      await this.recordSuccess(ctx.userId, agent, dto, authType, {
         inputTokens,
         outputTokens,
         cacheReadTokens,
@@ -315,7 +329,7 @@ export class PlaygroundService {
       });
 
       const columnId = await this.history.saveColumn({
-        userId,
+        createdByUserId: ctx.userId,
         agent,
         runId: dto.runId,
         prompt: derivePromptForHistory(dto),
@@ -348,9 +362,9 @@ export class PlaygroundService {
       }
       const message = err instanceof Error ? err.message : String(err);
       const durationMs = Date.now() - startedAt;
-      await this.recordError(userId, agent, dto, authType, 502, message, durationMs);
+      await this.recordError(ctx.userId, agent, dto, authType, 502, message, durationMs);
       await this.history.saveColumn(
-        this.errorColumn(userId, agent, dto, authType, headers, message),
+        this.errorColumn(ctx.userId, agent, dto, authType, headers, message),
       );
       send({ type: 'error', message });
       if (!res.writableEnded) res.end();
@@ -363,7 +377,7 @@ export class PlaygroundService {
   }
 
   private errorColumn(
-    userId: string,
+    createdByUserId: string | null,
     agent: { id: string; tenant_id: string; name: string },
     dto: RunPlaygroundDto,
     authType: AuthType,
@@ -371,7 +385,7 @@ export class PlaygroundService {
     errorMessage: string,
   ): Parameters<PlaygroundHistoryService['saveColumn']>[0] {
     return {
-      userId,
+      createdByUserId,
       agent,
       runId: dto.runId,
       prompt: derivePromptForHistory(dto),
@@ -389,7 +403,7 @@ export class PlaygroundService {
   }
 
   private async recordSuccess(
-    userId: string,
+    createdByUserId: string | null,
     agent: { id: string; tenant_id: string; name: string },
     dto: RunPlaygroundDto,
     authType: AuthType,
@@ -406,7 +420,7 @@ export class PlaygroundService {
     // just streamed to the user. A telemetry-insert blip must not turn that
     // into a user-visible failure.
     try {
-      // No user_provider_id: Playground runs use the reserved is_playground agent,
+      // No tenant_provider_id: Playground runs use the reserved is_playground agent,
       // which excludePlaygroundAgents() filters out of every per-connection view,
       // so stamping the connection here would have no analytic effect.
       await this.messageRepo.insert({
@@ -414,7 +428,8 @@ export class PlaygroundService {
         tenant_id: agent.tenant_id,
         agent_id: agent.id,
         agent_name: agent.name,
-        user_id: userId,
+        // Informational attribution only — never used for scoping.
+        user_id: createdByUserId,
         timestamp: new Date().toISOString(),
         status: 'ok',
         model: dto.model,
@@ -429,7 +444,7 @@ export class PlaygroundService {
         cost_usd: metrics.cost,
         duration_ms: metrics.durationMs,
       });
-      this.eventBus.emit(userId);
+      this.eventBus.emit(agent.tenant_id);
     } catch (err) {
       this.logger.warn(
         `Failed to record playground success: ${err instanceof Error ? err.message : err}`,
@@ -438,7 +453,7 @@ export class PlaygroundService {
   }
 
   private async recordError(
-    userId: string,
+    createdByUserId: string | null,
     agent: { id: string; tenant_id: string; name: string },
     dto: RunPlaygroundDto,
     authType: AuthType,
@@ -447,14 +462,15 @@ export class PlaygroundService {
     durationMs: number,
   ): Promise<void> {
     try {
-      // No user_provider_id — see recordSuccess: Playground is a system agent,
+      // No tenant_provider_id — see recordSuccess: Playground is a system agent,
       // excluded from per-connection analytics.
       await this.messageRepo.insert({
         id: uuid(),
         tenant_id: agent.tenant_id,
         agent_id: agent.id,
         agent_name: agent.name,
-        user_id: userId,
+        // Informational attribution only — never used for scoping.
+        user_id: createdByUserId,
         timestamp: new Date().toISOString(),
         status: 'error',
         // Some providers echo the submitted key back in their error body, so
@@ -468,7 +484,7 @@ export class PlaygroundService {
         auth_type: authType,
         duration_ms: durationMs,
       });
-      this.eventBus.emit(userId);
+      this.eventBus.emit(agent.tenant_id);
     } catch (err) {
       this.logger.warn(
         `Failed to record playground error: ${err instanceof Error ? err.message : err}`,

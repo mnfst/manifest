@@ -101,7 +101,7 @@ describe('SpecificityService', () => {
         is_active: false,
       } as unknown as SpecificityAssignment;
       repo.findOne.mockResolvedValue(existing);
-      const result = await svc.toggleCategory('agent-1', 'user-1', 'coding', true);
+      const result = await svc.toggleCategory('agent-1', 'coding', true);
       expect(result.is_active).toBe(true);
       expect(repo.save).toHaveBeenCalledWith(existing);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
@@ -109,7 +109,7 @@ describe('SpecificityService', () => {
 
     it('inserts a new row when none exists', async () => {
       repo.findOne.mockResolvedValue(null);
-      const result = await svc.toggleCategory('agent-1', 'user-1', 'coding', true);
+      const result = await svc.toggleCategory('agent-1', 'coding', true);
       expect(repo.insert).toHaveBeenCalledTimes(1);
       expect(result.is_active).toBe(true);
       expect(result.category).toBe('coding');
@@ -122,14 +122,14 @@ describe('SpecificityService', () => {
         .mockResolvedValueOnce({ category: 'coding', is_active: false } as SpecificityAssignment)
         .mockResolvedValueOnce({ category: 'coding', is_active: false } as SpecificityAssignment);
       repo.insert.mockRejectedValueOnce(new Error('duplicate'));
-      const result = await svc.toggleCategory('agent-1', 'user-1', 'coding', true);
+      const result = await svc.toggleCategory('agent-1', 'coding', true);
       expect(result.is_active).toBe(true);
     });
 
     it('returns the freshly built record when insert fails and no retry row exists', async () => {
       repo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
       repo.insert.mockRejectedValueOnce(new Error('unrelated'));
-      const result = await svc.toggleCategory('agent-1', 'user-1', 'coding', true);
+      const result = await svc.toggleCategory('agent-1', 'coding', true);
       expect(result.category).toBe('coding');
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
@@ -141,7 +141,7 @@ describe('SpecificityService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
       ]);
-      await expect(svc.setOverride('agent-1', 'user-1', 'coding', 'gpt-4o')).rejects.toThrow(
+      await expect(svc.setOverride('agent-1', 'tenant-1', 'coding', 'gpt-4o')).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -155,7 +155,7 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue(existing);
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'coding',
         'gpt-4o',
         'openai',
@@ -172,7 +172,7 @@ describe('SpecificityService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
       repo.findOne.mockResolvedValue(null);
-      const result = await svc.setOverride('agent-1', 'user-1', 'coding', 'gpt-4o');
+      const result = await svc.setOverride('agent-1', 'tenant-1', 'coding', 'gpt-4o');
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(repo.insert).toHaveBeenCalledTimes(1);
     });
@@ -181,7 +181,7 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue(null);
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'coding',
         'gpt-4o',
         'openai',
@@ -205,7 +205,7 @@ describe('SpecificityService', () => {
       repo.insert.mockRejectedValueOnce(new Error('duplicate'));
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'coding',
         'gpt-4o',
         'openai',
@@ -219,7 +219,7 @@ describe('SpecificityService', () => {
       repo.insert.mockRejectedValueOnce(new Error('unrelated'));
       const result = await svc.setOverride(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'coding',
         'gpt-4o',
         'openai',
@@ -253,7 +253,7 @@ describe('SpecificityService', () => {
   describe('setFallbacks', () => {
     it('returns [] when no row exists', async () => {
       repo.findOne.mockResolvedValue(null);
-      expect(await svc.setFallbacks('agent-1', 'user-1', 'coding', ['gpt-4o'])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'tenant-1', 'coding', ['gpt-4o'])).toEqual([]);
       expect(repo.save).not.toHaveBeenCalled();
     });
 
@@ -267,7 +267,7 @@ describe('SpecificityService', () => {
         fallback_routes: null,
       } as SpecificityAssignment);
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'user-1', 'coding', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks('agent-1', 'tenant-1', 'coding', ['gpt-4o'], provided);
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
@@ -283,7 +283,7 @@ describe('SpecificityService', () => {
       } as SpecificityAssignment);
       const result = await svc.setFallbacks(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'coding',
         ['gpt-4o'],
         [route('different-provider', 'api_key', 'gpt-4o')],
@@ -295,7 +295,7 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue({
         fallback_routes: null,
       } as SpecificityAssignment);
-      expect(await svc.setFallbacks('agent-1', 'user-1', 'coding', [])).toEqual([]);
+      expect(await svc.setFallbacks('agent-1', 'tenant-1', 'coding', [])).toEqual([]);
     });
 
     it('throws when any model cannot be unambiguously resolved', async () => {
@@ -306,7 +306,7 @@ describe('SpecificityService', () => {
       repo.findOne.mockResolvedValue({
         fallback_routes: null,
       } as SpecificityAssignment);
-      await expect(svc.setFallbacks('agent-1', 'user-1', 'coding', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'tenant-1', 'coding', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -329,7 +329,7 @@ describe('SpecificityService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
-          'user-1',
+          'tenant-1',
           'coding',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],
@@ -397,7 +397,7 @@ describe('SpecificityService', () => {
         fallback_routes: null,
       } as SpecificityAssignment);
 
-      await expect(svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream')).rejects.toThrow(
+      await expect(svc.setResponseMode('agent-1', 'coding', 'stream')).rejects.toThrow(
         /add at least one stream-capable model/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -412,7 +412,7 @@ describe('SpecificityService', () => {
       } as SpecificityAssignment;
       repo.findOne.mockResolvedValue(existing);
 
-      const result = await svc.setResponseMode('agent-1', 'user-1', 'coding', 'stream');
+      const result = await svc.setResponseMode('agent-1', 'coding', 'stream');
 
       expect(result.response_mode).toBe('stream');
       expect(repo.save).toHaveBeenCalledWith(existing);
@@ -427,7 +427,7 @@ describe('SpecificityService', () => {
       } as SpecificityAssignment);
 
       await expect(
-        svc.setOverride('agent-1', 'user-1', 'coding', 'local-model', 'custom:local', 'api_key'),
+        svc.setOverride('agent-1', 'tenant-1', 'coding', 'local-model', 'custom:local', 'api_key'),
       ).rejects.toThrow(/add at least one stream-capable model/);
       expect(repo.save).not.toHaveBeenCalled();
     });

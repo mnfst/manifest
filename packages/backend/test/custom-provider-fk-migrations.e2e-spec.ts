@@ -1,5 +1,24 @@
 import { DataSource } from 'typeorm';
 import { AddCustomProviderFkToUserProviders1792100000000 } from '../src/database/migrations/1792100000000-AddCustomProviderFkToUserProviders';
+import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
+
+/**
+ * The tenant-canonical chain (which runs AFTER the migration under test) renames
+ * user_providers → tenant_providers + its FK/index (TenantProviders) and demotes
+ * custom_providers.user_id → created_by_user_id (TenantScopedConfigs). These
+ * specs assert + seed under the ORIGINAL user_providers / custom_providers.user_id
+ * names, so revert those two later migrations (newest first) before exercising
+ * this migration's own behaviour.
+ */
+async function revertTenantCanonicalScoping(ds: DataSource): Promise<void> {
+  const configsQr = ds.createQueryRunner();
+  await new TenantScopedConfigs1792600000000().down(configsQr);
+  await configsQr.release();
+  const providersQr = ds.createQueryRunner();
+  await new TenantProviders1792500000000().down(providersQr);
+  await providersQr.release();
+}
 
 const DB_URL =
   process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/manifest_duprepro';
@@ -30,6 +49,7 @@ describe('AddCustomProviderFkToUserProviders schema (e2e)', () => {
     ds = makeDataSource();
     await ds.initialize();
     await ds.runMigrations();
+    await revertTenantCanonicalScoping(ds);
   }, 60000);
 
   afterAll(async () => {
@@ -80,6 +100,9 @@ describe('AddCustomProviderFkToUserProviders data preservation (e2e)', () => {
     ds = makeDataSource();
     await ds.initialize();
     await ds.runMigrations();
+    // Undo the later user_providers → tenant_providers rename so this migration
+    // can be exercised against the user_providers schema it was authored for.
+    await revertTenantCanonicalScoping(ds);
 
     // Revert just this migration to get the pre-FK schema, then seed the
     // exact half-states the FK is meant to govern.

@@ -20,13 +20,14 @@ beforeAll(async () => {
   const ds = app.get(DataSource);
   const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-  // A user-global OpenAI connection (agent_id NULL = global under the new schema).
+  // A tenant-global OpenAI connection (agent_id NULL = global under the new schema).
   connectionId = uuid();
   await ds.query(
-    `INSERT INTO user_providers (id, user_id, agent_id, provider, key_prefix, auth_type, label, is_active, connected_at, updated_at, cached_models)
-     VALUES ($1,$2,NULL,$3,$4,$5,$6,true,$7,$7,$8)`,
+    `INSERT INTO tenant_providers (id, tenant_id, created_by_user_id, agent_id, provider, key_prefix, auth_type, label, is_active, connected_at, updated_at, cached_models)
+     VALUES ($1,$2,$3,NULL,$4,$5,$6,$7,true,$8,$8,$9)`,
     [
       connectionId,
+      TEST_TENANT_ID,
       TEST_USER_ID,
       'openai',
       'sk-abc',
@@ -39,13 +40,13 @@ beforeAll(async () => {
 
   // Subscription-auth messages on openai for the test agent, stamped with the
   // connection's user_providers id so they belong to the 'My OpenAI' connection
-  // detail (which now scopes on user_provider_id, not the label tuple).
+  // detail (which now scopes on tenant_provider_id, not the label tuple).
   for (const [model, inTok, outTok] of [
     ['gpt-4o', 1000, 500],
     ['gpt-4o-mini', 200, 100],
   ] as Array<[string, number, number]>) {
     await ds.query(
-      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, user_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
        VALUES ($1,$2,$3,$4,'ok',$5,'openai','subscription','My OpenAI',$6,$7,$8,0,0,$9,'msg','agent','test-agent',$10)`,
       [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, model, connectionId, inTok, outTok, 0.01, TEST_USER_ID],
     );
@@ -92,10 +93,10 @@ beforeAll(async () => {
   // row's `is_playground` NULL and wrongly INCLUDED it. The NOT EXISTS semi-join
   // matches the reserved Playground agent by NAME too, so this row is excluded
   // from every aggregate, timeseries and the connection breakdown. It carries
-  // the 'My OpenAI' connection's user_provider_id so the connection-detail leak
+  // the 'My OpenAI' connection's tenant_provider_id so the connection-detail leak
   // guard proves excludeSystemAgents (not the id scope) is what drops it.
   await ds.query(
-    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, user_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+    `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
      VALUES ($1,$2,NULL,$3,'ok','gpt-4o','openai','subscription','My OpenAI',$4,7000,7000,0,0,0.77,'msg','agent','Playground',$5)`,
     [uuid(), TEST_TENANT_ID, now, connectionId, TEST_USER_ID],
   );
@@ -110,15 +111,23 @@ beforeAll(async () => {
     [personalConnectionId, 'Personal'],
   ] as Array<[string, string]>) {
     await ds.query(
-      `INSERT INTO user_providers (id, user_id, agent_id, provider, key_prefix, auth_type, label, is_active, connected_at, updated_at, cached_models)
-       VALUES ($1,$2,NULL,'anthropic',$3,'api_key',$4,true,$5,$5,$6)`,
-      [id, TEST_USER_ID, `sk-${label}`, label, now, JSON.stringify([{ id: 'claude' }])],
+      `INSERT INTO tenant_providers (id, tenant_id, created_by_user_id, agent_id, provider, key_prefix, auth_type, label, is_active, connected_at, updated_at, cached_models)
+       VALUES ($1,$2,$3,NULL,'anthropic',$4,'api_key',$5,true,$6,$6,$7)`,
+      [
+        id,
+        TEST_TENANT_ID,
+        TEST_USER_ID,
+        `sk-${label}`,
+        label,
+        now,
+        JSON.stringify([{ id: 'claude' }]),
+      ],
     );
-    // Stamp each message with its own connection's user_provider_id so the
-    // connection-detail (which scopes on user_provider_id) keeps Work and
+    // Stamp each message with its own connection's tenant_provider_id so the
+    // connection-detail (which scopes on tenant_provider_id) keeps Work and
     // Personal separate even though they share provider+auth_type.
     await ds.query(
-      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, user_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
+      `INSERT INTO agent_messages (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type, provider_key_label, tenant_provider_id, input_tokens, output_tokens, cache_read_tokens, cache_creation_tokens, cost_usd, description, service_type, agent_name, user_id)
        VALUES ($1,$2,$3,$4,'ok','claude','anthropic','api_key',$5,$6,$7,$7,0,0,0.02,'msg','agent','test-agent',$8)`,
       [
         uuid(),

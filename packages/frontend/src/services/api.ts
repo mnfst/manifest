@@ -13,6 +13,6 @@ export * from './api/playground.js';
 export {
   getProviders as getGlobalProviders,
   type ProvidersResponse,
-  type UserProviderConnection,
-  type UserProviderSummary,
+  type TenantProviderConnection,
+  type TenantProviderSummary,
 } from './api/providers.js';

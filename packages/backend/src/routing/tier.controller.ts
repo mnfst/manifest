@@ -12,8 +12,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TIER_SLOTS } from 'manifest-shared';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import {
@@ -35,20 +34,20 @@ export class TierController {
   ) {}
 
   @Get(':agentName/tiers')
-  async getTiers(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    return this.tierService.getTiers(agent.id, user.id);
+  async getTiers(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
+    return this.tierService.getTiers(agent.id, agent.tenant_id);
   }
 
   @Put(':agentName/tiers/:tier')
   async setOverride(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
     @Body() body: SetOverrideDto,
   ) {
     this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     // Prefer the structured route when the client sent it, otherwise use the
     // flat fields. Either form is accepted — the service synthesizes the
     // missing one before persisting. `route.keyLabel` and the legacy flat
@@ -59,7 +58,7 @@ export class TierController {
     const providerKeyLabel = body.route?.keyLabel ?? body.providerKeyLabel;
     return this.tierService.setOverride(
       agent.id,
-      user.id,
+      agent.tenant_id,
       tier,
       model,
       provider,
@@ -70,19 +69,19 @@ export class TierController {
 
   @Delete(':agentName/tiers/:tier')
   async clearOverride(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
     this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     await this.tierService.clearOverride(agent.id, tier);
     return { ok: true };
   }
 
   @Patch(':agentName/tiers/:tier/response-mode')
   async setResponseMode(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
     @Body() body: SetResponseModeDto,
@@ -90,61 +89,64 @@ export class TierController {
     this.validateTier(tier);
     const responseMode = responseModeFromDto(body);
     if (!responseMode) throw new BadRequestException('response_mode is required');
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setResponseMode(agent.id, user.id, tier, responseMode);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    return this.tierService.setResponseMode(agent.id, tier, responseMode);
   }
 
   @Post(':agentName/tiers/reset-all')
-  async resetAllOverrides(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+  async resetAllOverrides(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     await this.tierService.resetAllOverrides(agent.id);
     return { ok: true };
   }
 
   @Get(':agentName/tiers/:tier/fallbacks')
   async getFallbacks(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
     this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     return this.tierService.getFallbacks(agent.id, tier);
   }
 
   @Put(':agentName/tiers/:tier/fallbacks')
   async setFallbacks(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
     @Body() body: SetFallbacksDto,
   ) {
     this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    return this.tierService.setFallbacks(agent.id, user.id, tier, body.models, body.routes);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    return this.tierService.setFallbacks(agent.id, agent.tenant_id, tier, body.models, body.routes);
   }
 
   @Delete(':agentName/tiers/:tier/fallbacks')
   async clearFallbacks(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('tier') tier: string,
   ) {
     this.validateTier(tier);
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     await this.tierService.clearFallbacks(agent.id, tier);
     return { ok: true };
   }
 
   @Get(':agentName/complexity/status')
-  async getComplexityStatus(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+  async getComplexityStatus(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     return { enabled: agent.complexity_routing_enabled };
   }
 
   @Post(':agentName/complexity/toggle')
-  async toggleComplexity(@CurrentUser() user: AuthUser, @Param('agentName') agentName: string) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
+  async toggleComplexity(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     const newValue = !agent.complexity_routing_enabled;
     await this.agentRepo.update(agent.id, { complexity_routing_enabled: newValue });
     this.resolveAgentService.invalidate(agent.tenant_id, agentName);

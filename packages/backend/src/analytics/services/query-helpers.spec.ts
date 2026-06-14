@@ -136,17 +136,17 @@ describe('addTenantFilter', () => {
     return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
   }
 
-  it('filters by user_id when no tenantId is provided', () => {
+  it('matches nothing (1 = 0) when tenantId is null', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    addTenantFilter(qb, 'user-123');
+    addTenantFilter(qb, null);
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
-    expect(mockAndWhere).toHaveBeenCalledWith('at.user_id = :userId', { userId: 'user-123' });
+    expect(mockAndWhere).toHaveBeenCalledWith('1 = 0');
   });
 
   it('filters by tenant_id when tenantId is provided', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    addTenantFilter(qb, 'user-123', undefined, 'tenant-456');
+    addTenantFilter(qb, 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
     expect(mockAndWhere).toHaveBeenCalledWith('at.tenant_id = :tenantId', {
@@ -156,30 +156,29 @@ describe('addTenantFilter', () => {
 
   it('resolves agentName to the live agent_id via subquery so soft-deleted agents do not leak', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    addTenantFilter(qb, 'user-123', 'my-agent');
+    addTenantFilter(qb, 'tenant-456', 'my-agent');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(2);
     const secondCall = mockAndWhere.mock.calls[1];
     expect(secondCall[0]).toContain('at.agent_id = (');
     expect(secondCall[0]).toContain('FROM agents');
     expect(secondCall[0]).toContain('deleted_at IS NULL');
-    // No resolved tenant → the agent lookup is scoped via the user's tenant
-    // (tenant.name = userId), never `at.tenant_id` (which can be NULL here).
-    expect(secondCall[0]).toContain('FROM tenants');
+    // The agent lookup is scoped via the tenant id, never `at.tenant_id`.
+    expect(secondCall[0]).toContain('a.tenant_id = :liveTenantId');
     expect(secondCall[0]).not.toContain('at.tenant_id');
-    expect(secondCall[1]).toEqual({ liveAgentName: 'my-agent', liveUserId: 'user-123' });
+    expect(secondCall[1]).toEqual({ liveAgentName: 'my-agent', liveTenantId: 'tenant-456' });
   });
 
   it('does not add agent_name filter when agentName is undefined', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    addTenantFilter(qb, 'user-123');
+    addTenantFilter(qb, 'tenant-456');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
   });
 
-  it('filterByLiveAgentName scopes by the resolved tenant id when one is provided', () => {
+  it('filterByLiveAgentName scopes by the tenant id', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    const result = filterByLiveAgentName(qb, 'my-agent', 'user-123', 'tenant-456');
+    const result = filterByLiveAgentName(qb, 'my-agent', 'tenant-456');
 
     expect(result).toBe(qb);
     expect(mockAndWhere).toHaveBeenCalledTimes(1);
@@ -193,26 +192,15 @@ describe('addTenantFilter', () => {
     expect(call[1]).toEqual({ liveAgentName: 'my-agent', liveTenantId: 'tenant-456' });
   });
 
-  it('filterByLiveAgentName resolves the tenant from the user on the fallback path (NULL tenant_id safe)', () => {
-    const { qb, mockAndWhere } = makeMockQb();
-    const result = filterByLiveAgentName(qb, 'my-agent', 'user-123');
-
-    expect(result).toBe(qb);
-    const call = mockAndWhere.mock.calls[0];
-    expect(call[0]).toContain('FROM tenants');
-    expect(call[0]).not.toContain('at.tenant_id');
-    expect(call[1]).toEqual({ liveAgentName: 'my-agent', liveUserId: 'user-123' });
-  });
-
   it('returns the query builder for chaining', () => {
     const { qb } = makeMockQb();
-    const result = addTenantFilter(qb, 'user-123');
+    const result = addTenantFilter(qb, 'tenant-456');
     expect(result).toBe(qb);
   });
 
   it('accepts both agentName and tenantId together', () => {
     const { qb, mockAndWhere } = makeMockQb();
-    addTenantFilter(qb, 'user-123', 'my-agent', 'tenant-456');
+    addTenantFilter(qb, 'tenant-456', 'my-agent');
 
     expect(mockAndWhere).toHaveBeenCalledTimes(2);
   });

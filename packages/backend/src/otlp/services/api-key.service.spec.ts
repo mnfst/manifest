@@ -135,37 +135,58 @@ describe('ApiKeyGeneratorService', () => {
 
   describe('onboardAgent', () => {
     const defaultParams = {
-      tenantName: 'user-42',
+      ownerUserId: 'user-42',
       agentName: 'my-agent',
     };
 
-    it('should create a new tenant when none exists', async () => {
+    it('should create a new tenant when none exists for the owner', async () => {
       mockTenantFindOne.mockResolvedValue(null);
 
       await service.onboardAgent(defaultParams);
 
       expect(mockTenantFindOne).toHaveBeenCalledWith({
-        where: { name: 'user-42' },
+        where: { owner_user_id: 'user-42' },
       });
       expect(mockTenantInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'uuid-tenant-1',
           name: 'user-42',
+          owner_user_id: 'user-42',
           is_active: true,
         }),
       );
     });
 
-    it('should reuse existing tenant when one exists', async () => {
+    it('should reuse the existing tenant owned by the user', async () => {
       mockTenantFindOne.mockResolvedValue({
         id: 'existing-tenant-id',
-        name: 'user-42',
+        owner_user_id: 'user-42',
       });
 
       const result = await service.onboardAgent(defaultParams);
 
       expect(mockTenantInsert).not.toHaveBeenCalled();
       expect(result.tenantId).toBe('existing-tenant-id');
+    });
+
+    it('should use a provided tenantId directly without resolving an owner', async () => {
+      const result = await service.onboardAgent({
+        tenantId: 'known-tenant',
+        agentName: 'my-agent',
+      });
+
+      expect(mockTenantFindOne).not.toHaveBeenCalled();
+      expect(mockTenantInsert).not.toHaveBeenCalled();
+      expect(result.tenantId).toBe('known-tenant');
+      expect(mockAgentInsert).toHaveBeenCalledWith(
+        expect.objectContaining({ tenant_id: 'known-tenant' }),
+      );
+    });
+
+    it('should throw NotFoundException when neither tenantId nor ownerUserId is given', async () => {
+      await expect(service.onboardAgent({ agentName: 'my-agent' })).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should create an agent linked to the tenant', async () => {
@@ -348,7 +369,7 @@ describe('ApiKeyGeneratorService', () => {
         key_hash: 'somehash',
       });
 
-      const result = await service.getKeyForAgent('user-1', 'agent-a');
+      const result = await service.getKeyForAgent('tenant-1', 'agent-a');
 
       expect(result).toEqual({ keyPrefix: 'mnfst_abc12345' });
     });
@@ -356,25 +377,27 @@ describe('ApiKeyGeneratorService', () => {
     it('should throw NotFoundException when no active key is found', async () => {
       mockKeyGetOne.mockResolvedValue(null);
 
-      await expect(service.getKeyForAgent('user-1', 'agent-a')).rejects.toThrow(NotFoundException);
-      await expect(service.getKeyForAgent('user-1', 'agent-a')).rejects.toThrow(
+      await expect(service.getKeyForAgent('tenant-1', 'agent-a')).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.getKeyForAgent('tenant-1', 'agent-a')).rejects.toThrow(
         'No active API key found for this agent',
       );
     });
 
-    it('should query by userId and agentName with is_active filter', async () => {
+    it('should query by tenantId and agentName with is_active filter', async () => {
       mockKeyGetOne.mockResolvedValue({ key_prefix: 'mnfst_xxx' });
 
-      await service.getKeyForAgent('user-99', 'bot-x');
+      await service.getKeyForAgent('tenant-99', 'bot-x');
 
       expect(mockKeyQb.leftJoin).toHaveBeenCalledWith('k.agent', 'a');
-      expect(mockKeyQb.leftJoin).toHaveBeenCalledWith('a.tenant', 't');
-      expect(mockKeyQb.where).toHaveBeenCalledWith('t.name = :userId', {
-        userId: 'user-99',
+      expect(mockKeyQb.where).toHaveBeenCalledWith('a.tenant_id = :tenantId', {
+        tenantId: 'tenant-99',
       });
       expect(mockKeyQb.andWhere).toHaveBeenCalledWith('a.name = :agentName', {
         agentName: 'bot-x',
       });
+      expect(mockKeyQb.andWhere).toHaveBeenCalledWith('a.deleted_at IS NULL');
       expect(mockKeyQb.andWhere).toHaveBeenCalledWith('k.is_active = true');
     });
 
@@ -387,7 +410,7 @@ describe('ApiKeyGeneratorService', () => {
         key: encryptedKey,
       });
 
-      const result = await service.getKeyForAgent('user-1', 'agent-a');
+      const result = await service.getKeyForAgent('tenant-1', 'agent-a');
 
       expect(result).toEqual({ keyPrefix: 'mnfst_partia', fullKey: 'mnfst_decrypted_key' });
       expect(result).not.toHaveProperty('key');
@@ -401,7 +424,7 @@ describe('ApiKeyGeneratorService', () => {
         key: null,
       });
 
-      const result = await service.getKeyForAgent('user-1', 'agent-a');
+      const result = await service.getKeyForAgent('tenant-1', 'agent-a');
 
       expect(result).toEqual({ keyPrefix: 'mnfst_legacy_' });
       expect(result).not.toHaveProperty('fullKey');
@@ -414,7 +437,7 @@ describe('ApiKeyGeneratorService', () => {
         key: 'invalid-encrypted-data',
       });
 
-      const result = await service.getKeyForAgent('user-1', 'agent-a');
+      const result = await service.getKeyForAgent('tenant-1', 'agent-a');
 
       expect(result).toEqual({ keyPrefix: 'mnfst_broken_' });
       expect(result).not.toHaveProperty('fullKey');
@@ -435,10 +458,10 @@ describe('ApiKeyGeneratorService', () => {
     it('should throw NotFoundException when agent is not found', async () => {
       mockAgentGetOne.mockResolvedValue(null);
 
-      await expect(service.rotateKey('user-1', 'nonexistent-agent')).rejects.toThrow(
+      await expect(service.rotateKey('tenant-1', 'nonexistent-agent')).rejects.toThrow(
         NotFoundException,
       );
-      await expect(service.rotateKey('user-1', 'nonexistent-agent')).rejects.toThrow(
+      await expect(service.rotateKey('tenant-1', 'nonexistent-agent')).rejects.toThrow(
         'Agent not found or access denied',
       );
     });
@@ -446,7 +469,7 @@ describe('ApiKeyGeneratorService', () => {
     it('should delete existing keys for the agent before creating a new one', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
-      await service.rotateKey('user-1', 'my-agent');
+      await service.rotateKey('tenant-1', 'my-agent');
 
       expect(mockKeyDelete).toHaveBeenCalledWith({ agent_id: 'agent-id-1' });
     });
@@ -454,7 +477,7 @@ describe('ApiKeyGeneratorService', () => {
     it('should create a new key with encrypted key, hash and prefix', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
-      await service.rotateKey('user-1', 'my-agent');
+      await service.rotateKey('tenant-1', 'my-agent');
 
       const insertCall = mockKeyInsert.mock.calls[0][0];
       const expectedRawKey = 'mnfst_' + Buffer.from('a'.repeat(32), 'utf8').toString('base64url');
@@ -471,7 +494,7 @@ describe('ApiKeyGeneratorService', () => {
     it('should label the rotated key with "(rotated)" suffix', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
-      await service.rotateKey('user-1', 'my-agent');
+      await service.rotateKey('tenant-1', 'my-agent');
 
       expect(mockKeyInsert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -483,20 +506,22 @@ describe('ApiKeyGeneratorService', () => {
     it('should return the new raw apiKey', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
-      const result = await service.rotateKey('user-1', 'my-agent');
+      const result = await service.rotateKey('tenant-1', 'my-agent');
 
       expect(result.apiKey).toMatch(/^mnfst_/);
       expect(result.apiKey.length).toBeGreaterThan(4);
     });
 
-    it('should look up agent by name and userId via query builder', async () => {
+    it('should look up agent by name and tenantId via query builder', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
-      await service.rotateKey('user-7', 'bot-z');
+      await service.rotateKey('tenant-7', 'bot-z');
 
-      expect(mockAgentQb.leftJoin).toHaveBeenCalledWith('a.tenant', 't');
       expect(mockAgentQb.where).toHaveBeenCalledWith('a.name = :agentName', { agentName: 'bot-z' });
-      expect(mockAgentQb.andWhere).toHaveBeenCalledWith('t.name = :userId', { userId: 'user-7' });
+      expect(mockAgentQb.andWhere).toHaveBeenCalledWith('a.tenant_id = :tenantId', {
+        tenantId: 'tenant-7',
+      });
+      expect(mockAgentQb.andWhere).toHaveBeenCalledWith('a.deleted_at IS NULL');
     });
 
     it('should delete old keys before inserting the new one', async () => {
@@ -512,7 +537,7 @@ describe('ApiKeyGeneratorService', () => {
         return Promise.resolve({});
       });
 
-      await service.rotateKey('user-1', 'my-agent');
+      await service.rotateKey('tenant-1', 'my-agent');
 
       expect(callOrder).toEqual(['delete', 'insert']);
     });
@@ -520,7 +545,7 @@ describe('ApiKeyGeneratorService', () => {
     it('should call clearCache after deleting the old key', async () => {
       mockAgentGetOne.mockResolvedValue(existingAgent);
 
-      await service.rotateKey('user-1', 'my-agent');
+      await service.rotateKey('tenant-1', 'my-agent');
 
       expect(mockClearCache).toHaveBeenCalledTimes(1);
     });
@@ -530,7 +555,7 @@ describe('ApiKeyGeneratorService', () => {
     it('should not call clearCache during onboarding', async () => {
       mockTenantFindOne.mockResolvedValue(null);
 
-      await service.onboardAgent({ tenantName: 'user-42', agentName: 'my-agent' });
+      await service.onboardAgent({ ownerUserId: 'user-42', agentName: 'my-agent' });
 
       expect(mockClearCache).not.toHaveBeenCalled();
     });

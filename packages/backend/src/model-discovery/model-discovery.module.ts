@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
@@ -11,7 +11,7 @@ import { CopilotTokenService } from '../routing/proxy/copilot-token.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserProvider, AgentEnabledProvider, CustomProvider]),
+    TypeOrmModule.forFeature([TenantProvider, AgentEnabledProvider, CustomProvider]),
     ModelPricesModule,
   ],
   providers: [

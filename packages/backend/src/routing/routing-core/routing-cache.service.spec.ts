@@ -1,6 +1,6 @@
 import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
-import { UserProvider } from '../../entities/user-provider.entity';
+import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
@@ -8,7 +8,7 @@ import { AgentModelParams } from '../../entities/agent-model-params.entity';
 // Minimal stand-ins for the TypeORM entities. The cache is entity-agnostic — it
 // only stores arrays by reference, so shape fidelity is unnecessary.
 const tier = (name: string): TierAssignment => ({ id: name }) as unknown as TierAssignment;
-const provider = (name: string): UserProvider => ({ id: name }) as unknown as UserProvider;
+const provider = (name: string): TenantProvider => ({ id: name }) as unknown as TenantProvider;
 const customProvider = (name: string): CustomProvider =>
   ({ id: name }) as unknown as CustomProvider;
 const specificity = (name: string): SpecificityAssignment =>
@@ -96,9 +96,9 @@ describe('RoutingCacheService', () => {
   });
 
   describe('invalidateAgent', () => {
-    it('clears agent-scoped caches (tiers, specificity, modelParams, providerKeys); providers remain user-scoped', () => {
+    it('clears agent-scoped caches (tiers, specificity, modelParams, providerKeys); providers remain tenant-scoped', () => {
       svc.setTiers('a', [tier('t1')]);
-      // Providers and customProviders are now user-scoped — stored under userId 'u1', not agentId 'a'.
+      // Providers and customProviders are now tenant-scoped — stored under tenantId 'u1', not agentId 'a'.
       svc.setProviders('u1', [provider('p1')]);
       svc.setCustomProviders('u1', [customProvider('c1')]);
       svc.setSpecificity('a', [specificity('s1')]);
@@ -120,7 +120,7 @@ describe('RoutingCacheService', () => {
       expect(svc.getProviderKeys('a', 'openai')).toBeUndefined();
       expect(svc.getProviderKeys('a', 'anthropic', 'subscription')).toBeUndefined();
 
-      // User-scoped provider caches NOT cleared by invalidateAgent
+      // Tenant-scoped provider caches NOT cleared by invalidateAgent
       expect(svc.getProviders('u1')).not.toBeNull();
       expect(svc.getCustomProviders('u1')).not.toBeNull();
 
@@ -130,16 +130,16 @@ describe('RoutingCacheService', () => {
     });
   });
 
-  describe('invalidateUser', () => {
-    it('clears user-scoped provider caches and user-keyed providerKeys; agent caches survive', () => {
+  describe('invalidateTenant', () => {
+    it('clears tenant-scoped provider caches and tenant-keyed providerKeys; agent caches survive', () => {
       svc.setProviders('u1', [provider('p1')]);
       svc.setCustomProviders('u1', [customProvider('c1')]);
       svc.setProviderKeys('u1', 'openai', [providerKey('Default', 'k')]);
 
-      // Agent-scoped cache should survive invalidateUser
+      // Agent-scoped cache should survive invalidateTenant
       svc.setTiers('agent-x', [tier('t1')]);
 
-      svc.invalidateUser('u1');
+      svc.invalidateTenant('u1');
 
       expect(svc.getProviders('u1')).toBeNull();
       expect(svc.getCustomProviders('u1')).toBeNull();

@@ -17,9 +17,9 @@ function seededRandom(seed: number): number {
 
 /**
  * Models the seeded messages are drawn from. Each distinct (provider,
- * auth_type) pair here becomes one seeded connection (user_providers row), so a
+ * auth_type) pair here becomes one seeded connection (tenant_providers row), so a
  * seeded connection-detail page shows realistic data while a freshly added key
- * — a brand-new user_providers id — correctly shows nothing.
+ * — a brand-new tenant_providers id — correctly shows nothing.
  */
 const SEED_MODELS: { name: string; auth_type: 'subscription' | 'api_key' }[] = [
   { name: 'claude-sonnet-4-5-20250929', auth_type: 'subscription' },
@@ -35,15 +35,15 @@ export interface SeedConnection {
   auth_type: 'subscription' | 'api_key';
 }
 
-/** Stable id for a seeded provider connection (user_providers row). */
+/** Stable id for a seeded provider connection (tenant_providers row). */
 export function seedConnectionId(provider: string, authType: string): string {
   return `seed-conn-${provider}-${authType}`;
 }
 
 /**
  * Distinct (provider, auth_type) connections behind the seeded messages. The
- * seeder creates one user_providers row per entry and stamps the matching
- * user_provider_id on every seeded message, so per-connection analytics resolve
+ * seeder creates one tenant_providers row per entry and stamps the matching
+ * tenant_provider_id on every seeded message, so per-connection analytics resolve
  * against a real connection rather than the legacy provider/auth/label tuple.
  */
 export function getSeedConnections(): SeedConnection[] {
@@ -114,8 +114,8 @@ export async function seedAgentMessages(
         provider,
         auth_type: entry.auth_type,
         // Link to the seeded connection so the connection-detail page resolves
-        // this message by user_provider_id (matches getSeedConnections()).
-        user_provider_id: provider ? seedConnectionId(provider, entry.auth_type) : null,
+        // this message by tenant_provider_id (matches getSeedConnections()).
+        tenant_provider_id: provider ? seedConnectionId(provider, entry.auth_type) : null,
         input_tokens: inputBase,
         output_tokens: outputBase,
         cache_read_tokens: cacheRead,

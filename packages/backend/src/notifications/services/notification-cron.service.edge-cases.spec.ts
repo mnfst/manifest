@@ -20,7 +20,6 @@ const baseRule = {
   id: 'rule-1',
   tenant_id: 'tenant-1',
   agent_name: 'my-agent',
-  user_id: 'user-1',
   metric_type: 'tokens' as const,
   threshold: 100_000,
   period: 'day' as const,
@@ -46,22 +45,22 @@ const localHourStart = (iso: string) => {
 describe('NotificationCronService — edge cases', () => {
   let service: NotificationCronService;
   let mockGetAllActiveRules: jest.Mock;
-  let mockGetActiveRulesForUser: jest.Mock;
+  let mockGetActiveRulesForTenant: jest.Mock;
   let mockGetConsumption: jest.Mock;
   let mockSendThresholdAlert: jest.Mock;
   let mockHasAlreadySent: jest.Mock;
   let mockInsertLog: jest.Mock;
-  let mockResolveUserEmail: jest.Mock;
+  let mockResolveRecipientEmail: jest.Mock;
   let mockGetFullConfig: jest.Mock;
 
   beforeEach(async () => {
     mockGetAllActiveRules = jest.fn();
-    mockGetActiveRulesForUser = jest.fn();
+    mockGetActiveRulesForTenant = jest.fn();
     mockGetConsumption = jest.fn();
     mockSendThresholdAlert = jest.fn().mockResolvedValue(true);
     mockHasAlreadySent = jest.fn().mockResolvedValue(false);
     mockInsertLog = jest.fn().mockResolvedValue(undefined);
-    mockResolveUserEmail = jest.fn().mockResolvedValue('user@test.com');
+    mockResolveRecipientEmail = jest.fn().mockResolvedValue('user@test.com');
     mockGetFullConfig = jest.fn().mockResolvedValue(null);
 
     const module: TestingModule = await Test.createTestingModule({
@@ -71,7 +70,7 @@ describe('NotificationCronService — edge cases', () => {
           provide: NotificationRulesService,
           useValue: {
             getAllActiveRules: mockGetAllActiveRules,
-            getActiveRulesForUser: mockGetActiveRulesForUser,
+            getActiveRulesForTenant: mockGetActiveRulesForTenant,
             getConsumption: mockGetConsumption,
           },
         },
@@ -88,7 +87,7 @@ describe('NotificationCronService — edge cases', () => {
           useValue: {
             hasAlreadySent: mockHasAlreadySent,
             insertLog: mockInsertLog,
-            resolveUserEmail: mockResolveUserEmail,
+            resolveRecipientEmail: mockResolveRecipientEmail,
           },
         },
         {
@@ -248,22 +247,22 @@ describe('NotificationCronService — edge cases', () => {
 
   /* ── 3. Per-user invocation path ───────────────────────────────── */
 
-  describe('checkThresholds(userId)', () => {
-    it('uses getActiveRulesForUser when userId is provided', async () => {
-      mockGetActiveRulesForUser.mockResolvedValue([baseRule]);
+  describe('checkThresholds(tenantId)', () => {
+    it('uses getActiveRulesForTenant when tenantId is provided', async () => {
+      mockGetActiveRulesForTenant.mockResolvedValue([baseRule]);
       mockGetConsumption.mockResolvedValue(200_000);
 
-      const result = await service.checkThresholds('user-1');
+      const result = await service.checkThresholds('tenant-1');
 
       expect(result).toBe(1);
-      expect(mockGetActiveRulesForUser).toHaveBeenCalledWith('user-1');
+      expect(mockGetActiveRulesForTenant).toHaveBeenCalledWith('tenant-1');
       expect(mockGetAllActiveRules).not.toHaveBeenCalled();
     });
 
     it('returns 0 when per-user query yields no rules', async () => {
-      mockGetActiveRulesForUser.mockResolvedValue([]);
+      mockGetActiveRulesForTenant.mockResolvedValue([]);
 
-      const result = await service.checkThresholds('user-1');
+      const result = await service.checkThresholds('tenant-1');
 
       expect(result).toBe(0);
       expect(mockGetConsumption).not.toHaveBeenCalled();

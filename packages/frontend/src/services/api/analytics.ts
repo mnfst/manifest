@@ -11,7 +11,7 @@ export function getProviderAnalytics(
   agentName?: string,
   provider?: string,
   label?: string,
-  // The exact connection (user_providers id). When set, the backend scopes the
+  // The exact connection (tenant_providers id). When set, the backend scopes the
   // summary cards + chart to this key instead of the provider/auth/label tuple.
   connectionId?: string,
 ) {

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CachedProviderKey, RoutingCacheService } from './routing-core/routing-cache.service';
 import { TierAssignment } from '../entities/tier-assignment.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 
@@ -71,7 +71,7 @@ describe('RoutingCacheService', () => {
     });
 
     it('returns cached data within TTL', () => {
-      const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
+      const providers = [{ id: 'up-1', provider: 'openai' }] as TenantProvider[];
       service.setProviders('agent-1', providers);
 
       const result = service.getProviders('agent-1');
@@ -80,7 +80,7 @@ describe('RoutingCacheService', () => {
 
     it('returns null after TTL expires', () => {
       jest.useFakeTimers();
-      const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
+      const providers = [{ id: 'up-1', provider: 'openai' }] as TenantProvider[];
       service.setProviders('agent-1', providers);
 
       jest.advanceTimersByTime(120_001);
@@ -94,7 +94,7 @@ describe('RoutingCacheService', () => {
       const providers = [
         { id: 'up-1', provider: 'openai' },
         { id: 'up-2', provider: 'anthropic' },
-      ] as UserProvider[];
+      ] as TenantProvider[];
 
       service.setProviders('agent-1', providers);
 
@@ -206,7 +206,7 @@ describe('RoutingCacheService', () => {
     it('clears tiers and provider key chains for agent; providers remain user-scoped', () => {
       const tiers = [{ id: 'ta-1', tier: 'fast' }] as TierAssignment[];
       // Providers and customProviders are user-scoped — stored under userId 'user-1', not agentId 'agent-1'.
-      const providers = [{ id: 'up-1', provider: 'openai' }] as UserProvider[];
+      const providers = [{ id: 'up-1', provider: 'openai' }] as TenantProvider[];
       const cps = [{ id: 'cp-1', name: 'Groq' }] as CustomProvider[];
 
       service.setTiers('agent-1', tiers);
