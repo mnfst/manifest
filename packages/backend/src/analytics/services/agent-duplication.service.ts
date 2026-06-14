@@ -51,9 +51,9 @@ export class AgentDuplicationService {
         .where('a.tenant_id = :tenantId', { tenantId })
         .andWhere('a.name = :agentName', { agentName })
         .andWhere('a.deleted_at IS NULL')
-        // Exclude the reserved system agent — it cannot be cloned or used as a
+        // Exclude the reserved Playground agent — it cannot be cloned or used as a
         // duplication source (it has no API key and is tenant-singleton).
-        .andWhere('a.is_system = false')
+        .andWhere('a.is_playground = false')
         .getOne()
     );
   }

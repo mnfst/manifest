@@ -91,6 +91,9 @@ export interface FailedFallback {
   // legacy inference path. Either way the recorder can attribute the error
   // to the actual credential that failed instead of inheriting the primary's.
   authType?: AuthType;
+  // The tenant_providers row that served this failed attempt, so the recorded
+  // error row is scoped to the right connection. NULL for local/Ollama.
+  tenantProviderId?: string | null;
 }
 
 @Injectable()
@@ -171,6 +174,7 @@ export class ProxyFallbackService {
       fallbackIndex: number;
       authType?: AuthType;
       keyLabel?: string;
+      tenantProviderId: string | null;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -252,6 +256,15 @@ export class ProxyFallbackService {
         );
         continue;
       }
+      // Connection (tenant_providers row) that served this fallback attempt, for
+      // stamping the recorded row. NULL for synthetic Ollama / no persisted row.
+      const tenantProviderId = await this.providerKeyService.getProviderKeyId(
+        tenantId,
+        provider,
+        authType,
+        providerKeyLabel,
+        agentId,
+      );
 
       const resolvedCredentials = await resolveApiKey(
         provider,
@@ -328,6 +341,7 @@ export class ProxyFallbackService {
             fallbackIndex: i,
             authType,
             keyLabel: providerKeyLabel,
+            tenantProviderId,
           },
           failures,
         };
@@ -341,6 +355,7 @@ export class ProxyFallbackService {
         status: forward.response.status,
         errorBody,
         authType,
+        tenantProviderId,
       });
 
       const existing = failedAuthByProvider.get(provider.toLowerCase());

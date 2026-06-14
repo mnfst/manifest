@@ -1,5 +1,5 @@
 import { QueryRunner } from 'typeorm';
-import { TenantScopedConfigs1792200000000 } from './1792200000000-TenantScopedConfigs';
+import { TenantScopedConfigs1792600000000 } from './1792600000000-TenantScopedConfigs';
 
 /**
  * The migration re-scopes three tables (email_provider_configs, api_keys,
@@ -21,12 +21,12 @@ function makeRunner(orphanCount: number): { runner: QueryRunner; queries: string
   return { runner, queries };
 }
 
-describe('TenantScopedConfigs1792200000000', () => {
-  let migration: TenantScopedConfigs1792200000000;
+describe('TenantScopedConfigs1792600000000', () => {
+  let migration: TenantScopedConfigs1792600000000;
   const originalForce = process.env.MANIFEST_MIGRATION_FORCE;
 
   beforeEach(() => {
-    migration = new TenantScopedConfigs1792200000000();
+    migration = new TenantScopedConfigs1792600000000();
     delete process.env.MANIFEST_MIGRATION_FORCE;
   });
 

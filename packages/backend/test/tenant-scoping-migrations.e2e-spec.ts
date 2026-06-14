@@ -10,10 +10,10 @@
  * custom-providers-lift-migrations.e2e-spec.ts.
  */
 import { DataSource } from 'typeorm';
-import { TenantOwnerColumn1792000000000 } from '../src/database/migrations/1792000000000-TenantOwnerColumn';
-import { TenantProviders1792100000000 } from '../src/database/migrations/1792100000000-TenantProviders';
-import { TenantScopedConfigs1792200000000 } from '../src/database/migrations/1792200000000-TenantScopedConfigs';
-import { DropUserScopeFromRouting1792300000000 } from '../src/database/migrations/1792300000000-DropUserScopeFromRouting';
+import { TenantOwnerColumn1792400000000 } from '../src/database/migrations/1792400000000-TenantOwnerColumn';
+import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
+import { DropUserScopeFromRouting1792700000000 } from '../src/database/migrations/1792700000000-DropUserScopeFromRouting';
 
 const USER = 'mig-user-1';
 const TENANT = 'mig-tenant-1';
@@ -69,10 +69,10 @@ describe('Tenant-canonical scoping migrations — data backfill (e2e)', () => {
 
     // Revert the four tenant migrations, newest first → pre-tenant schema
     // (user_id scope columns everywhere, no owner_user_id).
-    await runDown(ds, new DropUserScopeFromRouting1792300000000());
-    await runDown(ds, new TenantScopedConfigs1792200000000());
-    await runDown(ds, new TenantProviders1792100000000());
-    await runDown(ds, new TenantOwnerColumn1792000000000());
+    await runDown(ds, new DropUserScopeFromRouting1792700000000());
+    await runDown(ds, new TenantScopedConfigs1792600000000());
+    await runDown(ds, new TenantProviders1792500000000());
+    await runDown(ds, new TenantOwnerColumn1792400000000());
 
     // ---- Seed a realistic user-scoped dataset (tenants.name = user id) ----
     await ds.query(
@@ -134,10 +134,10 @@ describe('Tenant-canonical scoping migrations — data backfill (e2e)', () => {
     );
 
     // ---- Replay the chain in order ----
-    await runUp(ds, new TenantOwnerColumn1792000000000());
-    await runUp(ds, new TenantProviders1792100000000());
-    await runUp(ds, new TenantScopedConfigs1792200000000());
-    await runUp(ds, new DropUserScopeFromRouting1792300000000());
+    await runUp(ds, new TenantOwnerColumn1792400000000());
+    await runUp(ds, new TenantProviders1792500000000());
+    await runUp(ds, new TenantScopedConfigs1792600000000());
+    await runUp(ds, new DropUserScopeFromRouting1792700000000());
   }, 60000);
 
   afterAll(async () => {

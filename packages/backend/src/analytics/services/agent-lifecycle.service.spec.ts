@@ -406,9 +406,9 @@ describe('AgentLifecycleService', () => {
     });
   });
 
-  describe('system agent protection', () => {
-    it('cannot delete a system agent — findAgentByUser excludes is_system=true rows', async () => {
-      // Simulate the system agent being invisible to the resolver (returns null).
+  describe('playground agent protection', () => {
+    it('cannot delete a playground agent — findAgentByUser excludes is_playground=true rows', async () => {
+      // Simulate the playground agent being invisible to the resolver (returns null).
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       await expect(service.deleteAgent('test-user', 'playground')).rejects.toThrow(
@@ -417,8 +417,8 @@ describe('AgentLifecycleService', () => {
       expect(mockTransaction).not.toHaveBeenCalled();
     });
 
-    it('cannot rename a system agent — the resolver excludes is_system=true rows', async () => {
-      // The rename "find current agent" query also filters is_system = false.
+    it('cannot rename a playground agent — the resolver excludes is_playground=true rows', async () => {
+      // The rename "find current agent" query also filters is_playground = false.
       mockAgentGetOne.mockResolvedValueOnce(null);
 
       await expect(service.renameAgent('test-user', 'playground', 'new-name')).rejects.toThrow(
@@ -427,7 +427,7 @@ describe('AgentLifecycleService', () => {
       expect(mockTransaction).not.toHaveBeenCalled();
     });
 
-    it('applies is_system = false filter in findAgentByUser', async () => {
+    it('applies is_playground = false filter in findAgentByUser', async () => {
       const mockAndWhere = jest.fn().mockReturnThis();
       const mockQb = {
         select: jest.fn().mockReturnThis(),
@@ -443,7 +443,7 @@ describe('AgentLifecycleService', () => {
       await service.findAgentInfo('user-1', 'playground');
 
       const andWhereCalls = mockAndWhere.mock.calls.map((c: unknown[]) => c[0]);
-      expect(andWhereCalls).toContain('a.is_system = false');
+      expect(andWhereCalls).toContain('a.is_playground = false');
     });
   });
 

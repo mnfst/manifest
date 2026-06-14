@@ -67,7 +67,7 @@ const specCatalog: ProviderParamSpecCatalog = [
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<Pick<ResolveService, 'resolve' | 'resolveForTier'>>;
   let providerKeyService: jest.Mocked<
-    Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion'>
+    Pick<ProviderKeyService, 'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId'>
   >;
   let tierService: jest.Mocked<Pick<TierService, 'getTiers'>>;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
@@ -104,6 +104,7 @@ describe('ProxyService — orchestration', () => {
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('decrypted-key'),
       getProviderRegion: jest.fn().mockResolvedValue(null),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-default'),
     };
     tierService = { getTiers: jest.fn().mockResolvedValue([]) };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };

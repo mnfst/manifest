@@ -221,6 +221,9 @@ const ConnectionDetail: Component = () => {
         p.agent || undefined,
         p.provider,
         p.label,
+        // Scope the cards + chart to this exact connection (tenant_providers id),
+        // so a freshly added key shows its own usage, not a sibling key's.
+        params.connectionId,
       ) as Promise<AnalyticsResponse>;
     },
   );
@@ -233,7 +236,7 @@ const ConnectionDetail: Component = () => {
     },
     (p) => {
       if (!p) return null;
-      return getPerAgentTimeseries(p.authType, p.provider, p.range, p.label);
+      return getPerAgentTimeseries(p.authType, p.provider, p.range, p.label, params.connectionId);
     },
   );
 
@@ -245,7 +248,13 @@ const ConnectionDetail: Component = () => {
     },
     (p) => {
       if (!p) return null;
-      return getPerAgentMessageTimeseries(p.authType, p.provider, p.range, p.label);
+      return getPerAgentMessageTimeseries(
+        p.authType,
+        p.provider,
+        p.range,
+        p.label,
+        params.connectionId,
+      );
     },
   );
 
@@ -259,7 +268,13 @@ const ConnectionDetail: Component = () => {
     },
     (p) => {
       if (!p) return null;
-      return getPerAgentCostTimeseries(p.authType, p.provider, p.range, p.label);
+      return getPerAgentCostTimeseries(
+        p.authType,
+        p.provider,
+        p.range,
+        p.label,
+        params.connectionId,
+      );
     },
   );
 

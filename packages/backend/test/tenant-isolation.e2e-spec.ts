@@ -86,6 +86,18 @@ beforeAll(async () => {
     .expect(201);
   aProviderConnectionId = provider.body.id as string;
 
+  // A message attributed to that connection so per-connection analytics for
+  // tenant A's connection_id have something to leak if isolation breaks.
+  await ds.query(
+    `INSERT INTO agent_messages
+       (id, tenant_id, agent_id, timestamp, status, model, provider, auth_type,
+        provider_key_label, tenant_provider_id, input_tokens, output_tokens,
+        cache_read_tokens, cache_creation_tokens, description, service_type, agent_name, user_id)
+     VALUES ($1,$2,$3,$4,'ok','gpt-4o','openai','api_key','Default',$5,100,50,0,0,
+             'Tenant A connection secret','agent','test-agent',$6)`,
+    [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, now, aProviderConnectionId, TEST_USER_ID],
+  );
+
   // A custom provider (tenant-scoped).
   await ds.getRepository(CustomProvider).insert({
     id: A_CUSTOM_PROVIDER_ID,
@@ -118,7 +130,7 @@ beforeAll(async () => {
   // A playground run, attached to tenant A's reserved Playground agent.
   await asA(api().get('/api/v1/playground/agent')).expect(200);
   const pgAgent = await ds.query(
-    `SELECT id FROM agents WHERE tenant_id = $1 AND is_system = true AND deleted_at IS NULL`,
+    `SELECT id FROM agents WHERE tenant_id = $1 AND is_playground = true AND deleted_at IS NULL`,
     [TEST_TENANT_ID],
   );
   await ds.getRepository(PlaygroundRun).insert({
@@ -319,6 +331,37 @@ describe('Routing — user B cannot reach tenant A routing config', () => {
     await asB(
       api().put(`/api/v1/agents/${B_AGENT_NAME}/enabled-providers/${aProviderConnectionId}`),
     ).expect(404);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Per-connection analytics                                           */
+/* ------------------------------------------------------------------ */
+describe('Provider analytics — user B cannot see tenant A per-connection data', () => {
+  it('connection-detail for A connection id → empty shape (no A connection leaked)', async () => {
+    const res = await asB(
+      api().get('/api/v1/provider-analytics/connection-detail').query({
+        connection_id: aProviderConnectionId,
+      }),
+    ).expect(200);
+    // The connection lookup is tenant-scoped, so B sees the null/empty shape —
+    // never tenant A's connection or its attributed messages.
+    expect(res.body.connection).toBeNull();
+    expect(res.body.recent_messages).toEqual([]);
+    expect(res.body.model_usage).toEqual([]);
+  });
+
+  it('analytics scoped to A connection id → no A usage (B tenant only)', async () => {
+    const res = await asB(
+      api().get('/api/v1/provider-analytics').query({
+        connection_id: aProviderConnectionId,
+        range: '30d',
+      }),
+    ).expect(200);
+    // connection_id rides as the tenant_provider_id filter, but the query is
+    // still tenant-scoped to B — A's message attributed to that connection must
+    // not surface in B's message/token counts.
+    expect(res.body.summary.messages.value ?? 0).toBe(0);
   });
 });
 

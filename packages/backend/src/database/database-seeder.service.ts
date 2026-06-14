@@ -8,8 +8,9 @@ import { Agent } from '../entities/agent.entity';
 import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { hashKey, keyPrefix } from '../common/utils/hash.util';
-import { seedAgentMessages } from './seed-messages';
+import { getSeedConnections, seedAgentMessages } from './seed-messages';
 
 const SEED_API_KEY = 'dev-api-key-manifest-001';
 const SEED_OTLP_KEY = 'mnfst_dev-otlp-key-001';
@@ -28,6 +29,7 @@ export class DatabaseSeederService implements OnModuleInit {
     @InjectRepository(AgentApiKey) private readonly agentKeyRepo: Repository<AgentApiKey>,
     @InjectRepository(ApiKey) private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(AgentMessage) private readonly messageRepo: Repository<AgentMessage>,
+    @InjectRepository(TenantProvider) private readonly providerRepo: Repository<TenantProvider>,
   ) {}
 
   async onModuleInit() {
@@ -51,6 +53,9 @@ export class DatabaseSeederService implements OnModuleInit {
     // Tenant first: the dashboard API key is tenant-scoped.
     await this.seedTenantAndAgent();
     await this.seedApiKey();
+    // Connections must exist before messages: each seeded message references a
+    // tenant_providers row via the FK on agent_messages.tenant_provider_id.
+    await this.seedTenantProviders();
     await this.seedAgentMessages();
     this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
     this.logger.warn(
@@ -160,6 +165,30 @@ export class DatabaseSeederService implements OnModuleInit {
     });
 
     this.logger.log(`Seeded tenant/agent with OTLP key: ${SEED_OTLP_KEY.substring(0, 8)}***`);
+  }
+
+  private async seedTenantProviders() {
+    const userId = await this.getAdminUserId();
+    if (!userId) return;
+    const connections = getSeedConnections();
+    let created = 0;
+    for (const conn of connections) {
+      // Idempotent by id so re-seeding an existing DB is a no-op.
+      const existing = await this.providerRepo.findOne({ where: { id: conn.id } });
+      if (existing) continue;
+      await this.providerRepo.insert({
+        id: conn.id,
+        tenant_id: SEED_TENANT_ID,
+        created_by_user_id: userId,
+        provider: conn.provider,
+        auth_type: conn.auth_type,
+        label: 'Default',
+        priority: 0,
+        is_active: true,
+      });
+      created++;
+    }
+    if (created > 0) this.logger.log(`Seeded ${created} provider connection(s)`);
   }
 
   private async seedAgentMessages() {

@@ -7,8 +7,8 @@ import { rangeToInterval } from '../../common/utils/range.util';
 import {
   addTenantFilter,
   selectMessageRowColumns,
-  excludeSystemAgents,
-  filterByKeyLabel,
+  excludePlaygroundAgents,
+  scopeToConnection,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
@@ -46,8 +46,9 @@ export class TimeseriesQueriesService {
     agentName?: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
+    tenantProviderId?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -65,10 +66,10 @@ export class TimeseriesQueriesService {
     addTenantFilter(qb, tenantId, agentName);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(qb);
-    // Connection-scoped label filter: keep sibling keys (same provider+auth_type,
-    // different label) out of this connection's aggregate chart. NULL → 'Default'.
-    if (label !== undefined) filterByKeyLabel(qb, label);
+    if (excludePlayground) excludePlaygroundAgents(qb);
+    // Scope to this connection: pin to the tenant_providers id when present,
+    // else the provider+auth_type+label tuple (see scopeToConnection).
+    scopeToConnection(qb, tenantProviderId, label);
     const rows = await qb.groupBy(bucketAlias).orderBy(bucketAlias, 'ASC').getRawMany();
 
     const tokenUsage: {
@@ -175,7 +176,7 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getAgentList(tenantId: string | null, includeSystem = false) {
+  async getAgentList(tenantId: string | null, includePlayground = false) {
     // No tenant yet (fresh account) → no agents, by definition.
     if (tenantId === null) return [];
 
@@ -183,11 +184,11 @@ export class TimeseriesQueriesService {
       .createQueryBuilder('a')
       .where('a.tenant_id = :tenantId', { tenantId });
     agentQb.andWhere('a.deleted_at IS NULL');
-    // The reserved Playground agent is a system agent. Hidden from the
+    // The reserved Playground agent is a playground agent. Hidden from the
     // Workspace grid / agent switcher by default; the Messages filter opts in
-    // via includeSystem so users can filter the log to Playground runs.
-    if (!includeSystem) {
-      agentQb.andWhere('a.is_system = false');
+    // via includePlayground so users can filter the log to Playground runs.
+    if (!includePlayground) {
+      agentQb.andWhere('a.is_playground = false');
     }
 
     const statsCutoff = computeCutoff('30 days');
@@ -290,6 +291,7 @@ export class TimeseriesQueriesService {
     authType?: string,
     provider?: string,
     label?: string,
+    tenantProviderId?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -303,17 +305,16 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
-    // Drop the reserved Playground (is_system) agent. The NOT EXISTS semi-join
+    // Drop the reserved Playground (is_playground) agent. The NOT EXISTS semi-join
     // matches by id OR name (so name-only Playground rows are excluded too) and
     // can't multiply the per-agent SUM the way a name-based LEFT JOIN would.
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
     addTenantFilter(qb, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    // Scope to a single connection (provider+auth_type+label). Without the label
-    // filter two keys that share provider+auth_type but differ by label merge
-    // into one connection's chart. Legacy NULL provider_key_label → 'Default'.
-    if (label !== undefined) filterByKeyLabel(qb, label);
+    // Scope to this connection: pin to the tenant_providers id when present,
+    // else the provider+auth_type+label tuple (see scopeToConnection).
+    scopeToConnection(qb, tenantProviderId, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -331,6 +332,7 @@ export class TimeseriesQueriesService {
     authType?: string,
     provider?: string,
     label?: string,
+    tenantProviderId?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -345,12 +347,12 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
     // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
     addTenantFilter(qb, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    // Connection-scoped label filter (see getPerAgentTimeseries).
-    if (label !== undefined) filterByKeyLabel(qb, label);
+    // Connection scope (see getPerAgentTimeseries): id when present, else tuple.
+    scopeToConnection(qb, tenantProviderId, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -368,6 +370,7 @@ export class TimeseriesQueriesService {
     authType?: string,
     provider?: string,
     label?: string,
+    tenantProviderId?: string,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -383,12 +386,12 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.agent_name IS NOT NULL');
     // Semi-join exclusion (see getPerAgentTimeseries): no double-count, no leak.
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
     addTenantFilter(qb, tenantId);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    // Connection-scoped label filter (see getPerAgentTimeseries).
-    if (label !== undefined) filterByKeyLabel(qb, label);
+    // Connection scope (see getPerAgentTimeseries): id when present, else tuple.
+    scopeToConnection(qb, tenantProviderId, label);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -418,9 +421,9 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent so per-provider totals
+    // Exclude the reserved Playground (is_playground) agent so per-provider totals
     // stay consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
@@ -453,8 +456,8 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
-    excludeSystemAgents(qb);
+    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
+    excludePlaygroundAgents(qb);
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
@@ -486,9 +489,9 @@ export class TimeseriesQueriesService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent so per-model totals stay
+    // Exclude the reserved Playground (is_playground) agent so per-model totals stay
     // consistent with the per-agent / summary endpoints (semi-join, no leak by id-or-name).
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
@@ -520,8 +523,8 @@ export class TimeseriesQueriesService {
       .addSelect('COUNT(*)', 'messages')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
-    excludeSystemAgents(qb);
+    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
+    excludePlaygroundAgents(qb);
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
@@ -554,8 +557,8 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.provider IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
-    excludeSystemAgents(qb);
+    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
+    excludePlaygroundAgents(qb);
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
@@ -585,8 +588,8 @@ export class TimeseriesQueriesService {
       .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.model IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent (semi-join, no leak by id-or-name).
-    excludeSystemAgents(qb);
+    // Exclude the reserved Playground (is_playground) agent (semi-join, no leak by id-or-name).
+    excludePlaygroundAgents(qb);
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
@@ -604,10 +607,10 @@ export class TimeseriesQueriesService {
       .select('DISTINCT at.agent_name', 'agent_name')
       .where('at.auth_type = :authType', { authType })
       .andWhere('at.agent_name IS NOT NULL');
-    // Exclude the reserved Playground (is_system) agent. The NOT EXISTS semi-join
+    // Exclude the reserved Playground (is_playground) agent. The NOT EXISTS semi-join
     // matches by id OR name, so a Playground row carrying only agent_name (NULL
     // agent_id) is still dropped, and it can't multiply rows.
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
     addTenantFilter(qb, tenantId);
     const rows = await qb.orderBy('at.agent_name', 'ASC').getRawMany();
     return rows.map((r: Record<string, unknown>) => String(r['agent_name']));

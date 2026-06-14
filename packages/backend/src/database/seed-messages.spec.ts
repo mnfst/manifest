@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { seedAgentMessages } from './seed-messages';
+import { getSeedConnections, seedAgentMessages, seedConnectionId } from './seed-messages';
 
 function makeMockRepo() {
   return {
@@ -135,6 +135,22 @@ describe('seedAgentMessages', () => {
         );
         expect(prefix).toBeDefined();
         expect(msg.provider).toBe(providersByModelPrefix[prefix!]);
+      }
+    });
+
+    it('stamps tenant_provider_id linking each message to its seeded connection', async () => {
+      await seedAgentMessages(mockRepo as never, 'user-1', logger);
+
+      const messages = collectInsertedMessages(mockRepo);
+      const connectionIds = new Set(getSeedConnections().map((c) => c.id));
+      expect(connectionIds.size).toBeGreaterThan(0);
+      for (const msg of messages) {
+        // Each message points at the seeded connection for its (provider, auth_type)
+        // so the connection-detail page resolves it by tenant_provider_id.
+        expect(msg.tenant_provider_id).toBe(
+          seedConnectionId(msg.provider as string, msg.auth_type as string),
+        );
+        expect(connectionIds.has(msg.tenant_provider_id as string)).toBe(true);
       }
     });
   });

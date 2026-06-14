@@ -8,7 +8,7 @@ import { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { PLAYGROUND_AGENT_NAME } from '../common/constants/playground.constants';
 
 /**
- * Resolves the tenant's reserved `is_system` "Playground" agent — the single
+ * Resolves the tenant's reserved `is_playground` "Playground" agent — the single
  * agent every Playground run records under (so runs show as `Playground` in
  * global Messages) and which has the whole global provider pool enabled.
  *
@@ -40,14 +40,14 @@ export class PlaygroundAgentService {
       tenantId = await this.tenantCache.ensureForUser(ctx.userId);
     }
 
-    const existing = await this.findSystemAgent(tenantId);
+    const existing = await this.findPlaygroundAgent(tenantId);
     if (existing) return existing;
 
     const agent = Object.assign(new Agent(), {
       id: randomUUID(),
       name: PLAYGROUND_AGENT_NAME,
       display_name: PLAYGROUND_AGENT_NAME,
-      is_system: true,
+      is_playground: true,
       is_active: true,
       tenant_id: tenantId,
     });
@@ -70,7 +70,7 @@ export class PlaygroundAgentService {
       // A concurrent request may have won the unique-index race — reuse its row.
       // Any other failure is a real error (not a race): re-throw it rather than
       // masking it as a generic not-found.
-      const raced = await this.findSystemAgent(tenantId);
+      const raced = await this.findPlaygroundAgent(tenantId);
       if (raced) return raced;
       throw err;
     }
@@ -78,9 +78,9 @@ export class PlaygroundAgentService {
     return agent;
   }
 
-  private findSystemAgent(tenantId: string): Promise<Agent | null> {
+  private findPlaygroundAgent(tenantId: string): Promise<Agent | null> {
     return this.agentRepo.findOne({
-      where: { tenant_id: tenantId, is_system: true, deleted_at: IsNull() },
+      where: { tenant_id: tenantId, is_playground: true, deleted_at: IsNull() },
     });
   }
 }

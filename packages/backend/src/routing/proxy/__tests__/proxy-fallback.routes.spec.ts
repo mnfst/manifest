@@ -47,6 +47,7 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn().mockResolvedValue('sk-test'),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-fallback'),
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),

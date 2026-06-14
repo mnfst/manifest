@@ -40,10 +40,10 @@ export class AgentEnabledProvidersController {
 
   private async resolveAgent(agentName: string, tenantId: string | null) {
     if (!tenantId) return null;
-    // Exclude the reserved system (Playground) agent — its enabled providers are the global
+    // Exclude the reserved Playground agent — its enabled providers are the global
     // pool and must not be togglable/removable through this per-agent endpoint.
     return this.agentRepo.findOne({
-      where: { name: decodeURIComponent(agentName), tenant_id: tenantId, is_system: false },
+      where: { name: decodeURIComponent(agentName), tenant_id: tenantId, is_playground: false },
     });
   }
 

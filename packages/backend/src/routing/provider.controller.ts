@@ -75,11 +75,11 @@ export class ProviderController {
 
   @Get(':agentName/providers')
   async getProviders(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
-    // allowSystem: true — the Playground page reads the provider list for the
-    // reserved system agent. Destructive/config mutations (rename, reorder,
+    // allowPlayground: true — the Playground page reads the provider list for the
+    // reserved Playground agent. Destructive/config mutations (rename, reorder,
     // deactivate, remove) still reject it; only additive connect is allowed.
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
-      allowSystem: true,
+      allowPlayground: true,
     });
     const providers = await this.providerService.getProviders(agent.tenant_id);
     return providers.map((p) => ({
@@ -104,10 +104,10 @@ export class ProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: ConnectProviderDto,
   ) {
-    // allowSystem: true — connecting a provider to the Playground system agent
+    // allowPlayground: true — connecting a provider to the Playground agent
     // is additive and correct (enabled providers belong to the tenant-global pool).
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
-      allowSystem: true,
+      allowPlayground: true,
     });
     const lowerProvider = body.provider.toLowerCase();
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';

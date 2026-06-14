@@ -78,7 +78,7 @@ export class AgentLifecycleService {
       .where('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.name = :agentName', { agentName })
       .andWhere('a.deleted_at IS NULL')
-      .andWhere('a.is_system = false')
+      .andWhere('a.is_playground = false')
       .getOne();
   }
 

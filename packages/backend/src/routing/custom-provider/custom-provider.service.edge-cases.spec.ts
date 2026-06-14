@@ -41,7 +41,18 @@ function makeDeps(overrides: {
   const results = overrides.findOneResults ?? [];
   findOne.mockImplementation(() => Promise.resolve(results.shift() ?? null));
 
-  const repo = { findOne, find, insert, save, remove } as unknown as Repository<CustomProvider>;
+  // create()/remove() wrap their writes in repo.manager.transaction; resolve
+  // getRepository() back to the same mock repo so assertions observe writes.
+  const txManager = { getRepository: jest.fn(() => repo) };
+  const transaction = jest.fn(async (cb: (manager: unknown) => Promise<unknown>) => cb(txManager));
+  const repo = {
+    findOne,
+    find,
+    insert,
+    save,
+    remove,
+    manager: { transaction },
+  } as unknown as Repository<CustomProvider>;
   const providerService = {
     upsertProvider: jest.fn().mockResolvedValue({ provider: {} }),
     removeProvider: jest.fn().mockResolvedValue(undefined),

@@ -7,8 +7,8 @@ import {
   MetricWithTrend,
   computeTrend,
   addTenantFilter,
-  excludeSystemAgents,
-  filterByKeyLabel,
+  excludePlaygroundAgents,
+  scopeToConnection,
 } from './query-helpers';
 import { computeCutoff, sqlSanitizeCost } from '../../common/utils/postgres-sql';
 
@@ -64,8 +64,9 @@ export class AggregationService {
     agentName?: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
+    tenantProviderId?: string,
   ) {
     const { cutoff, prevCutoff } = this.computeWindow(range);
     const safeCost = sqlSanitizeCost('at.cost_usd');
@@ -80,11 +81,8 @@ export class AggregationService {
     addTenantFilter(currentQb, tenantId, agentName);
     if (authType) currentQb.andWhere('at.auth_type = :authType', { authType });
     if (provider) currentQb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(currentQb);
-    // Connection-scoped label filter: keep two keys that share
-    // provider+auth_type but differ by label from merging into one connection's
-    // summary. Legacy NULL provider_key_label → 'Default'.
-    if (label !== undefined) filterByKeyLabel(currentQb, label);
+    if (excludePlayground) excludePlaygroundAgents(currentQb);
+    scopeToConnection(currentQb, tenantProviderId, label);
 
     const prevQb = this.buildPreviousWindowQuery(
       tenantId,
@@ -93,8 +91,9 @@ export class AggregationService {
       prevCutoff,
       authType,
       provider,
-      excludeSystem,
+      excludePlayground,
       label,
+      tenantProviderId,
     )
       .select('COUNT(*)', 'msg_count')
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
@@ -140,8 +139,9 @@ export class AggregationService {
     prevCutoff: string,
     authType?: string,
     provider?: string,
-    excludeSystem = false,
+    excludePlayground = false,
     label?: string,
+    tenantProviderId?: string,
   ): SelectQueryBuilder<AgentMessage> {
     const qb = this.turnRepo
       .createQueryBuilder('at')
@@ -150,9 +150,8 @@ export class AggregationService {
     addTenantFilter(qb, tenantId, agentName);
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
-    if (excludeSystem) excludeSystemAgents(qb);
-    // Connection-scoped label filter (see getSummaryMetrics).
-    if (label !== undefined) filterByKeyLabel(qb, label);
+    if (excludePlayground) excludePlaygroundAgents(qb);
+    scopeToConnection(qb, tenantProviderId, label);
     return qb;
   }
 }

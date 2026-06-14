@@ -82,6 +82,14 @@ export interface RoutingMeta {
   header_tier_name?: string;
   header_tier_color?: string;
   provider_key_label?: string;
+  /**
+   * The `tenant_providers` row id that served this attempt. Stamped on
+   * `agent_messages.tenant_provider_id` so per-connection analytics scope by the
+   * exact key rather than the non-unique (provider, auth_type, label) tuple.
+   * In a fallback-success flow this holds the winning fallback's connection.
+   * NULL for local/Ollama and resolution-failure paths.
+   */
+  tenantProviderId?: string | null;
   fallbackFromModel?: string;
   fallbackIndex?: number;
   primaryErrorStatus?: number;
@@ -100,6 +108,13 @@ export interface RoutingMeta {
    * primary's auth so the primary-failure row stays accurate too. See #1173.
    */
   primaryAuthType?: string;
+  /**
+   * The primary's `tenant_provider_id` when a fallback ultimately succeeded.
+   * Mirrors primaryProvider/primaryAuthType: `tenantProviderId` then holds the
+   * winning fallback's connection, so the recorded primary-failure row reads
+   * this to stay attributed to the connection that actually failed.
+   */
+  primaryTenantProviderId?: string | null;
   /**
    * Effective request body parameters for this attempt: client body values,
    * route-scoped `agent_model_params`, and MPS provider param defaults.
@@ -275,6 +290,7 @@ export class ProxyService {
         reasoningContentLookup,
         apiMode,
         paramMergeContext,
+        primaryTenantProviderId: credentials.tenantProviderId,
       });
       if (fallbackResult) return fallbackResult;
     }
@@ -303,6 +319,7 @@ export class ProxyService {
           forward: peeked,
           meta: this.buildBaseMeta(resolved, primaryModel, {
             request_params: primaryRequestParams,
+            tenantProviderId: credentials.tenantProviderId,
           }),
         };
       }
@@ -338,6 +355,7 @@ export class ProxyService {
         reasoningContentLookup,
         apiMode,
         paramMergeContext,
+        primaryTenantProviderId: credentials.tenantProviderId,
       });
       if (fallbackResult) return fallbackResult;
 
@@ -349,6 +367,7 @@ export class ProxyService {
         forward: syntheticForward,
         meta: this.buildBaseMeta(resolved, primaryModel, {
           request_params: primaryRequestParams,
+          tenantProviderId: credentials.tenantProviderId,
         }),
       };
     }
@@ -359,6 +378,7 @@ export class ProxyService {
       forward,
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: primaryRequestParams,
+        tenantProviderId: credentials.tenantProviderId,
       }),
     };
   }
@@ -420,6 +440,7 @@ export class ProxyService {
     rawApiKey: string;
     resourceUrl?: string;
     providerRegion?: string | null;
+    tenantProviderId: string | null;
   } | null> {
     const apiKey = await this.providerKeyService.getProviderApiKey(
       tenantId,
@@ -429,6 +450,16 @@ export class ProxyService {
       agentId,
     );
     if (apiKey === null) return null;
+    // The exact connection (tenant_providers row) this key belongs to, stamped on
+    // the recorded message so per-connection analytics resolve by id rather than
+    // the non-unique provider/auth_type/label tuple. NULL for synthetic Ollama.
+    const tenantProviderId = await this.providerKeyService.getProviderKeyId(
+      tenantId,
+      resolved.provider,
+      resolved.auth_type,
+      resolved.provider_key_label,
+      agentId,
+    );
 
     const unwrapped = await resolveApiKey(
       resolved.provider,
@@ -469,6 +500,7 @@ export class ProxyService {
       rawApiKey,
       resourceUrl: unwrapped.resourceUrl,
       providerRegion,
+      tenantProviderId,
     };
   }
 
@@ -488,6 +520,9 @@ export class ProxyService {
     reasoningContentLookup: ReasoningContentLookup;
     apiMode: ProxyApiMode;
     paramMergeContext: ParamMergeContext;
+    /** Primary connection id, carried so a fallback-success flow can attribute
+     * its recorded primary-failure row to the connection that actually failed. */
+    primaryTenantProviderId: string | null;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -586,6 +621,8 @@ export class ProxyService {
           primaryErrorBody,
           primaryProvider,
           primaryAuthType: primaryAuth,
+          primaryTenantProviderId: args.primaryTenantProviderId,
+          tenantProviderId: success.tenantProviderId,
           request_params: fallbackRequestParams,
         }),
         failedFallbacks: failures,
@@ -639,6 +676,8 @@ export class ProxyService {
       },
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: exhaustedRequestParams,
+        // Exhausted chain is recorded against the primary connection.
+        tenantProviderId: args.primaryTenantProviderId,
       }),
       failedFallbacks: failures,
     };

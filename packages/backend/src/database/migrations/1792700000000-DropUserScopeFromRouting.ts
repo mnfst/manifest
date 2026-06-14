@@ -13,7 +13,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * - `playground_runs`: user_id renamed to created_by_user_id (author audit),
  *   history index re-keyed on tenant_id.
  */
-export class DropUserScopeFromRouting1792300000000 implements MigrationInterface {
+export class DropUserScopeFromRouting1792700000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`ALTER TABLE "agent_model_params" DROP COLUMN IF EXISTS "user_id"`);
     await queryRunner.query(`ALTER TABLE "tier_assignments" DROP COLUMN IF EXISTS "user_id"`);

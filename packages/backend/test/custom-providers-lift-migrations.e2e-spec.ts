@@ -1,8 +1,8 @@
 import { DataSource } from 'typeorm';
 import { LiftCustomProvidersToUserLevel1791200000000 } from '../src/database/migrations/1791200000000-LiftCustomProvidersToUserLevel';
 import { RenameProviderAccessToEnabledProviders1791800000000 } from '../src/database/migrations/1791800000000-RenameProviderAccessToEnabledProviders';
-import { TenantProviders1792100000000 } from '../src/database/migrations/1792100000000-TenantProviders';
-import { TenantScopedConfigs1792200000000 } from '../src/database/migrations/1792200000000-TenantScopedConfigs';
+import { TenantProviders1792500000000 } from '../src/database/migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from '../src/database/migrations/1792600000000-TenantScopedConfigs';
 
 /**
  * Runs the REAL migration chain (synchronize:false) so LiftCustomProvidersToUserLevel
@@ -97,10 +97,10 @@ describe('LiftCustomProvidersToUserLevel data transformation (e2e)', () => {
     // so this historical migration can be replayed against the schema naming
     // it expects (user_providers / agent_provider_access / user_id columns).
     const tenantConfigsQr = ds.createQueryRunner();
-    await new TenantScopedConfigs1792200000000().down(tenantConfigsQr);
+    await new TenantScopedConfigs1792600000000().down(tenantConfigsQr);
     await tenantConfigsQr.release();
     const tenantProvidersQr = ds.createQueryRunner();
-    await new TenantProviders1792100000000().down(tenantProvidersQr);
+    await new TenantProviders1792500000000().down(tenantProvidersQr);
     await tenantProvidersQr.release();
     const renameQr = ds.createQueryRunner();
     await new RenameProviderAccessToEnabledProviders1791800000000().down(renameQr);

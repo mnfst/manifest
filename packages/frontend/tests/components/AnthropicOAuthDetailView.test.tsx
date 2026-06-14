@@ -254,7 +254,7 @@ describe('AnthropicOAuthDetailView', () => {
     await waitFor(() => {
       expect(
         screen.getByText(
-          'Failed to exchange code. The code may have expired — sign in again to retry.',
+          'Failed to exchange code. The code may have expired. Sign in again to retry.',
         ),
       ).toBeDefined();
     });

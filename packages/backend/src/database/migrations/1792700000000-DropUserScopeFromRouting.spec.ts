@@ -1,13 +1,13 @@
 import { QueryRunner } from 'typeorm';
-import { DropUserScopeFromRouting1792300000000 } from './1792300000000-DropUserScopeFromRouting';
+import { DropUserScopeFromRouting1792700000000 } from './1792700000000-DropUserScopeFromRouting';
 
-describe('DropUserScopeFromRouting1792300000000', () => {
-  let migration: DropUserScopeFromRouting1792300000000;
+describe('DropUserScopeFromRouting1792700000000', () => {
+  let migration: DropUserScopeFromRouting1792700000000;
   const queries: string[] = [];
   let queryRunner: QueryRunner;
 
   beforeEach(() => {
-    migration = new DropUserScopeFromRouting1792300000000();
+    migration = new DropUserScopeFromRouting1792700000000();
     queries.length = 0;
     queryRunner = {
       query: jest.fn(async (sql: string) => {

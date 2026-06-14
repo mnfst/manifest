@@ -15,6 +15,54 @@ function seededRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
+/**
+ * Models the seeded messages are drawn from. Each distinct (provider,
+ * auth_type) pair here becomes one seeded connection (tenant_providers row), so a
+ * seeded connection-detail page shows realistic data while a freshly added key
+ * — a brand-new tenant_providers id — correctly shows nothing.
+ */
+const SEED_MODELS: { name: string; auth_type: 'subscription' | 'api_key' }[] = [
+  { name: 'claude-sonnet-4-5-20250929', auth_type: 'subscription' },
+  { name: 'gpt-4o', auth_type: 'api_key' },
+  { name: 'claude-haiku-4-5-20251001', auth_type: 'subscription' },
+  { name: 'gemini-2.5-flash', auth_type: 'api_key' },
+  { name: 'gpt-4.1', auth_type: 'subscription' },
+];
+
+export interface SeedConnection {
+  id: string;
+  provider: string;
+  auth_type: 'subscription' | 'api_key';
+}
+
+/** Stable id for a seeded provider connection (tenant_providers row). */
+export function seedConnectionId(provider: string, authType: string): string {
+  return `seed-conn-${provider}-${authType}`;
+}
+
+/**
+ * Distinct (provider, auth_type) connections behind the seeded messages. The
+ * seeder creates one tenant_providers row per entry and stamps the matching
+ * tenant_provider_id on every seeded message, so per-connection analytics resolve
+ * against a real connection rather than the legacy provider/auth/label tuple.
+ */
+export function getSeedConnections(): SeedConnection[] {
+  const seen = new Map<string, SeedConnection>();
+  for (const m of SEED_MODELS) {
+    const provider = inferProviderFromModel(m.name);
+    if (!provider) continue;
+    const key = `${provider}:${m.auth_type}`;
+    if (!seen.has(key)) {
+      seen.set(key, {
+        id: seedConnectionId(provider, m.auth_type),
+        provider,
+        auth_type: m.auth_type,
+      });
+    }
+  }
+  return [...seen.values()];
+}
+
 export async function seedAgentMessages(
   messageRepo: Repository<AgentMessage>,
   userId: string,
@@ -28,13 +76,7 @@ export async function seedAgentMessages(
   const count = await messageRepo.count();
   if (count > 0) return;
 
-  const models: { name: string; auth_type: 'subscription' | 'api_key' }[] = [
-    { name: 'claude-sonnet-4-5-20250929', auth_type: 'subscription' },
-    { name: 'gpt-4o', auth_type: 'api_key' },
-    { name: 'claude-haiku-4-5-20251001', auth_type: 'subscription' },
-    { name: 'gemini-2.5-flash', auth_type: 'api_key' },
-    { name: 'gpt-4.1', auth_type: 'subscription' },
-  ];
+  const models = SEED_MODELS;
   const now = Date.now();
   const messages: Array<Partial<AgentMessage>> = [];
   let idx = 0;
@@ -59,6 +101,7 @@ export async function seedAgentMessages(
       const inputBase = 800 + Math.floor(seededRandom(idx * 3) * 14000);
       const outputBase = 60 + Math.floor(seededRandom(idx * 7) * 1200);
       const cacheRead = Math.floor(seededRandom(idx * 11) * inputBase * 0.4);
+      const provider = inferProviderFromModel(entry.name) ?? null;
 
       messages.push({
         id: `seed-msg-${String(idx).padStart(4, '0')}`,
@@ -68,8 +111,11 @@ export async function seedAgentMessages(
         agent_name: ctx.agentName,
         timestamp: ts,
         model: entry.name,
-        provider: inferProviderFromModel(entry.name) ?? null,
+        provider,
         auth_type: entry.auth_type,
+        // Link to the seeded connection so the connection-detail page resolves
+        // this message by tenant_provider_id (matches getSeedConnections()).
+        tenant_provider_id: provider ? seedConnectionId(provider, entry.auth_type) : null,
         input_tokens: inputBase,
         output_tokens: outputBase,
         cache_read_tokens: cacheRead,

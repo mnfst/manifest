@@ -187,7 +187,7 @@ describe('CustomProviderController', () => {
       expect(result.has_api_key).toBe(false);
     });
 
-    it('passes { allowSystem: true } so the Playground agent can create custom providers', async () => {
+    it('passes { allowPlayground: true } so the Playground agent can create custom providers', async () => {
       mockProviderService.getProviders.mockResolvedValue([]);
 
       const body = {
@@ -199,7 +199,7 @@ describe('CustomProviderController', () => {
       await controller.create(mockCtx, { agentName: 'Playground' } as never, body as never);
 
       expect(mockResolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'Playground', {
-        allowSystem: true,
+        allowPlayground: true,
       });
     });
   });

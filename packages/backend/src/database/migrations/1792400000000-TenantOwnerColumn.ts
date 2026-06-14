@@ -13,7 +13,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * including self-hosted installs where `'local'` never appears in the Better
  * Auth `user` table.
  */
-export class TenantOwnerColumn1792000000000 implements MigrationInterface {
+export class TenantOwnerColumn1792400000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "owner_user_id" varchar

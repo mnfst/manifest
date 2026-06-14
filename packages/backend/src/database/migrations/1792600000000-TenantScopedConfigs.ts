@@ -14,7 +14,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * audit column. Orphan rows (user without a tenant) abort the migration
  * unless MANIFEST_MIGRATION_FORCE=1 deletes them.
  */
-export class TenantScopedConfigs1792200000000 implements MigrationInterface {
+export class TenantScopedConfigs1792600000000 implements MigrationInterface {
   private async rescopeTable(queryRunner: QueryRunner, table: string): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "${table}" ADD COLUMN IF NOT EXISTS "tenant_id" varchar

@@ -103,11 +103,29 @@ describe('Direction 2 – connecting a NEW provider auto-enables it for every ex
       expect.arrayContaining(['gpt-4o', 'gpt-4o-mini']),
     );
   });
+
+  it('connecting a provider grants sibling agent B access WITHOUT auto-assigning any route', async () => {
+    // Model routing is now user-controlled: connecting a provider grants access
+    // to every owned agent (asserted above) but never auto-assigns tier routes.
+    // A sibling (agent B) that was never the connect context must therefore have
+    // NO auto_assigned_route — any tier_assignments rows that exist (e.g. lazily
+    // materialised by a tiers read) carry a null auto_assigned_route.
+    const tiers = await ds.query(
+      `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
+      [agentBId],
+    );
+    const autoAssigned = tiers
+      .map((t: { auto_assigned_route: unknown }) => t.auto_assigned_route)
+      .filter((r: unknown) => r !== null);
+    expect(autoAssigned).toHaveLength(0);
+  });
 });
 
 describe('Direction 1 – creating a NEW agent inherits every existing provider', () => {
-  it('creating agent C auto-enables the already-connected provider + exposes its models', async () => {
-    // Seed discovered models so the inherited model set is observable.
+  it('creating agent C auto-grants the already-connected provider + exposes its models WITHOUT assigning routes', async () => {
+    // Seed discovered models so the inherited model set is observable, and so a
+    // stale auto-assign code path (if any regressed back in) would have
+    // something to assign.
     await ds.query(
       `UPDATE tenant_providers SET cached_models = $1 WHERE id = $2`,
       [
@@ -131,7 +149,7 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     const res = await auth(api().post('/api/v1/agents')).send({ name: AGENT_C_NAME }).expect(201);
     agentCId = res.body.agent.id as string;
 
-    // The brand-new agent inherited the existing provider.
+    // The brand-new agent inherited the existing provider (access only).
     const enabledRows = await ds.getRepository(AgentEnabledProvider).find({
       where: { agent_id: agentCId, tenant_provider_id: providerId },
     });
@@ -149,6 +167,17 @@ describe('Direction 1 – creating a NEW agent inherits every existing provider'
     ).expect(200);
     const modelIds = (modelsRes.body as Array<{ model_name: string }>).map((m) => m.model_name);
     expect(modelIds).toContain('gpt-4o-mini');
+
+    // Model routing is user-controlled: creating an agent grants access but does
+    // NOT auto-assign tier routes. No auto_assigned_route exists for agent C.
+    const tiers = await ds.query(
+      `SELECT auto_assigned_route FROM tier_assignments WHERE agent_id = $1`,
+      [agentCId],
+    );
+    const autoAssigned = tiers
+      .map((t: { auto_assigned_route: unknown }) => t.auto_assigned_route)
+      .filter((r: unknown) => r !== null);
+    expect(autoAssigned).toHaveLength(0);
   });
 
   it('creating an agent when the user has NO providers succeeds with an empty enabled list', async () => {
@@ -245,15 +274,21 @@ describe('Disable isolation – disabling affects only the targeted agent', () =
 });
 
 describe('Disable impact preview – mirrors what the disable handler will strip', () => {
-  it('reports a pinned route that uses the provider with position "primary"', async () => {
-    // Pin a deterministic openai route on agent B's standard tier (routes are
-    // user-controlled now), then assert the preview surfaces it as a route the
-    // disable would strip.
+  it('reports a user-assigned override route that uses the provider with position "primary"', async () => {
+    // The preview reports the routes the user still controls — override_route
+    // (primary) and fallback_routes — and deliberately IGNORES the legacy,
+    // system-authored auto_assigned_route. Pin a deterministic standard-tier
+    // override on agent B pointing at the openai connection (routes are
+    // user-controlled now), then assert the preview surfaces it as the primary
+    // route that disabling would strip. tier_assignments is tenant-scoped via
+    // agent_id — the user_id column was dropped in the tenant-canonical sweep.
     await ds.query(
-      `INSERT INTO tier_assignments (id, agent_id, tier, override_route, fallback_routes, updated_at)
-       VALUES ($1,$2,'standard',$3::jsonb,NULL, now())
+      `INSERT INTO tier_assignments (id, agent_id, tier, override_route, auto_assigned_route, fallback_routes, updated_at)
+       VALUES ($1,$2,'standard',$3::jsonb,NULL,NULL, now())
        ON CONFLICT (agent_id, tier) DO UPDATE SET
-         override_route = EXCLUDED.override_route, fallback_routes = NULL`,
+         override_route = EXCLUDED.override_route,
+         auto_assigned_route = NULL,
+         fallback_routes = NULL`,
       [
         `tier-standard-${agentBId}`,
         agentBId,
@@ -267,6 +302,7 @@ describe('Disable impact preview – mirrors what the disable handler will strip
 
     const affected: Array<{ tier: string; model: string; position: string }> =
       res.body.affected_tiers ?? [];
+    // The override route we just pinned must appear with position 'primary'.
     expect(affected).toContainEqual({
       tier: 'standard',
       model: 'gpt-4o-mini',

@@ -13,7 +13,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * the operator can inspect them; set MANIFEST_MIGRATION_FORCE=1 to delete the
  * orphans instead (a provider row is unreachable without a tenant anyway).
  */
-export class TenantProviders1792100000000 implements MigrationInterface {
+export class TenantProviders1792500000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
       `ALTER TABLE "user_providers" ADD COLUMN IF NOT EXISTS "tenant_id" varchar`,
@@ -68,9 +68,37 @@ export class TenantProviders1792100000000 implements MigrationInterface {
     await queryRunner.query(
       `ALTER INDEX "IDX_agent_enabled_providers_provider" RENAME TO "IDX_agent_enabled_providers_tenant_provider"`,
     );
+
+    // The per-connection attribution column on agent_messages follows the
+    // rename (metadata-only ALTER — no table rewrite), as do the FK/index
+    // identifiers it carries and the custom-provider FK on the renamed table.
+    await queryRunner.query(
+      `ALTER TABLE "agent_messages" RENAME COLUMN "user_provider_id" TO "tenant_provider_id"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "agent_messages" RENAME CONSTRAINT "FK_agent_messages_user_provider" TO "FK_agent_messages_tenant_provider"`,
+    );
+    await queryRunner.query(
+      `ALTER INDEX "IDX_agent_messages_user_provider" RENAME TO "IDX_agent_messages_tenant_provider"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "tenant_providers" RENAME CONSTRAINT "FK_user_providers_custom_provider" TO "FK_tenant_providers_custom_provider"`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "tenant_providers" RENAME CONSTRAINT "FK_tenant_providers_custom_provider" TO "FK_user_providers_custom_provider"`,
+    );
+    await queryRunner.query(
+      `ALTER INDEX "IDX_agent_messages_tenant_provider" RENAME TO "IDX_agent_messages_user_provider"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "agent_messages" RENAME CONSTRAINT "FK_agent_messages_tenant_provider" TO "FK_agent_messages_user_provider"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "agent_messages" RENAME COLUMN "tenant_provider_id" TO "user_provider_id"`,
+    );
     await queryRunner.query(
       `ALTER INDEX "IDX_agent_enabled_providers_tenant_provider" RENAME TO "IDX_agent_enabled_providers_provider"`,
     );

@@ -463,13 +463,12 @@ describe('Overview', () => {
     });
     expect(container.textContent).toContain('1 of 2 providers');
 
-    // "Select all" restores every series; "Unselect all" resets to the all state.
+    // "Select all" restores every series and resets the label to the all state.
     fireEvent.click(getByText('Select all'));
     await vi.waitFor(() => {
       const chart = container.querySelector('[data-testid="multi-agent-chart"]');
       expect(chart?.getAttribute('data-series')).toBe('anthropic,openai');
     });
-    fireEvent.click(getByText('Unselect all'));
     await vi.waitFor(() => {
       expect(container.textContent).toContain('All providers (2)');
     });

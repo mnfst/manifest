@@ -22,10 +22,10 @@ export class CustomProviderController {
   async list(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
     // Resolve for authz — the tenant must own the agent. Custom providers are
     // tenant-global, so the listing itself is scoped to the tenant, not the agent.
-    // allowSystem: true — the Playground page reads custom providers for the
-    // reserved system agent; all mutation endpoints remain blocked.
+    // allowPlayground: true — the Playground page reads custom providers for the
+    // reserved Playground agent; all mutation endpoints remain blocked.
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
-      allowSystem: true,
+      allowPlayground: true,
     });
     const [providers, tenantProviders] = await Promise.all([
       this.customProviderService.list(agent.tenant_id),
@@ -72,10 +72,10 @@ export class CustomProviderController {
     @Param() params: AgentNameParamDto,
     @Body() body: CreateCustomProviderDto,
   ) {
-    // allowSystem: true — creating a custom provider from the Playground page is
-    // additive (tenant-global resource); the system agent is a valid owner context.
+    // allowPlayground: true — creating a custom provider from the Playground page is
+    // additive (tenant-global resource); the playground agent is a valid owner context.
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
-      allowSystem: true,
+      allowPlayground: true,
     });
     const cp = await this.customProviderService.create(agent.tenant_id, body, ctx.userId);
     const provKey = CustomProviderService.providerKey(cp.id);

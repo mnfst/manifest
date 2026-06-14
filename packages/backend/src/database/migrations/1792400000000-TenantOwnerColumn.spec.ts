@@ -1,13 +1,13 @@
 import { QueryRunner } from 'typeorm';
-import { TenantOwnerColumn1792000000000 } from './1792000000000-TenantOwnerColumn';
+import { TenantOwnerColumn1792400000000 } from './1792400000000-TenantOwnerColumn';
 
-describe('TenantOwnerColumn1792000000000', () => {
-  let migration: TenantOwnerColumn1792000000000;
+describe('TenantOwnerColumn1792400000000', () => {
+  let migration: TenantOwnerColumn1792400000000;
   const queries: string[] = [];
   let queryRunner: QueryRunner;
 
   beforeEach(() => {
-    migration = new TenantOwnerColumn1792000000000();
+    migration = new TenantOwnerColumn1792400000000();
     queries.length = 0;
     queryRunner = {
       query: jest.fn(async (sql: string) => {

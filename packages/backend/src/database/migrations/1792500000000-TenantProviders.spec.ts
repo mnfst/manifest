@@ -1,5 +1,5 @@
 import { QueryRunner } from 'typeorm';
-import { TenantProviders1792100000000 } from './1792100000000-TenantProviders';
+import { TenantProviders1792500000000 } from './1792500000000-TenantProviders';
 
 /**
  * Drives the migration against a mocked queryRunner. The orphan-count probe
@@ -21,12 +21,12 @@ function makeRunner(orphanCount: number): { runner: QueryRunner; queries: string
   return { runner, queries };
 }
 
-describe('TenantProviders1792100000000', () => {
-  let migration: TenantProviders1792100000000;
+describe('TenantProviders1792500000000', () => {
+  let migration: TenantProviders1792500000000;
   const originalForce = process.env.MANIFEST_MIGRATION_FORCE;
 
   beforeEach(() => {
-    migration = new TenantProviders1792100000000();
+    migration = new TenantProviders1792500000000();
     delete process.env.MANIFEST_MIGRATION_FORCE;
   });
 
@@ -103,6 +103,43 @@ describe('TenantProviders1792100000000', () => {
       ).toBe(true);
     });
 
+    it('renames the agent_messages connection column, FK and index to the tenant scope', async () => {
+      const { runner, queries } = makeRunner(0);
+      await migration.up(runner);
+
+      expect(
+        queries.some((q) =>
+          q.includes(
+            'ALTER TABLE "agent_messages" RENAME COLUMN "user_provider_id" TO "tenant_provider_id"',
+          ),
+        ),
+      ).toBe(true);
+      expect(
+        queries.some(
+          (q) =>
+            q.includes('ALTER TABLE "agent_messages" RENAME CONSTRAINT') &&
+            q.includes('"FK_agent_messages_user_provider"') &&
+            q.includes('"FK_agent_messages_tenant_provider"'),
+        ),
+      ).toBe(true);
+      expect(
+        queries.some(
+          (q) =>
+            q.includes('ALTER INDEX "IDX_agent_messages_user_provider"') &&
+            q.includes('RENAME TO "IDX_agent_messages_tenant_provider"'),
+        ),
+      ).toBe(true);
+      // The custom-provider FK on the renamed table follows suit.
+      expect(
+        queries.some(
+          (q) =>
+            q.includes('ALTER TABLE "tenant_providers" RENAME CONSTRAINT') &&
+            q.includes('"FK_user_providers_custom_provider"') &&
+            q.includes('"FK_tenant_providers_custom_provider"'),
+        ),
+      ).toBe(true);
+    });
+
     it('does not delete any rows when there are no orphans', async () => {
       const { runner, queries } = makeRunner(0);
       await migration.up(runner);
@@ -154,6 +191,42 @@ describe('TenantProviders1792100000000', () => {
         true,
       );
       expect(queries.some((q) => q.includes('DROP COLUMN IF EXISTS "tenant_id"'))).toBe(true);
+    });
+
+    it('reverses the agent_messages connection column, FK and index renames', async () => {
+      const { runner, queries } = makeRunner(0);
+      await migration.down(runner);
+
+      expect(
+        queries.some((q) =>
+          q.includes(
+            'ALTER TABLE "agent_messages" RENAME COLUMN "tenant_provider_id" TO "user_provider_id"',
+          ),
+        ),
+      ).toBe(true);
+      expect(
+        queries.some(
+          (q) =>
+            q.includes('ALTER TABLE "agent_messages" RENAME CONSTRAINT') &&
+            q.includes('"FK_agent_messages_tenant_provider"') &&
+            q.includes('"FK_agent_messages_user_provider"'),
+        ),
+      ).toBe(true);
+      expect(
+        queries.some(
+          (q) =>
+            q.includes('ALTER INDEX "IDX_agent_messages_tenant_provider"') &&
+            q.includes('RENAME TO "IDX_agent_messages_user_provider"'),
+        ),
+      ).toBe(true);
+      expect(
+        queries.some(
+          (q) =>
+            q.includes('ALTER TABLE "tenant_providers" RENAME CONSTRAINT') &&
+            q.includes('"FK_tenant_providers_custom_provider"') &&
+            q.includes('"FK_user_providers_custom_provider"'),
+        ),
+      ).toBe(true);
     });
   });
 });

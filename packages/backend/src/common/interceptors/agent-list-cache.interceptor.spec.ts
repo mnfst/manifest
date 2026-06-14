@@ -31,35 +31,35 @@ describe('AgentListCacheInterceptor', () => {
   });
 
   describe('trackBy', () => {
-    it('keys on the system=true canonical variant for ?includeSystem=true', () => {
+    it('keys on the playground=true canonical variant for ?includePlayground=true', () => {
       const key = interceptor['trackBy'](
-        createMockContext({ tenantId: 't1' }, { includeSystem: 'true' }),
+        createMockContext({ tenantId: 't1' }, { includePlayground: 'true' }),
       );
-      expect(key).toBe('t1:/api/v1/agents:system=true');
+      expect(key).toBe('t1:/api/v1/agents:playground=true');
     });
 
-    it('keys on the system=false canonical variant when no query param is present', () => {
+    it('keys on the playground=false canonical variant when no query param is present', () => {
       const key = interceptor['trackBy'](createMockContext({ tenantId: 't1' }, undefined));
-      expect(key).toBe('t1:/api/v1/agents:system=false');
+      expect(key).toBe('t1:/api/v1/agents:playground=false');
     });
 
-    it('collapses ?includeSystem=false onto the same system=false key (no stranded variant)', () => {
+    it('collapses ?includePlayground=false onto the same playground=false key (no stranded variant)', () => {
       const key = interceptor['trackBy'](
-        createMockContext({ tenantId: 't1' }, { includeSystem: 'false' }),
+        createMockContext({ tenantId: 't1' }, { includePlayground: 'false' }),
       );
-      expect(key).toBe('t1:/api/v1/agents:system=false');
+      expect(key).toBe('t1:/api/v1/agents:playground=false');
     });
 
-    it('collapses any non-"true" value onto the system=false key', () => {
+    it('collapses any non-"true" value onto the playground=false key', () => {
       const key = interceptor['trackBy'](
-        createMockContext({ tenantId: 't1' }, { includeSystem: '1' }),
+        createMockContext({ tenantId: 't1' }, { includePlayground: '1' }),
       );
-      expect(key).toBe('t1:/api/v1/agents:system=false');
+      expect(key).toBe('t1:/api/v1/agents:playground=false');
     });
 
     it('returns undefined for non-GET requests', () => {
       const key = interceptor['trackBy'](
-        createMockContext({ tenantId: 't1' }, { includeSystem: 'true' }, 'POST'),
+        createMockContext({ tenantId: 't1' }, { includePlayground: 'true' }, 'POST'),
       );
       expect(key).toBeUndefined();
     });

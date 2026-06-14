@@ -86,22 +86,21 @@ describe('FilterSelect', () => {
     expect(onToggle).toHaveBeenCalledWith('gemini');
   });
 
-  it('disables "Select all" when everything is selected and calls onUnselectAll', async () => {
-    const { onSelectAll, onUnselectAll } = renderFilter();
+  it('disables "Select all" when everything is selected and does not call onSelectAll', async () => {
+    const { onSelectAll } = renderFilter();
     await openDropdown();
     const selectAll = screen.getByText('Select all') as HTMLButtonElement;
     expect(selectAll.disabled).toBe(true);
-    await fireEvent.click(screen.getByText('Unselect all'));
-    expect(onUnselectAll).toHaveBeenCalled();
+    await fireEvent.click(selectAll);
     expect(onSelectAll).not.toHaveBeenCalled();
   });
 
-  it('disables "Unselect all" when nothing is selected and calls onSelectAll', async () => {
+  it('enables "Select all" when nothing is selected and calls onSelectAll', async () => {
     const { onSelectAll } = renderFilter({}, new Set<string>());
     await openDropdown();
-    const unselectAll = screen.getByText('Unselect all') as HTMLButtonElement;
-    expect(unselectAll.disabled).toBe(true);
-    await fireEvent.click(screen.getByText('Select all'));
+    const selectAll = screen.getByText('Select all') as HTMLButtonElement;
+    expect(selectAll.disabled).toBe(false);
+    await fireEvent.click(selectAll);
     expect(onSelectAll).toHaveBeenCalled();
   });
 

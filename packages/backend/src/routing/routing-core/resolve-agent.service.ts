@@ -12,12 +12,12 @@ interface CachedAgent {
 }
 
 export interface ResolveOptions {
-  /** When true, system agents (is_system = true) are returned to the caller.
-   * By default system agents are rejected with a NotFoundException so that
+  /** When true, playground agents (is_playground = true) are returned to the caller.
+   * By default playground agents are rejected with a NotFoundException so that
    * generic mutation/config endpoints cannot target the reserved "Playground"
    * agent. Only pass true for read-only endpoints that legitimately need to
    * serve the Playground agent (e.g. available-models, providers list). */
-  allowSystem?: boolean;
+  allowPlayground?: boolean;
 }
 
 @Injectable()
@@ -39,10 +39,10 @@ export class ResolveAgentService {
     const cacheKey = `${tenantId}:${agentName}`;
     const cached = this.cache.get(cacheKey);
 
-    // If we have a live cache entry, validate is_system before returning it.
+    // If we have a live cache entry, validate is_playground before returning it.
     // This ensures the check runs on cache hits as well as fresh DB loads.
     if (cached && cached.expiresAt > Date.now()) {
-      if (cached.agent.is_system && !options.allowSystem) {
+      if (cached.agent.is_playground && !options.allowPlayground) {
         throw new NotFoundException(`Agent "${agentName}" not found`);
       }
       return cached.agent;
@@ -54,8 +54,8 @@ export class ResolveAgentService {
     });
     if (!agent) throw new NotFoundException(`Agent "${agentName}" not found`);
 
-    // Reject system agents unless the caller explicitly opted in.
-    if (agent.is_system && !options.allowSystem) {
+    // Reject playground agents unless the caller explicitly opted in.
+    if (agent.is_playground && !options.allowPlayground) {
       throw new NotFoundException(`Agent "${agentName}" not found`);
     }
 

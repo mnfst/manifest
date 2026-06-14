@@ -1,9 +1,9 @@
 import { fetchJson, fetchMutate } from './core.js';
 
-export function getAgents(includeSystem = false) {
-  // includeSystem surfaces the reserved Playground (is_system) agent — the
+export function getAgents(includePlayground = false) {
+  // includePlayground surfaces the reserved Playground (is_playground) agent — the
   // Messages filter opts in so the log can be filtered to Playground runs.
-  return fetchJson(includeSystem ? '/agents?includeSystem=true' : '/agents');
+  return fetchJson(includePlayground ? '/agents?includePlayground=true' : '/agents');
 }
 
 export interface AgentInfo {

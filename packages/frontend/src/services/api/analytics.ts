@@ -11,6 +11,9 @@ export function getProviderAnalytics(
   agentName?: string,
   provider?: string,
   label?: string,
+  // The exact connection (tenant_providers id). When set, the backend scopes the
+  // summary cards + chart to this key instead of the provider/auth/label tuple.
+  connectionId?: string,
 ) {
   return fetchJson('/provider-analytics', {
     auth_type: authType,
@@ -18,6 +21,7 @@ export function getProviderAnalytics(
     ...(agentName ? { agent_name: agentName } : {}),
     ...(provider ? { provider } : {}),
     ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
   });
 }
 
@@ -32,12 +36,14 @@ export function getPerAgentTimeseries(
   provider: string,
   range = '24h',
   label?: string,
+  connectionId?: string,
 ): PivotedTimeseries {
   return fetchJson('/provider-analytics/per-agent-timeseries', {
     auth_type: authType,
     provider,
     range,
     ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
   }) as PivotedTimeseries;
 }
 
@@ -46,12 +52,14 @@ export function getPerAgentMessageTimeseries(
   provider: string,
   range = '24h',
   label?: string,
+  connectionId?: string,
 ): PivotedTimeseries {
   return fetchJson('/provider-analytics/per-agent-message-timeseries', {
     auth_type: authType,
     provider,
     range,
     ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
   }) as PivotedTimeseries;
 }
 
@@ -60,12 +68,14 @@ export function getPerAgentCostTimeseries(
   provider: string,
   range = '24h',
   label?: string,
+  connectionId?: string,
 ): PivotedTimeseries {
   return fetchJson('/provider-analytics/per-agent-cost-timeseries', {
     auth_type: authType,
     provider,
     range,
     ...(label !== undefined ? { label } : {}),
+    ...(connectionId ? { connection_id: connectionId } : {}),
   }) as PivotedTimeseries;
 }
 

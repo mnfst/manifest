@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Brackets } from 'typeorm';
 import { AggregationService } from './aggregation.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { EXCLUDE_SYSTEM_AGENTS_PREDICATE } from './query-helpers';
+import { EXCLUDE_PLAYGROUND_AGENTS_PREDICATE } from './query-helpers';
 
 describe('AggregationService', () => {
   let service: AggregationService;
@@ -193,7 +193,7 @@ describe('AggregationService', () => {
       expect(clauses).toContain('at.provider = :provider');
     });
 
-    it('excludes the system Playground agent from both windows when excludeSystem=true', async () => {
+    it('excludes the reserved Playground agent from both windows when excludePlayground=true', async () => {
       mockGetRawOne
         .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
         .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
@@ -203,11 +203,11 @@ describe('AggregationService', () => {
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
       // Both the current and previous window builders add the semi-join guard.
       // It adds no join of its own (pure NOT EXISTS existence test).
-      expect(clauses).toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
       expect(mockQb.leftJoin).not.toHaveBeenCalled();
     });
 
-    it('does not exclude system agents by default (excludeSystem omitted)', async () => {
+    it('does not exclude playground agents by default (excludePlayground omitted)', async () => {
       mockGetRawOne
         .mockResolvedValueOnce({ msg_count: 5, inp: 50, out: 25, cost: 0.5 })
         .mockResolvedValueOnce({ msg_count: 4, tokens: 60, cost: 0.4 });
@@ -215,7 +215,7 @@ describe('AggregationService', () => {
       await service.getSummaryMetrics('24h', 'tenant-123');
 
       const clauses = mockQb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
-      expect(clauses).not.toContain(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
 
     const labelClause = "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)";

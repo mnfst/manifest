@@ -16,6 +16,7 @@ import {
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
+import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
 
 let app: INestApplication;
 
@@ -173,9 +174,11 @@ describe('Routing enabled → scorer routes by query complexity', () => {
       [anthropicModels, TEST_TENANT_ID, 'anthropic'],
     );
 
-    // Pin per-tier routes against the seeded models (cheapest on simple,
+    // Drop the discovery cache so the seeded cached_models is visible, then pin
+    // per-tier routes against the seeded models (cheapest on simple,
     // higher-quality models on complex/reasoning — what the auto-assigner
     // used to compute, now user-controlled).
+    app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
     await setTierOverrides(ds, {
       simple: { provider: 'openai', model: 'gpt-4o-mini' },
       standard: { provider: 'anthropic', model: 'claude-sonnet-4' },
@@ -311,8 +314,8 @@ describe('Routing enabled → scorer routes by query complexity', () => {
 describe('Subscription providers respect supported capabilities', () => {
   beforeAll(async () => {
     // Start fresh: clear the pinned routes first (deactivating a provider that
-    // is still referenced by a route is a 409 now), then deactivate all and
-    // register via the subscription endpoint.
+    // is still referenced by a route is a 409 now — "Update routing first"),
+    // then deactivate all and register via the subscription endpoint.
     await auth(api().post('/api/v1/routing/test-agent/tiers/reset-all')).expect(201);
     await auth(api().post('/api/v1/routing/test-agent/providers/deactivate-all'))
       .expect(201);
@@ -453,6 +456,8 @@ describe('Routing disabled after deactivation → falls back to null', () => {
 
     // The reset-all in the subscription describe cleared the pinned routes —
     // re-pin the simple tier the way the user would after reconnecting.
+    // Invalidate discovery first so the re-seeded cached_models is picked up.
+    app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
     await setTierOverrides(ds, { simple: { provider: 'openai', model: 'gpt-4o-mini' } });
 
     const res = await bearer(api().post('/api/v1/routing/resolve'))

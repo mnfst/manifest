@@ -117,10 +117,13 @@ import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-Se
 import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
 import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000000-DropSavingsBaselineColumns';
 import { RenameProviderAccessToEnabledProviders1791800000000 } from './migrations/1791800000000-RenameProviderAccessToEnabledProviders';
-import { TenantOwnerColumn1792000000000 } from './migrations/1792000000000-TenantOwnerColumn';
-import { TenantProviders1792100000000 } from './migrations/1792100000000-TenantProviders';
-import { TenantScopedConfigs1792200000000 } from './migrations/1792200000000-TenantScopedConfigs';
-import { DropUserScopeFromRouting1792300000000 } from './migrations/1792300000000-DropUserScopeFromRouting';
+import { RenameIsSystemToIsPlayground1791900000000 } from './migrations/1791900000000-RenameIsSystemToIsPlayground';
+import { AddUserProviderIdToAgentMessages1792000000000 } from './migrations/1792000000000-AddUserProviderIdToAgentMessages';
+import { AddCustomProviderFkToUserProviders1792100000000 } from './migrations/1792100000000-AddCustomProviderFkToUserProviders';
+import { TenantOwnerColumn1792400000000 } from './migrations/1792400000000-TenantOwnerColumn';
+import { TenantProviders1792500000000 } from './migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from './migrations/1792600000000-TenantScopedConfigs';
+import { DropUserScopeFromRouting1792700000000 } from './migrations/1792700000000-DropUserScopeFromRouting';
 
 const entities = [
   AgentMessage,
@@ -239,10 +242,13 @@ const migrations = [
   DropProviderRateLimits1791600000000,
   DropSavingsBaselineColumns1791700000000,
   RenameProviderAccessToEnabledProviders1791800000000,
-  TenantOwnerColumn1792000000000,
-  TenantProviders1792100000000,
-  TenantScopedConfigs1792200000000,
-  DropUserScopeFromRouting1792300000000,
+  RenameIsSystemToIsPlayground1791900000000,
+  AddUserProviderIdToAgentMessages1792000000000,
+  AddCustomProviderFkToUserProviders1792100000000,
+  TenantOwnerColumn1792400000000,
+  TenantProviders1792500000000,
+  TenantScopedConfigs1792600000000,
+  DropUserScopeFromRouting1792700000000,
 ];
 
 @Module({

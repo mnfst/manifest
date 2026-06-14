@@ -1,5 +1,6 @@
 import { keyPrefix, verifyKey } from '../common/utils/hash.util';
 import { DatabaseSeederService } from './database-seeder.service';
+import { getSeedConnections } from './seed-messages';
 
 // Mock auth.instance before importing the service
 jest.mock('../auth/auth.instance', () => ({
@@ -16,6 +17,7 @@ function makeMockRepo() {
   return {
     count: jest.fn().mockResolvedValue(0),
     insert: jest.fn().mockResolvedValue({}),
+    findOne: jest.fn().mockResolvedValue(null),
   };
 }
 
@@ -28,6 +30,7 @@ describe('DatabaseSeederService', () => {
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
+  let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let configValues: Record<string, string | undefined>;
 
   beforeEach(() => {
@@ -43,6 +46,7 @@ describe('DatabaseSeederService', () => {
     mockAgentKeyRepo = makeMockRepo();
     mockApiKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
+    mockProviderRepo = makeMockRepo();
 
     service = new DatabaseSeederService(
       mockDataSource as never,
@@ -52,6 +56,7 @@ describe('DatabaseSeederService', () => {
       mockAgentKeyRepo as never,
       mockApiKeyRepo as never,
       mockMessageRepo as never,
+      mockProviderRepo as never,
     );
 
     jest.clearAllMocks();
@@ -276,6 +281,45 @@ describe('DatabaseSeederService', () => {
       expect(mockTenantRepo.insert).not.toHaveBeenCalled();
       expect(mockAgentRepo.insert).not.toHaveBeenCalled();
       expect(mockAgentKeyRepo.insert).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('seedTenantProviders', () => {
+    it('seeds one connection per distinct (provider, auth_type) behind the seed messages', async () => {
+      await service.onModuleInit();
+
+      const connections = getSeedConnections();
+      expect(connections.length).toBeGreaterThan(0);
+      expect(mockProviderRepo.insert).toHaveBeenCalledTimes(connections.length);
+      for (const conn of connections) {
+        expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: conn.id,
+            tenant_id: 'seed-tenant-001',
+            created_by_user_id: 'admin-user-id',
+            provider: conn.provider,
+            auth_type: conn.auth_type,
+            label: 'Default',
+            is_active: true,
+          }),
+        );
+      }
+    });
+
+    it('is idempotent — skips connections that already exist', async () => {
+      mockProviderRepo.findOne.mockResolvedValue({ id: 'seed-conn-existing' });
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('skips seeding connections when the admin user is not found', async () => {
+      mockDataSource.query.mockResolvedValue([]);
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
     });
   });
 

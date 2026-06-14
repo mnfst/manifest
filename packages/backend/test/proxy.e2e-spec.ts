@@ -11,6 +11,7 @@ import {
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
 import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
+import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
 
 let app: INestApplication;
 
@@ -58,8 +59,11 @@ beforeAll(async () => {
     [models, TEST_TENANT_ID, 'openai'],
   );
 
-  // Model routing is user-controlled now: pin gpt-4o-mini on every scoring
-  // tier so the proxy always has a route, then flush the routing caches.
+  // Model routing is user-controlled now (auto-assign was removed). Drop the
+  // discovery cache so the just-seeded cached_models is visible, then pin
+  // gpt-4o-mini on every scoring tier so the proxy always has a route, and
+  // finally flush the routing caches.
+  app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
   for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'default']) {
     await ds.query(
       `INSERT INTO tier_assignments (id, agent_id, tier, override_route, updated_at)

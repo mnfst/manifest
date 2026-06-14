@@ -122,7 +122,7 @@ export class PayloadBuilderService {
       .select('a.agent_category', 'category')
       .addSelect('a.agent_platform', 'platform')
       .addSelect('COUNT(*)', 'count')
-      .where('a.is_system = false')
+      .where('a.is_playground = false')
       .groupBy('a.agent_category')
       .addGroupBy('a.agent_platform')
       .getRawMany<CategoryPlatformRow>();
@@ -132,12 +132,12 @@ export class PayloadBuilderService {
     }));
   }
 
-  /** Count only user-created agents; system agents (e.g. Playground) are excluded. */
+  /** Count only user-created agents; playground agents (e.g. Playground) are excluded. */
   private async userAgentsCount(): Promise<number> {
     const result = await this.agents
       .createQueryBuilder('a')
       .select('COUNT(*)', 'count')
-      .where('a.is_system = false')
+      .where('a.is_playground = false')
       .getRawOne<{ count: string }>();
     return Number(result?.count ?? 0);
   }

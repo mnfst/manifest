@@ -101,7 +101,7 @@ const MessageLog: Component = () => {
     () => !params.agentName,
     async (isGlobal) => {
       if (!isGlobal) return [] as AgentFilterOption[];
-      // includeSystem=true so the reserved Playground agent appears in the
+      // includePlayground=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
         | { agents?: AgentFilterOption[] }

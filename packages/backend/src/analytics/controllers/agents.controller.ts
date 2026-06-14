@@ -46,7 +46,7 @@ export class AgentsController {
   ) {}
 
   private async invalidateAgentListCache(tenantId: string | null): Promise<void> {
-    // GET /agents has exactly two canonical cache entries per tenant (system agents
+    // GET /agents has exactly two canonical cache entries per tenant (playground agents
     // included or not — see AgentListCacheInterceptor). Clear both so neither the
     // Workspace list nor the Messages filter goes stale after a mutation. No
     // tenant → nothing was ever cached.
@@ -66,8 +66,11 @@ export class AgentsController {
   @Get('agents')
   @UseInterceptors(AgentListCacheInterceptor)
   @CacheTTL(AGENT_LIST_CACHE_TTL_MS)
-  async getAgents(@TenantCtx() ctx: TenantContext, @Query('includeSystem') includeSystem?: string) {
-    const agents = await this.timeseries.getAgentList(ctx.tenantId, includeSystem === 'true');
+  async getAgents(
+    @TenantCtx() ctx: TenantContext,
+    @Query('includePlayground') includePlayground?: string,
+  ) {
+    const agents = await this.timeseries.getAgentList(ctx.tenantId, includePlayground === 'true');
     return { agents };
   }
 
@@ -172,8 +175,8 @@ export class AgentsController {
 
   @Get('agents/:agentName/key')
   async getAgentKey(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
-    // Guard: system agents cannot expose their API key through the user-facing
-    // key endpoint (findAgentInfo filters is_system = false and returns null for
+    // Guard: playground agents cannot expose their API key through the user-facing
+    // key endpoint (findAgentInfo filters is_playground = false and returns null for
     // the reserved "Playground" agent, same as for any missing agent).
     const info = await this.lifecycle.findAgentInfo(ctx.tenantId, agentName);
     if (!info || !ctx.tenantId) throw new NotFoundException(`Agent "${agentName}" not found`);
@@ -187,8 +190,8 @@ export class AgentsController {
 
   @Post('agents/:agentName/rotate-key')
   async rotateAgentKey(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
-    // Guard: system agents cannot have their key rotated through the user-facing
-    // endpoint (findAgentInfo filters is_system = false and returns null for the
+    // Guard: playground agents cannot have their key rotated through the user-facing
+    // endpoint (findAgentInfo filters is_playground = false and returns null for the
     // reserved "Playground" agent, same as for any missing agent).
     const info = await this.lifecycle.findAgentInfo(ctx.tenantId, agentName);
     if (!info || !ctx.tenantId) throw new NotFoundException(`Agent "${agentName}" not found`);

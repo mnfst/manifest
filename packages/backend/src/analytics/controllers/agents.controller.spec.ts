@@ -155,7 +155,7 @@ describe('AgentsController', () => {
     expect(mockGetAgentList).toHaveBeenCalledWith(null, false);
   });
 
-  it('passes includeSystem=true through to getAgentList (Messages filter)', async () => {
+  it('passes includePlayground=true through to getAgentList (Messages filter)', async () => {
     await controller.getAgents(ctx as never, 'true');
 
     expect(mockGetAgentList).toHaveBeenCalledWith('tenant-123', true);
@@ -241,10 +241,10 @@ describe('AgentsController', () => {
       'bot-renamed',
       'Bot Renamed',
     );
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:system=false');
-    // The Messages-filter variant (system agents included) is a distinct cache
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
+    // The Messages-filter variant (playground agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a rename.
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:system=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
   });
 
   it('rejects rename with empty slug', async () => {
@@ -272,9 +272,9 @@ describe('AgentsController', () => {
     expect(result).toEqual({ deleted: true });
     expect(mockDeleteAgent).toHaveBeenCalledWith('tenant-123', 'bot-1');
     // Both canonical variants are cleared so neither the Workspace list nor the
-    // Messages filter (system agents included) goes stale after a delete.
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:system=false');
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:system=true');
+    // Messages filter (playground agents included) goes stale after a delete.
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
   });
 
   it('passes agent_category and agent_platform to onboardAgent', async () => {
@@ -497,10 +497,10 @@ describe('AgentsController', () => {
 
     expect(result.agent.name).toBe('my-agent');
     // Both canonical variants are cleared so neither the Workspace list nor the
-    // Messages filter (system agents included) goes stale after a create. The
+    // Messages filter (playground agents included) goes stale after a create. The
     // cache is keyed by the tenant the onboard returned (t1), not the user id.
-    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:system=false');
-    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:system=true');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
   });
 
   it('rejects createAgent with empty slug', async () => {
@@ -620,10 +620,10 @@ describe('AgentsController', () => {
       name: 'bot-copy',
       displayName: 'Bot Copy',
     });
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:system=false');
-    // The Messages-filter variant (system agents included) is a distinct cache
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
+    // The Messages-filter variant (playground agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a duplicate.
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:system=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
   });
 
   it('rejects duplicateAgent with empty slug', async () => {
@@ -659,16 +659,16 @@ describe('AgentsController', () => {
     expect(mockDuplicate).not.toHaveBeenCalled();
   });
 
-  // P1-A: key endpoints must reject the system "Playground" agent
-  it('getAgentKey throws NotFoundException for the system "Playground" agent', async () => {
-    // findAgentInfo returns null for system agents (is_system = false filter)
+  // P1-A: key endpoints must reject the reserved "Playground" agent
+  it('getAgentKey throws NotFoundException for the reserved "Playground" agent', async () => {
+    // findAgentInfo returns null for playground agents (is_playground = false filter)
     // which is the same shape as a missing agent — NotFoundException is thrown.
     await expect(controller.getAgentKey(ctx as never, 'Playground')).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });
 
-  it('rotateAgentKey throws NotFoundException for the system "Playground" agent', async () => {
+  it('rotateAgentKey throws NotFoundException for the reserved "Playground" agent', async () => {
     await expect(controller.rotateAgentKey(ctx as never, 'Playground')).rejects.toBeInstanceOf(
       NotFoundException,
     );

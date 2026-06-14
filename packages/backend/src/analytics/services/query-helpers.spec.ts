@@ -4,8 +4,8 @@ import {
   formatTimestamp,
   addTenantFilter,
   selectMessageRowColumns,
-  excludeSystemAgents,
-  EXCLUDE_SYSTEM_AGENTS_PREDICATE,
+  excludePlaygroundAgents,
+  EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
   filterByKeyLabel,
@@ -206,7 +206,7 @@ describe('addTenantFilter', () => {
   });
 });
 
-describe('excludeSystemAgents', () => {
+describe('excludePlaygroundAgents', () => {
   function makeMockQb() {
     const mockAndWhere = jest.fn();
     const mockLeftJoin = jest.fn();
@@ -217,30 +217,30 @@ describe('excludeSystemAgents', () => {
     return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere, mockLeftJoin };
   }
 
-  it('excludes system agents via a NOT EXISTS semi-join (no join added)', () => {
+  it('excludes playground agents via a NOT EXISTS semi-join (no join added)', () => {
     const { qb, mockAndWhere, mockLeftJoin } = makeMockQb();
-    excludeSystemAgents(qb);
+    excludePlaygroundAgents(qb);
 
     // Semi-join only: never adds a LEFT JOIN of its own.
     expect(mockLeftJoin).not.toHaveBeenCalled();
-    expect(mockAndWhere).toHaveBeenCalledWith(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+    expect(mockAndWhere).toHaveBeenCalledWith(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
   });
 
-  it('matches the system agent by id OR name and never multiplies rows', () => {
+  it('matches the playground agent by id OR name and never multiplies rows', () => {
     // The predicate is a pure existence test (cannot duplicate fact rows) and
     // matches on either agent_id OR agent_name (so a Playground row carrying
     // only agent_name, NULL agent_id, is still excluded).
-    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('NOT EXISTS');
-    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.is_system = true');
-    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain('sysag.tenant_id = at.tenant_id');
-    expect(EXCLUDE_SYSTEM_AGENTS_PREDICATE).toContain(
-      'sysag.id = at.agent_id OR sysag.name = at.agent_name',
+    expect(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE).toContain('NOT EXISTS');
+    expect(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE).toContain('playag.is_playground = true');
+    expect(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE).toContain('playag.tenant_id = at.tenant_id');
+    expect(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE).toContain(
+      'playag.id = at.agent_id OR playag.name = at.agent_name',
     );
   });
 
   it('returns the query builder for chaining', () => {
     const { qb } = makeMockQb();
-    expect(excludeSystemAgents(qb)).toBe(qb);
+    expect(excludePlaygroundAgents(qb)).toBe(qb);
   });
 });
 

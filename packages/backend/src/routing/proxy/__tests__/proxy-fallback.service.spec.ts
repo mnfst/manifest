@@ -56,6 +56,7 @@ describe('ProxyFallbackService', () => {
   beforeEach(() => {
     providerKeyService = {
       getProviderApiKey: jest.fn(),
+      getProviderKeyId: jest.fn().mockResolvedValue('up-fallback'),
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       findProviderForModel: jest.fn().mockResolvedValue(undefined),

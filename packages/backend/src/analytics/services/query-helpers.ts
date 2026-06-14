@@ -89,10 +89,10 @@ export function addTenantFilter<T extends ObjectLiteral>(
 }
 
 /**
- * Exclude the reserved Playground (`is_system`) agent from a message
- * aggregate. A row is dropped iff it belongs to a system agent of the same
+ * Exclude the reserved Playground (`is_playground`) agent from a message
+ * aggregate. A row is dropped iff it belongs to a playground agent of the same
  * tenant by EITHER `agent_id` OR `agent_name`; every other row (including
- * orphan telemetry with a NULL/unmatched `agent_id` and a non-system name)
+ * orphan telemetry with a NULL/unmatched `agent_id` and a non-playground name)
  * stays included.
  *
  * Implemented as a `NOT EXISTS` semi-join rather than a LEFT JOIN. Two
@@ -104,24 +104,24 @@ export function addTenantFilter<T extends ObjectLiteral>(
  *  2. No leak — matching on `id` OR `name` means a Playground message that
  *     carries only `agent_name = 'Playground'` (NULL or unmatched `agent_id`)
  *     is still excluded. An id-only LEFT JOIN left those rows with a NULL
- *     `is_system` and wrongly counted them.
+ *     `is_playground` and wrongly counted them.
  *
  * Assumes the query builder aliases `agent_messages` as `at`. This helper adds
  * no join, so callers that need agent columns must add their own `agents` join
  * (one-to-(0/1) on `a.id = at.agent_id`) independently.
  */
 /**
- * The exact `NOT EXISTS` predicate `excludeSystemAgents` appends. Exported so
+ * The exact `NOT EXISTS` predicate `excludePlaygroundAgents` appends. Exported so
  * call sites and tests reference one string instead of duplicating (and
  * drifting on) the SQL.
  */
-export const EXCLUDE_SYSTEM_AGENTS_PREDICATE =
-  'NOT EXISTS (SELECT 1 FROM agents sysag WHERE sysag.tenant_id = at.tenant_id AND sysag.is_system = true AND (sysag.id = at.agent_id OR sysag.name = at.agent_name))';
+export const EXCLUDE_PLAYGROUND_AGENTS_PREDICATE =
+  'NOT EXISTS (SELECT 1 FROM agents playag WHERE playag.tenant_id = at.tenant_id AND playag.is_playground = true AND (playag.id = at.agent_id OR playag.name = at.agent_name))';
 
-export function excludeSystemAgents<T extends ObjectLiteral>(
+export function excludePlaygroundAgents<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
 ): SelectQueryBuilder<T> {
-  return qb.andWhere(EXCLUDE_SYSTEM_AGENTS_PREDICATE);
+  return qb.andWhere(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
 }
 
 /**
@@ -138,6 +138,44 @@ export function filterByKeyLabel<T extends ObjectLiteral>(
   return qb.andWhere("LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)", {
     keyLabel: label && label.length > 0 ? label : 'Default',
   });
+}
+
+/**
+ * Scope a message aggregate to one exact connection by its `tenant_providers`
+ * row id — the value stamped on `agent_messages.tenant_provider_id` at proxy
+ * time. Unlike filterByKeyLabel (which matches the provider+auth_type+label
+ * tuple and so merges sibling keys sharing a label, and treats a NULL label as
+ * 'Default'), this pins to the single connection that actually served each
+ * message. Rows with a NULL id — pre-upgrade history that the backfill could
+ * not disambiguate, plus local/Ollama and blind-proxy paths — never match,
+ * which is the correct behaviour for a per-connection view. Assumes the query
+ * builder aliases `agent_messages` as `at`. Prefer this over filterByKeyLabel
+ * whenever a connection id is available; keep filterByKeyLabel for
+ * provider-level ("all my OpenAI keys") aggregation.
+ */
+export function filterByTenantProviderId<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  tenantProviderId: string,
+): SelectQueryBuilder<T> {
+  return qb.andWhere('at.tenant_provider_id = :tenantProviderId', { tenantProviderId });
+}
+
+/**
+ * Scope a message aggregate to a single connection. When a `tenant_providers`
+ * row id is known, pin to it (the authoritative per-connection filter, exact
+ * to the key that served each message); otherwise fall back to the
+ * provider+auth_type+label tuple. The id deliberately wins over the label so a
+ * backfilled row whose `provider_key_label` was never set (NULL → 'Default')
+ * still appears under its real connection. A no-op when neither is supplied.
+ */
+export function scopeToConnection<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+  tenantProviderId: string | undefined,
+  label: string | null | undefined,
+): SelectQueryBuilder<T> {
+  if (tenantProviderId) return filterByTenantProviderId(qb, tenantProviderId);
+  if (label !== undefined) return filterByKeyLabel(qb, label);
+  return qb;
 }
 
 /**
