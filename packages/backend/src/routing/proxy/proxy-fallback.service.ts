@@ -574,11 +574,17 @@ export class ProxyFallbackService {
     // Custom providers store their endpoint on a DB row; fetch it so the shared
     // resolver can build the override. (Kept in the caller to keep the resolver
     // synchronous + DB-free.)
-    const customProvider = CustomProviderService.isCustom(provider)
-      ? await this.customProviderRepo.findOne({
-          where: { id: CustomProviderService.extractId(provider), user_id: opts.userId },
-        })
-      : null;
+    // Fail closed: TypeORM strips an `undefined` where-value, so without the
+    // explicit userId guard a missing userId would silently degrade to an
+    // unscoped lookup by id alone. A real custom-provider forward always carries
+    // the caller's userId; if it's absent we skip the lookup rather than read a
+    // row that could belong to another tenant.
+    const customProvider =
+      CustomProviderService.isCustom(provider) && opts.userId
+        ? await this.customProviderRepo.findOne({
+            where: { id: CustomProviderService.extractId(provider), user_id: opts.userId },
+          })
+        : null;
     const { customEndpoint, forwardModel } = resolveForwardEndpoint({
       provider,
       authType,

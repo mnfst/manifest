@@ -669,6 +669,28 @@ describe('ProxyFallbackService', () => {
       });
     });
 
+    it('skips the custom-provider lookup entirely when no userId is supplied (fail closed)', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      // Without a userId, `user_id: undefined` would be stripped by TypeORM and
+      // degrade to an unscoped lookup. The guard must skip the query instead.
+      await service.tryForwardToProvider({
+        provider: 'custom:cp-1',
+        apiKey: 'key',
+        model: 'custom:cp-1/llama',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+      });
+
+      expect(customProviderRepo.findOne).not.toHaveBeenCalled();
+    });
+
     it('routes Anthropic-kind custom providers to /v1/messages with anthropic format', async () => {
       customProviderRepo.findOne.mockResolvedValue({
         id: 'cp-anth',
@@ -689,6 +711,7 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        userId: 'user-1',
       });
 
       const forwardArgs = providerClient.forward.mock.calls[0][0];
