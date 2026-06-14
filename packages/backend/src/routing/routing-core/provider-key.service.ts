@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import type { AuthType } from 'manifest-shared';
 import { TenantProvider } from '../../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
-import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
@@ -64,13 +63,14 @@ export class ProviderKeyService {
       ];
     }
 
-    if (agentId) return this.resolveProviderKeys(tenantId, provider, authType, agentId);
-
-    const cached = this.routingCache.getProviderKeys(tenantId, provider, authType);
+    // Agent-scoped lookups (the proxy path) cache under an agent-qualified
+    // key. invalidateAgent clears the agent segment; invalidateTenant clears
+    // every entry for the tenant, so both invalidation paths stay effective.
+    const cached = this.routingCache.getProviderKeys(tenantId, provider, authType, agentId);
     if (cached !== undefined) return cached;
 
-    const result = await this.resolveProviderKeys(tenantId, provider, authType);
-    this.routingCache.setProviderKeys(tenantId, provider, result, authType);
+    const result = await this.resolveProviderKeys(tenantId, provider, authType, agentId);
+    this.routingCache.setProviderKeys(tenantId, provider, result, authType, agentId);
     return result;
   }
 
@@ -204,21 +204,6 @@ export class ProviderKeyService {
       if (p.cached_models.some((m) => m.id === model)) return p.provider;
     }
     return undefined;
-  }
-
-  async getEffectiveModel(tenantId: string, assignment: TierAssignment): Promise<string | null> {
-    const overrideModel = assignment.override_route?.model ?? null;
-
-    if (overrideModel !== null) {
-      if (await this.isModelAvailable(tenantId, overrideModel)) {
-        return overrideModel;
-      }
-      this.logger.warn(
-        `Override ${overrideModel} unavailable for tenant=${tenantId} tier=${assignment.tier}`,
-      );
-    }
-
-    return null;
   }
 
   private async resolveProviderKeys(

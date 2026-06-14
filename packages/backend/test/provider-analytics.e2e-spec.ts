@@ -189,15 +189,6 @@ describe('GET /api/v1/provider-analytics', () => {
     expect(total).toBe(1800);
   });
 
-  it('supports the agents endpoint', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/api/v1/provider-analytics/agents?auth_type=subscription')
-      .set('x-api-key', TEST_API_KEY)
-      .expect(200);
-    expect(Array.isArray(res.body.agents)).toBe(true);
-    expect(res.body.agents).toContain('test-agent');
-  });
-
   it('returns per-agent token timeseries pivots', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/v1/provider-analytics/per-agent-timeseries?auth_type=subscription&provider=openai')
@@ -392,7 +383,7 @@ describe('GET /api/v1/provider-analytics', () => {
 });
 
 describe('GET /api/v1/overview/per-* timeseries', () => {
-  it('exposes per-agent, per-provider and per-model overview timeseries', async () => {
+  it('exposes per-agent and per-provider overview timeseries', async () => {
     const paths = [
       'per-agent-timeseries',
       'per-agent-message-timeseries',
@@ -400,9 +391,6 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
       'per-provider-timeseries',
       'per-provider-message-timeseries',
       'per-provider-cost-timeseries',
-      'per-model-timeseries',
-      'per-model-message-timeseries',
-      'per-model-cost-timeseries',
     ];
     for (const p of paths) {
       const res = await request(app.getHttpServer())
@@ -414,7 +402,7 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
     }
   });
 
-  it('excludes the Playground (is_playground) agent from per-provider and per-model timeseries (Finding 2)', async () => {
+  it('excludes the Playground (is_playground) agent from per-provider timeseries (Finding 2)', async () => {
     // The Playground agent logged 18000 openai/gpt-4o tokens (agent_id set), and
     // an orphan Playground row logged 14000 more (NULL agent_id, name only).
     // Real openai usage is 1800 tokens (gpt-4o 1500 + gpt-4o-mini 300). Before
@@ -429,29 +417,17 @@ describe('GET /api/v1/overview/per-* timeseries', () => {
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
     expect(sumKey(provider.body.timeseries, 'openai')).toBe(1800);
-
-    const model = await request(app.getHttpServer())
-      .get('/api/v1/overview/per-model-timeseries?range=24h')
-      .set('x-api-key', TEST_API_KEY)
-      .expect(200);
-    expect(sumKey(model.body.timeseries, 'gpt-4o')).toBe(1500);
   });
 
-  it('scopes per-provider/per-model timeseries to the LIVE agent, excluding a soft-deleted namesake (Finding 4)', async () => {
-    // A soft-deleted `test-agent` logged 10000 ghostprovider/ghost-model tokens.
-    // Scoping the per-provider/per-model timeseries to the live `test-agent`
-    // must resolve to the live agent's id, so the dead namesake's rows never
-    // appear in the agent-scoped chart.
+  it('scopes per-provider timeseries to the LIVE agent, excluding a soft-deleted namesake (Finding 4)', async () => {
+    // A soft-deleted `test-agent` logged 10000 ghostprovider tokens. Scoping the
+    // per-provider timeseries to the live `test-agent` must resolve to the live
+    // agent's id, so the dead namesake's rows never appear in the agent-scoped
+    // chart.
     const provider = await request(app.getHttpServer())
       .get('/api/v1/overview/per-provider-timeseries?range=24h&agent_name=test-agent')
       .set('x-api-key', TEST_API_KEY)
       .expect(200);
     expect(provider.body.agents).not.toContain('ghostprovider');
-
-    const model = await request(app.getHttpServer())
-      .get('/api/v1/overview/per-model-timeseries?range=24h&agent_name=test-agent')
-      .set('x-api-key', TEST_API_KEY)
-      .expect(200);
-    expect(model.body.agents).not.toContain('ghost-model');
   });
 });

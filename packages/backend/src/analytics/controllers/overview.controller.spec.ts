@@ -83,31 +83,71 @@ describe('OverviewController', () => {
     expect(result.summary.tokens_today).toBeDefined();
     expect(result.summary.cost_today).toBeDefined();
     expect(result.summary.messages).toBeDefined();
-    expect(ts.getTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, undefined);
+    // The overview excludes Playground traffic everywhere (excludePlayground=true)
+    // so the summary cards, aggregate charts, breakdowns and has_data agree.
+    expect(ts.getTimeseries).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      true,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
   it('returns overview with daily timeseries for 7d range', async () => {
     const result = await controller.getOverview({ range: '7d' }, ctx as never);
 
     expect(result.token_usage).toBeDefined();
-    expect(ts.getTimeseries).toHaveBeenCalledWith('7d', 'tenant-123', false, undefined);
+    expect(ts.getTimeseries).toHaveBeenCalledWith(
+      '7d',
+      'tenant-123',
+      false,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
   it('defaults range to 24h when not specified', async () => {
     await controller.getOverview({}, ctx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'tenant-123', undefined);
+    expect(agg.getSummaryMetrics).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
-  it('passes agent_name and tenantId to all calls', async () => {
+  it('passes agent_name and tenantId to all calls, excluding Playground everywhere', async () => {
     await controller.getOverview({ range: '24h', agent_name: 'bot-1' }, ctx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1');
-    expect(ts.getTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true, 'bot-1');
-    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1');
-    expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'tenant-123', 5, 'bot-1');
-    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1');
-    expect(agg.hasAnyData).toHaveBeenCalledWith('tenant-123', 'bot-1');
+    expect(agg.getSummaryMetrics).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      'bot-1',
+      undefined,
+      undefined,
+      true,
+    );
+    expect(ts.getTimeseries).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      true,
+      'bot-1',
+      undefined,
+      undefined,
+      true,
+    );
+    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
+    expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'tenant-123', 5, 'bot-1', true);
+    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
+    expect(agg.hasAnyData).toHaveBeenCalledWith('tenant-123', 'bot-1', true);
   });
 
   it('includes services_hit placeholder in summary', async () => {
@@ -133,7 +173,14 @@ describe('OverviewController', () => {
     const nullCtx = { tenantId: null, userId: 'u1' };
     await controller.getOverview({ range: '24h' }, nullCtx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith('24h', null, undefined);
+    expect(agg.getSummaryMetrics).toHaveBeenCalledWith(
+      '24h',
+      null,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    );
   });
 
   it('returns has_providers true when agent has active providers', async () => {

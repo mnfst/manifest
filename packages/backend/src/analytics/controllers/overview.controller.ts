@@ -35,12 +35,27 @@ export class OverviewController {
 
     const [summary, tsData, costByModel, recentActivity, activeSkills, hasData, hasProviders] =
       await Promise.all([
-        this.aggregation.getSummaryMetrics(range, tenantId, agentName),
-        this.timeseries.getTimeseries(range, tenantId, hourly, agentName),
-        this.timeseries.getCostByModel(range, tenantId, agentName),
-        this.timeseries.getRecentActivity(range, tenantId, 5, agentName),
-        this.timeseries.getActiveSkills(range, tenantId, agentName),
-        this.aggregation.hasAnyData(tenantId, agentName),
+        // The overview excludes the reserved Playground (is_playground) agent's
+        // traffic EVERYWHERE: the per-agent/per-provider charts on the same page
+        // always drop it, so the summary cards, the aggregate timeseries and the
+        // breakdown widgets must agree or the page contradicts itself. Every call
+        // below passes excludePlayground=true so has_data and the visible widgets
+        // never disagree (a Playground-only tenant reads as empty, not a populated
+        // state painted over blank charts).
+        this.aggregation.getSummaryMetrics(range, tenantId, agentName, undefined, undefined, true),
+        this.timeseries.getTimeseries(
+          range,
+          tenantId,
+          hourly,
+          agentName,
+          undefined,
+          undefined,
+          true,
+        ),
+        this.timeseries.getCostByModel(range, tenantId, agentName, true),
+        this.timeseries.getRecentActivity(range, tenantId, 5, agentName, true),
+        this.timeseries.getActiveSkills(range, tenantId, agentName, true),
+        this.aggregation.hasAnyData(tenantId, agentName, true),
         this.hasActiveProviders(tenantId, agentName),
       ]);
 

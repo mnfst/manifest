@@ -96,7 +96,12 @@ export class TimeseriesQueriesService {
     return { tokenUsage, costUsage, messageUsage };
   }
 
-  async getActiveSkills(range: string, tenantId: string | null, agentName?: string) {
+  async getActiveSkills(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -109,6 +114,7 @@ export class TimeseriesQueriesService {
       .where('at.timestamp >= :cutoff', { cutoff })
       .andWhere('at.skill_name IS NOT NULL');
     addTenantFilter(qb, tenantId, agentName);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const rows = await qb.groupBy('at.skill_name').orderBy('run_count', 'DESC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
       name: String(r['name']),
@@ -119,7 +125,13 @@ export class TimeseriesQueriesService {
     }));
   }
 
-  async getRecentActivity(range: string, tenantId: string | null, limit = 5, agentName?: string) {
+  async getRecentActivity(
+    range: string,
+    tenantId: string | null,
+    limit = 5,
+    agentName?: string,
+    excludePlayground = false,
+  ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -130,10 +142,16 @@ export class TimeseriesQueriesService {
       { cutoff },
     );
     addTenantFilter(qb, tenantId, agentName);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
 
-  async getCostByModel(range: string, tenantId: string | null, agentName?: string) {
+  async getCostByModel(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
 
@@ -151,6 +169,7 @@ export class TimeseriesQueriesService {
       .andWhere('at.model IS NOT NULL')
       .andWhere("at.model != ''");
     addTenantFilter(qb, tenantId, agentName);
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const rows = await qb
       .groupBy('at.model')
       .addGroupBy('at.auth_type')

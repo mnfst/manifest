@@ -81,12 +81,31 @@ export class RoutingCacheService {
     setWithEviction(this.customProviders, tenantId, data);
   }
 
+  /**
+   * Provider-key cache key. NUL-delimited because `provider` can itself
+   * contain ':' (custom:<uuid>). The agent segment scopes agent-filtered
+   * results (the proxy path) separately from user-global ones, so a per-agent
+   * provider toggle can never leak another agent's key chain.
+   */
+  private providerKeysKey(
+    tenantId: string,
+    provider: string,
+    authType?: string,
+    agentId?: string,
+  ): string {
+    return [tenantId, agentId ?? '', provider, authType ?? 'default'].join('\u0000');
+  }
+
   getProviderKeys(
     tenantId: string,
     provider: string,
     authType?: string,
+    agentId?: string,
   ): CachedProviderKey[] | undefined {
-    return getOrExpire(this.providerKeys, `${tenantId}:${provider}:${authType ?? 'default'}`);
+    return getOrExpire(
+      this.providerKeys,
+      this.providerKeysKey(tenantId, provider, authType, agentId),
+    );
   }
 
   setProviderKeys(
@@ -94,8 +113,13 @@ export class RoutingCacheService {
     provider: string,
     keys: CachedProviderKey[],
     authType?: string,
+    agentId?: string,
   ): void {
-    setWithEviction(this.providerKeys, `${tenantId}:${provider}:${authType ?? 'default'}`, keys);
+    setWithEviction(
+      this.providerKeys,
+      this.providerKeysKey(tenantId, provider, authType, agentId),
+      keys,
+    );
   }
 
   getSpecificity(agentId: string): SpecificityAssignment[] | null {
@@ -138,12 +162,13 @@ export class RoutingCacheService {
 
   invalidateAgent(agentId: string): void {
     this.tiers.delete(agentId);
-    this.customProviders.delete(agentId);
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
     this.modelParams.delete(agentId);
-    const prefix = `${agentId}:`;
-    const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
+    // Agent-scoped provider-key entries carry the agentId as the second
+    // NUL-delimited segment (see providerKeysKey).
+    const segment = `\u0000${agentId}\u0000`;
+    const toDelete = [...this.providerKeys.keys()].filter((k) => k.includes(segment));
     for (const k of toDelete) this.providerKeys.delete(k);
     for (const listener of this.invalidationListeners) {
       try {
@@ -163,7 +188,9 @@ export class RoutingCacheService {
   invalidateTenant(tenantId: string): void {
     this.providers.delete(tenantId);
     this.customProviders.delete(tenantId);
-    const prefix = `${tenantId}:`;
+    // Clears both tenant-global and agent-scoped key chains: every entry for
+    // this tenant starts with the same NUL-delimited tenantId segment.
+    const prefix = `${tenantId}\u0000`;
     const toDelete = [...this.providerKeys.keys()].filter((k) => k.startsWith(prefix));
     for (const k of toDelete) this.providerKeys.delete(k);
   }

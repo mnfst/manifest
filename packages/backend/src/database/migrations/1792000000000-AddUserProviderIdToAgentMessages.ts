@@ -26,11 +26,65 @@ export class AddUserProviderIdToAgentMessages1792000000000 implements MigrationI
       `ALTER TABLE "agent_messages" ADD COLUMN IF NOT EXISTS "user_provider_id" varchar`,
     );
 
-    // Best-effort backfill of pre-upgrade history: stamp a message only when
-    // exactly ONE active key matches its (provider, auth_type, label) tuple for
-    // the owning user. The user is reached via tenants.name = user_providers.user_id
-    // (tenant.name holds the user id). Where 0 or >1 keys match, leave NULL —
+    // Best-effort backfill of pre-upgrade history, in three passes. Each pass
+    // only touches rows still NULL, so an earlier (more precise) stamp excludes
+    // the message from every later pass. Where 0 or >1 keys match within a
+    // pass, the row falls through — and if no pass resolves it, it stays NULL:
     // ambiguous history correctly stays out of every per-connection view.
+    //
+    // Pass 1 (agent-exact): match on the message's own agent via
+    // user_providers.agent_id — the legacy column LiftProvidersToUserLevel
+    // deliberately kept (nullable, values intact) — plus provider, auth_type,
+    // and label. Pre-lift, (agent_id, provider, auth_type, LOWER(label)) was
+    // unique, so this is precise wherever the lift did not relabel the row.
+    await queryRunner.query(`
+      UPDATE "agent_messages" am
+      SET "user_provider_id" = m.up_id
+      FROM (
+        SELECT am2.id AS msg_id, MIN(up.id) AS up_id
+        FROM "agent_messages" am2
+        JOIN "user_providers" up
+          ON up.agent_id = am2.agent_id
+         AND LOWER(up.provider) = LOWER(am2.provider)
+         AND up.auth_type = am2.auth_type
+         AND LOWER(up.label) = LOWER(COALESCE(am2.provider_key_label, 'Default'))
+        WHERE am2.user_provider_id IS NULL
+          AND am2.provider IS NOT NULL
+          AND am2.agent_id IS NOT NULL
+        GROUP BY am2.id
+        HAVING COUNT(*) = 1
+      ) m
+      WHERE am.id = m.msg_id
+    `);
+
+    // Pass 2 (agent-unique): same agent_id anchor but ignore the label. When
+    // an agent had exactly ONE key for that provider + auth_type, the label is
+    // irrelevant — this covers rows the lift relabeled (e.g. 'Default' →
+    // 'from Agent One'), where the stored provider_key_label no longer matches.
+    await queryRunner.query(`
+      UPDATE "agent_messages" am
+      SET "user_provider_id" = m.up_id
+      FROM (
+        SELECT am2.id AS msg_id, MIN(up.id) AS up_id
+        FROM "agent_messages" am2
+        JOIN "user_providers" up
+          ON up.agent_id = am2.agent_id
+         AND LOWER(up.provider) = LOWER(am2.provider)
+         AND up.auth_type = am2.auth_type
+        WHERE am2.user_provider_id IS NULL
+          AND am2.provider IS NOT NULL
+          AND am2.agent_id IS NOT NULL
+        GROUP BY am2.id
+        HAVING COUNT(*) = 1
+      ) m
+      WHERE am.id = m.msg_id
+    `);
+
+    // Pass 3 (user-level): stamp a message only when exactly ONE key matches
+    // its (provider, auth_type, label) tuple for the owning user. The user is
+    // reached via tenants.name = user_providers.user_id (tenant.name holds the
+    // user id). This catches messages from deleted agents / NULL agent_id that
+    // the agent-anchored passes cannot reach.
     await queryRunner.query(`
       UPDATE "agent_messages" am
       SET "user_provider_id" = m.up_id
@@ -61,7 +115,8 @@ export class AddUserProviderIdToAgentMessages1792000000000 implements MigrationI
       FROM "agent_messages"
     `)) as { matched: number; remaining: number }[];
     this.logger.log(
-      `Backfilled user_provider_id on ${matched} message(s); ${remaining} left NULL ` +
+      `Backfilled user_provider_id on ${matched} message(s) across the three passes ` +
+        `(agent-exact label, agent-unique key, user-level label); ${remaining} left NULL ` +
         `(ambiguous, local/Ollama, or no matching connection).`,
     );
 

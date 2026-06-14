@@ -38,7 +38,7 @@ export class ProviderAnalyticsController {
     // services prefer it over the provider/auth_type/label tuple.
     @Query('connection_id') connectionId?: string,
   ) {
-    const validRange = range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
+    const validRange = this.validateRange(range);
     const hourly = validRange === '24h';
     const agent = agentName || undefined;
 
@@ -300,5 +300,9 @@ export class ProviderAnalyticsController {
       }),
       recent_messages: recentMessages,
     };
+  }
+
+  private validateRange(range?: string): string {
+    return range === '30d' ? '30d' : range === '7d' ? '7d' : '24h';
   }
 }

@@ -370,6 +370,46 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(routingCache.invalidateTenant).toHaveBeenCalledWith('tenant-1');
     });
 
+    it('invalidates every owned agent, not just the triggering one', async () => {
+      // The deactivation is user-wide, so a sibling agent's cache must also be
+      // dropped even though the request came from agent-1.
+      const agentRepo = makeRepo(['agent-1', 'agent-2']);
+      const cache = {
+        getProviders: jest.fn().mockReturnValue(null),
+        setProviders: jest.fn(),
+        invalidateAgent: jest.fn(),
+        invalidateTenant: jest.fn(),
+      };
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        cache as unknown as RoutingCacheService,
+      );
+      providerRepo.find.mockResolvedValueOnce([
+        {
+          id: 'p1',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          priority: 0,
+          is_active: true,
+        } as unknown as TenantProvider,
+      ]);
+      tierRepo.find.mockResolvedValue([]);
+      specRepo.find.mockResolvedValue([]);
+      headerTierRepo.find.mockResolvedValue([]);
+
+      await localSvc.deactivateAllProviders('agent-1', 'user-1');
+
+      expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(cache.invalidateAgent).toHaveBeenCalledWith('agent-2');
+      expect(cache.invalidateTenant).toHaveBeenCalledWith('user-1');
+    });
+
     it('blocks bulk disable when a route references an active provider', async () => {
       providerRepo.find.mockResolvedValueOnce([
         {
@@ -1204,6 +1244,110 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
 
       expect(isNew).toBe(true);
       expect(enabled.map((g) => g.agent)).toEqual(['agent-1', 'agent-2']);
+    });
+  });
+
+  describe('reconnect of a DISCONNECTED provider fans back out to all agents', () => {
+    it('re-enables every owned agent when reconnecting an inactive Default-label row', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      // removeProvider left this row is_active=false; reconnecting must restore
+      // the global ON-by-default invariant for EVERY agent.
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p-dead',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Default',
+        is_active: false,
+      });
+
+      const { isNew } = await svc.upsertProvider('agent-1', 'user-1', 'openai', 'sk-reconnect');
+
+      expect(isNew).toBe(false);
+      // Fan-out IS taken on reactivation of a disconnected row.
+      expect(enableSpy).toHaveBeenCalledWith('user-1', 'p-dead', undefined);
+      expect(enabled.some((g) => g.agent === 'agent-1' && g.provider === 'p-dead')).toBe(true);
+      expect(enabled.some((g) => g.agent === 'agent-2' && g.provider === 'p-dead')).toBe(true);
+    });
+
+    it('re-enables every owned agent when reconnecting an inactive same-key row', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      const sameKeyEncrypted = encrypt('sk-same-key', getEncryptionSecret());
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'p-same-dead',
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          api_key_encrypted: sameKeyEncrypted,
+          is_active: false,
+          priority: 0,
+        } as unknown as TenantProvider,
+      ]);
+
+      const { isNew } = await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'openai',
+        'sk-same-key',
+        'api_key',
+        undefined,
+        'Key 2',
+      );
+
+      expect(isNew).toBe(false);
+      expect(enableSpy).toHaveBeenCalledWith('user-1', 'p-same-dead', undefined);
+      expect(enabled.some((g) => g.agent === 'agent-2' && g.provider === 'p-same-dead')).toBe(true);
+    });
+
+    it('does NOT resurrect a user-removed (inactive) subscription on background re-registration', async () => {
+      // Unlike the user-driven upsert reconnect, registerSubscriptionProvider is
+      // the agent's automatic capability report. A subscription the user
+      // explicitly removed must stay inactive — it must not be reactivated nor
+      // fanned out to other agents by a background re-registration.
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      const dead = {
+        id: 'p-sub-dead',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Default',
+        is_active: false,
+      };
+      providerRepo.findOne.mockResolvedValue(dead);
+
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
+
+      expect(isNew).toBe(false);
+      // Row left untouched (still inactive, never saved) and no user-wide fan-out.
+      expect(dead.is_active).toBe(false);
+      expect(providerRepo.save).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+      expect(enabled.some((g) => g.agent === 'agent-2' && g.provider === 'p-sub-dead')).toBe(false);
+    });
+
+    it('does not reactivate an already-active subscription row (no fan-out)', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1', 'agent-2'], enabled);
+      const enableSpy = jest.spyOn(svc, 'enableProviderForAllAgents');
+      providerRepo.findOne.mockResolvedValue({
+        id: 'p-sub-live',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Default',
+        is_active: true,
+      });
+
+      const { isNew } = await svc.registerSubscriptionProvider('agent-1', 'user-1', 'anthropic');
+
+      expect(isNew).toBe(false);
+      // Active row: only the connecting agent is touched via afterProviderChange.
+      expect(enableSpy).not.toHaveBeenCalled();
+      expect(enabled.some((g) => g.agent === 'agent-2')).toBe(false);
     });
   });
 

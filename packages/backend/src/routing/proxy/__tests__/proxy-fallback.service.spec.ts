@@ -62,6 +62,50 @@ describe('ProxyFallbackService', () => {
       findProviderForModel: jest.fn().mockResolvedValue(undefined),
       getProviderRegion: jest.fn().mockResolvedValue(null),
       hasActiveProvider: jest.fn().mockResolvedValue(true),
+      // Single key selection per attempt. By default the unified row composes
+      // its fields from the other (legacy) mocks so existing test setups that
+      // only drive getProviderApiKey/getProviderRegion/getProviderKeyId keep
+      // working: the apiKey forwarded, the id stamped, and the region all come
+      // from this one object. Tests that need divergent rows override it.
+      selectProviderKey: jest.fn(
+        async (
+          tenantId: string,
+          provider: string,
+          authType?: string,
+          label?: string,
+          agentId?: string,
+        ) => {
+          const apiKey = await providerKeyService.getProviderApiKey(
+            tenantId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          if (apiKey === null || apiKey === undefined) return null;
+          const id = await providerKeyService.getProviderKeyId(
+            tenantId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          const region = await providerKeyService.getProviderRegion(
+            tenantId,
+            provider,
+            authType as never,
+            label,
+            agentId,
+          );
+          return {
+            apiKey,
+            id,
+            region,
+            label: label ?? 'Default',
+            priority: 0,
+          };
+        },
+      ),
     } as unknown as jest.Mocked<ProviderKeyService>;
 
     customProviderRepo = {
@@ -1208,7 +1252,16 @@ describe('ProxyFallbackService', () => {
         r: 'refresh-token',
         e: Date.now() + 10 * 60 * 1000,
       });
-      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      // The single key selection resolves the unpinned subscription label to the
+      // selected row's own label ('Work'), which then flows into the OAuth unwrap
+      // and the subscription re-read path.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: rawBlob,
+        id: 'up-fallback',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
       openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
       providerClient.forward.mockResolvedValue({
@@ -1238,10 +1291,13 @@ describe('ProxyFallbackService', () => {
 
       expect(result.success).not.toBeNull();
       expect(providerKeyService.getAuthType).not.toHaveBeenCalled();
-      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
+      // Unpinned: selectProviderKey is called with no label and returns the row
+      // whose label resolves the subscription credential lookups.
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
         'tenant-1',
         'openai',
         'subscription',
+        undefined,
         'agent-1',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
@@ -1252,13 +1308,6 @@ describe('ProxyFallbackService', () => {
         'agent-1',
       );
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'tenant-1', 'Work');
-      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
-        'tenant-1',
-        'openai',
-        'subscription',
-        'Work',
-        'agent-1',
-      );
     });
 
     it('uses the latest stored OAuth blob for fallback retries after preflight refresh', async () => {
@@ -1342,7 +1391,15 @@ describe('ProxyFallbackService', () => {
         e: Date.now() + 10 * 60 * 1000,
       });
       providerKeyService.getAuthType.mockResolvedValue('subscription');
-      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Work');
+      // The selected row's own label ('Work') resolves the unpinned subscription
+      // credential lookups; getDefaultKeyLabel is no longer consulted.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: rawBlob,
+        id: 'up-fallback',
+        region: null,
+        label: 'Work',
+        priority: 0,
+      });
       providerKeyService.getProviderApiKey.mockResolvedValue(rawBlob);
       pricingCache.getByModel.mockReturnValue({ provider: 'OpenAI' } as never);
       openaiOauth.unwrapToken.mockResolvedValue('fresh-access');
@@ -1364,10 +1421,13 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.success).not.toBeNull();
-      expect(providerKeyService.getDefaultKeyLabel).toHaveBeenCalledWith(
+      // Legacy (string) fallback resolves the provider from pricing ('OpenAI'),
+      // then selectProviderKey returns the row whose label drives the lookups.
+      expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
         'tenant-1',
         'OpenAI',
         'subscription',
+        undefined,
         'agent-1',
       );
       expect(providerKeyService.getProviderApiKey).toHaveBeenCalledWith(
@@ -1378,13 +1438,6 @@ describe('ProxyFallbackService', () => {
         'agent-1',
       );
       expect(openaiOauth.unwrapToken).toHaveBeenCalledWith(rawBlob, 'agent-1', 'tenant-1', 'Work');
-      expect(providerKeyService.getProviderRegion).toHaveBeenCalledWith(
-        'tenant-1',
-        'OpenAI',
-        'subscription',
-        'Work',
-        'agent-1',
-      );
     });
 
     it('does not exclude auth types for different provider', async () => {

@@ -126,6 +126,20 @@ describe('TimeseriesQueriesService', () => {
       const result = await service.getActiveSkills('24h', 'u1');
       expect(result[0].agent_name).toBeNull();
     });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getActiveSkills('24h', 'tenant-1', undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getActiveSkills('24h', 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
   });
 
   describe('getCostByModel', () => {
@@ -241,6 +255,20 @@ describe('TimeseriesQueriesService', () => {
       const result = await service.getCostByModel('7d', 'u1');
       expect(result[0].custom_provider_name).toBeNull();
     });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getCostByModel('7d', 'tenant-1', undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getCostByModel('7d', 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
   });
 
   describe('getRecentActivity', () => {
@@ -296,6 +324,20 @@ describe('TimeseriesQueriesService', () => {
       // When a tenantId is provided the helper filters by tenant_id (not user_id).
       const andWhereCalls = mockTurnQb.andWhere.mock.calls.map((call) => call[0] as string);
       expect(andWhereCalls).toContain('at.tenant_id = :tenantId');
+    });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5, undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
   });
 

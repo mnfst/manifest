@@ -26,9 +26,17 @@ export class AggregationService {
     private readonly turnRepo: Repository<AgentMessage>,
   ) {}
 
-  async hasAnyData(tenantId: string | null, agentName?: string): Promise<boolean> {
+  async hasAnyData(
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ): Promise<boolean> {
     const qb = this.turnRepo.createQueryBuilder('at').select('1').limit(1);
     addTenantFilter(qb, tenantId, agentName);
+    // Mirror the overview's exclusion: a tenant whose only traffic is Playground
+    // must read as empty, or has_data=true paints a non-empty state over cards
+    // and charts that all dropped Playground and so render blank.
+    if (excludePlayground) excludePlaygroundAgents(qb);
     const row = await qb.getRawOne();
     return row != null;
   }

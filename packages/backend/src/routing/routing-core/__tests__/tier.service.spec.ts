@@ -86,13 +86,34 @@ describe('TierService', () => {
       expect(await svc.hasRoutableTier('agent-1')).toBe(true);
     });
 
-    it('returns false when a tier only has an auto-assigned route', async () => {
+    it('returns true when a tier only has an auto-assigned route (legacy upgrade path)', async () => {
+      // ResolveService honors auto_assigned_route when override is empty, so
+      // the status endpoint must not claim "no_routable_models" while the
+      // proxy actively routes these installs.
       tierRepo.find.mockResolvedValue([
         {
           tier: 'standard',
           override_route: null,
           auto_assigned_route: route('openai', 'api_key', 'gpt-4o'),
         },
+      ]);
+      expect(await svc.hasRoutableTier('agent-1')).toBe(true);
+    });
+
+    it('prefers override over auto-assigned when both are present', async () => {
+      tierRepo.find.mockResolvedValue([
+        {
+          tier: 'standard',
+          override_route: route('anthropic', 'api_key', 'claude'),
+          auto_assigned_route: route('openai', 'api_key', 'gpt-4o'),
+        },
+      ]);
+      expect(await svc.hasRoutableTier('agent-1')).toBe(true);
+    });
+
+    it('ignores a malformed auto-assigned blob', async () => {
+      tierRepo.find.mockResolvedValue([
+        { tier: 'standard', override_route: null, auto_assigned_route: { foo: 'bar' } },
       ]);
       expect(await svc.hasRoutableTier('agent-1')).toBe(false);
     });

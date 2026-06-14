@@ -503,6 +503,122 @@ describe('AgentsController', () => {
     expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
   });
 
+  it('rolls back the agent and clears the list cache when provider enable fails', async () => {
+    const mockOnboard = jest.fn().mockResolvedValue({
+      tenantId: 't1',
+      agentId: 'a1',
+      apiKey: 'mnfst_key',
+    });
+    const mockDelete = jest.fn().mockResolvedValue(undefined);
+    const enableErr = new Error('enable boom');
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AgentLifecycleService,
+          useValue: {
+            deleteAgent: mockDelete,
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+            setRecordMessages: jest.fn(),
+          },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: { enableAllProvidersForAgent: jest.fn().mockRejectedValue(enableErr) },
+        },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const cm = module.get<Cache>(CACHE_MANAGER);
+    const delSpy = jest.spyOn(cm, 'del').mockResolvedValue(true);
+    const ctx = { tenantId: 't1', userId: 'user-123' };
+
+    // The original enable error surfaces to the client...
+    await expect(ctrl.createAgent(ctx as never, { name: 'My Agent' } as never)).rejects.toThrow(
+      'enable boom',
+    );
+    // ...the half-created agent is rolled back (deleteAgent is tenant-scoped, so
+    // it receives the tenant id onboardAgent returned, not the user id)...
+    expect(mockDelete).toHaveBeenCalledWith('t1', 'my-agent');
+    // ...and the agent-list cache is cleared so the briefly-visible agent does
+    // not linger in a cached list (both tenant-keyed entries).
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
+  });
+
+  it('still re-throws the enable error when the compensating delete also fails', async () => {
+    const mockOnboard = jest.fn().mockResolvedValue({
+      tenantId: 't1',
+      agentId: 'a1',
+      apiKey: 'mnfst_key',
+    });
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      controllers: [AgentsController],
+      providers: [
+        { provide: TimeseriesQueriesService, useValue: { getAgentList: jest.fn() } },
+        {
+          provide: AgentLifecycleService,
+          useValue: {
+            deleteAgent: jest.fn().mockRejectedValue(new Error('cleanup boom')),
+            renameAgent: jest.fn(),
+            updateAgentType: jest.fn(),
+            findAgentInfo: jest.fn().mockResolvedValue(null),
+            setRecordMessages: jest.fn(),
+          },
+        },
+        {
+          provide: ApiKeyGeneratorService,
+          useValue: { onboardAgent: mockOnboard, getKeyForAgent: jest.fn(), rotateKey: jest.fn() },
+        },
+        { provide: ConfigService, useValue: { get: jest.fn() } },
+        { provide: TenantCacheService, useValue: { resolve: jest.fn().mockResolvedValue(null) } },
+        { provide: IngestEventBusService, useValue: { emit: jest.fn() } },
+        {
+          provide: AgentDuplicationService,
+          useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
+        },
+        {
+          provide: AgentRecordingCacheService,
+          useValue: { isRecording: jest.fn(), invalidate: jest.fn() },
+        },
+        {
+          provide: ProviderService,
+          useValue: {
+            enableAllProvidersForAgent: jest.fn().mockRejectedValue(new Error('enable boom')),
+          },
+        },
+      ],
+    }).compile();
+
+    const ctrl = module.get<AgentsController>(AgentsController);
+    const ctx = { tenantId: 't1', userId: 'user-123' };
+    // The compensating cleanup throwing must not mask the original failure.
+    await expect(ctrl.createAgent(ctx as never, { name: 'My Agent' } as never)).rejects.toThrow(
+      'enable boom',
+    );
+  });
+
   it('rejects createAgent with empty slug', async () => {
     const mockOnboard = jest.fn();
     const module: TestingModule = await Test.createTestingModule({

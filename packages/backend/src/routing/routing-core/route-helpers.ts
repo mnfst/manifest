@@ -24,8 +24,14 @@ export function readFallbackRoutes(row: AnyOverrideRow): ModelRoute[] | null {
   return isModelRouteArray(row.fallback_routes) ? row.fallback_routes : null;
 }
 
+/**
+ * The route a row actually resolves to: the user override when present, else
+ * the legacy auto-assigned route. Mirrors the read order of
+ * ResolveService.buildResolvedRouteChain — upgraded installs whose tiers are
+ * auto-assigned-only must count as routable, since the proxy routes them.
+ */
 export function effectiveRoute(row: AnyOverrideRow & AnyAutoRow): ModelRoute | null {
-  return readOverrideRoute(row);
+  return readOverrideRoute(row) ?? readAutoAssignedRoute(row);
 }
 
 /**

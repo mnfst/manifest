@@ -163,6 +163,24 @@ export class ProviderService {
     this.routingCache.invalidateTenant(tenantId);
   }
 
+  /**
+   * Restore the global ON-by-default invariant when a previously disconnected
+   * row is reconnected. removeProvider() deletes agent_enabled_providers rows
+   * for EVERY agent, so a reactivation must fan back out to all owned agents —
+   * afterProviderChange alone only re-enables the connecting agent (or none,
+   * when agentId is null on the custom-provider path). Rotating an active key
+   * never reaches this (wasInactive=false), preserving per-agent disables.
+   */
+  private async fanOutIfReactivated(
+    wasInactive: boolean,
+    tenantId: string,
+    userProviderId: string,
+    manager?: EntityManager,
+  ): Promise<void> {
+    if (!wasInactive) return;
+    await this.enableProviderForAllAgents(tenantId, userProviderId, manager);
+  }
+
   private async deleteProviderAccess(
     userProviderIds: string[],
     manager?: EntityManager,
@@ -251,6 +269,10 @@ export class ProviderService {
     const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
 
     if (existing) {
+      // Captured BEFORE mutation: a disconnected row being reconnected must
+      // fan back out below; rotating an active key must NOT (per-agent
+      // disables survive rotation).
+      const wasInactive = !existing.is_active;
       if (apiKeyEncrypted !== null) {
         existing.api_key_encrypted = apiKeyEncrypted;
         existing.key_prefix = keyPrefix;
@@ -259,6 +281,7 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await repo.save(existing);
+      await this.fanOutIfReactivated(wasInactive, tenantId, existing.id, manager);
       await this.afterProviderChange(agentId, tenantId, existing.id, manager);
       return { provider: existing, isNew: false };
     }
@@ -314,6 +337,8 @@ export class ProviderService {
     const keyPrefix = apiKey ? apiKey.substring(0, 8) : null;
 
     if (existing) {
+      // Captured BEFORE mutation — see the same dance in upsertProvider.
+      const wasInactive = !existing.is_active;
       if (apiKeyEncrypted !== null) {
         existing.api_key_encrypted = apiKeyEncrypted;
         existing.key_prefix = keyPrefix;
@@ -322,6 +347,7 @@ export class ProviderService {
       existing.is_active = true;
       existing.updated_at = new Date().toISOString();
       await repo.save(existing);
+      await this.fanOutIfReactivated(wasInactive, tenantId, existing.id, manager);
       await this.afterProviderChange(agentId, tenantId, existing.id, manager);
       return { provider: existing, isNew: false };
     }
@@ -341,10 +367,13 @@ export class ProviderService {
         (r) => !!r.api_key_encrypted && this.decryptOrNull(r.api_key_encrypted) === apiKey,
       );
       if (sameKey) {
+        // Captured BEFORE mutation — see the same dance in upsertProvider.
+        const wasInactive = !sameKey.is_active;
         sameKey.region = resolvedRegion;
         sameKey.is_active = true;
         sameKey.updated_at = new Date().toISOString();
         await repo.save(sameKey);
+        await this.fanOutIfReactivated(wasInactive, tenantId, sameKey.id, manager);
         await this.afterProviderChange(agentId, tenantId, sameKey.id, manager);
         return { provider: sameKey, isNew: false };
       }
@@ -547,6 +576,13 @@ export class ProviderService {
     });
 
     if (existing) {
+      // Deliberately do NOT reactivate an inactive row here. Unlike the
+      // user-driven upsert paths (an explicit reconnect via the providers UI),
+      // this entry point is the agent's automatic capability re-registration.
+      // A subscription the user explicitly removed (is_active = false) must stay
+      // removed until the user re-adds it — otherwise a background agent report
+      // would silently resurrect it. We still re-grant the calling agent access
+      // so an active row stays usable; for an inactive row that grant is inert.
       await this.afterProviderChange(agentId, tenantId, existing.id);
       return { isNew: false };
     }
@@ -889,6 +925,11 @@ export class ProviderService {
       { is_active: false, updated_at: new Date().toISOString() },
     );
     await this.deleteProviderAccess(activeProviders.map((provider) => provider.id));
+    // The deactivation is tenant-wide, so every owned agent's routing cache is
+    // stale — not just the agent whose page triggered it.
+    for (const ownedAgentId of await this.listOwnedAgentIds(tenantId)) {
+      this.routingCache.invalidateAgent(ownedAgentId);
+    }
     this.routingCache.invalidateAgent(agentId);
     this.routingCache.invalidateTenant(tenantId);
   }
