@@ -62,9 +62,15 @@ export class SpecificityService {
 
     try {
       await this.repo.insert(record);
-    } catch {
+    } catch (err) {
+      // A concurrent request may have inserted the same (agent_id, category)
+      // first, hitting the unique index. Re-read and adopt its row if present;
+      // otherwise the failure is something else (FK violation, connection
+      // error, …) and we rethrow rather than reporting a phantom success for a
+      // row that was never persisted.
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
       if (retry) return this.toggleCategory(agentId, category, active);
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -124,9 +130,14 @@ export class SpecificityService {
 
     try {
       await this.repo.insert(record);
-    } catch {
+    } catch (err) {
+      // A concurrent request may have inserted the same (agent_id, category)
+      // first, hitting the unique index. Re-read and adopt its row if present;
+      // otherwise the failure is something else (FK violation, connection
+      // error, …) and we rethrow rather than reporting a phantom success for a
+      // row that was never persisted.
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry)
+      if (retry) {
         return this.setOverride(
           agentId,
           tenantId,
@@ -136,6 +147,8 @@ export class SpecificityService {
           authType,
           providerKeyLabel,
         );
+      }
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;

@@ -393,12 +393,31 @@ describe('DatabaseSeederService', () => {
       expect(auth.api.signUpEmail).toHaveBeenCalled();
     });
 
-    it('should propagate unhandled errors from seedAdminUser', async () => {
-      // checkBetterAuthUser returns false, signUpEmail throws
+    it('catches errors from the demo-data seed sequence so boot is not aborted', async () => {
+      // Demo-data seeding is best-effort dev-only convenience: a signup hiccup
+      // (or any other seed insert failure) must be logged and swallowed, NOT
+      // rejected up through onModuleInit where it would crash app bootstrap.
+      // checkBetterAuthUser returns false, signUpEmail throws.
       mockDataSource.query.mockResolvedValueOnce([]); // checkBetterAuthUser: no user
       auth.api.signUpEmail.mockRejectedValueOnce(new Error('signup failed'));
+      const errorSpy = jest
+        .spyOn((service as unknown as { logger: { error: jest.Mock } }).logger, 'error')
+        .mockImplementation(() => undefined);
 
-      await expect(service.onModuleInit()).rejects.toThrow('signup failed');
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('signup failed'));
+
+      errorSpy.mockRestore();
+    });
+
+    it('keeps the Better Auth migration fatal — its failure still aborts boot', async () => {
+      // The migration that creates Better Auth's own tables runs BEFORE the
+      // guarded demo-data block and must remain fatal: without those tables the
+      // app cannot authenticate at all, so a failure here should propagate.
+      const ctx = await auth.$context;
+      (ctx.runMigrations as jest.Mock).mockRejectedValueOnce(new Error('migration boom'));
+
+      await expect(service.onModuleInit()).rejects.toThrow('migration boom');
     });
 
     it('should skip api key insert when getAdminUserId returns null', async () => {

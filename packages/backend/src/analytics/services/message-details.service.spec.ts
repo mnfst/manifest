@@ -128,6 +128,25 @@ describe('MessageDetailsService', () => {
     expect(msgQb.andWhere).not.toHaveBeenCalled();
   });
 
+  it('tenant-scopes the llm_calls, agent_logs, and tool_executions child queries', async () => {
+    // An llm call is needed so the tool_executions query runs (llmCallIds.length > 0).
+    llmQb.getMany.mockResolvedValue([{ id: 'lc-1', call_index: 0 }]);
+
+    await service.getDetails('msg-1', 'tenant-xyz');
+
+    // trace_id child lookups must not rely on the parent gate alone: a forged/colliding
+    // trace_id off attacker-supplied telemetry could otherwise surface another tenant's rows.
+    expect(llmQb.andWhere).toHaveBeenCalledWith('lc.tenant_id = :tenantId', {
+      tenantId: 'tenant-xyz',
+    });
+    expect(logQb.andWhere).toHaveBeenCalledWith('al.tenant_id = :tenantId', {
+      tenantId: 'tenant-xyz',
+    });
+    expect(toolQb.andWhere).toHaveBeenCalledWith('te.tenant_id = :tenantId', {
+      tenantId: 'tenant-xyz',
+    });
+  });
+
   it('returns related llm calls', async () => {
     const llmCall = {
       id: 'lc-1',

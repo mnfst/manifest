@@ -117,6 +117,7 @@ export class MessageDetailsService {
     const llmCallsQb = this.llmCallRepo
       .createQueryBuilder('lc')
       .where('lc.turn_id = :turnId', { turnId: messageId })
+      .andWhere('lc.tenant_id = :tenantId', { tenantId })
       .orderBy('lc.call_index', 'ASC')
       .addOrderBy('lc.timestamp', 'ASC');
 
@@ -124,6 +125,7 @@ export class MessageDetailsService {
       ? this.logRepo
           .createQueryBuilder('al')
           .where('al.trace_id = :traceId', { traceId: message.trace_id })
+          .andWhere('al.tenant_id = :tenantId', { tenantId })
           .orderBy('al.timestamp', 'ASC')
       : null;
 
@@ -143,6 +145,7 @@ export class MessageDetailsService {
         ? await this.toolRepo
             .createQueryBuilder('te')
             .where('te.llm_call_id IN (:...ids)', { ids: llmCallIds })
+            .andWhere('te.tenant_id = :tenantId', { tenantId })
             .orderBy('te.llm_call_id', 'ASC')
             .getMany()
         : [];

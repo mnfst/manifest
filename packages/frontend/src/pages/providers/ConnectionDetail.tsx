@@ -112,7 +112,7 @@ const ConnectionDetail: Component = () => {
     (id) => getConnectionDetail(id) as Promise<DetailResponse>,
   );
 
-  const conn = () => detail()?.connection ?? null;
+  const conn = () => (detail.error ? null : (detail()?.connection ?? null));
   const provDef = () => PROVIDERS.find((p) => p.id === conn()?.provider);
   const isCustomProvider = () => conn()?.provider?.startsWith('custom:') ?? false;
 
@@ -449,10 +449,29 @@ const ConnectionDetail: Component = () => {
   // A resolved-but-null connection means the id is unknown / the connection
   // was deleted. Branch on the resource so this renders a not-found state
   // instead of the loading fallback spinning forever.
-  const notFound = () => !detail.loading && detail() !== undefined && conn() === null;
+  // A rejected fetch leaves the resource errored; surface a retryable error state
+  // instead of spinning the loading skeleton forever. Reading detail.error never
+  // throws, unlike calling detail(), so guard the other branches on it too.
+  const hasError = () => !detail.loading && !!detail.error;
+  const notFound = () =>
+    !hasError() && !detail.loading && detail() !== undefined && conn() === null;
 
   return (
     <div class="container--lg">
+      <Show when={hasError()}>
+        <Title>Couldn't load connection | Manifest</Title>
+        <div style="padding: 48px 0; text-align: center;">
+          <div style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 8px;">
+            Couldn't load this connection
+          </div>
+          <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 16px;">
+            Something went wrong loading this connection. Please try again.
+          </div>
+          <button type="button" class="btn btn--outline btn--sm" onClick={() => refetchDetail()}>
+            Retry
+          </button>
+        </div>
+      </Show>
       <Show when={notFound()}>
         <Title>Connection not found | Manifest</Title>
         <div style="padding: 48px 0; text-align: center;">
@@ -468,9 +487,9 @@ const ConnectionDetail: Component = () => {
         </div>
       </Show>
       <Show
-        when={!notFound() && detail() && conn()}
+        when={!notFound() && !hasError() && detail() && conn()}
         fallback={
-          <Show when={!notFound()}>
+          <Show when={!notFound() && !hasError()}>
             <div style="width: 100%; height: 300px; border-radius: var(--radius); background: hsl(var(--muted) / 0.45); animation: skeleton-pulse 1.2s ease-in-out infinite;" />
           </Show>
         }
@@ -794,7 +813,7 @@ const ConnectionDetail: Component = () => {
                             <tr>
                               <td>
                                 <A
-                                  href={`/harnesses/${agent.agent_name}`}
+                                  href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
                                   style="text-decoration: none; color: hsl(var(--foreground)); font-weight: 500; display: flex; align-items: center; gap: 8px;"
                                 >
                                   <Show when={platformIcon(agent.agent_platform, null)}>

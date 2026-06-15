@@ -807,7 +807,7 @@ const GlobalOverview: Component = () => {
                       const icon = platformIcon(agent.agent_platform, agent.agent_category);
                       return (
                         <A
-                          href={`/harnesses/${agent.agent_name}`}
+                          href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
                           style="display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));"
                         >
                           <Show when={icon}>
@@ -1179,7 +1179,9 @@ const GlobalOverview: Component = () => {
                     return (
                       <tr
                         style="cursor: pointer;"
-                        onClick={() => navigate(`/harnesses/${agent.agent_name}`)}
+                        onClick={() =>
+                          navigate(`/harnesses/${encodeURIComponent(agent.agent_name)}`)
+                        }
                       >
                         <td>
                           <div style="display: flex; align-items: center; gap: 8px;">

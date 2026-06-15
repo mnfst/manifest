@@ -49,18 +49,32 @@ export class DatabaseSeederService implements OnModuleInit {
     // Dev/test workflow: seed the well-known admin + demo data in one shot
     // so `/serve` and E2E tests get a non-empty dashboard without going
     // through the setup wizard on every run.
-    await this.seedAdminUser();
-    // Tenant first: the dashboard API key is tenant-scoped.
-    await this.seedTenantAndAgent();
-    await this.seedApiKey();
-    // Connections must exist before messages: each seeded message references a
-    // tenant_providers row via the FK on agent_messages.tenant_provider_id.
-    await this.seedTenantProviders();
-    await this.seedAgentMessages();
-    this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
-    this.logger.warn(
-      'SECURITY: Default seed credentials are active (admin@manifest.build). Do NOT use in production.',
-    );
+    //
+    // Seeding is best-effort dev-only convenience (gated on SEED_DATA): a
+    // partial DB, a flaky insert, or a Better Auth signup hiccup must not
+    // reject onModuleInit and abort app bootstrap. The Better Auth migration
+    // above stays fatal — without its tables the app can't authenticate at all
+    // — but everything below only populates demo rows, so we log and continue.
+    try {
+      await this.seedAdminUser();
+      // Tenant first: the dashboard API key is tenant-scoped.
+      await this.seedTenantAndAgent();
+      await this.seedApiKey();
+      // Connections must exist before messages: each seeded message references a
+      // tenant_providers row via the FK on agent_messages.tenant_provider_id.
+      await this.seedTenantProviders();
+      await this.seedAgentMessages();
+      this.logger.log('Seeded demo data (SEED_DATA=true, dev/test only)');
+      this.logger.warn(
+        'SECURITY: Default seed credentials are active (admin@manifest.build). Do NOT use in production.',
+      );
+    } catch (err) {
+      this.logger.error(
+        `Demo data seeding failed (SEED_DATA=true, dev/test only) — continuing boot without it: ${
+          err instanceof Error ? err.message : err
+        }`,
+      );
+    }
   }
 
   private async runBetterAuthMigrations() {

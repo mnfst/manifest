@@ -239,9 +239,23 @@ describe('provider pages', () => {
     render(() => <LocalProviders />);
 
     await waitFor(() => {
-      expect(mockSetSearchParams).toHaveBeenCalledWith({ add: undefined });
+      // The deep-link handling lives in a createEffect (not the render body), and
+      // clears the param with replace so a refresh/back-nav can't re-trigger it.
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ add: undefined }, { replace: true });
       expect(screen.getByRole('dialog', { name: 'provider modal' })).toBeDefined();
     });
+  });
+
+  it('does not auto-open the modal without the add=true deep-link', async () => {
+    mockSearchParams = {};
+    render(() => <Subscriptions />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Subscriptions')).toBeDefined();
+    });
+    // No deep-link → the effect must not clear the param or open the modal.
+    expect(mockSetSearchParams).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog', { name: 'provider modal' })).toBeNull();
   });
 
   it('disables Add buttons when no agent exists for the modal context', async () => {

@@ -165,9 +165,14 @@ export class TierService {
 
     try {
       await this.tierRepo.insert(record);
-    } catch {
+    } catch (err) {
+      // A concurrent request may have inserted the same (agent_id, tier) first,
+      // hitting the unique index. Re-read and adopt its row if present;
+      // otherwise the failure is something else (FK violation, connection
+      // error, …) and we rethrow rather than reporting a phantom success for a
+      // row that was never persisted.
       const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
-      if (retry)
+      if (retry) {
         return this.setOverride(
           agentId,
           tenantId,
@@ -177,6 +182,8 @@ export class TierService {
           authType,
           providerKeyLabel,
         );
+      }
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;

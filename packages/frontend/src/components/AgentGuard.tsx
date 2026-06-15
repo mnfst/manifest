@@ -1,5 +1,12 @@
 import { useParams } from '@solidjs/router';
-import { createResource, createMemo, Show, onCleanup, type ParentComponent } from 'solid-js';
+import {
+  createResource,
+  createMemo,
+  createEffect,
+  Show,
+  onCleanup,
+  type ParentComponent,
+} from 'solid-js';
 import ErrorState from './ErrorState.jsx';
 import NotFound from '../pages/NotFound.jsx';
 import { getAgents } from '../services/api.js';
@@ -33,11 +40,27 @@ const AgentGuard: ParentComponent = (props) => {
     () => getAgents() as Promise<AgentsData>,
   );
 
+  // Pure: only derives whether the viewed agent should be considered to exist.
+  // A memo must never write to external signals/stores — doing so triggers the
+  // SolidJS "computations created outside a `createRoot` will never be disposed"
+  // warning. The display-name / platform store writes live in the effect below.
   const agentExists = createMemo(() => {
     const decoded = decodeURIComponent(params.agentName);
     const recent = isRecentlyCreated(decoded);
     const list = data()?.agents;
     if (!list) return true; // still loading or no data yet — don't block
+    const agent = list.find((a) => a.agent_name === decoded);
+    return recent || !!agent;
+  });
+
+  // Side effects keyed on the resolved list + the viewed agent: sync the
+  // display-name / platform stores and clear the recent-agent flag once the
+  // agent is found. Mirrors the previous in-memo behavior exactly (same writes,
+  // same values) but in an effect so the memo stays pure.
+  createEffect(() => {
+    const decoded = decodeURIComponent(params.agentName);
+    const list = data()?.agents;
+    if (!list) return; // still loading or no data yet — leave stores untouched
     const agent = list.find((a) => a.agent_name === decoded);
     if (agent) {
       clearRecentAgent(agent.agent_name);
@@ -47,7 +70,6 @@ const AgentGuard: ParentComponent = (props) => {
       setAgentDisplayName(null);
       setAgentPlatform(null, null);
     }
-    return recent || !!agent;
   });
 
   onCleanup(() => {
