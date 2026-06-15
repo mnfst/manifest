@@ -20,6 +20,7 @@ import {
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
 import { toast } from '../services/toast-store.js';
+import Select from './Select.jsx';
 
 interface Props {
   provDef: ProviderDef;
@@ -41,16 +42,17 @@ const MAX_LABEL_LENGTH = 50;
 const KIRO_DEFAULT_REGION = 'us-east-1';
 const KIRO_CUSTOM_REGION_VALUE = 'custom';
 const KIRO_REGION_OPTIONS = [
-  'us-east-1',
-  'us-east-2',
-  'us-west-2',
-  'eu-west-1',
-  'eu-west-2',
-  'eu-central-1',
-  'ap-south-1',
-  'ap-southeast-1',
-  'ap-southeast-2',
-  'ap-northeast-1',
+  { value: 'us-east-1', label: 'us-east-1' },
+  { value: 'us-east-2', label: 'us-east-2' },
+  { value: 'us-west-2', label: 'us-west-2' },
+  { value: 'eu-west-1', label: 'eu-west-1' },
+  { value: 'eu-west-2', label: 'eu-west-2' },
+  { value: 'eu-central-1', label: 'eu-central-1' },
+  { value: 'ap-south-1', label: 'ap-south-1' },
+  { value: 'ap-southeast-1', label: 'ap-southeast-1' },
+  { value: 'ap-southeast-2', label: 'ap-southeast-2' },
+  { value: 'ap-northeast-1', label: 'ap-northeast-1' },
+  { value: KIRO_CUSTOM_REGION_VALUE, label: 'Other region...' },
 ];
 
 interface DeviceCodeFlow {
@@ -391,26 +393,17 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                 </Show>
                 <Show when={isKiro()}>
                   <div class="provider-detail__field">
-                    <label class="provider-detail__label" for="kiro-region">
-                      Region
-                    </label>
-                    <select
-                      id="kiro-region"
-                      class="provider-detail__input"
-                      classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
+                    <span class="provider-detail__label">Region</span>
+                    <Select
+                      label="Region"
+                      options={KIRO_REGION_OPTIONS}
                       value={kiroRegion()}
                       disabled={props.busy()}
-                      aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
-                      onChange={(e) => {
-                        setKiroRegion(e.currentTarget.value);
+                      onChange={(value) => {
+                        setKiroRegion(value);
                         setKiroConfigError(null);
                       }}
-                    >
-                      <For each={KIRO_REGION_OPTIONS}>
-                        {(region) => <option value={region}>{region}</option>}
-                      </For>
-                      <option value={KIRO_CUSTOM_REGION_VALUE}>Other region...</option>
-                    </select>
+                    />
                   </div>
                   <Show when={kiroRegion() === KIRO_CUSTOM_REGION_VALUE}>
                     <div class="provider-detail__field">
