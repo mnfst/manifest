@@ -399,6 +399,7 @@ export class ProviderClient {
           ? applyAnthropicMessagesMutations(body, {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              targetModel: bareModel,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectSubscriptionIdentity,

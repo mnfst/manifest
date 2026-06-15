@@ -83,6 +83,8 @@ describe('ProviderClient — strict header contract on auth-critical paths', () 
       'x-stainless-timeout': '600',
     });
     expect(sentHeaders['anthropic-beta']).toContain('oauth-2025-04-20');
+    expect(sentHeaders['anthropic-beta']).toContain('context-management-2025-06-27');
+    expect(sentHeaders['anthropic-beta']).toContain('effort-2025-11-24');
     expect(sentHeaders['anthropic-beta']).not.toContain('prompt-caching-scope-2026-01-05');
     expect(sentHeaders).not.toHaveProperty('x-api-key');
   });
