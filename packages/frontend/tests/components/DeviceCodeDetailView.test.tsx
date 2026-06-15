@@ -540,20 +540,21 @@ function renderKiro() {
   return { ...render(() => <DeviceCodeDetailView {...props} />), props };
 }
 
-describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () => {
+describe('DeviceCodeDetailView — Kiro', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('hides the region selector and shows the generic hint', () => {
+  it('shows the region selector, optional Start URL, and Kiro hint', () => {
     renderKiro();
-    expect(screen.queryByLabelText('Region')).toBeNull();
+    expect((screen.getByLabelText('Region') as HTMLInputElement).value).toBe('us-east-1');
+    expect((screen.getByLabelText(/Start URL/) as HTMLInputElement).value).toBe('');
     expect(
       screen.getByText(
-        'Open the authorization page in your browser to sign in and approve access.',
+        'Choose the AWS region for Kiro sign-in. Add a Start URL only if your organization uses IAM Identity Center.',
       ),
     ).toBeDefined();
-    expect(screen.getByLabelText('Sign in with AWS IAM Identity Center')).toBeDefined();
+    expect(screen.queryByLabelText('Sign in with AWS IAM Identity Center')).toBeNull();
   });
 
   it('does not render the MiniMax token-paste alternative', () => {
@@ -561,7 +562,7 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     expect(screen.queryByText('Connect with token')).toBeNull();
   });
 
-  it('starts the device flow without a region argument', async () => {
+  it('starts the device flow with the default Kiro region', async () => {
     const api = await import('../../src/services/api.js');
     const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
     startKiroOAuth.mockResolvedValue({
@@ -581,12 +582,12 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     await waitFor(() => {
-      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', undefined);
+      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', { region: 'us-east-1' });
     });
     openSpy.mockRestore();
   });
 
-  it('passes IAM Identity Center start URL and region when enabled', async () => {
+  it('passes optional IAM Identity Center start URL and selected region', async () => {
     const api = await import('../../src/services/api.js');
     const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
     startKiroOAuth.mockResolvedValue({
@@ -603,8 +604,7 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     } as unknown as Window);
 
     renderKiro();
-    fireEvent.click(screen.getByLabelText('Sign in with AWS IAM Identity Center'));
-    fireEvent.input(screen.getByLabelText('Start URL'), {
+    fireEvent.input(screen.getByLabelText(/Start URL/), {
       target: { value: 'https://org.awsapps.com/start' },
     });
     fireEvent.input(screen.getByLabelText('Region'), { target: { value: 'EU-WEST-1' } });
@@ -619,16 +619,16 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     openSpy.mockRestore();
   });
 
-  it('requires IAM Identity Center fields before opening the Kiro popup', async () => {
+  it('requires a valid region before opening the Kiro popup', async () => {
     const api = await import('../../src/services/api.js');
     const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
     const openSpy = vi.spyOn(window, 'open');
 
     renderKiro();
-    fireEvent.click(screen.getByLabelText('Sign in with AWS IAM Identity Center'));
+    fireEvent.input(screen.getByLabelText('Region'), { target: { value: '' } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
-    expect(screen.getByText('Enter your IAM Identity Center Start URL and region.')).toBeDefined();
+    expect(screen.getByText('Enter a valid AWS region, such as us-east-1.')).toBeDefined();
     expect(openSpy).not.toHaveBeenCalled();
     expect(startKiroOAuth).not.toHaveBeenCalled();
     openSpy.mockRestore();
@@ -648,8 +648,7 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     const openSpy = vi.spyOn(window, 'open');
 
     renderKiro();
-    fireEvent.click(screen.getByLabelText('Sign in with AWS IAM Identity Center'));
-    fireEvent.input(screen.getByLabelText('Start URL'), { target: { value: startUrl } });
+    fireEvent.input(screen.getByLabelText(/Start URL/), { target: { value: startUrl } });
     fireEvent.input(screen.getByLabelText('Region'), { target: { value: region } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 

@@ -428,6 +428,11 @@
   margin-bottom: 6px;
 }
 
+.provider-detail__label-muted {
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+}
+
 .provider-detail__input {
   width: 100%;
   height: 2.25rem;
