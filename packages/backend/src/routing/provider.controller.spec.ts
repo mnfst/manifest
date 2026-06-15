@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ProviderController } from './provider.controller';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
@@ -62,6 +62,18 @@ describe('ProviderController', () => {
       mockTierService as unknown as TierService,
       mockPricingSync as unknown as PricingSyncService,
     );
+  });
+
+  describe('upsertProvider region validation', () => {
+    it('rejects an invalid Qwen region on connect', async () => {
+      await expect(
+        controller.upsertProvider(mockCtx, mockAgentName, {
+          provider: 'qwen',
+          authType: 'api_key',
+          region: 'mars',
+        } as never),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
   });
 
   /* ── getStatus ── */

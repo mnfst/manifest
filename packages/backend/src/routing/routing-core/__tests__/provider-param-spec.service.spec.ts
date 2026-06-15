@@ -305,6 +305,12 @@ describe('ProviderParamSpecService', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
+  it('treats a providerless fetch network error as no specs', async () => {
+    fetchSpy.mockRejectedValue(new Error('network down'));
+    const service = new ProviderParamSpecService();
+    await expect(service.getSpecs('openai', 'api_key', 'gpt-throw')).resolves.toEqual([]);
+  });
+
   it('bounds providerless cache entries', async () => {
     fetchSpy.mockImplementation(async (url: string | URL) => {
       const slug = String(url).match(/\/params\/(.+)\.json$/)?.[1] ?? 'unknown';

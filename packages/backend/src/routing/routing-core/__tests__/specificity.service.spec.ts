@@ -65,6 +65,16 @@ describe('SpecificityService', () => {
     );
   });
 
+  describe('setResponseMode', () => {
+    it('creates a new specificity row when none exists yet', async () => {
+      const out = await svc.setResponseMode('agent-1', 'coding', 'buffered');
+      expect(repo.insert).toHaveBeenCalledTimes(1);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(out.category).toBe('coding');
+      expect(out.response_mode).toBe('buffered');
+    });
+  });
+
   describe('getAssignments', () => {
     it('returns the cached value without touching the repo', async () => {
       const cached = [{ category: 'coding' }] as SpecificityAssignment[];

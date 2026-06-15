@@ -363,6 +363,78 @@ describe('AgentEnabledProvidersController', () => {
         position: 'fallback 1',
       });
     });
+
+    it('reports affected specificity and header-tier routes (primary and fallback)', async () => {
+      const match = { provider: 'openai', authType: 'api_key', model: 'gpt-4o' };
+      const { controller } = makeController({
+        tenantProviderRepo: {
+          findOne: jest.fn().mockResolvedValue({
+            id: PROVIDER_ID,
+            tenant_id: TENANT_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Default',
+            priority: 0,
+            cached_models: [{ id: 'gpt-4o' }],
+          } as Partial<TenantProvider>),
+        },
+        specificityRepo: {
+          find: jest.fn().mockResolvedValue([
+            {
+              category: 'coding',
+              override_route: match,
+              auto_assigned_route: null,
+              fallback_routes: [match],
+            } as Partial<SpecificityAssignment>,
+          ]),
+        },
+        headerTierRepo: {
+          find: jest.fn().mockResolvedValue([
+            {
+              name: 'h1',
+              override_route: match,
+              auto_assigned_route: null,
+              fallback_routes: [match],
+            } as Partial<HeaderTier>,
+          ]),
+        },
+      });
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
+      expect(result.affected_tiers).toEqual([
+        { tier: 'coding', model: 'gpt-4o', position: 'primary' },
+        { tier: 'coding', model: 'gpt-4o', position: 'fallback 1' },
+        { tier: 'h1', model: 'gpt-4o', position: 'primary' },
+        { tier: 'h1', model: 'gpt-4o', position: 'fallback 1' },
+      ]);
+    });
+
+    it('excludes a no-keyLabel route when the provider is a non-default secondary key', async () => {
+      const { controller } = makeController({
+        tenantProviderRepo: {
+          findOne: jest.fn().mockResolvedValue({
+            id: PROVIDER_ID,
+            tenant_id: TENANT_ID,
+            provider: 'openai',
+            auth_type: 'api_key',
+            label: 'Work',
+            priority: 1,
+            cached_models: [],
+          } as Partial<TenantProvider>),
+        },
+        tierRepo: {
+          find: jest.fn().mockResolvedValue([
+            {
+              tier: 'standard',
+              override_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+              auto_assigned_route: null,
+              fallback_routes: null,
+            } as Partial<TierAssignment>,
+          ]),
+        },
+      });
+      const result = await controller.getDisableImpact(ctx, 'my-agent', PROVIDER_ID);
+      expect(result.affected_tiers).toEqual([]);
+    });
   });
 
   describe('enable (PUT)', () => {

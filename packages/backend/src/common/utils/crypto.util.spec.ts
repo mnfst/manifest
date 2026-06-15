@@ -19,6 +19,23 @@ describe('getEncryptionSecret', () => {
     expect(getEncryptionSecret()).toBe(key);
   });
 
+  it('warns once when falling back to BETTER_AUTH_SECRET in production', () => {
+    jest.resetModules();
+    process.env['NODE_ENV'] = 'production';
+    process.env['BETTER_AUTH_SECRET'] = 'b'.repeat(48);
+    delete process.env['MANIFEST_ENCRYPTION_KEY'];
+    let warnSpy: jest.SpyInstance | undefined;
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { Logger } = require('@nestjs/common');
+      warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mod = require('./crypto.util') as typeof import('./crypto.util');
+      expect(mod.getEncryptionSecret()).toBe('b'.repeat(48));
+    });
+    expect(warnSpy).toHaveBeenCalled();
+  });
+
   it('returns BETTER_AUTH_SECRET when MANIFEST_ENCRYPTION_KEY is not set and secret is >= 32 chars', () => {
     const secret = 'b'.repeat(64);
     process.env['BETTER_AUTH_SECRET'] = secret;

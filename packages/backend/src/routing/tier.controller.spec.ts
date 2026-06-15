@@ -129,6 +129,23 @@ describe('TierController', () => {
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
   });
 
+  it('PATCH response-mode sets the mode for a valid tier', async () => {
+    tierService.setResponseMode = jest
+      .fn()
+      .mockResolvedValue({ tier: 'standard', response_mode: 'buffered' });
+    const out = await controller.setResponseMode(ctx, 'demo', 'standard', {
+      response_mode: 'buffered',
+    });
+    expect(out).toEqual({ tier: 'standard', response_mode: 'buffered' });
+    expect(tierService.setResponseMode).toHaveBeenCalledWith('agent-1', 'standard', 'buffered');
+  });
+
+  it('PATCH response-mode rejects a missing response_mode', async () => {
+    await expect(controller.setResponseMode(ctx, 'demo', 'standard', {})).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+  });
+
   // P1-A: tier write endpoint must 404 for the reserved "Playground" agent
   it('PUT /tiers/:tier throws NotFoundException when resolve rejects the Playground agent', async () => {
     resolveAgentService.resolve.mockRejectedValueOnce(

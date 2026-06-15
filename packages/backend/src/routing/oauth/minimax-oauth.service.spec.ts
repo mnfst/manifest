@@ -191,6 +191,21 @@ describe('MinimaxOauthService', () => {
       expect(svc.getPendingCount()).toBe(0);
     });
 
+    it('purges and reports error when the flow expires between cleanup and the expiry check', async () => {
+      const start = await startFlow();
+      // cleanupExpired() and the explicit expiry check share Date.now(); only a
+      // clock that advances between the two reads reaches the expiry branch.
+      const nowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValueOnce(start.expiresAt - 1)
+        .mockReturnValueOnce(start.expiresAt + 1);
+      const out = await svc.pollAuthorization(start.flowId, 'user-1');
+      nowSpy.mockRestore();
+      expect(out.status).toBe('error');
+      expect(out.message).toContain('expired');
+      expect(svc.getPendingCount()).toBe(0);
+    });
+
     it('returns "pending" when the token endpoint reports a pending approval', async () => {
       const start = await startFlow();
       fetchMock.mockResolvedValueOnce(mockResponse(200, { status: 'pending' }));
