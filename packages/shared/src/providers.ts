@@ -76,9 +76,9 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     requiresApiKey: true,
     localOnly: false,
     color: '#ff9900',
-    keyPrefix: 'bedrock-api-key-',
-    minKeyLength: 50,
-    keyPlaceholder: 'bedrock-api-key-...',
+    keyPrefix: '',
+    minKeyLength: 100,
+    keyPlaceholder: 'ABSK...',
   },
   {
     id: 'byteplus',

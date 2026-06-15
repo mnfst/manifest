@@ -231,6 +231,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   'qwen-subscription': /(?:^qwen-image-|^wan.*image)/i,
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
+  bedrock: /(?:^|[./])voxtral-/i,
 };
 
 /**

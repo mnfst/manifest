@@ -43,6 +43,10 @@ for (const provider of SHARED_PROVIDERS) {
   }
 }
 
+export function resolveProviderToken(token: string): string | undefined {
+  return BEDROCK_PROVIDER_TOKENS.get(token.toLowerCase());
+}
+
 /**
  * If `model` is a gateway model id, return the underlying provider's model
  * id; otherwise return `null`. Used to resolve gateway models to the
@@ -101,10 +105,12 @@ export function resolveProviderMetadataIdentity(
 
   const parts = model.split('.');
   for (let i = 0; i < parts.length - 1; i += 1) {
-    const resolvedProvider = BEDROCK_PROVIDER_TOKENS.get(parts[i].toLowerCase());
-    if (!resolvedProvider || resolvedProvider === 'bedrock') continue;
-    const underlyingModel = parts.slice(i + 1).join('.');
-    if (underlyingModel) return { provider: resolvedProvider, model: underlyingModel };
+    for (let j = parts.length - 1; j > i; j -= 1) {
+      const resolvedProvider = resolveProviderToken(parts.slice(i, j).join('.'));
+      if (!resolvedProvider || resolvedProvider === 'bedrock') continue;
+      const underlyingModel = parts.slice(j).join('.');
+      if (underlyingModel) return { provider: resolvedProvider, model: underlyingModel };
+    }
   }
 
   return { provider, model };

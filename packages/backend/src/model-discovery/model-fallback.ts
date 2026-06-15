@@ -84,12 +84,6 @@ export function lookupWithVariants(
     }
   }
 
-  const prefixedModel = providerPrefixedModelId(prefix, modelId);
-  if (prefixedModel) {
-    const prefixedResult = pricingSync.lookupPricing(`${prefix}/${prefixedModel}`);
-    if (prefixedResult) return prefixedResult;
-  }
-
   const dotVariant = modelId.replace(/-(\d+)-(\d)/g, '-$1.$2');
   if (dotVariant !== modelId) {
     const dotResult = pricingSync.lookupPricing(`${prefix}/${dotVariant}`);
@@ -100,6 +94,12 @@ export function lookupWithVariants(
   if (dashVariant !== modelId) {
     const dashResult = pricingSync.lookupPricing(`${prefix}/${dashVariant}`);
     if (dashResult) return dashResult;
+  }
+
+  const prefixedModel = providerPrefixedModelId(prefix, modelId);
+  if (prefixedModel) {
+    const prefixedResult = pricingSync.lookupPricing(`${prefix}/${prefixedModel}`);
+    if (prefixedResult) return prefixedResult;
   }
 
   const noDate = modelId.replace(/-\d{8}$/, '');

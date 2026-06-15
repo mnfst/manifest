@@ -361,6 +361,18 @@ describe('filterNonChatModels', () => {
     });
   });
 
+  describe('Bedrock-specific patterns', () => {
+    it('filters Voxtral models returned through Bedrock while keeping other Mistral Bedrock models', () => {
+      const models = [
+        makeModel('mistral.voxtral-mini-3b-2507'),
+        makeModel('mistral.voxtral-small-24b-2507'),
+        makeModel('mistral.ministral-3-8b-instruct'),
+      ];
+      const result = filterNonChatModels(models, 'bedrock');
+      expect(result.map((m) => m.id)).toEqual(['mistral.ministral-3-8b-instruct']);
+    });
+  });
+
   describe('PROVIDER_NON_CHAT registry', () => {
     it('has entries for openai, openai-subscription, fireworks, gemini, mistral, and xai', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('openai');
@@ -369,6 +381,7 @@ describe('filterNonChatModels', () => {
       expect(PROVIDER_NON_CHAT).toHaveProperty('gemini');
       expect(PROVIDER_NON_CHAT).toHaveProperty('mistral');
       expect(PROVIDER_NON_CHAT).toHaveProperty('xai');
+      expect(PROVIDER_NON_CHAT).toHaveProperty('bedrock');
     });
   });
 

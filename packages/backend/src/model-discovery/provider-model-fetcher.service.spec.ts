@@ -54,7 +54,11 @@ describe('ProviderModelFetcherService', () => {
     fetchSpy.mockResolvedValue({
       ok: true,
       json: async () => ({
-        data: [{ id: 'mistral.ministral-3-8b-instruct' }, { id: 'amazon.titan-embed-text-v2:0' }],
+        data: [
+          { id: 'mistral.ministral-3-8b-instruct' },
+          { id: 'mistral.voxtral-small-24b-2507' },
+          { id: 'amazon.titan-embed-text-v2:0' },
+        ],
       }),
     });
 

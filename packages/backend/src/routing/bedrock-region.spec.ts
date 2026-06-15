@@ -6,13 +6,7 @@ import {
   isBedrockRegion,
   normalizeBedrockMantleBaseUrl,
 } from './bedrock-region';
-
-function makeShortTermKey(region: string): string {
-  const payload =
-    'bedrock.amazonaws.com/?Action=CallWithBearerToken&' +
-    `X-Amz-Credential=ASIAEXAMPLE%2F20260612%2F${region}%2Fbedrock%2Faws4_request`;
-  return `bedrock-api-key-${Buffer.from(payload).toString('base64')}`;
-}
+import { makeShortTermBedrockKey } from './__tests__/bedrock-fixtures';
 
 describe('bedrock-region', () => {
   it('recognizes Bedrock provider aliases', () => {
@@ -43,18 +37,28 @@ describe('bedrock-region', () => {
     );
     expect(normalizeBedrockMantleBaseUrl('https://evil.example/v1')).toBeNull();
     expect(normalizeBedrockMantleBaseUrl('http://bedrock-mantle.eu-west-1.api.aws')).toBe(null);
+    expect(normalizeBedrockMantleBaseUrl('https://bedrock-mantle.eu-west-1.api.aws:8443')).toBe(
+      null,
+    );
+    expect(
+      normalizeBedrockMantleBaseUrl('https://bedrock-mantle.eu-west-1.api.aws?x=1'),
+    ).toBeNull();
+    expect(
+      normalizeBedrockMantleBaseUrl('https://bedrock-mantle.eu-west-1.api.aws#fragment'),
+    ).toBeNull();
   });
 
   it('extracts the region from short-term Bedrock API keys', () => {
-    expect(detectBedrockRegionFromApiKey(makeShortTermKey('eu-west-1'))).toBe('eu-west-1');
+    expect(detectBedrockRegionFromApiKey(makeShortTermBedrockKey('eu-west-1'))).toBe('eu-west-1');
   });
 
   it('ignores short-term Bedrock API key regions that Mantle does not support', () => {
-    expect(detectBedrockRegionFromApiKey(makeShortTermKey('eu-west-3'))).toBeNull();
+    expect(detectBedrockRegionFromApiKey(makeShortTermBedrockKey('eu-west-3'))).toBeNull();
   });
 
   it('returns null for opaque or malformed keys', () => {
     expect(detectBedrockRegionFromApiKey('bedrock-api-key-not-base64')).toBeNull();
+    expect(detectBedrockRegionFromApiKey('ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=')).toBeNull();
     expect(detectBedrockRegionFromApiKey('sk-test')).toBeNull();
   });
 });

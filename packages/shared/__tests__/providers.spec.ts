@@ -163,12 +163,13 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
   });
 
-  it('bedrock has no OpenRouter prefixes and uses Bedrock API-key metadata', () => {
+  it('bedrock has no OpenRouter prefixes and accepts raw AWS bearer token metadata', () => {
     const bedrock = SHARED_PROVIDER_BY_ID.get('bedrock');
     expect(bedrock).toBeDefined();
     expect(bedrock!.displayName).toBe('AWS Bedrock');
     expect(bedrock!.openRouterPrefixes).toEqual([]);
-    expect(bedrock!.keyPrefix).toBe('bedrock-api-key-');
+    expect(bedrock!.keyPrefix).toBe('');
+    expect(bedrock!.keyPlaceholder).toBe('ABSK...');
   });
 
   it('xiaomi exposes the MiMo API-key provider metadata', () => {

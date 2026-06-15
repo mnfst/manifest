@@ -340,7 +340,7 @@ describe('ProviderKeyForm', () => {
       const def = makeProviderDef({
         id: 'bedrock',
         name: 'AWS Bedrock',
-        keyPlaceholder: 'bedrock-api-key-...',
+        keyPlaceholder: 'ABSK...',
         apiKeyEndpointRegions: [
           { value: 'us-east-1', label: 'US East (N. Virginia)' },
           { value: 'eu-west-1', label: 'Europe (Ireland)' },
@@ -351,7 +351,7 @@ describe('ProviderKeyForm', () => {
         provId: 'bedrock',
         isSubMode: false,
         selectedAuthType: 'api_key',
-        keyInput: 'bedrock-api-key-test',
+        keyInput: 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=',
       });
 
       const endpoint = container.querySelector(
@@ -367,7 +367,7 @@ describe('ProviderKeyForm', () => {
 
       expect(connectProviderMock).toHaveBeenCalledWith('test-agent', {
         provider: 'bedrock',
-        apiKey: 'bedrock-api-key-test',
+        apiKey: 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=',
         authType: 'api_key',
         region: 'eu-west-1',
       });

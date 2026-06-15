@@ -25,7 +25,8 @@ const BEDROCK_PROVIDER = PROVIDER_BY_ID_OR_ALIAS.get(BEDROCK_PROVIDER_ID);
 if (!BEDROCK_PROVIDER) {
   throw new Error('AWS Bedrock provider is missing from the shared provider registry');
 }
-const BEDROCK_API_KEY_PREFIX = BEDROCK_PROVIDER.keyPrefix;
+const LEGACY_BEDROCK_API_KEY_PREFIX = 'bedrock-api-key-';
+const AWS_BEARER_TOKEN_PREFIX = 'ABSK';
 
 export function isBedrockProvider(provider: string): boolean {
   return PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase().trim())?.id === BEDROCK_PROVIDER_ID;
@@ -49,7 +50,15 @@ export function normalizeBedrockMantleBaseUrl(baseUrl: string): string | null {
   try {
     const url = new URL(normalized);
     const match = /^bedrock-mantle\.([a-z0-9-]+)\.api\.aws$/.exec(url.hostname);
-    if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/') {
+    if (
+      url.protocol !== 'https:' ||
+      url.username ||
+      url.password ||
+      url.port ||
+      url.pathname !== '/' ||
+      url.search ||
+      url.hash
+    ) {
       return null;
     }
     if (!match || !isBedrockRegion(match[1])) return null;
@@ -61,10 +70,11 @@ export function normalizeBedrockMantleBaseUrl(baseUrl: string): string | null {
 
 export function detectBedrockRegionFromApiKey(apiKey: string | undefined): string | null {
   const compact = apiKey?.replace(/\s/g, '') ?? '';
-  if (!compact.startsWith(BEDROCK_API_KEY_PREFIX)) return null;
+  if (compact.startsWith(AWS_BEARER_TOKEN_PREFIX)) return null;
+  if (!compact.startsWith(LEGACY_BEDROCK_API_KEY_PREFIX)) return null;
 
   try {
-    const encoded = compact.slice(BEDROCK_API_KEY_PREFIX.length);
+    const encoded = compact.slice(LEGACY_BEDROCK_API_KEY_PREFIX.length);
     const decoded = Buffer.from(encoded, 'base64').toString('utf8');
     const query = decoded.includes('?') ? decoded.slice(decoded.indexOf('?') + 1) : decoded;
     const credential = new URLSearchParams(query).get('X-Amz-Credential');

@@ -125,21 +125,22 @@ describe('validateApiKey', () => {
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
-  it('validates AWS Bedrock API key prefix and length', () => {
+  it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
     const bedrock = getProvider('bedrock')!;
     expect(validateApiKey(bedrock, '')).toEqual({
       valid: false,
       error: 'API key is required',
     });
-    expect(validateApiKey(bedrock, 'sk-wrong-prefix-that-is-long-enough')).toEqual({
-      valid: false,
-      error: 'AWS Bedrock keys start with "bedrock-api-key-"',
-    });
     expect(validateApiKey(bedrock, 'bedrock-api-key-short')).toEqual({
       valid: false,
-      error: 'Key is too short (minimum 50 characters)',
+      error: 'Key is too short (minimum 100 characters)',
     });
-    expect(validateApiKey(bedrock, 'bedrock-api-key-' + 'a'.repeat(50))).toEqual({ valid: true });
+    expect(validateApiKey(bedrock, 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU='.padEnd(100, 'A'))).toEqual({
+      valid: true,
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-' + 'a'.repeat(100))).toEqual({
+      valid: true,
+    });
   });
 
   it('validates Xiaomi MiMo API key prefix and length', () => {
@@ -391,6 +392,12 @@ describe('getModelLabel', () => {
     // "vendor/unknown.model.name" → bare "unknown.model.name" → not found →
     // normalized "unknown-model-name" → still not found → returns bare
     expect(getModelLabel('openrouter', 'vendor/unknown.model.name')).toBe('Unknown.Model.Name');
+  });
+
+  it('strips Bedrock-style dot provider namespaces', () => {
+    expect(getModelLabel('bedrock', 'us.anthropic.claude-opus-4.6')).toBe('Claude Opus 4.6');
+    expect(getModelLabel('bedrock', 'mistral.magistral-small-2509')).toBe('Magistral Small 2509');
+    expect(getModelLabel('bedrock', 'z.ai.glm-4.6')).toBe('Glm 4.6');
   });
 });
 

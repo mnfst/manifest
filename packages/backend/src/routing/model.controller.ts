@@ -22,6 +22,35 @@ import {
   RemoveProviderQueryDto,
 } from './dto/routing.dto';
 
+function formatModelSlug(slug: string): string {
+  return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function displayNameForModel(
+  provider: string,
+  modelId: string,
+  displayName: string | null | undefined,
+  metadataName: string | null | undefined,
+): string | null {
+  const trimmedDisplay = displayName?.trim();
+  if (trimmedDisplay && trimmedDisplay !== modelId) return trimmedDisplay;
+
+  const trimmedMetadata = metadataName?.trim();
+  if (trimmedMetadata && trimmedMetadata !== modelId) return trimmedMetadata;
+
+  const metadata = resolveProviderMetadataIdentity(provider, modelId);
+  if (
+    provider.toLowerCase() === 'bedrock' &&
+    metadata.provider &&
+    metadata.provider !== provider &&
+    metadata.model !== modelId
+  ) {
+    return formatModelSlug(metadata.model);
+  }
+
+  return trimmedDisplay || null;
+}
+
 @Controller('api/v1/routing')
 export class ModelController {
   constructor(
@@ -143,7 +172,9 @@ export class ModelController {
           input_modalities: inputModalities,
           output_modalities: ['text'],
           quality_score: m.qualityScore,
-          display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
+          display_name: isCustom
+            ? CustomProviderService.rawModelName(m.id)
+            : displayNameForModel(m.provider, m.id, m.displayName, modelsDevEntry?.name),
           ...(isCustom && {
             provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
           }),

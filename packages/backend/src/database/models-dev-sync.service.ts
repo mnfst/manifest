@@ -20,6 +20,7 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   fireworks: 'fireworks-ai',
   mistral: 'mistral',
   xai: 'xai',
+  bedrock: 'amazon-bedrock',
   minimax: 'minimax',
   moonshot: 'moonshotai',
   nvidia: 'nvidia',
@@ -98,6 +99,12 @@ const LEGACY_NAME_ALIASES: ReadonlyMap<string, string> = new Map([
   ['open-mistral-nemo', 'mistral-nemo'], // Mistral renamed open-mistral-nemo → mistral-nemo
   ['mistral-tiny', 'open-mistral-7b'], // mistral-tiny was the internal codename for Mistral 7B
 ]);
+/** AWS sometimes returns an API owner namespace that differs from models.dev's Bedrock key. */
+const MODEL_ID_PREFIX_ALIASES: ReadonlyMap<string, string> = new Map([
+  ['moonshotai.', 'moonshot.'],
+]);
+/** Matches instruction-tuned suffixes that models.dev sometimes omits on Bedrock keys. */
+const INSTRUCT_SUFFIX_RE = /-instruct$/;
 
 @Injectable()
 export class ModelsDevSyncService implements OnModuleInit {
@@ -192,9 +199,10 @@ export class ModelsDevSyncService implements OnModuleInit {
    *   8. Strip 4-digit short date suffix (-0709 MMDD format)
    */
   lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null {
-    const providerModels = this.cache.get(resolveProviderId(providerId));
+    const resolvedProviderId = resolveProviderId(providerId);
+    const providerModels = this.cache.get(resolvedProviderId);
     if (!providerModels) return null;
-    return this.lookupModelInProvider(providerModels, modelId);
+    return this.lookupModelInProvider(providerModels, modelId, resolvedProviderId);
   }
 
   /**
@@ -218,8 +226,8 @@ export class ModelsDevSyncService implements OnModuleInit {
     const providerScoped = this.lookupProviderScopedModel(modelId);
     if (providerScoped) return providerScoped;
 
-    for (const providerModels of this.cache.values()) {
-      const found = this.lookupModelInProvider(providerModels, modelId);
+    for (const [providerId, providerModels] of this.cache) {
+      const found = this.lookupModelInProvider(providerModels, modelId, providerId);
       if (found) return found;
     }
 
@@ -242,10 +250,16 @@ export class ModelsDevSyncService implements OnModuleInit {
   private lookupModelInProvider(
     providerModels: Map<string, ModelsDevModelEntry>,
     modelId: string,
+    providerId?: string,
   ): ModelsDevModelEntry | null {
     // 1. Exact match
     const exact = providerModels.get(modelId);
     if (exact) return exact;
+
+    // 1a. Provider APIs can omit Bedrock-style version suffixes present in models.dev
+    //     (e.g., qwen.qwen3-32b → qwen.qwen3-32b-v1:0).
+    const versioned = this.lookupVersionedModelVariant(providerModels, modelId);
+    if (versioned) return versioned;
 
     // 1b. Legacy name alias (e.g., open-mistral-nemo → mistral-nemo)
     //     Strip date, short-date, and -latest suffixes to find the base name for alias lookup.
@@ -260,6 +274,16 @@ export class ModelsDevSyncService implements OnModuleInit {
     if (aliasTarget) {
       const found = providerModels.get(aliasTarget);
       if (found) return found;
+    }
+
+    // 1c. Provider prefix aliases inside provider-native IDs
+    //     (e.g., moonshotai.kimi-k2-thinking → moonshot.kimi-k2-thinking).
+    const prefixAlias = this.applyModelIdPrefixAlias(modelId);
+    if (prefixAlias) {
+      const found = providerModels.get(prefixAlias);
+      if (found) return found;
+      const aliasVersioned = this.lookupVersionedModelVariant(providerModels, prefixAlias);
+      if (aliasVersioned) return aliasVersioned;
     }
 
     // 2. Strip 3-digit version suffix (e.g., gemini-2.0-flash-001 → gemini-2.0-flash)
@@ -303,6 +327,18 @@ export class ModelsDevSyncService implements OnModuleInit {
       if (found) return found;
     }
 
+    if (providerId === 'bedrock') {
+      // 7b. Strip instruction-tuned suffix when models.dev stores the same Bedrock
+      //     model under its shorter base name.
+      const noInstruct = modelId.replace(INSTRUCT_SUFFIX_RE, '');
+      if (noInstruct !== modelId) {
+        const found = providerModels.get(noInstruct);
+        if (found) return found;
+        const versionedBase = this.lookupVersionedModelVariant(providerModels, noInstruct);
+        if (versionedBase) return versionedBase;
+      }
+    }
+
     // 8. Strip 4-digit short date suffix (xAI: grok-4-0709 → grok-4)
     const noShortDate = modelId.replace(SHORT_DATE_SUFFIX_RE, '');
     if (noShortDate !== modelId) {
@@ -329,6 +365,36 @@ export class ModelsDevSyncService implements OnModuleInit {
       if (baseMatch) return baseMatch;
     }
 
+    return null;
+  }
+
+  private lookupVersionedModelVariant(
+    providerModels: Map<string, ModelsDevModelEntry>,
+    modelId: string,
+  ): ModelsDevModelEntry | null {
+    for (const suffix of ['-v1:0', '-v1', '-1:0', '-1']) {
+      const found = providerModels.get(`${modelId}${suffix}`);
+      if (found) return found;
+    }
+
+    const dottedVersion = modelId.replace(/^(.*\.[A-Za-z0-9-]*\d)\.(\d+)$/, '$1-v$2:0');
+    if (dottedVersion !== modelId) {
+      const found = providerModels.get(dottedVersion);
+      if (found) return found;
+    }
+
+    const escaped = modelId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const variantRe = new RegExp(`^${escaped}-(?:v\\d+(?::\\d+)?|\\d+:\\d+)$`);
+    for (const [key, entry] of providerModels) {
+      if (variantRe.test(key)) return entry;
+    }
+    return null;
+  }
+
+  private applyModelIdPrefixAlias(modelId: string): string | null {
+    for (const [from, to] of MODEL_ID_PREFIX_ALIASES) {
+      if (modelId.startsWith(from)) return `${to}${modelId.slice(from.length)}`;
+    }
     return null;
   }
 

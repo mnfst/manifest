@@ -171,6 +171,17 @@ describe('resolveProviderMetadataIdentity', () => {
     });
   });
 
+  it('unwraps Bedrock vendor aliases that contain dots', () => {
+    expect(resolveProviderMetadataIdentity('bedrock', 'z.ai.glm-4.6')).toEqual({
+      provider: 'zai',
+      model: 'glm-4.6',
+    });
+    expect(resolveProviderMetadataIdentity('bedrock', 'us.z.ai.glm-4.6')).toEqual({
+      provider: 'zai',
+      model: 'glm-4.6',
+    });
+  });
+
   it('leaves unknown Bedrock vendors unchanged', () => {
     expect(resolveProviderMetadataIdentity('bedrock', 'amazon.nova-pro-v1:0')).toEqual({
       provider: 'bedrock',
