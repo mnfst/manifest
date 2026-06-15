@@ -1,0 +1,24 @@
+packages/frontend/src/styles/routing-providers.css
+  s_dcd815852e7fcd::t_26d0a80ae7b5b5 431-435
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_dcd815852e7fcd::t_de86aa6ee8d945 41-53,70,133,139-140,143-151,156-166,367,390-391,393-411,413-436
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_dcd815852e7fcd::t_f0003c0f478474 550-551
+  s_dcd815852e7fcd::t_814550bfd5fb2a 543,548,554,557,565,585,590,607,622,628,631,651
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "ec229bda7af53a7f487cc5d3ed8983fcffcaa1e5",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
