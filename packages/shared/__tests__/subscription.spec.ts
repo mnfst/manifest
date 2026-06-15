@@ -207,9 +207,14 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
-  it('does not publish a hardcoded known-models list for xai', () => {
+  it('returns known models for xai', () => {
     const config = getSubscriptionProviderConfig('xai');
-    expect(config?.knownModels).toBeUndefined();
+    expect(config?.knownModels).toEqual([
+      'grok-4.20-0309-non-reasoning',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-build-0.1',
+    ]);
   });
 
   it('returns config for gemini', () => {
@@ -365,8 +370,13 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('gemini-2.5-flash-lite');
   });
 
-  it('returns null for xai (dynamic provider discovery, no hardcoded list)', () => {
-    expect(getSubscriptionKnownModels('xai')).toBeNull();
+  it('returns known models for xai', () => {
+    expect(getSubscriptionKnownModels('xai')).toEqual([
+      'grok-4.20-0309-non-reasoning',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-build-0.1',
+    ]);
   });
 
   it('returns null for unsupported providers', () => {
