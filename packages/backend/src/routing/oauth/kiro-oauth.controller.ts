@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { KiroOauthService } from './kiro-oauth.service';
+import { KiroAuthorizationOptionsError, type KiroAuthorizationOptions } from './kiro-oidc';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { optionalTrimmedStringQuery } from './query-params';
@@ -22,14 +23,36 @@ export class KiroOauthController {
   ) {}
 
   @Post('start')
-  async start(@Query('agentName') agentName: string, @TenantCtx() ctx: TenantContext) {
+  async start(
+    @Query('agentName') agentName: string,
+    @TenantCtx() ctx: TenantContext,
+    @Query('startUrl') startUrl?: string | string[],
+    @Query('region') region?: string | string[],
+  ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
+    const options: KiroAuthorizationOptions = {};
+    const trimmedStartUrl = optionalTrimmedStringQuery(startUrl, 'startUrl');
+    const trimmedRegion = optionalTrimmedStringQuery(region, 'region');
+    if (trimmedStartUrl !== undefined) {
+      options.startUrl = trimmedStartUrl;
+    }
+    if (trimmedRegion !== undefined) {
+      options.region = trimmedRegion;
+    }
     const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
     try {
-      return await this.oauthService.startAuthorization(agent.id, agent.tenant_id, ctx.userId);
+      return await this.oauthService.startAuthorization(
+        agent.id,
+        agent.tenant_id,
+        ctx.userId,
+        options,
+      );
     } catch (err) {
+      if (err instanceof KiroAuthorizationOptionsError) {
+        throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+      }
       const message = err instanceof Error ? err.message : 'Failed to start Kiro login';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
     }

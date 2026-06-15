@@ -35,12 +35,24 @@ interface Props {
 }
 
 /** Resolve a display label for a model name, handling vendor-prefixed IDs. */
-function labelForModel(name: string, labels: Map<string, string>): string {
+function labelForModel(
+  name: string,
+  labels: Map<string, string>,
+  providerIds: Set<string>,
+): string {
   const direct = labels.get(name);
   if (direct) return direct;
   const slash = name.indexOf('/');
   if (slash !== -1) {
     const bare = name.substring(slash + 1);
+    const found = labels.get(bare);
+    if (found) return found;
+    return bare;
+  }
+  const parts = name.split('.');
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    if (!providerIds.has(parts[i]!.toLowerCase())) continue;
+    const bare = parts.slice(i + 1).join('.');
     const found = labels.get(bare);
     if (found) return found;
     return bare;
@@ -141,6 +153,8 @@ const ModelPickerModal: Component<Props> = (props) => {
     return map;
   };
 
+  const providerIdSet = (): Set<string> => new Set(PROVIDERS.map((p) => p.id.toLowerCase()));
+
   const customProviderNameMap = (): Map<string, string> => {
     const map = new Map<string, string>();
     for (const cp of props.customProviders ?? []) {
@@ -165,6 +179,7 @@ const ModelPickerModal: Component<Props> = (props) => {
   const groupedModels = () => {
     const q = search().toLowerCase().trim();
     const labels = providerLabelMap();
+    const providerIds = providerIdSet();
     const cpNames = customProviderNameMap();
     const tab = activeTab();
     const hasConnectedProviders = (props.connectedProviders ?? []).length > 0;
@@ -219,8 +234,15 @@ const ModelPickerModal: Component<Props> = (props) => {
           : (provDef?.name ?? m.provider);
         groupMap.set(provId, { provId, name, models: [] });
       }
-      const label = m.display_name || labelForModel(m.model_name, labels);
-      groupMap.get(provId)!.models.push({ value: m.model_name, label, pricing: m });
+      const label =
+        m.display_name && m.display_name !== m.model_name
+          ? m.display_name
+          : labelForModel(m.model_name, labels, providerIds);
+      groupMap.get(provId)!.models.push({
+        value: m.model_name,
+        label,
+        pricing: m,
+      });
     }
 
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];

@@ -90,7 +90,7 @@ function activeHeaderCount(entries: HeaderEntry[]): number {
 }
 
 function findDisplayName(
-  available: { model_name: string; display_name?: string }[],
+  available: { model_name: string; display_name?: string | null }[],
   modelName: string,
 ): string {
   const match = available.find((m) => m.model_name === modelName);

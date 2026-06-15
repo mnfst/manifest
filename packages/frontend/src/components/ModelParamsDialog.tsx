@@ -1,5 +1,6 @@
 import {
   compareProviderParamSpecs,
+  deleteProviderParamValue,
   getProviderParamValue,
   providerParamIsApplicable,
   setProviderParamValue,
@@ -26,6 +27,8 @@ interface Props {
 }
 
 type DraftState = Record<string, JsonValue>;
+
+const UNSET_OPTION_VALUE = '__manifest_param_unset__';
 
 const GROUP_LABELS: Record<ModelParamGroup, string> = {
   generation_length: 'Generation length',
@@ -116,6 +119,10 @@ const ModelParamsDialog: Component<Props> = (props) => {
     setDraft(setProviderParamValue(draft(), spec.path, value));
   };
 
+  const clearValue = (spec: ProviderParamSpec) => {
+    setDraft(deleteProviderParamValue(draft(), spec.path));
+  };
+
   const isApplicable = (spec: ProviderParamSpec): boolean =>
     providerParamIsApplicable(spec, draft());
   const isDisabled = (spec: ProviderParamSpec): boolean => saving() || !isApplicable(spec);
@@ -177,10 +184,18 @@ const ModelParamsDialog: Component<Props> = (props) => {
     return null;
   };
 
-  const stringValue = (spec: ProviderParamSpec): string => {
+  const canUnset = (spec: ProviderParamSpec): boolean => spec.default === undefined;
+
+  const selectValue = (spec: ProviderParamSpec): string => {
     const value = valueFor(spec);
+    if (value === undefined && canUnset(spec)) return UNSET_OPTION_VALUE;
     return typeof value === 'string' ? value : String(spec.default ?? '');
   };
+
+  const selectOptions = (spec: ProviderParamSpec) => [
+    ...(canUnset(spec) ? [{ label: 'None', value: UNSET_OPTION_VALUE }] : []),
+    ...(spec.values ?? []).map((v) => ({ label: String(v), value: String(v) })),
+  ];
 
   const numericValue = (spec: ProviderParamSpec): number => {
     const value = valueFor(spec);
@@ -224,10 +239,16 @@ const ModelParamsDialog: Component<Props> = (props) => {
     <div class="model-params__field">
       <Select
         label={spec.label}
-        options={(spec.values ?? []).map((v) => ({ label: String(v), value: String(v) }))}
-        value={stringValue(spec)}
+        options={selectOptions(spec)}
+        value={selectValue(spec)}
         disabled={isDisabled(spec)}
-        onChange={(v) => setValue(spec, v)}
+        onChange={(v) => {
+          if (v === UNSET_OPTION_VALUE && canUnset(spec)) {
+            clearValue(spec);
+            return;
+          }
+          setValue(spec, v);
+        }}
       />
     </div>
   );
@@ -405,7 +426,7 @@ const ModelParamsDialog: Component<Props> = (props) => {
   const ParamRow = (rowProps: { spec: ProviderParamSpec }) => {
     const spec = () => rowProps.spec;
     const description = () => trimTrailingPunct(spec().description) + '.';
-    const defaultLabel = () => (spec().default === undefined ? 'unset' : String(spec().default));
+    const defaultLabel = () => (spec().default === undefined ? 'none' : String(spec().default));
     return (
       <div
         class="model-params__row"

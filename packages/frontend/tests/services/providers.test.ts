@@ -125,6 +125,24 @@ describe('validateApiKey', () => {
     expect(validateApiKey(fireworks, 'fw_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
+    const bedrock = getProvider('bedrock')!;
+    expect(validateApiKey(bedrock, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 100 characters)',
+    });
+    expect(validateApiKey(bedrock, 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU='.padEnd(100, 'A'))).toEqual({
+      valid: true,
+    });
+    expect(validateApiKey(bedrock, 'bedrock-api-key-' + 'a'.repeat(100))).toEqual({
+      valid: true,
+    });
+  });
+
   it('validates Xiaomi MiMo API key prefix and length', () => {
     const xiaomi = getProvider('xiaomi')!;
     expect(validateApiKey(xiaomi, '')).toEqual({
@@ -375,6 +393,12 @@ describe('getModelLabel', () => {
     // normalized "unknown-model-name" → still not found → returns bare
     expect(getModelLabel('openrouter', 'vendor/unknown.model.name')).toBe('Unknown.Model.Name');
   });
+
+  it('strips Bedrock-style dot provider namespaces', () => {
+    expect(getModelLabel('bedrock', 'us.anthropic.claude-opus-4.6')).toBe('Claude Opus 4.6');
+    expect(getModelLabel('bedrock', 'mistral.magistral-small-2509')).toBe('Magistral Small 2509');
+    expect(getModelLabel('bedrock', 'z.ai.glm-4.6')).toBe('Glm 4.6');
+  });
 });
 
 /* ── PROVIDERS constant ────────────────────────── */
@@ -422,6 +446,23 @@ describe('PROVIDERS', () => {
     expect(anthropic.subscriptionAuthMode).toBe('popup_paste');
     expect(anthropic.subscriptionCommand).toBeUndefined();
     expect(anthropic.subscriptionKeyPlaceholder).toBeUndefined();
+  });
+
+  it('AWS Bedrock exposes API-key region choices', () => {
+    const bedrock = PROVIDERS.find((p) => p.id === 'bedrock')!;
+    expect(bedrock.name).toBe('AWS Bedrock');
+    expect(bedrock.apiKeyEndpointRegions?.[0]).toEqual({
+      value: 'us-east-1',
+      label: 'US East (N. Virginia)',
+    });
+    expect(bedrock.apiKeyEndpointRegions).toContainEqual({
+      value: 'eu-west-1',
+      label: 'Europe (Ireland)',
+    });
+    expect(bedrock.apiKeyEndpointRegions).not.toContainEqual({
+      value: 'eu-west-3',
+      label: 'Europe (Paris)',
+    });
   });
 
   it('GitHub Copilot is subscription-only', () => {
@@ -653,7 +694,7 @@ describe('PROVIDERS', () => {
     expect(getRoutingProviderApiKeyUrl('opencode-zen')).toBe('https://opencode.ai/auth');
   });
 
-  it('Kiro is subscription-only with CLI OAuth flow and dynamic models', () => {
+  it('Kiro is subscription-only with device-code OAuth flow and dynamic models', () => {
     const kiro = PROVIDERS.find((p) => p.id === 'kiro')!;
     expect(kiro).toBeDefined();
     expect(kiro.name).toBe('Kiro');

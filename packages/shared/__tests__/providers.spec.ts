@@ -92,6 +92,16 @@ describe('SHARED_PROVIDER_BY_ID_OR_ALIAS', () => {
     }
   });
 
+  it('resolves AWS Bedrock aliases to the canonical provider entry', () => {
+    for (const name of ['bedrock', 'aws-bedrock', 'Amazon Bedrock']) {
+      const normalized = normalizeProviderName(name);
+      const entry =
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(normalized) ??
+        SHARED_PROVIDER_BY_ID_OR_ALIAS.get(name.toLowerCase());
+      expect(entry?.id).toBe('bedrock');
+    }
+  });
+
   it('resolves Xiaomi MiMo aliases to the canonical provider entry', () => {
     for (const name of ['xiaomi', 'mimo', 'xiaomi-mimo', 'Xiaomi MiMo']) {
       const normalized = normalizeProviderName(name);
@@ -151,6 +161,15 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(byteplus!.displayName).toBe('BytePlus');
     expect(byteplus!.openRouterPrefixes).toEqual([]);
     expect(byteplus!.keyPlaceholder).toBe('ModelArk Coding Plan API key');
+  });
+
+  it('bedrock has no OpenRouter prefixes and accepts raw AWS bearer token metadata', () => {
+    const bedrock = SHARED_PROVIDER_BY_ID.get('bedrock');
+    expect(bedrock).toBeDefined();
+    expect(bedrock!.displayName).toBe('AWS Bedrock');
+    expect(bedrock!.openRouterPrefixes).toEqual([]);
+    expect(bedrock!.keyPrefix).toBe('');
+    expect(bedrock!.keyPlaceholder).toBe('ABSK...');
   });
 
   it('xiaomi exposes the MiMo API-key provider metadata', () => {

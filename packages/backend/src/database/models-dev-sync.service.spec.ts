@@ -183,6 +183,66 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  'amazon-bedrock': {
+    id: 'amazon-bedrock',
+    name: 'Amazon Bedrock',
+    models: {
+      'mistral.magistral-small-2509': {
+        id: 'mistral.magistral-small-2509',
+        name: 'Magistral Small 1.2',
+        cost: { input: 0.5, output: 1.5 },
+        limit: { context: 128000, output: 40000 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen.qwen3-32b-v1:0': {
+        id: 'qwen.qwen3-32b-v1:0',
+        name: 'Qwen3 32B (dense)',
+        cost: { input: 0.15, output: 0.6 },
+        limit: { context: 131072, output: 32768 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen.qwen3-coder-30b-a3b-v1:0': {
+        id: 'qwen.qwen3-coder-30b-a3b-v1:0',
+        name: 'Qwen3 Coder 30B A3B Instruct',
+        cost: { input: 0.15, output: 0.6 },
+        limit: { context: 262144, output: 65536 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen.qwen3-next-80b-a3b': {
+        id: 'qwen.qwen3-next-80b-a3b',
+        name: 'Qwen3 Next 80B A3B Instruct',
+        cost: { input: 0.14, output: 1.4 },
+        limit: { context: 262144, output: 65536 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'moonshot.kimi-k2-thinking': {
+        id: 'moonshot.kimi-k2-thinking',
+        name: 'Kimi K2 Thinking',
+        cost: { input: 0.6, output: 2.5 },
+        limit: { context: 262144, output: 32768 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'deepseek.v3-v1:0': {
+        id: 'deepseek.v3-v1:0',
+        name: 'DeepSeek-V3.1',
+        cost: { input: 0.58, output: 1.68 },
+        limit: { context: 64000, output: 8192 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen.qwen3-version-test-20260101': {
+        id: 'qwen.qwen3-version-test-20260101',
+        name: 'Dated Qwen snapshot',
+        cost: { input: 9, output: 9 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'qwen.qwen3-version-test-v2:0': {
+        id: 'qwen.qwen3-version-test-v2:0',
+        name: 'Versioned Qwen snapshot',
+        cost: { input: 0.21, output: 0.42 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   kilo: {
     id: 'kilo',
     name: 'Kilo Gateway',
@@ -243,8 +303,8 @@ describe('ModelsDevSyncService', () => {
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
       // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
-      // fireworks: 1, mistral: 6, xai: 3, groq: 2, nvidia: 1 = 18
-      expect(count).toBe(18);
+      // fireworks: 1, mistral: 6, xai: 3, bedrock: 8, groq: 2, nvidia: 1 = 26
+      expect(count).toBe(26);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -331,6 +391,48 @@ describe('ModelsDevSyncService', () => {
       expect(prefixed!.inputPricePerToken).toBe(0.29 / 1_000_000);
     });
 
+    it('should find Amazon Bedrock models via our bedrock provider ID', () => {
+      const model = service.lookupModel('bedrock', 'mistral.magistral-small-2509');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('Magistral Small 1.2');
+      expect(model!.inputPricePerToken).toBe(0.5 / 1_000_000);
+      expect(model!.outputPricePerToken).toBe(1.5 / 1_000_000);
+      expect(model!.contextWindow).toBe(128000);
+      expect(model!.maxOutputTokens).toBe(40000);
+    });
+
+    it('should match Amazon Bedrock versioned and alias model IDs', () => {
+      const qwenDense = service.lookupModel('bedrock', 'qwen.qwen3-32b');
+      expect(qwenDense).not.toBeNull();
+      expect(qwenDense!.name).toBe('Qwen3 32B (dense)');
+      expect(qwenDense!.inputPricePerToken).toBe(0.15 / 1_000_000);
+
+      const qwenCoder = service.lookupModel('bedrock', 'qwen.qwen3-coder-30b-a3b-instruct');
+      expect(qwenCoder).not.toBeNull();
+      expect(qwenCoder!.name).toBe('Qwen3 Coder 30B A3B Instruct');
+      expect(qwenCoder!.outputPricePerToken).toBe(0.6 / 1_000_000);
+
+      const qwenNext = service.lookupModel('bedrock', 'qwen.qwen3-next-80b-a3b-instruct');
+      expect(qwenNext).not.toBeNull();
+      expect(qwenNext!.name).toBe('Qwen3 Next 80B A3B Instruct');
+      expect(qwenNext!.outputPricePerToken).toBe(1.4 / 1_000_000);
+
+      const moonshot = service.lookupModel('bedrock', 'moonshotai.kimi-k2-thinking');
+      expect(moonshot).not.toBeNull();
+      expect(moonshot!.name).toBe('Kimi K2 Thinking');
+      expect(moonshot!.inputPricePerToken).toBe(0.6 / 1_000_000);
+
+      const deepseek = service.lookupModel('bedrock', 'deepseek.v3.1');
+      expect(deepseek).not.toBeNull();
+      expect(deepseek!.name).toBe('DeepSeek-V3.1');
+      expect(deepseek!.inputPricePerToken).toBe(0.58 / 1_000_000);
+
+      const versioned = service.lookupModel('bedrock', 'qwen.qwen3-version-test');
+      expect(versioned).not.toBeNull();
+      expect(versioned!.name).toBe('Versioned Qwen snapshot');
+      expect(versioned!.inputPricePerToken).toBe(0.21 / 1_000_000);
+    });
+
     it('should find NVIDIA NIM models via our nvidia provider ID', () => {
       const model = service.lookupModel('nvidia', 'nvidia/nemotron-3-super-120b-a12b');
       expect(model).not.toBeNull();
@@ -352,6 +454,10 @@ describe('ModelsDevSyncService', () => {
 
     it('should return null for unknown model', () => {
       expect(service.lookupModel('anthropic', 'nonexistent')).toBeNull();
+    });
+
+    it('should not strip instruction-tuned suffixes outside Bedrock', () => {
+      expect(service.lookupModel('mistral', 'mistral-nemo-instruct')).toBeNull();
     });
 
     it('should return null for unmapped provider', () => {
@@ -533,6 +639,7 @@ describe('ModelsDevSyncService', () => {
       expect(service.isProviderSupported('nvidia')).toBe(true);
       expect(service.isProviderSupported('qwen')).toBe(true);
       expect(service.isProviderSupported('fireworks')).toBe(true);
+      expect(service.isProviderSupported('bedrock')).toBe(true);
     });
 
     it('should return false for unmapped providers', () => {

@@ -20,6 +20,7 @@ import {
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
 import { toast } from '../services/toast-store.js';
+import Select from './Select.jsx';
 
 interface Props {
   provDef: ProviderDef;
@@ -38,6 +39,45 @@ interface Props {
 }
 
 const MAX_LABEL_LENGTH = 50;
+const KIRO_DEFAULT_REGION = 'us-east-1';
+const KIRO_REGION_OPTIONS = [
+  { value: 'us-east-2', label: 'us-east-2' },
+  { value: 'us-east-1', label: 'us-east-1' },
+  { value: 'us-west-1', label: 'us-west-1' },
+  { value: 'us-west-2', label: 'us-west-2' },
+  { value: 'af-south-1', label: 'af-south-1' },
+  { value: 'ap-east-1', label: 'ap-east-1' },
+  { value: 'ap-south-2', label: 'ap-south-2' },
+  { value: 'ap-southeast-3', label: 'ap-southeast-3' },
+  { value: 'ap-southeast-5', label: 'ap-southeast-5' },
+  { value: 'ap-southeast-4', label: 'ap-southeast-4' },
+  { value: 'ap-south-1', label: 'ap-south-1' },
+  { value: 'ap-southeast-6', label: 'ap-southeast-6' },
+  { value: 'ap-northeast-3', label: 'ap-northeast-3' },
+  { value: 'ap-northeast-2', label: 'ap-northeast-2' },
+  { value: 'ap-southeast-1', label: 'ap-southeast-1' },
+  { value: 'ap-southeast-2', label: 'ap-southeast-2' },
+  { value: 'ap-east-2', label: 'ap-east-2' },
+  { value: 'ap-southeast-7', label: 'ap-southeast-7' },
+  { value: 'ap-northeast-1', label: 'ap-northeast-1' },
+  { value: 'ca-central-1', label: 'ca-central-1' },
+  { value: 'ca-west-1', label: 'ca-west-1' },
+  { value: 'eu-central-1', label: 'eu-central-1' },
+  { value: 'eu-west-1', label: 'eu-west-1' },
+  { value: 'eu-west-2', label: 'eu-west-2' },
+  { value: 'eu-south-1', label: 'eu-south-1' },
+  { value: 'eu-west-3', label: 'eu-west-3' },
+  { value: 'eu-south-2', label: 'eu-south-2' },
+  { value: 'eu-north-1', label: 'eu-north-1' },
+  { value: 'eu-central-2', label: 'eu-central-2' },
+  { value: 'il-central-1', label: 'il-central-1' },
+  { value: 'mx-central-1', label: 'mx-central-1' },
+  { value: 'me-south-1', label: 'me-south-1' },
+  { value: 'me-central-1', label: 'me-central-1' },
+  { value: 'sa-east-1', label: 'sa-east-1' },
+  { value: 'us-gov-east-1', label: 'us-gov-east-1' },
+  { value: 'us-gov-west-1', label: 'us-gov-west-1' },
+];
 
 interface DeviceCodeFlow {
   flowId: string;
@@ -53,6 +93,9 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
+  const [kiroStartUrl, setKiroStartUrl] = createSignal('');
+  const [kiroRegion, setKiroRegion] = createSignal(KIRO_DEFAULT_REGION);
+  const [kiroConfigError, setKiroConfigError] = createSignal<string | null>(null);
   const [altToken, setAltToken] = createSignal('');
   const [altError, setAltError] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
@@ -60,6 +103,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [addingAccount, setAddingAccount] = createSignal(false);
 
   const api = () => getDeviceCodeApi(props.provId);
+  const isKiro = () => props.provId === 'kiro';
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
   const activeKeyLabels = () => (props.activeKeys?.() ?? []).map((k) => k.label);
   const showConnectFlow = () => !props.connected() || addingAccount();
@@ -108,6 +152,46 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   let pollTimer: number | undefined;
   let isDisposed = false;
   let activeFlowGeneration = 0;
+
+  const buildStartOptions = () => {
+    if (api().hasRegion) {
+      return { region: selectedRegion() };
+    }
+    if (!isKiro()) {
+      return undefined;
+    }
+
+    const startUrl = kiroStartUrl().trim();
+    const region = kiroRegion().trim().toLowerCase();
+    if (!/^[a-z]{2}(?:-[a-z0-9]+)+-\d$/.test(region)) {
+      setKiroConfigError('Enter a valid AWS region, such as us-east-1.');
+      return null;
+    }
+    if (startUrl) {
+      try {
+        const parsed = new URL(startUrl);
+        if (parsed.protocol !== 'https:') {
+          setKiroConfigError('Start URL must use HTTPS.');
+          return null;
+        }
+      } catch {
+        setKiroConfigError('Enter a valid IAM Identity Center Start URL.');
+        return null;
+      }
+    }
+    setKiroConfigError(null);
+    return startUrl ? { startUrl, region } : { region };
+  };
+
+  const connectHint = () => {
+    if (api().hasRegion) {
+      return 'Choose your MiniMax region, then open the authorization page in your browser to sign in and approve access.';
+    }
+    if (isKiro()) {
+      return 'Choose the AWS region for Kiro sign-in. Add a Start URL only if your organization uses IAM Identity Center.';
+    }
+    return 'Open the authorization page in your browser to sign in and approve access.';
+  };
 
   const clearPollTimer = () => {
     if (pollTimer !== undefined) {
@@ -243,6 +327,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   };
 
   const handleStart = async () => {
+    const startOptions = buildStartOptions();
+    if (startOptions === null) return;
     // Open the popup synchronously inside the click handler to keep the
     // user-gesture flag alive; without this, browsers block the post-await
     // window.open as a "programmatic popup". noopener can't be used here
@@ -263,10 +349,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     setStatusMessage(null);
     try {
       const current = api();
-      const nextFlow = await current.start(
-        props.agentName,
-        current.hasRegion ? selectedRegion() : undefined,
-      );
+      const nextFlow = await current.start(props.agentName, startOptions);
       if (isDisposed || flowGeneration !== activeFlowGeneration) {
         popup.close();
         return;
@@ -308,13 +391,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
             <>
               <div class="subscription-detail__primary">
                 <p class="provider-detail__hint" style="margin-bottom: 0;">
-                  <Show
-                    when={api().hasRegion}
-                    fallback="Open the authorization page in your browser to sign in and approve access."
-                  >
-                    Choose your MiniMax region, then open the authorization page in your browser to
-                    sign in and approve access.
-                  </Show>
+                  {connectHint()}
                 </p>
                 <Show when={api().hasRegion}>
                   <div class="provider-detail__field">
@@ -334,6 +411,50 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                       <option value="cn">China Mainland (api.minimaxi.com)</option>
                     </select>
                   </div>
+                </Show>
+                <Show when={isKiro()}>
+                  <div class="provider-detail__field">
+                    <span class="provider-detail__label">Region</span>
+                    <Select
+                      label="Region"
+                      options={KIRO_REGION_OPTIONS}
+                      value={kiroRegion()}
+                      disabled={props.busy()}
+                      portal
+                      maxDropdownHeight={240}
+                      ariaDescribedBy={kiroConfigError() ? 'kiro-identity-error' : undefined}
+                      onChange={(value) => {
+                        setKiroRegion(value);
+                        setKiroConfigError(null);
+                      }}
+                    />
+                  </div>
+                  <div class="provider-detail__field">
+                    <label class="provider-detail__label" for="kiro-start-url">
+                      Start URL <span class="provider-detail__label-muted">(optional)</span>
+                    </label>
+                    <input
+                      id="kiro-start-url"
+                      class="provider-detail__input"
+                      classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
+                      type="url"
+                      inputmode="url"
+                      autocomplete="off"
+                      placeholder="https://your-domain.awsapps.com/start"
+                      value={kiroStartUrl()}
+                      disabled={props.busy()}
+                      aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
+                      onInput={(e) => {
+                        setKiroStartUrl(e.currentTarget.value);
+                        setKiroConfigError(null);
+                      }}
+                    />
+                  </div>
+                  <Show when={kiroConfigError()}>
+                    <div id="kiro-identity-error" class="provider-detail__error">
+                      {kiroConfigError()}
+                    </div>
+                  </Show>
                 </Show>
                 <button
                   class="btn btn--primary subscription-detail__btn"

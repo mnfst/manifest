@@ -88,8 +88,10 @@ export type { FallbackEntry } from './fallback-encoding';
 export {
   MODEL_PREFIX_MAP,
   inferProviderFromModel,
+  resolveProviderToken,
   underlyingGatewayModel,
   resolveUnderlyingModelIdentity,
+  resolveProviderMetadataIdentity,
 } from './provider-inference';
 export {
   SHARED_PROVIDERS,

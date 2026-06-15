@@ -111,6 +111,35 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('builds Bedrock Mantle chat completions requests with bearer API-key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'mistral.ministral-3-8b-instruct',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://bedrock-mantle.us-east-1.api.aws/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer bedrock-api-key-test',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mistral.ministral-3-8b-instruct');
+      expect(sentBody.stream).toBe(false);
+      expect(result.isAnthropic).toBe(false);
+      expect(result.isGoogle).toBe(false);
+    });
+
     it('builds correct URL for moonshot', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
@@ -687,7 +716,7 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBeUndefined();
     });
 
-    it('omits cache_control from request body for subscription auth', async () => {
+    it('injects cache_control breakpoints for subscription auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
@@ -712,11 +741,13 @@ describe('ProviderClient', () => {
       const system = sentBody.system as Array<{ text?: string; cache_control?: unknown }>;
       // First system block is the subscription identity prompt
       expect(system[0].text).toContain('Claude agent');
-      expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
-      // User system block has no cache_control (subscription skips caching)
-      expect(system[1].cache_control).toBeUndefined();
+      expect(system[0].cache_control).toBeUndefined();
+      // The OAuth API accepts cache_control (the #1193 400s were caused by the
+      // missing identity block, not caching), so subscription auth gets the
+      // same breakpoints as API-key auth.
+      expect(system[1].cache_control).toEqual({ type: 'ephemeral' });
       const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
-      expect(tools[0].cache_control).toBeUndefined();
+      expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('includes block-level cache_control for regular Anthropic API key auth', async () => {

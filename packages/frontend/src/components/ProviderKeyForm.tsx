@@ -77,7 +77,9 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
       ? (props.provDef.subscriptionKeyPlaceholder ?? 'Paste token')
       : props.provDef.keyPlaceholder;
   const endpointRegions = () =>
-    props.isSubMode() ? (props.provDef.subscriptionEndpointRegions ?? []) : [];
+    props.isSubMode()
+      ? (props.provDef.subscriptionEndpointRegions ?? [])
+      : (props.provDef.apiKeyEndpointRegions ?? []);
   const hasEndpointRegions = () => endpointRegions().length > 0;
   const defaultEndpointRegion = () => endpointRegions()[0]?.value;
   const endpointRegionLabel = (value: string | null | undefined) =>

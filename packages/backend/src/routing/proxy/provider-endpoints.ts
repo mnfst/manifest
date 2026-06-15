@@ -8,6 +8,7 @@ import {
   buildClaudeCodeSubscriptionHeaders,
 } from '../../common/constants/subscription-clients';
 import { normalizeProviderBaseUrl } from '../provider-base-url';
+import { getBedrockMantleBaseUrl } from '../bedrock-region';
 import { getQwenCompatibleBaseUrl } from '../qwen-region';
 import { getXiaomiTokenPlanBaseUrl } from '../xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../zai-region';
@@ -146,6 +147,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildHeaders: anthropicHeaders,
     buildPath: () => '/v1/messages',
     format: 'anthropic',
+  },
+  bedrock: {
+    baseUrl: getBedrockMantleBaseUrl(),
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
   },
   deepseek: {
     baseUrl: 'https://api.deepseek.com',

@@ -418,6 +418,40 @@ describe('ModelController', () => {
       expect(result[0].display_name).toBeNull();
     });
 
+    it('uses underlying models.dev names for cached Bedrock raw ids', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'mistral.magistral-small-2509',
+          provider: 'bedrock',
+          displayName: 'mistral.magistral-small-2509',
+        }),
+      ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        name: 'Magistral Small',
+      });
+
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
+
+      expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('mistral', 'magistral-small-2509');
+      expect(result[0].model_name).toBe('mistral.magistral-small-2509');
+      expect(result[0].display_name).toBe('Magistral Small');
+    });
+
+    it('formats Bedrock raw ids when no metadata name is available', async () => {
+      mockDiscoveryService.getModelsForAgent.mockResolvedValue([
+        makeDiscovered({
+          id: 'us.anthropic.claude-opus-4.6',
+          provider: 'bedrock',
+          displayName: 'us.anthropic.claude-opus-4.6',
+        }),
+      ]);
+
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
+
+      expect(result[0].model_name).toBe('us.anthropic.claude-opus-4.6');
+      expect(result[0].display_name).toBe('Claude Opus 4.6');
+    });
+
     it('should include models from multiple providers', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([
         makeDiscovered({ id: 'gpt-4o', provider: 'openai' }),

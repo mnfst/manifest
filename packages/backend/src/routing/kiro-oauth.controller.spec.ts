@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { KiroOauthController } from './oauth/kiro-oauth.controller';
 import { KiroOauthService } from './oauth/kiro-oauth.service';
+import { KiroAuthorizationOptionsError } from './oauth/kiro-oidc';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { ProviderService } from './routing-core/provider.service';
 
@@ -48,8 +49,37 @@ describe('KiroOauthController', () => {
         'agent-id-1',
         'tenant-1',
         'user-1',
+        {},
       );
       expect(result.flowId).toBe('flow-1');
+    });
+
+    it('passes optional IAM Identity Center options to the device flow', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
+      oauthService.startAuthorization.mockResolvedValue({
+        flowId: 'flow-1',
+        userCode: 'AAAA-BBBB',
+        verificationUri: 'https://verify',
+        expiresAt: 123,
+        pollIntervalMs: 5000,
+      });
+
+      await controller.start(
+        'my-agent',
+        { tenantId: 'tenant-1', userId: 'user-1' } as never,
+        ' https://org.awsapps.com/start ',
+        ' eu-west-1 ',
+      );
+
+      expect(oauthService.startAuthorization).toHaveBeenCalledWith(
+        'agent-id-1',
+        'tenant-1',
+        'user-1',
+        {
+          startUrl: 'https://org.awsapps.com/start',
+          region: 'eu-west-1',
+        },
+      );
     });
 
     it('throws 400 when agentName is missing', async () => {
@@ -66,6 +96,17 @@ describe('KiroOauthController', () => {
       ).rejects.toMatchObject({
         message: 'Failed to start Kiro login',
         status: HttpStatus.SERVICE_UNAVAILABLE,
+      });
+    });
+
+    it('maps invalid IAM Identity Center options to 400', async () => {
+      resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+      oauthService.startAuthorization.mockRejectedValue(
+        new KiroAuthorizationOptionsError('bad Kiro option'),
+      );
+      await expect(controller.start('my-agent', { id: 'user-1' } as never)).rejects.toMatchObject({
+        message: 'bad Kiro option',
+        status: HttpStatus.BAD_REQUEST,
       });
     });
 

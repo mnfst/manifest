@@ -30,9 +30,7 @@ describe('issue #1871: cache_control round-trip through /v1/messages', () => {
       };
 
       const chatBody = messagesToChatCompletionsRequest(inbound);
-      const wireBody = toAnthropicRequest(chatBody, 'claude-haiku-4-5', {
-        injectCacheControl: true,
-      });
+      const wireBody = toAnthropicRequest(chatBody, 'claude-haiku-4-5');
 
       const system = wireBody.system as Array<{ cache_control?: unknown }>;
       expect(system).toHaveLength(1);
@@ -56,9 +54,7 @@ describe('issue #1871: cache_control round-trip through /v1/messages', () => {
       };
 
       const chatBody = messagesToChatCompletionsRequest(inbound);
-      const wireBody = toAnthropicRequest(chatBody, 'claude-haiku-4-5', {
-        injectCacheControl: true,
-      });
+      const wireBody = toAnthropicRequest(chatBody, 'claude-haiku-4-5');
 
       const tools = wireBody.tools as Array<{ cache_control?: unknown }>;
       expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });

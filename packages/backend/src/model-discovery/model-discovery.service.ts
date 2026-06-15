@@ -1,7 +1,7 @@
 import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AuthType } from 'manifest-shared';
+import { resolveProviderMetadataIdentity, type AuthType } from 'manifest-shared';
 import { TenantProvider } from '../entities/tenant-provider.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
@@ -14,6 +14,11 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/openai-oauth.types';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import {
+  getBedrockMantleBaseUrl,
+  isBedrockProvider,
+  isBedrockRegion,
+} from '../routing/bedrock-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax-oauth-helpers';
 import {
   getXiaomiTokenPlanBaseUrl,
@@ -141,6 +146,9 @@ export class ModelDiscoveryService {
     if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
       endpointOverride = getQwenCompatibleBaseUrl(provider.region);
     }
+    if (isBedrockProvider(provider.provider) && isBedrockRegion(provider.region)) {
+      endpointOverride = getBedrockMantleBaseUrl(provider.region);
+    }
     if (
       provider.provider.toLowerCase() === 'zai' &&
       provider.auth_type === 'subscription' &&
@@ -240,7 +248,9 @@ export class ModelDiscoveryService {
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
     const filtered = enriched.filter((model) => {
-      const mdEntry = this.modelsDevSync?.lookupModel(provider.provider, model.id);
+      const metadata = resolveProviderMetadataIdentity(provider.provider, model.id);
+      const metadataProvider = metadata.provider ?? provider.provider;
+      const mdEntry = this.modelsDevSync?.lookupModel(metadataProvider, metadata.model);
       if (mdEntry && mdEntry.toolCall === false) return false;
       return true;
     });
@@ -515,12 +525,23 @@ export class ModelDiscoveryService {
     // capability flags (reasoning / tool-call) — those drive tier auto-
     // assignment quality scoring and shouldn't be lost just because we
     // overrode the price. Mirrors the price-already-set branch above.
-    const known = lookupKnownPrice(model.id);
+    const metadata = resolveProviderMetadataIdentity(providerId, model.id);
+    const metadataProvider = metadata.provider ?? providerId;
+    const metadataModel = metadata.model;
+    const isBedrock = providerId.toLowerCase() === 'bedrock';
+    const metadataEntry = this.modelsDevSync?.lookupModel(metadataProvider, metadataModel) ?? null;
+    const modelWithMetadataName =
+      metadataEntry?.name && metadataEntry.name !== model.id
+        ? { ...model, displayName: metadataEntry.name }
+        : model;
+    const pricingProvider = isBedrock ? providerId : metadataProvider;
+    const pricingModel = isBedrock ? model.id : metadataModel;
+    const known = lookupKnownPrice(pricingModel) ?? lookupKnownPrice(model.id);
     if (known) {
       return this.computeScore(
         this.applyCapabilities(
           {
-            ...model,
+            ...modelWithMetadataName,
             inputPricePerToken: known.input,
             outputPricePerToken: known.output,
           },
@@ -529,63 +550,76 @@ export class ModelDiscoveryService {
       );
     }
 
-    // Priority 2: models.dev — uses native provider IDs, no normalization needed
+    // Priority 2: models.dev — uses native provider IDs. Bedrock pricing must
+    // come from a Bedrock/AWS entry keyed by the AWS model ID; underlying
+    // vendor metadata may still provide the display name/capabilities.
     if (this.modelsDevSync) {
-      const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
+      const mdEntry =
+        pricingProvider === metadataProvider && pricingModel === metadataModel
+          ? metadataEntry
+          : this.modelsDevSync.lookupModel(pricingProvider, pricingModel);
       if (mdEntry && mdEntry.inputPricePerToken !== null) {
+        const capabilityEntry = metadataEntry ?? mdEntry;
         return this.computeScore({
-          ...model,
+          ...modelWithMetadataName,
           inputPricePerToken: mdEntry.inputPricePerToken,
           outputPricePerToken: mdEntry.outputPricePerToken,
-          contextWindow: mdEntry.contextWindow ?? model.contextWindow,
-          displayName: mdEntry.name || model.displayName,
-          capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
-          capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
-          ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
-          ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
+          contextWindow:
+            mdEntry.contextWindow ?? capabilityEntry.contextWindow ?? model.contextWindow,
+          displayName: capabilityEntry.name || mdEntry.name || modelWithMetadataName.displayName,
+          capabilityReasoning: capabilityEntry.reasoning ?? model.capabilityReasoning,
+          capabilityCode: capabilityEntry.toolCall ?? model.capabilityCode,
+          ...(capabilityEntry.inputModalities
+            ? { inputModalities: capabilityEntry.inputModalities }
+            : {}),
+          ...(capabilityEntry.outputModalities
+            ? { outputModalities: capabilityEntry.outputModalities }
+            : {}),
           capabilities: mergeModelCapabilities(
             model.capabilities,
-            mdEntry.capabilities,
-            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+            capabilityEntry.capabilities,
+            modelSupportsStreaming(metadataProvider, metadataModel) ? ['stream'] : undefined,
           ),
         });
       }
     }
 
     // Priority 3: OpenRouter cache — broader coverage, needs prefix + variant matching
-    if (this.pricingSync) {
-      const orPrefix = findOpenRouterPrefix(providerId);
+    if (this.pricingSync && !isBedrock) {
+      const orPrefix = findOpenRouterPrefix(metadataProvider);
       if (orPrefix) {
-        const orPricing = lookupWithVariants(this.pricingSync, orPrefix, model.id);
+        const orPricing = lookupWithVariants(this.pricingSync, orPrefix, metadataModel);
         if (orPricing) {
           return this.computeScore({
-            ...model,
+            ...modelWithMetadataName,
             inputPricePerToken: orPricing.input,
             outputPricePerToken: orPricing.output,
-            contextWindow: orPricing.contextWindow ?? model.contextWindow,
-            displayName: orPricing.displayName || model.displayName,
+            contextWindow: orPricing.contextWindow ?? modelWithMetadataName.contextWindow,
+            displayName: orPricing.displayName || modelWithMetadataName.displayName,
           });
         }
       }
       const exactPricing = this.pricingSync.lookupPricing(model.id);
       if (exactPricing) {
         return this.computeScore({
-          ...model,
+          ...modelWithMetadataName,
           inputPricePerToken: exactPricing.input,
           outputPricePerToken: exactPricing.output,
-          contextWindow: exactPricing.contextWindow ?? model.contextWindow,
-          displayName: exactPricing.displayName || model.displayName,
+          contextWindow: exactPricing.contextWindow ?? modelWithMetadataName.contextWindow,
+          displayName: exactPricing.displayName || modelWithMetadataName.displayName,
         });
       }
     }
 
-    return this.computeScore(model);
+    return this.computeScore(modelWithMetadataName);
   }
 
   /** Merge capability flags from models.dev without touching pricing or display name. */
   private applyCapabilities(model: DiscoveredModel, providerId: string): DiscoveredModel {
     if (!this.modelsDevSync) return model;
-    const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
+    const metadata = resolveProviderMetadataIdentity(providerId, model.id);
+    const metadataProvider = metadata.provider ?? providerId;
+    const mdEntry = this.modelsDevSync.lookupModel(metadataProvider, metadata.model);
     if (!mdEntry) return model;
     return {
       ...model,
@@ -596,7 +630,7 @@ export class ModelDiscoveryService {
       capabilities: mergeModelCapabilities(
         model.capabilities,
         mdEntry.capabilities,
-        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+        modelSupportsStreaming(metadataProvider, metadata.model) ? ['stream'] : undefined,
       ),
     };
   }

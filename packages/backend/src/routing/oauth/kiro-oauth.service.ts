@@ -14,10 +14,13 @@ import {
   KIRO_OIDC_DEFAULT_REGION,
   KIRO_REFRESH_GRANT,
   KIRO_REGISTER_GRANT_TYPES,
+  KiroAuthorizationOptions,
   buildKiroDeviceAuthorizationUrl,
   buildKiroRegisterUrl,
   buildKiroTokenUrl,
   getKiroOidcBaseUrl,
+  normalizeKiroRegion,
+  normalizeKiroStartUrl,
   parseKiroOAuthTokenBlob,
   serializeKiroOAuthTokenBlob,
   toAbsoluteExpiryTimestamp,
@@ -34,6 +37,7 @@ interface PendingKiroOAuth {
   tenantId: string;
   /** Acting user, audit only (tenant_providers.created_by_user_id). */
   createdByUserId: string | null;
+  region: string;
   expiresAt: number;
   pollIntervalMs: number;
 }
@@ -111,11 +115,13 @@ export class KiroOauthService {
     agentId: string,
     tenantId: string,
     createdByUserId?: string | null,
+    options: KiroAuthorizationOptions = {},
   ): Promise<KiroOAuthStartResult> {
     this.cleanupExpired();
-    const baseUrl = getKiroOidcBaseUrl(this.region);
+    const { region, startUrl } = this.resolveAuthorizationOptions(options);
+    const baseUrl = getKiroOidcBaseUrl(region);
     const { clientId, clientSecret } = await this.registerClient(baseUrl);
-    const device = await this.startDeviceAuthorization(baseUrl, clientId, clientSecret);
+    const device = await this.startDeviceAuthorization(baseUrl, clientId, clientSecret, startUrl);
 
     const flowId = randomBytes(16).toString('base64url');
     const expiresAt = toAbsoluteExpiryTimestamp(device.expiresIn);
@@ -127,6 +133,7 @@ export class KiroOauthService {
       agentId,
       tenantId,
       createdByUserId: createdByUserId ?? null,
+      region,
       expiresAt,
       pollIntervalMs,
     });
@@ -156,7 +163,7 @@ export class KiroOauthService {
       return { status: 'error', message: 'Kiro login expired. Start again.' };
     }
 
-    const baseUrl = getKiroOidcBaseUrl(this.region);
+    const baseUrl = getKiroOidcBaseUrl(pending.region);
     const response = await fetch(buildKiroTokenUrl(baseUrl), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -203,7 +210,7 @@ export class KiroOauthService {
       e: toAbsoluteExpiryTimestamp(payload.expiresIn),
       cid: pending.clientId,
       cs: pending.clientSecret,
-      region: this.region,
+      region: pending.region,
     };
     const label = await this.providerService.nextOAuthLabel(pending.tenantId, 'kiro');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
@@ -296,6 +303,7 @@ export class KiroOauthService {
     baseUrl: string,
     clientId: string,
     clientSecret: string,
+    startUrl: string,
   ): Promise<
     Required<Pick<KiroDeviceAuthorizationResponse, 'deviceCode' | 'userCode' | 'expiresIn'>> &
       KiroDeviceAuthorizationResponse
@@ -303,7 +311,7 @@ export class KiroOauthService {
     const response = await fetch(buildKiroDeviceAuthorizationUrl(baseUrl), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ clientId, clientSecret, startUrl: this.startUrl }),
+      body: JSON.stringify({ clientId, clientSecret, startUrl }),
     });
     if (!response.ok) {
       const text = await response.text();
@@ -323,6 +331,15 @@ export class KiroOauthService {
       Pick<KiroDeviceAuthorizationResponse, 'deviceCode' | 'userCode' | 'expiresIn'>
     > &
       KiroDeviceAuthorizationResponse;
+  }
+
+  private resolveAuthorizationOptions(
+    options: KiroAuthorizationOptions,
+  ): Required<KiroAuthorizationOptions> {
+    return {
+      region: normalizeKiroRegion(options.region ?? this.region),
+      startUrl: normalizeKiroStartUrl(options.startUrl ?? this.startUrl),
+    };
   }
 
   private async refreshAccessToken(blob: KiroOAuthTokenBlob): Promise<KiroOAuthTokenBlob> {

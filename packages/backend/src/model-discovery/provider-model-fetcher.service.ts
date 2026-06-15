@@ -11,6 +11,7 @@ import {
 } from '../common/constants/subscription-clients';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
+import { getBedrockMantleBaseUrl, normalizeBedrockMantleBaseUrl } from '../routing/bedrock-region';
 import {
   getXiaomiTokenPlanBaseUrl,
   normalizeXiaomiTokenPlanBaseUrl,
@@ -230,6 +231,7 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   'qwen-subscription': /(?:^qwen-image-|^wan.*image)/i,
   xai: /imagine/i,
   copilot: /accounts\/[^/]+\/routers\//i,
+  bedrock: /(?:^|[./])voxtral-/i,
 };
 
 /**
@@ -645,6 +647,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     },
     parse: parseAnthropic,
   },
+  bedrock: {
+    endpoint: `${getBedrockMantleBaseUrl()}/v1/models`,
+    buildHeaders: bearerHeaders,
+    parse: parseOpenAI,
+  },
   gemini: {
     endpoint: (key: string) =>
       `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
@@ -745,6 +752,13 @@ export class ProviderModelFetcherService {
         url = `${minimaxBaseUrl}/v1/models?limit=100`;
       } else {
         this.logger.warn('Ignoring invalid MiniMax subscription endpoint override');
+      }
+    } else if (endpointOverride && configKey === 'bedrock') {
+      const bedrockBaseUrl = normalizeBedrockMantleBaseUrl(endpointOverride);
+      if (bedrockBaseUrl) {
+        url = `${bedrockBaseUrl}/v1/models`;
+      } else {
+        this.logger.warn('Ignoring invalid AWS Bedrock endpoint override');
       }
     } else if (endpointOverride && (configKey === 'qwen' || configKey === 'qwen-subscription')) {
       const qwenBaseUrl = normalizeQwenCompatibleBaseUrl(endpointOverride);

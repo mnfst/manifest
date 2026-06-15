@@ -33,6 +33,7 @@ interface AnthropicTool {
 }
 
 const CACHE = { type: 'ephemeral' } as const;
+const MAX_CACHE_CONTROL_BLOCKS = 4;
 const ANTHROPIC_PREFIX = 'anthropic/';
 const DATA_IMAGE_URL_RE = /^data:([^;,]+)(?:;[^,]*)?;base64,(.*)$/is;
 
@@ -66,7 +67,6 @@ function shouldForwardAnthropicThinking(thinking: unknown, model: string): boole
 const SUBSCRIPTION_IDENTITY_BLOCK: ContentBlock = {
   type: 'text',
   text: "You are a Claude agent, built on Anthropic's Claude Agent SDK.",
-  cache_control: { type: 'ephemeral' },
 };
 
 function safeParseArgs(args: string | undefined): unknown {
@@ -79,6 +79,35 @@ function safeParseArgs(args: string | undefined): unknown {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function countCacheControlBlocks(value: unknown): number {
+  if (!value || typeof value !== 'object') return 0;
+
+  let count = !Array.isArray(value) && 'cache_control' in value ? 1 : 0;
+  const children = Array.isArray(value) ? value : Object.values(value);
+  for (const child of children) count += countCacheControlBlocks(child);
+  return count;
+}
+
+function tryAddCacheControl(
+  block: { cache_control?: unknown } | undefined,
+  budget: { remaining: number },
+): void {
+  if (!block || block.cache_control || budget.remaining <= 0) return;
+  block.cache_control = CACHE;
+  budget.remaining -= 1;
+}
+
+function isClaudeSonnetModel(model: string | undefined): boolean {
+  if (!model) return false;
+  return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');
+}
+
+function normalizeOutputConfigForModel(outputConfig: unknown, model: string | undefined): unknown {
+  if (!isObjectRecord(outputConfig)) return outputConfig;
+  if (outputConfig.effort !== 'xhigh' || !isClaudeSonnetModel(model)) return outputConfig;
+  return { ...outputConfig, effort: 'high' };
 }
 
 /* ── Request helpers ── */
@@ -238,12 +267,12 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
 /* ── Request conversion ── */
 
 export interface AnthropicRequestOptions {
-  /** When false, cache_control fields are omitted from the request. Defaults to true. */
-  injectCacheControl?: boolean;
   /** When true, prepends the Claude Code agent system prompt required for subscription OAuth tokens. */
   injectSubscriptionIdentity?: boolean;
   /** Lookup for re-injecting cached extended-thinking blocks. */
   thinkingLookup?: ThinkingBlockLookup;
+  /** Resolved Anthropic upstream model, used for model-specific body normalization. */
+  targetModel?: string;
 }
 
 export function toAnthropicRequest(
@@ -251,10 +280,9 @@ export function toAnthropicRequest(
   _model: string,
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
-  const shouldCache = options?.injectCacheControl !== false;
   const messages = (body.messages as OpenAIMessage[]) || [];
   const systemBlocks = extractSystemBlocks(messages);
-  if (systemBlocks.length > 0 && shouldCache) {
+  if (systemBlocks.length > 0) {
     systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
   }
 
@@ -279,7 +307,7 @@ export function toAnthropicRequest(
   // assumption is safe.
   const tools = convertTools(body.tools as Array<Record<string, unknown>> | undefined);
   if (tools) {
-    if (shouldCache) tools[tools.length - 1].cache_control = CACHE;
+    tools[tools.length - 1].cache_control = CACHE;
     result.tools = tools;
   }
 
@@ -350,8 +378,10 @@ export function applyAnthropicMessagesMutations(
   body: Record<string, unknown>,
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
-  const shouldCache = options?.injectCacheControl !== false;
   const result: Record<string, unknown> = { ...body };
+  const cacheBudget = {
+    remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
+  };
 
   // Normalize `system` to a content-block array so cache_control + identity
   // injection have a uniform target. Anthropic accepts either a bare string
@@ -359,7 +389,7 @@ export function applyAnthropicMessagesMutations(
   // mutation needs to happen, otherwise we leave a string system intact.
   const needsBlockSystem =
     options?.injectSubscriptionIdentity ||
-    (shouldCache && (typeof body.system === 'string' ? body.system : Array.isArray(body.system)));
+    (typeof body.system === 'string' ? body.system : Array.isArray(body.system));
   if (needsBlockSystem) {
     let systemBlocks: ContentBlock[] = [];
     if (typeof body.system === 'string') {
@@ -367,9 +397,7 @@ export function applyAnthropicMessagesMutations(
     } else if (Array.isArray(body.system)) {
       systemBlocks = (body.system as ContentBlock[]).map((b) => ({ ...b }));
     }
-    if (shouldCache && systemBlocks.length > 0) {
-      systemBlocks[systemBlocks.length - 1].cache_control = CACHE;
-    }
+    tryAddCacheControl(systemBlocks[systemBlocks.length - 1], cacheBudget);
     if (options?.injectSubscriptionIdentity) {
       systemBlocks.unshift({ ...SUBSCRIPTION_IDENTITY_BLOCK });
     }
@@ -385,13 +413,17 @@ export function applyAnthropicMessagesMutations(
   // custom tools' `input_schema` both survive unchanged.
   if (Array.isArray(body.tools)) {
     const tools = (body.tools as Array<Record<string, unknown>>).map((t) => ({ ...t }));
-    if (tools.length > 0 && shouldCache) {
-      tools[tools.length - 1].cache_control = CACHE;
-    }
+    tryAddCacheControl(tools[tools.length - 1], cacheBudget);
     result.tools = tools;
   }
 
   if (result.max_tokens === undefined) result.max_tokens = 4096;
+  if (result.output_config !== undefined) {
+    result.output_config = normalizeOutputConfigForModel(
+      result.output_config,
+      options?.targetModel,
+    );
+  }
 
   const thinkingLookup = options?.thinkingLookup;
   if (thinkingLookup && Array.isArray(body.messages)) {

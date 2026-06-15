@@ -143,7 +143,7 @@ const HeaderTierCard: Component<Props> = (props) => {
   const priceLabel = (): string => {
     const info = modelInfo();
     if (!info) return '';
-    return `${pricePerM(Number(info.input_price_per_token ?? 0))} in · ${pricePerM(Number(info.output_price_per_token ?? 0))} out per 1M`;
+    return `${pricePerM(info.input_price_per_token)} in · ${pricePerM(info.output_price_per_token)} out per 1M`;
   };
 
   const effectiveAuth = (): AuthType | null => {
