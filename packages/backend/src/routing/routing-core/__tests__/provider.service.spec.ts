@@ -9,6 +9,7 @@ import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { encrypt, getEncryptionSecret } from '../../../common/utils/crypto.util';
+import { makeShortTermBedrockKey } from '../../__tests__/bedrock-fixtures';
 
 const route = (
   provider: string,
@@ -67,6 +68,77 @@ describe('ProviderService — route-only cleanup paths', () => {
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
     );
+  });
+
+  describe('upsertProvider — Bedrock region', () => {
+    let originalSecret: string | undefined;
+
+    beforeEach(() => {
+      originalSecret = process.env.BETTER_AUTH_SECRET;
+      process.env.BETTER_AUTH_SECRET = 'a'.repeat(48);
+    });
+
+    afterEach(() => {
+      if (originalSecret === undefined) {
+        delete process.env.BETTER_AUTH_SECRET;
+      } else {
+        process.env.BETTER_AUTH_SECRET = originalSecret;
+      }
+    });
+
+    it('infers the region from a short-term Bedrock API key', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermBedrockKey('eu-west-1'),
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('eu-west-1');
+    });
+
+    it('falls back to the default region when a short-term Bedrock key uses an unsupported Mantle region', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermBedrockKey('eu-west-3'),
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('us-east-1');
+    });
+
+    it('uses an explicitly selected Bedrock region over key inference', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider(
+        'agent-1',
+        'user-1',
+        'bedrock',
+        makeShortTermBedrockKey('eu-west-3'),
+        'api_key',
+        'us-west-2',
+      );
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('us-west-2');
+    });
+
+    it('accepts raw AWS bearer token shaped Bedrock keys without region inference', async () => {
+      providerRepo.findOne.mockResolvedValue(null);
+
+      await svc.upsertProvider('agent-1', 'user-1', 'bedrock', 'ABSKTWFudGxlQXBpS2V5LWV4YW1wbGU=');
+
+      const inserted = providerRepo.insert.mock.calls[0][0] as UserProvider;
+      expect(inserted.region).toBe('us-east-1');
+      expect(inserted.key_prefix).toBe('ABSKTWFu');
+    });
   });
 
   describe('removeProvider — cleanupProviderReferences', () => {

@@ -69,6 +69,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-ant-...',
   },
   {
+    id: 'bedrock',
+    displayName: 'AWS Bedrock',
+    aliases: ['aws-bedrock', 'aws bedrock', 'amazon-bedrock', 'amazon bedrock'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#ff9900',
+    keyPrefix: '',
+    minKeyLength: 100,
+    keyPlaceholder: 'ABSK...',
+  },
+  {
     id: 'byteplus',
     displayName: 'BytePlus',
     aliases: ['byteplus-plan', 'byteplus plan', 'modelark', 'modelark-coding-plan'],

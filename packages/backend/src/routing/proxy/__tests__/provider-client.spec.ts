@@ -111,6 +111,35 @@ describe('ProviderClient', () => {
       );
     });
 
+    it('builds Bedrock Mantle chat completions requests with bearer API-key auth', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'mistral.ministral-3-8b-instruct',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://bedrock-mantle.us-east-1.api.aws/v1/chat/completions',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer bedrock-api-key-test',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('mistral.ministral-3-8b-instruct');
+      expect(sentBody.stream).toBe(false);
+      expect(result.isAnthropic).toBe(false);
+      expect(result.isGoogle).toBe(false);
+    });
+
     it('builds correct URL for moonshot', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({

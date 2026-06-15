@@ -20,6 +20,7 @@ import {
 } from './provider-endpoints';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
+import { getBedrockMantleBaseUrl, isBedrockRegion } from '../bedrock-region';
 import { MINIMAX_BASE_URLS } from '../oauth/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../qwen-region';
 import {
@@ -115,6 +116,8 @@ export function resolveForwardEndpoint(
       );
       forwardModel = CustomProviderService.rawModelName(model);
     }
+  } else if (resolveEndpointKey(provider) === 'bedrock' && isBedrockRegion(providerRegion)) {
+    customEndpoint = buildEndpointOverride(getBedrockMantleBaseUrl(providerRegion), 'bedrock');
   } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedRegion(providerRegion)) {
     customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
   } else if (authType === 'subscription' && lower === 'minimax') {

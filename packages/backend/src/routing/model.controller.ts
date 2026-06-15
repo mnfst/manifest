@@ -10,7 +10,7 @@ import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
-import { resolveUnderlyingModelIdentity } from 'manifest-shared';
+import { resolveProviderMetadataIdentity } from 'manifest-shared';
 import {
   inputModalitiesFromCapabilities,
   mergeModelCapabilities,
@@ -21,6 +21,35 @@ import {
   AgentProviderParamDto,
   RemoveProviderQueryDto,
 } from './dto/routing.dto';
+
+function formatModelSlug(slug: string): string {
+  return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function displayNameForModel(
+  provider: string,
+  modelId: string,
+  displayName: string | null | undefined,
+  metadataName: string | null | undefined,
+): string | null {
+  const trimmedDisplay = displayName?.trim();
+  if (trimmedDisplay && trimmedDisplay !== modelId) return trimmedDisplay;
+
+  const trimmedMetadata = metadataName?.trim();
+  if (trimmedMetadata && trimmedMetadata !== modelId) return trimmedMetadata;
+
+  const metadata = resolveProviderMetadataIdentity(provider, modelId);
+  if (
+    provider.toLowerCase() === 'bedrock' &&
+    metadata.provider &&
+    metadata.provider !== provider &&
+    metadata.model !== modelId
+  ) {
+    return formatModelSlug(metadata.model);
+  }
+
+  return trimmedDisplay || null;
+}
 
 @Controller('api/v1/routing')
 export class ModelController {
@@ -106,12 +135,10 @@ export class ModelController {
           authType,
           m.id,
         );
-        // Gateway models (e.g. `opencode-go/glm-5.1`) proxy another provider's
-        // API, so their capabilities live under the underlying provider on
-        // models.dev. Resolve the provenance before the metadata lookups; this
-        // is gateway-generic, not OpenCode Go-specific. `getCapabilities` (MPS)
-        // already unwraps gateways internally, so it keeps the raw identity.
-        const capId = resolveUnderlyingModelIdentity(m.provider, m.id);
+        // Some routable ids proxy another provider's model namespace (gateway
+        // ids, Bedrock vendor-prefixed ids). Resolve that provenance for
+        // metadata only; the routable provider/model below stay unchanged.
+        const capId = resolveProviderMetadataIdentity(m.provider, m.id);
         const capProvider = capId.provider ?? m.provider;
         const modelsDevEntry = this.modelsDevSync.lookupModel(capProvider, capId.model);
         const modelsDevCapabilities = modelsDevEntry?.capabilities;
@@ -145,7 +172,9 @@ export class ModelController {
           input_modalities: inputModalities,
           output_modalities: ['text'],
           quality_score: m.qualityScore,
-          display_name: isCustom ? CustomProviderService.rawModelName(m.id) : m.displayName || null,
+          display_name: isCustom
+            ? CustomProviderService.rawModelName(m.id)
+            : displayNameForModel(m.provider, m.id, m.displayName, modelsDevEntry?.name),
           ...(isCustom && {
             provider_display_name: cpNameMap.get(m.provider) ?? m.provider,
           }),

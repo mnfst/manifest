@@ -1,5 +1,6 @@
 export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
+  bedrock: 'https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys-generate.html',
   deepseek: 'https://platform.deepseek.com/api_keys',
   fireworks: 'https://app.fireworks.ai/api-keys',
   gemini: 'https://aistudio.google.com/apikey',
