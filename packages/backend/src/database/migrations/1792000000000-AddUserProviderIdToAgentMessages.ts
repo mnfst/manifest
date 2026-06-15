@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
@@ -9,16 +8,23 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * added key showed a sibling key's usage. We add a nullable `user_provider_id`
  * stamped at proxy time and filter per-connection views on it instead.
  *
- * The whole migration runs inside the single boot transaction
- * (migrationsTransactionMode: 'all'), so CREATE INDEX CONCURRENTLY is not
- * usable here — a plain index build briefly locks `agent_messages` writes.
- * Fine at current scale; large self-hosted installs should expect a short
- * write stall the first time this migration runs.
+ * This migration does ONLY metadata-only / structural work that is safe inside
+ * the single boot transaction: add the nullable column, add the FK (trivially
+ * valid — every row is NULL at this point), and build the covering index. The
+ * index must exist here because a later migration (TenantProviders) renames it
+ * along with the column and FK; it cannot be deferred out-of-band.
+ *
+ * The historical backfill of `user_provider_id` is NOT done here. On a
+ * multi-million-row `agent_messages` table it stamps most rows, and inside the
+ * boot transaction it held an ACCESS EXCLUSIVE lock for 12–30+ minutes,
+ * locking the live app out of its main table for the whole deploy. It now runs
+ * post-deploy, batched and throttled, against the FINAL (post-rename) schema —
+ * see packages/backend/src/database/backfills/backfill-message-providers.ts and
+ * `npm run backfill:message-providers`. New messages are stamped at proxy time,
+ * so only pre-upgrade history relies on the backfill.
  */
 export class AddUserProviderIdToAgentMessages1792000000000 implements MigrationInterface {
   name = 'AddUserProviderIdToAgentMessages1792000000000';
-
-  private readonly logger = new Logger(AddUserProviderIdToAgentMessages1792000000000.name);
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Nullable add → metadata-only, no table rewrite even on a large table.
@@ -26,104 +32,9 @@ export class AddUserProviderIdToAgentMessages1792000000000 implements MigrationI
       `ALTER TABLE "agent_messages" ADD COLUMN IF NOT EXISTS "user_provider_id" varchar`,
     );
 
-    // Best-effort backfill of pre-upgrade history, in three passes. Each pass
-    // only touches rows still NULL, so an earlier (more precise) stamp excludes
-    // the message from every later pass. Where 0 or >1 keys match within a
-    // pass, the row falls through — and if no pass resolves it, it stays NULL:
-    // ambiguous history correctly stays out of every per-connection view.
-    //
-    // Pass 1 (agent-exact): match on the message's own agent via
-    // user_providers.agent_id — the legacy column LiftProvidersToUserLevel
-    // deliberately kept (nullable, values intact) — plus provider, auth_type,
-    // and label. Pre-lift, (agent_id, provider, auth_type, LOWER(label)) was
-    // unique, so this is precise wherever the lift did not relabel the row.
-    await queryRunner.query(`
-      UPDATE "agent_messages" am
-      SET "user_provider_id" = m.up_id
-      FROM (
-        SELECT am2.id AS msg_id, MIN(up.id) AS up_id
-        FROM "agent_messages" am2
-        JOIN "user_providers" up
-          ON up.agent_id = am2.agent_id
-         AND LOWER(up.provider) = LOWER(am2.provider)
-         AND up.auth_type = am2.auth_type
-         AND LOWER(up.label) = LOWER(COALESCE(am2.provider_key_label, 'Default'))
-        WHERE am2.user_provider_id IS NULL
-          AND am2.provider IS NOT NULL
-          AND am2.agent_id IS NOT NULL
-        GROUP BY am2.id
-        HAVING COUNT(*) = 1
-      ) m
-      WHERE am.id = m.msg_id
-    `);
-
-    // Pass 2 (agent-unique): same agent_id anchor but ignore the label. When
-    // an agent had exactly ONE key for that provider + auth_type, the label is
-    // irrelevant — this covers rows the lift relabeled (e.g. 'Default' →
-    // 'from Agent One'), where the stored provider_key_label no longer matches.
-    await queryRunner.query(`
-      UPDATE "agent_messages" am
-      SET "user_provider_id" = m.up_id
-      FROM (
-        SELECT am2.id AS msg_id, MIN(up.id) AS up_id
-        FROM "agent_messages" am2
-        JOIN "user_providers" up
-          ON up.agent_id = am2.agent_id
-         AND LOWER(up.provider) = LOWER(am2.provider)
-         AND up.auth_type = am2.auth_type
-        WHERE am2.user_provider_id IS NULL
-          AND am2.provider IS NOT NULL
-          AND am2.agent_id IS NOT NULL
-        GROUP BY am2.id
-        HAVING COUNT(*) = 1
-      ) m
-      WHERE am.id = m.msg_id
-    `);
-
-    // Pass 3 (user-level): stamp a message only when exactly ONE key matches
-    // its (provider, auth_type, label) tuple for the owning user. The user is
-    // reached via tenants.name = user_providers.user_id (tenant.name holds the
-    // user id). This catches messages from deleted agents / NULL agent_id that
-    // the agent-anchored passes cannot reach.
-    await queryRunner.query(`
-      UPDATE "agent_messages" am
-      SET "user_provider_id" = m.up_id
-      FROM (
-        SELECT am2.id AS msg_id, MIN(up.id) AS up_id
-        FROM "agent_messages" am2
-        JOIN "tenants" t ON t.id = am2.tenant_id
-        JOIN "user_providers" up
-          ON up.user_id = t.name
-         AND LOWER(up.provider) = LOWER(am2.provider)
-         AND up.auth_type = am2.auth_type
-         AND LOWER(up.label) = LOWER(COALESCE(am2.provider_key_label, 'Default'))
-        WHERE am2.user_provider_id IS NULL
-          AND am2.provider IS NOT NULL
-        GROUP BY am2.id
-        HAVING COUNT(*) = 1
-      ) m
-      WHERE am.id = m.msg_id
-    `);
-
-    // Surface the backfill outcome so operators can see the pre-upgrade history
-    // gap. Everything still NULL is ambiguous, local/Ollama, blind-proxy, or
-    // simply had no matching connection — all expected.
-    const [{ matched, remaining }] = (await queryRunner.query(`
-      SELECT
-        COUNT(*) FILTER (WHERE user_provider_id IS NOT NULL)::int AS matched,
-        COUNT(*) FILTER (WHERE user_provider_id IS NULL)::int AS remaining
-      FROM "agent_messages"
-    `)) as { matched: number; remaining: number }[];
-    this.logger.log(
-      `Backfilled user_provider_id on ${matched} message(s) across the three passes ` +
-        `(agent-exact label, agent-unique key, user-level label); ${remaining} left NULL ` +
-        `(ambiguous, local/Ollama, or no matching connection).`,
-    );
-
     // ON DELETE SET NULL, not CASCADE: disconnecting a provider must never
-    // delete its billing/usage history. Disconnect is a soft delete today
-    // (is_active = false), so this fires only on a true hard delete such as an
-    // account purge — and then the rows survive with a NULL connection.
+    // delete its billing/usage history. The column is entirely NULL here, so
+    // validation is instant — no scan of agent_messages.
     await queryRunner.query(`
       ALTER TABLE "agent_messages"
       ADD CONSTRAINT "FK_agent_messages_user_provider"
@@ -133,9 +44,9 @@ export class AddUserProviderIdToAgentMessages1792000000000 implements MigrationI
 
     // user_provider_id leads so this one index serves both the connection-detail
     // reads (WHERE user_provider_id = X AND tenant_id = Y ORDER BY timestamp DESC)
-    // and the FK's ON DELETE SET NULL lookup (WHERE user_provider_id = X). An
-    // index leading with tenant_id would leave the parent-delete cleanup to a
-    // sequential scan of agent_messages.
+    // and the FK's ON DELETE SET NULL lookup (WHERE user_provider_id = X). Built
+    // here against an all-NULL column (cheap) before the post-deploy backfill
+    // populates it; TenantProviders later renames it to IDX_agent_messages_tenant_provider.
     await queryRunner.query(
       `CREATE INDEX "IDX_agent_messages_user_provider" ON "agent_messages" ("user_provider_id", "tenant_id", "timestamp" DESC)`,
     );
