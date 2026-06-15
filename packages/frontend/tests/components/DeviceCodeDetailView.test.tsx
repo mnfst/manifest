@@ -671,6 +671,12 @@ describe('DeviceCodeDetailView — Kiro', () => {
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     expect(screen.getByText(message)).toBeDefined();
+    expect(screen.getByLabelText('Region').getAttribute('aria-describedby')).toBe(
+      'kiro-identity-error',
+    );
+    expect(screen.getByLabelText(/Start URL/).getAttribute('aria-describedby')).toBe(
+      'kiro-identity-error',
+    );
     expect(openSpy).not.toHaveBeenCalled();
     expect(startKiroOAuth).not.toHaveBeenCalled();
     openSpy.mockRestore();

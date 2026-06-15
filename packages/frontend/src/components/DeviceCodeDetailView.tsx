@@ -422,6 +422,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                       disabled={props.busy()}
                       portal
                       maxDropdownHeight={240}
+                      ariaDescribedBy={kiroConfigError() ? 'kiro-identity-error' : undefined}
                       onChange={(value) => {
                         setKiroRegion(value);
                         setKiroConfigError(null);

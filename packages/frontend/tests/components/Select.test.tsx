@@ -125,9 +125,12 @@ describe('Select', () => {
   });
 
   it('has correct aria attributes', () => {
-    render(() => <Select options={options} value="a" onChange={() => {}} />);
+    render(() => (
+      <Select options={options} value="a" onChange={() => {}} ariaDescribedBy="select-help" />
+    ));
     const trigger = screen.getByRole('button');
     expect(trigger.getAttribute('aria-haspopup')).toBe('listbox');
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(trigger.getAttribute('aria-describedby')).toBe('select-help');
   });
 });

@@ -16,6 +16,7 @@ interface SelectProps {
   disabled?: boolean;
   portal?: boolean;
   maxDropdownHeight?: number;
+  ariaDescribedBy?: string;
 }
 
 const Select: Component<SelectProps> = (props) => {
@@ -136,6 +137,7 @@ const Select: Component<SelectProps> = (props) => {
         aria-haspopup="listbox"
         aria-expanded={open()}
         aria-label={props.label ?? selectedLabel()}
+        aria-describedby={props.ariaDescribedBy}
       >
         <span class="custom-select__value">{props.displayValue ?? selectedLabel()}</span>
         <svg
