@@ -958,12 +958,8 @@ describe('ModelPickerModal', () => {
       />
     ));
 
-    expect(container.querySelector('.routing-modal__group-name')?.textContent).toBe(
-      'AWS Bedrock',
-    );
-    expect(container.querySelector('.routing-modal__model-label')?.textContent).toBe(
-      'Claude Opus',
-    );
+    expect(container.querySelector('.routing-modal__group-name')?.textContent).toBe('AWS Bedrock');
+    expect(container.querySelector('.routing-modal__model-label')?.textContent).toBe('Claude Opus');
   });
 
   it('renders the no-search empty state when search is non-empty and matches nothing', () => {
