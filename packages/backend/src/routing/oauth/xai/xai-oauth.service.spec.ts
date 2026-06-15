@@ -1,7 +1,39 @@
 import { ConfigService } from '@nestjs/config';
+import type { ServerResponse } from 'http';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { XaiOauthService } from './xai-oauth.service';
+
+const mockHttpControl: {
+  reqHandler?: (req: unknown, res: unknown) => void;
+  errorHandler?: (err: NodeJS.ErrnoException) => void;
+  listenCb?: () => void;
+  server?: { on: jest.Mock; listen: jest.Mock; close: jest.Mock; unref: jest.Mock };
+} = {};
+
+jest.mock('http', () => {
+  const actual = jest.requireActual('http');
+  return {
+    ...actual,
+    createServer: jest.fn((reqHandler: (req: unknown, res: unknown) => void) => {
+      mockHttpControl.reqHandler = reqHandler;
+      const server: { on: jest.Mock; listen: jest.Mock; close: jest.Mock; unref: jest.Mock } = {
+        on: jest.fn((event: string, cb: (err: NodeJS.ErrnoException) => void) => {
+          if (event === 'error') mockHttpControl.errorHandler = cb;
+          return server;
+        }),
+        listen: jest.fn((_port: number, _host: string, cb: () => void) => {
+          mockHttpControl.listenCb = cb;
+          return server;
+        }),
+        close: jest.fn(),
+        unref: jest.fn(),
+      };
+      mockHttpControl.server = server;
+      return server;
+    }),
+  };
+});
 
 const originalFetch = global.fetch;
 
@@ -229,5 +261,163 @@ describe('XaiOauthService', () => {
     expect(revokeUrl).toBe('https://auth.x.ai/oauth2/revoke');
     const body = new URLSearchParams(init.body.toString());
     expect(body.get('token')).toBe('tok');
+  });
+
+  it('swallows model-discovery failures after a successful exchange', async () => {
+    fetchMock.mockResolvedValue(
+      mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
+    );
+    discovery.discoverModels.mockRejectedValueOnce(new Error('discovery boom'));
+    const url = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
+    const state = new URL(url).searchParams.get('state')!;
+
+    await expect(svc.exchangeCode(state, 'code')).resolves.toBeUndefined();
+    expect(providerService.upsertProvider).toHaveBeenCalled();
+    expect(svc.getPendingCount()).toBe(0);
+  });
+
+  it('throws when the refresh endpoint returns an error', async () => {
+    fetchMock.mockResolvedValue(mockResponse(400, {}, 'bad_refresh'));
+    await expect(svc.refreshAccessToken('refresh-x')).rejects.toThrow('Token refresh failed');
+  });
+
+  it('keeps the existing refresh token when the response omits a new one', async () => {
+    fetchMock.mockResolvedValue(mockResponse(200, { access_token: 'na', expires_in: 3600 }));
+    const blob = await svc.refreshAccessToken('keep-me');
+    expect(blob.t).toBe('na');
+    expect(blob.r).toBe('keep-me');
+  });
+
+  it('returns null and logs when a refresh during unwrap fails', async () => {
+    const blob = { t: 'old', r: 'refresh-old', e: Date.now() + 30_000 };
+    fetchMock.mockRejectedValue(new Error('network down'));
+    const token = await svc.unwrapToken(JSON.stringify(blob), 'agent-1', 'tenant-1', 'Work');
+    expect(token).toBeNull();
+  });
+
+  it('logs a warning when revocation returns an error status', async () => {
+    fetchMock.mockResolvedValue(mockResponse(400, {}, 'revoke_failed'));
+    await expect(svc.revokeToken('tok')).resolves.toBeUndefined();
+  });
+
+  it('swallows revocation network errors', async () => {
+    fetchMock.mockRejectedValue(new Error('revoke network'));
+    await expect(svc.revokeToken('tok')).resolves.toBeUndefined();
+  });
+
+  it('ignores a malformed backend redirect URL', async () => {
+    const url = await svc.generateAuthorizationUrl('a', 't', 'not a url');
+    expect(new URL(url).searchParams.get('state')).toBeTruthy();
+  });
+
+  it('ignores a non-loopback backend redirect URL', async () => {
+    const url = await svc.generateAuthorizationUrl('a', 't', 'http://evil.example.com');
+    expect(new URL(url).searchParams.get('state')).toBeTruthy();
+  });
+
+  describe('dev-mode callback server', () => {
+    let devSvc: XaiOauthService;
+    const flush = () => new Promise((r) => setImmediate(r));
+    const mockRes = () => ({ writeHead: jest.fn(), end: jest.fn() }) as unknown as ServerResponse;
+
+    beforeEach(() => {
+      jest.useRealTimers();
+      mockHttpControl.reqHandler = undefined;
+      mockHttpControl.errorHandler = undefined;
+      mockHttpControl.listenCb = undefined;
+      (jest.requireMock('http').createServer as jest.Mock).mockClear();
+      devSvc = new XaiOauthService(providerService.svc, createConfig('development'), discovery.svc);
+    });
+
+    it('starts the callback server and resolves once it is listening', async () => {
+      const p = devSvc.generateAuthorizationUrl('agent-1', 'tenant-1', 'http://localhost:3001');
+      expect(mockHttpControl.listenCb).toBeDefined();
+      mockHttpControl.listenCb!();
+      const url = await p;
+      expect(new URL(url).searchParams.get('state')).toBeTruthy();
+      expect(mockHttpControl.server!.unref).toHaveBeenCalled();
+    });
+
+    it('reuses an in-flight server-ready promise across concurrent flows', async () => {
+      const p1 = devSvc.generateAuthorizationUrl('a', 't');
+      const p2 = devSvc.generateAuthorizationUrl('b', 't');
+      mockHttpControl.listenCb!();
+      await Promise.all([p1, p2]);
+      expect(jest.requireMock('http').createServer).toHaveBeenCalledTimes(1);
+    });
+
+    it('reuses the running callback server on later flows', async () => {
+      const p1 = devSvc.generateAuthorizationUrl('a', 't');
+      mockHttpControl.listenCb!();
+      await p1;
+      await devSvc.generateAuthorizationUrl('b', 't');
+      expect(jest.requireMock('http').createServer).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects when the callback port is already in use', async () => {
+      const p = devSvc.generateAuthorizationUrl('a', 't');
+      mockHttpControl.errorHandler!({ code: 'EADDRINUSE' } as NodeJS.ErrnoException);
+      await expect(p).rejects.toThrow(/already in use/);
+    });
+
+    it('rejects on a generic callback server error', async () => {
+      const p = devSvc.generateAuthorizationUrl('a', 't');
+      mockHttpControl.errorHandler!({ message: 'boom' } as NodeJS.ErrnoException);
+      await expect(p).rejects.toThrow('Callback server failed: boom');
+    });
+
+    it('returns 404 for non-callback request paths', async () => {
+      const p = devSvc.generateAuthorizationUrl('a', 't');
+      mockHttpControl.listenCb!();
+      await p;
+      const res = mockRes();
+      mockHttpControl.reqHandler!({ url: '/nope' }, res);
+      expect(res.writeHead).toHaveBeenCalledWith(404);
+      expect(res.end).toHaveBeenCalledWith('Not found');
+    });
+
+    it('redirects to the app with ok=0 when the provider returns an error', async () => {
+      const p = devSvc.generateAuthorizationUrl('a', 't', 'http://localhost:3001');
+      mockHttpControl.listenCb!();
+      const url = await p;
+      const state = new URL(url).searchParams.get('state')!;
+      const res = mockRes();
+      mockHttpControl.reqHandler!(
+        { url: `/callback?error=access_denied&error_description=nope&state=${state}` },
+        res,
+      );
+      expect(res.writeHead).toHaveBeenCalledWith(
+        302,
+        expect.objectContaining({ Location: expect.stringContaining('done?ok=0') }),
+      );
+    });
+
+    it('exchanges the code and serves the done HTML on a valid callback', async () => {
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
+      );
+      const p = devSvc.generateAuthorizationUrl('agent-1', 'tenant-1');
+      mockHttpControl.listenCb!();
+      const url = await p;
+      const state = new URL(url).searchParams.get('state')!;
+      const res = mockRes();
+      mockHttpControl.reqHandler!({ url: `/callback?code=auth&state=${state}` }, res);
+      await flush();
+      expect(res.writeHead).toHaveBeenCalledWith(200, { 'Content-Type': 'text/html' });
+      expect(res.end).toHaveBeenCalled();
+      expect(mockHttpControl.server!.close).toHaveBeenCalled();
+    });
+
+    it('serves a failure response when the callback exchange rejects', async () => {
+      fetchMock.mockResolvedValue(mockResponse(400, {}, 'bad'));
+      const p = devSvc.generateAuthorizationUrl('agent-1', 'tenant-1');
+      mockHttpControl.listenCb!();
+      const url = await p;
+      const state = new URL(url).searchParams.get('state')!;
+      const res = mockRes();
+      mockHttpControl.reqHandler!({ url: `/callback?code=bad&state=${state}` }, res);
+      await flush();
+      expect(res.writeHead).toHaveBeenCalledWith(200, { 'Content-Type': 'text/html' });
+    });
   });
 });

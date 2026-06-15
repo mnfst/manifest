@@ -1,4 +1,6 @@
-import { HeaderTierController } from './header-tier.controller';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { HeaderTierController, OverrideBody, FallbacksBody } from './header-tier.controller';
 import type { HeaderTierService } from './header-tier.service';
 import type { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import type { TenantContext } from '../../common/decorators/tenant-context.decorator';
@@ -34,6 +36,45 @@ describe('HeaderTierController', () => {
     expect(resolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'my-agent');
     expect(service.list).toHaveBeenCalledWith('agent-1');
     expect(out).toEqual(['tiers']);
+  });
+
+  it('setResponseMode resolves the agent then delegates to the service', async () => {
+    const { controller, service, resolveAgentService } = makeController();
+    const setResponseMode = jest.fn().mockResolvedValue({ id: 'ht-1', response_mode: 'buffered' });
+    (service as unknown as { setResponseMode: jest.Mock }).setResponseMode = setResponseMode;
+    const out = await controller.setResponseMode(ctx, 'my-agent', 'ht-1', {
+      response_mode: 'buffered',
+    });
+    expect(resolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'my-agent');
+    expect(setResponseMode).toHaveBeenCalledWith('agent-1', 'ht-1', 'buffered');
+    expect(out).toEqual({ id: 'ht-1', response_mode: 'buffered' });
+  });
+
+  it('setResponseMode rejects a missing response_mode', async () => {
+    const { controller } = makeController();
+    await expect(controller.setResponseMode(ctx, 'my-agent', 'ht-1', {})).rejects.toThrow(
+      'response_mode is required',
+    );
+  });
+
+  it('OverrideBody trims the key label and parses the nested route', async () => {
+    const dto = plainToInstance(OverrideBody, {
+      model: 'gpt-4o',
+      providerKeyLabel: '  Work  ',
+      route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+    });
+    expect(dto.providerKeyLabel).toBe('Work');
+    expect(dto.route?.model).toBe('gpt-4o');
+    expect(Array.isArray(await validate(dto))).toBe(true);
+  });
+
+  it('FallbacksBody parses nested route objects', async () => {
+    const dto = plainToInstance(FallbacksBody, {
+      models: ['gpt-4o'],
+      routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
+    });
+    expect(dto.routes).toHaveLength(1);
+    expect(Array.isArray(await validate(dto))).toBe(true);
   });
 
   it('create forwards the resolved tenant_id and body', async () => {

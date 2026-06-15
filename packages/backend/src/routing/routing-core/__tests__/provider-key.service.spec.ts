@@ -534,4 +534,48 @@ describe('ProviderKeyService', () => {
       expect(await svc.isModelAvailable('agent-1', 'gpt-4o')).toBe(true);
     });
   });
+
+  describe('resolveProviderKeys ordering and local keys', () => {
+    it('orders same-auth-type matches by priority when no auth type is preferred', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'b',
+          provider: 'openai',
+          auth_type: 'api_key',
+          api_key_encrypted: 'encB',
+          is_active: true,
+          label: 'B',
+          priority: 1,
+        },
+        {
+          id: 'a',
+          provider: 'openai',
+          auth_type: 'api_key',
+          api_key_encrypted: 'encA',
+          is_active: true,
+          label: 'A',
+          priority: 0,
+        },
+      ]);
+      mockedDecrypt.mockImplementation((v) => (v === 'encA' ? 'key-a' : 'key-b'));
+      const keys = await svc.getProviderKeys('tenant-1', 'openai');
+      expect(keys.map((k) => k.apiKey)).toEqual(['key-a', 'key-b']);
+    });
+
+    it('returns an empty-string key for local providers with no stored credential', async () => {
+      providerRepo.find.mockResolvedValue([
+        {
+          id: 'l',
+          provider: 'lmstudio',
+          auth_type: 'local',
+          api_key_encrypted: null,
+          is_active: true,
+          label: 'Default',
+          priority: 0,
+        },
+      ]);
+      const keys = await svc.getProviderKeys('tenant-1', 'lmstudio');
+      expect(keys[0].apiKey).toBe('');
+    });
+  });
 });

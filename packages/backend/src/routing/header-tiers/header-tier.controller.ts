@@ -49,7 +49,7 @@ interface ReorderBody {
   ids: string[];
 }
 
-class OverrideBody {
+export class OverrideBody {
   @IsString()
   @IsNotEmpty()
   model!: string;
@@ -78,7 +78,7 @@ class OverrideBody {
   route?: ModelRouteDto;
 }
 
-class FallbacksBody {
+export class FallbacksBody {
   @IsArray()
   @IsString({ each: true })
   models!: string[];

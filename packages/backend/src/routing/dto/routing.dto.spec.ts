@@ -5,6 +5,8 @@ import {
   AgentNameParamDto,
   ConnectProviderDto,
   CopilotPollDto,
+  ModelRouteDto,
+  SetOverrideDto,
   SetResponseModeDto,
   SetFallbacksDto,
   responseModeFromDto,
@@ -232,5 +234,36 @@ describe('SetResponseModeDto', () => {
     const dto = toResponseModeDto({ response_mode: 'instant' });
     const errors = await validate(dto);
     expect(errors.length).toBeGreaterThan(0);
+  });
+});
+
+describe('routing.dto decorator transforms', () => {
+  it('ModelRouteDto trims keyLabel', () => {
+    const dto = plainToInstance(ModelRouteDto, {
+      provider: 'openai',
+      authType: 'api_key',
+      model: 'gpt-4o',
+      keyLabel: '  Work  ',
+    });
+    expect(dto.keyLabel).toBe('Work');
+  });
+
+  it('SetOverrideDto trims providerKeyLabel and parses the nested route', () => {
+    const dto = plainToInstance(SetOverrideDto, {
+      model: 'gpt-4o',
+      providerKeyLabel: '  Work  ',
+      route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+    });
+    expect(dto.providerKeyLabel).toBe('Work');
+    expect(dto.route?.model).toBe('gpt-4o');
+  });
+
+  it('SetFallbacksDto parses nested routes', async () => {
+    const dto = plainToInstance(SetFallbacksDto, {
+      models: ['gpt-4o'],
+      routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
+    });
+    expect(dto.routes).toHaveLength(1);
+    expect(Array.isArray(await validate(dto))).toBe(true);
   });
 });

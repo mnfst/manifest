@@ -95,6 +95,41 @@ describe('AgentKeyAuthGuard', () => {
     guard.onModuleDestroy();
   });
 
+  describe('onModuleInit legacy-hash audit', () => {
+    const makeAuditRepo = (getCount: jest.Mock) =>
+      ({
+        createQueryBuilder: jest.fn(() => ({
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          getCount,
+        })),
+      }) as never;
+
+    it('warns when legacy static-salt keys are still active', async () => {
+      const g = new AgentKeyAuthGuard(
+        makeAuditRepo(jest.fn().mockResolvedValue(3)),
+        createMockConfig(),
+      );
+      const logger = (g as unknown as { logger: { warn: jest.Mock } }).logger;
+      const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => undefined);
+      await g.onModuleInit();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('legacy static-salt'));
+      g.onModuleDestroy();
+    });
+
+    it('swallows audit query failures with a debug log', async () => {
+      const g = new AgentKeyAuthGuard(
+        makeAuditRepo(jest.fn().mockRejectedValue(new Error('no table'))),
+        createMockConfig(),
+      );
+      const logger = (g as unknown as { logger: { debug: jest.Mock } }).logger;
+      const debugSpy = jest.spyOn(logger, 'debug').mockImplementation(() => undefined);
+      await g.onModuleInit();
+      expect(debugSpy).toHaveBeenCalled();
+      g.onModuleDestroy();
+    });
+  });
+
   it('throws UnauthorizedException when Authorization header is missing', async () => {
     const { ctx } = makeContext({});
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);

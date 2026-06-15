@@ -78,6 +78,16 @@ describe('TierService', () => {
     );
   });
 
+  describe('setResponseMode', () => {
+    it('creates a new tier row when none exists yet', async () => {
+      const out = await svc.setResponseMode('agent-1', 'standard', 'buffered');
+      expect(tierRepo.insert).toHaveBeenCalledTimes(1);
+      expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
+      expect(out.tier).toBe('standard');
+      expect(out.response_mode).toBe('buffered');
+    });
+  });
+
   describe('hasRoutableTier', () => {
     it('returns true when any tier has an override route', async () => {
       tierRepo.find.mockResolvedValue([

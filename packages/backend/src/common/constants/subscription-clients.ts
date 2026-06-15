@@ -22,7 +22,7 @@ export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.80.0';
 export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v24.14.0';
 export const CLAUDE_CODE_BETA_FLAGS = ['claude-code-20250219', 'oauth-2025-04-20'].join(',');
 
-function claudeCodeStainlessArch(arch = process.arch): string {
+export function claudeCodeStainlessArch(arch = process.arch): string {
   switch (arch) {
     case 'arm64':
       return 'arm64';
@@ -33,7 +33,7 @@ function claudeCodeStainlessArch(arch = process.arch): string {
   }
 }
 
-function claudeCodeStainlessOs(platform = process.platform): string {
+export function claudeCodeStainlessOs(platform = process.platform): string {
   switch (platform) {
     case 'darwin':
       return 'MacOS';
