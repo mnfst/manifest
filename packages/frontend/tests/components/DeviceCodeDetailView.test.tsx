@@ -633,4 +633,29 @@ describe('DeviceCodeDetailView — Kiro (no region, no token alternative)', () =
     expect(startKiroOAuth).not.toHaveBeenCalled();
     openSpy.mockRestore();
   });
+
+  it.each([
+    ['Start URL must use HTTPS.', 'http://org.awsapps.com/start', 'us-east-1'],
+    ['Enter a valid IAM Identity Center Start URL.', 'not-a-url', 'us-east-1'],
+    [
+      'Enter a valid AWS region, such as us-east-1.',
+      'https://org.awsapps.com/start',
+      'eu-west-1.example',
+    ],
+  ])('validates %s before opening the Kiro popup', async (message, startUrl, region) => {
+    const api = await import('../../src/services/api.js');
+    const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
+    const openSpy = vi.spyOn(window, 'open');
+
+    renderKiro();
+    fireEvent.click(screen.getByLabelText('Sign in with AWS IAM Identity Center'));
+    fireEvent.input(screen.getByLabelText('Start URL'), { target: { value: startUrl } });
+    fireEvent.input(screen.getByLabelText('Region'), { target: { value: region } });
+    fireEvent.click(screen.getByText('Connect with Kiro'));
+
+    expect(screen.getByText(message)).toBeDefined();
+    expect(openSpy).not.toHaveBeenCalled();
+    expect(startKiroOAuth).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
 });
