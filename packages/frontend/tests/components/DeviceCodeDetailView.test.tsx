@@ -547,7 +547,9 @@ describe('DeviceCodeDetailView — Kiro', () => {
 
   it('shows the region selector, optional Start URL, and Kiro hint', () => {
     renderKiro();
-    expect((screen.getByLabelText('Region') as HTMLInputElement).value).toBe('us-east-1');
+    expect((screen.getByLabelText('Region') as HTMLSelectElement).value).toBe('us-east-1');
+    expect(screen.getByText('eu-west-1')).toBeDefined();
+    expect(screen.getByText('Other region...')).toBeDefined();
     expect((screen.getByLabelText(/Start URL/) as HTMLInputElement).value).toBe('');
     expect(
       screen.getByText(
@@ -607,7 +609,7 @@ describe('DeviceCodeDetailView — Kiro', () => {
     fireEvent.input(screen.getByLabelText(/Start URL/), {
       target: { value: 'https://org.awsapps.com/start' },
     });
-    fireEvent.input(screen.getByLabelText('Region'), { target: { value: 'EU-WEST-1' } });
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'eu-west-1' } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     await waitFor(() => {
@@ -625,12 +627,41 @@ describe('DeviceCodeDetailView — Kiro', () => {
     const openSpy = vi.spyOn(window, 'open');
 
     renderKiro();
-    fireEvent.input(screen.getByLabelText('Region'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'custom' } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     expect(screen.getByText('Enter a valid AWS region, such as us-east-1.')).toBeDefined();
     expect(openSpy).not.toHaveBeenCalled();
     expect(startKiroOAuth).not.toHaveBeenCalled();
+    openSpy.mockRestore();
+  });
+
+  it('passes a custom AWS region when selected', async () => {
+    const api = await import('../../src/services/api.js');
+    const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
+    startKiroOAuth.mockResolvedValue({
+      flowId: 'f1',
+      userCode: 'AAAA-BBBB',
+      verificationUri: 'https://device.sso.ca-central-1.amazonaws.com/?user_code=AAAA-BBBB',
+      expiresAt: Date.now() + 60000,
+      pollIntervalMs: 5000,
+    });
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue({
+      closed: false,
+      opener: null,
+      location: { replace: vi.fn() },
+    } as unknown as Window);
+
+    renderKiro();
+    fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'custom' } });
+    fireEvent.input(screen.getByLabelText('Custom region'), {
+      target: { value: 'CA-CENTRAL-1' },
+    });
+    fireEvent.click(screen.getByText('Connect with Kiro'));
+
+    await waitFor(() => {
+      expect(startKiroOAuth).toHaveBeenCalledWith('test-agent', { region: 'ca-central-1' });
+    });
     openSpy.mockRestore();
   });
 
@@ -649,7 +680,12 @@ describe('DeviceCodeDetailView — Kiro', () => {
 
     renderKiro();
     fireEvent.input(screen.getByLabelText(/Start URL/), { target: { value: startUrl } });
-    fireEvent.input(screen.getByLabelText('Region'), { target: { value: region } });
+    if (region === 'us-east-1') {
+      fireEvent.change(screen.getByLabelText('Region'), { target: { value: region } });
+    } else {
+      fireEvent.change(screen.getByLabelText('Region'), { target: { value: 'custom' } });
+      fireEvent.input(screen.getByLabelText('Custom region'), { target: { value: region } });
+    }
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     expect(screen.getByText(message)).toBeDefined();

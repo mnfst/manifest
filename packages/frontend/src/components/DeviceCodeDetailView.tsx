@@ -39,6 +39,7 @@ interface Props {
 
 const MAX_LABEL_LENGTH = 50;
 const KIRO_DEFAULT_REGION = 'us-east-1';
+const KIRO_CUSTOM_REGION_VALUE = 'custom';
 const KIRO_REGION_OPTIONS = [
   'us-east-1',
   'us-east-2',
@@ -68,6 +69,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
   const [kiroStartUrl, setKiroStartUrl] = createSignal('');
   const [kiroRegion, setKiroRegion] = createSignal(KIRO_DEFAULT_REGION);
+  const [kiroCustomRegion, setKiroCustomRegion] = createSignal('');
   const [kiroConfigError, setKiroConfigError] = createSignal<string | null>(null);
   const [altToken, setAltToken] = createSignal('');
   const [altError, setAltError] = createSignal<string | null>(null);
@@ -135,7 +137,9 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     }
 
     const startUrl = kiroStartUrl().trim();
-    const region = kiroRegion().trim().toLowerCase();
+    const selectedKiroRegion =
+      kiroRegion() === KIRO_CUSTOM_REGION_VALUE ? kiroCustomRegion() : kiroRegion();
+    const region = selectedKiroRegion.trim().toLowerCase();
     if (!/^[a-z]{2}(?:-[a-z0-9]+)+-\d$/.test(region)) {
       setKiroConfigError('Enter a valid AWS region, such as us-east-1.');
       return null;
@@ -390,26 +394,46 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                     <label class="provider-detail__label" for="kiro-region">
                       Region
                     </label>
-                    <input
+                    <select
                       id="kiro-region"
                       class="provider-detail__input"
                       classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
-                      type="text"
-                      list="kiro-region-options"
-                      autocomplete="off"
-                      placeholder={KIRO_DEFAULT_REGION}
                       value={kiroRegion()}
                       disabled={props.busy()}
                       aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
-                      onInput={(e) => {
+                      onChange={(e) => {
                         setKiroRegion(e.currentTarget.value);
                         setKiroConfigError(null);
                       }}
-                    />
-                    <datalist id="kiro-region-options">
-                      <For each={KIRO_REGION_OPTIONS}>{(region) => <option value={region} />}</For>
-                    </datalist>
+                    >
+                      <For each={KIRO_REGION_OPTIONS}>
+                        {(region) => <option value={region}>{region}</option>}
+                      </For>
+                      <option value={KIRO_CUSTOM_REGION_VALUE}>Other region...</option>
+                    </select>
                   </div>
+                  <Show when={kiroRegion() === KIRO_CUSTOM_REGION_VALUE}>
+                    <div class="provider-detail__field">
+                      <label class="provider-detail__label" for="kiro-custom-region">
+                        Custom region
+                      </label>
+                      <input
+                        id="kiro-custom-region"
+                        class="provider-detail__input"
+                        classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
+                        type="text"
+                        autocomplete="off"
+                        placeholder={KIRO_DEFAULT_REGION}
+                        value={kiroCustomRegion()}
+                        disabled={props.busy()}
+                        aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
+                        onInput={(e) => {
+                          setKiroCustomRegion(e.currentTarget.value);
+                          setKiroConfigError(null);
+                        }}
+                      />
+                    </div>
+                  </Show>
                   <div class="provider-detail__field">
                     <label class="provider-detail__label" for="kiro-start-url">
                       Start URL <span class="provider-detail__label-muted">(optional)</span>
