@@ -68,7 +68,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: backend
-          directory: packages/backend/coverage
+          files: packages/backend/coverage/lcov.info,packages/backend/coverage/e2e/lcov.info
           fail_ci_if_error: false
 
   frontend:
