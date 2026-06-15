@@ -2,7 +2,11 @@ import { ConfigService } from '@nestjs/config';
 import { KiroOauthService } from './kiro-oauth.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { parseKiroOAuthTokenBlob, serializeKiroOAuthTokenBlob } from './kiro-oidc';
+import {
+  KiroAuthorizationOptionsError,
+  parseKiroOAuthTokenBlob,
+  serializeKiroOAuthTokenBlob,
+} from './kiro-oidc';
 
 const originalFetch = global.fetch;
 
@@ -134,6 +138,62 @@ describe('KiroOauthService', () => {
       expect(result.expiresAt).toBe(Date.now() + 600 * 1000);
       expect(result.pollIntervalMs).toBe(5000);
       expect(service.getPendingCount()).toBe(1);
+    });
+
+    it('uses per-flow IAM Identity Center start URL and region options', async () => {
+      const service = makeService();
+      fetchMock
+        .mockResolvedValueOnce(REGISTER_OK)
+        .mockResolvedValueOnce(DEVICE_OK)
+        .mockResolvedValueOnce(
+          jsonResponse(200, {
+            accessToken: 'aoa-token',
+            refreshToken: 'aor-token',
+            expiresIn: 3600,
+          }),
+        );
+
+      const { flowId } = await service.startAuthorization('agent-1', 'user-1', {
+        startUrl: ' https://org.awsapps.com/start ',
+        region: 'EU-WEST-1',
+      });
+      await service.pollAuthorization(flowId, 'user-1');
+
+      const [registerUrl] = fetchMock.mock.calls[0];
+      expect(registerUrl).toBe('https://oidc.eu-west-1.amazonaws.com/client/register');
+      const [, deviceInit] = fetchMock.mock.calls[1];
+      expect(JSON.parse((deviceInit as RequestInit).body as string).startUrl).toBe(
+        'https://org.awsapps.com/start',
+      );
+      const [tokenUrl] = fetchMock.mock.calls[2];
+      expect(tokenUrl).toBe('https://oidc.eu-west-1.amazonaws.com/token');
+      const saved = parseKiroOAuthTokenBlob(provider.upsertProvider.mock.calls[0][3] as string);
+      expect(saved?.region).toBe('eu-west-1');
+    });
+
+    it('rejects invalid IAM Identity Center options before registering a client', async () => {
+      const service = makeService();
+
+      await expect(
+        service.startAuthorization('agent-1', 'user-1', {
+          startUrl: 'http://org.awsapps.com/start',
+          region: 'eu-west-1',
+        }),
+      ).rejects.toThrow('must use HTTPS');
+      await expect(
+        service.startAuthorization('agent-1', 'user-1', {
+          startUrl: 'https://org.awsapps.com/start',
+          region: 'eu-west-1.example',
+        }),
+      ).rejects.toThrow('region is invalid');
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('names IAM Identity Center option errors for diagnostics', () => {
+      const error = new KiroAuthorizationOptionsError('bad option');
+
+      expect(error.name).toBe('KiroAuthorizationOptionsError');
+      expect(error.message).toBe('bad option');
     });
 
     it('sweeps expired pending flows when a new flow starts', async () => {

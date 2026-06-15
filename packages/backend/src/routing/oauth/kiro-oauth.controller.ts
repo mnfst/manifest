@@ -2,6 +2,7 @@ import { Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs
 import { CurrentUser } from '../../auth/current-user.decorator';
 import { AuthUser } from '../../auth/auth.instance';
 import { KiroOauthService } from './kiro-oauth.service';
+import { KiroAuthorizationOptionsError, type KiroAuthorizationOptions } from './kiro-oidc';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { optionalTrimmedStringQuery } from './query-params';
@@ -15,14 +16,34 @@ export class KiroOauthController {
   ) {}
 
   @Post('start')
-  async start(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+  async start(
+    @Query('agentName') agentName: string,
+    @CurrentUser() user: AuthUser,
+    @Query('startUrl') startUrl?: string | string[],
+    @Query('region') region?: string | string[],
+  ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
+    const options: KiroAuthorizationOptions = {};
+    const trimmedStartUrl = optionalTrimmedStringQuery(startUrl, 'startUrl');
+    const trimmedRegion = optionalTrimmedStringQuery(region, 'region');
+    if (trimmedStartUrl !== undefined) {
+      options.startUrl = trimmedStartUrl;
+    }
+    if (trimmedRegion !== undefined) {
+      options.region = trimmedRegion;
+    }
     const agent = await this.resolveAgent.resolve(user.id, agentName);
     try {
+      if (options.startUrl !== undefined || options.region !== undefined) {
+        return await this.oauthService.startAuthorization(agent.id, user.id, options);
+      }
       return await this.oauthService.startAuthorization(agent.id, user.id);
     } catch (err) {
+      if (err instanceof KiroAuthorizationOptionsError) {
+        throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+      }
       const message = err instanceof Error ? err.message : 'Failed to start Kiro login';
       throw new HttpException(message, HttpStatus.SERVICE_UNAVAILABLE);
     }
