@@ -397,6 +397,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }
   });
 
+  /* v8 ignore next 6 -- the "Add custom provider" affordance lives in ProviderApiKeyTab; this page never wires a trigger to openCustomProvider, so its body is unreachable from the DOM. */
   const openCustomProvider = () => {
     setDeepLink(null);
     setCustomProviderPrefill({ name: '', baseUrl: '' });

@@ -50,6 +50,7 @@ vi.mock("../../src/services/setup-status.js", () => ({
 }));
 
 import Header from "../../src/components/Header";
+import { setConnectionBreadcrumb } from "../../src/services/connection-breadcrumb-store";
 
 beforeEach(() => {
   vi.restoreAllMocks();
@@ -59,6 +60,9 @@ beforeEach(() => {
   mockAgentDisplayName = null;
   mockCheckIsSelfHosted.mockReset();
   mockCheckIsSelfHosted.mockResolvedValue(false);
+  // The breadcrumb store is a real module-level signal; reset it so a value
+  // set in one test never leaks into another.
+  setConnectionBreadcrumb(null);
 });
 
 describe("Header", () => {
@@ -414,5 +418,63 @@ describe("Header - self-hosted badge", () => {
     expect(
       container.querySelector(".header__mode-badge:not(.header__mode-badge--dev)"),
     ).toBeNull();
+  });
+});
+
+describe("Header - connection breadcrumb", () => {
+  it("renders the connection breadcrumb (back link, provider icon, name, label) when no agent is active", () => {
+    // No :agentName route param → getAgentName() is falsy, so the agent
+    // breadcrumb is hidden and the connection breadcrumb takes over.
+    mockAgentName = null;
+    setConnectionBreadcrumb(
+      "OpenAI Default",
+      "/providers/usage-based",
+      "Usage-based",
+      "openai",
+      "Default",
+    );
+    const { container } = render(() => <Header />);
+
+    // Back link points at the configured route and shows the back label.
+    const backLink = container.querySelector('a[href="/providers/usage-based"]');
+    expect(backLink).not.toBeNull();
+    expect(backLink!.textContent).toContain("Usage-based");
+
+    // The connection name renders.
+    expect(container.textContent).toContain("OpenAI Default");
+
+    // providerId set → the provider icon (an inline SVG for 'openai') renders.
+    expect(container.querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+
+    // label set → the secondary label text renders.
+    expect(container.textContent).toContain("Default");
+  });
+
+  it("renders the connection breadcrumb name without an icon or label when those are omitted", () => {
+    // providerId + label omitted → both the icon <Show> and label <Show>
+    // fall through, but the name still renders.
+    mockAgentName = null;
+    setConnectionBreadcrumb("Anthropic", "/providers/subscriptions", "Subscriptions");
+    const { container } = render(() => <Header />);
+
+    const backLink = container.querySelector('a[href="/providers/subscriptions"]');
+    expect(backLink).not.toBeNull();
+    expect(backLink!.textContent).toContain("Subscriptions");
+    expect(container.textContent).toContain("Anthropic");
+  });
+
+  it("hides the connection breadcrumb when an agent IS active", () => {
+    // getAgentName() truthy → the `!getAgentName()` guard fails, so even with a
+    // breadcrumb set the connection block stays hidden.
+    mockAgentName = "my-agent";
+    setConnectionBreadcrumb(
+      "OpenAI Default",
+      "/providers/usage-based",
+      "Usage-based",
+      "openai",
+      "Default",
+    );
+    const { container } = render(() => <Header />);
+    expect(container.querySelector('a[href="/providers/usage-based"]')).toBeNull();
   });
 });

@@ -70,6 +70,28 @@ vi.mock('../../src/services/api.js', () => ({
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
 }));
 
+const mockRenameProviderKey = vi.fn();
+vi.mock('../../src/services/api/routing.js', () => ({
+  renameProviderKey: (...args: unknown[]) => mockRenameProviderKey(...args),
+}));
+
+// Sparkline is excluded from coverage and renders a real <canvas>-backed chart;
+// stub it so the rename/usage rows render deterministically under jsdom.
+vi.mock('../../src/components/Sparkline.jsx', () => ({
+  default: (props: { data?: number[] }) => (
+    <span data-testid="sparkline">{props.data?.length ?? 0}</span>
+  ),
+}));
+
+const mockToastSuccess = vi.fn();
+vi.mock('../../src/services/toast-store.js', () => ({
+  toast: {
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+    error: vi.fn(),
+    warning: vi.fn(),
+  },
+}));
+
 import Subscriptions from '../../src/pages/providers/Subscriptions';
 import Byok from '../../src/pages/providers/Byok';
 import LocalProviders from '../../src/pages/providers/Local';
@@ -132,6 +154,7 @@ describe('provider pages', () => {
     vi.clearAllMocks();
     mockSearchParams = {};
     mockIsSelfHosted = true;
+    mockRenameProviderKey.mockResolvedValue(undefined);
     mockGetGlobalProviders.mockResolvedValue(globalProvidersResponse);
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'demo-agent' }] });
     mockGetAgentProviders.mockResolvedValue([{ id: 'route-provider' }]);
@@ -147,6 +170,21 @@ describe('provider pages', () => {
       },
     ]);
   });
+
+  // Both the connected rows and the supported-provider list render from the
+  // (synchronous) global-providers resource, but the rename + connect handlers
+  // depend on firstAgentName() — which only populates once the agents resource
+  // resolves. The supported-provider "Connect" button is disabled until then
+  // (disabled={!firstAgentName()}), so an enabled Connect button is the signal
+  // that the agent is available before we drive those handlers.
+  const waitForConnectedAgent = async (anchorText = 'Production') => {
+    await waitFor(() => expect(screen.getByText(anchorText)).toBeDefined());
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+  };
 
   it('renders the subscriptions page and opens the connect modal', async () => {
     render(() => <Subscriptions />);
@@ -298,6 +336,297 @@ describe('provider pages', () => {
           customProviders: [],
         }),
       );
+    });
+  });
+
+  it('navigates to the connection detail via row click, keyboard, and View details', async () => {
+    render(() => <Byok />);
+    // The custom:cp-1 connection (label "Production") is inactive but has usage,
+    // so it renders as a connected row.
+    await waitFor(() => expect(screen.getByText('Production')).toBeDefined());
+
+    const row = screen.getByText('Production').closest('tr')!;
+
+    // View details button → navigate (and stop propagation).
+    fireEvent.click(screen.getByText('View details'));
+    expect(mockNavigate).toHaveBeenCalledWith('/providers/connections/key-custom');
+
+    mockNavigate.mockClear();
+    // Keyboard activation on the row itself (target === currentTarget) → navigate.
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(mockNavigate).toHaveBeenCalledWith('/providers/connections/key-custom');
+
+    mockNavigate.mockClear();
+    fireEvent.keyDown(row, { key: ' ' });
+    expect(mockNavigate).toHaveBeenCalledWith('/providers/connections/key-custom');
+
+    mockNavigate.mockClear();
+    // A non-activating key on the row is ignored.
+    fireEvent.keyDown(row, { key: 'a' });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('ignores keyboard events bubbling up from a child element of the row', async () => {
+    render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Production')).toBeDefined());
+
+    // Dispatch the keydown from a descendant (the provider name span) so that
+    // event.target !== event.currentTarget and the handler early-returns.
+    const child = screen.getByText('Production');
+    fireEvent.keyDown(child, { key: 'Enter' });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('renames a connection inline and refetches on success', async () => {
+    render(() => <Byok />);
+    await waitForConnectedAgent();
+
+    // Enter rename mode via the per-row edit button.
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+
+    // Edit the value, then save via the Save button.
+    fireEvent.input(input, { target: { value: 'Renamed key' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalledWith(
+        'demo-agent',
+        'custom:cp-1',
+        'Production',
+        'Renamed key',
+        'api_key',
+      );
+      expect(mockToastSuccess).toHaveBeenCalledWith('Connection renamed');
+    });
+    // After success the input is dismissed (renamingId cleared).
+    await waitFor(() => expect(screen.queryByDisplayValue('Renamed key')).toBeNull());
+  });
+
+  it('saves a rename when pressing Enter in the input', async () => {
+    render(() => <Byok />);
+    await waitForConnectedAgent();
+
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    fireEvent.input(input, { target: { value: 'Via enter' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(mockRenameProviderKey).toHaveBeenCalledWith(
+        'demo-agent',
+        'custom:cp-1',
+        'Production',
+        'Via enter',
+        'api_key',
+      );
+    });
+  });
+
+  it('shows a validation error when the new name is empty', async () => {
+    render(() => <Byok />);
+    await waitForConnectedAgent();
+
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    fireEvent.input(input, { target: { value: '   ' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(screen.getByText('Name cannot be empty')).toBeDefined());
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+  });
+
+  it('cancels the rename without calling the API when the name is unchanged', async () => {
+    render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Production')).toBeDefined());
+
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    // Saving with the same value just exits rename mode (no API call).
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(screen.queryByDisplayValue('Production')).toBeNull());
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+  });
+
+  it('cancels the rename via the Cancel button and via Escape', async () => {
+    render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Production')).toBeDefined());
+
+    // Cancel button path.
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    await screen.findByDisplayValue('Production');
+    fireEvent.click(screen.getByText('Cancel'));
+    await waitFor(() => expect(screen.queryByDisplayValue('Production')).toBeNull());
+
+    // Escape-key path.
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    fireEvent.keyDown(input, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByDisplayValue('Production')).toBeNull());
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+  });
+
+  it('surfaces the API error message when a rename fails', async () => {
+    mockRenameProviderKey.mockRejectedValue(new Error('Name already taken'));
+    render(() => <Byok />);
+    await waitForConnectedAgent();
+
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    fireEvent.input(input, { target: { value: 'Clashing name' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(screen.getByText('Name already taken')).toBeDefined());
+    // The input stays open so the user can correct the name.
+    expect(screen.getByDisplayValue('Clashing name')).toBeDefined();
+  });
+
+  it('falls back to a generic message when a rename rejects without a message', async () => {
+    mockRenameProviderKey.mockRejectedValue({});
+    render(() => <Byok />);
+    await waitForConnectedAgent();
+
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    fireEvent.input(input, { target: { value: 'Another name' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(screen.getByText('Failed to rename')).toBeDefined());
+  });
+
+  it('aborts a rename when there is no agent to scope it to', async () => {
+    // With no agent, firstAgentName() is empty and submitRename early-returns
+    // before touching the API.
+    mockGetAgents.mockResolvedValue({ agents: [] });
+    // A connection still renders because it has usage, even without an agent.
+    render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Production')).toBeDefined());
+
+    fireEvent.click(screen.getByLabelText('Rename Production'));
+    const input = (await screen.findByDisplayValue('Production')) as HTMLInputElement;
+    fireEvent.input(input, { target: { value: 'No agent name' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    // No API call and the input stays open (no toast, no rename).
+    expect(mockRenameProviderKey).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('No agent name')).toBeDefined();
+  });
+
+  it('renders the list view with active-connection counts and opens the connect modal', async () => {
+    render(() => <Subscriptions />);
+    await waitForConnectedAgent('ChatGPT');
+
+    // Switch from the default grid view to the list view.
+    fireEvent.click(screen.getByLabelText('List view'));
+
+    // OpenAI has one active subscription connection → the active-count label
+    // renders in the list row.
+    await waitFor(() => expect(screen.getByText('1 active connection')).toBeDefined());
+
+    // The list-view per-provider Connect button opens the modal deep-linked to
+    // that provider. Scope to the OpenAI row inside the supported-provider list
+    // table (the connected-rows table also shows "OpenAI", but its first button
+    // is the rename pencil — pick the row whose button actually reads "Connect").
+    const openaiConnect = screen
+      .getAllByText('OpenAI')
+      .map((el) => el.closest('tr'))
+      .map((tr) =>
+        Array.from(tr?.querySelectorAll('button') ?? []).find(
+          (btn) => btn.textContent?.trim() === 'Connect',
+        ),
+      )
+      .find((btn): btn is HTMLButtonElement => !!btn)!;
+    fireEvent.click(openaiConnect);
+
+    await waitFor(() => {
+      expect(mockProviderSelectModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerDeepLink: { providerId: 'openai', authType: 'subscription' },
+        }),
+      );
+    });
+  });
+
+  it('disables the list-view Connect button when no agent exists', async () => {
+    mockGetAgents.mockResolvedValue({ agents: [] });
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Subscriptions')).toBeDefined());
+
+    fireEvent.click(screen.getByLabelText('List view'));
+
+    await waitFor(() => {
+      const connectButtons = screen.getAllByText('Connect') as HTMLButtonElement[];
+      expect(connectButtons.every((btn) => btn.disabled)).toBe(true);
+    });
+  });
+
+  it('pluralizes the active-connection label for multiple connections', async () => {
+    // Two active connections under one provider → plural "connections".
+    mockGetGlobalProviders.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          connection_count: 2,
+          connections: [
+            connection('sub-1', 'Plan A'),
+            connection('sub-2', 'Plan B'),
+          ],
+          total_models: 3,
+          consumption_tokens: 42,
+          consumption_messages: 2,
+          consumption_cost: 0,
+          last_used_at: '2026-06-01T00:00:00Z',
+          sparkline_7d: [],
+        },
+      ],
+      model_counts: {},
+    });
+
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Plan A')).toBeDefined());
+
+    fireEvent.click(screen.getByLabelText('List view'));
+    await waitFor(() => expect(screen.getByText('2 active connections')).toBeDefined());
+  });
+
+  it('labels local providers as "Connected" in the list view', async () => {
+    render(() => <LocalProviders />);
+    await waitFor(() => expect(screen.getByText('My local connections')).toBeDefined());
+
+    fireEvent.click(screen.getByLabelText('List view'));
+    // Local providers use the "Connected" label rather than an active-count.
+    await waitFor(() => expect(screen.getAllByText('Connected').length).toBeGreaterThan(0));
+  });
+
+  it('renders a usage sparkline for connected rows that have 7-day data', async () => {
+    // A connected row with a non-empty sparkline_7d renders the Sparkline cell;
+    // the default fixtures use empty arrays, so this drives the sparkline branch.
+    mockGetGlobalProviders.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          connection_count: 1,
+          connections: [connection('sub-spark', 'Sparkly')],
+          total_models: 3,
+          consumption_tokens: 1200,
+          consumption_messages: 5,
+          consumption_cost: 0,
+          last_used_at: '2026-06-01T00:00:00Z',
+          sparkline_7d: [1, 2, 3, 4],
+        },
+      ],
+      model_counts: {},
+    });
+
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('Sparkly')).toBeDefined());
+    // The stubbed Sparkline reports its data length (4 points).
+    await waitFor(() => {
+      const spark = screen.getByTestId('sparkline');
+      expect(spark.textContent).toBe('4');
     });
   });
 });

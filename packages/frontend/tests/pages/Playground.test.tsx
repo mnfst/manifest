@@ -430,6 +430,17 @@ describe('Playground page', () => {
     expect(document.querySelectorAll('[data-testid^="col-"]').length).toBe(0);
   });
 
+  it('invokes the empty-state onConnect handler without throwing', async () => {
+    // The page passes a placeholder onConnect to PlaygroundEmptyState; firing
+    // it must execute cleanly (no columns, no crash). Exercises the callback.
+    mockGetProviders.mockResolvedValue([{ ...ACTIVE_PROVIDER, is_active: false }]);
+    render(() => <Playground />);
+    const connectBtn = await find('empty-connect');
+    expect(() => fireEvent.click(connectBtn)).not.toThrow();
+    // Still in the empty state — the placeholder handler is a no-op for now.
+    expect(document.querySelectorAll('[data-testid^="col-"]').length).toBe(0);
+  });
+
   describe('submit → streaming run → history', () => {
     it('streams a run, finalizes the column, pushes an optimistic history entry, persists last run', async () => {
       render(() => <Playground />);

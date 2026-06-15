@@ -13,6 +13,8 @@ const apiMocks = vi.hoisted(() => ({
   getGlobalProviders: vi.fn(),
   getAgentProviders: vi.fn(),
   disconnectProvider: vi.fn(),
+  renameProviderKey: vi.fn(),
+  refreshModels: vi.fn(),
   fetchMutate: vi.fn(),
   getOverview: vi.fn(),
   getGlobalPerAgentTimeseries: vi.fn(),
@@ -57,8 +59,8 @@ vi.mock('../../src/services/api.js', () => ({
 vi.mock('../../src/services/api/routing.js', () => ({
   getProviders: (...args: unknown[]) => apiMocks.getAgentProviders(...args),
   disconnectProvider: (...args: unknown[]) => apiMocks.disconnectProvider(...args),
-  renameProviderKey: vi.fn().mockResolvedValue(undefined),
-  refreshModels: vi.fn().mockResolvedValue(undefined),
+  renameProviderKey: (...args: unknown[]) => apiMocks.renameProviderKey(...args),
+  refreshModels: (...args: unknown[]) => apiMocks.refreshModels(...args),
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
@@ -207,8 +209,13 @@ vi.mock('../../src/services/sse.js', () => ({
   messagePing: () => 0,
 }));
 
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock('../../src/services/toast-store.js', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
+  toast: {
+    success: (...args: unknown[]) => toastMock.success(...args),
+    error: (...args: unknown[]) => toastMock.error(...args),
+    warning: (...args: unknown[]) => toastMock.warning(...args),
+  },
 }));
 
 vi.mock('../../src/services/connection-breadcrumb-store.js', () => ({
@@ -512,6 +519,8 @@ beforeEach(() => {
   apiMocks.getGlobalProviders.mockResolvedValue(providersResponse);
   apiMocks.getAgentProviders.mockResolvedValue([]);
   apiMocks.disconnectProvider.mockResolvedValue({ notifications: [] });
+  apiMocks.renameProviderKey.mockResolvedValue(undefined);
+  apiMocks.refreshModels.mockResolvedValue(undefined);
   apiMocks.fetchMutate.mockResolvedValue({});
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getGlobalPerAgentTimeseries.mockResolvedValue(agentTimeseries);
@@ -1129,5 +1138,265 @@ describe('ConnectionDetail (analytics)', () => {
 
     getItem.mockRestore();
     setItem.mockRestore();
+  });
+
+  // Helper: open the manage modal and return the rename input.
+  const openManageModal = async () => {
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    fireEvent.click(screen.getByText('Manage'));
+    return screen.getByDisplayValue('Default') as HTMLInputElement;
+  };
+
+  it('renames a connection and refetches on success', async () => {
+    render(() => <ConnectionDetail />);
+    const input = await openManageModal();
+
+    fireEvent.input(input, { target: { value: 'Renamed' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(apiMocks.renameProviderKey).toHaveBeenCalledWith(
+        'demo-agent',
+        'openai',
+        'Default',
+        'Renamed',
+        'api_key',
+      ),
+    );
+    expect(toastMock.success).toHaveBeenCalledWith('Connection renamed');
+    // Modal closes on success.
+    await waitFor(() => expect(screen.queryByText('Connection name')).toBeNull());
+    // Detail is refetched (initial load + refetch).
+    expect(apiMocks.getConnectionDetail.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('shows an inline error when renaming a connection fails', async () => {
+    apiMocks.renameProviderKey.mockRejectedValueOnce(new Error('rename boom'));
+    render(() => <ConnectionDetail />);
+    const input = await openManageModal();
+
+    fireEvent.input(input, { target: { value: 'Renamed' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    // The thrown message surfaces inline (line 938 renders renameError()).
+    await waitFor(() => expect(screen.getByText('rename boom')).toBeDefined());
+    expect(toastMock.success).not.toHaveBeenCalled();
+    // Modal stays open so the user can retry.
+    expect(screen.getByText('Connection name')).toBeDefined();
+  });
+
+  it('falls back to a generic message when the rename error has no message', async () => {
+    apiMocks.renameProviderKey.mockRejectedValueOnce({});
+    render(() => <ConnectionDetail />);
+    const input = await openManageModal();
+
+    fireEvent.input(input, { target: { value: 'Renamed' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(screen.getByText('Failed to rename')).toBeDefined());
+  });
+
+  it('rejects an empty rename with a validation message', async () => {
+    render(() => <ConnectionDetail />);
+    const input = await openManageModal();
+
+    // Whitespace-only trims to empty → validation error, no API call.
+    fireEvent.input(input, { target: { value: '   ' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => expect(screen.getByText('Name cannot be empty')).toBeDefined());
+    expect(apiMocks.renameProviderKey).not.toHaveBeenCalled();
+  });
+
+  it('closes the modal without an API call when the name is unchanged', async () => {
+    render(() => <ConnectionDetail />);
+    const input = await openManageModal();
+
+    // The Save button is disabled when the value equals the label, so submit via
+    // Enter (line 924) to exercise the unchanged-name early return (lines 397-399).
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => expect(screen.queryByText('Connection name')).toBeNull());
+    expect(apiMocks.renameProviderKey).not.toHaveBeenCalled();
+  });
+
+  it('blocks renaming with a toast when there is no harness yet', async () => {
+    apiMocks.getAgents.mockResolvedValue({ agents: [] });
+    render(() => <ConnectionDetail />);
+    const input = await openManageModal();
+
+    fireEvent.input(input, { target: { value: 'Renamed' } });
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() =>
+      expect(toastMock.error).toHaveBeenCalledWith('Create at least one harness first.'),
+    );
+    expect(apiMocks.renameProviderKey).not.toHaveBeenCalled();
+  });
+
+  it('disconnects a connection and navigates back on success', async () => {
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() =>
+      expect(apiMocks.disconnectProvider).toHaveBeenCalledWith(
+        'demo-agent',
+        'openai',
+        'api_key',
+        'Default',
+      ),
+    );
+    expect(toastMock.success).toHaveBeenCalledWith('Connection removed');
+    // BYOK connection → back link is the usage-based providers page.
+    expect(routerState.navigate).toHaveBeenCalledWith('/providers/usage-based');
+  });
+
+  it('shows an error toast when disconnecting fails', async () => {
+    apiMocks.disconnectProvider.mockRejectedValueOnce(new Error('disconnect boom'));
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith('disconnect boom'));
+    expect(routerState.navigate).not.toHaveBeenCalled();
+  });
+
+  it('falls back to a generic message when the disconnect error has no message', async () => {
+    apiMocks.disconnectProvider.mockRejectedValueOnce({});
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith('Failed to disconnect'));
+  });
+
+  it('blocks disconnecting with a toast when there is no harness yet', async () => {
+    apiMocks.getAgents.mockResolvedValue({ agents: [] });
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Disconnect'));
+
+    await waitFor(() =>
+      expect(toastMock.error).toHaveBeenCalledWith(
+        'Create at least one harness before disconnecting a provider.',
+      ),
+    );
+    expect(apiMocks.disconnectProvider).not.toHaveBeenCalled();
+  });
+
+  it('refreshes models and refetches on success', async () => {
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Refresh models'));
+
+    await waitFor(() => expect(apiMocks.refreshModels).toHaveBeenCalledWith('demo-agent'));
+    expect(toastMock.success).toHaveBeenCalledWith('Models refreshed');
+    expect(apiMocks.getConnectionDetail.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('shows an error toast when refreshing models fails', async () => {
+    apiMocks.refreshModels.mockRejectedValueOnce(new Error('refresh boom'));
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Refresh models'));
+
+    await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith('Failed to refresh models'));
+  });
+
+  it('blocks refreshing models with a toast when there is no harness yet', async () => {
+    apiMocks.getAgents.mockResolvedValue({ agents: [] });
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+
+    fireEvent.click(screen.getByText('Refresh models'));
+
+    await waitFor(() =>
+      expect(toastMock.error).toHaveBeenCalledWith('Create at least one harness first.'),
+    );
+    expect(apiMocks.refreshModels).not.toHaveBeenCalled();
+  });
+
+  it('closes the manage modal when Escape is pressed on the overlay', async () => {
+    render(() => <ConnectionDetail />);
+    await openManageModal();
+    expect(screen.getByText('Connection name')).toBeDefined();
+
+    const overlay = document.querySelector('.modal-overlay') as HTMLElement;
+    fireEvent.keyDown(overlay, { key: 'Escape' });
+
+    await waitFor(() => expect(screen.queryByText('Connection name')).toBeNull());
+  });
+
+  it('renders the subscription connection-info copy for an active subscription', async () => {
+    routerState.params = { connectionId: 'conn-anthropic' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-anthropic',
+        provider: 'anthropic',
+        auth_type: 'subscription',
+        label: 'Claude',
+        is_active: true,
+      },
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Claude').length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByText('Manage'));
+    // Active subscription → "Connected via subscription" (line 963 truthy branch).
+    await waitFor(() =>
+      expect(screen.getByText(/Connected via\s+subscription/)).toBeDefined(),
+    );
+  });
+
+  it('renders a dash for a recent message with no model', async () => {
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      recent_messages: [
+        { timestamp: '2026-06-04T10:00:00Z', model: null, input_tokens: 0, output_tokens: 0 },
+      ],
+    });
+
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    // The model cell falls back to an em dash when msg.model is falsy (line 708).
+    const dashCell = Array.from(container.querySelectorAll('td')).find(
+      (td) => td.textContent?.trim() === '—',
+    );
+    expect(dashCell).toBeDefined();
+  });
+
+  it('closes the manage modal for an inactive connection via the Close button', async () => {
+    routerState.params = { connectionId: 'conn-inactive' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-inactive',
+        is_active: false,
+        label: 'Stale',
+      },
+    });
+
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Stale').length).toBeGreaterThan(0));
+
+    fireEvent.click(screen.getByText('Manage'));
+    // Inactive connections expose a single Close button (line 987) instead of the
+    // active Done/Disconnect/Refresh controls.
+    expect(screen.getByText('Connection name')).toBeDefined();
+    expect(screen.queryByText('Disconnect')).toBeNull();
+    fireEvent.click(screen.getByText('Close'));
+
+    await waitFor(() => expect(screen.queryByText('Connection name')).toBeNull());
   });
 });
