@@ -433,16 +433,6 @@
   font-weight: 400;
 }
 
-.provider-detail__field > .custom-select {
-  display: block;
-  width: 100%;
-}
-
-.provider-detail__field > .custom-select .custom-select__trigger {
-  width: 100%;
-  height: 2.25rem;
-}
-
 .provider-detail__input {
   width: 100%;
   height: 2.25rem;

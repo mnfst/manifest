@@ -540,22 +540,15 @@ function renderKiro() {
   return { ...render(() => <DeviceCodeDetailView {...props} />), props };
 }
 
-async function selectKiroRegion(value: string) {
-  await fireEvent.click(screen.getByLabelText('Region'));
-  await fireEvent.click(screen.getByRole('option', { name: value }));
-}
-
 describe('DeviceCodeDetailView — Kiro', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('shows the region selector, optional Start URL, and Kiro hint', () => {
+  it('shows the editable region, optional Start URL, and Kiro hint', () => {
     renderKiro();
-    expect(screen.getByLabelText('Region').textContent).toContain('us-east-1');
-    fireEvent.click(screen.getByLabelText('Region'));
-    expect(screen.getByRole('option', { name: 'eu-west-1' })).toBeDefined();
-    expect(screen.getByRole('option', { name: 'Other region...' })).toBeDefined();
+    expect((screen.getByLabelText('Region') as HTMLInputElement).value).toBe('us-east-1');
+    expect(screen.queryByRole('option', { name: 'Other region...' })).toBeNull();
     expect((screen.getByLabelText(/Start URL/) as HTMLInputElement).value).toBe('');
     expect(
       screen.getByText(
@@ -615,7 +608,7 @@ describe('DeviceCodeDetailView — Kiro', () => {
     fireEvent.input(screen.getByLabelText(/Start URL/), {
       target: { value: 'https://org.awsapps.com/start' },
     });
-    await selectKiroRegion('eu-west-1');
+    fireEvent.input(screen.getByLabelText('Region'), { target: { value: 'eu-west-1' } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     await waitFor(() => {
@@ -633,7 +626,7 @@ describe('DeviceCodeDetailView — Kiro', () => {
     const openSpy = vi.spyOn(window, 'open');
 
     renderKiro();
-    await selectKiroRegion('Other region...');
+    fireEvent.input(screen.getByLabelText('Region'), { target: { value: '' } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     expect(screen.getByText('Enter a valid AWS region, such as us-east-1.')).toBeDefined();
@@ -642,7 +635,7 @@ describe('DeviceCodeDetailView — Kiro', () => {
     openSpy.mockRestore();
   });
 
-  it('passes a custom AWS region when selected', async () => {
+  it('passes an edited AWS region', async () => {
     const api = await import('../../src/services/api.js');
     const startKiroOAuth = api.startKiroOAuth as ReturnType<typeof vi.fn>;
     startKiroOAuth.mockResolvedValue({
@@ -659,8 +652,7 @@ describe('DeviceCodeDetailView — Kiro', () => {
     } as unknown as Window);
 
     renderKiro();
-    await selectKiroRegion('Other region...');
-    fireEvent.input(screen.getByLabelText('Custom region'), {
+    fireEvent.input(screen.getByLabelText('Region'), {
       target: { value: 'CA-CENTRAL-1' },
     });
     fireEvent.click(screen.getByText('Connect with Kiro'));
@@ -686,12 +678,7 @@ describe('DeviceCodeDetailView — Kiro', () => {
 
     renderKiro();
     fireEvent.input(screen.getByLabelText(/Start URL/), { target: { value: startUrl } });
-    if (region === 'us-east-1') {
-      await selectKiroRegion(region);
-    } else {
-      await selectKiroRegion('Other region...');
-      fireEvent.input(screen.getByLabelText('Custom region'), { target: { value: region } });
-    }
+    fireEvent.input(screen.getByLabelText('Region'), { target: { value: region } });
     fireEvent.click(screen.getByText('Connect with Kiro'));
 
     expect(screen.getByText(message)).toBeDefined();
