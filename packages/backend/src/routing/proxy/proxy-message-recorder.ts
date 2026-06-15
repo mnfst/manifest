@@ -374,7 +374,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       buildMessageRow(ctx, {
         timestamp,
         status: 'fallback_error',
-        error_message: errorBody.slice(0, 2000),
+        error_message: scrubSecrets(errorBody).slice(0, 2000),
         model: canonical.model,
         provider: canonical.provider,
         routing_tier: tier,
