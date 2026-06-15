@@ -1367,7 +1367,7 @@ describe('ProviderSelectModal', () => {
       expect(popup.opener).toBeNull();
 
       await waitFor(() => {
-        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', { region: 'global' });
       });
       await waitFor(() => {
         expect(popup.location.replace).toHaveBeenCalledWith('https://www.minimax.io/verify');
@@ -1423,7 +1423,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'cn');
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', { region: 'cn' });
       });
 
       vi.restoreAllMocks();
@@ -1656,7 +1656,7 @@ describe('ProviderSelectModal', () => {
       fireEvent.click(screen.getByText('Connect with MiniMax'));
 
       await waitFor(() => {
-        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', 'global');
+        expect(mockStartMinimaxOAuth).toHaveBeenCalledWith('test-agent', { region: 'global' });
       });
       expect(screen.queryByText(/A new tab opened with the MiniMax/)).toBeNull();
       expect(screen.getByText('Connect with MiniMax')).toBeDefined();
