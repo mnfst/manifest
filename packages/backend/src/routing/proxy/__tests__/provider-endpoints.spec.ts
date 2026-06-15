@@ -318,6 +318,8 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBe('Bearer skst-token');
     expect(headers['anthropic-beta']).toContain('claude-code-20250219');
     expect(headers['anthropic-beta']).toContain('oauth-2025-04-20');
+    expect(headers['anthropic-beta']).toContain('context-management-2025-06-27');
+    expect(headers['anthropic-beta']).toContain('effort-2025-11-24');
     expect(headers['anthropic-dangerous-direct-browser-access']).toBe('true');
     expect(headers['user-agent']).toContain('claude-cli/');
     expect(headers['x-app']).toBe('cli');
