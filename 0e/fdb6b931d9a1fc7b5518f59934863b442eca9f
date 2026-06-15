@@ -1,0 +1,43 @@
+packages/backend/src/routing/oauth/kiro-oauth.controller.ts
+  s_dcd815852e7fcd::t_31cb6b12465a29 5,19-21,24,28-31,34,36-38
+  s_dcd815852e7fcd::t_23a0e17b073b01 22-23
+packages/frontend/src/services/api/oauth.ts
+  s_dcd815852e7fcd::t_54209a8f15967a 5-9,92-100,218-221,229-230,238-239
+  s_dcd815852e7fcd::t_1c2d27fcbb8f1d 236-237,240-245
+packages/frontend/src/components/DeviceCodeDetailView.tsx
+  s_dcd815852e7fcd::t_c0d860d0fe8cd9 56-59,67,117-148,283-284,305
+  s_dcd815852e7fcd::t_6f2931176cf57d 374-441
+packages/frontend/tests/components/DeviceCodeDetailView.test.tsx
+  s_dcd815852e7fcd::t_04600b4f26cf61 556,574-578,588-633
+  s_dcd815852e7fcd::t_bac35749630d13 438,471
+packages/frontend/tests/services/api/oauth.test.ts
+  s_dcd815852e7fcd::t_a96a4ede45b4dc 147,151-169,206,222,232,238-252
+.changeset/kiro-identity-center.md
+  s_dcd815852e7fcd::t_fd977ead8831ac 1-5
+packages/frontend/tests/services/providers.test.ts
+  s_dcd815852e7fcd::t_44d8f731efb738 656
+packages/backend/src/routing/oauth/kiro-oidc.ts
+  s_dcd815852e7fcd::t_9608445a4e9fbe 48,66-92
+packages/backend/src/routing/kiro-oauth.controller.spec.ts
+  s_dcd815852e7fcd::t_45d500736b99c8 4,45-48,52-74,88-95
+packages/backend/src/routing/oauth/kiro-oauth.service.ts
+  s_dcd815852e7fcd::t_5ae633f65c0b42 17,22-23,37,111-115,117-118,120,131,161,208,301,309,331,333-337
+packages/backend/src/routing/oauth/kiro-oauth.service.spec.ts
+  s_dcd815852e7fcd::t_d9be88f1dc3860 139-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "0efdb6b931d9a1fc7b5518f59934863b442eca9f",
+  "prompts": {},
+  "sessions": {
+    "s_dcd815852e7fcd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ecb07-1a57-7052-b468-2f5d5d1eb3ba",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
