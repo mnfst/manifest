@@ -62,13 +62,16 @@ jobs:
         run: npm run migration:run --workspace=packages/backend
       - run: npm test --workspace=packages/backend -- --coverage --coverageReporters=lcov
       - run: npm run test:e2e --workspace=packages/backend -- --coverage --coverageReporters=lcov
+      - name: Merge backend unit + e2e coverage into one report
+        run: node packages/backend/scripts/merge-lcov.js packages/backend/coverage/merged.info packages/backend/coverage/lcov.info packages/backend/coverage/e2e/lcov.info
       - name: Upload backend coverage to Codecov
         if: always()
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: backend
-          files: packages/backend/coverage/lcov.info,packages/backend/coverage/e2e/lcov.info
+          files: packages/backend/coverage/merged.info
+          disable_search: true
           fail_ci_if_error: false
 
   frontend:
