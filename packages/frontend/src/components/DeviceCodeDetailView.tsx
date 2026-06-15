@@ -53,6 +53,10 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [flow, setFlow] = createSignal<DeviceCodeFlow | null>(null);
   const [statusMessage, setStatusMessage] = createSignal<string | null>(null);
   const [selectedRegion, setSelectedRegion] = createSignal<MinimaxOAuthRegion>('global');
+  const [useKiroIdentityCenter, setUseKiroIdentityCenter] = createSignal(false);
+  const [kiroStartUrl, setKiroStartUrl] = createSignal('');
+  const [kiroRegion, setKiroRegion] = createSignal('');
+  const [kiroConfigError, setKiroConfigError] = createSignal<string | null>(null);
   const [altToken, setAltToken] = createSignal('');
   const [altError, setAltError] = createSignal<string | null>(null);
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
@@ -60,6 +64,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   const [addingAccount, setAddingAccount] = createSignal(false);
 
   const api = () => getDeviceCodeApi(props.provId);
+  const isKiro = () => props.provId === 'kiro';
   const isMultiKey = () => (props.activeKeys?.() ?? []).length > 1;
   const activeKeyLabels = () => (props.activeKeys?.() ?? []).map((k) => k.label);
   const showConnectFlow = () => !props.connected() || addingAccount();
@@ -108,6 +113,38 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   let pollTimer: number | undefined;
   let isDisposed = false;
   let activeFlowGeneration = 0;
+
+  const buildStartOptions = () => {
+    if (api().hasRegion) {
+      return { region: selectedRegion() };
+    }
+    if (!isKiro() || !useKiroIdentityCenter()) {
+      return undefined;
+    }
+
+    const startUrl = kiroStartUrl().trim();
+    const region = kiroRegion().trim().toLowerCase();
+    if (!startUrl || !region) {
+      setKiroConfigError('Enter your IAM Identity Center Start URL and region.');
+      return null;
+    }
+    try {
+      const parsed = new URL(startUrl);
+      if (parsed.protocol !== 'https:') {
+        setKiroConfigError('Start URL must use HTTPS.');
+        return null;
+      }
+    } catch {
+      setKiroConfigError('Enter a valid IAM Identity Center Start URL.');
+      return null;
+    }
+    if (!/^[a-z]{2}(?:-[a-z0-9]+)+-\d$/.test(region)) {
+      setKiroConfigError('Enter a valid AWS region, such as us-east-1.');
+      return null;
+    }
+    setKiroConfigError(null);
+    return { startUrl, region };
+  };
 
   const clearPollTimer = () => {
     if (pollTimer !== undefined) {
@@ -243,6 +280,8 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
   };
 
   const handleStart = async () => {
+    const startOptions = buildStartOptions();
+    if (startOptions === null) return;
     // Open the popup synchronously inside the click handler to keep the
     // user-gesture flag alive; without this, browsers block the post-await
     // window.open as a "programmatic popup". noopener can't be used here
@@ -263,10 +302,7 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
     setStatusMessage(null);
     try {
       const current = api();
-      const nextFlow = await current.start(
-        props.agentName,
-        current.hasRegion ? selectedRegion() : undefined,
-      );
+      const nextFlow = await current.start(props.agentName, startOptions);
       if (isDisposed || flowGeneration !== activeFlowGeneration) {
         popup.close();
         return;
@@ -334,6 +370,74 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                       <option value="cn">China Mainland (api.minimaxi.com)</option>
                     </select>
                   </div>
+                </Show>
+                <Show when={isKiro()}>
+                  <div class="provider-detail__field">
+                    <label
+                      for="kiro-identity-center"
+                      style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); color: hsl(var(--foreground));"
+                    >
+                      <input
+                        id="kiro-identity-center"
+                        type="checkbox"
+                        checked={useKiroIdentityCenter()}
+                        disabled={props.busy()}
+                        onChange={(e) => {
+                          setUseKiroIdentityCenter(e.currentTarget.checked);
+                          setKiroConfigError(null);
+                        }}
+                      />
+                      Sign in with AWS IAM Identity Center
+                    </label>
+                  </div>
+                  <Show when={useKiroIdentityCenter()}>
+                    <div class="provider-detail__field">
+                      <label class="provider-detail__label" for="kiro-start-url">
+                        Start URL
+                      </label>
+                      <input
+                        id="kiro-start-url"
+                        class="provider-detail__input"
+                        classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
+                        type="url"
+                        inputmode="url"
+                        autocomplete="off"
+                        placeholder="https://your-domain.awsapps.com/start"
+                        value={kiroStartUrl()}
+                        disabled={props.busy()}
+                        aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
+                        onInput={(e) => {
+                          setKiroStartUrl(e.currentTarget.value);
+                          setKiroConfigError(null);
+                        }}
+                      />
+                    </div>
+                    <div class="provider-detail__field">
+                      <label class="provider-detail__label" for="kiro-region">
+                        Region
+                      </label>
+                      <input
+                        id="kiro-region"
+                        class="provider-detail__input"
+                        classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
+                        type="text"
+                        autocomplete="off"
+                        placeholder="us-east-1"
+                        value={kiroRegion()}
+                        disabled={props.busy()}
+                        aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
+                        onInput={(e) => {
+                          setKiroRegion(e.currentTarget.value);
+                          setKiroConfigError(null);
+                        }}
+                      />
+                    </div>
+                    <Show when={kiroConfigError()}>
+                      <div id="kiro-identity-error" class="provider-detail__error">
+                        {kiroConfigError()}
+                      </div>
+                    </Show>
+                  </Show>
                 </Show>
                 <button
                   class="btn btn--primary subscription-detail__btn"

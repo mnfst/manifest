@@ -653,7 +653,7 @@ describe('PROVIDERS', () => {
     expect(getRoutingProviderApiKeyUrl('opencode-zen')).toBe('https://opencode.ai/auth');
   });
 
-  it('Kiro is subscription-only with CLI OAuth flow and dynamic models', () => {
+  it('Kiro is subscription-only with device-code OAuth flow and dynamic models', () => {
     const kiro = PROVIDERS.find((p) => p.id === 'kiro')!;
     expect(kiro).toBeDefined();
     expect(kiro.name).toBe('Kiro');

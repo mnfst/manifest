@@ -2,6 +2,11 @@ import { fetchJson, fetchMutate } from './core.js';
 
 export type MinimaxOAuthRegion = 'global' | 'cn';
 
+export interface KiroOAuthStartOptions {
+  startUrl?: string;
+  region?: string;
+}
+
 export interface MinimaxOAuthStartResponse {
   flowId: string;
   userCode: string;
@@ -84,11 +89,15 @@ export function revokeMinimaxOAuth(agentName: string, label?: string) {
   );
 }
 
-export function startKiroOAuth(agentName: string) {
-  return fetchMutate<MinimaxOAuthStartResponse>(
-    `/oauth/kiro/start?agentName=${encodeURIComponent(agentName)}`,
-    { method: 'POST' },
-  );
+export function startKiroOAuth(agentName: string, options: KiroOAuthStartOptions = {}) {
+  const params = new URLSearchParams({ agentName });
+  const startUrl = options.startUrl?.trim();
+  const region = options.region?.trim();
+  if (startUrl) params.set('startUrl', startUrl);
+  if (region) params.set('region', region);
+  return fetchMutate<MinimaxOAuthStartResponse>(`/oauth/kiro/start?${params.toString()}`, {
+    method: 'POST',
+  });
 }
 
 export function pollKiroOAuth(flowId: string) {
@@ -206,7 +215,10 @@ export function getPopupOauthApi(providerId: string): PopupOauthApi {
  * region argument.
  */
 export interface DeviceCodeApi {
-  start: (agentName: string, region?: MinimaxOAuthRegion) => Promise<MinimaxOAuthStartResponse>;
+  start: (
+    agentName: string,
+    options?: { region?: MinimaxOAuthRegion | string; startUrl?: string },
+  ) => Promise<MinimaxOAuthStartResponse>;
   poll: (flowId: string) => Promise<MinimaxOAuthPollResponse>;
   revoke: (agentName: string, label?: string) => Promise<{ ok: boolean; notifications?: string[] }>;
   hasRegion: boolean;
@@ -214,13 +226,23 @@ export interface DeviceCodeApi {
 
 const DEVICE_CODE_PROVIDERS: Record<string, DeviceCodeApi> = {
   minimax: {
-    start: (agentName, region) => startMinimaxOAuth(agentName, region ?? 'global'),
+    start: (agentName, options) =>
+      startMinimaxOAuth(agentName, (options?.region as MinimaxOAuthRegion | undefined) ?? 'global'),
     poll: pollMinimaxOAuth,
     revoke: revokeMinimaxOAuth,
     hasRegion: true,
   },
   kiro: {
-    start: (agentName) => startKiroOAuth(agentName),
+    start: (agentName, options) => {
+      const kiroOptions = {
+        startUrl: options?.startUrl,
+        region: typeof options?.region === 'string' ? options.region : undefined,
+      };
+      return startKiroOAuth(
+        agentName,
+        kiroOptions.startUrl || kiroOptions.region ? kiroOptions : undefined,
+      );
+    },
     poll: pollKiroOAuth,
     revoke: revokeKiroOAuth,
     hasRegion: false,

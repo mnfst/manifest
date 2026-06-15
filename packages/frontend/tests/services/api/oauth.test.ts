@@ -144,8 +144,27 @@ describe('oauth API client', () => {
     const out = await oauth.startKiroOAuth('my agent');
     expect(out.flowId).toBe('f1');
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain('/api/v1/oauth/kiro/start?agentName=my%20agent');
+    expect(url).toContain('/api/v1/oauth/kiro/start?agentName=my+agent');
     expect((init as RequestInit).method).toBe('POST');
+  });
+
+  it('startKiroOAuth includes IAM Identity Center options when provided', async () => {
+    const fetchMock = setupFetch({
+      flowId: 'f1',
+      userCode: 'AAAA-BBBB',
+      verificationUri: 'https://verify',
+      expiresAt: 0,
+      pollIntervalMs: 5000,
+    });
+    await oauth.startKiroOAuth('demo', {
+      startUrl: ' https://org.awsapps.com/start ',
+      region: ' eu-west-1 ',
+    });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/oauth/kiro/start?');
+    expect(url).toContain('agentName=demo');
+    expect(url).toContain('startUrl=https%3A%2F%2Forg.awsapps.com%2Fstart');
+    expect(url).toContain('region=eu-west-1');
   });
 
   it('pollKiroOAuth GETs /poll with the flowId', async () => {
@@ -184,7 +203,7 @@ describe('oauth API client', () => {
       });
       const api = oauth.getDeviceCodeApi('minimax');
       expect(api.hasRegion).toBe(true);
-      await api.start('demo', 'cn');
+      await api.start('demo', { region: 'cn' });
       expect(fetchMock.mock.calls[0][0] as string).toContain('region=cn');
     });
 
@@ -200,7 +219,7 @@ describe('oauth API client', () => {
       expect(fetchMock.mock.calls[0][0] as string).toContain('region=global');
     });
 
-    it('routes kiro through its region-less start endpoint', async () => {
+    it('routes kiro through its default start endpoint without options', async () => {
       const fetchMock = setupFetch({
         flowId: 'f1',
         userCode: 'C',
@@ -210,10 +229,27 @@ describe('oauth API client', () => {
       });
       const api = oauth.getDeviceCodeApi('kiro');
       expect(api.hasRegion).toBe(false);
-      await api.start('demo', 'cn');
+      await api.start('demo');
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('/api/v1/oauth/kiro/start');
       expect(url).not.toContain('region=');
+    });
+
+    it('routes kiro IAM Identity Center options through its start endpoint', async () => {
+      const fetchMock = setupFetch({
+        flowId: 'f1',
+        userCode: 'C',
+        verificationUri: 'https://v',
+        expiresAt: 0,
+        pollIntervalMs: 5000,
+      });
+      await oauth.getDeviceCodeApi('kiro').start('demo', {
+        startUrl: 'https://org.awsapps.com/start',
+        region: 'eu-west-1',
+      });
+      const url = fetchMock.mock.calls[0][0] as string;
+      expect(url).toContain('startUrl=https%3A%2F%2Forg.awsapps.com%2Fstart');
+      expect(url).toContain('region=eu-west-1');
     });
 
     it('throws for a provider without a device-code flow', () => {
