@@ -2,7 +2,11 @@ import { ConfigService } from '@nestjs/config';
 import { KiroOauthService } from './kiro-oauth.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
-import { parseKiroOAuthTokenBlob, serializeKiroOAuthTokenBlob } from './kiro-oidc';
+import {
+  KiroAuthorizationOptionsError,
+  parseKiroOAuthTokenBlob,
+  serializeKiroOAuthTokenBlob,
+} from './kiro-oidc';
 
 const originalFetch = global.fetch;
 
@@ -183,6 +187,13 @@ describe('KiroOauthService', () => {
         }),
       ).rejects.toThrow('region is invalid');
       expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('names IAM Identity Center option errors for diagnostics', () => {
+      const error = new KiroAuthorizationOptionsError('bad option');
+
+      expect(error.name).toBe('KiroAuthorizationOptionsError');
+      expect(error.message).toBe('bad option');
     });
 
     it('sweeps expired pending flows when a new flow starts', async () => {

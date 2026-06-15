@@ -42,10 +42,7 @@ describe('KiroOauthController', () => {
       const result = await controller.start('my-agent', { id: 'user-1' } as never);
 
       expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-      expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1', {
-        startUrl: undefined,
-        region: undefined,
-      });
+      expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1');
       expect(result.flowId).toBe('flow-1');
     });
 

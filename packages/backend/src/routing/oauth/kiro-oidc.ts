@@ -68,7 +68,12 @@ export interface KiroAuthorizationOptions {
   region?: string;
 }
 
-export class KiroAuthorizationOptionsError extends Error {}
+export class KiroAuthorizationOptionsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'KiroAuthorizationOptionsError';
+  }
+}
 
 export function normalizeKiroRegion(region: string): string {
   const normalized = region.trim().toLowerCase();
