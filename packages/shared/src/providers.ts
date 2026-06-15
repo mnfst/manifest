@@ -216,8 +216,8 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     localOnly: false,
     color: '#FF6900',
     keyPrefix: 'sk-',
-    minKeyLength: 10,
-    keyPlaceholder: 'sk-...',
+    minKeyLength: 50,
+    keyPlaceholder: 'sk-xxxxx',
   },
   {
     id: 'mistral',
