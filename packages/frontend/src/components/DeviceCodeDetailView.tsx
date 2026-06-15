@@ -20,6 +20,7 @@ import {
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { validateSubscriptionKey } from '../services/provider-utils.js';
 import { toast } from '../services/toast-store.js';
+import Select from './Select.jsx';
 
 interface Props {
   provDef: ProviderDef;
@@ -39,6 +40,44 @@ interface Props {
 
 const MAX_LABEL_LENGTH = 50;
 const KIRO_DEFAULT_REGION = 'us-east-1';
+const KIRO_REGION_OPTIONS = [
+  { value: 'us-east-2', label: 'us-east-2' },
+  { value: 'us-east-1', label: 'us-east-1' },
+  { value: 'us-west-1', label: 'us-west-1' },
+  { value: 'us-west-2', label: 'us-west-2' },
+  { value: 'af-south-1', label: 'af-south-1' },
+  { value: 'ap-east-1', label: 'ap-east-1' },
+  { value: 'ap-south-2', label: 'ap-south-2' },
+  { value: 'ap-southeast-3', label: 'ap-southeast-3' },
+  { value: 'ap-southeast-5', label: 'ap-southeast-5' },
+  { value: 'ap-southeast-4', label: 'ap-southeast-4' },
+  { value: 'ap-south-1', label: 'ap-south-1' },
+  { value: 'ap-southeast-6', label: 'ap-southeast-6' },
+  { value: 'ap-northeast-3', label: 'ap-northeast-3' },
+  { value: 'ap-northeast-2', label: 'ap-northeast-2' },
+  { value: 'ap-southeast-1', label: 'ap-southeast-1' },
+  { value: 'ap-southeast-2', label: 'ap-southeast-2' },
+  { value: 'ap-east-2', label: 'ap-east-2' },
+  { value: 'ap-southeast-7', label: 'ap-southeast-7' },
+  { value: 'ap-northeast-1', label: 'ap-northeast-1' },
+  { value: 'ca-central-1', label: 'ca-central-1' },
+  { value: 'ca-west-1', label: 'ca-west-1' },
+  { value: 'eu-central-1', label: 'eu-central-1' },
+  { value: 'eu-west-1', label: 'eu-west-1' },
+  { value: 'eu-west-2', label: 'eu-west-2' },
+  { value: 'eu-south-1', label: 'eu-south-1' },
+  { value: 'eu-west-3', label: 'eu-west-3' },
+  { value: 'eu-south-2', label: 'eu-south-2' },
+  { value: 'eu-north-1', label: 'eu-north-1' },
+  { value: 'eu-central-2', label: 'eu-central-2' },
+  { value: 'il-central-1', label: 'il-central-1' },
+  { value: 'mx-central-1', label: 'mx-central-1' },
+  { value: 'me-south-1', label: 'me-south-1' },
+  { value: 'me-central-1', label: 'me-central-1' },
+  { value: 'sa-east-1', label: 'sa-east-1' },
+  { value: 'us-gov-east-1', label: 'us-gov-east-1' },
+  { value: 'us-gov-west-1', label: 'us-gov-west-1' },
+];
 
 interface DeviceCodeFlow {
   flowId: string;
@@ -375,21 +414,16 @@ const DeviceCodeDetailView: Component<Props> = (props) => {
                 </Show>
                 <Show when={isKiro()}>
                   <div class="provider-detail__field">
-                    <label class="provider-detail__label" for="kiro-region">
-                      Region
-                    </label>
-                    <input
-                      id="kiro-region"
-                      class="provider-detail__input"
-                      classList={{ 'provider-detail__input--error': !!kiroConfigError() }}
-                      type="text"
-                      autocomplete="off"
-                      placeholder={KIRO_DEFAULT_REGION}
+                    <span class="provider-detail__label">Region</span>
+                    <Select
+                      label="Region"
+                      options={KIRO_REGION_OPTIONS}
                       value={kiroRegion()}
                       disabled={props.busy()}
-                      aria-describedby={kiroConfigError() ? 'kiro-identity-error' : undefined}
-                      onInput={(e) => {
-                        setKiroRegion(e.currentTarget.value);
+                      portal
+                      maxDropdownHeight={240}
+                      onChange={(value) => {
+                        setKiroRegion(value);
                         setKiroConfigError(null);
                       }}
                     />
