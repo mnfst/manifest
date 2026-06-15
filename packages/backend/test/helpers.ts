@@ -40,6 +40,7 @@ import { PlaygroundRun } from '../src/entities/playground-run.entity';
 import { PlaygroundColumn } from '../src/entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../src/entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.entity';
+import { BackfillState } from '../src/entities/backfill-state.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -82,6 +83,7 @@ const entities = [
   PlaygroundColumn,
   ReasoningContentCacheEntry,
   AgentEnabledProvider,
+  BackfillState,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
