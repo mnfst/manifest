@@ -1,35 +1,34 @@
 import { shouldRetryDbConnection } from './db-retry';
 
 describe('shouldRetryDbConnection', () => {
-  it('retries genuine connectivity failures (DB not ready yet)', () => {
-    const err = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:5432'), {
-      code: 'ECONNREFUSED',
-    });
-    expect(shouldRetryDbConnection(err)).toBe(true);
+  it('retries transport-level connection codes (DB not reachable yet)', () => {
+    // code present (string) → matched; no message exercises the empty-message path.
+    expect(shouldRetryDbConnection({ code: 'ECONNREFUSED' })).toBe(true);
   });
 
-  it('retries a generic non-migration error rather than masking a transient blip', () => {
-    expect(shouldRetryDbConnection(new Error('socket hang up'))).toBe(true);
+  it('retries transport failures pg reports as a message without a code', () => {
+    expect(shouldRetryDbConnection(new Error('Connection terminated unexpectedly'))).toBe(true);
   });
 
-  it('does NOT retry a QueryFailedError (a failed migration/query statement)', () => {
-    const err = new Error('relation "tenant_providers" does not exist');
-    err.name = 'QueryFailedError';
-    expect(shouldRetryDbConnection(err)).toBe(false);
+  it('does NOT retry a failed migration / query error (not transport-level)', () => {
+    const queryErr = new Error('relation "tenant_providers" does not exist');
+    queryErr.name = 'QueryFailedError';
+    expect(shouldRetryDbConnection(queryErr)).toBe(false);
+
+    expect(
+      shouldRetryDbConnection(
+        new Error(
+          'TenantProviders migration: 1 user_providers row(s) reference a user with no tenant and cannot be re-scoped.',
+        ),
+      ),
+    ).toBe(false);
   });
 
-  it('does NOT retry our explicit re-scope migration abort', () => {
-    const err = new Error(
-      'TenantProviders migration: 1 user_providers row(s) reference a user with no tenant and cannot be re-scoped.',
-    );
-    expect(shouldRetryDbConnection(err)).toBe(false);
-  });
-
-  it('retries when the error has no usable name/message (unknown shape)', () => {
-    expect(shouldRetryDbConnection(null)).toBe(true);
-    expect(shouldRetryDbConnection(undefined)).toBe(true);
-    expect(shouldRetryDbConnection({})).toBe(true);
-    // Non-string name/message must not throw and should default to retrying.
-    expect(shouldRetryDbConnection({ name: 123, message: { nested: true } })).toBe(true);
+  it('does NOT retry unknown / shapeless errors (fail fast rather than mask)', () => {
+    expect(shouldRetryDbConnection(null)).toBe(false);
+    expect(shouldRetryDbConnection(undefined)).toBe(false);
+    expect(shouldRetryDbConnection({})).toBe(false);
+    // Non-string code/message must not throw and must not count as transport.
+    expect(shouldRetryDbConnection({ code: 123, message: { nested: true } })).toBe(false);
   });
 });

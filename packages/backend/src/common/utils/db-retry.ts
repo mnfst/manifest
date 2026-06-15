@@ -1,31 +1,44 @@
+// Transport-level failures that mean "the database isn't reachable yet" — the
+// only class of error worth retrying at boot (e.g. Postgres still starting).
+const TRANSPORT_CODES = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'ENOTFOUND',
+  'EAI_AGAIN',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  'EPIPE',
+]);
+
+// pg sometimes surfaces transport/startup failures as a message without a code.
+const TRANSPORT_MESSAGES = [
+  'connection terminated',
+  'connection refused',
+  'timeout expired',
+  'the database system is starting up',
+  'terminating connection',
+  'server closed the connection',
+];
+
 /**
  * Decides whether a failed TypeORM DataSource initialization is worth retrying.
  *
- * Migrations run on connect (`migrationsRun: true`), so a failed migration
- * surfaces through @nestjs/typeorm's connection-retry path. Retrying never
- * fixes a bad migration — it just spams the misleading "Unable to connect to
- * the database. Retrying (N)..." line and buries the real
- * "Migration X failed, error: ..." cause the operator needs to see. So we fail
- * fast on migration/query errors and keep retrying only genuine connectivity
- * failures (e.g. the database not being ready yet at boot).
+ * Retry ONLY transport-level connection failures (the DB not being reachable
+ * yet). Everything else — a failed migration, a query error, or any unexpected
+ * error — fails fast: retrying never fixes it and just buries the real cause
+ * under repeated "Unable to connect to the database. Retrying (N)..." lines.
+ * Migrations run on connect (`migrationsRun: true`), so this is what stops a
+ * failed migration from looping. @nestjs/typeorm checks this predicate BEFORE
+ * logging, so returning false also suppresses the misleading retry message.
  *
- * Used as the `toRetry` predicate in database.module.ts; @nestjs/typeorm
- * checks it BEFORE logging the retry line, so returning false both suppresses
- * the misleading message and stops the retry loop.
+ * Used as the `toRetry` predicate in database.module.ts.
  */
 export function shouldRetryDbConnection(err: unknown): boolean {
-  const e = (err ?? {}) as { name?: unknown; message?: unknown };
-  const name = typeof e.name === 'string' ? e.name : '';
+  const e = (err ?? {}) as { code?: unknown; message?: unknown };
+  const code = typeof e.code === 'string' ? e.code : '';
   const message = typeof e.message === 'string' ? e.message.toLowerCase() : '';
 
-  // QueryFailedError = a SQL statement failed after connecting (a migration or
-  // query problem), never "database unreachable".
-  if (name === 'QueryFailedError') return false;
-
-  // The tenant re-scope migrations throw plain Errors whose message names the
-  // migration (e.g. "TenantProviders migration: N row(s) ... cannot be
-  // re-scoped").
-  if (message.includes('migration')) return false;
-
-  return true;
+  if (TRANSPORT_CODES.has(code)) return true;
+  return TRANSPORT_MESSAGES.some((m) => message.includes(m));
 }
