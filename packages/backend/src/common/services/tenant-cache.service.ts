@@ -23,10 +23,22 @@ export class TenantCacheService {
   ) {}
 
   async resolve(userId: string): Promise<string | null> {
-    return this.cache.resolve(userId, async (uid) => {
-      const tenant = await this.tenantRepo.findOne({ where: { owner_user_id: uid } });
-      return tenant?.id ?? null;
-    });
+    // Memoize only a real tenant id, never the "no tenant yet" (null) result.
+    // Tenants are created lazily (first agent / playground / provider), and the
+    // create-agent request's own guard resolves the tenant BEFORE its handler
+    // creates it. Caching that null for the full TTL made every tenant-lookup
+    // endpoint — notably connecting a provider — return 404 "Tenant not found"
+    // for up to 5 minutes after a user created their first agent. Skipping the
+    // negative cache keeps the hot path fast while letting the very next request
+    // observe a freshly created tenant.
+    return this.cache.resolve(
+      userId,
+      async (uid) => {
+        const tenant = await this.tenantRepo.findOne({ where: { owner_user_id: uid } });
+        return tenant?.id ?? null;
+      },
+      (tenantId) => tenantId !== null,
+    );
   }
 
   /**

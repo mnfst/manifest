@@ -27,6 +27,7 @@ import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
+import { shouldRetryDbConnection } from '../common/utils/db-retry';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -270,6 +271,12 @@ const migrations = [
         migrationsRun: true,
         migrationsTransactionMode: 'all' as const,
         migrations,
+        // A failed migration must not go through the connection-retry loop:
+        // @nestjs/typeorm checks toRetry before logging, so returning false
+        // here suppresses the misleading "Unable to connect to the database.
+        // Retrying" line and fails fast with the real migration error. Genuine
+        // connectivity failures (DB not ready yet) still retry.
+        toRetry: shouldRetryDbConnection,
         logging: false,
         extra: {
           // app.config.ts always resolves dbPoolMax (default 20), so there is no

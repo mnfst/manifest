@@ -21,12 +21,24 @@ export class TtlFifoCache<K, V> {
     this.now = opts.now ?? Date.now;
   }
 
-  async resolve(key: K, loader: (key: K) => Promise<V>): Promise<V> {
+  /**
+   * `shouldCache` lets a caller skip memoizing a result it considers transient
+   * (e.g. a "not found yet" sentinel). Such values are returned to the caller
+   * but never stored, so the next resolve() re-runs the loader. Defaults to
+   * caching every value.
+   */
+  async resolve(
+    key: K,
+    loader: (key: K) => Promise<V>,
+    shouldCache: (value: V) => boolean = () => true,
+  ): Promise<V> {
     const cached = this.entries.get(key);
     if (cached && cached.expiresAt > this.now()) return cached.value;
     if (cached) this.entries.delete(key);
 
     const value = await loader(key);
+
+    if (!shouldCache(value)) return value;
 
     if (this.entries.size >= this.maxEntries && !this.entries.has(key)) {
       const firstKey = this.entries.keys().next().value;

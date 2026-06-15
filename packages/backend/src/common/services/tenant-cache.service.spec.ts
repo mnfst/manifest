@@ -41,6 +41,22 @@ describe('TenantCacheService', () => {
     expect(mockFindOne).toHaveBeenCalledTimes(1);
   });
 
+  it('does NOT cache a missing tenant — re-queries until one exists (first-run 404 regression)', async () => {
+    // First resolve: the user has no tenant yet (e.g. the create-agent guard
+    // runs before its handler creates the tenant).
+    mockFindOne.mockResolvedValueOnce(null);
+    expect(await service.resolve('user-1')).toBeNull();
+
+    // The tenant is created between the two calls.
+    mockFindOne.mockResolvedValueOnce({ id: 'tenant-created' });
+    expect(await service.resolve('user-1')).toBe('tenant-created');
+
+    // The null was never cached, so the second call had to re-hit the DB —
+    // otherwise the freshly created tenant would stay invisible for the TTL and
+    // provider/routing endpoints would 404 "Tenant not found".
+    expect(mockFindOne).toHaveBeenCalledTimes(2);
+  });
+
   it('invalidate() forces the next resolve() to re-hit the DB', async () => {
     // First resolve populates the cache.
     mockFindOne.mockResolvedValueOnce({ id: 'tenant-abc' });
