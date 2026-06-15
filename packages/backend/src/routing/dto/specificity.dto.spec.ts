@@ -12,6 +12,6 @@ describe('SetSpecificityOverrideDto', () => {
     });
     expect(dto.providerKeyLabel).toBe('Work');
     expect(dto.route?.model).toBe('gpt-4o');
-    expect(Array.isArray(await validate(dto))).toBe(true);
+    expect(await validate(dto)).toHaveLength(0);
   });
 });

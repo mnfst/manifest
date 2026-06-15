@@ -264,6 +264,6 @@ describe('routing.dto decorator transforms', () => {
       routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
     });
     expect(dto.routes).toHaveLength(1);
-    expect(Array.isArray(await validate(dto))).toBe(true);
+    expect(await validate(dto)).toHaveLength(0);
   });
 });

@@ -65,7 +65,7 @@ describe('HeaderTierController', () => {
     });
     expect(dto.providerKeyLabel).toBe('Work');
     expect(dto.route?.model).toBe('gpt-4o');
-    expect(Array.isArray(await validate(dto))).toBe(true);
+    expect(await validate(dto)).toHaveLength(0);
   });
 
   it('FallbacksBody parses nested route objects', async () => {
@@ -74,7 +74,7 @@ describe('HeaderTierController', () => {
       routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
     });
     expect(dto.routes).toHaveLength(1);
-    expect(Array.isArray(await validate(dto))).toBe(true);
+    expect(await validate(dto)).toHaveLength(0);
   });
 
   it('create forwards the resolved tenant_id and body', async () => {
