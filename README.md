@@ -74,7 +74,7 @@ the same `/auto` endpoint.
 | [**DeepSeek**](https://www.deepseek.com/)                                                |    ✅    | —                            | deepseek-v3.2, deepseek-r1                              |
 | [**Mistral**](https://mistral.ai/)                                                       |    ✅    | —                            | mistral-large, codestral, magistral                     |
 | [**Qwen** (Alibaba Cloud)](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) |    ✅    | —                            | qwen3-max, qwen3-coder, qwq-32b                         |
-| [**Moonshot** (Kimi)](https://kimi.ai/)                                                  |    ✅    | ✅ Kimi Coding Plan          | kimi-k2, kimi-for-coding, moonshot-v1-128k              |
+| [**Moonshot** (Kimi)](https://kimi.ai/)                                                  |    ✅    | ✅ Kimi Coding Plan          | Kimi K2.7 Code, kimi-k2, moonshot-v1-128k               |
 | [**MiniMax**](https://www.minimax.io/)                                                   |    ✅    | ✅ MiniMax Coding Plan       | minimax-m2, abab7-chat-preview                          |
 | [**Xiaomi MiMo**](https://platform.xiaomimimo.com/)                                      |    ✅    | ✅ MiMo Token Plan           | mimo-v2.5-pro, mimo-v2.5, mimo-v2-flash                 |
 | [**Z.ai** (Zhipu)](https://z.ai/)                                                        |    ✅    | ✅ GLM Coding Plan           | glm-4.6, glm-4.5-air                                    |

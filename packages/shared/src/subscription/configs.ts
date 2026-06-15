@@ -120,7 +120,12 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'Kimi Coding Plan',
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
+    // Kimi Code documents `kimi-for-coding` as a stable alias that is
+    // automatically moved to the latest coding model.
     knownModels: Object.freeze(['kimi-for-coding']),
+    knownModelDisplayNames: Object.freeze({
+      'kimi-for-coding': 'Kimi K2.7 Code',
+    }),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,

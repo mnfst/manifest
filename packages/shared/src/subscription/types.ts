@@ -12,6 +12,8 @@ export interface SubscriptionProviderConfig {
   subscriptionAuthMode?: 'popup_oauth' | 'device_code' | 'token';
   subscriptionTokenPrefix?: string;
   knownModels?: readonly string[];
+  /** Optional display names for fixed knownModels that are opaque provider aliases. */
+  knownModelDisplayNames?: Readonly<Record<string, string>>;
   /**
    * How `knownModels` is matched against the OpenRouter pricing cache:
    *   `prefix` (default) — keep any cache entry whose id starts with one

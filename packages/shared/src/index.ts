@@ -107,6 +107,7 @@ export {
   getSubscriptionProviderConfig,
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
+  getSubscriptionKnownModelDisplayName,
   getSubscriptionKnownModelsMatch,
   getSubscriptionExcludedModels,
   getSubscriptionCapabilities,

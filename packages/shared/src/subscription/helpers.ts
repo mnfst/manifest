@@ -31,6 +31,14 @@ export function getSubscriptionKnownModels(providerId: string): readonly string[
   return config?.knownModels ?? null;
 }
 
+export function getSubscriptionKnownModelDisplayName(
+  providerId: string,
+  modelId: string,
+): string | null {
+  const config = getSubscriptionProviderConfig(providerId);
+  return config?.knownModelDisplayNames?.[modelId] ?? null;
+}
+
 export function getSubscriptionKnownModelsMatch(providerId: string): 'prefix' | 'exact' {
   const config = getSubscriptionProviderConfig(providerId);
   return config?.knownModelsMatch ?? 'prefix';
