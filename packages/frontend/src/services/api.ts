@@ -10,3 +10,4 @@ export * from './api/oauth.js';
 export * from './api/free-models.js';
 export * from './api/model-params.js';
 export * from './api/playground.js';
+export * from './api/retention.js';

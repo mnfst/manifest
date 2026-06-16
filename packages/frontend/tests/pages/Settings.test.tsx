@@ -27,7 +27,12 @@ vi.mock("../../src/services/api.js", () => ({
   renameAgent: (...args: unknown[]) => mockRenameAgent(...args),
   rotateAgentKey: (...args: unknown[]) => mockRotateAgentKey(...args),
   updateAgent: (...args: unknown[]) => mockUpdateAgent(...args),
+  getMessageRetention: (...args: unknown[]) => mockGetMessageRetention(...args),
+  setMessageRetention: (...args: unknown[]) => mockSetMessageRetention(...args),
 }));
+
+const mockGetMessageRetention = vi.fn().mockResolvedValue({ days: null });
+const mockSetMessageRetention = vi.fn().mockResolvedValue({ days: null });
 
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
@@ -863,6 +868,101 @@ describe("Settings", () => {
     fireEvent.keyDown(overlay, { key: "Escape" });
     await vi.waitFor(() => {
       expect(container.querySelector(".modal-overlay")).toBeNull();
+    });
+  });
+
+  describe("retention", () => {
+    async function getSelect(container: HTMLElement): Promise<HTMLSelectElement> {
+      return vi.waitFor(() => {
+        const el = container.querySelector(
+          'select[aria-label="Message log retention"]',
+        ) as HTMLSelectElement;
+        if (!el) throw new Error("select not found");
+        return el;
+      });
+    }
+
+    beforeEach(() => {
+      mockGetMessageRetention.mockResolvedValue({ days: null });
+      mockSetMessageRetention.mockReset();
+      mockSetMessageRetention.mockResolvedValue({ days: null });
+    });
+
+    it("renders retention dropdown defaulting to forever", async () => {
+      const { container } = render(() => <Settings />);
+      const select = await getSelect(container);
+      await vi.waitFor(() => {
+        expect(select.value).toBe("forever");
+      });
+    });
+
+    it("switching from forever to 30 shows confirmation modal", async () => {
+      const { container } = render(() => <Settings />);
+      const select = await getSelect(container);
+      await vi.waitFor(() => {
+        expect(select.value).toBe("forever");
+      });
+      fireEvent.change(select, { target: { value: "30" } });
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain("Enable retention?");
+      });
+      expect(mockSetMessageRetention).not.toHaveBeenCalled();
+    });
+
+    it("confirming modal saves retention and closes it", async () => {
+      const { container } = render(() => <Settings />);
+      const select = await getSelect(container);
+      await vi.waitFor(() => {
+        expect(select.value).toBe("forever");
+      });
+      fireEvent.change(select, { target: { value: "30" } });
+      const confirmBtn = await vi.waitFor(() => {
+        const btn = Array.from(container.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Enable retention",
+        );
+        if (!btn) throw new Error("Enable retention button not found");
+        return btn;
+      });
+      fireEvent.click(confirmBtn);
+      await vi.waitFor(() => {
+        expect(container.textContent).not.toContain("Enable retention?");
+      });
+      expect(mockSetMessageRetention).toHaveBeenCalledWith(30);
+    });
+
+    it("cancelling modal closes it without saving", async () => {
+      const { container } = render(() => <Settings />);
+      const select = await getSelect(container);
+      await vi.waitFor(() => {
+        expect(select.value).toBe("forever");
+      });
+      fireEvent.change(select, { target: { value: "30" } });
+      const cancelBtn = await vi.waitFor(() => {
+        const btn = Array.from(container.querySelectorAll("button")).find(
+          (b) => b.textContent?.trim() === "Cancel",
+        );
+        if (!btn) throw new Error("Cancel button not found");
+        return btn;
+      });
+      fireEvent.click(cancelBtn);
+      await vi.waitFor(() => {
+        expect(container.textContent).not.toContain("Enable retention?");
+      });
+      expect(mockSetMessageRetention).not.toHaveBeenCalled();
+    });
+
+    it("switching from 7 to 90 saves directly without modal", async () => {
+      mockGetMessageRetention.mockResolvedValue({ days: 7 });
+      const { container } = render(() => <Settings />);
+      const select = await getSelect(container);
+      await vi.waitFor(() => {
+        expect(select.value).toBe("7");
+      });
+      fireEvent.change(select, { target: { value: "90" } });
+      await vi.waitFor(() => {
+        expect(mockSetMessageRetention).toHaveBeenCalledWith(90);
+      });
+      expect(container.textContent).not.toContain("Enable retention?");
     });
   });
 
