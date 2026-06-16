@@ -53,21 +53,50 @@ export class AddProviderUsageCoveringIndex1792900000000 implements MigrationInte
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Already created out-of-band (operator ran CONCURRENTLY) → nothing to do.
+    // Scope the existence probe to the index ATTACHED TO agent_messages: a
+    // same-named index on another table/schema must not produce a false positive
+    // that skips the required build. pg_index.indrelid ties the index to its
+    // table, and ::regclass resolves agent_messages in the search_path.
     const existing = await queryRunner.query(
-      `SELECT 1 FROM pg_class WHERE relname = '${INDEX_NAME}' AND relkind = 'i' LIMIT 1`,
+      `SELECT 1 FROM pg_index i JOIN pg_class ix ON ix.oid = i.indexrelid ` +
+        `WHERE ix.relname = '${INDEX_NAME}' AND i.indrelid = 'agent_messages'::regclass LIMIT 1`,
     );
     if (Array.isArray(existing) && existing.length > 0) return;
 
-    // reltuples is the planner's row estimate (negative/zero before the first
-    // ANALYZE on a brand-new table); treat a non-positive estimate as "small".
+    // Decide inline-vs-skip from the table's size. reltuples is the planner's
+    // row estimate but is non-positive (typically -1) until the first
+    // ANALYZE/VACUUM — and crucially that's true for a HUGE table that simply
+    // hasn't been analysed yet, not just a fresh empty one. Treating any
+    // non-positive estimate as "small" would force an inline CREATE INDEX on a
+    // large unanalysed table and block writes during boot (the exact hazard
+    // this guard exists to avoid). So when reltuples is unavailable we fall back
+    // to relpages (physical 8KB pages), which is 0 for a genuinely empty/new
+    // table and large for a populated-but-unanalysed one. Only build inline when
+    // BOTH signals say the table is small.
     const rows = await queryRunner.query(
-      `SELECT reltuples::bigint AS estimate FROM pg_class WHERE relname = 'agent_messages' AND relkind = 'r' LIMIT 1`,
+      `SELECT reltuples::bigint AS estimate, relpages::bigint AS pages ` +
+        `FROM pg_class WHERE relname = 'agent_messages' AND relkind = 'r' LIMIT 1`,
     );
-    const estimate = Array.isArray(rows) && rows.length > 0 ? Number(rows[0].estimate) || 0 : 0;
+    const row = Array.isArray(rows) && rows.length > 0 ? rows[0] : undefined;
+    const estimate = row ? Number(row.estimate) : 0;
+    const pages = row ? Number(row.pages) : 0;
 
-    if (estimate > INLINE_BUILD_ROW_LIMIT) {
+    // Below this page count the table is small enough that an inline build is
+    // effectively instant even without a usable reltuples estimate. ~8KB/page,
+    // so 4000 pages ≈ 32MB of heap — comfortably fast to index at boot.
+    const INLINE_BUILD_PAGE_LIMIT = 4000;
+
+    const tooManyRows = Number.isFinite(estimate) && estimate > INLINE_BUILD_ROW_LIMIT;
+    // When reltuples is non-positive (unknown/unanalysed) defer to relpages so a
+    // large unanalysed table is correctly classified as large.
+    const unknownRowCount = !Number.isFinite(estimate) || estimate <= 0;
+    const tooManyPages =
+      unknownRowCount && Number.isFinite(pages) && pages > INLINE_BUILD_PAGE_LIMIT;
+
+    if (tooManyRows || tooManyPages) {
+      const size = tooManyRows ? `~${estimate} rows` : `~${pages} pages (row estimate unavailable)`;
       console.warn(
-        `[migration ${this.name}] agent_messages has ~${estimate} rows; skipping inline ` +
+        `[migration ${this.name}] agent_messages has ${size}; skipping inline ` +
           `index build to avoid a long boot-time write lock. Apply "${INDEX_NAME}" ` +
           `out-of-band with CREATE INDEX CONCURRENTLY (see the migration file header).`,
       );

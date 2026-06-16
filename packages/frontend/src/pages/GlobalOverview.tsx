@@ -197,8 +197,12 @@ const GlobalOverview: Component = () => {
   );
 
   // CONFIG resource — paints the provider table immediately (cheap endpoint).
+  // Provider rows/status are routing-domain state: a connect/disconnect/rename
+  // emits a `routing` SSE event (→ routingPing), so the config list must key on
+  // routingPing to stay fresh. agentPing is kept because a new/removed agent can
+  // also change which providers appear in the global view.
   const [providerConfig] = createResource(
-    () => agentPing(),
+    () => ({ a: agentPing(), r: routingPing() }),
     async () => {
       try {
         return (await getGlobalProviders()).providers;
