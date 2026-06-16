@@ -95,6 +95,18 @@ describe('WhatsNewModal', () => {
     expect(screen.queryByText(HEADLINE)).toBeNull();
   });
 
+  it('moves focus into the modal on open and restores it on close', async () => {
+    const trigger = document.createElement('button');
+    document.body.appendChild(trigger);
+    trigger.focus();
+    render(() => <WhatsNewModal />);
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    expect(document.activeElement).toBe(screen.getByLabelText('Close'));
+    fireEvent.click(screen.getByText('Got it'));
+    expect(document.activeElement).toBe(trigger);
+    trigger.remove();
+  });
+
   it('removes the keydown listener on unmount', () => {
     const removeSpy = vi.spyOn(document, 'removeEventListener');
     const { unmount } = render(() => <WhatsNewModal />);

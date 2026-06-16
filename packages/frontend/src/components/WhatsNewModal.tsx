@@ -33,10 +33,13 @@ function markSeen(): void {
 
 export default function WhatsNewModal(): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  // Remember what had focus so we can hand it back when the modal closes.
+  let previouslyFocused: HTMLElement | null = null;
 
   function dismiss() {
     markSeen();
     setOpen(false);
+    previouslyFocused?.focus();
   }
 
   function onKeyDown(e: KeyboardEvent) {
@@ -44,7 +47,10 @@ export default function WhatsNewModal(): JSX.Element {
   }
 
   onMount(() => {
-    if (!hasSeen()) setOpen(true);
+    if (!hasSeen()) {
+      previouslyFocused = document.activeElement as HTMLElement | null;
+      setOpen(true);
+    }
     document.addEventListener('keydown', onKeyDown);
   });
   onCleanup(() => document.removeEventListener('keydown', onKeyDown));
@@ -65,6 +71,7 @@ export default function WhatsNewModal(): JSX.Element {
         >
           <button
             class="modal__close whatsnew-modal__close"
+            ref={(el) => requestAnimationFrame(() => el.focus())}
             onClick={dismiss}
             aria-label="Close"
             type="button"
