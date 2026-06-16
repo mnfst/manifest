@@ -121,6 +121,22 @@ describe('MessagesQueryService', () => {
     expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
   });
 
+  it('returns message filter metadata independently from row pagination', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { model: 'custom:u-1/m', provider: 'custom:u-1' },
+      { model: 'gpt-4o', provider: 'openai' },
+    ]);
+    mockCustomProviderFind.mockResolvedValueOnce([{ id: 'u-1', name: 'MyLLM' }]);
+
+    const result = await service.getMessageFilterOptions({
+      range: '24h',
+      tenantId: 'labels-user',
+    });
+
+    expect(result.providers).toEqual(['custom', 'custom:u-1', 'openai']);
+    expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
+  });
+
   it('returns empty provider_labels without querying when no custom providers appear', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 0 });
     mockGetRawMany.mockResolvedValueOnce([]);
@@ -154,6 +170,31 @@ describe('MessagesQueryService', () => {
     expect(result.items).toHaveLength(2);
     expect(result.next_cursor).toBeNull();
     expect(result.providers).toEqual(['anthropic', 'openai']);
+  });
+
+  it('can skip exact totals and filter metadata for fast row-only pagination', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+      { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'gpt-4o' },
+      { id: 'extra', timestamp: '2026-02-16 08:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 2,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    expect(mockGetRawOne).not.toHaveBeenCalled();
+    expect(mockGetRawMany).toHaveBeenCalledTimes(1);
+    expect(result.items).toHaveLength(2);
+    expect(result.next_cursor).toContain('|msg-2');
+    expect(result.total_count).toBe(3);
+    expect(result.total_count_exact).toBe(false);
+    expect(result.providers).toEqual([]);
+    expect(result.provider_labels).toEqual({});
   });
 
   it('returns next_cursor when more items exist', async () => {

@@ -14,12 +14,8 @@ const apiMocks = vi.hoisted(() => ({
   getGlobalProviders: vi.fn(),
   getGlobalProviderUsage: vi.fn(),
   getOverview: vi.fn(),
-  getGlobalPerAgentTimeseries: vi.fn(),
-  getGlobalPerAgentMessageTimeseries: vi.fn(),
-  getGlobalPerProviderTimeseries: vi.fn(),
-  getGlobalPerProviderMessageTimeseries: vi.fn(),
-  getGlobalPerAgentCostTimeseries: vi.fn(),
-  getGlobalPerProviderCostTimeseries: vi.fn(),
+  getOverviewAgentUsage: vi.fn(),
+  getOverviewProviderUsage: vi.fn(),
 }));
 
 const sseMocks = vi.hoisted(() => ({
@@ -62,18 +58,8 @@ vi.mock('../../src/services/api.js', async () => {
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
-  getGlobalPerAgentTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentTimeseries(...args),
-  getGlobalPerAgentMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentMessageTimeseries(...args),
-  getGlobalPerProviderTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderTimeseries(...args),
-  getGlobalPerProviderMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderMessageTimeseries(...args),
-  getGlobalPerAgentCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentCostTimeseries(...args),
-  getGlobalPerProviderCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderCostTimeseries(...args),
+  getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
+  getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
 }));
 
 vi.mock('../../src/services/providers.js', () => ({
@@ -249,6 +235,11 @@ const providerTimeseries = {
   agents: ['openai', 'anthropic'],
   timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, anthropic: 900 }],
 };
+const providerUsageTimeseries = {
+  tokenUsage: providerTimeseries,
+  messageUsage: providerTimeseries,
+  costUsage: providerTimeseries,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -262,12 +253,8 @@ beforeEach(() => {
   apiMocks.getGlobalProviders.mockResolvedValue(providersResponse);
   apiMocks.getGlobalProviderUsage.mockResolvedValue({ providers: [] });
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
-  apiMocks.getGlobalPerAgentTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerAgentMessageTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerAgentCostTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(providerTimeseries);
+  apiMocks.getOverviewAgentUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
 });
 
 afterEach(() => {
@@ -327,9 +314,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getAgents).toHaveBeenCalledTimes(1);
     expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(1);
-    expect(apiMocks.getGlobalPerProviderTimeseries).toHaveBeenCalledTimes(1);
-    expect(apiMocks.getGlobalPerProviderMessageTimeseries).toHaveBeenCalledTimes(1);
-    expect(apiMocks.getGlobalPerProviderCostTimeseries).toHaveBeenCalledTimes(1);
+    expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(1);
 
     sseMocks.bumpMessage?.();
 
@@ -337,8 +322,6 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getAgents).toHaveBeenCalledTimes(2);
     expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(2);
-    expect(apiMocks.getGlobalPerProviderTimeseries).toHaveBeenCalledTimes(2);
-    expect(apiMocks.getGlobalPerProviderMessageTimeseries).toHaveBeenCalledTimes(2);
-    expect(apiMocks.getGlobalPerProviderCostTimeseries).toHaveBeenCalledTimes(2);
+    expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
   });
 });

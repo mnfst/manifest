@@ -45,6 +45,17 @@ export class MessagesController {
       routing_tier: query.routing_tier,
       specificity_category: query.specificity_category,
       header_tier_id: query.header_tier_id,
+      include_total: query.include_total,
+      include_filter_options: query.include_filter_options,
+    });
+  }
+
+  @Get('messages/filter-options')
+  async getMessageFilterOptions(@Query() query: MessagesQueryDto, @TenantCtx() ctx: TenantContext) {
+    return this.messagesQuery.getMessageFilterOptions({
+      range: query.range,
+      tenantId: ctx.tenantId,
+      agent_name: query.agent_name,
     });
   }
 

@@ -17,6 +17,28 @@ const DISTINCT_MODELS_DEFAULT_INTERVAL = '90 days';
 const COUNT_CACHE_TTL_MS = 30_000;
 const MAX_CACHE_ENTRIES = 5_000;
 
+interface MessageFilterParams {
+  range?: string;
+  tenantId: string | null;
+  agent_name?: string;
+}
+
+interface MessageQueryParams extends MessageFilterParams {
+  provider?: string;
+  service_type?: string;
+  cost_min?: number;
+  cost_max?: number;
+  limit: number;
+  cursor?: string;
+  status?: MessageStatusFilter;
+  recorded?: boolean;
+  routing_tier?: string;
+  specificity_category?: string;
+  header_tier_id?: string;
+  include_total?: boolean;
+  include_filter_options?: boolean;
+}
+
 @Injectable()
 export class MessagesQueryService {
   private readonly modelsCache = new TtlCache<string, { models: string[]; providers: string[] }>({
@@ -35,24 +57,11 @@ export class MessagesQueryService {
     private readonly customProviderRepo: Repository<CustomProvider>,
   ) {}
 
-  async getMessages(params: {
-    range?: string;
-    tenantId: string | null;
-    provider?: string;
-    service_type?: string;
-    cost_min?: number;
-    cost_max?: number;
-    limit: number;
-    cursor?: string;
-    agent_name?: string;
-    status?: MessageStatusFilter;
-    recorded?: boolean;
-    routing_tier?: string;
-    specificity_category?: string;
-    header_tier_id?: string;
-  }) {
+  async getMessages(params: MessageQueryParams) {
     const baseQb = await this.buildBaseMessageQuery(params);
 
+    const includeTotal = params.include_total !== false;
+    const includeFilterOptions = params.include_filter_options !== false;
     const countCacheKey = this.buildCountCacheKey(params);
     const countQb = baseQb.clone().select('COUNT(*)', 'total');
 
@@ -67,39 +76,53 @@ export class MessagesQueryService {
 
     this.applyCursor(dataQb, params.cursor);
 
-    // Run count, data, and models+providers queries in parallel. The models
-    // query row shape includes both model and provider so we can derive the
-    // full provider set in a single round trip.
-    const cachedCount = params.cursor ? this.countCache.get(countCacheKey) : undefined;
+    const cachedCount =
+      includeTotal && params.cursor ? this.countCache.get(countCacheKey) : undefined;
     const countHit = cachedCount !== undefined;
-    const [countResult, rows, distinctRows] = await Promise.all([
-      countHit ? null : countQb.getRawOne(),
+    const [countResult, rows, filterOptions] = await Promise.all([
+      includeTotal ? (countHit ? null : countQb.getRawOne()) : null,
       dataQb
         .orderBy('at.timestamp', 'DESC')
         .addOrderBy('at.id', 'DESC')
         .limit(params.limit + 1)
         .getRawMany(),
-      this.getDistinctModels(params.tenantId, params.range, params.agent_name),
+      includeFilterOptions
+        ? this.getMessageFilterOptions(params)
+        : Promise.resolve({ providers: [] as string[], provider_labels: {} }),
     ]);
-
-    const totalCount = countHit
-      ? cachedCount
-      : this.cacheAndReturnCount(countCacheKey, Number(countResult?.total ?? 0));
 
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
+    const totalCount = includeTotal
+      ? countHit
+        ? (cachedCount ?? 0)
+        : this.cacheAndReturnCount(countCacheKey, Number(countResult?.total ?? 0))
+      : items.length + (hasMore ? 1 : 0);
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore && lastItem ? this.encodeCursor(lastItem) : null;
-    const providers = this.deriveProviders(distinctRows.models, distinctRows.providers);
-    const providerLabels = await this.resolveCustomProviderLabels(providers, params.tenantId);
 
     return {
       items,
       next_cursor: nextCursor,
       total_count: totalCount,
-      providers,
-      provider_labels: providerLabels,
+      total_count_exact: includeTotal,
+      providers: filterOptions.providers,
+      provider_labels: filterOptions.provider_labels,
     };
+  }
+
+  async getMessageFilterOptions(params: MessageFilterParams): Promise<{
+    providers: string[];
+    provider_labels: Record<string, string>;
+  }> {
+    const distinctRows = await this.getDistinctModels(
+      params.tenantId,
+      params.range,
+      params.agent_name,
+    );
+    const providers = this.deriveProviders(distinctRows.models, distinctRows.providers);
+    const providerLabels = await this.resolveCustomProviderLabels(providers, params.tenantId);
+    return { providers, provider_labels: providerLabels };
   }
 
   /**

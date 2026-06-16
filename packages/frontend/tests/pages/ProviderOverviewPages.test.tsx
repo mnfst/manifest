@@ -18,12 +18,8 @@ const apiMocks = vi.hoisted(() => ({
   refreshModels: vi.fn(),
   fetchMutate: vi.fn(),
   getOverview: vi.fn(),
-  getGlobalPerAgentTimeseries: vi.fn(),
-  getGlobalPerAgentMessageTimeseries: vi.fn(),
-  getGlobalPerProviderTimeseries: vi.fn(),
-  getGlobalPerProviderMessageTimeseries: vi.fn(),
-  getGlobalPerAgentCostTimeseries: vi.fn(),
-  getGlobalPerProviderCostTimeseries: vi.fn(),
+  getOverviewAgentUsage: vi.fn(),
+  getOverviewProviderUsage: vi.fn(),
   getConnectionDetail: vi.fn(),
   getProviderAnalytics: vi.fn(),
   getPerAgentTimeseries: vi.fn(),
@@ -74,18 +70,8 @@ vi.mock('../../src/services/api/routing.js', () => ({
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
-  getGlobalPerAgentTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentTimeseries(...args),
-  getGlobalPerAgentMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentMessageTimeseries(...args),
-  getGlobalPerProviderTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderTimeseries(...args),
-  getGlobalPerProviderMessageTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderMessageTimeseries(...args),
-  getGlobalPerAgentCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerAgentCostTimeseries(...args),
-  getGlobalPerProviderCostTimeseries: (...args: unknown[]) =>
-    apiMocks.getGlobalPerProviderCostTimeseries(...args),
+  getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
+  getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
   getConnectionDetail: (...args: unknown[]) => apiMocks.getConnectionDetail(...args),
   getProviderAnalytics: (...args: unknown[]) => apiMocks.getProviderAnalytics(...args),
   getPerAgentTimeseries: (...args: unknown[]) => apiMocks.getPerAgentTimeseries(...args),
@@ -503,6 +489,18 @@ const providerTimeseries = {
   timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, anthropic: 900 }],
 };
 
+const agentUsageTimeseries = {
+  tokenUsage: agentTimeseries,
+  messageUsage: agentTimeseries,
+  costUsage: agentTimeseries,
+};
+
+const providerUsageTimeseries = {
+  tokenUsage: providerTimeseries,
+  messageUsage: providerTimeseries,
+  costUsage: providerTimeseries,
+};
+
 const connectionDetail = {
   connection: {
     id: 'conn-openai',
@@ -569,12 +567,8 @@ beforeEach(() => {
   apiMocks.refreshModels.mockResolvedValue(undefined);
   apiMocks.fetchMutate.mockResolvedValue({});
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
-  apiMocks.getGlobalPerAgentTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getGlobalPerAgentMessageTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(providerTimeseries);
-  apiMocks.getGlobalPerAgentCostTimeseries.mockResolvedValue(agentTimeseries);
-  apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(providerTimeseries);
+  apiMocks.getOverviewAgentUsage.mockResolvedValue(agentUsageTimeseries);
+  apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
@@ -759,9 +753,11 @@ describe('GlobalOverview (analytics)', () => {
       agents: ['openai', 'custom:cp-1'],
       timeseries: [{ hour: '2026-06-04 10:00:00', openai: 1200, 'custom:cp-1': 300 }],
     };
-    apiMocks.getGlobalPerProviderTimeseries.mockResolvedValue(customSeries);
-    apiMocks.getGlobalPerProviderMessageTimeseries.mockResolvedValue(customSeries);
-    apiMocks.getGlobalPerProviderCostTimeseries.mockResolvedValue(customSeries);
+    apiMocks.getOverviewProviderUsage.mockResolvedValue({
+      tokenUsage: customSeries,
+      messageUsage: customSeries,
+      costUsage: customSeries,
+    });
     // A custom model with no display_name must render its stripped name, not
     // the raw custom:<uuid>/ slug.
     apiMocks.getOverview.mockResolvedValue({
@@ -1072,9 +1068,7 @@ describe('ConnectionDetail (analytics)', () => {
     apiMocks.getConnectionDetail.mockRejectedValueOnce(new Error('network down'));
 
     const { container } = render(() => <ConnectionDetail />);
-    await waitFor(() =>
-      expect(screen.getByText("Couldn't load this connection")).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByText("Couldn't load this connection")).toBeDefined());
     expect(container.querySelector('[style*="skeleton-pulse"]')).toBeNull();
 
     // Retry re-fetches; on success the connection renders.
@@ -1468,9 +1462,7 @@ describe('ConnectionDetail (analytics)', () => {
 
     fireEvent.click(screen.getByText('Manage'));
     // Active subscription → "Connected via subscription" (line 963 truthy branch).
-    await waitFor(() =>
-      expect(screen.getByText(/Connected via\s+subscription/)).toBeDefined(),
-    );
+    await waitFor(() => expect(screen.getByText(/Connected via\s+subscription/)).toBeDefined());
   });
 
   it('renders a dash for a recent message with no model', async () => {

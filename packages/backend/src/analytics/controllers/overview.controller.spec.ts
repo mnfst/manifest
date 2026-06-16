@@ -36,9 +36,19 @@ function mockTimeseries(): Record<string, jest.Mock> {
     getPerAgentTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerAgentMessageTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerAgentCostTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
+    getAgentUsageTimeseries: jest.fn().mockResolvedValue({
+      tokenUsage: { agents: [], timeseries: [] },
+      messageUsage: { agents: [], timeseries: [] },
+      costUsage: { agents: [], timeseries: [] },
+    }),
     getPerProviderTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerProviderMessageTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerProviderCostTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
+    getProviderUsageTimeseries: jest.fn().mockResolvedValue({
+      tokenUsage: { agents: [], timeseries: [] },
+      messageUsage: { agents: [], timeseries: [] },
+      costUsage: { agents: [], timeseries: [] },
+    }),
     getPerModelTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerModelMessageTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
     getPerModelCostTimeseries: jest.fn().mockResolvedValue({ agents: [], timeseries: [] }),
@@ -109,6 +119,16 @@ describe('OverviewController', () => {
       undefined,
       true,
     );
+  });
+
+  it('returns combined agent usage timeseries', async () => {
+    await controller.getOverviewAgentsUsage({ range: '24h' }, ctx as never);
+    expect(ts.getAgentUsageTimeseries).toHaveBeenCalledWith('24h', 'tenant-123', true);
+  });
+
+  it('returns combined provider usage timeseries with agent scope', async () => {
+    await controller.getOverviewProvidersUsage({ range: '7d', agent_name: 'bot-1' }, ctx as never);
+    expect(ts.getProviderUsageTimeseries).toHaveBeenCalledWith('7d', 'tenant-123', false, 'bot-1');
   });
 
   it('defaults range to 24h when not specified', async () => {
