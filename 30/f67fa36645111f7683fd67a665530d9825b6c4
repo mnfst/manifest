@@ -1,0 +1,24 @@
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_bea2e28dd304ac::t_f7a49bd01c7657 96-99,101-104
+  s_bea2e28dd304ac::t_01dca9b24fd68a 100
+packages/backend/src/analytics/services/messages-query.service.spec.ts
+  s_bea2e28dd304ac::t_b1f3ec73808df3 201-219
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_bea2e28dd304ac::t_5521cf100f3594 626-645,806-814
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "30f67fa36645111f7683fd67a665530d9825b6c4",
+  "prompts": {},
+  "sessions": {
+    "s_bea2e28dd304ac": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ed114-b527-75e3-84fd-ffaad971379f",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
