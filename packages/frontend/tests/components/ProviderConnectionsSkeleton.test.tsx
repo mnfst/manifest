@@ -5,6 +5,8 @@ import ProviderConnectionsSkeleton from '../../src/components/ProviderConnection
 describe('ProviderConnectionsSkeleton', () => {
   it('renders skeleton placeholders for connections table and provider grid', () => {
     const { container } = render(() => <ProviderConnectionsSkeleton />);
+    // Hidden from screen readers
+    expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
     // Skeleton elements present
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(10);
     // Connections table with 10 skeleton rows

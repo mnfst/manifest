@@ -1,7 +1,7 @@
 import { For } from 'solid-js';
 
 const ProviderConnectionsSkeleton = () => (
-  <>
+  <div aria-hidden="true">
     {/* Connected providers heading */}
     <div class="skeleton skeleton--text" style="width: 220px; height: 16px; margin-bottom: 12px;" />
 
@@ -93,7 +93,7 @@ const ProviderConnectionsSkeleton = () => (
         )}
       </For>
     </div>
-  </>
+  </div>
 );
 
 export default ProviderConnectionsSkeleton;

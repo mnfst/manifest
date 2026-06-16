@@ -5,6 +5,8 @@ import ConnectionDetailSkeleton from '../../src/components/ConnectionDetailSkele
 describe('ConnectionDetailSkeleton', () => {
   it('renders skeleton placeholders for all page sections', () => {
     const { container } = render(() => <ConnectionDetailSkeleton />);
+    // Hidden from screen readers
+    expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
     // Has skeleton elements
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(10);
     // Chart card

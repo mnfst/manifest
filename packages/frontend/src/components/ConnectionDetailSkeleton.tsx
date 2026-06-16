@@ -1,7 +1,7 @@
 import { For } from 'solid-js';
 
 const ConnectionDetailSkeleton = () => (
-  <>
+  <div aria-hidden="true">
     {/* Back link */}
     <div style="margin-bottom: 24px;">
       <div class="skeleton skeleton--text" style="width: 100px; height: 14px;" />
@@ -153,7 +153,7 @@ const ConnectionDetailSkeleton = () => (
         </tbody>
       </table>
     </div>
-  </>
+  </div>
 );
 
 export default ConnectionDetailSkeleton;
