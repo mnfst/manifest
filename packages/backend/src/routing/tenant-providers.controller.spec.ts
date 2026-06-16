@@ -5,22 +5,6 @@ import type { TenantProvider } from '../entities/tenant-provider.entity';
 describe('TenantProvidersController', () => {
   const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 
-  // The controller always queries consumption + sparklines when ctx.tenantId is
-  // set, so every tenant-scoped test needs a message repo whose query builder
-  // returns no rows.
-  const emptyMessageRepo = () => ({
-    createQueryBuilder: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      addGroupBy: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getRawMany: jest.fn().mockResolvedValue([]),
-    }),
-  });
-
   const makeProvider = (id: string, label: string): TenantProvider =>
     ({
       id,
@@ -53,7 +37,6 @@ describe('TenantProvidersController', () => {
     };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
     );
@@ -78,13 +61,32 @@ describe('TenantProvidersController', () => {
     ]);
   });
 
+  it('does not expose usage fields (split out to /providers/usage)', async () => {
+    const providerRepo = {
+      find: jest.fn().mockResolvedValue([makeProvider('p1', 'Default')]),
+    };
+    const controller = new TenantProvidersController(
+      providerRepo as never,
+      { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
+    );
+
+    const result = await controller.listProviders(ctx);
+
+    // The slim config endpoint must NOT carry any usage stats.
+    expect(result.providers[0]).not.toHaveProperty('consumption_tokens');
+    expect(result.providers[0]).not.toHaveProperty('consumption_messages');
+    expect(result.providers[0]).not.toHaveProperty('consumption_cost');
+    expect(result.providers[0]).not.toHaveProperty('last_used_at');
+    expect(result.providers[0]).not.toHaveProperty('sparkline_7d');
+  });
+
   it('returns empty providers when tenant has none', async () => {
     const providerRepo = {
       find: jest.fn().mockResolvedValue([]),
     };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
     );
@@ -100,7 +102,6 @@ describe('TenantProvidersController', () => {
     const customProviderService = { list: jest.fn() };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
       customProviderService as never,
     );
@@ -138,7 +139,6 @@ describe('TenantProvidersController', () => {
     };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
     );
@@ -155,16 +155,57 @@ describe('TenantProvidersController', () => {
     );
   });
 
+  it('reports total_models as the max cached_models length across keys in a group', async () => {
+    const providerRepo = {
+      find: jest.fn().mockResolvedValue([
+        { ...makeProvider('p1', 'Default'), cached_models: [{ id: 'a' }] as never },
+        {
+          ...makeProvider('p2', 'Second'),
+          cached_models: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] as never,
+        },
+      ]),
+    };
+    const controller = new TenantProvidersController(
+      providerRepo as never,
+      { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
+    );
+
+    const result = await controller.listProviders(ctx);
+
+    expect(result.providers[0].total_models).toBe(3);
+    expect(result.providers[0].connection_count).toBe(2);
+  });
+
+  it('treats a non-array cached_models as zero models', async () => {
+    const providerRepo = {
+      find: jest
+        .fn()
+        .mockResolvedValue([{ ...makeProvider('p1', 'Default'), cached_models: null as never }]),
+    };
+    const controller = new TenantProvidersController(
+      providerRepo as never,
+      { getAll: jest.fn().mockReturnValue([]) } as never,
+      { list: jest.fn().mockResolvedValue([]) } as never,
+    );
+
+    const result = await controller.listProviders(ctx);
+
+    expect(result.providers[0].total_models).toBe(0);
+    expect(result.providers[0].connections[0].cached_model_count).toBe(0);
+  });
+
   it('returns model_counts from pricing cache', async () => {
     const providerRepo = { find: jest.fn().mockResolvedValue([]) };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       {
         getAll: jest.fn().mockReturnValue([
           { provider: 'OpenAI', model_name: 'gpt-4o' },
           { provider: 'OpenAI', model_name: 'gpt-4o-mini' },
           { provider: 'Anthropic', model_name: 'claude-3-5-sonnet' },
+          // Pricing rows with no provider are skipped.
+          { provider: null, model_name: 'mystery' },
         ]),
       } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
@@ -173,47 +214,6 @@ describe('TenantProvidersController', () => {
     const result = await controller.listProviders(ctx);
 
     expect(result.model_counts).toEqual({ openai: 2, anthropic: 1 });
-  });
-
-  it('includes consumption data when tenant exists', async () => {
-    const providerRepo = {
-      find: jest.fn().mockResolvedValue([makeProvider('p1', 'Default')]),
-    };
-    const messageRepo = {
-      createQueryBuilder: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        addGroupBy: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([
-          {
-            provider: 'openai',
-            auth_type: 'api_key',
-            tokens: '1000',
-            messages: '10',
-            cost: '0.05',
-            last_used_at: '2026-01-15T00:00:00.000Z',
-            day: '2026-01-15',
-          },
-        ]),
-      }),
-    };
-    const controller = new TenantProvidersController(
-      providerRepo as never,
-      messageRepo as never,
-      { getAll: jest.fn().mockReturnValue([]) } as never,
-      { list: jest.fn().mockResolvedValue([]) } as never,
-    );
-
-    const result = await controller.listProviders(ctx);
-
-    expect(result.providers[0].consumption_tokens).toBe(1000);
-    expect(result.providers[0].consumption_messages).toBe(10);
-    expect(result.providers[0].consumption_cost).toBe(0.05);
-    expect(result.providers[0].last_used_at).toBe('2026-01-15T00:00:00.000Z');
   });
 
   it('resolves display_name for custom provider groups', async () => {
@@ -227,7 +227,6 @@ describe('TenantProvidersController', () => {
     };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
       customProviderService as never,
     );
@@ -252,7 +251,6 @@ describe('TenantProvidersController', () => {
     };
     const controller = new TenantProvidersController(
       providerRepo as never,
-      emptyMessageRepo() as never,
       { getAll: jest.fn().mockReturnValue([]) } as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
     );

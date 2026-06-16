@@ -16,8 +16,11 @@ import {
 } from '../../services/api.js';
 import {
   getProviders as getGlobalProviders,
+  getProviderUsage,
+  mergeUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
+import { messagePing, routingPing } from '../../services/sse.js';
 import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
@@ -130,6 +133,22 @@ const providerDisplayName = (
   customProviders: readonly CustomProviderData[],
 ): string =>
   customProviderName(providerId, customProviders) ?? standardProviderName(providerId) ?? providerId;
+
+/** Shimmer placeholder shown in usage cells while the usage fetch is in flight. */
+const UsageShimmer: Component<{ width?: number }> = (props) => (
+  <span
+    aria-hidden="true"
+    style={{
+      display: 'inline-block',
+      width: `${props.width ?? 56}px`,
+      height: '12px',
+      'border-radius': 'var(--radius-sm)',
+      background: 'hsl(var(--muted) / 0.6)',
+      animation: 'skeleton-pulse 1.2s ease-in-out infinite',
+      'vertical-align': 'middle',
+    }}
+  />
+);
 
 const StatusBadge: Component<{ active: boolean }> = (props) => (
   <Show
@@ -269,12 +288,48 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }
   };
 
-  const [data, { refetch: refetchGlobalProviders }] = createResource(async () => {
+  // CONFIG resource — paints the page immediately (cheap endpoint, no
+  // agent_messages scan).
+  const [config, { refetch: refetchConfig }] = createResource(async () => {
     try {
       return await getGlobalProviders();
     } catch {
       return { providers: [], model_counts: {} };
     }
+  });
+
+  // USAGE resource — the expensive 30d aggregation, fetched independently. Its
+  // source includes the SSE ping signals so a newly ingested message
+  // (messagePing) or a provider connect/disconnect/rename (routingPing)
+  // re-runs the usage fetch within ~500ms, exactly like Overview/MessageLog.
+  const [usage, { refetch: refetchUsage }] = createResource(
+    () => ({ m: messagePing(), r: routingPing() }),
+    async () => {
+      try {
+        return (await getProviderUsage()).providers;
+      } catch {
+        return [];
+      }
+    },
+  );
+
+  // Distinguish "loading" (shimmer the usage cells) from "loaded-zero" (a real
+  // 0). Only the FIRST load shimmers; SSE-driven refetches keep the prior
+  // numbers on screen (usage() stays defined) so the table doesn't flicker.
+  const usageLoading = () => usage.loading && usage() === undefined;
+
+  // Coordinate a usage refetch alongside config on connect/disconnect/rename.
+  const refetchGlobalProviders = () => {
+    void refetchConfig();
+    void refetchUsage();
+  };
+
+  // Merge config + usage by (provider, auth_type). While usage is still loading
+  // every row carries zeroed usage; `usageLoading()` tells the view to shimmer
+  // instead of rendering those zeros.
+  const data = () => ({
+    providers: mergeUsage(config()?.providers ?? [], usage()),
+    model_counts: config()?.model_counts ?? {},
   });
 
   const [agents] = createResource(async () => {
@@ -460,7 +515,16 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             <InfoTooltip text={copy().metricTooltip!} />
           </span>
           <div class="chart-card__value-row" style="margin-top: 4px;">
-            <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
+            <Show
+              when={!usageLoading()}
+              fallback={
+                <span class="chart-card__value">
+                  <UsageShimmer width={72} />
+                </span>
+              }
+            >
+              <span class="chart-card__value">{formatCost(totalApiCost()) ?? '$0.00'}</span>
+            </Show>
           </div>
         </div>
       </Show>
@@ -592,25 +656,33 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                       </Show>
                     </td>
                     <td>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <Show when={row.summary.sparkline_7d?.length}>
-                          <span style="flex-shrink: 0;">
-                            <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
-                          </span>
-                        </Show>
-                        <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
-                      </div>
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <Show when={row.summary.sparkline_7d?.length}>
+                            <span style="flex-shrink: 0;">
+                              <Sparkline data={row.summary.sparkline_7d} width={60} height={20} />
+                            </span>
+                          </Show>
+                          <span>{formatNumber(perConnectionTokens(row.summary))} tokens</span>
+                        </div>
+                      </Show>
                     </td>
                     <Show when={copy().rowMetricHeading}>
-                      <td>{formatCost(perConnectionCost(row.summary)) ?? '$0.00'}</td>
+                      <td>
+                        <Show when={!usageLoading()} fallback={<UsageShimmer />}>
+                          {formatCost(perConnectionCost(row.summary)) ?? '$0.00'}
+                        </Show>
+                      </td>
                     </Show>
                     <td>
                       <StatusBadge active={row.connection.is_active} />
                     </td>
                     <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                      {connectionLastUsedAt(row.summary)
-                        ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
-                        : '-'}
+                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                        {connectionLastUsedAt(row.summary)
+                          ? formatTimeAgo(connectionLastUsedAt(row.summary)!)
+                          : '-'}
+                      </Show>
                     </td>
                     <td style="text-align: right;">
                       <button
