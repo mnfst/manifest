@@ -2,9 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@solidjs/testing-library";
 
 const mockNavigate = vi.fn();
+let mockSearchParams: Record<string, string | undefined> = {};
+const mockSetSearchParams = vi.fn((next: Record<string, string | undefined>) => {
+  mockSearchParams = { ...mockSearchParams, ...next };
+});
 vi.mock("@solidjs/router", () => ({
   A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams] as const,
 }));
 
 vi.mock("@solidjs/meta", () => ({
@@ -15,10 +20,12 @@ vi.mock("@solidjs/meta", () => ({
 const mockGetAgents = vi.fn();
 const mockCreateAgent = vi.fn();
 const mockDeleteAgent = vi.fn();
+const mockGetGlobalProviders = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
   deleteAgent: (...args: unknown[]) => mockDeleteAgent(...args),
+  getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
 vi.mock("../../src/components/DuplicateAgentModal.jsx", async () => {
@@ -87,6 +94,7 @@ vi.mock("../../src/components/AgentTypeSelect.jsx", () => ({
 const mockMarkAgentCreated = vi.fn();
 vi.mock("../../src/services/recent-agents.js", () => ({
   markAgentCreated: (...args: unknown[]) => mockMarkAgentCreated(...args),
+  markSetupPending: vi.fn(),
 }));
 
 vi.mock("manifest-shared", () => ({
@@ -125,22 +133,26 @@ import Workspace from "../../src/pages/Workspace";
 describe("Workspace", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
     mockGetAgents.mockResolvedValue({
       agents: [
         { agent_name: "demo-agent", display_name: "Demo Agent", message_count: 42, last_active: "2024-01-01", total_cost: 5.5, total_tokens: 15000, sparkline: [1, 2, 3] },
       ],
     });
     mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent", display_name: "new-agent" }, apiKey: "test-key" });
+    // Default: tenant already has a provider, so onboarding does not inject the
+    // openProviders nudge and navigation carries only newApiKey.
+    mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: "openai" }] });
   });
 
-  it("renders My Agents heading", async () => {
+  it("renders My Harnesses heading", async () => {
     render(() => <Workspace />);
-    expect(screen.getByText("My Agents")).toBeDefined();
+    expect(screen.getByText("My Harnesses")).toBeDefined();
   });
 
-  it("renders Connect Agent button", () => {
+  it("renders Connect Harness button", () => {
     render(() => <Workspace />);
-    const buttons = screen.getAllByText("Connect Agent");
+    const buttons = screen.getAllByText("Connect Harness");
     expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -163,7 +175,7 @@ describe("Workspace", () => {
     mockGetAgents.mockResolvedValue({ agents: [] });
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("No agents yet");
+      expect(container.textContent).toContain("No harnesses yet");
     });
   });
 
@@ -173,9 +185,9 @@ describe("Workspace", () => {
     expect(container.querySelectorAll(".skeleton").length).toBeGreaterThan(0);
   });
 
-  it("opens create agent modal on Connect Agent click", () => {
+  it("opens create harness modal on Connect Harness click", () => {
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     expect(container.querySelector(".modal-card__input")).not.toBeNull();
   });
@@ -183,7 +195,7 @@ describe("Workspace", () => {
   it("agents link to agent detail page", async () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      const link = container.querySelector('a[href="/agents/demo-agent"]');
+      const link = container.querySelector('a[href="/harnesses/demo-agent"]');
       expect(link).not.toBeNull();
     });
   });
@@ -206,7 +218,7 @@ describe("Workspace", () => {
   it("creates agent when form submitted", async () => {
     mockCreateAgent.mockResolvedValue({ agent: { name: "new-agent" }, apiKey: "test-key" });
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-agent" } });
@@ -222,7 +234,7 @@ describe("Workspace", () => {
 
   it("create button is disabled when name is empty", () => {
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     const createBtn = screen.getByText("Create") as HTMLButtonElement;
     expect(createBtn.disabled).toBe(true);
@@ -230,21 +242,21 @@ describe("Workspace", () => {
 
   it("shows modal dialog title", () => {
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
-    expect(container.textContent).toContain("Name your agent to start tracking");
+    expect(container.textContent).toContain("Name your harness to start tracking");
   });
 
   it("shows breadcrumb text", () => {
     const { container } = render(() => <Workspace />);
-    expect(container.textContent).toContain("View and manage all your connected AI agents");
+    expect(container.textContent).toContain("View and manage all your connected harnesses");
   });
 
   it("shows connect button in empty state", async () => {
     mockGetAgents.mockResolvedValue({ agents: [] });
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Connect your first agent");
+      expect(container.textContent).toContain("Connect your first harness");
     });
   });
 
@@ -252,7 +264,7 @@ describe("Workspace", () => {
     let resolveCreate: (v: any) => void;
     mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-agent" } });
@@ -270,7 +282,7 @@ describe("Workspace", () => {
     let resolveCreate: (v: any) => void;
     mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
     const { container } = render(() => <Workspace />);
-    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    fireEvent.click(screen.getAllByText("Connect Harness")[0]);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-agent" } });
     fireEvent.click(screen.getByText("Create"));
@@ -283,7 +295,7 @@ describe("Workspace", () => {
   it("handles createAgent error gracefully", async () => {
     mockCreateAgent.mockRejectedValue(new Error("Failed to create"));
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "new-agent" } });
@@ -295,7 +307,7 @@ describe("Workspace", () => {
 
   it("creates agent on Enter key press", async () => {
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "enter-agent" } });
@@ -307,7 +319,7 @@ describe("Workspace", () => {
 
   it("closes modal and clears input on Escape key", () => {
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "test" } });
@@ -318,7 +330,7 @@ describe("Workspace", () => {
 
   it("closes modal on overlay click", () => {
     const { container } = render(() => <Workspace />);
-    const btn = screen.getAllByText("Connect Agent")[0];
+    const btn = screen.getAllByText("Connect Harness")[0];
     fireEvent.click(btn);
     expect(container.querySelector(".modal-overlay")).not.toBeNull();
     const overlay = container.querySelector(".modal-overlay")!;
@@ -337,13 +349,13 @@ describe("Workspace", () => {
 
   it("shows AgentTypePicker in create modal", () => {
     const { container } = render(() => <Workspace />);
-    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    fireEvent.click(screen.getAllByText("Connect Harness")[0]);
     expect(container.querySelector('[data-testid="agent-type-picker"]')).not.toBeNull();
   });
 
   it("sets first platform when category changes in create modal", () => {
     const { container } = render(() => <Workspace />);
-    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    fireEvent.click(screen.getAllByText("Connect Harness")[0]);
     // First pick a platform
     fireEvent.click(container.querySelector('[data-testid="pick-platform"]')!);
     // Then change category which should set platform to first of new category
@@ -355,7 +367,7 @@ describe("Workspace", () => {
   it("sends category and platform with createAgent", async () => {
     mockCreateAgent.mockResolvedValue({ agent: { name: "typed-agent" }, apiKey: "k" });
     const { container } = render(() => <Workspace />);
-    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    fireEvent.click(screen.getAllByText("Connect Harness")[0]);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "typed-agent" } });
     fireEvent.click(container.querySelector('[data-testid="pick-category"]')!);
@@ -368,11 +380,19 @@ describe("Workspace", () => {
         agent_platform: "openclaw",
       }));
     });
+    // New agents land on the Routing tab (they inherit all providers + routes).
+    // Navigation happens after the async providers lookup, so wait for it.
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/harnesses/typed-agent/routing",
+        expect.objectContaining({ state: expect.objectContaining({ newApiKey: "k" }) }),
+      );
+    });
   });
 
   it("does not submit when name is empty", async () => {
     const { container } = render(() => <Workspace />);
-    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    fireEvent.click(screen.getAllByText("Connect Harness")[0]);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "   " } });
     fireEvent.click(screen.getByText("Create"));
@@ -400,14 +420,34 @@ describe("Workspace", () => {
     });
   });
 
+  it("auto-opens the create modal and clears ?add when deep-linked", async () => {
+    mockSearchParams = { add: "true" };
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      expect(container.querySelector(".modal-card__input")).not.toBeNull();
+    });
+    // The deep-link param is cleared (replace, so a refresh/back doesn't re-open it).
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ add: undefined }, { replace: true });
+  });
+
+  it("does not auto-open the modal without the ?add deep-link", async () => {
+    mockSearchParams = {};
+    const { container } = render(() => <Workspace />);
+    await vi.waitFor(() => {
+      expect(mockGetAgents).toHaveBeenCalled();
+    });
+    expect(container.querySelector(".modal-card__input")).toBeNull();
+    expect(mockSetSearchParams).not.toHaveBeenCalled();
+  });
+
   it("opens modal from empty state connect button", async () => {
     mockGetAgents.mockResolvedValue({ agents: [] });
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("Connect your first agent");
+      expect(container.textContent).toContain("Connect your first harness");
     });
     const btn = Array.from(container.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("Connect your first agent"),
+      (b) => b.textContent?.includes("Connect your first harness"),
     )!;
     fireEvent.click(btn);
     expect(container.querySelector(".modal-card__input")).not.toBeNull();
@@ -431,7 +471,7 @@ describe("Workspace", () => {
     let resolveCreate: (v: any) => void;
     mockCreateAgent.mockReturnValue(new Promise((r) => { resolveCreate = r; }));
     const { container } = render(() => <Workspace />);
-    fireEvent.click(screen.getAllByText("Connect Agent")[0]);
+    fireEvent.click(screen.getAllByText("Connect Harness")[0]);
     const input = container.querySelector(".modal-card__input") as HTMLInputElement;
     fireEvent.input(input, { target: { value: "test" } });
     fireEvent.click(screen.getByText("Create"));
@@ -445,17 +485,27 @@ describe("Workspace", () => {
   describe("agent card menu", () => {
     const clickKebab = async (container: HTMLElement) => {
       await vi.waitFor(() => {
-        const trigger = container.querySelector(".agent-card__menu-trigger");
+        const trigger = container.querySelector(".agent-card__menu .action-menu__trigger");
         expect(trigger).not.toBeNull();
       });
-      const trigger = container.querySelector(".agent-card__menu-trigger") as HTMLButtonElement;
+      const trigger = container.querySelector(
+        ".agent-card__menu .action-menu__trigger",
+      ) as HTMLButtonElement;
       fireEvent.click(trigger);
     };
+
+    it("labels the kebab trigger with the agent name", async () => {
+      const { container } = render(() => <Workspace />);
+      await vi.waitFor(() => {
+        const trigger = container.querySelector(".agent-card__menu .action-menu__trigger");
+        expect(trigger?.getAttribute("aria-label")).toBe("Actions for demo-agent");
+      });
+    });
 
     it("opens kebab popover with Duplicate and Delete", async () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
-      expect(container.querySelector(".agent-card__menu-popover")).not.toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
       expect(container.textContent).toContain("Duplicate");
       expect(container.textContent).toContain("Delete");
     });
@@ -464,31 +514,31 @@ describe("Workspace", () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
       await clickKebab(container);
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("closes the popover when clicking outside", async () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
-      expect(container.querySelector(".agent-card__menu-popover")).not.toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).not.toBeNull();
       fireEvent.click(document.body);
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("closes the popover on Escape", async () => {
       const { container } = render(() => <Workspace />);
       await clickKebab(container);
       fireEvent.keyDown(document, { key: "Escape" });
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("ignores Escape when popover is already closed", async () => {
       const { container } = render(() => <Workspace />);
       await vi.waitFor(() => {
-        expect(container.querySelector(".agent-card__menu-trigger")).not.toBeNull();
+        expect(container.querySelector(".agent-card__menu .action-menu__trigger")).not.toBeNull();
       });
       fireEvent.keyDown(document, { key: "Escape" });
-      expect(container.querySelector(".agent-card__menu-popover")).toBeNull();
+      expect(container.querySelector(".action-menu__dropdown")).toBeNull();
     });
 
     it("opens the DuplicateAgentModal when Duplicate is clicked", async () => {
@@ -535,7 +585,7 @@ describe("Workspace", () => {
       await clickKebab(container);
       fireEvent.click(screen.getByText("Delete"));
       const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-        (b) => b.textContent?.trim() === "Delete agent",
+        (b) => b.textContent?.trim() === "Delete harness",
       ) as HTMLButtonElement;
       expect(deleteBtn.hasAttribute("disabled")).toBe(true);
       const input = container.querySelector('input[placeholder="demo-agent"]') as HTMLInputElement;
@@ -556,7 +606,7 @@ describe("Workspace", () => {
       const input = container.querySelector('input[placeholder="demo-agent"]') as HTMLInputElement;
       fireEvent.input(input, { target: { value: "demo-agent" } });
       const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-        (b) => b.textContent?.trim() === "Delete agent",
+        (b) => b.textContent?.trim() === "Delete harness",
       ) as HTMLButtonElement;
       fireEvent.click(deleteBtn);
       await vi.waitFor(() => {
@@ -573,7 +623,7 @@ describe("Workspace", () => {
       const input = container.querySelector('input[placeholder="demo-agent"]') as HTMLInputElement;
       fireEvent.input(input, { target: { value: "demo-agent" } });
       const deleteBtn = Array.from(container.querySelectorAll("button")).find(
-        (b) => b.textContent?.trim() === "Delete agent",
+        (b) => b.textContent?.trim() === "Delete harness",
       ) as HTMLButtonElement;
       fireEvent.click(deleteBtn);
       await vi.waitFor(() => {

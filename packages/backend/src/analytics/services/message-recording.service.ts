@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { MessageRecording } from '../../entities/message-recording.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 @Injectable()
 export class MessageRecordingService {
@@ -12,20 +11,18 @@ export class MessageRecordingService {
     private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(MessageRecording)
     private readonly recordingRepo: Repository<MessageRecording>,
-    private readonly tenantCache: TenantCacheService,
     private readonly dataSource: DataSource,
   ) {}
 
-  async delete(messageId: string, userId: string): Promise<void> {
-    const tenantId = await this.tenantCache.resolve(userId);
+  async delete(messageId: string, tenantId: string | null): Promise<void> {
+    // No tenant → no messages, so any id is unknown.
+    if (!tenantId) throw new NotFoundException('Message not found');
 
-    const qb = this.messageRepo.createQueryBuilder('m').where('m.id = :id', { id: messageId });
-    if (tenantId) {
-      qb.andWhere('m.tenant_id = :tenantId', { tenantId });
-    } else {
-      qb.andWhere('m.user_id = :userId', { userId });
-    }
-    const message = await qb.getOne();
+    const message = await this.messageRepo
+      .createQueryBuilder('m')
+      .where('m.id = :id', { id: messageId })
+      .andWhere('m.tenant_id = :tenantId', { tenantId })
+      .getOne();
     if (!message) throw new NotFoundException('Message not found');
 
     await this.dataSource.transaction(async (manager) => {

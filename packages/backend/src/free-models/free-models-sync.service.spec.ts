@@ -164,6 +164,19 @@ describe('FreeModelsSyncService', () => {
       expect(service.getAll()[0].name).toBe('Google Gemini');
     });
 
+    it('drops entries whose url string cannot be parsed as a URL', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          lastUpdated: '2026-04-17',
+          providers: [{ ...sampleData.providers[0], url: ':::not a url' }, sampleData.providers[1]],
+        }),
+      } as never);
+      const count = await service.refreshCache();
+      expect(count).toBe(1);
+      expect(service.getAll()[0].name).toBe('Google Gemini');
+    });
+
     it('drops entries whose baseUrl is not https or null', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,

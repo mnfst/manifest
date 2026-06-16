@@ -1,20 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Brackets } from 'typeorm';
+import { Brackets, In } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 describe('MessagesQueryService', () => {
   let service: MessagesQueryService;
   let mockGetRawOne: jest.Mock;
   let mockGetRawMany: jest.Mock;
-  let mockTenantResolve: jest.Mock;
+  let mockCustomProviderFind: jest.Mock;
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
     mockGetRawMany = jest.fn().mockResolvedValue([]);
-    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
+    mockCustomProviderFind = jest.fn().mockResolvedValue([]);
 
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
@@ -65,8 +65,8 @@ describe('MessagesQueryService', () => {
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
         },
         {
-          provide: TenantCacheService,
-          useValue: { resolve: mockTenantResolve },
+          provide: getRepositoryToken(CustomProvider),
+          useValue: { find: mockCustomProviderFind },
         },
       ],
     }).compile();
@@ -95,13 +95,45 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
     expect(result.items[0]).toHaveProperty('cache_read_tokens', 500);
     expect(result.items[0]).toHaveProperty('cache_creation_tokens', 100);
     expect(result.items[0]).toHaveProperty('duration_ms', 1200);
+  });
+
+  it('returns provider_labels mapping custom provider ids to display names', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'custom:u-1/m', cost: 0 },
+    ]);
+    mockGetRawMany.mockResolvedValueOnce([{ model: 'custom:u-1/m', provider: 'custom:u-1' }]);
+    mockCustomProviderFind.mockResolvedValueOnce([{ id: 'u-1', name: 'MyLLM' }]);
+
+    const result = await service.getMessages({ range: '24h', tenantId: 'labels-user', limit: 10 });
+
+    // Scoped to the caller so a custom-provider name can't resolve cross-tenant.
+    expect(mockCustomProviderFind).toHaveBeenCalledWith({
+      where: { id: In(['u-1']), tenant_id: 'labels-user' },
+    });
+    expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
+  });
+
+  it('returns empty provider_labels without querying when no custom providers appear', async () => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 0 });
+    mockGetRawMany.mockResolvedValueOnce([]);
+    mockGetRawMany.mockResolvedValueOnce([{ model: 'gpt-4o', provider: 'openai' }]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'no-labels-user',
+      limit: 10,
+    });
+
+    expect(mockCustomProviderFind).not.toHaveBeenCalled();
+    expect(result.provider_labels).toEqual({});
   });
 
   it('returns paginated messages with total count and providers list', async () => {
@@ -114,7 +146,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -137,7 +169,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 5,
     });
 
@@ -154,7 +186,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -173,7 +205,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 2,
     });
 
@@ -188,7 +220,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -208,7 +240,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cursor: '2026-02-16 09:00:00|msg-5',
     });
@@ -226,7 +258,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cursor: 'invalid-cursor-no-pipe',
     });
@@ -242,7 +274,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
     const result = await service.getMessages({
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -263,7 +295,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       provider: 'openai',
       service_type: 'chat',
@@ -282,7 +314,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -299,7 +331,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_min: 0,
     });
@@ -314,7 +346,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_max: 0,
     });
@@ -331,7 +363,7 @@ describe('MessagesQueryService', () => {
 
     const result1 = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
     expect(result1.providers).toEqual(['anthropic', 'openai']);
@@ -345,7 +377,7 @@ describe('MessagesQueryService', () => {
 
     const result2 = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -365,7 +397,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
     const cache = (service as any).modelsCache;
     expect(cache.size).toBe(1);
 
@@ -377,7 +409,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o', model2: 'claude-opus-4-6' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
     // Stale entry was deleted before re-adding — size should still be 1
     expect(cache.size).toBe(1);
   });
@@ -395,7 +427,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '7d', userId: 'new-user', limit: 20 });
+    await service.getMessages({ range: '7d', tenantId: 'new-user', limit: 20 });
 
     expect(cache.size).toBe(5_000);
     expect(cache.has('user-0::24h')).toBe(false);
@@ -418,7 +450,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
 
     // Expired entry was deleted first, then re-added — no eviction of other entries
     expect(cache.has('test-user::24h')).toBe(true);
@@ -435,7 +467,7 @@ describe('MessagesQueryService', () => {
 
     await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -452,7 +484,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -468,7 +500,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    const result1 = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    const result1 = await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
     expect(result1.total_count).toBe(42);
     expect(mockGetRawOne).toHaveBeenCalledTimes(1);
 
@@ -479,7 +511,7 @@ describe('MessagesQueryService', () => {
 
     const result2 = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cursor: '2026-02-16 10:00:00|msg-1',
     });
@@ -493,7 +525,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    const result = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    const result = await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
     expect(result.total_count).toBe(10);
     expect(mockGetRawOne).toHaveBeenCalledTimes(1);
   });
@@ -505,7 +537,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
 
     // Second call without cursor — should still run fresh count
     mockGetRawOne.mockResolvedValueOnce({ total: 45 });
@@ -513,7 +545,7 @@ describe('MessagesQueryService', () => {
       { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
     ]);
 
-    const result = await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    const result = await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
     expect(result.total_count).toBe(45);
     expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
@@ -527,7 +559,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
     expect(mockGetRawOne).toHaveBeenCalledTimes(1);
 
     // Advance past count cache TTL (30s)
@@ -541,7 +573,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cursor: '2026-02-16 10:00:00|msg-1',
     });
@@ -556,7 +588,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
 
     // Second call with range=7d — different cache key, should query again
     mockGetRawOne.mockResolvedValueOnce({ total: 100 });
@@ -564,7 +596,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    const result = await service.getMessages({ range: '7d', userId: 'test-user', limit: 20 });
+    const result = await service.getMessages({ range: '7d', tenantId: 'test-user', limit: 20 });
     expect(result.total_count).toBe(100);
     expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
@@ -585,7 +617,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       routing_tier: 'playground',
     });
@@ -614,7 +646,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       specificity_category: 'coding',
     });
@@ -643,7 +675,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       header_tier_id: 'ht-premium',
     });
@@ -664,7 +696,7 @@ describe('MessagesQueryService', () => {
 
     await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       routing_tier: 'playground',
     });
@@ -676,7 +708,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       routing_tier: 'simple',
     });
@@ -692,7 +724,7 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '24h', userId: 'test-user', limit: 20 });
+    await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
 
     // Second call with service_type=chat — different cache key, should query again
     mockGetRawOne.mockResolvedValueOnce({ total: 5 });
@@ -702,7 +734,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       service_type: 'chat',
       cursor: '2026-02-16 10:00:00|msg-1',
@@ -723,20 +755,19 @@ describe('MessagesQueryService', () => {
       .mockResolvedValueOnce([{ id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' }])
       .mockResolvedValueOnce([{ model: 'gpt-4o' }]);
 
-    await service.getMessages({ range: '7d', userId: 'new-user', limit: 20 });
+    await service.getMessages({ range: '7d', tenantId: 'new-user', limit: 20 });
 
     expect(cache.size).toBe(5_000);
     expect(cache.has('user-0:24h::::')).toBe(false);
   });
 
-  it('handles null tenantId from cache when tenant does not exist', async () => {
-    mockTenantResolve.mockResolvedValueOnce(null);
+  it('handles a null tenantId (fresh account with no tenant) as no data', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 0 });
     mockGetRawMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'unknown-user',
+      tenantId: null,
       limit: 20,
     });
 
@@ -749,7 +780,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       provider: 'anthropic',
     });
@@ -780,7 +811,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       provider: 'openai',
     });
@@ -806,7 +837,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -835,7 +866,7 @@ describe('MessagesQueryService', () => {
 
       const result = await service.getMessages({
         range: '24h',
-        userId: 'test-user',
+        tenantId: 'test-user',
         limit: 20,
       });
 
@@ -870,7 +901,7 @@ describe('MessagesQueryService', () => {
 
       const result = await service.getMessages({
         range: '24h',
-        userId: 'test-user',
+        tenantId: 'test-user',
         limit: 20,
       });
 
@@ -893,7 +924,7 @@ describe('MessagesQueryService', () => {
 
       const result = await service.getMessages({
         range: '24h',
-        userId: 'test-user',
+        tenantId: 'test-user',
         limit: 20,
       });
 
@@ -957,7 +988,7 @@ describe('MessagesQueryService', () => {
 
       const result = await service.getMessages({
         range: '24h',
-        userId: 'test-user',
+        tenantId: 'test-user',
         limit: 20,
         provider: 'openai',
       });
@@ -977,7 +1008,7 @@ describe('MessagesQueryService', () => {
 
       const result = await service.getMessages({
         range: '24h',
-        userId: 'test-user',
+        tenantId: 'test-user',
         limit: 20,
         provider: 'anthropic',
       });
@@ -1009,7 +1040,7 @@ describe('MessagesQueryService', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
     });
 
@@ -1027,7 +1058,7 @@ describe('MessagesQueryService', () => {
       const andWhereCalls = () => qb.andWhere.mock.calls.map((c: unknown[]) => c[0]);
 
       await service.getMessages({
-        userId: 'test-user',
+        tenantId: 'test-user',
         limit: 10,
         recorded: true,
       });
@@ -1043,7 +1074,7 @@ describe('MessagesQueryService', () => {
       ).turnRepo;
       const qb = repo.createQueryBuilder();
 
-      await service.getMessages({ userId: 'test-user', limit: 10 });
+      await service.getMessages({ tenantId: 'test-user', limit: 10 });
 
       expect(qb.andWhere.mock.calls.map((c: unknown[]) => c[0])).not.toContain(
         'at.recorded = true',

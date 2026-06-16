@@ -13,19 +13,22 @@ import { AgentApiKey } from '../entities/agent-api-key.entity';
 import { NotificationRule } from '../entities/notification-rule.entity';
 import { NotificationLog } from '../entities/notification-log.entity';
 import { EmailProviderConfig } from '../entities/email-provider-config.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
+import { BackfillState } from '../entities/backfill-state.entity';
 import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { DatabaseSeederService } from './database-seeder.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
+import { shouldRetryDbConnection } from '../common/utils/db-retry';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -87,8 +90,6 @@ import { BackfillLocalAuthType1777200000000 } from './migrations/1777200000000-B
 import { BackfillLocalCustomProviders1777300000000 } from './migrations/1777300000000-BackfillLocalCustomProviders';
 import { DropComplexityRoutingFlag1780000000000 } from './migrations/1780000000000-DropComplexityRoutingFlag';
 import { ReAddComplexityRoutingFlag1781000000000 } from './migrations/1781000000000-ReAddComplexityRoutingFlag';
-import { AddSavingsBaselineModel1782000000000 } from './migrations/1782000000000-AddSavingsBaselineModel';
-import { AddBaselineCostColumns1782100000000 } from './migrations/1782100000000-AddBaselineCostColumns';
 import { RetuneSpecificityMiscategorizedIndex1782000000000 } from './migrations/1782000000000-RetuneSpecificityMiscategorizedIndex';
 import { AddAgentSoftDelete1782200000000 } from './migrations/1782200000000-AddAgentSoftDelete';
 import { AddModelRouteColumns1783000000000 } from './migrations/1783000000000-AddModelRouteColumns';
@@ -112,6 +113,20 @@ import { AddReasoningContentCache1790100000000 } from './migrations/179010000000
 import { AddDedupCompositeIndex1790200000000 } from './migrations/1790200000000-AddDedupCompositeIndex';
 import { AddErrorsPartialIndex1790300000000 } from './migrations/1790300000000-AddErrorsPartialIndex';
 import { DropRedundantAgentApiKeyPrefixIndex1790400000000 } from './migrations/1790400000000-DropRedundantAgentApiKeyPrefixIndex';
+import { LiftProvidersToUserLevel1791000000000 } from './migrations/1791000000000-LiftProvidersToUserLevel';
+import { LiftCustomProvidersToUserLevel1791200000000 } from './migrations/1791200000000-LiftCustomProvidersToUserLevel';
+import { SeedPlaygroundAgents1791400000000 } from './migrations/1791400000000-SeedPlaygroundAgents';
+import { DropProviderRateLimits1791600000000 } from './migrations/1791600000000-DropProviderRateLimits';
+import { DropSavingsBaselineColumns1791700000000 } from './migrations/1791700000000-DropSavingsBaselineColumns';
+import { RenameProviderAccessToEnabledProviders1791800000000 } from './migrations/1791800000000-RenameProviderAccessToEnabledProviders';
+import { RenameIsSystemToIsPlayground1791900000000 } from './migrations/1791900000000-RenameIsSystemToIsPlayground';
+import { AddUserProviderIdToAgentMessages1792000000000 } from './migrations/1792000000000-AddUserProviderIdToAgentMessages';
+import { AddCustomProviderFkToUserProviders1792100000000 } from './migrations/1792100000000-AddCustomProviderFkToUserProviders';
+import { TenantOwnerColumn1792400000000 } from './migrations/1792400000000-TenantOwnerColumn';
+import { TenantProviders1792500000000 } from './migrations/1792500000000-TenantProviders';
+import { TenantScopedConfigs1792600000000 } from './migrations/1792600000000-TenantScopedConfigs';
+import { DropUserScopeFromRouting1792700000000 } from './migrations/1792700000000-DropUserScopeFromRouting';
+import { AddBackfillStateTable1792800000000 } from './migrations/1792800000000-AddBackfillStateTable';
 
 const entities = [
   AgentMessage,
@@ -125,7 +140,7 @@ const entities = [
   NotificationRule,
   NotificationLog,
   EmailProviderConfig,
-  UserProvider,
+  TenantProvider,
   TierAssignment,
   CustomProvider,
   SpecificityAssignment,
@@ -136,6 +151,8 @@ const entities = [
   PlaygroundRun,
   PlaygroundColumn,
   ReasoningContentCacheEntry,
+  AgentEnabledProvider,
+  BackfillState,
 ];
 
 const migrations = [
@@ -200,8 +217,6 @@ const migrations = [
   BackfillLocalCustomProviders1777300000000,
   DropComplexityRoutingFlag1780000000000,
   ReAddComplexityRoutingFlag1781000000000,
-  AddSavingsBaselineModel1782000000000,
-  AddBaselineCostColumns1782100000000,
   RetuneSpecificityMiscategorizedIndex1782000000000,
   AddAgentSoftDelete1782200000000,
   AddModelRouteColumns1783000000000,
@@ -225,6 +240,20 @@ const migrations = [
   AddDedupCompositeIndex1790200000000,
   AddErrorsPartialIndex1790300000000,
   DropRedundantAgentApiKeyPrefixIndex1790400000000,
+  LiftProvidersToUserLevel1791000000000,
+  LiftCustomProvidersToUserLevel1791200000000,
+  SeedPlaygroundAgents1791400000000,
+  DropProviderRateLimits1791600000000,
+  DropSavingsBaselineColumns1791700000000,
+  RenameProviderAccessToEnabledProviders1791800000000,
+  RenameIsSystemToIsPlayground1791900000000,
+  AddUserProviderIdToAgentMessages1792000000000,
+  AddCustomProviderFkToUserProviders1792100000000,
+  TenantOwnerColumn1792400000000,
+  TenantProviders1792500000000,
+  TenantScopedConfigs1792600000000,
+  DropUserScopeFromRouting1792700000000,
+  AddBackfillStateTable1792800000000,
 ];
 
 @Module({
@@ -246,6 +275,12 @@ const migrations = [
         migrationsRun: true,
         migrationsTransactionMode: 'all' as const,
         migrations,
+        // A failed migration must not go through the connection-retry loop:
+        // @nestjs/typeorm checks toRetry before logging, so returning false
+        // here suppresses the misleading "Unable to connect to the database.
+        // Retrying" line and fails fast with the real migration error. Genuine
+        // connectivity failures (DB not ready yet) still retry.
+        toRetry: shouldRetryDbConnection,
         logging: false,
         extra: {
           // app.config.ts always resolves dbPoolMax (default 20), so there is no
@@ -268,7 +303,7 @@ const migrations = [
       AgentApiKey,
       AgentMessage,
       ApiKey,
-      UserProvider,
+      TenantProvider,
       TierAssignment,
       CustomProvider,
       SpecificityAssignment,
@@ -276,6 +311,7 @@ const migrations = [
       MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
+      AgentEnabledProvider,
     ]),
     ModelPricesModule,
   ],

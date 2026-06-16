@@ -45,7 +45,7 @@ describe('RunPlaygroundDto', () => {
       expect(flat).toContain('exactly one of `messages` or `rawRequestBody` must be provided');
     });
 
-    // The XOR constraint is attached to `agentName` (a non-optional field)
+    // The XOR constraint is attached to `model` (a non-optional field)
     // rather than `messages`/`rawRequestBody` so @IsOptional can't
     // short-circuit it. Hence this case correctly fails.
     it('rejects when neither `messages` nor `rawRequestBody` is provided', async () => {
@@ -76,7 +76,7 @@ describe('RunPlaygroundDto', () => {
     });
 
     // `null` rawRequestBody + missing messages = "neither" path; the XOR
-    // constraint on `agentName` rejects it just like the bare case.
+    // constraint on `model` rejects it just like the bare case.
     it('rejects `rawRequestBody: null` when messages is also absent', async () => {
       const dto = toDto({ ...VALID_BASE, rawRequestBody: null });
       const errors = await validate(dto);
@@ -89,10 +89,22 @@ describe('RunPlaygroundDto', () => {
   });
 
   describe('field validation', () => {
-    it('rejects an agent name with disallowed characters', async () => {
+    // `agentName` is deprecated and ignored by the backend, but old clients
+    // still send it — it must stay accepted (optional) and type-checked only.
+    it('accepts a payload without the deprecated agentName', async () => {
+      const dto = toDto({
+        model: 'openai/gpt-4o-mini',
+        provider: 'openai',
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      const errors = await validate(dto, { whitelist: true });
+      expect(errors).toHaveLength(0);
+    });
+
+    it('rejects a non-string agentName', async () => {
       const dto = toDto({
         ...VALID_BASE,
-        agentName: 'bad name!',
+        agentName: 42,
         messages: [{ role: 'user', content: 'hi' }],
       });
       const errors = await validate(dto);

@@ -27,7 +27,7 @@ export const CLAUDE_CODE_BETA_FLAGS = [
   'effort-2025-11-24',
 ].join(',');
 
-function claudeCodeStainlessArch(arch = process.arch): string {
+export function claudeCodeStainlessArch(arch = process.arch): string {
   switch (arch) {
     case 'arm64':
       return 'arm64';
@@ -38,7 +38,7 @@ function claudeCodeStainlessArch(arch = process.arch): string {
   }
 }
 
-function claudeCodeStainlessOs(platform = process.platform): string {
+export function claudeCodeStainlessOs(platform = process.platform): string {
   switch (platform) {
     case 'darwin':
       return 'MacOS';

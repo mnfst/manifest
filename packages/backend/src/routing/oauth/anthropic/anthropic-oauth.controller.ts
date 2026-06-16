@@ -8,8 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { CurrentUser } from '../../../auth/current-user.decorator';
-import { AuthUser } from '../../../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../../../common/decorators/tenant-context.decorator';
 import { ResolveAgentService } from '../../routing-core/resolve-agent.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { AnthropicOauthExchangeError, AnthropicOauthService } from './anthropic-oauth.service';
@@ -31,12 +30,12 @@ export class AnthropicOauthController {
    * the authorization code for the user to paste into the SPA.
    */
   @Post('authorize')
-  async authorize(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+  async authorize(@Query('agentName') agentName: string, @TenantCtx() ctx: TenantContext) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return this.oauthService.generateAuthorizationUrl(agent.id, user.id);
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
+    return this.oauthService.generateAuthorizationUrl(agent.id, agent.tenant_id);
   }
 
   /**
@@ -48,7 +47,7 @@ export class AnthropicOauthController {
     @Query('agentName') agentName: string,
     @Body('code') code: string,
     @Body('state') state: string,
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
@@ -57,9 +56,9 @@ export class AnthropicOauthController {
       throw new HttpException('code is required', HttpStatus.BAD_REQUEST);
     }
     // Resolve the agent so unknown agents still 404 even if state is valid.
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
     try {
-      await this.oauthService.exchangeCode(code, state, agent.id, user.id);
+      await this.oauthService.exchangeCode(code, state, agent.id, agent.tenant_id, ctx.userId);
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Token exchange failed';
@@ -77,12 +76,14 @@ export class AnthropicOauthController {
    * so the paste-code field can be re-rendered without restarting the dance.
    */
   @Get('pending')
-  async pending(@Query('agentName') agentName: string, @CurrentUser() user: AuthUser) {
+  async pending(@Query('agentName') agentName: string, @TenantCtx() ctx: TenantContext) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
-    return (await this.oauthService.findPendingForAgent(agent.id, user.id)) ?? { state: null };
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
+    return (
+      (await this.oauthService.findPendingForAgent(agent.id, agent.tenant_id)) ?? { state: null }
+    );
   }
 
   /** Disconnect the Anthropic subscription provider for an agent. */
@@ -90,15 +91,16 @@ export class AnthropicOauthController {
   async revoke(
     @Query('agentName') agentName: string,
     @Query('label') label: string | string[] | undefined,
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
   ) {
     if (!agentName) {
       throw new HttpException('agentName query parameter is required', HttpStatus.BAD_REQUEST);
     }
     const keyLabel = optionalTrimmedStringQuery(label, 'label');
-    const agent = await this.resolveAgent.resolve(user.id, agentName);
+    const agent = await this.resolveAgent.resolve(ctx.tenantId, agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      agent.tenant_id,
       'anthropic',
       'subscription',
       keyLabel,

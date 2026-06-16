@@ -3,8 +3,13 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { TimeseriesQueriesService } from './timeseries-queries.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { Agent } from '../../entities/agent.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
-import { MESSAGE_ROW_SELECT_ALIASES } from './query-helpers';
+import {
+  MESSAGE_ROW_SELECT_ALIASES,
+  EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
+  CUSTOM_PROVIDER_JOIN_CONDITION,
+  PROVIDER_SERIES_KEY_EXPR,
+} from './query-helpers';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 describe('TimeseriesQueriesService', () => {
   let service: TimeseriesQueriesService;
@@ -26,6 +31,18 @@ describe('TimeseriesQueriesService', () => {
     getRawMany: jest.Mock;
     getRawOne: jest.Mock;
     getMany: jest.Mock;
+  };
+  let mockAgentQb: {
+    select: jest.Mock;
+    addSelect: jest.Mock;
+    leftJoin: jest.Mock;
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    orWhere: jest.Mock;
+    groupBy: jest.Mock;
+    orderBy: jest.Mock;
+    getMany: jest.Mock;
+    getRawMany: jest.Mock;
   };
 
   beforeEach(async () => {
@@ -50,7 +67,7 @@ describe('TimeseriesQueriesService', () => {
       getMany: mockGetMany,
     };
 
-    const mockAgentQb = {
+    mockAgentQb = {
       select: jest.fn().mockReturnThis(),
       addSelect: jest.fn().mockReturnThis(),
       leftJoin: jest.fn().mockReturnThis(),
@@ -73,10 +90,6 @@ describe('TimeseriesQueriesService', () => {
         {
           provide: getRepositoryToken(Agent),
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockAgentQb) },
-        },
-        {
-          provide: TenantCacheService,
-          useValue: { resolve: jest.fn().mockResolvedValue('tenant-123') },
         },
       ],
     }).compile();
@@ -112,6 +125,20 @@ describe('TimeseriesQueriesService', () => {
 
       const result = await service.getActiveSkills('24h', 'u1');
       expect(result[0].agent_name).toBeNull();
+    });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getActiveSkills('24h', 'tenant-1', undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getActiveSkills('24h', 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
   });
 
@@ -185,6 +212,63 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].auth_type).toBeNull();
       expect(result[0].provider).toBeNull();
     });
+
+    it('resolves the custom provider display name', async () => {
+      mockGetRawMany.mockResolvedValue([
+        {
+          model: 'custom:u-1/gpt-oss-120b',
+          display_name: 'custom:u-1/gpt-oss-120b',
+          tokens: 10,
+          estimated_cost: 0.5,
+          auth_type: 'api_key',
+          provider: 'custom:u-1',
+          custom_provider_name: 'MyLLM',
+        },
+      ]);
+
+      const result = await service.getCostByModel('7d', 'u1');
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+        CustomProvider,
+        'cp',
+        CUSTOM_PROVIDER_JOIN_CONDITION,
+      );
+      expect(mockTurnQb.addSelect).toHaveBeenCalledWith('cp.name', 'custom_provider_name');
+      expect(mockTurnQb.addGroupBy).toHaveBeenCalledWith('cp.name');
+      expect(result[0]).toMatchObject({
+        provider: 'custom:u-1',
+        custom_provider_name: 'MyLLM',
+      });
+    });
+
+    it('returns null custom_provider_name for built-in and deleted custom providers', async () => {
+      mockGetRawMany.mockResolvedValue([
+        {
+          model: 'gpt-4o',
+          tokens: 5,
+          estimated_cost: 0.1,
+          auth_type: null,
+          provider: 'openai',
+          custom_provider_name: null,
+        },
+      ]);
+
+      const result = await service.getCostByModel('7d', 'u1');
+      expect(result[0].custom_provider_name).toBeNull();
+    });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getCostByModel('7d', 'tenant-1', undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getCostByModel('7d', 'tenant-1');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
   });
 
   describe('getRecentActivity', () => {
@@ -235,11 +319,25 @@ describe('TimeseriesQueriesService', () => {
 
     it('applies tenant isolation via addTenantFilter so cross-tenant data cannot leak', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      await service.getRecentActivity('24h', 'u1', 5, undefined, 'tenant-123');
+      await service.getRecentActivity('24h', 'tenant-123', 5);
 
       // When a tenantId is provided the helper filters by tenant_id (not user_id).
       const andWhereCalls = mockTurnQb.andWhere.mock.calls.map((call) => call[0] as string);
       expect(andWhereCalls).toContain('at.tenant_id = :tenantId');
+    });
+
+    it('excludes Playground traffic when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5, undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('does not exclude Playground traffic by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
   });
 
@@ -250,7 +348,7 @@ describe('TimeseriesQueriesService', () => {
         { hour: '2026-02-16T11:00:00', input_tokens: 200, output_tokens: 80, cost: 2.0, count: 8 },
       ]);
 
-      const result = await service.getTimeseries('24h', 'u1', true, 'tenant-123');
+      const result = await service.getTimeseries('24h', 'tenant-123', true);
       expect(result.tokenUsage).toHaveLength(2);
       expect(result.costUsage).toHaveLength(2);
       expect(result.messageUsage).toHaveLength(2);
@@ -268,7 +366,7 @@ describe('TimeseriesQueriesService', () => {
         { date: '2026-02-15', input_tokens: 500, output_tokens: 300, cost: 5.0, count: 20 },
       ]);
 
-      const result = await service.getTimeseries('7d', 'u1', false, 'tenant-123');
+      const result = await service.getTimeseries('7d', 'tenant-123', false);
       expect(result.tokenUsage).toHaveLength(1);
       expect(result.tokenUsage[0]).toEqual({
         date: '2026-02-15',
@@ -281,7 +379,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('returns empty arrays when no data', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      const result = await service.getTimeseries('24h', 'u1', true, 'tenant-123');
+      const result = await service.getTimeseries('24h', 'tenant-123', true);
       expect(result.tokenUsage).toEqual([]);
       expect(result.costUsage).toEqual([]);
       expect(result.messageUsage).toEqual([]);
@@ -298,7 +396,7 @@ describe('TimeseriesQueriesService', () => {
         },
       ]);
 
-      const result = await service.getTimeseries('24h', 'u1', true);
+      const result = await service.getTimeseries('24h', 'tenant-1', true);
       expect(result.tokenUsage[0]).toEqual({
         hour: '2026-02-16T10:00:00',
         input_tokens: 0,
@@ -310,7 +408,7 @@ describe('TimeseriesQueriesService', () => {
 
     it('passes agentName to tenant filter', async () => {
       mockGetRawMany.mockResolvedValue([]);
-      const result = await service.getTimeseries('24h', 'u1', true, 'tenant-123', 'bot-1');
+      const result = await service.getTimeseries('24h', 'tenant-123', true, 'bot-1');
       expect(result.tokenUsage).toEqual([]);
     });
   });
@@ -318,6 +416,18 @@ describe('TimeseriesQueriesService', () => {
   describe('getAgentList', () => {
     const recentIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const oldIso = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString();
+
+    it('excludes the reserved Playground agent by default', async () => {
+      await service.getAgentList('u1');
+      const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain('a.is_playground = false');
+    });
+
+    it('includes playground agents when includePlayground is true (Messages filter)', async () => {
+      await service.getAgentList('u1', true);
+      const clauses = mockAgentQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain('a.is_playground = false');
+    });
 
     it('returns agents with sparkline data and display_name', async () => {
       mockGetMany.mockResolvedValueOnce([
@@ -407,6 +517,289 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].message_count).toBe(0);
       expect(result[0].total_cost).toBe(0);
       expect(result[0].sparkline).toEqual([]);
+    });
+  });
+
+  describe('getTimeseries with authType/provider filters', () => {
+    it('applies auth_type and provider andWhere clauses', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries('24h', 'tenant-1', true, 'agent-x', 'subscription', 'openai');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
+    });
+
+    it('excludes the reserved Playground agent when excludePlayground=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries('24h', 'tenant-1', true, undefined, undefined, undefined, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+      // Semi-join exclusion adds no LEFT JOIN of its own.
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
+    });
+
+    it('does not exclude playground agents by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries('24h', 'tenant-1', true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+    });
+
+    it('scopes the aggregate timeseries to a connection label when provided', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getTimeseries(
+        '24h',
+        'tenant-1',
+        true,
+        undefined,
+        'api_key',
+        'openai',
+        true,
+        'Work',
+      );
+      const labelCall = mockTurnQb.andWhere.mock.calls.find(
+        (c) => c[0] === "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)",
+      );
+      expect(labelCall![1]).toEqual({ keyLabel: 'Work' });
+    });
+  });
+
+  describe('per-agent pivoted timeseries (hourly)', () => {
+    const rows = [
+      { hour: '01', agent_name: 'bravo', tokens: 5, messages: 2, cost: 0.5 },
+      { hour: '01', agent_name: 'alpha', tokens: 10, messages: 1, cost: 1.0 },
+      { hour: '02', agent_name: 'alpha', tokens: 3, messages: 4, cost: 0.3 },
+    ];
+
+    it('getPerAgentTimeseries pivots tokens with sorted agents and zero-fill', async () => {
+      mockGetRawMany.mockResolvedValue(rows);
+      const out = await service.getPerAgentTimeseries(
+        '24h',
+        'tenant-1',
+        true,
+        'subscription',
+        'openai',
+      );
+      expect(out.agents).toEqual(['alpha', 'bravo']);
+      expect(out.timeseries).toEqual([
+        { hour: '01', alpha: 10, bravo: 5 },
+        { hour: '02', alpha: 3, bravo: 0 },
+      ]);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
+      // The NOT EXISTS semi-join matches a playground agent by id OR name and is a
+      // pure existence test, so a soft-deleted agent sharing a slug with a live
+      // one can never multiply the per-agent SUM. It adds no LEFT JOIN.
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
+      // Matching by name (not just id) means a Playground row carrying only
+      // agent_name (NULL agent_id) is excluded too — no leak.
+      expect(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE).toContain(
+        'playag.id = at.agent_id OR playag.name = at.agent_name',
+      );
+    });
+
+    it('getPerAgentMessageTimeseries pivots message counts', async () => {
+      mockGetRawMany.mockResolvedValue(rows);
+      const out = await service.getPerAgentMessageTimeseries('24h', 'u1', true);
+      expect(out.timeseries[0]).toEqual({ hour: '01', alpha: 1, bravo: 2 });
+    });
+
+    it('getPerAgentCostTimeseries pivots cost (non-hourly date bucket)', async () => {
+      mockGetRawMany.mockResolvedValue([{ date: '2026-01-01', agent_name: 'alpha', cost: 2.5 }]);
+      const out = await service.getPerAgentCostTimeseries('7d', 'u1', false);
+      expect(out.agents).toEqual(['alpha']);
+      expect(out.timeseries).toEqual([{ date: '2026-01-01', alpha: 2.5 }]);
+    });
+
+    const labelClause = "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)";
+
+    it('scopes each per-agent timeseries to a connection label when provided', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getPerAgentTimeseries('24h', 't1', true, 'api_key', 'openai', 'Work');
+      await service.getPerAgentMessageTimeseries('24h', 't1', true, 'api_key', 'openai', 'Work');
+      await service.getPerAgentCostTimeseries('24h', 't1', true, 'api_key', 'openai', 'Work');
+      const labelCalls = mockTurnQb.andWhere.mock.calls.filter((c) => c[0] === labelClause);
+      expect(labelCalls).toHaveLength(3);
+      for (const call of labelCalls) expect(call[1]).toEqual({ keyLabel: 'Work' });
+    });
+
+    it('treats a legacy empty connection label as Default in the per-agent filter', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getPerAgentTimeseries('24h', 't1', true, 'api_key', 'openai', '');
+      const labelCall = mockTurnQb.andWhere.mock.calls.find((c) => c[0] === labelClause);
+      expect(labelCall![1]).toEqual({ keyLabel: 'Default' });
+    });
+
+    it('omits the label filter when no label is given', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getPerAgentTimeseries('24h', 't1', true, 'api_key', 'openai');
+      expect(mockTurnQb.andWhere.mock.calls.some((c) => c[0] === labelClause)).toBe(false);
+    });
+  });
+
+  describe('per-provider / per-model pivoted timeseries', () => {
+    it('getPerProviderTimeseries filters by agentName and pivots tokens', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { hour: '01', provider: 'openai', tokens: 7 },
+        { hour: '01', provider: 'anthropic', tokens: 3 },
+      ]);
+      const out = await service.getPerProviderTimeseries('24h', 'tenant-1', true, 'agent-x');
+      expect(out.agents).toEqual(['anthropic', 'openai']);
+      expect(out.timeseries[0]).toEqual({ hour: '01', anthropic: 3, openai: 7 });
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      // Scope to the LIVE agent owning the slug (agent_id subquery), not a raw
+      // name match — a soft-deleted agent sharing the slug must not leak rows.
+      const liveAgentClause = clauses.find(
+        (c) =>
+          typeof c === 'string' &&
+          c.includes('at.agent_id = (') &&
+          c.includes('deleted_at IS NULL'),
+      );
+      expect(liveAgentClause).toBeDefined();
+      expect(clauses).not.toContain('at.agent_name = :agentName');
+      const liveAgentCall = mockTurnQb.andWhere.mock.calls.find(
+        (c) => typeof c[0] === 'string' && c[0].includes('at.agent_id = ('),
+      );
+      expect(liveAgentCall![1]).toEqual({ liveAgentName: 'agent-x', liveTenantId: 'tenant-1' });
+      // Playground (is_playground) usage must be excluded from per-provider totals,
+      // via the same NOT EXISTS semi-join as the per-agent endpoints (no join).
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+      // Custom provider names resolve via the cp join (built-ins join to NULL).
+      expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+        CustomProvider,
+        'cp',
+        CUSTOM_PROVIDER_JOIN_CONDITION,
+      );
+    });
+
+    it('resolves custom series keys via the CASE expression in all per-provider pivots', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { hour: '01', provider: 'MyLLM', tokens: 7 },
+        { hour: '01', provider: 'openai', tokens: 3 },
+      ]);
+      const out = await service.getPerProviderTimeseries('24h', 'u1', true);
+      expect(mockTurnQb.addSelect).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR, 'provider');
+      expect(mockTurnQb.addGroupBy).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR);
+      expect(out.agents).toEqual(['MyLLM', 'openai']);
+
+      for (const call of [
+        () => service.getPerProviderMessageTimeseries('24h', 'u1', true),
+        () => service.getPerProviderCostTimeseries('24h', 'u1', true),
+      ]) {
+        mockTurnQb.addSelect.mockClear();
+        mockTurnQb.addGroupBy.mockClear();
+        mockTurnQb.leftJoin.mockClear();
+        await call();
+        expect(mockTurnQb.leftJoin).toHaveBeenCalledWith(
+          CustomProvider,
+          'cp',
+          CUSTOM_PROVIDER_JOIN_CONDITION,
+        );
+        expect(mockTurnQb.addSelect).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR, 'provider');
+        expect(mockTurnQb.addGroupBy).toHaveBeenCalledWith(PROVIDER_SERIES_KEY_EXPR);
+      }
+    });
+
+    it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
+      await service.getPerModelTimeseries('24h', 'tenant-1', true, 'agent-x');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      const liveAgentClause = clauses.find(
+        (c) =>
+          typeof c === 'string' &&
+          c.includes('at.agent_id = (') &&
+          c.includes('deleted_at IS NULL'),
+      );
+      expect(liveAgentClause).toBeDefined();
+      expect(clauses).not.toContain('at.agent_name = :agentName');
+    });
+
+    it('omits the agent filter entirely when no agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: 1 }]);
+      await service.getPerProviderTimeseries('24h', 'tenant-1', true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses.some((c) => typeof c === 'string' && c.includes('at.agent_id = ('))).toBe(
+        false,
+      );
+    });
+
+    it('getPerModelTimeseries scopes to the live agent id when an agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
+      await service.getPerModelTimeseries('24h', 'tenant-1', true, 'agent-x');
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      const liveAgentClause = clauses.find(
+        (c) =>
+          typeof c === 'string' &&
+          c.includes('at.agent_id = (') &&
+          c.includes('deleted_at IS NULL'),
+      );
+      expect(liveAgentClause).toBeDefined();
+      expect(clauses).not.toContain('at.agent_name = :agentName');
+    });
+
+    it('omits the agent filter entirely when no agent is given', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: 1 }]);
+      await service.getPerProviderTimeseries('24h', 'tenant-1', true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses.some((c) => typeof c === 'string' && c.includes('at.agent_id = ('))).toBe(
+        false,
+      );
+    });
+
+    it('getPerProviderMessageTimeseries pivots message counts', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', messages: 4 }]);
+      const out = await service.getPerProviderMessageTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', openai: 4 }]);
+    });
+
+    it('getPerProviderCostTimeseries pivots cost', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', cost: 1.25 }]);
+      const out = await service.getPerProviderCostTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', openai: 1.25 }]);
+    });
+
+    it('getPerModelTimeseries pivots tokens', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', tokens: 9 }]);
+      const out = await service.getPerModelTimeseries('24h', 'tenant-1', true, 'agent-x');
+      expect(out.agents).toEqual(['gpt-4o']);
+      expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 9 }]);
+      // Playground (is_playground) usage must be excluded from per-model totals.
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
+    });
+
+    it('getPerModelMessageTimeseries pivots message counts', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', messages: 2 }]);
+      const out = await service.getPerModelMessageTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 2 }]);
+    });
+
+    it('getPerModelCostTimeseries pivots cost', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', model: 'gpt-4o', cost: 0.9 }]);
+      const out = await service.getPerModelCostTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 0.9 }]);
+    });
+
+    it('zero-fills missing values from null', async () => {
+      mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: null }]);
+      const out = await service.getPerProviderTimeseries('24h', 'u1', true);
+      expect(out.timeseries).toEqual([{ hour: '01', openai: 0 }]);
+    });
+  });
+
+  describe('getAgentNamesByAuthType', () => {
+    it('returns distinct agent names excluding playground agents', async () => {
+      mockGetRawMany.mockResolvedValue([{ agent_name: 'a' }, { agent_name: 'b' }]);
+      const out = await service.getAgentNamesByAuthType('subscription', 'tenant-1');
+      expect(out).toEqual(['a', 'b']);
+      expect(mockTurnQb.andWhere.mock.calls.map((c) => c[0])).toContain(
+        EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
+      );
+      // No LEFT JOIN on agents anymore — exclusion is a pure semi-join.
+      expect(mockTurnQb.leftJoin).not.toHaveBeenCalled();
     });
   });
 });

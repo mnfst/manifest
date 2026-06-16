@@ -66,34 +66,40 @@ describe('NotificationRulesService', () => {
 
   describe('listRules', () => {
     it('returns rules decorated with trigger counts', async () => {
-      const rule = { id: 'r1', user_id: 'u1', agent_name: 'a1' } as NotificationRule;
+      const rule = { id: 'r1', tenant_id: 't1', agent_name: 'a1' } as NotificationRule;
       ruleRepo.find.mockResolvedValueOnce([rule]);
       logRepo.createQueryBuilder.mockReturnValueOnce(
         makeQb(null, [{ rule_id: 'r1', trigger_count: '5' }]),
       );
 
-      const result = await service.listRules('u1', 'a1');
+      const result = await service.listRules('t1', 'a1');
       expect(result).toEqual([{ ...rule, trigger_count: 5 }]);
       expect(ruleRepo.find).toHaveBeenCalledWith({
-        where: { user_id: 'u1', agent_name: 'a1' },
+        where: { tenant_id: 't1', agent_name: 'a1' },
         order: { created_at: 'DESC' },
       });
+    });
+
+    it('returns empty array without querying when tenantId is null', async () => {
+      const result = await service.listRules(null, 'a1');
+      expect(result).toEqual([]);
+      expect(ruleRepo.find).not.toHaveBeenCalled();
     });
 
     it('returns empty array when no rules exist (skips log lookup)', async () => {
       ruleRepo.find.mockResolvedValueOnce([]);
 
-      const result = await service.listRules('u1', 'a1');
+      const result = await service.listRules('t1', 'a1');
       expect(result).toEqual([]);
       expect(logRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
 
     it('defaults missing trigger counts to zero', async () => {
-      const rule = { id: 'r1', user_id: 'u1', agent_name: 'a1' } as NotificationRule;
+      const rule = { id: 'r1', tenant_id: 't1', agent_name: 'a1' } as NotificationRule;
       ruleRepo.find.mockResolvedValueOnce([rule]);
       logRepo.createQueryBuilder.mockReturnValueOnce(makeQb(null, []));
 
-      const result = await service.listRules('u1', 'a1');
+      const result = await service.listRules('t1', 'a1');
       expect(result[0].trigger_count).toBe(0);
     });
   });
@@ -105,7 +111,7 @@ describe('NotificationRulesService', () => {
       );
       ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'new-rule' } as NotificationRule);
 
-      const result = await service.createRule('u1', {
+      const result = await service.createRule('tenant-1', {
         agent_name: 'a1',
         metric_type: 'tokens',
         threshold: 50000,
@@ -118,7 +124,6 @@ describe('NotificationRulesService', () => {
           agent_id: 'agent-1',
           tenant_id: 'tenant-1',
           agent_name: 'a1',
-          user_id: 'u1',
           metric_type: 'tokens',
           threshold: 50000,
           period: 'day',
@@ -132,7 +137,7 @@ describe('NotificationRulesService', () => {
       agentRepo.createQueryBuilder.mockReturnValueOnce(makeQb(null));
 
       await expect(
-        service.createRule('u1', {
+        service.createRule('tenant-1', {
           agent_name: 'unknown',
           metric_type: 'tokens',
           threshold: 100,
@@ -141,13 +146,24 @@ describe('NotificationRulesService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('throws NotFoundException when tenantId is null', async () => {
+      await expect(
+        service.createRule(null, {
+          agent_name: 'a1',
+          metric_type: 'tokens',
+          threshold: 100,
+          period: 'hour',
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
     it('uses provided action value', async () => {
       agentRepo.createQueryBuilder.mockReturnValueOnce(
         makeQb({ id: 'agent-1', tenant_id: 'tenant-1' }),
       );
       ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'new-rule' } as NotificationRule);
 
-      await service.createRule('u1', {
+      await service.createRule('tenant-1', {
         agent_name: 'a1',
         metric_type: 'tokens',
         threshold: 1,
@@ -167,7 +183,7 @@ describe('NotificationRulesService', () => {
         threshold: 200,
       } as NotificationRule);
 
-      const result = await service.updateRule('u1', 'r1', { threshold: 200 });
+      const result = await service.updateRule('tenant-1', 'r1', { threshold: 200 });
       expect(result?.threshold).toBe(200);
       expect(ruleRepo.update).toHaveBeenCalledWith(
         { id: 'r1' },
@@ -179,7 +195,7 @@ describe('NotificationRulesService', () => {
       ruleRepo.count.mockResolvedValueOnce(1);
       ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'r1', threshold: 100 } as NotificationRule);
 
-      const result = await service.updateRule('u1', 'r1', {});
+      const result = await service.updateRule('tenant-1', 'r1', {});
       expect(result?.threshold).toBe(100);
       expect(ruleRepo.update).not.toHaveBeenCalled();
     });
@@ -187,7 +203,13 @@ describe('NotificationRulesService', () => {
     it('throws NotFoundException when rule not owned', async () => {
       ruleRepo.count.mockResolvedValueOnce(0);
 
-      await expect(service.updateRule('u1', 'missing', { threshold: 1 })).rejects.toThrow(
+      await expect(service.updateRule('tenant-1', 'missing', { threshold: 1 })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws NotFoundException when tenantId is null', async () => {
+      await expect(service.updateRule(null, 'r1', { threshold: 1 })).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -196,7 +218,7 @@ describe('NotificationRulesService', () => {
       ruleRepo.count.mockResolvedValueOnce(1);
       ruleRepo.findOneBy.mockResolvedValueOnce({ id: 'r1', action: 'block' } as NotificationRule);
 
-      const result = await service.updateRule('u1', 'r1', { action: 'block' });
+      const result = await service.updateRule('tenant-1', 'r1', { action: 'block' });
       expect(result?.action).toBe('block');
       expect(ruleRepo.update).toHaveBeenCalledWith(
         { id: 'r1' },
@@ -209,13 +231,17 @@ describe('NotificationRulesService', () => {
     it('deletes the rule after ownership check', async () => {
       ruleRepo.count.mockResolvedValueOnce(1);
 
-      await service.deleteRule('u1', 'r1');
+      await service.deleteRule('tenant-1', 'r1');
       expect(ruleRepo.delete).toHaveBeenCalledWith({ id: 'r1' });
     });
 
     it('throws when not owned', async () => {
       ruleRepo.count.mockResolvedValueOnce(0);
-      await expect(service.deleteRule('u1', 'r1')).rejects.toThrow(NotFoundException);
+      await expect(service.deleteRule('tenant-1', 'r1')).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws when tenantId is null', async () => {
+      await expect(service.deleteRule(null, 'r1')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -235,15 +261,15 @@ describe('NotificationRulesService', () => {
     });
   });
 
-  describe('getActiveRulesForUser', () => {
-    it('returns active notify+both rules for a specific user', async () => {
+  describe('getActiveRulesForTenant', () => {
+    it('returns active notify+both rules for a specific tenant', async () => {
       const rules = [{ id: 'r1' }] as NotificationRule[];
       ruleRepo.find.mockResolvedValueOnce(rules);
 
-      const result = await service.getActiveRulesForUser('u1');
+      const result = await service.getActiveRulesForTenant('t1');
       expect(result).toEqual(rules);
       expect(ruleRepo.find).toHaveBeenCalledWith({
-        where: { user_id: 'u1', is_active: true, action: In(['notify', 'both']) },
+        where: { tenant_id: 't1', is_active: true, action: In(['notify', 'both']) },
       });
     });
   });
@@ -281,13 +307,19 @@ describe('NotificationRulesService', () => {
       expect(result).toBeUndefined();
     });
 
-    it('getOwnedRule filters by user', async () => {
-      const rule = { id: 'r1', user_id: 'u1' } as NotificationRule;
+    it('getOwnedRule filters by tenant', async () => {
+      const rule = { id: 'r1', tenant_id: 't1' } as NotificationRule;
       ruleRepo.findOneBy.mockResolvedValueOnce(rule);
 
-      const result = await service.getOwnedRule('u1', 'r1');
+      const result = await service.getOwnedRule('t1', 'r1');
       expect(result).toEqual(rule);
-      expect(ruleRepo.findOneBy).toHaveBeenCalledWith({ id: 'r1', user_id: 'u1' });
+      expect(ruleRepo.findOneBy).toHaveBeenCalledWith({ id: 'r1', tenant_id: 't1' });
+    });
+
+    it('getOwnedRule returns undefined when tenantId is null', async () => {
+      const result = await service.getOwnedRule(null, 'r1');
+      expect(result).toBeUndefined();
+      expect(ruleRepo.findOneBy).not.toHaveBeenCalled();
     });
   });
 });

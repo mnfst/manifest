@@ -157,7 +157,7 @@ function buildService(): {
 const AGENT = { id: 'agent-1', tenant_id: 'tenant-1', name: 'demo' };
 
 const baseInput = (overrides: Record<string, unknown> = {}) => ({
-  userId: 'user-1',
+  createdByUserId: 'user-1',
   agent: AGENT,
   prompt: 'hello world',
   model: 'openai/gpt-4o-mini',
@@ -185,7 +185,8 @@ describe('PlaygroundHistoryService', () => {
       expect(insertQb.into).toHaveBeenCalledWith('playground_runs');
       const valuesArg = insertQb.values.mock.calls[0][0];
       expect(valuesArg).toMatchObject({
-        user_id: 'user-1',
+        tenant_id: 'tenant-1',
+        created_by_user_id: 'user-1',
         agent_id: 'agent-1',
         prompt: 'hello world',
       });
@@ -400,7 +401,7 @@ describe('PlaygroundHistoryService', () => {
       expect(result[0]?.bestColumnId).toBeNull();
     });
 
-    it('returns an empty list when the user has no runs for the agent', async () => {
+    it('returns an empty list when the tenant has no runs for the agent', async () => {
       const { service, runRepo } = buildService();
       runRepo.find.mockResolvedValue([]);
       expect(await service.listRuns('u', 'a')).toEqual([]);
@@ -525,10 +526,10 @@ describe('PlaygroundHistoryService', () => {
       });
     });
 
-    it('throws NotFoundException when the run does not belong to the user', async () => {
+    it('throws NotFoundException when the run does not belong to the tenant', async () => {
       const { service, runRepo } = buildService();
       runRepo.findOne.mockResolvedValue(null);
-      await expect(service.getRun('other', 'r1')).rejects.toBeInstanceOf(NotFoundException);
+      await expect(service.getRun('other-tenant', 'r1')).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('filters by agentId when provided and returns the run when it matches', async () => {
@@ -539,21 +540,21 @@ describe('PlaygroundHistoryService', () => {
         created_at: '2026-01-01T00:00:00Z',
       });
       columnRepo.find.mockResolvedValue([]);
-      await service.getRun('user-1', 'r1', 'agent-1');
+      await service.getRun('tenant-1', 'r1', 'agent-1');
       expect(runRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'r1', user_id: 'user-1', agent_id: 'agent-1' },
+        where: { id: 'r1', tenant_id: 'tenant-1', agent_id: 'agent-1' },
       });
     });
 
     it('throws NotFoundException when agentId is provided but does not match', async () => {
       const { service, runRepo } = buildService();
       runRepo.findOne.mockResolvedValue(null);
-      await expect(service.getRun('user-1', 'r1', 'other-agent')).rejects.toBeInstanceOf(
+      await expect(service.getRun('tenant-1', 'r1', 'other-agent')).rejects.toBeInstanceOf(
         NotFoundException,
       );
       // Confirm we did pass the agent_id filter through.
       expect(runRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'r1', user_id: 'user-1', agent_id: 'other-agent' },
+        where: { id: 'r1', tenant_id: 'tenant-1', agent_id: 'other-agent' },
       });
     });
 
@@ -565,9 +566,9 @@ describe('PlaygroundHistoryService', () => {
         created_at: '2026-01-01T00:00:00Z',
       });
       columnRepo.find.mockResolvedValue([]);
-      await service.getRun('user-1', 'r1');
+      await service.getRun('tenant-1', 'r1');
       expect(runRepo.findOne).toHaveBeenCalledWith({
-        where: { id: 'r1', user_id: 'user-1' },
+        where: { id: 'r1', tenant_id: 'tenant-1' },
       });
     });
 
@@ -602,7 +603,7 @@ describe('PlaygroundHistoryService', () => {
   });
 
   describe('pruneOldRuns', () => {
-    it('deletes runs older than MAX_RUNS_PER_AGENT for this user+agent', async () => {
+    it('deletes runs older than MAX_RUNS_PER_AGENT for this tenant+agent', async () => {
       const { service, runRepo, insertQb, selectQb } = buildService();
       // Winner of ensureRun -> prune runs.
       insertQb.execute.mockResolvedValueOnce({ identifiers: [{ id: 'r-new' }] });
@@ -626,16 +627,16 @@ describe('PlaygroundHistoryService', () => {
   });
 
   describe('toggleStar', () => {
-    it('flips starred via an atomic user-scoped update and returns the new value', async () => {
+    it('flips starred via an atomic tenant-scoped update and returns the new value', async () => {
       const { service, updateQb } = buildService();
       updateQb.execute.mockResolvedValueOnce({ affected: 1, raw: [{ starred: false }] });
 
-      const starred = await service.toggleStar('user-1', 'run-1');
+      const starred = await service.toggleStar('tenant-1', 'run-1');
 
       expect(starred).toBe(false);
-      expect(updateQb.where).toHaveBeenCalledWith('id = :runId AND user_id = :userId', {
+      expect(updateQb.where).toHaveBeenCalledWith('id = :runId AND tenant_id = :tenantId', {
         runId: 'run-1',
-        userId: 'user-1',
+        tenantId: 'tenant-1',
       });
       expect(updateQb.returning).toHaveBeenCalledWith('starred');
     });
@@ -643,7 +644,7 @@ describe('PlaygroundHistoryService', () => {
     it('throws NotFoundException when no row was updated', async () => {
       const { service, updateQb } = buildService();
       updateQb.execute.mockResolvedValueOnce({ affected: 0, raw: [] });
-      await expect(service.toggleStar('user-1', 'missing')).rejects.toBeInstanceOf(
+      await expect(service.toggleStar('tenant-1', 'missing')).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
@@ -655,7 +656,7 @@ describe('PlaygroundHistoryService', () => {
       columnRepo.findOne.mockResolvedValue({ id: 'col-1' });
       updateQb.execute.mockResolvedValueOnce({ affected: 1, raw: [{ best_column_id: 'col-1' }] });
 
-      const best = await service.setBestColumn('user-1', 'run-1', 'col-1');
+      const best = await service.setBestColumn('tenant-1', 'run-1', 'col-1');
 
       expect(best).toBe('col-1');
       expect(columnRepo.findOne).toHaveBeenCalledWith({
@@ -663,9 +664,9 @@ describe('PlaygroundHistoryService', () => {
         select: ['id'],
       });
       expect(updateQb.set).toHaveBeenCalledWith({ best_column_id: 'col-1' });
-      expect(updateQb.where).toHaveBeenCalledWith('id = :runId AND user_id = :userId', {
+      expect(updateQb.where).toHaveBeenCalledWith('id = :runId AND tenant_id = :tenantId', {
         runId: 'run-1',
-        userId: 'user-1',
+        tenantId: 'tenant-1',
       });
       expect(updateQb.returning).toHaveBeenCalledWith('best_column_id');
     });
@@ -674,7 +675,7 @@ describe('PlaygroundHistoryService', () => {
       const { service, columnRepo, updateQb } = buildService();
       updateQb.execute.mockResolvedValueOnce({ affected: 1, raw: [{ best_column_id: null }] });
 
-      const best = await service.setBestColumn('user-1', 'run-1', null);
+      const best = await service.setBestColumn('tenant-1', 'run-1', null);
 
       expect(best).toBeNull();
       expect(columnRepo.findOne).not.toHaveBeenCalled();
@@ -685,15 +686,15 @@ describe('PlaygroundHistoryService', () => {
       const { service, columnRepo } = buildService();
       columnRepo.findOne.mockResolvedValue(null);
       await expect(
-        service.setBestColumn('user-1', 'run-1', 'cross-run-col'),
+        service.setBestColumn('tenant-1', 'run-1', 'cross-run-col'),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
 
-    it('throws NotFoundException when the run is missing / not owned by the user', async () => {
+    it('throws NotFoundException when the run is missing / not owned by the tenant', async () => {
       const { service, columnRepo, updateQb } = buildService();
       columnRepo.findOne.mockResolvedValue({ id: 'col-1' });
       updateQb.execute.mockResolvedValueOnce({ affected: 0, raw: [] });
-      await expect(service.setBestColumn('user-1', 'run-1', 'col-1')).rejects.toBeInstanceOf(
+      await expect(service.setBestColumn('tenant-1', 'run-1', 'col-1')).rejects.toBeInstanceOf(
         NotFoundException,
       );
     });
@@ -701,7 +702,7 @@ describe('PlaygroundHistoryService', () => {
     it('coerces an undefined returned best_column_id to null', async () => {
       const { service, updateQb } = buildService();
       updateQb.execute.mockResolvedValueOnce({ affected: 1, raw: [{}] });
-      const best = await service.setBestColumn('user-1', 'run-1', null);
+      const best = await service.setBestColumn('tenant-1', 'run-1', null);
       expect(best).toBeNull();
     });
   });

@@ -2,8 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
-import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
-import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 
 @Injectable()
@@ -13,8 +11,6 @@ export class RoutingInvalidationService {
   constructor(
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
-    private readonly pricingCache: ModelPricingCacheService,
-    private readonly autoAssign: TierAutoAssignService,
     private readonly routingCache: RoutingCacheService,
   ) {}
 
@@ -24,7 +20,6 @@ export class RoutingInvalidationService {
    */
   async invalidateOverridesForRemovedModels(removedModels: string[]): Promise<void> {
     if (removedModels.length === 0) return;
-    void this.pricingCache; // suppress unused warning, kept for future cost-aware invalidation
 
     const removedSet = new Set(removedModels);
 
@@ -65,12 +60,9 @@ export class RoutingInvalidationService {
 
     if (agentIds.size === 0) return;
 
-    await Promise.all(
-      [...agentIds].map((agentId) => {
-        this.routingCache.invalidateAgent(agentId);
-        return this.autoAssign.recalculate(agentId);
-      }),
-    );
+    for (const agentId of agentIds) {
+      this.routingCache.invalidateAgent(agentId);
+    }
 
     this.logger.log(
       `Invalidated ${invalidatedCount} overrides for ${agentIds.size} agents (removed models: ${removedModels.join(', ')})`,

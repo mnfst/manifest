@@ -30,17 +30,20 @@ function createConfig(): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -188,6 +191,21 @@ describe('MinimaxOauthService', () => {
       expect(svc.getPendingCount()).toBe(0);
     });
 
+    it('purges and reports error when the flow expires between cleanup and the expiry check', async () => {
+      const start = await startFlow();
+      // cleanupExpired() and the explicit expiry check share Date.now(); only a
+      // clock that advances between the two reads reaches the expiry branch.
+      const nowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValueOnce(start.expiresAt - 1)
+        .mockReturnValueOnce(start.expiresAt + 1);
+      const out = await svc.pollAuthorization(start.flowId, 'user-1');
+      nowSpy.mockRestore();
+      expect(out.status).toBe('error');
+      expect(out.message).toContain('expired');
+      expect(svc.getPendingCount()).toBe(0);
+    });
+
     it('returns "pending" when the token endpoint reports a pending approval', async () => {
       const start = await startFlow();
       fetchMock.mockResolvedValueOnce(mockResponse(200, { status: 'pending' }));
@@ -253,10 +271,31 @@ describe('MinimaxOauthService', () => {
         'subscription',
         undefined,
         undefined,
+        null,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
       expect(svc.getPendingCount()).toBe(0);
+    });
+
+    it('does not route agents after discovery when the provider row is new', async () => {
+      provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      const start = await startFlow();
+      fetchMock.mockResolvedValueOnce(
+        mockResponse(200, {
+          status: 'success',
+          access_token: 'at',
+          refresh_token: 'rt',
+          expired_in: 3600,
+        }),
+      );
+
+      await svc.pollAuthorization(start.flowId, 'user-1');
+
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('swallows discovery errors after a successful token exchange', async () => {

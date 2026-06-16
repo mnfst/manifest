@@ -102,7 +102,6 @@ function makeRow(overrides: Partial<MessageRow> = {}): MessageRow {
   };
 }
 
-const noopProvider = () => undefined;
 
 describe('MessageTable', () => {
   describe('column configuration', () => {
@@ -112,7 +111,6 @@ describe('MessageTable', () => {
           items={[]}
           columns={COMPACT_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const headers = container.querySelectorAll('th');
@@ -132,7 +130,6 @@ describe('MessageTable', () => {
           items={[]}
           columns={DETAILED_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
           showHeaderTooltips
         />
       ));
@@ -157,7 +154,6 @@ describe('MessageTable', () => {
           items={[]}
           columns={COMPACT_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const tokensHeader = container.querySelectorAll('th')[6]!; // 'totalTokens' is at index 6 in COMPACT_COLUMNS
@@ -171,7 +167,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={DETAILED_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
           showHeaderTooltips
         />
       ));
@@ -188,7 +183,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('2026-02-16 10:00:00');
@@ -200,7 +194,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'e83a3049-xxxx' })]}
           columns={['message']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('e83a3049');
@@ -212,7 +205,6 @@ describe('MessageTable', () => {
           items={[makeRow({ routing_reason: 'heartbeat' })]}
           columns={['message']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const heartbeat = container.querySelector('[title="Heartbeat"]');
@@ -226,7 +218,6 @@ describe('MessageTable', () => {
           items={[makeRow({ cost: 1.5 })]}
           columns={['cost']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('$1.50');
@@ -238,7 +229,6 @@ describe('MessageTable', () => {
           items={[makeRow({ auth_type: 'subscription', cost: null })]}
           columns={['cost']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('$0.00');
@@ -251,7 +241,6 @@ describe('MessageTable', () => {
           items={[makeRow({ auth_type: 'subscription', cost: 0.013636 })]}
           columns={['cost']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('$0.01');
@@ -266,7 +255,6 @@ describe('MessageTable', () => {
           items={[makeRow({ cost: null })]}
           columns={['cost']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('\u2014');
@@ -278,7 +266,6 @@ describe('MessageTable', () => {
           items={[makeRow({ total_tokens: 1500 })]}
           columns={['totalTokens']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('1500');
@@ -290,7 +277,6 @@ describe('MessageTable', () => {
           items={[makeRow({ input_tokens: 200, output_tokens: 80 })]}
           columns={['input', 'output']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('200');
@@ -303,7 +289,6 @@ describe('MessageTable', () => {
           items={[makeRow({ cache_read_tokens: 500, cache_creation_tokens: 100 })]}
           columns={['cache']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('Read: 500');
@@ -316,7 +301,6 @@ describe('MessageTable', () => {
           items={[makeRow({ cache_read_tokens: 0, cache_creation_tokens: 0 })]}
           columns={['cache']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('\u2014');
@@ -328,7 +312,6 @@ describe('MessageTable', () => {
           items={[makeRow({ duration_ms: 450 })]}
           columns={['duration']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('450ms');
@@ -342,7 +325,6 @@ describe('MessageTable', () => {
           items={[makeRow({ model: 'gpt-4o' })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('[data-testid="icon-openai"]')).not.toBeNull();
@@ -355,7 +337,6 @@ describe('MessageTable', () => {
           items={[makeRow({ model: 'gpt-4o', display_name: 'GPT-4o' })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       // getModelDisplayName is mocked to strip custom prefix; for gpt-4o it returns as-is
@@ -372,7 +353,6 @@ describe('MessageTable', () => {
           ]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       // All three rows should render the ollama-cloud icon, not ollama (colon
@@ -389,7 +369,6 @@ describe('MessageTable', () => {
           items={[makeRow({ model: 'gpt-4o', provider: null })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('[data-testid="icon-openai"]')).not.toBeNull();
@@ -403,24 +382,31 @@ describe('MessageTable', () => {
       // does not equal 'custom', so the custom branch would be skipped.
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ model: 'custom:abc/my-model', provider: 'custom:abc' })]}
+          items={[
+            makeRow({
+              model: 'custom:abc/my-model',
+              provider: 'custom:abc',
+              custom_provider_name: 'MyProvider',
+            }),
+          ]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={() => 'MyProvider'}
         />
       ));
       const avatar = container.querySelector('.provider-card__logo-letter');
       expect(avatar).not.toBeNull();
       expect(avatar!.textContent).toBe('M');
+      // The text shows just the raw model — no `custom:` prefix, no name echo.
+      expect(container.textContent).toContain('my-model');
+      expect(container.textContent).not.toContain('custom:');
     });
 
     it('renders custom provider letter avatar', () => {
       const { container } = render(() => (
         <MessageTable
-          items={[makeRow({ model: 'custom:abc/my-model' })]}
+          items={[makeRow({ model: 'custom:abc/my-model', custom_provider_name: 'MyProvider' })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={() => 'MyProvider'}
         />
       ));
       const avatar = container.querySelector('.provider-card__logo-letter');
@@ -434,7 +420,6 @@ describe('MessageTable', () => {
           items={[makeRow({ model: null })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.textContent).toContain('\u2014');
@@ -446,7 +431,6 @@ describe('MessageTable', () => {
           items={[makeRow({ routing_tier: 'fast' })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const badge = container.querySelector('.tier-badge--fast');
@@ -465,7 +449,6 @@ describe('MessageTable', () => {
           ]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const specBadge = container.querySelector('.tier-badge--specificity');
@@ -482,7 +465,6 @@ describe('MessageTable', () => {
           items={[makeRow({ fallback_from_model: 'claude-opus-4-6' })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const badge = container.querySelector('.tier-badge--fallback');
@@ -498,7 +480,6 @@ describe('MessageTable', () => {
           items={[makeRow({ status: 'ok' })]}
           columns={['status']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('.status-badge--ok')).not.toBeNull();
@@ -510,12 +491,11 @@ describe('MessageTable', () => {
           items={[makeRow({ status: 'rate_limited' })]}
           columns={['status']}
           agentName="my-agent"
-          customProviderName={noopProvider}
         />
       ));
       const link = container.querySelector('a');
       expect(link).not.toBeNull();
-      expect(link!.getAttribute('href')).toContain('/agents/my-agent/limits');
+      expect(link!.getAttribute('href')).toContain('/harnesses/my-agent/limits');
     });
 
     it('renders error tooltip for error messages', () => {
@@ -524,7 +504,6 @@ describe('MessageTable', () => {
           items={[makeRow({ status: 'error', error_message: 'timeout' })]}
           columns={['status']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const tooltip = container.querySelector('.status-badge-tooltip');
@@ -538,7 +517,6 @@ describe('MessageTable', () => {
           items={[makeRow({ status: 'fallback_error', error_message: 'rate limited' })]}
           columns={['status']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const badge = container.querySelector('.status-badge--fallback_error');
@@ -555,7 +533,6 @@ describe('MessageTable', () => {
           ]}
           columns={['status']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const badges = container.querySelectorAll('.status-badge--fallback_error');
@@ -575,7 +552,6 @@ describe('MessageTable', () => {
           items={[makeRow({ status: 'fallback_error', error_message: 'err', model: 'gpt-4o' })]}
           columns={['status']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onFallbackErrorClick={handler}
         />
       ));
@@ -592,7 +568,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'test-id-123' })]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           rowIdPrefix="msg-"
         />
       ));
@@ -606,7 +581,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const bodyRow = container.querySelector('tbody tr');
@@ -621,7 +595,6 @@ describe('MessageTable', () => {
           items={[makeRow(), makeRow({ id: 'row-2' })]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
@@ -635,7 +608,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('.msg-detail__chevron-btn')).toBeNull();
@@ -648,7 +620,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
@@ -664,7 +635,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
@@ -681,7 +651,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
@@ -697,7 +666,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'specific-msg-id' })]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
@@ -714,7 +682,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['date']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
@@ -734,7 +701,6 @@ describe('MessageTable', () => {
           items={[row]}
           columns={COMPACT_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const { container: detailed } = render(() => (
@@ -742,7 +708,6 @@ describe('MessageTable', () => {
           items={[row]}
           columns={DETAILED_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
           showHeaderTooltips
         />
       ));
@@ -763,7 +728,6 @@ describe('MessageTable', () => {
           items={[row]}
           columns={COMPACT_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const { container: detailed } = render(() => (
@@ -771,7 +735,6 @@ describe('MessageTable', () => {
           items={[row]}
           columns={DETAILED_COLUMNS}
           agentName="agent-1"
-          customProviderName={noopProvider}
           showHeaderTooltips
         />
       ));
@@ -789,7 +752,6 @@ describe('MessageTable', () => {
           items={[makeRow({ duration_ms: 300 })]}
           columns={['date', 'cost', 'totalTokens', 'duration', 'status']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       const headers = container.querySelectorAll('th');
@@ -809,7 +771,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onFeedbackLike={vi.fn()}
           onFeedbackDislike={vi.fn()}
           onFeedbackClear={vi.fn()}
@@ -826,7 +787,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'msg-like-test' })]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onFeedbackLike={handler}
           onFeedbackDislike={vi.fn()}
           onFeedbackClear={vi.fn()}
@@ -844,7 +804,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'msg-dislike-test' })]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onFeedbackLike={vi.fn()}
           onFeedbackDislike={handler}
           onFeedbackClear={vi.fn()}
@@ -862,7 +821,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'msg-clear-test', feedback_rating: 'like' })]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onFeedbackLike={vi.fn()}
           onFeedbackDislike={vi.fn()}
           onFeedbackClear={handler}
@@ -881,7 +839,6 @@ describe('MessageTable', () => {
           items={[makeRow({ id: 'msg-clear-test', feedback_rating: 'dislike' })]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onFeedbackLike={vi.fn()}
           onFeedbackDislike={vi.fn()}
           onFeedbackClear={handler}
@@ -899,7 +856,6 @@ describe('MessageTable', () => {
           items={[makeRow({ feedback_rating: 'like' })]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('.feedback-btn--active-like')).not.toBeNull();
@@ -912,7 +868,6 @@ describe('MessageTable', () => {
           items={[makeRow({ feedback_rating: 'dislike' })]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('.feedback-btn--active-dislike')).not.toBeNull();
@@ -925,7 +880,6 @@ describe('MessageTable', () => {
           items={[makeRow()]}
           columns={['feedback']}
           agentName="agent-1"
-          customProviderName={noopProvider}
         />
       ));
       expect(container.querySelector('.feedback-btn--active-like')).toBeNull();
@@ -941,7 +895,6 @@ describe('MessageTable', () => {
           items={[makeRow({ recorded: true })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onOpenRecording={onOpen}
           expandable
         />
@@ -960,7 +913,6 @@ describe('MessageTable', () => {
           items={[makeRow({ recorded: false })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           onOpenRecording={vi.fn()}
           expandable
         />
@@ -975,12 +927,55 @@ describe('MessageTable', () => {
           items={[makeRow({ recorded: true })]}
           columns={['model']}
           agentName="agent-1"
-          customProviderName={noopProvider}
           expandable
         />
       ));
       expect(container.querySelector('.msg-detail__eye-btn')).toBeNull();
       expect(container.querySelector('.msg-detail__chevron-btn')).not.toBeNull();
+    });
+  });
+
+  describe('agent column (global mode)', () => {
+    it('renders Agent column header when agent column is in columns list', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ agent_name: 'my-agent' })]}
+          columns={['agent', 'date']}
+        />
+      ));
+      const headers = container.querySelectorAll('th');
+      expect(headers[0]!.textContent).toContain('Harness');
+      expect(headers[1]!.textContent).toContain('Date');
+    });
+
+    it('renders agent_name value in agent cell', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ agent_name: 'my-agent' })]}
+          columns={['agent']}
+        />
+      ));
+      expect(container.textContent).toContain('my-agent');
+    });
+
+    it('renders em dash when agent_name is null', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ agent_name: null })]}
+          columns={['agent']}
+        />
+      ));
+      expect(container.textContent).toContain('—');
+    });
+
+    it('works without agentName prop (global mode)', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow()]}
+          columns={['date', 'status']}
+        />
+      ));
+      expect(container.querySelector('.data-table')).not.toBeNull();
     });
   });
 });

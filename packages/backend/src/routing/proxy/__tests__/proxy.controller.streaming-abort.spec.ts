@@ -75,10 +75,6 @@ function makeRecorder(repo: { insert: jest.Mock; findOne: jest.Mock; find: jest.
           model: model ?? null,
         })),
     } as never,
-    { getProviders: jest.fn().mockResolvedValue([]) } as never,
-    { getTiers: jest.fn().mockResolvedValue([]) } as never,
-    { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-    { list: jest.fn().mockResolvedValue([]) } as never,
     {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -190,7 +186,7 @@ describe('ProxyController streaming abort', () => {
     expect(opts.signal.aborted).toBe(true);
 
     // Slot must still be released even though the request was aborted.
-    expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('user-1');
+    expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('tenant-1');
   });
 
   it('does not call res.end again when writableEnded is true at abort time', async () => {
@@ -223,7 +219,7 @@ describe('ProxyController streaming abort', () => {
 
     expect(res.end).not.toHaveBeenCalled();
     expect(res.json).not.toHaveBeenCalled();
-    expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('user-1');
+    expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('tenant-1');
   });
 
   it('records no error message when request was aborted mid-flight', async () => {

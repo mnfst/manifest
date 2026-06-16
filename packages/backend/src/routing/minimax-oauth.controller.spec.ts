@@ -28,7 +28,7 @@ describe('MinimaxOauthController', () => {
   });
 
   it('starts MiniMax OAuth for the resolved agent', async () => {
-    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
     oauthService.startAuthorization.mockResolvedValue({
       flowId: 'flow-1',
       userCode: 'ABCD-1234',
@@ -37,44 +37,57 @@ describe('MinimaxOauthController', () => {
       pollIntervalMs: 2000,
     });
 
-    const result = await controller.start('my-agent', 'cn', { id: 'user-1' } as never);
+    const result = await controller.start('my-agent', 'cn', {
+      tenantId: 'tenant-1',
+      userId: 'user-1',
+    } as never);
 
-    expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
-    expect(oauthService.startAuthorization).toHaveBeenCalledWith('agent-id-1', 'user-1', 'cn');
+    expect(resolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'my-agent');
+    expect(oauthService.startAuthorization).toHaveBeenCalledWith(
+      'agent-id-1',
+      'tenant-1',
+      'cn',
+      'user-1',
+    );
     expect(result.flowId).toBe('flow-1');
   });
 
   it('throws 400 when agentName is missing', async () => {
-    await expect(controller.start('', 'global', { id: 'user-1' } as never)).rejects.toThrow(
-      HttpException,
-    );
+    await expect(
+      controller.start('', 'global', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+    ).rejects.toThrow(HttpException);
   });
 
   it('throws 400 when region is invalid', async () => {
-    await expect(controller.start('my-agent', 'mars', { id: 'user-1' } as never)).rejects.toThrow(
-      HttpException,
-    );
+    await expect(
+      controller.start('my-agent', 'mars', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+    ).rejects.toThrow(HttpException);
   });
 
   it('polls MiniMax OAuth state', async () => {
     oauthService.pollAuthorization.mockResolvedValue({ status: 'pending' });
 
-    const result = await controller.poll('flow-1', { id: 'user-1' } as never);
+    const result = await controller.poll('flow-1', {
+      tenantId: 'tenant-1',
+      userId: 'user-1',
+    } as never);
 
-    expect(oauthService.pollAuthorization).toHaveBeenCalledWith('flow-1', 'user-1');
+    expect(oauthService.pollAuthorization).toHaveBeenCalledWith('flow-1', 'tenant-1');
     expect(result).toEqual({ status: 'pending' });
   });
 
   it('throws 400 when flowId is missing', async () => {
-    await expect(controller.poll('', { id: 'user-1' } as never)).rejects.toThrow(HttpException);
+    await expect(
+      controller.poll('', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+    ).rejects.toThrow(HttpException);
   });
 
   it('maps startAuthorization failures to 503', async () => {
-    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
     oauthService.startAuthorization.mockRejectedValue(new Error('MiniMax unavailable'));
 
     await expect(
-      controller.start('my-agent', 'global', { id: 'user-1' } as never),
+      controller.start('my-agent', 'global', { tenantId: 'tenant-1', userId: 'user-1' } as never),
     ).rejects.toMatchObject({
       message: 'MiniMax unavailable',
       status: HttpStatus.SERVICE_UNAVAILABLE,
@@ -84,26 +97,32 @@ describe('MinimaxOauthController', () => {
   it('maps pollAuthorization failures to 503', async () => {
     oauthService.pollAuthorization.mockRejectedValue(new Error('MiniMax poll unavailable'));
 
-    await expect(controller.poll('flow-1', { id: 'user-1' } as never)).rejects.toMatchObject({
+    await expect(
+      controller.poll('flow-1', { tenantId: 'tenant-1', userId: 'user-1' } as never),
+    ).rejects.toMatchObject({
       message: 'MiniMax poll unavailable',
       status: HttpStatus.SERVICE_UNAVAILABLE,
     });
   });
 
   it('throws 400 when revoke agentName is missing', async () => {
-    await expect(controller.revoke('', undefined, { id: 'user-1' } as never)).rejects.toThrow(
-      HttpException,
-    );
+    await expect(
+      controller.revoke('', undefined, { tenantId: 'tenant-1', userId: 'user-1' } as never),
+    ).rejects.toThrow(HttpException);
   });
 
   it('removes all MiniMax subscription records for the resolved agent', async () => {
-    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
 
-    const result = await controller.revoke('my-agent', undefined, { id: 'user-1' } as never);
+    const result = await controller.revoke('my-agent', undefined, {
+      tenantId: 'tenant-1',
+      userId: 'user-1',
+    } as never);
 
-    expect(resolveAgent.resolve).toHaveBeenCalledWith('user-1', 'my-agent');
+    expect(resolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'my-agent');
     expect(providerService.removeProvider).toHaveBeenCalledWith(
       'agent-id-1',
+      'tenant-1',
       'minimax',
       'subscription',
       undefined,
@@ -112,12 +131,16 @@ describe('MinimaxOauthController', () => {
   });
 
   it('removes only the labeled MiniMax subscription record', async () => {
-    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1' } as never);
+    resolveAgent.resolve.mockResolvedValue({ id: 'agent-id-1', tenant_id: 'tenant-1' } as never);
 
-    const result = await controller.revoke('my-agent', 'Key 2', { id: 'user-1' } as never);
+    const result = await controller.revoke('my-agent', 'Key 2', {
+      tenantId: 'tenant-1',
+      userId: 'user-1',
+    } as never);
 
     expect(providerService.removeProvider).toHaveBeenCalledWith(
       'agent-id-1',
+      'tenant-1',
       'minimax',
       'subscription',
       'Key 2',
@@ -127,7 +150,10 @@ describe('MinimaxOauthController', () => {
 
   it('rejects repeated revoke label query parameters', async () => {
     await expect(
-      controller.revoke('my-agent', ['Key 1', 'Key 2'], { id: 'user-1' } as never),
+      controller.revoke('my-agent', ['Key 1', 'Key 2'], {
+        tenantId: 'tenant-1',
+        userId: 'user-1',
+      } as never),
     ).rejects.toMatchObject({
       message: 'label query parameter must be a string',
       status: HttpStatus.BAD_REQUEST,

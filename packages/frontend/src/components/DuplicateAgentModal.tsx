@@ -56,9 +56,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
   const totalCopied = () => {
     const c = preview()?.copied;
     if (!c) return 0;
-    return (
-      c.providers + c.customProviders + c.tierAssignments + c.specificityAssignments + c.modelParams
-    );
+    return c.providers + c.tierAssignments + c.specificityAssignments + c.modelParams;
   };
 
   const handleNameInput = (value: string) => {
@@ -86,7 +84,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
       toast.success(`Duplicated "${props.sourceName}" to "${slug}"`);
       props.onClose();
       props.onDuplicated?.();
-      navigate(`/agents/${encodeURIComponent(slug)}`, {
+      navigate(`/harnesses/${encodeURIComponent(slug)}`, {
         state: { newApiKey: result.apiKey },
       });
     } catch {
@@ -122,12 +120,12 @@ const DuplicateAgentModal: Component<Props> = (props) => {
             Duplicate "{props.sourceName}"
           </h2>
           <p class="modal-card__desc">
-            Creates a new agent with the same providers, routing, and tier configuration. A fresh
-            API key is generated — telemetry and message history stay with the original.
+            Creates a new harness with the same providers, routing, and tier configuration. A fresh
+            API key is generated. Telemetry and message history stay with the original.
           </p>
 
           <label class="modal-card__field-label" for="duplicate-agent-name">
-            New agent name
+            New harness name
           </label>
           <input
             ref={(el) =>
@@ -163,10 +161,6 @@ const DuplicateAgentModal: Component<Props> = (props) => {
                   subscriptions)
                 </li>
                 <li>
-                  <strong>{preview()!.copied.customProviders}</strong> custom provider
-                  {preview()!.copied.customProviders === 1 ? '' : 's'}
-                </li>
-                <li>
                   <strong>{preview()!.copied.tierAssignments}</strong> tier override
                   {preview()!.copied.tierAssignments === 1 ? '' : 's'}
                 </li>
@@ -197,7 +191,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
               disabled={!name().trim() || submitting()}
               type="button"
             >
-              {submitting() ? <span class="spinner" /> : 'Duplicate agent'}
+              {submitting() ? <span class="spinner" /> : 'Duplicate harness'}
             </button>
           </div>
         </div>

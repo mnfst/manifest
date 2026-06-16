@@ -1,8 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 
+// Reactive agent param so tests can simulate navigating between agents while
+// AgentGuard stays mounted (the resource is keyed on this).
+const [agentNameParam, setAgentNameParam] = createSignal("test-agent");
 vi.mock("@solidjs/router", () => ({
-  useParams: () => ({ agentName: "test-agent" }),
+  useParams: () => ({
+    get agentName() {
+      return agentNameParam();
+    },
+  }),
   A: (props: any) => <a href={props.href}>{props.children}</a>,
 }));
 
@@ -44,6 +52,7 @@ describe("AgentGuard", () => {
     mockSetAgentDisplayName.mockClear();
     mockIsRecentlyCreated.mockReturnValue(false);
     mockClearRecentAgent.mockClear();
+    setAgentNameParam("test-agent");
   });
 
   it("renders children when agent exists", async () => {
@@ -107,5 +116,37 @@ describe("AgentGuard", () => {
     await vi.waitFor(() => {
       expect(mockClearRecentAgent).toHaveBeenCalledWith("test-agent");
     });
+  });
+
+  it("refetches the agent list when the viewed agent changes", async () => {
+    // First load only knows about test-agent; a second agent is created later
+    // (e.g. from the sidebar while this guard stays mounted) and must trigger a
+    // fresh fetch rather than reusing the stale first-mount list.
+    mockGetAgents
+      .mockResolvedValueOnce({ agents: [{ agent_name: "test-agent" }] })
+      .mockResolvedValueOnce({
+        agents: [{ agent_name: "test-agent" }, { agent_name: "new-agent" }],
+      });
+    mockIsRecentlyCreated.mockImplementation((name: string) => name === "new-agent");
+
+    render(() => (
+      <AgentGuard>
+        <div data-testid="child">Child content</div>
+      </AgentGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(mockGetAgents).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId("child")).toBeDefined();
+    });
+
+    setAgentNameParam("new-agent");
+
+    await vi.waitFor(() => {
+      expect(mockGetAgents).toHaveBeenCalledTimes(2);
+    });
+    // Children stay mounted through the in-flight refetch (no blank flash) and
+    // the freshly fetched list resolves the new agent.
+    expect(screen.getByTestId("child")).toBeDefined();
+    expect(mockClearRecentAgent).toHaveBeenCalledWith("new-agent");
   });
 });

@@ -16,8 +16,13 @@ export class ApiKey {
   @Column('varchar', { length: 12 })
   key_prefix!: string;
 
+  @Index()
   @Column('varchar')
-  user_id!: string;
+  tenant_id!: string;
+
+  /** Audit-only: which user created the key. Never used for scoping. */
+  @Column('varchar', { nullable: true })
+  created_by_user_id!: string | null;
 
   @Column('varchar')
   name!: string;

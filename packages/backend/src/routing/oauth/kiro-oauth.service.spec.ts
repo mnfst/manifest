@@ -35,17 +35,20 @@ function createConfig(overrides: Record<string, string> = {}): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue('Kiro 1');
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -153,7 +156,7 @@ describe('KiroOauthService', () => {
           }),
         );
 
-      const { flowId } = await service.startAuthorization('agent-1', 'user-1', {
+      const { flowId } = await service.startAuthorization('agent-1', 'user-1', null, {
         startUrl: ' https://org.awsapps.com/start ',
         region: 'EU-WEST-1',
       });
@@ -175,13 +178,13 @@ describe('KiroOauthService', () => {
       const service = makeService();
 
       await expect(
-        service.startAuthorization('agent-1', 'user-1', {
+        service.startAuthorization('agent-1', 'user-1', null, {
           startUrl: 'http://org.awsapps.com/start',
           region: 'eu-west-1',
         }),
       ).rejects.toThrow('must use HTTPS');
       await expect(
-        service.startAuthorization('agent-1', 'user-1', {
+        service.startAuthorization('agent-1', 'user-1', null, {
           startUrl: 'https://org.awsapps.com/start',
           region: 'eu-west-1.example',
         }),
@@ -357,7 +360,7 @@ describe('KiroOauthService', () => {
       const result = await service.pollAuthorization(flowId, 'user-1');
 
       expect(result).toEqual({ status: 'success' });
-      expect(provider.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'kiro');
+      expect(provider.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'kiro');
       const [, , prov, serialized, authType, , label] = provider.upsertProvider.mock.calls[0];
       expect(prov).toBe('kiro');
       expect(authType).toBe('subscription');
@@ -372,7 +375,23 @@ describe('KiroOauthService', () => {
         region: 'us-east-1',
       });
       expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
+    });
+
+    it('does not route agents after discovery when the provider row is new', async () => {
+      provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      const service = makeService();
+      const flowId = await startAndGetFlowId(service);
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse(200, { accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }),
+      );
+
+      await service.pollAuthorization(flowId, 'user-1');
+
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('still succeeds when post-connect discovery throws', async () => {

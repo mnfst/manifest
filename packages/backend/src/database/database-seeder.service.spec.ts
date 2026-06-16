@@ -1,5 +1,6 @@
 import { keyPrefix, verifyKey } from '../common/utils/hash.util';
 import { DatabaseSeederService } from './database-seeder.service';
+import { getSeedConnections } from './seed-messages';
 
 // Mock auth.instance before importing the service
 jest.mock('../auth/auth.instance', () => ({
@@ -16,6 +17,7 @@ function makeMockRepo() {
   return {
     count: jest.fn().mockResolvedValue(0),
     insert: jest.fn().mockResolvedValue({}),
+    findOne: jest.fn().mockResolvedValue(null),
   };
 }
 
@@ -28,6 +30,7 @@ describe('DatabaseSeederService', () => {
   let mockAgentKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockApiKeyRepo: ReturnType<typeof makeMockRepo>;
   let mockMessageRepo: ReturnType<typeof makeMockRepo>;
+  let mockProviderRepo: ReturnType<typeof makeMockRepo>;
   let configValues: Record<string, string | undefined>;
 
   beforeEach(() => {
@@ -43,6 +46,7 @@ describe('DatabaseSeederService', () => {
     mockAgentKeyRepo = makeMockRepo();
     mockApiKeyRepo = makeMockRepo();
     mockMessageRepo = makeMockRepo();
+    mockProviderRepo = makeMockRepo();
 
     service = new DatabaseSeederService(
       mockDataSource as never,
@@ -52,6 +56,7 @@ describe('DatabaseSeederService', () => {
       mockAgentKeyRepo as never,
       mockApiKeyRepo as never,
       mockMessageRepo as never,
+      mockProviderRepo as never,
     );
 
     jest.clearAllMocks();
@@ -165,7 +170,8 @@ describe('DatabaseSeederService', () => {
       expect(insertCall.key).toBeNull();
       expect(verifyKey('dev-api-key-manifest-001', insertCall.key_hash)).toBe(true);
       expect(insertCall.key_prefix).toBe(keyPrefix('dev-api-key-manifest-001'));
-      expect(insertCall.user_id).toBe('admin-user-id');
+      expect(insertCall.created_by_user_id).toBe('admin-user-id');
+      expect(insertCall.tenant_id).toBe('seed-tenant-001');
       expect(insertCall.name).toBe('Development API Key');
     });
 
@@ -278,6 +284,45 @@ describe('DatabaseSeederService', () => {
     });
   });
 
+  describe('seedTenantProviders', () => {
+    it('seeds one connection per distinct (provider, auth_type) behind the seed messages', async () => {
+      await service.onModuleInit();
+
+      const connections = getSeedConnections();
+      expect(connections.length).toBeGreaterThan(0);
+      expect(mockProviderRepo.insert).toHaveBeenCalledTimes(connections.length);
+      for (const conn of connections) {
+        expect(mockProviderRepo.insert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: conn.id,
+            tenant_id: 'seed-tenant-001',
+            created_by_user_id: 'admin-user-id',
+            provider: conn.provider,
+            auth_type: conn.auth_type,
+            label: 'Default',
+            is_active: true,
+          }),
+        );
+      }
+    });
+
+    it('is idempotent — skips connections that already exist', async () => {
+      mockProviderRepo.findOne.mockResolvedValue({ id: 'seed-conn-existing' });
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('skips seeding connections when the admin user is not found', async () => {
+      mockDataSource.query.mockResolvedValue([]);
+
+      await service.onModuleInit();
+
+      expect(mockProviderRepo.insert).not.toHaveBeenCalled();
+    });
+  });
+
   describe('seedAdminUser', () => {
     it('should skip creation when admin user already exists', async () => {
       // query returns a row (user exists)
@@ -348,19 +393,39 @@ describe('DatabaseSeederService', () => {
       expect(auth.api.signUpEmail).toHaveBeenCalled();
     });
 
-    it('should propagate unhandled errors from seedAdminUser', async () => {
-      // checkBetterAuthUser returns false, signUpEmail throws
+    it('catches errors from the demo-data seed sequence so boot is not aborted', async () => {
+      // Demo-data seeding is best-effort dev-only convenience: a signup hiccup
+      // (or any other seed insert failure) must be logged and swallowed, NOT
+      // rejected up through onModuleInit where it would crash app bootstrap.
+      // checkBetterAuthUser returns false, signUpEmail throws.
       mockDataSource.query.mockResolvedValueOnce([]); // checkBetterAuthUser: no user
       auth.api.signUpEmail.mockRejectedValueOnce(new Error('signup failed'));
+      const errorSpy = jest
+        .spyOn((service as unknown as { logger: { error: jest.Mock } }).logger, 'error')
+        .mockImplementation(() => undefined);
 
-      await expect(service.onModuleInit()).rejects.toThrow('signup failed');
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('signup failed'));
+
+      errorSpy.mockRestore();
+    });
+
+    it('keeps the Better Auth migration fatal — its failure still aborts boot', async () => {
+      // The migration that creates Better Auth's own tables runs BEFORE the
+      // guarded demo-data block and must remain fatal: without those tables the
+      // app cannot authenticate at all, so a failure here should propagate.
+      const ctx = await auth.$context;
+      (ctx.runMigrations as jest.Mock).mockRejectedValueOnce(new Error('migration boom'));
+
+      await expect(service.onModuleInit()).rejects.toThrow('migration boom');
     });
 
     it('should skip api key insert when getAdminUserId returns null', async () => {
       // checkBetterAuthUser: user exists (skip signUpEmail)
       mockDataSource.query.mockResolvedValueOnce([{ id: 'x' }]);
-      // getAdminUserId in seedApiKey: no rows
-      mockDataSource.query.mockResolvedValueOnce([]);
+      // Every subsequent getAdminUserId call (seedTenantAndAgent, seedApiKey,
+      // seedAgentMessages) returns no rows → null.
+      mockDataSource.query.mockResolvedValue([]);
 
       mockApiKeyRepo.count.mockResolvedValue(0);
 
@@ -372,8 +437,8 @@ describe('DatabaseSeederService', () => {
     it('should handle getAdminUserId query failure with Error and return null', async () => {
       // checkBetterAuthUser: user exists (skip signUpEmail)
       mockDataSource.query.mockResolvedValueOnce([{ id: 'x' }]);
-      // getAdminUserId in seedApiKey: throws Error
-      mockDataSource.query.mockRejectedValueOnce(new Error('connection lost'));
+      // Every subsequent getAdminUserId query throws an Error → caught → null.
+      mockDataSource.query.mockRejectedValue(new Error('connection lost'));
       mockApiKeyRepo.count.mockResolvedValue(0);
 
       await service.onModuleInit();
@@ -385,8 +450,8 @@ describe('DatabaseSeederService', () => {
     it('should handle getAdminUserId query failure with non-Error and return null', async () => {
       // checkBetterAuthUser: user exists (skip signUpEmail)
       mockDataSource.query.mockResolvedValueOnce([{ id: 'x' }]);
-      // getAdminUserId in seedApiKey: throws non-Error value
-      mockDataSource.query.mockRejectedValueOnce('string rejection');
+      // Every subsequent getAdminUserId query throws a non-Error → caught → null.
+      mockDataSource.query.mockRejectedValue('string rejection');
       mockApiKeyRepo.count.mockResolvedValue(0);
 
       await service.onModuleInit();

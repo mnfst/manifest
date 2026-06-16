@@ -28,7 +28,10 @@ export class ApiKeyGeneratorService {
   }
 
   async onboardAgent(params: {
-    tenantName: string;
+    /** Known tenant (e.g. from an API-key context). Skips owner resolution. */
+    tenantId?: string | null;
+    /** Owner to resolve (and lazily create) the tenant for, when no tenantId is known. */
+    ownerUserId?: string | null;
     agentName: string;
     organizationName?: string;
     email?: string;
@@ -37,22 +40,30 @@ export class ApiKeyGeneratorService {
     agentCategory?: string;
     agentPlatform?: string;
   }): Promise<{ tenantId: string; agentId: string; apiKey: string }> {
-    const existing = await this.tenantRepo.findOne({
-      where: { name: params.tenantName },
-    });
-
     let tenantId: string;
-    if (existing) {
-      tenantId = existing.id;
-    } else {
-      tenantId = uuidv4();
-      await this.tenantRepo.insert({
-        id: tenantId,
-        name: params.tenantName,
-        organization_name: params.organizationName ?? null,
-        email: params.email ?? null,
-        is_active: true,
+    if (params.tenantId) {
+      tenantId = params.tenantId;
+    } else if (params.ownerUserId) {
+      const existing = await this.tenantRepo.findOne({
+        where: { owner_user_id: params.ownerUserId },
       });
+      if (existing) {
+        tenantId = existing.id;
+      } else {
+        tenantId = uuidv4();
+        await this.tenantRepo.insert({
+          id: tenantId,
+          // `name` keeps mirroring the owner id until it's repurposed as a
+          // display slug; resolution only ever reads owner_user_id.
+          name: params.ownerUserId,
+          owner_user_id: params.ownerUserId,
+          organization_name: params.organizationName ?? null,
+          email: params.email ?? null,
+          is_active: true,
+        });
+      }
+    } else {
+      throw new NotFoundException('No tenant available for agent onboarding');
     }
 
     const agentId = uuidv4();
@@ -84,14 +95,13 @@ export class ApiKeyGeneratorService {
   }
 
   async getKeyForAgent(
-    userId: string,
+    tenantId: string,
     agentName: string,
   ): Promise<{ keyPrefix: string; fullKey?: string }> {
     const keyRecord = await this.keyRepo
       .createQueryBuilder('k')
       .leftJoin('k.agent', 'a')
-      .leftJoin('a.tenant', 't')
-      .where('t.name = :userId', { userId })
+      .where('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.name = :agentName', { agentName })
       .andWhere('a.deleted_at IS NULL')
       .andWhere('k.is_active = true')
@@ -113,12 +123,11 @@ export class ApiKeyGeneratorService {
     return { keyPrefix: keyRecord.key_prefix };
   }
 
-  async rotateKey(userId: string, agentName: string): Promise<{ apiKey: string }> {
+  async rotateKey(tenantId: string, agentName: string): Promise<{ apiKey: string }> {
     const agent = await this.agentRepo
       .createQueryBuilder('a')
-      .leftJoin('a.tenant', 't')
       .where('a.name = :agentName', { agentName })
-      .andWhere('t.name = :userId', { userId })
+      .andWhere('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.deleted_at IS NULL')
       .getOne();
     if (!agent) throw new NotFoundException('Agent not found or access denied');

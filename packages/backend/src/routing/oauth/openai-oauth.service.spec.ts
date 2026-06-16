@@ -28,17 +28,20 @@ function createConfig(nodeEnv = 'production'): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue(undefined);
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -130,7 +133,7 @@ describe('OpenaiOauthService', () => {
           expires_in: 3600,
         }),
       );
-      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const url = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
       const state = new URL(url).searchParams.get('state')!;
 
       await svc.exchangeCode(state, 'auth-code');
@@ -145,17 +148,34 @@ describe('OpenaiOauthService', () => {
 
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'openai',
         expect.stringContaining('"t":"access-1"'),
         'subscription',
         undefined,
         undefined,
+        null,
       );
       expect(discovery.discoverModels).toHaveBeenCalled();
-      expect(providerService.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
+      expect(providerService.recalculateTiersForUser).not.toHaveBeenCalled();
       // State is one-time-use.
       expect(svc.getPendingCount()).toBe(0);
+    });
+
+    it('does not route agents after discovery when the provider row is new', async () => {
+      providerService.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      fetchMock.mockResolvedValue(
+        mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
+      );
+      const url = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const state = new URL(url).searchParams.get('state')!;
+
+      await svc.exchangeCode(state, 'auth-code');
+
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(providerService.recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(providerService.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('throws when the token endpoint returns an error', async () => {

@@ -173,10 +173,16 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
     expect(headers['x-ratelimit-remaining-requests']).toBe('49');
     expect(headers['set-cookie']).toBeUndefined();
 
+    // The run records under the reserved per-tenant "Playground" agent (created
+    // on first use), not the client-supplied agentName — so it shows as
+    // "Playground" in global Messages.
     const ds = app.get(DataSource);
+    const [playgroundAgent] = await ds.query(
+      `SELECT id FROM agents WHERE is_playground = true AND deleted_at IS NULL LIMIT 1`,
+    );
     const rows = await ds.query(
-      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
-      [TEST_AGENT_ID, 'playground'],
+      `SELECT routing_reason, routing_tier, status, provider, model, input_tokens, output_tokens, agent_name FROM agent_messages WHERE agent_id = $1 AND routing_tier = $2`,
+      [playgroundAgent.id, 'playground'],
     );
     expect(rows.length).toBe(1);
     expect(rows[0]).toMatchObject({
@@ -187,6 +193,7 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
       model: 'gpt-4o-mini',
       input_tokens: 7,
       output_tokens: 3,
+      agent_name: 'Playground',
     });
   });
 
@@ -220,16 +227,20 @@ describe('Playground E2E — POST /api/v1/playground/run (SSE)', () => {
     expect(res.body.message).toContain('anthropic');
   });
 
-  it('returns 404 when the agent does not belong to the current user', async () => {
-    await auth(api().post('/api/v1/playground/run'))
-      .send({
-        agentName: 'someone-elses-agent',
-        model: 'gpt-4o-mini',
-        provider: 'openai',
-        authType: 'api_key',
-        messages: [{ role: 'user', content: 'say hi' }],
-      })
-      .expect(404);
+  it('ignores the client-supplied agentName and runs under the reserved Playground agent', async () => {
+    stubOpenAiChatStream(['hi'], { prompt_tokens: 2, completion_tokens: 1 });
+
+    // A bogus / cross-user agentName is irrelevant now — the Playground always
+    // resolves the current user's reserved agent, so this streams normally.
+    const sseText = await postRun({
+      agentName: 'someone-elses-agent',
+      model: 'gpt-4o-mini',
+      provider: 'openai',
+      authType: 'api_key',
+      messages: [{ role: 'user', content: 'say hi' }],
+    });
+    const done = parseSse(sseText).find((e) => e.type === 'done');
+    expect(done).toBeDefined();
   });
 
   it('returns 400 when messages payload is missing', async () => {

@@ -1,9 +1,8 @@
-import { Controller, Sse, UnauthorizedException } from '@nestjs/common';
+import { Controller, Sse } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { mergeMap } from 'rxjs/operators';
-import { CurrentUser } from '../auth/current-user.decorator';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { IngestEventBusService } from '../common/services/ingest-event-bus.service';
-import { AuthUser } from '../auth/auth.instance';
 
 interface MessageEvent {
   data: string;
@@ -15,15 +14,12 @@ export class SseController {
   constructor(private readonly eventBus: IngestEventBusService) {}
 
   @Sse('events')
-  events(@CurrentUser() user: AuthUser): Observable<MessageEvent> {
-    if (!user?.id) {
-      throw new UnauthorizedException('Session required for SSE');
-    }
-
+  events(@TenantCtx() ctx: TenantContext): Observable<MessageEvent> {
     // Each bus event fans out as TWO SSE messages: the typed one (so new
     // clients can target by kind) AND the legacy 'ping' (so older frontends
     // listening on 'ping' still see every change during a partial upgrade).
-    return this.eventBus.forUser(user.id).pipe(
+    // A null tenantId (fresh account) keeps the stream open but never emits.
+    return this.eventBus.forTenant(ctx.tenantId).pipe(
       mergeMap((evt) => [
         { type: evt.kind, data: evt.kind },
         { type: 'ping', data: 'ping' },

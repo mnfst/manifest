@@ -19,7 +19,10 @@ import {
 interface PendingXaiOAuth {
   verifier: string;
   agentId: string;
-  userId: string;
+  /** Tenant that owns the agent — the scope the stored credential belongs to. */
+  tenantId: string;
+  /** Acting user, audit only (tenant_providers.created_by_user_id). */
+  createdByUserId: string | null;
   backendUrl: string;
   expiresAt: number;
 }
@@ -54,8 +57,9 @@ export class XaiOauthService {
 
   async generateAuthorizationUrl(
     agentId: string,
-    userId: string,
+    tenantId: string,
     backendUrl?: string,
+    createdByUserId?: string | null,
   ): Promise<string> {
     const state = generateState();
     const nonce = generateState(16);
@@ -64,7 +68,8 @@ export class XaiOauthService {
     this.pending.set(state, {
       verifier,
       agentId,
-      userId,
+      tenantId,
+      createdByUserId: createdByUserId ?? null,
       backendUrl: safeBackendUrl,
     });
     if (this.useCallbackServer) {
@@ -122,19 +127,19 @@ export class XaiOauthService {
       r: data.refresh_token,
       e: Date.now() + data.expires_in * 1000,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'xai');
+    const label = await this.providerService.nextOAuthLabel(pending.tenantId, 'xai');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
-      pending.userId,
+      pending.tenantId,
       'xai',
       serializeOAuthTokenBlob(blob),
       'subscription',
       undefined,
       label,
+      pending.createdByUserId,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after xAI OAuth failed: ${err}`);
     }
@@ -175,7 +180,7 @@ export class XaiOauthService {
   async unwrapToken(
     rawValue: string,
     agentId: string,
-    userId: string,
+    tenantId: string,
     keyLabel?: string,
   ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
@@ -183,18 +188,18 @@ export class XaiOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey('xai', userId, agentId, keyLabel),
+        key: oauthRefreshKey('xai', tenantId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'xai', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(tenantId, 'xai', keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r),
         persist: (refreshed) =>
           this.providerService
             .upsertProvider(
               agentId,
-              userId,
+              tenantId,
               'xai',
               serializeOAuthTokenBlob(refreshed),
               'subscription',

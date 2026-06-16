@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@solidjs/router", () => ({
-  useLocation: () => ({ pathname: "/agents/test-agent/overview" }),
+  useLocation: () => ({ pathname: "/harnesses/test-agent/overview" }),
 }));
 
 import { useAgentName } from "../../src/services/routing";

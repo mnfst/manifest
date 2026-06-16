@@ -10,8 +10,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { TierService } from './routing-core/tier.service';
@@ -43,9 +42,9 @@ export class ProviderController {
   ) {}
 
   @Get(':agentName/status')
-  async getStatus(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+  async getStatus(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
+    const providers = await this.providerService.getProviders(agent.tenant_id);
     const hasActiveProvider = providers.some((p) => p.is_active);
 
     if (!hasActiveProvider) {
@@ -69,9 +68,14 @@ export class ProviderController {
   }
 
   @Get(':agentName/providers')
-  async getProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const providers = await this.providerService.getProviders(agent.id);
+  async getProviders(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    // allowPlayground: true — the Playground page reads the provider list for the
+    // reserved Playground agent. Destructive/config mutations (rename, reorder,
+    // deactivate, remove) still reject it; only additive connect is allowed.
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
+      allowPlayground: true,
+    });
+    const providers = await this.providerService.getProviders(agent.tenant_id);
     return providers.map((p) => ({
       id: p.id,
       provider: p.provider,
@@ -90,11 +94,15 @@ export class ProviderController {
 
   @Post(':agentName/providers')
   async upsertProvider(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
     @Body() body: ConnectProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    // allowPlayground: true — connecting a provider to the Playground agent
+    // is additive and correct (enabled providers belong to the tenant-global pool).
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
+      allowPlayground: true,
+    });
     const lowerProvider = body.provider.toLowerCase();
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
     const subscriptionRegionConfig = getSubscriptionEndpointRegionConfig(
@@ -127,27 +135,27 @@ export class ProviderController {
       await this.ollamaSync.sync();
     }
 
+    // The service handles enabled-provider rows itself: new rows fan out to
+    // every owned agent, updates re-enable the connecting agent via
+    // afterProviderChange — no controller-side insert needed.
     const { provider: result } = await this.providerService.upsertProvider(
       agent.id,
-      user.id,
+      agent.tenant_id,
       body.provider,
       body.apiKey,
       body.authType,
       body.region,
       body.label,
+      ctx.userId,
     );
 
-    // Discover models and recalculate tiers before returning so the
-    // frontend sees updated data immediately (typically ~1-3s).
+    // Discover models before returning so the frontend sees updated model
+    // availability immediately (typically ~1-3s). Route choices remain
+    // user-controlled and are not recalculated here.
     try {
       await this.discoveryService.discoverModels(result);
     } catch {
       // Discovery failure is non-fatal — user can retry via "Refresh models"
-    }
-    try {
-      await this.providerService.recalculateTiers(agent.id);
-    } catch {
-      // Tier recalculation failure is non-fatal
     }
 
     return {
@@ -163,13 +171,14 @@ export class ProviderController {
 
   @Patch(':agentName/providers/:provider/keys/:label')
   async renameProviderKey(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentProviderKeyParamDto,
     @Body() body: RenameProviderKeyDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const updated = await this.providerService.renameKey(
       agent.id,
+      agent.tenant_id,
       params.provider,
       body.authType ?? 'api_key',
       params.label,
@@ -186,13 +195,14 @@ export class ProviderController {
 
   @Put(':agentName/providers/:provider/keys/order')
   async reorderProviderKeys(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentProviderParamDto,
     @Body() body: ReorderProviderKeysDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const updated = await this.providerService.reorderKeys(
       agent.id,
+      agent.tenant_id,
       params.provider,
       body.authType ?? 'api_key',
       body.labels,
@@ -207,21 +217,25 @@ export class ProviderController {
   }
 
   @Post(':agentName/providers/deactivate-all')
-  async deactivateAllProviders(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.providerService.deactivateAllProviders(agent.id);
+  async deactivateAllProviders(
+    @TenantCtx() ctx: TenantContext,
+    @Param() params: AgentNameParamDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
+    await this.providerService.deactivateAllProviders(agent.id, agent.tenant_id);
     return { ok: true };
   }
 
   @Delete(':agentName/providers/:provider')
   async removeProvider(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentProviderParamDto,
     @Query() query: RemoveProviderQueryDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const { notifications } = await this.providerService.removeProvider(
       agent.id,
+      agent.tenant_id,
       params.provider,
       query.authType,
       query.label,

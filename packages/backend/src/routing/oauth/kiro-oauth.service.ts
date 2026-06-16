@@ -33,7 +33,10 @@ interface PendingKiroOAuth {
   clientSecret: string;
   deviceCode: string;
   agentId: string;
-  userId: string;
+  /** Tenant that owns the agent — the scope the stored credential belongs to. */
+  tenantId: string;
+  /** Acting user, audit only (tenant_providers.created_by_user_id). */
+  createdByUserId: string | null;
   region: string;
   expiresAt: number;
   pollIntervalMs: number;
@@ -110,7 +113,8 @@ export class KiroOauthService {
 
   async startAuthorization(
     agentId: string,
-    userId: string,
+    tenantId: string,
+    createdByUserId?: string | null,
     options: KiroAuthorizationOptions = {},
   ): Promise<KiroOAuthStartResult> {
     this.cleanupExpired();
@@ -127,7 +131,8 @@ export class KiroOauthService {
       clientSecret,
       deviceCode: device.deviceCode,
       agentId,
-      userId,
+      tenantId,
+      createdByUserId: createdByUserId ?? null,
       region,
       expiresAt,
       pollIntervalMs,
@@ -141,7 +146,7 @@ export class KiroOauthService {
     };
   }
 
-  async pollAuthorization(flowId: string, userId: string): Promise<KiroOAuthPollResult> {
+  async pollAuthorization(flowId: string, tenantId: string): Promise<KiroOAuthPollResult> {
     // No cleanupExpired() here: it would purge this flow before the per-flow
     // expiry guard below could report it, and the guard is the meaningful
     // check for the flow being polled. Abandoned flows are swept on the next
@@ -150,8 +155,8 @@ export class KiroOauthService {
     if (!pending) {
       return { status: 'error', message: 'Kiro login expired. Start again.' };
     }
-    if (pending.userId !== userId) {
-      return { status: 'error', message: 'Kiro login session does not match the current user.' };
+    if (pending.tenantId !== tenantId) {
+      return { status: 'error', message: 'Kiro login session does not match the current account.' };
     }
     if (Date.now() >= pending.expiresAt) {
       this.pending.delete(flowId);
@@ -207,19 +212,19 @@ export class KiroOauthService {
       cs: pending.clientSecret,
       region: pending.region,
     };
-    const label = await this.providerService.nextOAuthLabel(pending.agentId, 'kiro');
+    const label = await this.providerService.nextOAuthLabel(pending.tenantId, 'kiro');
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
-      pending.userId,
+      pending.tenantId,
       'kiro',
       serializeKiroOAuthTokenBlob(blob),
       'subscription',
       undefined,
       label,
+      pending.createdByUserId,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after Kiro OAuth failed: ${err}`);
     }
@@ -230,7 +235,7 @@ export class KiroOauthService {
   async unwrapToken(
     rawValue: string,
     agentId: string,
-    userId: string,
+    tenantId: string,
     keyLabel?: string,
   ): Promise<string | null> {
     const blob = parseKiroOAuthTokenBlob(rawValue);
@@ -238,18 +243,18 @@ export class KiroOauthService {
     if (Date.now() < blob.e - 60_000) return blob.t;
     try {
       const resolved = await coordinateOAuthRefresh<KiroOAuthTokenBlob>({
-        key: oauthRefreshKey('kiro', userId, agentId, keyLabel),
+        key: oauthRefreshKey('kiro', tenantId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, 'kiro', keyLabel),
+          this.providerService.getFreshSubscriptionCredential(tenantId, 'kiro', keyLabel),
         parse: parseKiroOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current),
         persist: (refreshed) =>
           this.providerService
             .upsertProvider(
               agentId,
-              userId,
+              tenantId,
               'kiro',
               serializeKiroOAuthTokenBlob(refreshed),
               'subscription',

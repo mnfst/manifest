@@ -90,7 +90,6 @@ describe('DuplicateAgentModal', () => {
     // "What is copied" items
     const list = qa('.duplicate-agent__list li').map((li) => li.textContent);
     expect(list.some((t) => t?.includes('3') && t?.includes('provider credential'))).toBe(true);
-    expect(list.some((t) => t?.includes('1') && t?.includes('custom provider'))).toBe(true);
     expect(list.some((t) => t?.includes('4') && t?.includes('tier override'))).toBe(true);
     expect(list.some((t) => t?.includes('2') && t?.includes('specificity override'))).toBe(true);
 
@@ -118,7 +117,7 @@ describe('DuplicateAgentModal', () => {
     });
 
     const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Duplicate agent',
+      (b) => b.textContent?.trim() === 'Duplicate harness',
     ) as HTMLButtonElement;
     fireEvent.click(btn);
 
@@ -128,7 +127,7 @@ describe('DuplicateAgentModal', () => {
     await waitFor(() => {
       expect(mockToastSuccess).toHaveBeenCalled();
       expect(mockMarkAgentCreated).toHaveBeenCalledWith('my-agent-copy');
-      expect(mockNavigate).toHaveBeenCalledWith('/agents/my-agent-copy', {
+      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/my-agent-copy', {
         state: { newApiKey: 'mnfst_xyz' },
       });
       expect(onClose).toHaveBeenCalled();
@@ -146,7 +145,7 @@ describe('DuplicateAgentModal', () => {
 
     await waitFor(() => {
       const btn = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.trim() === 'Duplicate agent',
+        (b) => b.textContent?.trim() === 'Duplicate harness',
       ) as HTMLButtonElement;
       expect(btn.hasAttribute('disabled')).toBe(true);
     });
@@ -210,7 +209,7 @@ describe('DuplicateAgentModal', () => {
     });
 
     const btn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Duplicate agent',
+      (b) => b.textContent?.trim() === 'Duplicate harness',
     ) as HTMLButtonElement;
     fireEvent.click(btn);
 
@@ -287,7 +286,7 @@ describe('DuplicateAgentModal', () => {
     });
 
     const duplicateBtn = Array.from(document.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Duplicate agent',
+      (b) => b.textContent?.trim() === 'Duplicate harness',
     ) as HTMLButtonElement;
     fireEvent.click(duplicateBtn);
 

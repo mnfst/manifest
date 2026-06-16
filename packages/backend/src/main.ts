@@ -225,5 +225,18 @@ export async function bootstrap() {
 
 // Only auto-start when run directly (not when embedded)
 if (!process.env['MANIFEST_EMBEDDED']) {
-  bootstrap();
+  bootstrap().catch((err) => {
+    // The server never came up. The most common cause is a failed database
+    // migration — TypeORM logs the specific "Migration X failed, error: ..."
+    // line just above this. Surface a clear, intentional fatal message and
+    // exit non-zero, rather than leaving an unhandled rejection (or, before
+    // the toRetry change, a misleading "Unable to connect to the database").
+    new Logger('Bootstrap').fatal(
+      'Manifest failed to start — see the error above. A failed database migration is the most ' +
+        'common cause; if it reports provider/config rows that "cannot be re-scoped", back up your ' +
+        'database and re-run with MANIFEST_MIGRATION_FORCE=1.',
+      err instanceof Error ? err.stack : String(err),
+    );
+    process.exit(1);
+  });
 }

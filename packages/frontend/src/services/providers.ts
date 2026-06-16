@@ -223,7 +223,7 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   },
   groq: {
     initial: 'Gq',
-    subtitle: 'Llama, Gemma, Mixtral — fast inference',
+    subtitle: 'Llama, Gemma, Mixtral. Fast inference',
     models: [],
   },
   kilo: {

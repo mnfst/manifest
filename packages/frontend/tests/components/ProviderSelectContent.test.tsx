@@ -52,6 +52,14 @@ vi.mock("../../src/components/CopilotDeviceLogin.js", () => ({
 
 import ProviderSelectContent from "../../src/components/ProviderSelectContent";
 
+// NOTE: The provider list/tile view (header, footer, Subscription/API Keys/Local
+// tabs, and clickable provider tiles) was removed from ProviderSelectContent on
+// this branch — connection now happens via deep links from the dedicated
+// Subscriptions / Usage-based / Local provider pages. The component renders
+// ONLY a detail view, driven by `providerDeepLink` or `customProviderPrefill`.
+// These tests therefore enter every flow through a deep link / prefill rather
+// than by clicking a tile that no longer exists.
+
 describe("ProviderSelectContent", () => {
   const onUpdate = vi.fn();
 
@@ -59,7 +67,7 @@ describe("ProviderSelectContent", () => {
     vi.clearAllMocks();
   });
 
-  it("renders header and footer by default", () => {
+  it("renders nothing when no deep link or prefill is provided", () => {
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
@@ -68,8 +76,8 @@ describe("ProviderSelectContent", () => {
         onClose={vi.fn()}
       />
     ));
-    expect(screen.getByText("Connect providers")).toBeDefined();
-    expect(container.querySelector(".provider-modal__footer")).not.toBeNull();
+    // The list view is gone; with no deep link there is no detail view either.
+    expect(container.querySelector(".provider-modal__view--from-right")).toBeNull();
   });
 
   it("hides header when showHeader is false", () => {
@@ -96,166 +104,16 @@ describe("ProviderSelectContent", () => {
     expect(container.querySelector(".provider-modal__footer")).toBeNull();
   });
 
-  it("renders both tabs", () => {
-    render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    expect(screen.getByText("Subscription")).toBeDefined();
-    expect(screen.getByText("API Keys")).toBeDefined();
-  });
-
-  it("reveals the Local tab once isSelfHosted resolves true", async () => {
-    render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    // Subscription + API Keys are always present; Local shows up after
-    // the checkIsSelfHosted mock resolves.
-    await waitFor(() => expect(screen.getByText("Local")).toBeDefined());
-  });
-
-  it("defaults to the Subscription tab even in self-hosted mode", async () => {
-    render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    await waitFor(() => screen.getByText("Local"));
-    const subTab = screen.getByText("Subscription").closest("button")!;
-    expect(subTab.getAttribute("aria-selected")).toBe("true");
-  });
-
-  it("disconnects a local provider when the toggle is clicked while ON", async () => {
-    const api = await import("../../src/services/api.js");
-    const disconnect = api.disconnectProvider as unknown as ReturnType<typeof vi.fn>;
-    disconnect.mockResolvedValueOnce({ notifications: ["cleared 2 overrides"] });
-    const onUpdateLocal = vi.fn();
+  it("opens the Z.ai subscription detail directly via a deep link", async () => {
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
-        providers={[
-          {
-            id: "prov-1",
-            provider: "ollama",
-            auth_type: "local",
-            is_active: true,
-            has_api_key: false,
-            connected_at: "2025-01-01",
-          },
-        ]}
-        onUpdate={onUpdateLocal}
-      />
-    ));
-    await waitFor(() => screen.getByText("Local"));
-    fireEvent.click(screen.getByText("Local"));
-    const ollamaTile = await waitFor(() => {
-      const tiles = Array.from(
-        container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"),
-      );
-      const t = tiles.find((el) => el.textContent?.includes("Ollama"));
-      if (!t) throw new Error("Ollama tile not found");
-      return t;
-    });
-    // Toggle should be ON since the provider is connected with auth_type='local'
-    const toggle = ollamaTile.querySelector(".provider-toggle__switch") as HTMLElement;
-    expect(toggle.classList.contains("provider-toggle__switch--on")).toBe(true);
-    fireEvent.click(toggle);
-    await waitFor(() => expect(disconnect).toHaveBeenCalledWith("test-agent", "ollama", "local"));
-    await waitFor(() => expect(onUpdateLocal).toHaveBeenCalled());
-  });
-
-  it("surfaces disconnect API errors via toast without onUpdate", async () => {
-    const api = await import("../../src/services/api.js");
-    const disconnect = api.disconnectProvider as unknown as ReturnType<typeof vi.fn>;
-    disconnect.mockRejectedValueOnce(new Error("boom"));
-    const onUpdateLocal = vi.fn();
-    const { container } = render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[
-          {
-            id: "prov-1",
-            provider: "ollama",
-            auth_type: "local",
-            is_active: true,
-            has_api_key: false,
-            connected_at: "2025-01-01",
-          },
-        ]}
-        onUpdate={onUpdateLocal}
-      />
-    ));
-    await waitFor(() => screen.getByText("Local"));
-    fireEvent.click(screen.getByText("Local"));
-    const ollamaTile = await waitFor(() => {
-      const tiles = Array.from(
-        container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"),
-      );
-      const t = tiles.find((el) => el.textContent?.includes("Ollama"));
-      if (!t) throw new Error("Ollama tile not found");
-      return t;
-    });
-    const toggle = ollamaTile.querySelector(".provider-toggle__switch") as HTMLElement;
-    fireEvent.click(toggle);
-    await waitFor(() => expect(disconnect).toHaveBeenCalled());
-    expect(onUpdateLocal).not.toHaveBeenCalled();
-  });
-
-  it("shows Z.ai GLM Coding Plan in the subscription tab", () => {
-    render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'zai', authType: 'subscription' }}
         onUpdate={onUpdate}
       />
     ));
-    // Subscription tab is the default view; Z.ai should appear with the GLM Coding Plan label
     expect(screen.getByText("Z.ai")).toBeDefined();
-    expect(screen.getAllByText("GLM Coding Plan").length).toBeGreaterThan(0);
-  });
-
-  it("shows Moonshot Kimi Coding Plan in the subscription tab", () => {
-    render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    expect(screen.getByText("Moonshot")).toBeDefined();
-    expect(screen.getAllByText("Kimi Coding Plan").length).toBeGreaterThan(0);
-  });
-
-  it("shows BytePlus ModelArk Coding Plan in the subscription tab", () => {
-    render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    expect(screen.getByText("BytePlus")).toBeDefined();
-    expect(screen.getAllByText("ModelArk Coding Plan").length).toBeGreaterThan(0);
-  });
-
-  it("opens token paste detail view when Z.ai is clicked in subscription tab", async () => {
-    const { container } = render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    fireEvent.click(screen.getByText("Z.ai"));
     await waitFor(() => {
       const input = container.querySelector(
         'input[placeholder="Paste your Z.ai API key"]',
@@ -269,10 +127,10 @@ describe("ProviderSelectContent", () => {
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'zai', authType: 'subscription' }}
         onUpdate={onUpdate}
       />
     ));
-    fireEvent.click(screen.getByText("Z.ai"));
     await waitFor(() => {
       const link = container.querySelector<HTMLAnchorElement>(
         'a[href="https://z.ai/manage-apikey/apikey-list"]',
@@ -282,15 +140,16 @@ describe("ProviderSelectContent", () => {
     });
   });
 
-  it("shows 'Get Kimi Code API key' link to the Kimi Code console in subscription detail view", async () => {
+  it("shows 'Get Kimi Code API key' link to the Kimi Code console in the Moonshot subscription detail view", async () => {
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'moonshot', authType: 'subscription' }}
         onUpdate={onUpdate}
       />
     ));
-    fireEvent.click(screen.getByText("Moonshot"));
+    expect(screen.getByText("Moonshot")).toBeDefined();
     await waitFor(() => {
       const link = container.querySelector<HTMLAnchorElement>(
         'a[href="https://www.kimi.com/code/console"]',
@@ -305,10 +164,11 @@ describe("ProviderSelectContent", () => {
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'byteplus', authType: 'subscription' }}
         onUpdate={onUpdate}
       />
     ));
-    fireEvent.click(screen.getByText("BytePlus"));
+    expect(screen.getByText("BytePlus")).toBeDefined();
     await waitFor(() => {
       const link = container.querySelector<HTMLAnchorElement>(
         'a[href="https://console.byteplus.com/ark/region:ark+ap-southeast-1/apiKey"]',
@@ -323,10 +183,11 @@ describe("ProviderSelectContent", () => {
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'commandcode', authType: 'subscription' }}
         onUpdate={onUpdate}
       />
     ));
-    fireEvent.click(screen.getByText("Command Code"));
+    expect(screen.getByText("Command Code")).toBeDefined();
     await waitFor(() => {
       const link = container.querySelector<HTMLAnchorElement>(
         'a[href="https://commandcode.ai/studio"]',
@@ -334,130 +195,50 @@ describe("ProviderSelectContent", () => {
       expect(link).not.toBeNull();
       expect(link!.textContent).toContain("Command Code");
     });
-    const subtitle = container.querySelector(".provider-detail__subtitle");
-    expect(subtitle?.textContent).toBe("Requires Command Code Pro or higher.");
+    // The Pro-or-higher requirement note is shown for the subscription view.
+    expect(screen.getByText("Requires Command Code Pro or higher.")).toBeDefined();
+    // No external sign-in button and no separate api-keys settings link — the
+    // only link is the Studio key-form link asserted above.
     expect(container.querySelector(".provider-detail__signin-btn")).toBeNull();
     expect(
       container.querySelector('a[href="https://commandcode.ai/studio/settings/api-keys"]'),
     ).toBeNull();
   });
 
-  it("switches tabs on click", () => {
-    const { container } = render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        onUpdate={onUpdate}
-      />
-    ));
-    const apiKeysTab = screen.getByText("API Keys");
-    fireEvent.click(apiKeysTab);
-    const tab = container.querySelector('[aria-selected="true"]');
-    expect(tab?.textContent).toContain("API Keys");
-  });
-
-  it("calls onClose when Done is clicked", () => {
+  it("calls onClose when the deep-link detail view's Back button is clicked", () => {
     const onClose = vi.fn();
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'zai', authType: 'subscription' }}
         onUpdate={onUpdate}
         onClose={onClose}
       />
     ));
-    const doneBtn = container.querySelector(".provider-modal__footer .btn")!;
-    fireEvent.click(doneBtn);
+    const backBtn = container.querySelector(".modal-back-btn") as HTMLButtonElement;
+    fireEvent.click(backBtn);
+    // A deep-link entry has no list view to return to → Back dismisses the modal.
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("does not throw when onClose is omitted and Done clicked", () => {
+  it("does not throw when onClose is omitted and Back is clicked", () => {
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: 'zai', authType: 'subscription' }}
         onUpdate={onUpdate}
       />
     ));
-    const doneBtn = container.querySelector(".provider-modal__footer .btn")!;
-    expect(() => fireEvent.click(doneBtn)).not.toThrow();
+    const backBtn = container.querySelector(".modal-back-btn") as HTMLButtonElement;
+    expect(() => fireEvent.click(backBtn)).not.toThrow();
   });
 
   describe("LocalServerDetailView flow", () => {
-    it("opens LocalServerDetailView when a reachable local-server tile is clicked, and closes on onBack", async () => {
-      const { container } = render(() => (
-        <ProviderSelectContent
-          agentName="test-agent"
-          providers={[]}
-          onUpdate={onUpdate}
-        />
-      ));
-
-      // Wait for self-hosted to resolve, then switch to the Local tab (only
-      // rendered in self-hosted mode) where the LM Studio tile lives.
-      await waitFor(() => screen.getByText("Local"));
-      fireEvent.click(screen.getByText("Local"));
-
-      const lmsBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
-        );
-        if (!b) throw new Error("lmstudio tile not yet enabled");
-        return b;
-      });
-      fireEvent.click(lmsBtn);
-
-      // LocalServerDetailView renders its own "Connect 1 model" button
-      await waitFor(() => {
-        expect(container.textContent).toContain("Connect 1 model");
-      });
-
-      // Back button dismisses the detail view and returns to the list
-      const backBtn = container.querySelector(".modal-back-btn") as HTMLButtonElement;
-      fireEvent.click(backBtn);
-      await waitFor(() => {
-        expect(container.querySelector(".modal-back-btn")).toBeNull();
-      });
-    });
-
-    it("completes the Connect flow: closes the detail view and calls onUpdate", async () => {
-      const onUpdateLocal = vi.fn().mockResolvedValue(undefined);
-      const { container } = render(() => (
-        <ProviderSelectContent
-          agentName="test-agent"
-          providers={[]}
-          onUpdate={onUpdateLocal}
-        />
-      ));
-
-      await waitFor(() => screen.getByText("Local"));
-      fireEvent.click(screen.getByText("Local"));
-
-      const lmsBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
-        );
-        if (!b) throw new Error("lmstudio tile not yet enabled");
-        return b;
-      });
-      fireEvent.click(lmsBtn);
-
-      const connectBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll("button")).find((el) =>
-          el.textContent?.trim().startsWith("Connect 1 model"),
-        );
-        if (!b) throw new Error("Connect button not yet rendered");
-        return b as HTMLButtonElement;
-      });
-      fireEvent.click(connectBtn);
-
-      // After successful create, onConnected → goBack + onUpdate
-      await waitFor(() => {
-        expect(onUpdateLocal).toHaveBeenCalled();
-        expect(container.querySelector(".modal-back-btn")).toBeNull();
-      });
-    });
-
+    // The LM Studio / llama.cpp local-server detail view is reached by editing
+    // an existing local custom provider (its name maps to a defaultLocalPort
+    // provider). The create-from-tile flow was removed with the list view.
     it("routes editing an LM Studio custom provider to LocalServerDetailView in edit mode", async () => {
       const lmsCustom = {
         id: 'cp-lms',
@@ -471,51 +252,75 @@ describe("ProviderSelectContent", () => {
           agentName="test-agent"
           providers={[]}
           customProviders={[lmsCustom]}
+          providerDeepLink={{ providerId: 'custom:cp-lms' }}
           onUpdate={onUpdate}
         />
       ));
 
-      await waitFor(() => screen.getByText("Local"));
-      fireEvent.click(screen.getByText("Local"));
-
-      // Click the custom provider toggle for LM Studio
-      const lmsToggle = await waitFor(() => {
-        const toggles = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle"));
-        const t = toggles.find((el) => el.textContent?.includes("LM Studio"));
-        if (!t) throw new Error("LM Studio custom provider toggle not found");
-        return t;
-      });
-      fireEvent.click(lmsToggle);
-
-      // Should open LocalServerDetailView in edit mode
+      // Opening the custom: deep link for an LM Studio provider routes to
+      // LocalServerDetailView in edit mode rather than the generic form.
       await waitFor(() => {
         expect(container.textContent).toContain("Edit provider");
       });
     });
 
-    it("does not expose an Advanced / customize escape hatch from the local-server view", async () => {
+    it("completes the Connect flow from edit mode: closes the detail view and calls onUpdate", async () => {
+      const lmsCustom = {
+        id: 'cp-lms',
+        name: 'LM Studio',
+        base_url: 'http://localhost:1234/v1',
+        models: [{ model_name: 'llama-3.1-8b', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 }],
+      };
+      const onUpdateLocal = vi.fn().mockResolvedValue(undefined);
+      const onClose = vi.fn();
       const { container } = render(() => (
         <ProviderSelectContent
           agentName="test-agent"
           providers={[]}
+          customProviders={[lmsCustom]}
+          providerDeepLink={{ providerId: 'custom:cp-lms' }}
+          onUpdate={onUpdateLocal}
+          onClose={onClose}
+        />
+      ));
+
+      // In edit mode the primary action saves changes (the create-mode
+      // "Connect N models" label only appears for a brand-new connection).
+      const saveBtn = await waitFor(() => {
+        const b = Array.from(container.querySelectorAll("button")).find((el) =>
+          el.textContent?.trim() === "Save changes",
+        );
+        if (!b) throw new Error("Save changes button not yet rendered");
+        return b as HTMLButtonElement;
+      });
+      fireEvent.click(saveBtn);
+
+      // After a successful update, onConnected → onUpdate (and goBack → onClose
+      // since a deep-link entry has no list view to return to).
+      await waitFor(() => {
+        expect(onUpdateLocal).toHaveBeenCalled();
+      });
+    });
+
+    it("does not expose an Advanced / customize escape hatch from the local-server view", async () => {
+      const lmsCustom = {
+        id: 'cp-lms',
+        name: 'LM Studio',
+        base_url: 'http://localhost:1234/v1',
+        models: [{ model_name: 'llama-3.1-8b', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 }],
+      };
+      const { container } = render(() => (
+        <ProviderSelectContent
+          agentName="test-agent"
+          providers={[]}
+          customProviders={[lmsCustom]}
+          providerDeepLink={{ providerId: 'custom:cp-lms' }}
           onUpdate={onUpdate}
         />
       ));
 
-      await waitFor(() => screen.getByText("Local"));
-      fireEvent.click(screen.getByText("Local"));
-
-      const lmsBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("LM Studio") && !el.disabled,
-        );
-        if (!b) throw new Error("lmstudio tile not yet enabled");
-        return b;
-      });
-      fireEvent.click(lmsBtn);
-
       await waitFor(() => {
-        expect(container.textContent).toContain("Connect 1 model");
+        expect(container.textContent).toContain("Edit provider");
       });
 
       const advanced = Array.from(container.querySelectorAll("button")).find((el) =>
@@ -532,7 +337,9 @@ describe("ProviderSelectContent", () => {
   describe("CustomProviderForm callbacks", () => {
     // The form itself is tested in its own spec; here we only verify the
     // wiring: ProviderSelectContent must dismiss the form view and call
-    // onUpdate whenever the form fires onCreated or onDeleted.
+    // onUpdate whenever the form fires onCreated or onDeleted. The form is now
+    // reached via a customProviderPrefill (the "Add custom provider" list
+    // button was removed with the list view).
     beforeEach(() => {
       vi.doMock("../../src/components/CustomProviderForm.js", () => ({
         default: (p: {
@@ -570,24 +377,20 @@ describe("ProviderSelectContent", () => {
       vi.doUnmock("../../src/components/CustomProviderForm.js");
     });
 
-    it("returns to the list and calls onUpdate when the form fires onCreated", async () => {
+    it("dismisses the form and calls onUpdate when the form fires onCreated", async () => {
       vi.resetModules();
       const { default: Fresh } = await import("../../src/components/ProviderSelectContent");
       const onUpdateLocal = vi.fn();
       const { container } = render(() => (
-        <Fresh agentName="test-agent" providers={[]} onUpdate={onUpdateLocal} />
+        <Fresh
+          agentName="test-agent"
+          providers={[]}
+          customProviderPrefill={{ name: 'My Endpoint', baseUrl: 'https://api.example.com/v1' }}
+          onUpdate={onUpdateLocal}
+        />
       ));
 
-      fireEvent.click(screen.getByText("API Keys"));
-      const addBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-          (el) => el.textContent?.trim() === "Add custom provider",
-        );
-        if (!b) throw new Error("Add custom provider button not rendered");
-        return b;
-      });
-      fireEvent.click(addBtn);
-
+      // A prefill opens the custom-provider form immediately.
       await waitFor(() => {
         expect(container.querySelector('[data-testid="custom-provider-form"]')).not.toBeNull();
       });
@@ -615,20 +418,10 @@ describe("ProviderSelectContent", () => {
           agentName="test-agent"
           providers={[]}
           customProviders={[customRow]}
+          providerDeepLink={{ providerId: 'custom:cp-my-groq' }}
           onUpdate={onUpdate}
         />
       ));
-
-      fireEvent.click(screen.getByText("API Keys"));
-
-      const editBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("My Groq"),
-        );
-        if (!b) throw new Error("My Groq tile not rendered");
-        return b;
-      });
-      fireEvent.click(editBtn);
 
       // The mocked CustomProviderForm is mounted (not the LocalServerDetailView),
       // confirming the edit path falls through to the generic form for a
@@ -641,27 +434,21 @@ describe("ProviderSelectContent", () => {
         // of an existing row).
         expect(form!.getAttribute('data-has-initial')).toBe('yes');
         expect(form!.getAttribute('data-has-prefill')).toBe('no');
-        expect(container.querySelector('.modal-back-btn')).toBeNull();
       });
     });
 
-    it("returns to the list and calls onUpdate when the form fires onDeleted", async () => {
+    it("dismisses the form and calls onUpdate when the form fires onDeleted", async () => {
       vi.resetModules();
       const { default: Fresh } = await import("../../src/components/ProviderSelectContent");
       const onUpdateLocal = vi.fn();
       const { container } = render(() => (
-        <Fresh agentName="test-agent" providers={[]} onUpdate={onUpdateLocal} />
+        <Fresh
+          agentName="test-agent"
+          providers={[]}
+          customProviderPrefill={{ name: 'My Endpoint', baseUrl: 'https://api.example.com/v1' }}
+          onUpdate={onUpdateLocal}
+        />
       ));
-
-      fireEvent.click(screen.getByText("API Keys"));
-      const addBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-          (el) => el.textContent?.trim() === "Add custom provider",
-        );
-        if (!b) throw new Error("Add custom provider button not rendered");
-        return b;
-      });
-      fireEvent.click(addBtn);
 
       await waitFor(() => {
         expect(container.querySelector('[data-testid="custom-provider-form"]')).not.toBeNull();
@@ -680,59 +467,54 @@ describe("ProviderSelectContent", () => {
     // Exercises the llama.cpp escape hatch: when the probe fails and the
     // user clicks the "Add custom provider" link inside LocalServerDetailView,
     // ProviderSelectContent must (a) dismiss the local-server view and
-    // (b) open the generic custom-provider form.
+    // (b) open the generic custom-provider form. The local-server view is
+    // reached by editing an existing llama.cpp custom provider.
     it("swaps the local-server view for the custom-provider form when the hint link is clicked", async () => {
       const api = await import("../../src/services/api.js");
       const probeMock = api.probeCustomProvider as ReturnType<typeof vi.fn>;
       // Force the llama.cpp probe to fail so FailureState renders its
       // notReachableHint. The global mock defaults to success for the
-      // other tests in this describe, so we restore it afterwards.
+      // other tests, so we restore it afterwards.
       const defaultImpl = probeMock.getMockImplementation();
       probeMock.mockRejectedValue(new Error("returned 404"));
       try {
+        const llamaCustom = {
+          id: 'cp-llama',
+          name: 'llama.cpp',
+          base_url: 'http://localhost:8080/v1',
+          models: [{ model_name: 'llama', input_price_per_million_tokens: 0, output_price_per_million_tokens: 0 }],
+        };
 
-      const { container } = render(() => (
-        <ProviderSelectContent
-          agentName="test-agent"
-          providers={[]}
-          onUpdate={onUpdate}
-        />
-      ));
+        const { container } = render(() => (
+          <ProviderSelectContent
+            agentName="test-agent"
+            providers={[]}
+            customProviders={[llamaCustom]}
+            providerDeepLink={{ providerId: 'custom:cp-llama' }}
+            onUpdate={onUpdate}
+          />
+        ));
 
-      await waitFor(() => screen.getByText("Local"));
-      fireEvent.click(screen.getByText("Local"));
+        // Wait for the probe to fail and the "Add custom provider" link to surface.
+        const hintLink = await waitFor(() => {
+          const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
+            (el) => el.textContent?.trim() === "Add custom provider",
+          );
+          if (!b) throw new Error("notReachableHint link not yet rendered");
+          return b;
+        });
+        fireEvent.click(hintLink);
 
-      const llamaBtn = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button.provider-toggle")).find(
-          (el) => el.textContent?.includes("llama.cpp") && !el.disabled,
-        );
-        if (!b) throw new Error("llama.cpp tile not yet enabled");
-        return b;
-      });
-      fireEvent.click(llamaBtn);
-
-      // Wait for the probe to fail and the "Add custom provider" link to surface.
-      const hintLink = await waitFor(() => {
-        const b = Array.from(container.querySelectorAll<HTMLButtonElement>("button")).find(
-          (el) => el.textContent?.trim() === "Add custom provider",
-        );
-        if (!b) throw new Error("notReachableHint link not yet rendered");
-        return b;
-      });
-      fireEvent.click(hintLink);
-
-      // After the click, the LocalServerDetailView must be gone (we're no
-      // longer on that view) and the CustomProviderForm must be mounted.
-      // Both views share the .modal-back-btn class, so instead verify
-      // that a CustomProviderForm-specific element is present (name input).
-      await waitFor(() => {
-        // LocalServerDetailView content must be gone
-        expect(container.textContent).not.toContain("llama-server");
-        // CustomProviderForm surfaces inputs for name + base URL — check
-        // for a text input with a placeholder or label that belongs to it.
-        const inputs = container.querySelectorAll("input");
-        expect(inputs.length).toBeGreaterThan(0);
-      });
+        // After the click, the LocalServerDetailView must be gone and the
+        // CustomProviderForm must be mounted. Both views share .modal-back-btn,
+        // so verify a CustomProviderForm-specific surface (its inputs).
+        await waitFor(() => {
+          // LocalServerDetailView content must be gone
+          expect(container.textContent).not.toContain("llama-server");
+          // CustomProviderForm surfaces inputs for name + base URL.
+          const inputs = container.querySelectorAll("input");
+          expect(inputs.length).toBeGreaterThan(0);
+        });
       } finally {
         if (defaultImpl) probeMock.mockImplementation(defaultImpl);
         else probeMock.mockResolvedValue({ models: [{ model_name: 'llama-3.1-8b' }] });
@@ -741,20 +523,22 @@ describe("ProviderSelectContent", () => {
   });
 
   describe("CopilotDeviceLogin callbacks", () => {
-    it("should call onUpdate and goBack when onConnected fires", async () => {
+    // The device-login view is reached via a copilot deep link (the
+    // "GitHub Copilot" tile was removed with the list view).
+    it("calls onUpdate and dismisses via onClose when onConnected fires", async () => {
       const onUpdate = vi.fn().mockResolvedValue(undefined);
+      const onClose = vi.fn();
       const { container } = render(() => (
         <ProviderSelectContent
           agentName="test-agent"
           providers={[]}
+          providerDeepLink={{ providerId: 'copilot', authType: 'subscription' }}
           onUpdate={onUpdate}
+          onClose={onClose}
         />
       ));
 
-      // Click copilot provider in the subscription tab to open device login
-      fireEvent.click(screen.getByText("GitHub Copilot"));
-
-      // The CopilotDeviceLogin mock should now be visible
+      // The CopilotDeviceLogin mock is visible directly from the deep link.
       await waitFor(() => {
         expect(container.querySelector('[data-testid="copilot-device-login"]')).not.toBeNull();
       });
@@ -766,24 +550,24 @@ describe("ProviderSelectContent", () => {
         expect(onUpdate).toHaveBeenCalled();
       });
 
-      // After onConnected, goBack is called, returning to the list view
+      // onConnected → goBack, which (with a deep-link entry) calls onClose.
       await waitFor(() => {
-        expect(container.querySelector('[data-testid="copilot-device-login"]')).toBeNull();
+        expect(onClose).toHaveBeenCalled();
       });
     });
 
-    it("should call onUpdate and goBack when onDisconnected fires", async () => {
+    it("calls onUpdate and dismisses via onClose when onDisconnected fires", async () => {
       const onUpdate = vi.fn();
+      const onClose = vi.fn();
       const { container } = render(() => (
         <ProviderSelectContent
           agentName="test-agent"
           providers={[]}
+          providerDeepLink={{ providerId: 'copilot', authType: 'subscription' }}
           onUpdate={onUpdate}
+          onClose={onClose}
         />
       ));
-
-      // Click copilot provider to open device login view
-      fireEvent.click(screen.getByText("GitHub Copilot"));
 
       await waitFor(() => {
         expect(container.querySelector('[data-testid="copilot-device-login"]')).not.toBeNull();
@@ -796,9 +580,9 @@ describe("ProviderSelectContent", () => {
         expect(onUpdate).toHaveBeenCalled();
       });
 
-      // After onDisconnected, goBack is called, returning to the list view
+      // onDisconnected → goBack, which (with a deep-link entry) calls onClose.
       await waitFor(() => {
-        expect(container.querySelector('[data-testid="copilot-device-login"]')).toBeNull();
+        expect(onClose).toHaveBeenCalled();
       });
     });
   });

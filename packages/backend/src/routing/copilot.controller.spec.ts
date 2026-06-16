@@ -5,9 +5,10 @@ import { CopilotDeviceAuthService } from './oauth/copilot-device-auth.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
 import { Agent } from '../entities/agent.entity';
 
-const mockUser = { id: 'user-1' } as never;
+const mockCtx = { tenantId: 'tenant-1', userId: 'user-1' } as never;
 const mockAgentName = { agentName: 'test-agent' } as never;
 const TEST_AGENT_ID = 'agent-001';
+const TEST_TENANT_ID = 'tenant-1';
 
 describe('CopilotController', () => {
   let controller: CopilotController;
@@ -22,9 +23,14 @@ describe('CopilotController', () => {
       upsertProvider: jest.fn().mockResolvedValue({ provider: {}, isNew: false }),
       nextOAuthLabel: jest.fn().mockResolvedValue(undefined),
       recalculateTiers: jest.fn().mockResolvedValue(undefined),
+      recalculateTiersForUser: jest.fn().mockResolvedValue(undefined),
     };
     mockResolveAgent = {
-      resolve: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' } as Agent),
+      resolve: jest.fn().mockResolvedValue({
+        id: TEST_AGENT_ID,
+        name: 'test-agent',
+        tenant_id: TEST_TENANT_ID,
+      } as Agent),
     };
     mockCopilotAuth = {
       requestDeviceCode: jest.fn(),
@@ -55,9 +61,9 @@ describe('CopilotController', () => {
       };
       mockCopilotAuth.requestDeviceCode.mockResolvedValue(deviceCodeResponse);
 
-      const result = await controller.copilotDeviceCode(mockUser, mockAgentName);
+      const result = await controller.copilotDeviceCode(mockCtx, mockAgentName);
 
-      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith(TEST_TENANT_ID, 'test-agent');
       expect(result).toEqual(deviceCodeResponse);
     });
   });
@@ -69,19 +75,20 @@ describe('CopilotController', () => {
         token: 'ghu_github_token',
       });
 
-      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+      const result = await controller.copilotPollToken(mockCtx, mockAgentName, {
         deviceCode: 'dc_abc',
       } as never);
 
       expect(result).toEqual({ status: 'complete' });
       expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
-        'user-1',
+        TEST_TENANT_ID,
         'copilot',
         'ghu_github_token',
         'subscription',
         undefined,
         undefined,
+        'user-1',
       );
     });
 
@@ -92,23 +99,24 @@ describe('CopilotController', () => {
         token: 'ghu_second_token',
       });
 
-      await controller.copilotPollToken(mockUser, mockAgentName, {
+      await controller.copilotPollToken(mockCtx, mockAgentName, {
         deviceCode: 'dc_abc',
       } as never);
 
-      expect(mockProviderService.nextOAuthLabel).toHaveBeenCalledWith(TEST_AGENT_ID, 'copilot');
+      expect(mockProviderService.nextOAuthLabel).toHaveBeenCalledWith(TEST_TENANT_ID, 'copilot');
       expect(mockProviderService.upsertProvider).toHaveBeenCalledWith(
         TEST_AGENT_ID,
-        'user-1',
+        TEST_TENANT_ID,
         'copilot',
         'ghu_second_token',
         'subscription',
         undefined,
         'Key 2',
+        'user-1',
       );
     });
 
-    it('should call discoverModels and recalculateTiers on successful token poll', async () => {
+    it('discovers models without routing agents when the copilot provider is new', async () => {
       const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
       mockCopilotAuth.pollForToken.mockResolvedValue({
         status: 'complete',
@@ -119,12 +127,33 @@ describe('CopilotController', () => {
         isNew: true,
       });
 
-      await controller.copilotPollToken(mockUser, mockAgentName, {
+      await controller.copilotPollToken(mockCtx, mockAgentName, {
         deviceCode: 'dc_abc',
       } as never);
 
       expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+    });
+
+    it('discovers models without routing agents on an existing-row copilot reconnect', async () => {
+      const providerRecord = { id: 'p1', provider: 'copilot', is_active: true };
+      mockCopilotAuth.pollForToken.mockResolvedValue({
+        status: 'complete',
+        token: 'ghu_token',
+      });
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: providerRecord,
+        isNew: false,
+      });
+
+      await controller.copilotPollToken(mockCtx, mockAgentName, {
+        deviceCode: 'dc_abc',
+      } as never);
+
+      expect(mockDiscoveryService.discoverModels).toHaveBeenCalledWith(providerRecord);
+      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
+      expect(mockProviderService.recalculateTiersForUser).not.toHaveBeenCalled();
     });
 
     it('should swallow discovery errors in copilotPollToken', async () => {
@@ -139,7 +168,7 @@ describe('CopilotController', () => {
       });
       mockDiscoveryService.discoverModels.mockRejectedValue(new Error('discovery failed'));
 
-      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+      const result = await controller.copilotPollToken(mockCtx, mockAgentName, {
         deviceCode: 'dc_abc',
       } as never);
 
@@ -149,7 +178,7 @@ describe('CopilotController', () => {
     it('should return pending without storing when still waiting', async () => {
       mockCopilotAuth.pollForToken.mockResolvedValue({ status: 'pending' });
 
-      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+      const result = await controller.copilotPollToken(mockCtx, mockAgentName, {
         deviceCode: 'dc_abc',
       } as never);
 
@@ -160,7 +189,7 @@ describe('CopilotController', () => {
     it('should return expired without storing', async () => {
       mockCopilotAuth.pollForToken.mockResolvedValue({ status: 'expired' });
 
-      const result = await controller.copilotPollToken(mockUser, mockAgentName, {
+      const result = await controller.copilotPollToken(mockCtx, mockAgentName, {
         deviceCode: 'dc_abc',
       } as never);
 

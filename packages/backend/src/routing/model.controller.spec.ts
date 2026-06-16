@@ -1,5 +1,4 @@
 import { ModelController } from './model.controller';
-import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ModelDiscoveryService } from '../model-discovery/model-discovery.service';
@@ -11,9 +10,10 @@ import { ProviderParamSpecService } from './routing-core/provider-param-spec.ser
 import { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
-const mockUser = { id: 'user-1' } as never;
+const mockCtx = { tenantId: 'tenant-1', userId: 'user-1' } as never;
 const mockAgentName = { agentName: 'test-agent' } as never;
 const TEST_AGENT_ID = 'agent-001';
+const TEST_TENANT_ID = 'tenant-1';
 
 function makeDiscovered(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
   return {
@@ -32,7 +32,6 @@ function makeDiscovered(overrides: Partial<DiscoveredModel> = {}): DiscoveredMod
 
 describe('ModelController', () => {
   let controller: ModelController;
-  let mockProviderService: Record<string, jest.Mock>;
   let mockDiscoveryService: Record<string, jest.Mock>;
   let mockOllamaSync: Record<string, jest.Mock>;
   let mockResolveAgent: Record<string, jest.Mock>;
@@ -44,9 +43,6 @@ describe('ModelController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockProviderService = {
-      recalculateTiers: jest.fn().mockResolvedValue(undefined),
-    };
     mockDiscoveryService = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
       discoverAllForAgent: jest.fn().mockResolvedValue(undefined),
@@ -61,7 +57,11 @@ describe('ModelController', () => {
       sync: jest.fn().mockResolvedValue({ count: 0 }),
     };
     mockResolveAgent = {
-      resolve: jest.fn().mockResolvedValue({ id: TEST_AGENT_ID, name: 'test-agent' } as Agent),
+      resolve: jest.fn().mockResolvedValue({
+        id: TEST_AGENT_ID,
+        name: 'test-agent',
+        tenant_id: TEST_TENANT_ID,
+      } as Agent),
     };
     mockCustomProviderService = {
       list: jest.fn().mockResolvedValue([]),
@@ -82,7 +82,6 @@ describe('ModelController', () => {
     };
 
     controller = new ModelController(
-      mockProviderService as unknown as ProviderService,
       mockDiscoveryService as unknown as ModelDiscoveryService,
       mockOllamaSync as unknown as OllamaSyncService,
       mockResolveAgent as unknown as ResolveAgentService,
@@ -165,10 +164,10 @@ describe('ModelController', () => {
 
   describe('refreshModels', () => {
     it('should call discoverAllForAgent and return ok', async () => {
-      const result = await controller.refreshModels(mockUser, mockAgentName);
+      const result = await controller.refreshModels(mockCtx, mockAgentName);
 
-      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
-      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockResolveAgent.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
+      expect(mockDiscoveryService.discoverAllForAgent).toHaveBeenCalledWith('tenant-1');
       expect(result).toEqual({ ok: true });
     });
   });
@@ -178,7 +177,7 @@ describe('ModelController', () => {
   describe('refreshProviderModels', () => {
     const mockParams = { agentName: 'test-agent', provider: 'anthropic' } as never;
 
-    it('returns the discovery result and recalculates tiers when ok', async () => {
+    it('returns the discovery result without changing routes when ok', async () => {
       mockDiscoveryService.refreshProvider.mockResolvedValue({
         ok: true,
         model_count: 7,
@@ -186,14 +185,13 @@ describe('ModelController', () => {
         error: null,
       });
 
-      const result = await controller.refreshProviderModels(mockUser, mockParams, {});
+      const result = await controller.refreshProviderModels(mockCtx, mockParams, {});
 
       expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
-        TEST_AGENT_ID,
+        'tenant-1',
         'anthropic',
         undefined,
       );
-      expect(mockProviderService.recalculateTiers).toHaveBeenCalledWith(TEST_AGENT_ID);
       expect(result).toEqual({
         ok: true,
         model_count: 7,
@@ -203,15 +201,15 @@ describe('ModelController', () => {
     });
 
     it('forwards the optional authType query param', async () => {
-      await controller.refreshProviderModels(mockUser, mockParams, { authType: 'subscription' });
+      await controller.refreshProviderModels(mockCtx, mockParams, { authType: 'subscription' });
       expect(mockDiscoveryService.refreshProvider).toHaveBeenCalledWith(
-        TEST_AGENT_ID,
+        'tenant-1',
         'anthropic',
         'subscription',
       );
     });
 
-    it('skips tier recalculation when refresh failed', async () => {
+    it('returns the refresh error when refresh failed', async () => {
       mockDiscoveryService.refreshProvider.mockResolvedValue({
         ok: false,
         model_count: 0,
@@ -219,9 +217,8 @@ describe('ModelController', () => {
         error: 'Provider returned no models',
       });
 
-      const result = await controller.refreshProviderModels(mockUser, mockParams, {});
+      const result = await controller.refreshProviderModels(mockCtx, mockParams, {});
 
-      expect(mockProviderService.recalculateTiers).not.toHaveBeenCalled();
       expect(result.ok).toBe(false);
       expect(result.error).toBe('Provider returned no models');
     });
@@ -235,9 +232,12 @@ describe('ModelController', () => {
         makeDiscovered({ id: 'gpt-4o', provider: 'openai', displayName: 'GPT-4o' }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
-      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockDiscoveryService.getModelsForAgent).toHaveBeenCalledWith(
+        'tenant-1',
+        TEST_AGENT_ID,
+      );
       expect(result).toHaveLength(1);
       expect(result[0].model_name).toBe('gpt-4o');
       expect(result[0].provider).toBe('openai');
@@ -246,7 +246,7 @@ describe('ModelController', () => {
     it('should return empty array when no models discovered', async () => {
       mockDiscoveryService.getModelsForAgent.mockResolvedValue([]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
       expect(result).toEqual([]);
     });
 
@@ -265,7 +265,7 @@ describe('ModelController', () => {
         }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result[0]).toEqual({
         model_name: 'gpt-4o',
@@ -294,7 +294,7 @@ describe('ModelController', () => {
       ]);
       mockOpencodeGoCatalog.resolveCostPerRequest.mockResolvedValue(0.013636);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(mockOpencodeGoCatalog.resolveCostPerRequest).toHaveBeenCalledWith(
         'opencode-go/glm-5.1',
@@ -312,7 +312,7 @@ describe('ModelController', () => {
       ]);
       mockOpencodeGoCatalog.resolveCostPerRequest.mockResolvedValue(null);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result[0]).not.toHaveProperty('cost_per_request');
     });
@@ -322,7 +322,7 @@ describe('ModelController', () => {
         makeDiscovered({ id: 'gpt-4o', provider: 'openai' }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(mockOpencodeGoCatalog.resolveCostPerRequest).not.toHaveBeenCalled();
       expect(result[0]).not.toHaveProperty('cost_per_request');
@@ -333,7 +333,7 @@ describe('ModelController', () => {
         makeDiscovered({ id: 'gpt-4o', provider: 'openai' }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(Object.keys(result[0]).sort()).toEqual([
         'auth_type',
@@ -362,7 +362,7 @@ describe('ModelController', () => {
         outputModalities: ['text', 'image'],
       });
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result[0].capabilities).toEqual(['text', 'image', 'tools', 'stream']);
       expect(result[0].input_modalities).toEqual(['text', 'image']);
@@ -381,7 +381,7 @@ describe('ModelController', () => {
         capabilities: ['text', 'tools', 'stream'],
       });
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       // The gateway prefix is stripped and the provider inferred from the
       // underlying id, so models.dev is queried as the real provider.
@@ -398,7 +398,7 @@ describe('ModelController', () => {
         }),
       ]);
 
-      await controller.getAvailableModels(mockUser, mockAgentName);
+      await controller.getAvailableModels(mockCtx, mockAgentName);
 
       // Unknown underlying ids keep the gateway provider rather than passing
       // `undefined`.
@@ -413,7 +413,7 @@ describe('ModelController', () => {
         makeDiscovered({ id: 'some-model', provider: 'openai', displayName: '' }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result[0].display_name).toBeNull();
     });
@@ -430,7 +430,7 @@ describe('ModelController', () => {
         name: 'Magistral Small',
       });
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(mockModelsDevSync.lookupModel).toHaveBeenCalledWith('mistral', 'magistral-small-2509');
       expect(result[0].model_name).toBe('mistral.magistral-small-2509');
@@ -446,7 +446,7 @@ describe('ModelController', () => {
         }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result[0].model_name).toBe('us.anthropic.claude-opus-4.6');
       expect(result[0].display_name).toBe('Claude Opus 4.6');
@@ -458,7 +458,7 @@ describe('ModelController', () => {
         makeDiscovered({ id: 'grok-3', provider: 'xai' }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result).toHaveLength(2);
       expect(result.map((m) => m.model_name).sort()).toEqual(['gpt-4o', 'grok-3']);
@@ -474,7 +474,7 @@ describe('ModelController', () => {
       ]);
       mockCustomProviderService.list.mockResolvedValue([{ id: 'cp-uuid', name: 'Groq' }]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result).toHaveLength(1);
       expect(result[0].display_name).toBe('llama-3.1-70b');
@@ -491,7 +491,7 @@ describe('ModelController', () => {
       ]);
       mockCustomProviderService.list.mockResolvedValue([]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result).toHaveLength(1);
       expect(result[0].display_name).toBe('model-x');
@@ -503,7 +503,7 @@ describe('ModelController', () => {
         makeDiscovered({ id: 'gpt-4o', provider: 'openai', displayName: 'GPT-4o' }),
       ]);
 
-      const result = await controller.getAvailableModels(mockUser, mockAgentName);
+      const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
       expect(result[0].display_name).toBe('GPT-4o');
       expect(result[0]).not.toHaveProperty('provider_display_name');

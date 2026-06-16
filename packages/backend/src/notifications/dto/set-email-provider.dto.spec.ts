@@ -1,7 +1,11 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { SetEmailProviderDto, TestEmailProviderDto } from './set-email-provider.dto';
+import {
+  SetEmailProviderDto,
+  TestEmailProviderDto,
+  TestSavedEmailProviderDto,
+} from './set-email-provider.dto';
 
 describe('SetEmailProviderDto', () => {
   function create(data: Record<string, unknown>): SetEmailProviderDto {
@@ -417,5 +421,12 @@ describe('TestEmailProviderDto', () => {
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
     });
+  });
+});
+
+describe('TestSavedEmailProviderDto', () => {
+  it('trims and lowercases the recipient address', () => {
+    const dto = plainToInstance(TestSavedEmailProviderDto, { to: '  Recipient@Example.COM  ' });
+    expect(dto.to).toBe('recipient@example.com');
   });
 });

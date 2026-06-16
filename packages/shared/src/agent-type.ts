@@ -45,8 +45,8 @@ export const PLATFORMS_BY_CATEGORY: Readonly<Record<AgentCategory, readonly Agen
 };
 
 export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = {
-  openclaw: '/icons/openclaw.png',
-  hermes: '/icons/hermes.png',
+  openclaw: '/icons/openclaw.svg',
+  hermes: '/icons/hermes.svg',
   nanobot: '/icons/nanobot.png',
   craft: '/icons/craft.png',
   'claude-code': '/icons/providers/claude-code.svg',
@@ -54,7 +54,7 @@ export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = 
   'openai-sdk': '/icons/providers/openai.svg',
   'anthropic-sdk': '/icons/providers/anthropic.svg',
   'vercel-ai-sdk': '/icons/vercel.svg',
-  langchain: '/icons/langchain.png',
+  langchain: '/icons/langchain.svg',
   other: '/icons/other.svg',
 };
 

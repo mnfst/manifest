@@ -37,10 +37,6 @@ describe('ProxyMessageRecorder', () => {
           }),
         ),
     } as never;
-    const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
-    const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
-    const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
-    const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
     const opencodeGoCatalog = {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -52,10 +48,6 @@ describe('ProxyMessageRecorder', () => {
       dedup,
       eventBus,
       customProviders,
-      providerService,
-      tierService,
-      specificityService,
-      headerTierService,
       opencodeGoCatalog,
       recordingService,
     );
@@ -279,7 +271,7 @@ describe('ProxyMessageRecorder', () => {
 
     it('emits SSE event after recording', async () => {
       await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'standard');
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('persists the provider column when passed via opts', async () => {
@@ -319,7 +311,7 @@ describe('ProxyMessageRecorder', () => {
         error_http_status: 500,
         model: 'gpt-4o',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('stores the HTTP status code for 400 errors', async () => {
@@ -334,7 +326,7 @@ describe('ProxyMessageRecorder', () => {
       await recorder.recordProviderError(ctx, 429, 'Rate limited');
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(insertMock.mock.calls[0][0].status).toBe('rate_limited');
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('skips insert during cooldown but does not emit', async () => {
@@ -402,7 +394,7 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect((insertMock.mock.calls[0][0] as unknown[]).length).toBe(2);
       expect(emitMock).toHaveBeenCalledTimes(1);
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('stores the HTTP status code for each fallback failure', async () => {
@@ -601,7 +593,7 @@ describe('ProxyMessageRecorder', () => {
         status: 'fallback_error',
         model: 'gpt-4o',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('persists the provider column when passed a provider', async () => {
@@ -676,10 +668,6 @@ describe('ProxyMessageRecorder', () => {
             }),
           ),
       } as never;
-      const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
-      const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
-      const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
-      const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
       const opencodeGoCatalog = {
         getCostPerRequest: jest.fn().mockReturnValue(null),
         resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -691,10 +679,6 @@ describe('ProxyMessageRecorder', () => {
         dedupWithLock,
         eventBus,
         passthroughCustomProviders,
-        providerService,
-        tierService,
-        specificityService,
-        headerTierService,
         opencodeGoCatalog,
         recordingService,
       );
@@ -710,7 +694,7 @@ describe('ProxyMessageRecorder', () => {
         completion_tokens: 50,
       });
       expect(insertMock).toHaveBeenCalledTimes(1);
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('records message even when tokens are zero', async () => {
@@ -724,7 +708,7 @@ describe('ProxyMessageRecorder', () => {
         output_tokens: 0,
         status: 'ok',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('updates existing zero-token message and emits SSE event', async () => {
@@ -761,7 +745,7 @@ describe('ProxyMessageRecorder', () => {
         user_id: 'user-1',
       });
       expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('skips update when existing message already has recorded tokens', async () => {
@@ -820,7 +804,7 @@ describe('ProxyMessageRecorder', () => {
       expect(updateMock.mock.calls[0][1]).toMatchObject({
         session_key: 'session-abc',
       });
-      expect(emitMock).toHaveBeenCalledWith('user-1');
+      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
     it('skips update when existing has only output_tokens > 0 (covers short-circuit OR branch)', async () => {
@@ -1106,10 +1090,6 @@ describe('ProxyMessageRecorder', () => {
             }),
           ),
       } as never;
-      const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
-      const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
-      const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
-      const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
       const opencodeGoCatalog = {
         getCostPerRequest: jest.fn().mockReturnValue(null),
         resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1121,10 +1101,6 @@ describe('ProxyMessageRecorder', () => {
         dedupWithLock,
         eventBus,
         passthroughCustomProviders,
-        providerService,
-        tierService,
-        specificityService,
-        headerTierService,
         opencodeGoCatalog,
         recordingService,
       );
@@ -1346,10 +1322,6 @@ describe('ProxyMessageRecorder', () => {
         dedupWithLock,
         { emit: emitMock } as never,
         passthroughCustomProviders,
-        { getProviders: jest.fn().mockResolvedValue([]) } as never,
-        { getTiers: jest.fn().mockResolvedValue([]) } as never,
-        { getAssignments: jest.fn().mockResolvedValue([]) } as never,
-        { list: jest.fn().mockResolvedValue([]) } as never,
         {
           getCostPerRequest: jest.fn().mockReturnValue(null),
           resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1446,20 +1418,15 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       setCustomProviders: jest.fn(),
       invalidateAgent: jest.fn(),
     } as never;
-    const autoAssign = { recalculate: jest.fn() } as never;
 
     const customProviders = new CustomProviderService(
       customProviderRepo,
       providerService,
       routingCache,
-      autoAssign,
       pricingCache,
+      eventBus,
     );
 
-    const mockProviderService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
-    const mockTierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
-    const mockSpecificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
-    const mockHeaderTierService = { list: jest.fn().mockResolvedValue([]) } as never;
     const mockOpencodeGoCatalog = {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
@@ -1471,10 +1438,6 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       dedup,
       eventBus,
       customProviders,
-      mockProviderService,
-      mockTierService,
-      mockSpecificityService,
-      mockHeaderTierService,
       mockOpencodeGoCatalog,
       mockRecordingService,
     );
@@ -1564,10 +1527,6 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
           }),
         ),
     } as never;
-    const providerService = { getProviders: jest.fn().mockResolvedValue([]) } as never;
-    const tierService = { getTiers: jest.fn().mockResolvedValue([]) } as never;
-    const specificityService = { getAssignments: jest.fn().mockResolvedValue([]) } as never;
-    const headerTierService = { list: jest.fn().mockResolvedValue([]) } as never;
     getCostPerRequestMock = jest.fn().mockResolvedValue(0.01364);
     const opencodeGoCatalog = {
       getCostPerRequest: jest.fn().mockReturnValue(0.01364),
@@ -1579,10 +1538,6 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
       dedupWithLock,
       eventBus,
       customProviders,
-      providerService,
-      tierService,
-      specificityService,
-      headerTierService,
       opencodeGoCatalog,
       { save: jest.fn() } as never,
     );

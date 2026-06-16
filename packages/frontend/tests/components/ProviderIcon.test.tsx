@@ -37,6 +37,14 @@ describe('providerIcon', () => {
     });
   }
 
+  it('returns the branded <img> for "manifest"', () => {
+    const { container } = render(() => <div>{providerIcon('manifest')}</div>);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute('src')).toBe('/icons/manifest.svg');
+    expect(img?.getAttribute('alt')).toBe('Manifest');
+  });
+
   it('returns an SVG for "llamacpp"', () => {
     const { container } = render(() => <div>{providerIcon('llamacpp')}</div>);
     const svg = container.querySelector('svg');

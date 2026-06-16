@@ -2,10 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import { SpecificityController } from '../specificity.controller';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
-import { AuthUser } from '../../auth/auth.instance';
+import { TenantContext } from '../../common/decorators/tenant-context.decorator';
 
-const mockAgent = { id: 'agent-1', name: 'test-agent' };
-const mockUser = { id: 'user-1', email: 'test@test.com', name: 'Test' } as AuthUser;
+const mockAgent = { id: 'agent-1', name: 'test-agent', tenant_id: 'tenant-1' };
+const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
 
 describe('SpecificityController', () => {
   let controller: SpecificityController;
@@ -47,9 +47,9 @@ describe('SpecificityController', () => {
       const assignments = [{ id: 'sa-1', category: 'coding', is_active: true }];
       mockSpecificityService.getAssignments.mockResolvedValue(assignments);
 
-      const result = await controller.getAssignments(mockUser, { agentName: 'test-agent' });
+      const result = await controller.getAssignments(ctx, { agentName: 'test-agent' });
 
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.getAssignments).toHaveBeenCalledWith('agent-1');
       expect(result).toBe(assignments);
     });
@@ -61,12 +61,12 @@ describe('SpecificityController', () => {
       const override = { id: 'sa-1', category: 'coding', override_model: 'gpt-4o' };
       mockSpecificityService.setOverride.mockResolvedValue(override);
 
-      const result = await controller.setOverride(mockUser, 'test-agent', 'coding', body);
+      const result = await controller.setOverride(ctx, 'test-agent', 'coding', body);
 
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.setOverride).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'coding',
         'gpt-4o',
         'openai',
@@ -79,9 +79,9 @@ describe('SpecificityController', () => {
     it('should throw BadRequestException for invalid category', async () => {
       const body = { model: 'gpt-4o' };
 
-      await expect(
-        controller.setOverride(mockUser, 'test-agent', 'invalid_cat', body),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.setOverride(ctx, 'test-agent', 'invalid_cat', body)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -91,12 +91,11 @@ describe('SpecificityController', () => {
       const toggled = { id: 'sa-1', is_active: true };
       mockSpecificityService.toggleCategory.mockResolvedValue(toggled);
 
-      const result = await controller.toggleCategory(mockUser, 'test-agent', 'web_browsing', body);
+      const result = await controller.toggleCategory(ctx, 'test-agent', 'web_browsing', body);
 
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.toggleCategory).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
         'web_browsing',
         true,
       );
@@ -105,32 +104,32 @@ describe('SpecificityController', () => {
 
     it('should throw BadRequestException for invalid category', async () => {
       await expect(
-        controller.toggleCategory(mockUser, 'test-agent', 'bad', { active: false }),
+        controller.toggleCategory(ctx, 'test-agent', 'bad', { active: false }),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('clearOverride', () => {
     it('should validate category, resolve agent, and clear override', async () => {
-      const result = await controller.clearOverride(mockUser, 'test-agent', 'data_analysis');
+      const result = await controller.clearOverride(ctx, 'test-agent', 'data_analysis');
 
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.clearOverride).toHaveBeenCalledWith('agent-1', 'data_analysis');
       expect(result).toEqual({ ok: true });
     });
 
     it('should throw BadRequestException for invalid category', async () => {
-      await expect(
-        controller.clearOverride(mockUser, 'test-agent', 'not_a_category'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.clearOverride(ctx, 'test-agent', 'not_a_category')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
   describe('resetAll', () => {
     it('should resolve agent and reset all assignments', async () => {
-      const result = await controller.resetAll(mockUser, { agentName: 'test-agent' });
+      const result = await controller.resetAll(ctx, { agentName: 'test-agent' });
 
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.resetAll).toHaveBeenCalledWith('agent-1');
       expect(result).toEqual({ ok: true });
     });
@@ -140,7 +139,7 @@ describe('SpecificityController', () => {
     it('should accept all valid categories', async () => {
       for (const cat of ['coding', 'web_browsing', 'data_analysis']) {
         mockResolveAgentService.resolve.mockResolvedValue(mockAgent);
-        await expect(controller.clearOverride(mockUser, 'test-agent', cat)).resolves.toEqual({
+        await expect(controller.clearOverride(ctx, 'test-agent', cat)).resolves.toEqual({
           ok: true,
         });
       }
@@ -148,7 +147,7 @@ describe('SpecificityController', () => {
 
     it('should include valid categories in error message', async () => {
       try {
-        await controller.clearOverride(mockUser, 'test-agent', 'unknown');
+        await controller.clearOverride(ctx, 'test-agent', 'unknown');
         fail('Should have thrown');
       } catch (e) {
         expect((e as BadRequestException).message).toContain('coding');
@@ -162,12 +161,13 @@ describe('SpecificityController', () => {
   describe('setFallbacks', () => {
     it('should resolve agent and call service.setFallbacks', async () => {
       mockSpecificityService.setFallbacks.mockResolvedValue(['model-a']);
-      const result = await controller.setFallbacks(mockUser, 'test-agent', 'coding', {
+      const result = await controller.setFallbacks(ctx, 'test-agent', 'coding', {
         models: ['model-a'],
       });
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.setFallbacks).toHaveBeenCalledWith(
         'agent-1',
+        'tenant-1',
         'coding',
         ['model-a'],
         undefined,
@@ -177,21 +177,21 @@ describe('SpecificityController', () => {
 
     it('should reject invalid category', async () => {
       await expect(
-        controller.setFallbacks(mockUser, 'test-agent', 'invalid', { models: ['m'] }),
+        controller.setFallbacks(ctx, 'test-agent', 'invalid', { models: ['m'] }),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('clearFallbacks', () => {
     it('should resolve agent and call service.clearFallbacks', async () => {
-      const result = await controller.clearFallbacks(mockUser, 'test-agent', 'coding');
-      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('user-1', 'test-agent');
+      const result = await controller.clearFallbacks(ctx, 'test-agent', 'coding');
+      expect(mockResolveAgentService.resolve).toHaveBeenCalledWith('tenant-1', 'test-agent');
       expect(mockSpecificityService.clearFallbacks).toHaveBeenCalledWith('agent-1', 'coding');
       expect(result).toEqual({ ok: true });
     });
 
     it('should reject invalid category', async () => {
-      await expect(controller.clearFallbacks(mockUser, 'test-agent', 'invalid')).rejects.toThrow(
+      await expect(controller.clearFallbacks(ctx, 'test-agent', 'invalid')).rejects.toThrow(
         BadRequestException,
       );
     });

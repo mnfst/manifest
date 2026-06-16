@@ -8,8 +8,9 @@ import { NotificationLogService } from './services/notification-log.service';
 import { EmailProviderConfigService } from './services/email-provider-config.service';
 import { NotificationCronService } from './services/notification-cron.service';
 import { LimitCheckService } from './services/limit-check.service';
+import { TenantCacheService } from '../common/services/tenant-cache.service';
 
-const mockUser = { id: 'user-1', email: 'test@test.com', name: 'Test' } as never;
+const ctx = { tenantId: 'tenant-1', userId: 'user-1' };
 
 describe('NotificationsController setNotificationEmail validation', () => {
   let module: TestingModule;
@@ -57,11 +58,11 @@ describe('NotificationsController setNotificationEmail validation', () => {
       new BadRequestException('Notification email must be a non-empty string'),
     );
 
-    await expect(controller.setNotificationEmail(mockUser, { email: '' })).rejects.toBeInstanceOf(
+    await expect(controller.setNotificationEmail(ctx, { email: '' })).rejects.toBeInstanceOf(
       BadRequestException,
     );
 
-    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith('user-1', '');
+    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith('tenant-1', '');
   });
 
   it('propagates BadRequestException when email is whitespace only (spaces)', async () => {
@@ -69,11 +70,11 @@ describe('NotificationsController setNotificationEmail validation', () => {
       new BadRequestException('Notification email must be a non-empty string'),
     );
 
-    await expect(
-      controller.setNotificationEmail(mockUser, { email: '   ' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(controller.setNotificationEmail(ctx, { email: '   ' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
 
-    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith('user-1', '   ');
+    expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith('tenant-1', '   ');
   });
 
   it('propagates BadRequestException when email is whitespace only (tabs and newlines)', async () => {
@@ -81,12 +82,12 @@ describe('NotificationsController setNotificationEmail validation', () => {
       new BadRequestException('Notification email must be a non-empty string'),
     );
 
-    await expect(
-      controller.setNotificationEmail(mockUser, { email: '\t\n\r ' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(controller.setNotificationEmail(ctx, { email: '\t\n\r ' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
 
     expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith(
-      'user-1',
+      'tenant-1',
       '\t\n\r ',
     );
   });
@@ -96,7 +97,7 @@ describe('NotificationsController setNotificationEmail validation', () => {
       new BadRequestException('Notification email must be a non-empty string'),
     );
 
-    await expect(controller.setNotificationEmail(mockUser, { email: '' })).rejects.toBeInstanceOf(
+    await expect(controller.setNotificationEmail(ctx, { email: '' })).rejects.toBeInstanceOf(
       BadRequestException,
     );
 
@@ -108,10 +109,10 @@ describe('NotificationsController setNotificationEmail validation', () => {
   it('accepts a valid non-empty email and returns saved: true', async () => {
     emailProviderConfigService.setNotificationEmail.mockResolvedValue(undefined);
 
-    const result = await controller.setNotificationEmail(mockUser, { email: 'alerts@test.com' });
+    const result = await controller.setNotificationEmail(ctx, { email: 'alerts@test.com' });
 
     expect(emailProviderConfigService.setNotificationEmail).toHaveBeenCalledWith(
-      'user-1',
+      'tenant-1',
       'alerts@test.com',
     );
     expect(result).toEqual({ saved: true });
@@ -135,11 +136,17 @@ describe('EmailProviderConfigService.setNotificationEmail empty/whitespace handl
     get: (_key: string, fallback?: string) => fallback,
   } as unknown as ConfigService;
 
+  const mockTenantCache = {
+    ensureForUser: jest.fn().mockResolvedValue('tenant-1'),
+    resolve: jest.fn().mockResolvedValue('tenant-1'),
+    invalidate: jest.fn(),
+  } as unknown as TenantCacheService;
+
   it('throws BadRequestException for empty string without querying the database', async () => {
     const ds = createMockDataSource();
-    const service = new EmailProviderConfigService(ds, mockConfigService);
+    const service = new EmailProviderConfigService(ds, mockConfigService, mockTenantCache);
 
-    await expect(service.setNotificationEmail('user-1', '')).rejects.toBeInstanceOf(
+    await expect(service.setNotificationEmail('tenant-1', '')).rejects.toBeInstanceOf(
       BadRequestException,
     );
     expect(ds.query).not.toHaveBeenCalled();
@@ -147,9 +154,9 @@ describe('EmailProviderConfigService.setNotificationEmail empty/whitespace handl
 
   it('throws BadRequestException for whitespace-only input without querying the database', async () => {
     const ds = createMockDataSource();
-    const service = new EmailProviderConfigService(ds, mockConfigService);
+    const service = new EmailProviderConfigService(ds, mockConfigService, mockTenantCache);
 
-    await expect(service.setNotificationEmail('user-1', '   \t\n')).rejects.toBeInstanceOf(
+    await expect(service.setNotificationEmail('tenant-1', '   \t\n')).rejects.toBeInstanceOf(
       BadRequestException,
     );
     expect(ds.query).not.toHaveBeenCalled();
@@ -157,10 +164,10 @@ describe('EmailProviderConfigService.setNotificationEmail empty/whitespace handl
 
   it('throws BadRequestException for non-string (cast) input without querying the database', async () => {
     const ds = createMockDataSource();
-    const service = new EmailProviderConfigService(ds, mockConfigService);
+    const service = new EmailProviderConfigService(ds, mockConfigService, mockTenantCache);
 
     await expect(
-      service.setNotificationEmail('user-1', undefined as unknown as string),
+      service.setNotificationEmail('tenant-1', undefined as unknown as string),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(ds.query).not.toHaveBeenCalled();
   });
@@ -174,14 +181,14 @@ describe('EmailProviderConfigService.setNotificationEmail empty/whitespace handl
         .mockResolvedValueOnce([]),
       options: { type: 'postgres' },
     } as unknown as DataSource;
-    const service = new EmailProviderConfigService(ds, mockConfigService);
+    const service = new EmailProviderConfigService(ds, mockConfigService, mockTenantCache);
 
-    await service.setNotificationEmail('user-1', '  Alerts@Test.COM  ');
+    await service.setNotificationEmail('tenant-1', '  Alerts@Test.COM  ');
 
     expect(ds.query).toHaveBeenCalledTimes(2);
     // Second call is the UPDATE — confirm the email was lowercased & trimmed.
     const updateCall = (ds.query as jest.Mock).mock.calls[1];
     expect(updateCall[1][0]).toBe('alerts@test.com');
-    expect(updateCall[1][2]).toBe('user-1');
+    expect(updateCall[1][2]).toBe('tenant-1');
   });
 });

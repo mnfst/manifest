@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { Agent } from '../entities/agent.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
@@ -12,10 +13,17 @@ import { OAuthModule } from '../routing/oauth/oauth.module';
 import { PlaygroundController } from './playground.controller';
 import { PlaygroundService } from './playground.service';
 import { PlaygroundHistoryService } from './playground-history.service';
+import { PlaygroundAgentService } from './playground-agent.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentMessage, PlaygroundRun, PlaygroundColumn, CustomProvider]),
+    TypeOrmModule.forFeature([
+      AgentMessage,
+      Agent,
+      PlaygroundRun,
+      PlaygroundColumn,
+      CustomProvider,
+    ]),
     CommonModule,
     ModelPricesModule,
     RoutingCoreModule,
@@ -23,6 +31,6 @@ import { PlaygroundHistoryService } from './playground-history.service';
     OAuthModule,
   ],
   controllers: [PlaygroundController],
-  providers: [PlaygroundService, PlaygroundHistoryService],
+  providers: [PlaygroundService, PlaygroundHistoryService, PlaygroundAgentService],
 })
 export class PlaygroundModule {}

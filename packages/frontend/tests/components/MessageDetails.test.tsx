@@ -137,7 +137,7 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(detailsResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Agent Logs');
+      expect(container.textContent).toContain('Harness Logs');
       expect(container.textContent).toContain('Agent started processing');
       expect(container.textContent).toContain('info');
     });
@@ -306,7 +306,7 @@ describe('MessageDetails', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('LLM Calls');
       expect(container.textContent).not.toContain('Tool Executions');
-      expect(container.textContent).not.toContain('Agent Logs');
+      expect(container.textContent).not.toContain('Harness Logs');
     });
   });
 
@@ -473,7 +473,7 @@ describe('MessageDetails', () => {
     // Table body is not rendered while collapsed.
     expect(container.textContent).not.toContain('curl/8.14.1');
     expect(container.textContent).not.toContain('x-custom-foo');
-    // There should be 3 tables visible (LLM Calls, Tool Executions, Agent Logs), not 4.
+    // There should be 3 tables visible (LLM Calls, Tool Executions, Harness Logs), not 4.
     const tables = container.querySelectorAll('table.msg-detail__table');
     expect(tables.length).toBe(3);
   });
@@ -1018,7 +1018,7 @@ describe('MessageDetails', () => {
       expect(titleButton.textContent).toContain('3');
       titleButton.click();
       // Scope the key-extraction to the Model Parameters table specifically;
-      // the LLM Calls / Tool Executions / Agent Logs sections also use
+      // the LLM Calls / Tool Executions / Harness Logs sections also use
       // `.msg-detail__table` and would dilute a global selector. The
       // wrapper id starts with `msg-detail-model-params-` for exactly this
       // kind of disambiguation.

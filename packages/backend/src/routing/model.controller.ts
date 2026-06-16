@@ -1,7 +1,5 @@
 import { Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
-import { ProviderService } from './routing-core/provider.service';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
@@ -54,7 +52,6 @@ function displayNameForModel(
 @Controller('api/v1/routing')
 export class ModelController {
   constructor(
-    private readonly providerService: ProviderService,
     private readonly discoveryService: ModelDiscoveryService,
     private readonly ollamaSync: OllamaSyncService,
     private readonly resolveAgentService: ResolveAgentService,
@@ -84,28 +81,24 @@ export class ModelController {
   }
 
   @Post(':agentName/refresh-models')
-  async refreshModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    await this.discoveryService.discoverAllForAgent(agent.id);
-    await this.providerService.recalculateTiers(agent.id);
+  async refreshModels(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
+    await this.discoveryService.discoverAllForAgent(agent.tenant_id);
     return { ok: true };
   }
 
   @Post(':agentName/providers/:provider/refresh-models')
   async refreshProviderModels(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentProviderParamDto,
     @Query() query: RemoveProviderQueryDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const result = await this.discoveryService.refreshProvider(
-      agent.id,
+      agent.tenant_id,
       params.provider,
       query.authType,
     );
-    if (result.ok) {
-      await this.providerService.recalculateTiers(agent.id);
-    }
     return result;
   }
 
@@ -115,12 +108,16 @@ export class ModelController {
   }
 
   @Get(':agentName/available-models')
-  async getAvailableModels(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const models = await this.discoveryService.getModelsForAgent(agent.id);
+  async getAvailableModels(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    // allowPlayground: true — the Playground frontend reads available models for the
+    // reserved Playground agent; all other model.controller endpoints remain blocked.
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
+      allowPlayground: true,
+    });
+    const models = await this.discoveryService.getModelsForAgent(agent.tenant_id, agent.id);
 
-    // Build display name map for custom providers
-    const customProviders = await this.customProviderService.list(agent.id);
+    // Build display name map for custom providers (tenant-global)
+    const customProviders = await this.customProviderService.list(agent.tenant_id);
     const cpNameMap = new Map<string, string>();
     for (const cp of customProviders) {
       cpNameMap.set(CustomProviderService.providerKey(cp.id), cp.name);

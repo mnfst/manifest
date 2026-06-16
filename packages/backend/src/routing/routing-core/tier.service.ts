@@ -1,9 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserProvider } from '../../entities/user-provider.entity';
 import { TierAssignment } from '../../entities/tier-assignment.entity';
-import { TierAutoAssignService } from './tier-auto-assign.service';
 import { RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
@@ -15,18 +13,14 @@ import {
   TIER_SLOTS,
   TierSlot,
 } from 'manifest-shared';
-import { isManifestUsableProvider } from '../../common/utils/subscription-support';
-import { explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
+import { effectiveRoute, explicitRoute, unambiguousRoute, routeMatches } from './route-helpers';
 import { assertStreamableResponseMode } from './response-mode-guard';
 
 @Injectable()
 export class TierService {
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
     @InjectRepository(TierAssignment)
     private readonly tierRepo: Repository<TierAssignment>,
-    private readonly autoAssign: TierAutoAssignService,
     private readonly routingCache: RoutingCacheService,
     private readonly providerService: ProviderService,
     private readonly discoveryService: ModelDiscoveryService,
@@ -34,15 +28,15 @@ export class TierService {
 
   async hasRoutableTier(agentId: string): Promise<boolean> {
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
-    return rows.some((r) => !!r.override_route || !!r.auto_assigned_route);
+    return rows.some((r) => effectiveRoute(r) !== null);
   }
 
-  async getTiers(agentId: string, userId?: string): Promise<TierAssignment[]> {
+  async getTiers(agentId: string, tenantId?: string): Promise<TierAssignment[]> {
     const cached = this.routingCache.getTiers(agentId);
     if (cached) return cached;
 
     // Trigger provider cleanup to deactivate unsupported subscription providers
-    await this.providerService.getProviders(agentId);
+    if (tenantId) await this.providerService.getProviders(tenantId);
     const rows = await this.tierRepo.find({ where: { agent_id: agentId } });
 
     // Figure out which slots are missing. Every agent should have a row for
@@ -60,7 +54,6 @@ export class TierService {
     const created: TierAssignment[] = missing.map((slot: TierSlot) =>
       Object.assign(new TierAssignment(), {
         id: randomUUID(),
-        user_id: userId ?? '',
         agent_id: agentId,
         tier: slot,
         override_route: null,
@@ -85,18 +78,6 @@ export class TierService {
       throw err;
     }
 
-    // If agent has active providers, recalculate so new slots get auto-assigned models.
-    const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
-    });
-    const usableProviders = providers.filter(isManifestUsableProvider);
-    if (usableProviders.length > 0) {
-      await this.autoAssign.recalculate(agentId);
-      const result = await this.tierRepo.find({ where: { agent_id: agentId } });
-      this.routingCache.setTiers(agentId, result);
-      return result;
-    }
-
     const merged = [...rows, ...created];
     this.routingCache.setTiers(agentId, merged);
     return merged;
@@ -104,14 +85,14 @@ export class TierService {
 
   async setOverride(
     agentId: string,
-    userId: string,
+    tenantId: string,
     tier: string,
     model: string,
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string,
   ): Promise<TierAssignment> {
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     const matches = available.filter((m) => m.id === model);
     if (matches.length === 0) {
       const providerHint = provider ? ` (provider: ${provider})` : '';
@@ -173,7 +154,6 @@ export class TierService {
 
     const record: TierAssignment = Object.assign(new TierAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       tier,
       override_route: route,
@@ -185,10 +165,25 @@ export class TierService {
 
     try {
       await this.tierRepo.insert(record);
-    } catch {
+    } catch (err) {
+      // A concurrent request may have inserted the same (agent_id, tier) first,
+      // hitting the unique index. Re-read and adopt its row if present;
+      // otherwise the failure is something else (FK violation, connection
+      // error, …) and we rethrow rather than reporting a phantom success for a
+      // row that was never persisted.
       const retry = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
-      if (retry)
-        return this.setOverride(agentId, userId, tier, model, provider, authType, providerKeyLabel);
+      if (retry) {
+        return this.setOverride(
+          agentId,
+          tenantId,
+          tier,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
+      }
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -196,7 +191,6 @@ export class TierService {
 
   async setResponseMode(
     agentId: string,
-    userId: string,
     tier: string,
     responseMode: ResponseMode,
   ): Promise<TierAssignment> {
@@ -205,7 +199,7 @@ export class TierService {
       assertStreamableResponseMode(
         responseMode,
         `tier "${tier}"`,
-        existing.override_route ?? existing.auto_assigned_route,
+        existing.override_route,
         existing.fallback_routes,
       );
       existing.response_mode = responseMode;
@@ -217,7 +211,6 @@ export class TierService {
 
     const record: TierAssignment = Object.assign(new TierAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       tier,
       override_route: null,
@@ -242,7 +235,7 @@ export class TierService {
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
-      existing.auto_assigned_route,
+      null,
       existing.fallback_routes,
     );
     existing.updated_at = new Date().toISOString();
@@ -271,17 +264,18 @@ export class TierService {
 
   async setFallbacks(
     agentId: string,
+    tenantId: string,
     tier: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const existing = await this.tierRepo.findOne({ where: { agent_id: agentId, tier } });
     if (!existing) return [];
-    const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, tenantId, models, routes);
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       fallbackRoutes,
     );
     existing.fallback_routes = fallbackRoutes;
@@ -297,7 +291,7 @@ export class TierService {
     assertStreamableResponseMode(
       existing.response_mode,
       `tier "${tier}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       null,
     );
     existing.fallback_routes = null;
@@ -327,11 +321,12 @@ export class TierService {
    */
   private async buildFallbackRoutes(
     agentId: string,
+    tenantId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       // Cross-check each caller-provided route against the discovered model

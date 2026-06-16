@@ -7,7 +7,8 @@ import { LlmCall } from '../entities/llm-call.entity';
 import { ToolExecution } from '../entities/tool-execution.entity';
 import { AgentLog } from '../entities/agent-log.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { TierAssignment } from '../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
@@ -32,8 +33,7 @@ import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
 import { AgentsController } from './controllers/agents.controller';
 import { AgentAnalyticsController } from './controllers/agent-analytics.controller';
-import { SavingsController } from './controllers/savings.controller';
-import { SavingsQueryService } from './services/savings-query.service';
+import { ProviderAnalyticsController } from './controllers/provider-analytics.controller';
 
 @Module({
   imports: [
@@ -45,7 +45,8 @@ import { SavingsQueryService } from './services/savings-query.service';
       ToolExecution,
       AgentLog,
       CustomProvider,
-      UserProvider,
+      TenantProvider,
+      AgentEnabledProvider,
       TierAssignment,
       SpecificityAssignment,
       HeaderTier,
@@ -63,7 +64,7 @@ import { SavingsQueryService } from './services/savings-query.service';
     MessagesController,
     AgentsController,
     AgentAnalyticsController,
-    SavingsController,
+    ProviderAnalyticsController,
   ],
   providers: [
     AggregationService,
@@ -76,7 +77,6 @@ import { SavingsQueryService } from './services/savings-query.service';
     MessageRecordingService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
-    SavingsQueryService,
   ],
   exports: [SpecificityFeedbackService, MessageRecordingService],
 })

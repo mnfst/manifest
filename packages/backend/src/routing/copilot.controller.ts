@@ -1,6 +1,5 @@
 import { Body, Controller, Param, Post } from '@nestjs/common';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { AuthUser } from '../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { ProviderService } from './routing-core/provider.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CopilotDeviceAuthService } from './oauth/copilot-device-auth.service';
@@ -17,33 +16,33 @@ export class CopilotController {
   ) {}
 
   @Post(':agentName/copilot/device-code')
-  async copilotDeviceCode(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    await this.resolveAgentService.resolve(user.id, params.agentName);
+  async copilotDeviceCode(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     return this.copilotAuth.requestDeviceCode();
   }
 
   @Post(':agentName/copilot/poll-token')
   async copilotPollToken(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
     @Body() body: CopilotPollDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const result = await this.copilotAuth.pollForToken(body.deviceCode);
     if (result.status === 'complete' && result.token) {
-      const label = await this.providerService.nextOAuthLabel(agent.id, 'copilot');
+      const label = await this.providerService.nextOAuthLabel(agent.tenant_id, 'copilot');
       const { provider: record } = await this.providerService.upsertProvider(
         agent.id,
-        user.id,
+        agent.tenant_id,
         'copilot',
         result.token,
         'subscription',
         undefined,
         label,
+        ctx.userId,
       );
       try {
         await this.discoveryService.discoverModels(record);
-        await this.providerService.recalculateTiers(agent.id);
       } catch {
         // Discovery failure is non-fatal
       }

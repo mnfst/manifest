@@ -10,3 +10,9 @@ export * from './api/oauth.js';
 export * from './api/free-models.js';
 export * from './api/model-params.js';
 export * from './api/playground.js';
+export {
+  getProviders as getGlobalProviders,
+  type ProvidersResponse,
+  type TenantProviderConnection,
+  type TenantProviderSummary,
+} from './api/providers.js';
