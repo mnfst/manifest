@@ -43,8 +43,8 @@ const emptyRow = (): ModelRow => ({
   price_estimated: false,
 });
 
-const toModelRows = (models: CustomProviderModel[]): ModelRow[] =>
-  models.map((m) => ({
+const toModelRows = (models: CustomProviderModel[] | undefined): ModelRow[] =>
+  (models ?? []).map((m) => ({
     model_name: m.model_name,
     input_price:
       m.input_price_per_million_tokens != null ? String(m.input_price_per_million_tokens) : '',

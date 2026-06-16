@@ -39,6 +39,20 @@ vi.mock('../../src/components/ProviderSelectModal.jsx', () => ({
   },
 }));
 
+const mockCustomProviderForm = vi.fn();
+vi.mock('../../src/components/CustomProviderForm.jsx', () => ({
+  default: (props: Record<string, unknown>) => {
+    mockCustomProviderForm(props);
+    return (
+      <div data-testid="custom-provider-form">
+        Custom provider form
+        <button onClick={() => (props.onCreated as () => void)()}>created</button>
+        <button onClick={() => (props.onBack as () => void)()}>back</button>
+      </div>
+    );
+  },
+}));
+
 vi.mock('../../src/components/ProviderIcon.jsx', () => ({
   providerIcon: (providerId: string) =>
     providerId === 'openai' ? <span data-testid="provider-icon" /> : null,
@@ -598,6 +612,95 @@ describe('provider pages', () => {
     fireEvent.click(screen.getByLabelText('List view'));
     // Local providers use the "Connected" label rather than an active-count.
     await waitFor(() => expect(screen.getAllByText('Connected').length).toBeGreaterThan(0));
+  });
+
+  it('opens and closes the custom provider modal on the BYOK page', async () => {
+    render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Add custom provider')).toBeDefined());
+
+    // Wait for agent to load so the modal can render (guarded by firstAgentName()).
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: 'Add custom provider' })).toBeDefined(),
+    );
+    expect(mockCustomProviderForm).toHaveBeenCalledWith(
+      expect.objectContaining({ agentName: 'demo-agent' }),
+    );
+    // initialData must NOT be passed in create mode.
+    expect(mockCustomProviderForm).toHaveBeenCalledWith(
+      expect.not.objectContaining({ initialData: expect.anything() }),
+    );
+
+    // Close via Escape key.
+    const overlay = document.querySelector('.modal-overlay') as HTMLElement;
+    fireEvent.keyDown(overlay, { key: 'Escape' });
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+    // Closing refetches both global and custom providers.
+    expect(mockGetGlobalProviders.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(mockGetCustomProviders.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('closes the custom modal via overlay click', async () => {
+    render(() => <Byok />);
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() =>
+      expect(screen.getByRole('dialog', { name: 'Add custom provider' })).toBeDefined(),
+    );
+
+    // Click the overlay itself (target === currentTarget).
+    const overlay = document.querySelector('.modal-overlay') as HTMLElement;
+    fireEvent.click(overlay);
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+  });
+
+  it('closes the custom modal when the form fires onCreated', async () => {
+    render(() => <Byok />);
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('created'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
+  });
+
+  it('closes the custom modal when the form fires onBack', async () => {
+    render(() => <Byok />);
+    await waitFor(() =>
+      expect(
+        (screen.getAllByText('Connect') as HTMLButtonElement[]).some((btn) => !btn.disabled),
+      ).toBe(true),
+    );
+
+    fireEvent.click(screen.getByText('Add custom provider'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('back'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add custom provider' })).toBeNull(),
+    );
   });
 
   it('renders a usage sparkline for connected rows that have 7-day data', async () => {

@@ -179,6 +179,27 @@ vi.mock('../../src/components/AddAgentModal.jsx', () => ({
   ),
 }));
 
+const mockCustomProviderForm = vi.fn();
+vi.mock('../../src/components/CustomProviderForm.jsx', () => ({
+  default: (props: Record<string, unknown>) => {
+    mockCustomProviderForm(props);
+    return (
+      <div data-testid="custom-provider-form">
+        Edit custom provider
+        <button onClick={() => (props.onCreated as () => void)()}>form-created</button>
+        <button onClick={() => (props.onBack as () => void)()}>form-back</button>
+        <button
+          onClick={() => {
+            if (props.onDeleted) (props.onDeleted as () => void)();
+          }}
+        >
+          form-deleted
+        </button>
+      </div>
+    );
+  },
+}));
+
 vi.mock('../../src/components/ProviderSelectModal.jsx', () => ({
   default: (props: {
     agentName?: string;
@@ -1065,8 +1086,67 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
 
     fireEvent.click(screen.getByText('Manage'));
-    expect(screen.getByText('Connection name')).toBeDefined();
-    fireEvent.click(screen.getByText('Done'));
+    // Custom providers open the CustomProviderForm in edit mode
+    await waitFor(() => expect(screen.getByText('Edit custom provider')).toBeDefined());
+  });
+
+  const setupCustomConnectionDetail = () => {
+    routerState.params = { connectionId: 'conn-custom' };
+    apiMocks.getConnectionDetail.mockResolvedValue({
+      ...connectionDetail,
+      connection: {
+        ...connectionDetail.connection,
+        id: 'conn-custom',
+        provider: 'custom:cp-1',
+        label: 'Custom key',
+      },
+    });
+  };
+
+  it('closes the custom provider edit modal and refetches on onCreated', async () => {
+    setupCustomConnectionDetail();
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('form-created'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit custom provider' })).toBeNull(),
+    );
+    // Detail is refetched after onCreated.
+    expect(apiMocks.getConnectionDetail.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('closes the custom provider edit modal on onBack', async () => {
+    setupCustomConnectionDetail();
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('form-back'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit custom provider' })).toBeNull(),
+    );
+  });
+
+  it('closes the custom provider edit modal and navigates back on onDeleted', async () => {
+    setupCustomConnectionDetail();
+    render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
+
+    fireEvent.click(screen.getByText('Manage'));
+    await waitFor(() => expect(screen.getByTestId('custom-provider-form')).toBeDefined());
+
+    fireEvent.click(screen.getByText('form-deleted'));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Edit custom provider' })).toBeNull(),
+    );
+    // onDeleted navigates to backLink() (usage-based for api_key auth type).
+    expect(routerState.navigate).toHaveBeenCalledWith('/providers/usage-based');
   });
 
   it('falls back to empty data when the custom provider lookup rejects', async () => {
