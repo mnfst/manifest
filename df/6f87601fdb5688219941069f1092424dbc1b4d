@@ -1,0 +1,41 @@
+packages/backend/src/database/database.module.ts
+  s_89c92a86451d28::t_2e0ae95e3f39cd 258
+  s_89c92a86451d28::t_6dea52f2c15b68 130
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_89c92a86451d28::t_0949915c3d4916 1-37
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_89c92a86451d28::t_208dbf6665de74 1-2,4-19,21-24
+packages/backend/src/routing/tenant-providers.controller.spec.ts
+  s_89c92a86451d28::t_5ef6648a54038f 180,182-184,194-197
+  s_89c92a86451d28::t_31211d9454b64d 64-83,158-167,170,176-177,207-208
+packages/backend/src/analytics/analytics.module.ts
+  s_89c92a86451d28::t_3adfcdc7210de3 70
+  s_89c92a86451d28::t_6e2d91d7e2b801 30,32
+  s_89c92a86451d28::t_58c2dc2ca6583d 83,85
+packages/backend/src/analytics/services/provider-usage.service.ts
+  s_89c92a86451d28::t_ca6e7380e65dee 1-175
+packages/backend/src/database/migrations/1792900000000-AddProviderUsageCoveringIndex.ts
+  s_89c92a86451d28::t_4310ef74b61d7e 1-83
+packages/backend/src/routing/tenant-providers.controller.ts
+  s_89c92a86451d28::t_fedf7c240b581e 12-19,31-33,104-113
+packages/backend/src/database/migrations/1792900000000-AddProviderUsageCoveringIndex.spec.ts
+  s_89c92a86451d28::t_a58debbf7c9bdc 1-13,15-59,61-79
+packages/backend/src/analytics/services/provider-usage.service.spec.ts
+  s_89c92a86451d28::t_f1d46443908aa9 1-72,74,76-227
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "df6f87601fdb5688219941069f1092424dbc1b4d",
+  "prompts": {},
+  "sessions": {
+    "s_89c92a86451d28": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3d2b8245-fbae-4bc5-bb17-611a4e313195",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
