@@ -32,6 +32,7 @@ import { providerIcon } from '../../components/ProviderIcon.jsx';
 import InfoTooltip from '../../components/InfoTooltip.jsx';
 import { toast } from '../../services/toast-store.js';
 import ProviderSelectModal from '../../components/ProviderSelectModal.jsx';
+import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import Sparkline from '../../components/Sparkline.jsx';
 import '../../styles/routing.css';
 
@@ -205,6 +206,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const copy = () => PAGE_COPY[props.kind];
   const navigate = useNavigate();
   const [showModal, setShowModal] = createSignal(false);
+  const [showCustomModal, setShowCustomModal] = createSignal(false);
   const [deepLink, setDeepLink] = createSignal<ProviderDeepLink | null>(null);
   const [customProviderPrefill, setCustomProviderPrefill] =
     createSignal<CustomProviderPrefill | null>(null);
@@ -397,12 +399,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     }
   });
 
-  /* v8 ignore next 6 -- the "Add custom provider" affordance lives in ProviderApiKeyTab; this page never wires a trigger to openCustomProvider, so its body is unreachable from the DOM. */
   const openCustomProvider = () => {
-    setDeepLink(null);
-    setCustomProviderPrefill({ name: '', baseUrl: '' });
-    void refetchModalProviders();
-    setShowModal(true);
+    setShowCustomModal(true);
+  };
+
+  const handleCustomModalClose = () => {
+    setShowCustomModal(false);
+    void refetchGlobalProviders();
+    void refetchCustomProviders();
   };
 
   const handleModalClose = () => {
@@ -428,6 +432,25 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <h1 class="page-header__title">{copy().heading}</h1>
           <p class="page-header__subtitle">{copy().subtitle}</p>
         </div>
+        <Show when={copy().customAddLabel}>
+          <button
+            class="btn btn--outline btn--sm"
+            onClick={() => openCustomProvider()}
+            style="display: inline-flex; align-items: center; gap: 6px;"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M7 11h10c.37 0 .72-.21.89-.54s.14-.73-.08-1.04l-5-7c-.38-.53-1.25-.53-1.63 0l-5 7A.997.997 0 0 0 6.99 11Zm5-6.28L15.06 9H8.95l3.06-4.28ZM17.5 13c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5m0 7a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5M3 22h7c.55 0 1-.45 1-1v-7c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v7c0 .55.45 1 1 1m1-7h5v5H4z" />
+            </svg>
+            {copy().customAddLabel}
+          </button>
+        </Show>
       </div>
 
       <Show when={showMetricCard()}>
@@ -755,6 +778,32 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           onUpdate={handleModalUpdate}
           onClose={handleModalClose}
         />
+      </Show>
+
+      <Show when={showCustomModal() && firstAgentName()}>
+        <div
+          class="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCustomModalClose();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') handleCustomModalClose();
+          }}
+        >
+          <div
+            class="modal-card routing-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add custom provider"
+            style="max-width: 600px; max-height: 85vh; overflow-y: auto;"
+          >
+            <CustomProviderForm
+              agentName={firstAgentName()}
+              onCreated={handleCustomModalClose}
+              onBack={() => handleCustomModalClose()}
+            />
+          </div>
+        </div>
       </Show>
     </div>
   );

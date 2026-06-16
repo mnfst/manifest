@@ -43,6 +43,7 @@ import { toast } from '../../services/toast-store.js';
 import '../../styles/charts.css';
 import '../../styles/analytics-overview.css';
 import { getModelDisplayName } from '../../services/model-display.js';
+import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import '../../styles/routing.css';
 
 const AUTH_TYPE_LABELS: Record<string, string> = {
@@ -862,136 +863,174 @@ const ConnectionDetail: Component = () => {
               </div>
               {/* Manage connection modal */}
               <Show when={showManageModal()}>
-                <div
-                  class="modal-overlay"
-                  onClick={(e) => {
-                    if (e.target === e.currentTarget) setShowManageModal(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') setShowManageModal(false);
-                  }}
-                >
-                  <div
-                    class="modal-card"
-                    style="max-width: 420px; padding: 24px;"
-                    role="dialog"
-                    aria-modal="true"
-                  >
-                    {/* Header with provider name and close button */}
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-                      <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="display: flex; align-items: center; width: 28px; height: 28px;">
-                          <Show
-                            when={provDef()}
-                            fallback={
-                              <span style="width: 28px; height: 28px; border-radius: 50%; background: hsl(var(--muted)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: hsl(var(--muted-foreground));">
-                                {providerDisplayName().charAt(0)}
-                              </span>
-                            }
-                          >
-                            {providerIcon(provDef()!.id, 28)}
-                          </Show>
-                        </span>
-                        <span style="font-size: var(--font-size-lg); font-weight: 600; color: hsl(var(--foreground));">
-                          {providerDisplayName()}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowManageModal(false)}
-                        style="background: none; border: none; cursor: pointer; padding: 4px; color: hsl(var(--muted-foreground)); font-size: 18px; line-height: 1;"
-                        aria-label="Close"
+                <Show
+                  when={isCustomProvider() && customProviderData()}
+                  fallback={
+                    <div
+                      class="modal-overlay"
+                      onClick={(e) => {
+                        if (e.target === e.currentTarget) setShowManageModal(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') setShowManageModal(false);
+                      }}
+                    >
+                      <div
+                        class="modal-card"
+                        style="max-width: 420px; padding: 24px;"
+                        role="dialog"
+                        aria-modal="true"
                       >
-                        ✕
-                      </button>
-                    </div>
-
-                    {/* Connection name */}
-                    <div style="margin-bottom: 16px;">
-                      <label style="display: block; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground)); margin-bottom: 6px;">
-                        Connection name
-                      </label>
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <input
-                          type="text"
-                          class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
-                          value={renameValue()}
-                          onInput={(e) => {
-                            setRenameValue(e.currentTarget.value);
-                            setRenameError('');
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleRename();
-                          }}
-                          style="flex: 1;"
-                        />
-                        <button
-                          class="btn btn--primary btn--sm"
-                          disabled={renaming() || renameValue().trim() === conn()?.label}
-                          onClick={handleRename}
-                        >
-                          {renaming() ? 'Saving...' : 'Save'}
-                        </button>
-                      </div>
-                      <Show when={renameError()}>
-                        <div style="color: hsl(var(--destructive)); font-size: var(--font-size-sm); margin-top: 4px;">
-                          {renameError()}
+                        {/* Header with provider name and close button */}
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                          <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="display: flex; align-items: center; width: 28px; height: 28px;">
+                              <Show
+                                when={provDef()}
+                                fallback={
+                                  <span style="width: 28px; height: 28px; border-radius: 50%; background: hsl(var(--muted)); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: hsl(var(--muted-foreground));">
+                                    {providerDisplayName().charAt(0)}
+                                  </span>
+                                }
+                              >
+                                {providerIcon(provDef()!.id, 28)}
+                              </Show>
+                            </span>
+                            <span style="font-size: var(--font-size-lg); font-weight: 600; color: hsl(var(--foreground));">
+                              {providerDisplayName()}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowManageModal(false)}
+                            style="background: none; border: none; cursor: pointer; padding: 4px; color: hsl(var(--muted-foreground)); font-size: 18px; line-height: 1;"
+                            aria-label="Close"
+                          >
+                            ✕
+                          </button>
                         </div>
-                      </Show>
+
+                        {/* Connection name */}
+                        <div style="margin-bottom: 16px;">
+                          <label style="display: block; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground)); margin-bottom: 6px;">
+                            Connection name
+                          </label>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <input
+                              type="text"
+                              class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                              value={renameValue()}
+                              onInput={(e) => {
+                                setRenameValue(e.currentTarget.value);
+                                setRenameError('');
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleRename();
+                              }}
+                              style="flex: 1;"
+                            />
+                            <button
+                              class="btn btn--primary btn--sm"
+                              disabled={renaming() || renameValue().trim() === conn()?.label}
+                              onClick={handleRename}
+                            >
+                              {renaming() ? 'Saving...' : 'Save'}
+                            </button>
+                          </div>
+                          <Show when={renameError()}>
+                            <div style="color: hsl(var(--destructive)); font-size: var(--font-size-sm); margin-top: 4px;">
+                              {renameError()}
+                            </div>
+                          </Show>
+                        </div>
+
+                        <Show when={c.is_active}>
+                          {/* Models */}
+                          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
+                            <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                              {c.cached_model_count ?? 0} models
+                            </span>
+                            <button
+                              class="btn btn--outline btn--sm"
+                              disabled={refreshingModels()}
+                              onClick={handleRefreshModels}
+                              style="display: inline-flex; align-items: center; gap: 6px;"
+                            >
+                              {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
+                            </button>
+                          </div>
+
+                          {/* Connection info */}
+                          <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
+                            Connected via{' '}
+                            {c.auth_type === 'subscription'
+                              ? c.auth_type
+                              : c.auth_type === 'api_key'
+                                ? 'API key'
+                                : 'local server'}
+                          </div>
+
+                          {/* Actions */}
+                          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
+                            <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
+                              Disconnect
+                            </button>
+                            <button
+                              class="btn btn--outline btn--sm"
+                              onClick={() => setShowManageModal(false)}
+                            >
+                              Done
+                            </button>
+                          </div>
+                        </Show>
+
+                        <Show when={!c.is_active}>
+                          <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
+                            <button
+                              class="btn btn--outline btn--sm"
+                              onClick={() => setShowManageModal(false)}
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </Show>
+                      </div>
                     </div>
-
-                    <Show when={c.is_active}>
-                      {/* Models */}
-                      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid hsl(var(--border));">
-                        <span style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                          {c.cached_model_count ?? 0} models
-                        </span>
-                        <button
-                          class="btn btn--outline btn--sm"
-                          disabled={refreshingModels()}
-                          onClick={handleRefreshModels}
-                          style="display: inline-flex; align-items: center; gap: 6px;"
-                        >
-                          {refreshingModels() ? 'Refreshing...' : 'Refresh models'}
-                        </button>
-                      </div>
-
-                      {/* Connection info */}
-                      <div style="padding: 12px 0; border-top: 1px solid hsl(var(--border)); font-size: var(--font-size-sm); color: hsl(var(--muted-foreground));">
-                        Connected via{' '}
-                        {c.auth_type === 'subscription'
-                          ? c.auth_type
-                          : c.auth_type === 'api_key'
-                            ? 'API key'
-                            : 'local server'}
-                      </div>
-
-                      {/* Actions */}
-                      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid hsl(var(--border));">
-                        <button class="btn btn--destructive btn--sm" onClick={handleDisconnect}>
-                          Disconnect
-                        </button>
-                        <button
-                          class="btn btn--outline btn--sm"
-                          onClick={() => setShowManageModal(false)}
-                        >
-                          Done
-                        </button>
-                      </div>
-                    </Show>
-
-                    <Show when={!c.is_active}>
-                      <div style="display: flex; justify-content: flex-end; padding-top: 12px; border-top: 1px solid hsl(var(--border));">
-                        <button
-                          class="btn btn--outline btn--sm"
-                          onClick={() => setShowManageModal(false)}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </Show>
+                  }
+                >
+                  {/* Custom provider edit modal */}
+                  <div
+                    class="modal-overlay"
+                    onClick={(e) => {
+                      if (e.target === e.currentTarget) setShowManageModal(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') setShowManageModal(false);
+                    }}
+                  >
+                    <div
+                      class="modal-card routing-modal"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="Edit custom provider"
+                      style="max-width: 600px; max-height: 85vh; overflow-y: auto;"
+                    >
+                      <CustomProviderForm
+                        agentName={firstAgentName()}
+                        initialData={customProviderData()!}
+                        onCreated={() => {
+                          setShowManageModal(false);
+                          refetchDetail();
+                        }}
+                        onBack={() => setShowManageModal(false)}
+                        onDeleted={() => {
+                          setShowManageModal(false);
+                          navigate(backLink());
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                </Show>
               </Show>
             </>
           );

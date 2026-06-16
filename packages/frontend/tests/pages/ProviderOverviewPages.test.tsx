@@ -1065,8 +1065,8 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getByText('Custom Provider')).toBeDefined());
 
     fireEvent.click(screen.getByText('Manage'));
-    expect(screen.getByText('Connection name')).toBeDefined();
-    fireEvent.click(screen.getByText('Done'));
+    // Custom providers open the CustomProviderForm in edit mode
+    await waitFor(() => expect(screen.getByText('Edit custom provider')).toBeDefined());
   });
 
   it('falls back to empty data when the custom provider lookup rejects', async () => {
