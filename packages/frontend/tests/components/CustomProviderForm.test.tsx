@@ -817,6 +817,21 @@ describe("CustomProviderForm — edit mode", () => {
     expect((screen.getByPlaceholderText("https://api.example.com/v1") as HTMLInputElement).value).toBe("https://api.groq.com/openai/v1");
   });
 
+  it("renders with undefined models (toModelRows handles nullish)", () => {
+    const noModels = { ...initialData, models: undefined as any };
+    render(() => (
+      <CustomProviderForm
+        agentName="test-agent"
+        onCreated={onCreated}
+        onBack={onBack}
+        initialData={noModels}
+      />
+    ));
+
+    // The form renders without crashing; no model rows are pre-filled.
+    expect(screen.getByText("Edit custom provider")).toBeDefined();
+  });
+
   it("shows masked API key with Change button", () => {
     render(() => (
       <CustomProviderForm
