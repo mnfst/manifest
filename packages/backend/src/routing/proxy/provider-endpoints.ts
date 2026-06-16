@@ -113,6 +113,7 @@ const OPENCODE_ZEN_BASE = 'https://opencode.ai/zen';
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
+const TOKENROUTER_BASE = 'https://api.tokenrouter.com';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
@@ -444,6 +445,17 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     }),
     buildPath: (model: string) => `/v1/models/${model}:generateContent`,
     format: 'google',
+  },
+  // TokenRouter — OpenAI-compatible aggregator in the same shape as
+  // OpenRouter. The model id is passed through to the gateway
+  // (e.g. `groq/llama-3.3-70b-versatile`) and TokenRouter routes it to
+  // the underlying provider.
+  tokenrouter: {
+    baseUrl: TOKENROUTER_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
   },
 };
 

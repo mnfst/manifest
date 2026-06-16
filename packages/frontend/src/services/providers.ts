@@ -360,6 +360,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Auto-route to 300+ models',
     models: [],
   },
+  tokenrouter: {
+    initial: 'TR',
+    subtitle: 'Verified model aggregator with enterprise controls',
+    models: [],
+  },
   xai: {
     initial: 'X',
     subtitle: 'Grok 3, Grok 2',
@@ -429,6 +434,7 @@ const PROVIDER_ORDER = [
   'opencode-go',
   'opencode-zen',
   'openrouter',
+  'tokenrouter',
   'xai',
   'xiaomi',
   'zai',

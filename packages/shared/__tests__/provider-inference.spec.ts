@@ -55,6 +55,8 @@ describe('inferProviderFromModel', () => {
     ['llamacpp/Qwen3.5-9B-Q4_K_M.gguf', 'llamacpp'],
     ['llamacpp/mistral-7b-instruct-v0.3.Q4_K_M.gguf', 'llamacpp'],
     ['openrouter/auto', 'openrouter'],
+    ['tokenrouter/groq/llama-3.3-70b-versatile', 'tokenrouter'],
+    ['tokenrouter/openai/gpt-4o', 'tokenrouter'],
     ['anthropic/claude-sonnet-4', 'openrouter'],
   ])('infers %s as %s', (model, expected) => {
     expect(inferProviderFromModel(model)).toBe(expected);
@@ -91,6 +93,7 @@ describe('underlyingGatewayModel', () => {
     expect(underlyingGatewayModel('opencode-go/deepseek-v4-pro')).toBe('deepseek-v4-pro');
     expect(underlyingGatewayModel('opencode-go/kimi-k2.6')).toBe('kimi-k2.6');
     expect(underlyingGatewayModel('opencode-zen/qwen3.6-plus')).toBe('qwen3.6-plus');
+    expect(underlyingGatewayModel('tokenrouter/groq/llama-3.3-70b-versatile')).toBe('groq/llama-3.3-70b-versatile');
   });
 
   it('returns null for non-gateway model ids', () => {
@@ -112,6 +115,17 @@ describe('resolveUnderlyingModelIdentity', () => {
     expect(resolveUnderlyingModelIdentity('opencode-zen', 'opencode-zen/qwen3.6-plus')).toEqual({
       provider: 'qwen',
       model: 'qwen3.6-plus',
+    });
+    // TokenRouter aggregates other providers under `vendor/model` ids.
+    // After stripping the `tokenrouter/` prefix, the underlying `vendor/...`
+    // id falls through to the catch-all OpenRouter inference path (since
+    // `groq/<id>` is not a first-class Manifest provider), matching how
+    // OpenRouter-hosted models are also attributed to OpenRouter today.
+    expect(
+      resolveUnderlyingModelIdentity('tokenrouter', 'tokenrouter/groq/llama-3.3-70b-versatile'),
+    ).toEqual({
+      provider: 'openrouter',
+      model: 'groq/llama-3.3-70b-versatile',
     });
   });
 

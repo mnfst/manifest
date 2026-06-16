@@ -574,6 +574,17 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
+  it('tokenrouter uses the TokenRouter OpenAI-compatible inference endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['tokenrouter'];
+    expect(ep.baseUrl).toBe('https://api.tokenrouter.com');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('groq/llama-3.3-70b-versatile')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('tr-token')).toEqual({
+      Authorization: 'Bearer tr-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('commandcode uses the Command Code Provider API chat endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['commandcode'];
     expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');

@@ -17,6 +17,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   'opencode-zen': 'https://opencode.ai/auth',
   openrouter: 'https://openrouter.ai/keys',
   qwen: 'https://www.alibabacloud.com/help/en/model-studio/developer-reference/get-api-key',
+  tokenrouter: 'https://www.tokenrouter.com/dashboard',
   xiaomi: 'https://platform.xiaomimimo.com/console',
   xai: 'https://docs.x.ai/docs/api-reference',
   zai: 'https://z.ai/manage-apikey/apikey-list',
