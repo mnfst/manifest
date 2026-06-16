@@ -34,11 +34,17 @@ export class LiftProvidersToUserLevel1791000000000 implements MigrationInterface
   `);
 
     // 2. Backfill each old agent-scoped provider row as an explicit attachment.
+    //    Skip rows whose agent was hard-deleted: legacy user_providers can still
+    //    carry a dangling agent_id (no FK existed before this migration), and
+    //    FK_agent_provider_access_agent above would reject it and abort the whole
+    //    migration. The provider row itself survives as a user-global connection;
+    //    only the grant to the now-missing agent is dropped.
     await queryRunner.query(`
     INSERT INTO "agent_provider_access" ("agent_id", "user_provider_id")
     SELECT "agent_id", "id"
     FROM "user_providers"
     WHERE "agent_id" IS NOT NULL
+      AND EXISTS (SELECT 1 FROM "agents" a WHERE a."id" = "user_providers"."agent_id")
     ON CONFLICT DO NOTHING
   `);
 

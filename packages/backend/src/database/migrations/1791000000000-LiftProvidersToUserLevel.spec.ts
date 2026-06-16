@@ -22,6 +22,21 @@ describe('LiftProvidersToUserLevel1791000000000', () => {
       ),
     ).toBe(true);
     expect(queries.some((q) => q.includes('ALTER COLUMN "agent_id" DROP NOT NULL'))).toBe(true);
+  });
+
+  it('only attaches providers whose agent still exists so the FK cannot abort the backfill', async () => {
+    // Legacy user_providers can carry a dangling agent_id (no FK existed before
+    // this migration); without this guard the agent FK rejects the row and rolls
+    // back the entire tenant-refactor migration on real data.
+    await migration.up(queryRunner);
+    const backfill = queries.find(
+      (q) =>
+        q.includes('INSERT INTO "agent_provider_access"') && q.includes('FROM "user_providers"'),
+    );
+    expect(backfill).toBeDefined();
+    expect(backfill).toContain(
+      'AND EXISTS (SELECT 1 FROM "agents" a WHERE a."id" = "user_providers"."agent_id")',
+    );
     const relabel = queries.find((q) => q.includes('WITH colliding_labels AS'));
     expect(relabel).toBeDefined();
     expect(relabel).toContain('WITH colliding_labels AS');

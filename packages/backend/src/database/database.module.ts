@@ -19,6 +19,7 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
+import { BackfillState } from '../entities/backfill-state.entity';
 import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
@@ -125,6 +126,7 @@ import { TenantOwnerColumn1792400000000 } from './migrations/1792400000000-Tenan
 import { TenantProviders1792500000000 } from './migrations/1792500000000-TenantProviders';
 import { TenantScopedConfigs1792600000000 } from './migrations/1792600000000-TenantScopedConfigs';
 import { DropUserScopeFromRouting1792700000000 } from './migrations/1792700000000-DropUserScopeFromRouting';
+import { AddBackfillStateTable1792800000000 } from './migrations/1792800000000-AddBackfillStateTable';
 
 const entities = [
   AgentMessage,
@@ -150,6 +152,7 @@ const entities = [
   PlaygroundColumn,
   ReasoningContentCacheEntry,
   AgentEnabledProvider,
+  BackfillState,
 ];
 
 const migrations = [
@@ -250,6 +253,7 @@ const migrations = [
   TenantProviders1792500000000,
   TenantScopedConfigs1792600000000,
   DropUserScopeFromRouting1792700000000,
+  AddBackfillStateTable1792800000000,
 ];
 
 @Module({

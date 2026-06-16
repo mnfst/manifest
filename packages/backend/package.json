@@ -15,7 +15,9 @@
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/datasource.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/datasource.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/database/datasource.ts",
-    "migration:create": "typeorm-ts-node-commonjs migration:create"
+    "migration:create": "typeorm-ts-node-commonjs migration:create",
+    "backfill:message-providers": "ts-node -T src/database/backfills/backfill-message-providers.cli.ts",
+    "backfill:message-providers:prod": "node dist/database/backfills/backfill-message-providers.cli.js"
   },
   "dependencies": {
     "manifest-shared": "*",
