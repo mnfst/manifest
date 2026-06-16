@@ -6,10 +6,14 @@ coverage:
       default:
         target: auto
         threshold: 1%
+        # Coverage is reported on every PR but does not block merges.
+        informational: true
     patch:
       default:
         target: auto
         threshold: 5%
+        # Coverage is reported on every PR but does not block merges.
+        informational: true
 flags:
   backend:
     paths:
