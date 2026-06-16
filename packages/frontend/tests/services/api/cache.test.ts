@@ -55,10 +55,7 @@ describe('api SWR cache', () => {
     it('revalidates in the background after the TTL expires (stale-while-revalidate)', async () => {
       vi.useFakeTimers();
       vi.setSystemTime(0);
-      const fetcher = vi
-        .fn()
-        .mockResolvedValueOnce({ n: 1 })
-        .mockResolvedValueOnce({ n: 2 });
+      const fetcher = vi.fn().mockResolvedValueOnce({ n: 1 }).mockResolvedValueOnce({ n: 2 });
 
       const first = await cachedFetch('/api/v1/costs', fetcher);
       expect(first).toEqual({ n: 1 });
@@ -311,7 +308,7 @@ describe('api SWR cache', () => {
       for (const fragment of INVALIDATION_GROUPS.message) {
         await cachedFetch(`/api/v1${fragment}`, () => Promise.resolve(1));
       }
-      await cachedFetch('/api/v1/agents', () => Promise.resolve(99));
+      await cachedFetch('/api/v1/model-prices', () => Promise.resolve(99));
 
       invalidateGroup('message');
 
@@ -321,10 +318,10 @@ describe('api SWR cache', () => {
         await cachedFetch(`/api/v1${fragment}`, fetcher);
         expect(fetcher).toHaveBeenCalledTimes(1);
       }
-      // The unrelated /agents key survived.
-      const agentsFetcher = vi.fn().mockResolvedValue(100);
-      await cachedFetch('/api/v1/agents', agentsFetcher);
-      expect(agentsFetcher).not.toHaveBeenCalled();
+      // The unrelated /model-prices key survived.
+      const modelPricesFetcher = vi.fn().mockResolvedValue(100);
+      await cachedFetch('/api/v1/model-prices', modelPricesFetcher);
+      expect(modelPricesFetcher).not.toHaveBeenCalled();
     });
 
     it('routing group invalidates routing/provider keys', async () => {

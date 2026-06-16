@@ -180,12 +180,12 @@ const GlobalOverview: Component = () => {
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
-    () => chartRange(),
-    (range) => getOverview(range) as Promise<OverviewResponse>,
+    () => ({ range: chartRange(), _ping: messagePing() }),
+    (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
   const [agents] = createResource(
-    () => agentPing(),
+    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
     async () => {
       try {
         const data = await getAgents();
@@ -251,12 +251,12 @@ const GlobalOverview: Component = () => {
   };
 
   const [agentTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy() }),
+    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
     (p) => tokenFetcher(p.range, p.group),
   );
 
   const [agentMessageTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy() }),
+    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
     (p) => msgFetcher(p.range, p.group),
   );
 
@@ -266,7 +266,7 @@ const GlobalOverview: Component = () => {
   };
 
   const [agentCostTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy() }),
+    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
     (p) => costFetcher(p.range, p.group),
   );
 

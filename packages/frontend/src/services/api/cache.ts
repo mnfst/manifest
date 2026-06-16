@@ -196,8 +196,17 @@ export function invalidateAll(): void {
  * so the matching rules live with the cache they govern.
  */
 export const INVALIDATION_GROUPS = {
-  // A new/changed message moves every usage-derived chart and the message log.
-  message: ['/messages', '/overview', '/costs', '/tokens', '/usage', '/provider-analytics'],
+  // A new/changed message moves every usage-derived chart, summary, and table.
+  message: [
+    '/messages',
+    '/overview',
+    '/costs',
+    '/tokens',
+    '/usage',
+    '/provider-analytics',
+    '/providers/usage',
+    '/agents',
+  ],
   // A routing/provider change moves provider lists and routing config.
   routing: ['/routing', '/providers', '/provider-analytics'],
   // An agent create/rename/delete moves the agent list and per-agent views.
