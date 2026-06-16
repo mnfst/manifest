@@ -27,7 +27,9 @@ import { MessageFeedbackService } from './services/message-feedback.service';
 import { MessageRecordingService } from './services/message-recording.service';
 import { SpecificityFeedbackService } from './services/specificity-feedback.service';
 import { AgentAnalyticsService } from './services/agent-analytics.service';
+import { ProviderUsageService } from './services/provider-usage.service';
 import { OverviewController } from './controllers/overview.controller';
+import { ProviderUsageController } from './controllers/provider-usage.controller';
 import { TokensController } from './controllers/tokens.controller';
 import { CostsController } from './controllers/costs.controller';
 import { MessagesController } from './controllers/messages.controller';
@@ -65,6 +67,7 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
     AgentsController,
     AgentAnalyticsController,
     ProviderAnalyticsController,
+    ProviderUsageController,
   ],
   providers: [
     AggregationService,
@@ -77,7 +80,8 @@ import { ProviderAnalyticsController } from './controllers/provider-analytics.co
     MessageRecordingService,
     SpecificityFeedbackService,
     AgentAnalyticsService,
+    ProviderUsageService,
   ],
-  exports: [SpecificityFeedbackService, MessageRecordingService],
+  exports: [SpecificityFeedbackService, MessageRecordingService, ProviderUsageService],
 })
 export class AnalyticsModule {}

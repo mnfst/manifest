@@ -127,6 +127,7 @@ import { TenantProviders1792500000000 } from './migrations/1792500000000-TenantP
 import { TenantScopedConfigs1792600000000 } from './migrations/1792600000000-TenantScopedConfigs';
 import { DropUserScopeFromRouting1792700000000 } from './migrations/1792700000000-DropUserScopeFromRouting';
 import { AddBackfillStateTable1792800000000 } from './migrations/1792800000000-AddBackfillStateTable';
+import { AddProviderUsageCoveringIndex1792900000000 } from './migrations/1792900000000-AddProviderUsageCoveringIndex';
 
 const entities = [
   AgentMessage,
@@ -254,6 +255,7 @@ const migrations = [
   TenantScopedConfigs1792600000000,
   DropUserScopeFromRouting1792700000000,
   AddBackfillStateTable1792800000000,
+  AddProviderUsageCoveringIndex1792900000000,
 ];
 
 @Module({
