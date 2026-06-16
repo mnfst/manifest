@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fetchJson, fetchMutate, parseErrorMessage, routingPath } from '../../../src/services/api/core';
+import { invalidateAll } from '../../../src/services/api/cache';
 
 const mockToastError = vi.fn();
 vi.mock('../../../src/services/toast-store.js', () => ({
@@ -33,6 +34,9 @@ describe('core api helpers', () => {
     location = { origin: 'http://localhost', pathname: '/dashboard', href: '' };
     vi.stubGlobal('window', { location });
     mockToastError.mockReset();
+    // Start each test with an empty SWR cache so cached payloads from a prior
+    // test don't satisfy a later GET before its fetch mock is asserted.
+    invalidateAll();
   });
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -152,6 +156,56 @@ describe('core api helpers', () => {
 
       await expect(fetchJson('/anything')).rejects.toThrow('The operation was aborted');
     });
+
+    it('serves a cacheable GET from the SWR cache on the second call', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(makeResponse({ body: { v: 1 } }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const first = await fetchJson<{ v: number }>('/overview', { range: '7d' });
+      const second = await fetchJson<{ v: number }>('/overview', { range: '7d' });
+      expect(first).toEqual({ v: 1 });
+      expect(second).toEqual({ v: 1 });
+      // Second identical GET is a cache hit — only one network call.
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('keys the cache by full URL incl. query params', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(makeResponse({ body: { v: 1 } }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await fetchJson('/overview', { range: '7d' });
+      await fetchJson('/overview', { range: '30d' });
+      // Different params → different keys → two network calls.
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('bypasses the cache when called with { cache: false }', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(makeResponse({ body: { v: 1 } }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await fetchJson('/overview', undefined, { cache: false });
+      await fetchJson('/overview', undefined, { cache: false });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('never caches a deny-listed sensitive URL', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(makeResponse({ body: { key: 'secret' } }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await fetchJson('/agents/demo/key');
+      await fetchJson('/agents/demo/key');
+      // Deny-listed → every call hits the network, never a stale secret.
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('still passes cache: default to the underlying fetch', async () => {
+      const fetchMock = vi.fn().mockResolvedValue(makeResponse({ body: {} }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      await fetchJson('/overview');
+      const init = fetchMock.mock.calls[0][1] as RequestInit & { cache?: string };
+      expect(init.cache).toBe('default');
+    });
   });
 
   describe('parseErrorMessage', () => {
@@ -196,6 +250,44 @@ describe('core api helpers', () => {
 
       const out = await fetchMutate('/something', { method: 'DELETE' });
       expect(out).toBeUndefined();
+    });
+
+    it('invalidates the GET cache on a successful mutation', async () => {
+      // Prime the cache with a GET, then mutate, then GET again.
+      const getRes = vi.fn().mockResolvedValue(makeResponse({ body: { v: 1 } }));
+      vi.stubGlobal('fetch', getRes);
+      await fetchJson('/overview');
+      expect(getRes).toHaveBeenCalledTimes(1);
+
+      const mutateRes = vi.fn().mockResolvedValue(makeResponse({ body: undefined, text: '' }));
+      vi.stubGlobal('fetch', mutateRes);
+      await fetchMutate('/agents/demo', { method: 'PATCH' });
+
+      // After the mutation, the previously-cached GET must refetch.
+      const getRes2 = vi.fn().mockResolvedValue(makeResponse({ body: { v: 2 } }));
+      vi.stubGlobal('fetch', getRes2);
+      const out = await fetchJson<{ v: number }>('/overview');
+      expect(out).toEqual({ v: 2 });
+      expect(getRes2).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT invalidate the cache on a failed mutation', async () => {
+      const getRes = vi.fn().mockResolvedValue(makeResponse({ body: { v: 1 } }));
+      vi.stubGlobal('fetch', getRes);
+      await fetchJson('/overview');
+
+      const failRes = vi
+        .fn()
+        .mockResolvedValue(makeResponse({ ok: false, status: 400, body: { message: 'bad' } }));
+      vi.stubGlobal('fetch', failRes);
+      await expect(fetchMutate('/agents/demo', { method: 'PATCH' })).rejects.toThrow('bad');
+
+      // The cached GET survives a failed mutation — still served from cache.
+      const getRes2 = vi.fn().mockResolvedValue(makeResponse({ body: { v: 2 } }));
+      vi.stubGlobal('fetch', getRes2);
+      const out = await fetchJson<{ v: number }>('/overview');
+      expect(out).toEqual({ v: 1 });
+      expect(getRes2).not.toHaveBeenCalled();
     });
 
     it('throws and toasts the parsed message on failure', async () => {
