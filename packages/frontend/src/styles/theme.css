@@ -19,6 +19,7 @@
 @import './agent-type-select.css';
 @import './action-menu.css';
 @import './feedback.css';
+@import './whatsnew.css';
 
 /*
  * Route-scoped stylesheets are intentionally NOT imported here. They are
