@@ -93,11 +93,15 @@ export class MessagesQueryService {
 
     const hasMore = rows.length > params.limit;
     const items = rows.slice(0, params.limit);
-    const totalCount = includeTotal
-      ? countHit
-        ? (cachedCount ?? 0)
-        : this.cacheAndReturnCount(countCacheKey, Number(countResult?.total ?? 0))
-      : items.length + (hasMore ? 1 : 0);
+    let totalCount: number;
+    if (!includeTotal) {
+      totalCount = items.length;
+      if (hasMore) totalCount += 1;
+    } else if (cachedCount !== undefined) {
+      totalCount = cachedCount;
+    } else {
+      totalCount = this.cacheAndReturnCount(countCacheKey, Number(countResult?.total ?? 0));
+    }
     const lastItem = items[items.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore && lastItem ? this.encodeCursor(lastItem) : null;
 

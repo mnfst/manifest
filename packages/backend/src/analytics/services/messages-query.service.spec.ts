@@ -198,6 +198,25 @@ describe('MessagesQueryService', () => {
     expect(result.provider_labels).toEqual({});
   });
 
+  it('uses the row count as the lower-bound total when skipped totals have no next page', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 2,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.next_cursor).toBeNull();
+    expect(result.total_count).toBe(1);
+    expect(result.total_count_exact).toBe(false);
+  });
+
   it('returns next_cursor when more items exist', async () => {
     const rows = Array.from({ length: 6 }, (_, i) => ({
       id: `msg-${i}`,
