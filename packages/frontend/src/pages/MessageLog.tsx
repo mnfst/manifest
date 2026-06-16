@@ -268,6 +268,14 @@ const MessageLog: Component = () => {
     },
   );
 
+  // Track which agent the current data belongs to so we can show the skeleton
+  // instead of stale data when the user switches agents.
+  const [loadedAgent, setLoadedAgent] = createSignal(params.agentName ?? '');
+  createEffect(() => {
+    if (!data.loading && data() !== undefined) setLoadedAgent(params.agentName ?? '');
+  });
+  const isStale = () => data.loading && loadedAgent() !== (params.agentName ?? '');
+
   const displayedItems = createMemo<MessageRow[]>(() => {
     const items = data()?.items ?? [];
     if (isSelfHosted()) return items;
@@ -433,7 +441,7 @@ const MessageLog: Component = () => {
       </div>
 
       <Show
-        when={data() !== undefined || !data.loading}
+        when={!isStale() && (data() !== undefined || !data.loading)}
         fallback={
           <div class="panel">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--gap-lg);">

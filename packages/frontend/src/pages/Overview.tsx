@@ -174,6 +174,14 @@ const Overview: Component = () => {
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
+  // Track which agent the current data belongs to so we can show the skeleton
+  // instead of stale data when the user switches agents.
+  const [loadedAgent, setLoadedAgent] = createSignal(params.agentName);
+  createEffect(() => {
+    if (!data.loading && data() !== undefined) setLoadedAgent(params.agentName);
+  });
+  const isStale = () => data.loading && loadedAgent() !== params.agentName;
+
   const showDashboard = () => {
     const d = data();
     return !!d && (d.has_data !== false || d.has_providers === true);
@@ -351,7 +359,10 @@ const Overview: Component = () => {
         </div>
       </div>
 
-      <Show when={data() !== undefined || !data.loading} fallback={<OverviewSkeleton />}>
+      <Show
+        when={!isStale() && (data() !== undefined || !data.loading)}
+        fallback={<OverviewSkeleton />}
+      >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
             <Show
