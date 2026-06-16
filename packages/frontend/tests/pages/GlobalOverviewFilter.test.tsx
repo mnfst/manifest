@@ -12,6 +12,7 @@ import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library';
 const apiMocks = vi.hoisted(() => ({
   getAgents: vi.fn(),
   getGlobalProviders: vi.fn(),
+  getGlobalProviderUsage: vi.fn(),
   getOverview: vi.fn(),
   getGlobalPerAgentTimeseries: vi.fn(),
   getGlobalPerAgentMessageTimeseries: vi.fn(),
@@ -40,10 +41,17 @@ vi.mock('@solidjs/router', () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock('../../src/services/api.js', () => ({
-  getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
-  getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
-}));
+vi.mock('../../src/services/api.js', async () => {
+  const providers = await vi.importActual<typeof import('../../src/services/api/providers')>(
+    '../../src/services/api/providers',
+  );
+  return {
+    getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
+    getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
+    getGlobalProviderUsage: (...args: unknown[]) => apiMocks.getGlobalProviderUsage(...args),
+    mergeUsage: providers.mergeUsage,
+  };
+});
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
@@ -140,6 +148,7 @@ vi.mock('../../src/components/GlobalOverviewSkeleton.jsx', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   agentPing: () => 0,
   messagePing: () => 0,
+  routingPing: () => 0,
 }));
 
 vi.mock('../../src/services/scroll-fade.js', () => ({
@@ -233,6 +242,7 @@ beforeEach(() => {
 
   apiMocks.getAgents.mockResolvedValue(agentsResponse);
   apiMocks.getGlobalProviders.mockResolvedValue(providersResponse);
+  apiMocks.getGlobalProviderUsage.mockResolvedValue({ providers: [] });
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getGlobalPerAgentTimeseries.mockResolvedValue(providerTimeseries);
   apiMocks.getGlobalPerAgentMessageTimeseries.mockResolvedValue(providerTimeseries);

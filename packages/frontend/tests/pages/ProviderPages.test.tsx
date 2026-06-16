@@ -60,14 +60,30 @@ vi.mock('../../src/services/formatters.js', () => ({
   formatTimeAgo: () => 'recently',
 }));
 
-vi.mock('../../src/services/api/providers.js', () => ({
-  getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
-}));
+const mockGetProviderUsage = vi.fn();
+// Use the real mergeUsage so the merge logic stays under test through the page.
+vi.mock('../../src/services/api/providers.js', async () => {
+  const actual = await vi.importActual<typeof import('../../src/services/api/providers')>(
+    '../../src/services/api/providers',
+  );
+  return {
+    getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
+    getProviderUsage: (...args: unknown[]) => mockGetProviderUsage(...args),
+    mergeUsage: actual.mergeUsage,
+  };
+});
 
 vi.mock('../../src/services/api.js', () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   getProviders: (...args: unknown[]) => mockGetAgentProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+}));
+
+// SSE ping signals drive the usage resource's source; stub them to no-op
+// accessors so the page mounts without a live EventSource under jsdom.
+vi.mock('../../src/services/sse.js', () => ({
+  messagePing: () => 0,
+  routingPing: () => 0,
 }));
 
 const mockRenameProviderKey = vi.fn();
@@ -156,6 +172,20 @@ describe('provider pages', () => {
     mockIsSelfHosted = true;
     mockRenameProviderKey.mockResolvedValue(undefined);
     mockGetGlobalProviders.mockResolvedValue(globalProvidersResponse);
+    // The usage endpoint returns the per-(provider, auth_type) stats that the
+    // page merges into config. Derive it from the same fixture so the existing
+    // usage assertions still hold.
+    mockGetProviderUsage.mockResolvedValue({
+      providers: globalProvidersResponse.providers.map((p) => ({
+        provider: p.provider,
+        auth_type: p.auth_type,
+        consumption_tokens: p.consumption_tokens,
+        consumption_messages: p.consumption_messages,
+        consumption_cost: p.consumption_cost,
+        last_used_at: p.last_used_at,
+        sparkline_7d: p.sparkline_7d,
+      })),
+    });
     mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'demo-agent' }] });
     mockGetAgentProviders.mockResolvedValue([{ id: 'route-provider' }]);
     mockGetCustomProviders.mockResolvedValue([
@@ -246,6 +276,17 @@ describe('provider pages', () => {
       expect(screen.getByText('Inactive')).toBeDefined();
       expect(screen.getByText('Supported usage-based providers')).toBeDefined();
     });
+  });
+
+  it('still renders connected rows when the usage endpoint rejects', async () => {
+    // Config resolves so connections paint; usage rejects → the page's usage
+    // resource catch returns [] and the row shows zeroed usage (0 tokens).
+    mockGetProviderUsage.mockRejectedValue(new Error('usage down'));
+
+    render(() => <Subscriptions />);
+
+    await waitFor(() => expect(screen.getByText('ChatGPT')).toBeDefined());
+    await waitFor(() => expect(screen.getByText(/0 tokens/)).toBeDefined());
   });
 
   it('renders the local providers page', async () => {
@@ -611,6 +652,16 @@ describe('provider pages', () => {
           connection_count: 1,
           connections: [connection('sub-spark', 'Sparkly')],
           total_models: 3,
+        },
+      ],
+      model_counts: {},
+    });
+    // Sparkline data now arrives via the usage endpoint and is merged in.
+    mockGetProviderUsage.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
           consumption_tokens: 1200,
           consumption_messages: 5,
           consumption_cost: 0,
@@ -618,7 +669,6 @@ describe('provider pages', () => {
           sparkline_7d: [1, 2, 3, 4],
         },
       ],
-      model_counts: {},
     });
 
     render(() => <Subscriptions />);

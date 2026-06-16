@@ -11,6 +11,7 @@ const apiMocks = vi.hoisted(() => ({
   getAgents: vi.fn(),
   getCustomProviders: vi.fn(),
   getGlobalProviders: vi.fn(),
+  getGlobalProviderUsage: vi.fn(),
   getAgentProviders: vi.fn(),
   disconnectProvider: vi.fn(),
   renameProviderKey: vi.fn(),
@@ -49,12 +50,20 @@ vi.mock('../../src/services/api/core.js', () => ({
   routingPath: (agent: string, path: string) => `/api/v1/routing/${agent}/${path}`,
 }));
 
-vi.mock('../../src/services/api.js', () => ({
-  getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
-  getCustomProviders: (...args: unknown[]) => apiMocks.getCustomProviders(...args),
-  getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
-  disconnectProvider: (...args: unknown[]) => apiMocks.disconnectProvider(...args),
-}));
+vi.mock('../../src/services/api.js', async () => {
+  const providers = await vi.importActual<typeof import('../../src/services/api/providers')>(
+    '../../src/services/api/providers',
+  );
+  return {
+    getAgents: (...args: unknown[]) => apiMocks.getAgents(...args),
+    getCustomProviders: (...args: unknown[]) => apiMocks.getCustomProviders(...args),
+    getGlobalProviders: (...args: unknown[]) => apiMocks.getGlobalProviders(...args),
+    getGlobalProviderUsage: (...args: unknown[]) => apiMocks.getGlobalProviderUsage(...args),
+    // Real merge so the page's config+usage join stays under test.
+    mergeUsage: providers.mergeUsage,
+    disconnectProvider: (...args: unknown[]) => apiMocks.disconnectProvider(...args),
+  };
+});
 
 vi.mock('../../src/services/api/routing.js', () => ({
   getProviders: (...args: unknown[]) => apiMocks.getAgentProviders(...args),
@@ -207,6 +216,7 @@ vi.mock('../../src/components/AuthBadge.jsx', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   agentPing: () => 0,
   messagePing: () => 0,
+  routingPing: () => 0,
 }));
 
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
@@ -425,6 +435,20 @@ const providersResponse = {
   model_counts: { openai: 10, anthropic: 8, ollama: 3 },
 };
 
+// Derive the usage-endpoint payload from the config fixture so GlobalOverview's
+// merged provider table shows the same numbers as before the config/usage split.
+const usageFrom = (resp: { providers: Array<Record<string, unknown>> }) => ({
+  providers: resp.providers.map((p) => ({
+    provider: p.provider,
+    auth_type: p.auth_type,
+    consumption_tokens: p.consumption_tokens ?? 0,
+    consumption_messages: p.consumption_messages ?? 0,
+    consumption_cost: p.consumption_cost ?? 0,
+    last_used_at: p.last_used_at ?? null,
+    sparkline_7d: p.sparkline_7d ?? [],
+  })),
+});
+
 const agentsResponse = {
   agents: [
     {
@@ -517,6 +541,7 @@ beforeEach(() => {
     { id: 'cp-3', name: 'Custom Local' },
   ]);
   apiMocks.getGlobalProviders.mockResolvedValue(providersResponse);
+  apiMocks.getGlobalProviderUsage.mockResolvedValue(usageFrom(providersResponse));
   apiMocks.getAgentProviders.mockResolvedValue([]);
   apiMocks.disconnectProvider.mockResolvedValue({ notifications: [] });
   apiMocks.renameProviderKey.mockResolvedValue(undefined);
@@ -845,6 +870,16 @@ describe('GlobalOverview (analytics)', () => {
     render(() => <GlobalOverview />);
     // Both empty → onboarding empty state
     await waitFor(() => expect(screen.getByText('No activity yet')).toBeDefined());
+  });
+
+  it('renders config-only when the usage endpoint rejects (usage zeroed)', async () => {
+    // Config resolves so the provider table paints; usage rejects → the page's
+    // usage resource catch returns [] and the merged rows show 0 tokens.
+    apiMocks.getGlobalProviderUsage.mockRejectedValue(new Error('usage down'));
+
+    render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(screen.getAllByText(/0 tokens/).length).toBeGreaterThan(0));
   });
 });
 
