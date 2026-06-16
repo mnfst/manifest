@@ -1,0 +1,25 @@
+packages/frontend/tests/setup.ts
+  s_89c92a86451d28::t_74d1d6bf3cd141 1-10
+packages/frontend/src/services/api/routing.ts
+  s_89c92a86451d28::t_7776b4be053f2a 431-441
+packages/frontend/src/services/api/model-params.ts
+  s_89c92a86451d28::t_f36bde2005904f 32-39
+packages/frontend/vite.config.ts
+  s_89c92a86451d28::t_22a2f1a076786c 89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "0fc35673aeaf643a2789359f8c172ea34eb8bf75",
+  "prompts": {},
+  "sessions": {
+    "s_89c92a86451d28": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3d2b8245-fbae-4bc5-bb17-611a4e313195",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
