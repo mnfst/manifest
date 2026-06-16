@@ -602,6 +602,35 @@ describe('MessageLog', () => {
         );
       });
     });
+
+    it('uses lower-bound totals after skipping exact counts on later pages', async () => {
+      const firstPage = {
+        ...messagesData,
+        total_count: 51,
+        total_count_exact: false,
+        next_cursor: 'cursor-for-page-2',
+      };
+      mockGetMessages.mockResolvedValue(firstPage);
+      const { container } = render(() => <MessageLog />);
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('51 total');
+      });
+
+      mockGetMessages.mockResolvedValue({
+        ...messagesData,
+        total_count: 2,
+        total_count_exact: false,
+        next_cursor: null,
+      });
+      const nextBtn = container.querySelector(
+        '[data-testid="pagination-next"]',
+      ) as HTMLButtonElement;
+      nextBtn.click();
+
+      await vi.waitFor(() => {
+        expect(container.textContent).toContain('52 total');
+      });
+    });
   });
 
   it('clears all filters when Clear filters button is clicked', async () => {

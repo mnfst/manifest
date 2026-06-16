@@ -4,6 +4,7 @@ import { Brackets, In } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import type { MessageStatusFilter } from '../dto/messages-query.dto';
 
 describe('MessagesQueryService', () => {
   let service: MessagesQueryService;
@@ -669,6 +670,40 @@ describe('MessagesQueryService', () => {
     );
     expect(tierCall).toBeDefined();
     expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
+  });
+
+  it.each<[MessageStatusFilter, string, Record<string, unknown>]>([
+    [
+      'errors',
+      'at.status IN (:...errorStatuses)',
+      { errorStatuses: ['error', 'fallback_error', 'rate_limited'] },
+    ],
+    ['ok', 'at.status = :statusFilter', { statusFilter: 'ok' }],
+  ])('passes %s status filter through to the query builder', async (status, clause, bindings) => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 20,
+      status,
+    });
+
+    expect(result.total_count).toBe(1);
+    const statusCall = andWhereSpy.mock.calls.find(([candidate]) => candidate === clause);
+    expect(statusCall).toBeDefined();
+    expect(statusCall?.[1]).toEqual(bindings);
   });
 
   it('passes specificity_category filter through to the query builder', async () => {
