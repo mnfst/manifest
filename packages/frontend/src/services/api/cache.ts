@@ -43,6 +43,29 @@ interface CacheEntry<T> {
 // the type at the `fetchJson<T>` boundary.
 const cache = new Map<string, CacheEntry<unknown>>();
 
+// Monotonic invalidation generation. Every invalidate* call bumps this counter.
+// A fetch captures the generation when it starts; if the counter advanced before
+// the fetch resolves, an invalidation ran *during* the request and its result is
+// stale — so the success write is suppressed rather than allowed to resurrect a
+// key that was just dropped. This is what keeps the SSE invalidate-before-bump
+// contract sound: a refetch kicked off after invalidation captures the new
+// generation and writes normally, while any request that was already in flight
+// when invalidation happened silently declines to repopulate the cache.
+let generation = 0;
+
+/**
+ * Bound the cache by dropping expired entries that have no in-flight refetch.
+ * Runs on every successful write, so growth is pruned incrementally without a
+ * timer. Entries with a live `inflight` promise are kept (a revalidation is
+ * mid-flight); entries still holding stale-but-usable data within a fresh
+ * window are kept too — only fully-expired, idle keys are swept.
+ */
+function pruneExpired(now: number): void {
+  for (const [key, entry] of cache) {
+    if (!entry.inflight && now >= entry.expiresAt) cache.delete(key);
+  }
+}
+
 /**
  * Endpoints that must NEVER be cached — always-fresh or sensitive surfaces. A
  * match anywhere in the URL is enough (these are unambiguous path fragments):
@@ -74,6 +97,10 @@ export function cachedFetch<T>(
   ttlMs = DEFAULT_TTL_MS,
 ): Promise<T> {
   const now = Date.now();
+  // Generation snapshot for this call. If an invalidation bumps `generation`
+  // before the fetch resolves, the resolved payload is stale and must not be
+  // written back (see the success handler below).
+  const startGeneration = generation;
   const entry = cache.get(url) as CacheEntry<T> | undefined;
 
   // Fresh hit — serve cached data without touching the network.
@@ -95,12 +122,30 @@ export function cachedFetch<T>(
   // in-flight marker either way so a failed fetch doesn't wedge the key.
   const inflight = fetcher()
     .then((data) => {
-      cache.set(url, { data, expiresAt: Date.now() + ttlMs });
+      // Resurrection guard: an invalidation that ran while this fetch was in
+      // flight bumped `generation`. Writing now would repopulate a key that was
+      // deliberately dropped (and possibly already refetched by a newer call),
+      // so suppress the write and just clear our own in-flight marker. The
+      // payload is still returned to this caller — only the cache is left alone.
+      if (generation !== startGeneration) {
+        const current = cache.get(url) as CacheEntry<T> | undefined;
+        if (current?.inflight === inflight) {
+          current.inflight = undefined;
+          if (current.data === undefined) cache.delete(url);
+        }
+        return data;
+      }
+      const settledAt = Date.now();
+      cache.set(url, { data, expiresAt: settledAt + ttlMs });
+      pruneExpired(settledAt);
       return data;
     })
     .catch((err) => {
       const current = cache.get(url) as CacheEntry<T> | undefined;
-      if (current) {
+      // Only act on the slot we actually registered. An invalidation may have
+      // dropped this key and a newer request may now own it; we must not clobber
+      // that newer in-flight marker or its data.
+      if (current && current.inflight === inflight) {
         // Drop only the in-flight marker; keep any previously-cached data so a
         // transient failure during background revalidation doesn't evict a good value.
         current.inflight = undefined;
@@ -125,6 +170,7 @@ export function cachedFetch<T>(
 
 /** Drop every cached entry whose URL starts with `prefix`. */
 export function invalidate(prefix: string): void {
+  generation++;
   for (const key of cache.keys()) {
     if (key.startsWith(prefix)) cache.delete(key);
   }
@@ -132,6 +178,7 @@ export function invalidate(prefix: string): void {
 
 /** Drop every cached entry whose URL matches `predicate`. */
 export function invalidatePredicate(predicate: (url: string) => boolean): void {
+  generation++;
   for (const key of cache.keys()) {
     if (predicate(key)) cache.delete(key);
   }
@@ -139,6 +186,7 @@ export function invalidatePredicate(predicate: (url: string) => boolean): void {
 
 /** Drop the entire cache. Used by mutations with broad blast radius and tests. */
 export function invalidateAll(): void {
+  generation++;
   cache.clear();
 }
 

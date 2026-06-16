@@ -132,6 +132,102 @@ describe('api SWR cache', () => {
       expect(fetcher).toHaveBeenCalledTimes(2);
     });
 
+    it('does not resurrect a key invalidated while its fetch was in flight', async () => {
+      let resolve!: (v: { n: number }) => void;
+      const fetcher = vi.fn().mockReturnValue(
+        new Promise<{ n: number }>((r) => {
+          resolve = r;
+        }),
+      );
+      // Cold miss: the entry has no prior data, so the call awaits the in-flight.
+      const pending = cachedFetch('/api/v1/overview', fetcher);
+      // An SSE invalidation drops the key WHILE the fetch is still in flight.
+      invalidate('/api/v1/overview');
+      // The original fetch now resolves — its (stale) payload must NOT repopulate
+      // the cache, otherwise the post-invalidation refetch would read it.
+      resolve({ n: 1 });
+      expect(await pending).toEqual({ n: 1 });
+
+      // The next read sees an empty key and refetches fresh data.
+      const fresh = vi.fn().mockResolvedValue({ n: 2 });
+      const out = await cachedFetch('/api/v1/overview', fresh);
+      expect(out).toEqual({ n: 2 });
+      expect(fresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('suppresses an in-flight write when an unrelated invalidation bumps the generation', async () => {
+      let resolve!: (v: { n: number }) => void;
+      const fetcher = vi.fn().mockReturnValue(
+        new Promise<{ n: number }>((r) => {
+          resolve = r;
+        }),
+      );
+      // Cold miss: registers an in-flight slot for this key (entry survives —
+      // the invalidation below targets a *different* prefix, so the key is kept
+      // but the generation still advances).
+      const pending = cachedFetch('/api/v1/overview', fetcher);
+      invalidate('/api/v1/something-else');
+      resolve({ n: 1 });
+      expect(await pending).toEqual({ n: 1 });
+
+      // Even though the key was never deleted, its in-flight write was suppressed
+      // because the generation moved — so it holds no data and refetches.
+      const fresh = vi.fn().mockResolvedValue({ n: 2 });
+      const out = await cachedFetch('/api/v1/overview', fresh);
+      expect(out).toEqual({ n: 2 });
+      expect(fresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not resurrect prior data when a stale revalidation outlives an invalidation', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      let resolveReval!: (v: { n: number }) => void;
+      const fetcher = vi
+        .fn()
+        .mockResolvedValueOnce({ n: 1 })
+        .mockReturnValueOnce(
+          new Promise<{ n: number }>((r) => {
+            resolveReval = r;
+          }),
+        );
+
+      await cachedFetch('/api/v1/overview', fetcher);
+      vi.setSystemTime(DEFAULT_TTL_MS + 1);
+      // Stale read returns old data immediately and kicks off a background reval.
+      const stale = await cachedFetch('/api/v1/overview', fetcher);
+      expect(stale).toEqual({ n: 1 });
+      // Invalidate the key while that reval is still pending.
+      invalidate('/api/v1/overview');
+      // The reval resolves late — it must not write back into the dropped key.
+      resolveReval({ n: 9 });
+      await vi.runAllTimersAsync();
+
+      // The key is empty, so the next read refetches rather than serving n:9.
+      const next = vi.fn().mockResolvedValue({ n: 3 });
+      const out = await cachedFetch('/api/v1/overview', next);
+      expect(out).toEqual({ n: 3 });
+      expect(next).toHaveBeenCalledTimes(1);
+    });
+
+    it('prunes expired idle entries on a successful write', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(0);
+      // Seed a cacheable entry, then let it expire fully (no refetch touches it).
+      await cachedFetch('/api/v1/messages', () => Promise.resolve({ n: 1 }));
+      vi.setSystemTime(DEFAULT_TTL_MS + 1);
+      // A successful write to a *different* key triggers a prune sweep that drops
+      // the now-expired, idle /messages entry.
+      await cachedFetch('/api/v1/overview', () => Promise.resolve({ n: 2 }));
+
+      // /messages was swept (not just expired): the next read is a cold miss that
+      // awaits and returns the fresh value. Had the stale entry survived, SWR
+      // would have returned the old {n:1} immediately instead.
+      const refetch = vi.fn().mockResolvedValue({ n: 5 });
+      const out = await cachedFetch('/api/v1/messages', refetch);
+      expect(out).toEqual({ n: 5 });
+      expect(refetch).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps stale data when a background revalidation fails', async () => {
       vi.useFakeTimers();
       vi.setSystemTime(0);
