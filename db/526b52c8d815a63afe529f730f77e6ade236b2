@@ -1,0 +1,24 @@
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_89c92a86451d28::t_b3e7fcb370e9b4 200-203,205
+packages/backend/src/database/migrations/1792900000000-AddProviderUsageCoveringIndex.ts
+  s_89c92a86451d28::t_f66e11e9d85516 56-59,61-62,66-75,77-78,80-82,84-97,99
+packages/backend/src/database/migrations/1792900000000-AddProviderUsageCoveringIndex.spec.ts
+  s_89c92a86451d28::t_2c9d33a70eff7f 57-66,77-85
+  s_89c92a86451d28::t_27e31faeca60b0 5-6,8,11-12,16-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "db526b52c8d815a63afe529f730f77e6ade236b2",
+  "prompts": {},
+  "sessions": {
+    "s_89c92a86451d28": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3d2b8245-fbae-4bc5-bb17-611a4e313195",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
