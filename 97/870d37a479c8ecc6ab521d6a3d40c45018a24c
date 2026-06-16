@@ -1,0 +1,19 @@
+packages/frontend/tests/components/WhatsNewModal.test.tsx
+  s_1f8038a6cb8fc5::t_3ee2268b1b66b4 101-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "97870d37a479c8ecc6ab521d6a3d40c45018a24c",
+  "prompts": {},
+  "sessions": {
+    "s_1f8038a6cb8fc5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0ccf5ef5-9291-4b9e-b836-ef54b097c5ef",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
