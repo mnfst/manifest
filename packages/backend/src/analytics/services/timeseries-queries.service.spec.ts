@@ -613,6 +613,36 @@ describe('TimeseriesQueriesService', () => {
       expect(out.timeseries).toEqual([{ date: '2026-01-01', alpha: 2.5 }]);
     });
 
+    it('getAgentUsageTimeseries pivots tokens, messages, and cost from one query', async () => {
+      mockGetRawMany.mockResolvedValue(rows);
+      const out = await service.getAgentUsageTimeseries('24h', 'u1', true);
+
+      expect(out.tokenUsage.timeseries[0]).toEqual({ hour: '01', alpha: 10, bravo: 5 });
+      expect(out.messageUsage.timeseries[0]).toEqual({ hour: '01', alpha: 1, bravo: 2 });
+      expect(out.costUsage.timeseries[0]).toEqual({ hour: '01', alpha: 1, bravo: 0.5 });
+      expect(mockGetRawMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('getAgentUsageTimeseries supports date buckets and provider filters', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { date: '2026-01-01', agent_name: 'alpha', tokens: 10, messages: 2, cost: 1.25 },
+      ]);
+      const out = await service.getAgentUsageTimeseries(
+        '7d',
+        'u1',
+        false,
+        'subscription',
+        'openai',
+      );
+
+      expect(out.tokenUsage.timeseries[0]).toEqual({ date: '2026-01-01', alpha: 10 });
+      expect(out.messageUsage.timeseries[0]).toEqual({ date: '2026-01-01', alpha: 2 });
+      expect(out.costUsage.timeseries[0]).toEqual({ date: '2026-01-01', alpha: 1.25 });
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0]);
+      expect(clauses).toContain('at.auth_type = :authType');
+      expect(clauses).toContain('at.provider = :provider');
+    });
+
     const labelClause = "LOWER(COALESCE(at.provider_key_label, 'Default')) = LOWER(:keyLabel)";
 
     it('scopes each per-agent timeseries to a connection label when provided', async () => {
@@ -758,6 +788,30 @@ describe('TimeseriesQueriesService', () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', cost: 1.25 }]);
       const out = await service.getPerProviderCostTimeseries('24h', 'u1', true);
       expect(out.timeseries).toEqual([{ hour: '01', openai: 1.25 }]);
+    });
+
+    it('getProviderUsageTimeseries pivots tokens, messages, and cost from one query', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { hour: '01', provider: 'openai', tokens: 10, messages: 2, cost: 1.5 },
+        { hour: '01', provider: 'anthropic', tokens: 5, messages: 1, cost: 0.5 },
+      ]);
+      const out = await service.getProviderUsageTimeseries('24h', 'u1', true);
+
+      expect(out.tokenUsage.timeseries[0]).toEqual({ hour: '01', anthropic: 5, openai: 10 });
+      expect(out.messageUsage.timeseries[0]).toEqual({ hour: '01', anthropic: 1, openai: 2 });
+      expect(out.costUsage.timeseries[0]).toEqual({ hour: '01', anthropic: 0.5, openai: 1.5 });
+      expect(mockGetRawMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('getProviderUsageTimeseries supports date buckets', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { date: '2026-01-01', provider: 'openai', tokens: 10, messages: 2, cost: 1.5 },
+      ]);
+      const out = await service.getProviderUsageTimeseries('7d', 'u1', false, 'agent-x');
+
+      expect(out.tokenUsage.timeseries[0]).toEqual({ date: '2026-01-01', openai: 10 });
+      expect(out.messageUsage.timeseries[0]).toEqual({ date: '2026-01-01', openai: 2 });
+      expect(out.costUsage.timeseries[0]).toEqual({ date: '2026-01-01', openai: 1.5 });
     });
 
     it('getPerModelTimeseries pivots tokens', async () => {

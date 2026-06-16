@@ -4,6 +4,7 @@ import { Brackets, In } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { CustomProvider } from '../../entities/custom-provider.entity';
+import type { MessageStatusFilter } from '../dto/messages-query.dto';
 
 describe('MessagesQueryService', () => {
   let service: MessagesQueryService;
@@ -121,6 +122,22 @@ describe('MessagesQueryService', () => {
     expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
   });
 
+  it('returns message filter metadata independently from row pagination', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { model: 'custom:u-1/m', provider: 'custom:u-1' },
+      { model: 'gpt-4o', provider: 'openai' },
+    ]);
+    mockCustomProviderFind.mockResolvedValueOnce([{ id: 'u-1', name: 'MyLLM' }]);
+
+    const result = await service.getMessageFilterOptions({
+      range: '24h',
+      tenantId: 'labels-user',
+    });
+
+    expect(result.providers).toEqual(['custom', 'custom:u-1', 'openai']);
+    expect(result.provider_labels).toEqual({ 'custom:u-1': 'MyLLM' });
+  });
+
   it('returns empty provider_labels without querying when no custom providers appear', async () => {
     mockGetRawOne.mockResolvedValueOnce({ total: 0 });
     mockGetRawMany.mockResolvedValueOnce([]);
@@ -154,6 +171,50 @@ describe('MessagesQueryService', () => {
     expect(result.items).toHaveLength(2);
     expect(result.next_cursor).toBeNull();
     expect(result.providers).toEqual(['anthropic', 'openai']);
+  });
+
+  it('can skip exact totals and filter metadata for fast row-only pagination', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+      { id: 'msg-2', timestamp: '2026-02-16 09:00:00', model: 'gpt-4o' },
+      { id: 'extra', timestamp: '2026-02-16 08:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 2,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    expect(mockGetRawOne).not.toHaveBeenCalled();
+    expect(mockGetRawMany).toHaveBeenCalledTimes(1);
+    expect(result.items).toHaveLength(2);
+    expect(result.next_cursor).toContain('|msg-2');
+    expect(result.total_count).toBe(3);
+    expect(result.total_count_exact).toBe(false);
+    expect(result.providers).toEqual([]);
+    expect(result.provider_labels).toEqual({});
+  });
+
+  it('uses the row count as the lower-bound total when skipped totals have no next page', async () => {
+    mockGetRawMany.mockResolvedValueOnce([
+      { id: 'msg-1', timestamp: '2026-02-16 10:00:00', model: 'gpt-4o' },
+    ]);
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 2,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    expect(result.items).toHaveLength(1);
+    expect(result.next_cursor).toBeNull();
+    expect(result.total_count).toBe(1);
+    expect(result.total_count_exact).toBe(false);
   });
 
   it('returns next_cursor when more items exist', async () => {
@@ -628,6 +689,40 @@ describe('MessagesQueryService', () => {
     );
     expect(tierCall).toBeDefined();
     expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
+  });
+
+  it.each<[MessageStatusFilter, string, Record<string, unknown>]>([
+    [
+      'errors',
+      'at.status IN (:...errorStatuses)',
+      { errorStatuses: ['error', 'fallback_error', 'rate_limited'] },
+    ],
+    ['ok', 'at.status = :statusFilter', { statusFilter: 'ok' }],
+  ])('passes %s status filter through to the query builder', async (status, clause, bindings) => {
+    mockGetRawOne.mockResolvedValueOnce({ total: 1 });
+    mockGetRawMany
+      .mockResolvedValueOnce([
+        { id: 'msg-1', timestamp: '2026-04-24 10:00:00', model: 'gpt-4o-mini', cost: 0 },
+      ])
+      .mockResolvedValueOnce([{ model: 'gpt-4o-mini' }]);
+
+    const mockQb = (
+      service as unknown as { turnRepo: { createQueryBuilder: jest.Mock } }
+    ).turnRepo.createQueryBuilder();
+    const andWhereSpy = mockQb.andWhere as jest.Mock;
+    andWhereSpy.mockClear();
+
+    const result = await service.getMessages({
+      range: '24h',
+      tenantId: 'test-user',
+      limit: 20,
+      status,
+    });
+
+    expect(result.total_count).toBe(1);
+    const statusCall = andWhereSpy.mock.calls.find(([candidate]) => candidate === clause);
+    expect(statusCall).toBeDefined();
+    expect(statusCall?.[1]).toEqual(bindings);
   });
 
   it('passes specificity_category filter through to the query builder', async () => {

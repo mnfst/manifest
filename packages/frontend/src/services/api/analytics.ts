@@ -5,6 +5,12 @@ export type PivotedTimeseries = Promise<{
   timeseries: Array<Record<string, number | string>>;
 }>;
 
+export type UsageTimeseries = Promise<{
+  tokenUsage: Awaited<PivotedTimeseries>;
+  messageUsage: Awaited<PivotedTimeseries>;
+  costUsage: Awaited<PivotedTimeseries>;
+}>;
+
 export function getProviderAnalytics(
   authType: string,
   range = '24h',
@@ -95,6 +101,10 @@ export function getGlobalPerAgentCostTimeseries(range = '24h'): PivotedTimeserie
   return fetchJson('/overview/per-agent-cost-timeseries', { range }) as PivotedTimeseries;
 }
 
+export function getOverviewAgentUsage(range = '24h'): UsageTimeseries {
+  return fetchJson('/overview/agents/usage', { range }) as UsageTimeseries;
+}
+
 export function getGlobalPerProviderTimeseries(range = '24h'): PivotedTimeseries {
   return fetchJson('/overview/per-provider-timeseries', { range }) as PivotedTimeseries;
 }
@@ -105,6 +115,10 @@ export function getGlobalPerProviderMessageTimeseries(range = '24h'): PivotedTim
 
 export function getGlobalPerProviderCostTimeseries(range = '24h'): PivotedTimeseries {
   return fetchJson('/overview/per-provider-cost-timeseries', { range }) as PivotedTimeseries;
+}
+
+export function getOverviewProviderUsage(range = '24h'): UsageTimeseries {
+  return fetchJson('/overview/providers/usage', { range }) as UsageTimeseries;
 }
 
 export function getGlobalPerModelTimeseries(range = '24h'): PivotedTimeseries {

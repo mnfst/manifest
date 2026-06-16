@@ -98,6 +98,12 @@ export class OverviewController {
     return this.timeseries.getPerAgentCostTimeseries(range, ctx.tenantId, hourly);
   }
 
+  @Get('overview/agents/usage')
+  async getOverviewAgentsUsage(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
+    const { range, hourly } = this.deriveTimeseriesArgs(query);
+    return this.timeseries.getAgentUsageTimeseries(range, ctx.tenantId, hourly);
+  }
+
   @Get('overview/per-provider-timeseries')
   async getPerProviderTimeseries(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
     const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
@@ -120,6 +126,12 @@ export class OverviewController {
   ) {
     const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
     return this.timeseries.getPerProviderCostTimeseries(range, ctx.tenantId, hourly, agentName);
+  }
+
+  @Get('overview/providers/usage')
+  async getOverviewProvidersUsage(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
+    const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
+    return this.timeseries.getProviderUsageTimeseries(range, ctx.tenantId, hourly, agentName);
   }
 
   @Get('overview/per-model-cost-timeseries')

@@ -24,12 +24,8 @@ import { customProviderLogo } from '../components/ProviderIcon.jsx';
 import { stripCustomPrefix } from '../services/routing-utils.js';
 import {
   getOverview,
-  getGlobalPerAgentTimeseries,
-  getGlobalPerAgentMessageTimeseries,
-  getGlobalPerProviderTimeseries,
-  getGlobalPerProviderMessageTimeseries,
-  getGlobalPerAgentCostTimeseries,
-  getGlobalPerProviderCostTimeseries,
+  getOverviewAgentUsage,
+  getOverviewProviderUsage,
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -188,8 +184,8 @@ const GlobalOverview: Component = () => {
     () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
     async () => {
       try {
-        const data = await getAgents();
-        return ((data as any)?.agents ?? data ?? []) as AgentRow[];
+        const data = (await getAgents()) as { agents?: AgentRow[] } | AgentRow[] | null;
+        return Array.isArray(data) ? data : (data?.agents ?? []);
       } catch {
         return [] as AgentRow[];
       }
@@ -240,34 +236,15 @@ const GlobalOverview: Component = () => {
   };
 
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
-  const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
-    if (group === 'provider') return getGlobalPerProviderTimeseries(range) as Promise<TSResult>;
-    return getGlobalPerAgentTimeseries(range) as Promise<TSResult>;
-  };
-  const msgFetcher = (range: string, group: string): Promise<TSResult> => {
-    if (group === 'provider')
-      return getGlobalPerProviderMessageTimeseries(range) as Promise<TSResult>;
-    return getGlobalPerAgentMessageTimeseries(range) as Promise<TSResult>;
+  type UsageTSResult = { tokenUsage: TSResult; messageUsage: TSResult; costUsage: TSResult };
+  const usageFetcher = (range: string, group: string): Promise<UsageTSResult> => {
+    if (group === 'provider') return getOverviewProviderUsage(range) as Promise<UsageTSResult>;
+    return getOverviewAgentUsage(range) as Promise<UsageTSResult>;
   };
 
-  const [agentTimeseries] = createResource(
+  const [usageTimeseries] = createResource(
     () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
-    (p) => tokenFetcher(p.range, p.group),
-  );
-
-  const [agentMessageTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
-    (p) => msgFetcher(p.range, p.group),
-  );
-
-  const costFetcher = (range: string, group: string): Promise<TSResult> => {
-    if (group === 'provider') return getGlobalPerProviderCostTimeseries(range) as Promise<TSResult>;
-    return getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>;
-  };
-
-  const [agentCostTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
-    (p) => costFetcher(p.range, p.group),
+    (p) => usageFetcher(p.range, p.group),
   );
 
   // Provider-grouped series key custom providers as 'custom:<uuid>'. Remap
@@ -291,9 +268,9 @@ const GlobalOverview: Component = () => {
       ),
     };
   };
-  const tokenSeries = createMemo(() => remapCustomSeries(agentTimeseries()));
-  const messageSeries = createMemo(() => remapCustomSeries(agentMessageTimeseries()));
-  const costSeries = createMemo(() => remapCustomSeries(agentCostTimeseries()));
+  const tokenSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.tokenUsage));
+  const messageSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.messageUsage));
+  const costSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.costUsage));
 
   // ── Harness filter state (sessionStorage) ────────────────────────────
   // Scope the persisted selection by groupBy(): the provider grouping and the
@@ -326,7 +303,8 @@ const GlobalOverview: Component = () => {
   const allAgents = createMemo(() => {
     const tokenAgents = tokenSeries()?.agents ?? [];
     const msgAgents = messageSeries()?.agents ?? [];
-    const set = new Set([...tokenAgents, ...msgAgents]);
+    const costAgents = costSeries()?.agents ?? [];
+    const set = new Set([...tokenAgents, ...msgAgents, ...costAgents]);
     return [...set].sort();
   });
 
