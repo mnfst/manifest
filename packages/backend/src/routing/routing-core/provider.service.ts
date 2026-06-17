@@ -784,15 +784,9 @@ export class ProviderService {
   ): Promise<void> {
     if (providerRows.length === 0) return;
 
-    const references: ProviderRouteReference[] = [];
-    for (const agent of await this.listOwnedAgentRouteTargets(tenantId)) {
-      references.push(
-        ...(await this.findProviderRouteReferences(agent.id, agent.name, providerRows)),
-      );
-    }
-    if (references.length === 0) return;
+    const first = await this.findFirstProviderRouteReference(tenantId, providerRows);
+    if (!first) return;
 
-    const first = references[0];
     throw new ConflictException(
       `Cannot disconnect provider while its models are assigned to routing. ` +
         `Update routing first (agent "${first.agentName}", ${first.surface} ${first.name}, ` +
@@ -800,92 +794,122 @@ export class ProviderService {
     );
   }
 
-  private async findProviderRouteReferences(
+  private async findFirstProviderRouteReference(
+    tenantId: string,
+    providerRows: TenantProvider[],
+  ): Promise<ProviderRouteReference | null> {
+    const agents = await this.listOwnedAgentRouteTargets(tenantId);
+    if (agents.length === 0) return null;
+
+    const agentIds = agents.map((agent) => agent.id);
+    const agentNamesById = new Map(agents.map((agent) => [agent.id, agent.name]));
+    const enabledIdsByAgent = await this.listEnabledProviderIdsByAgent(agentIds);
+    const providerRowsForAgent = (agentId: string) => {
+      if (!enabledIdsByAgent) return providerRows;
+      const enabled = enabledIdsByAgent.get(agentId);
+      if (!enabled || enabled.size === 0) return [];
+      return providerRows.filter((row) => enabled.has(row.id));
+    };
+    const agentName = (agentId: string) => agentNamesById.get(agentId) ?? agentId;
+
+    const tiers = await this.tierRepo.find({ where: { agent_id: In(agentIds) } });
+    for (const tier of tiers) {
+      const match = this.findProviderRouteReferenceInRoutes(
+        tier.agent_id,
+        agentName(tier.agent_id),
+        'tier',
+        tier.tier,
+        tier.override_route,
+        tier.fallback_routes,
+        providerRowsForAgent(tier.agent_id),
+      );
+      if (match) return match;
+    }
+
+    const specificityRows = await this.specificityRepo.find({
+      where: { agent_id: In(agentIds), is_active: true },
+    });
+    for (const row of specificityRows) {
+      if (row.is_active === false) continue;
+      const match = this.findProviderRouteReferenceInRoutes(
+        row.agent_id,
+        agentName(row.agent_id),
+        'specificity',
+        row.category,
+        row.override_route,
+        row.fallback_routes,
+        providerRowsForAgent(row.agent_id),
+      );
+      if (match) return match;
+    }
+
+    const headerTiers = await this.headerTierRepo.find({
+      where: { agent_id: In(agentIds), enabled: true },
+    });
+    for (const tier of headerTiers) {
+      if (tier.enabled === false) continue;
+      const match = this.findProviderRouteReferenceInRoutes(
+        tier.agent_id,
+        agentName(tier.agent_id),
+        'header',
+        tier.name,
+        tier.override_route,
+        tier.fallback_routes,
+        providerRowsForAgent(tier.agent_id),
+      );
+      if (match) return match;
+    }
+
+    return null;
+  }
+
+  private async listEnabledProviderIdsByAgent(
+    agentIds: string[],
+  ): Promise<Map<string, Set<string>> | null> {
+    if (!this.enabledProviderRepo) return null;
+    const rows = await this.enabledProviderRepo.find({ where: { agent_id: In(agentIds) } });
+    const byAgent = new Map<string, Set<string>>();
+    for (const row of rows) {
+      const enabled = byAgent.get(row.agent_id) ?? new Set<string>();
+      enabled.add(row.tenant_provider_id);
+      byAgent.set(row.agent_id, enabled);
+    }
+    return byAgent;
+  }
+
+  private findProviderRouteReferenceInRoutes(
     agentId: string,
     agentName: string,
+    surface: ProviderRouteReference['surface'],
+    name: string,
+    overrideRoute: ModelRoute | null,
+    fallbackRoutes: ModelRoute[] | null,
     providerRows: TenantProvider[],
-  ): Promise<ProviderRouteReference[]> {
-    const references: ProviderRouteReference[] = [];
-
-    const tiers = await this.tierRepo.find({ where: { agent_id: agentId } });
-    for (const tier of tiers) {
-      if (this.routeBelongsToProviderRows(tier.override_route, providerRows)) {
-        references.push({
-          agentId,
-          agentName,
-          surface: 'tier',
-          name: tier.tier,
-          model: tier.override_route!.model,
-          position: 'primary',
-        });
-      }
-      for (const [i, fallback] of (tier.fallback_routes ?? []).entries()) {
-        if (this.routeBelongsToProviderRows(fallback, providerRows)) {
-          references.push({
-            agentId,
-            agentName,
-            surface: 'tier',
-            name: tier.tier,
-            model: fallback.model,
-            position: `fallback ${i + 1}`,
-          });
-        }
-      }
+  ): ProviderRouteReference | null {
+    if (providerRows.length === 0) return null;
+    if (this.routeBelongsToProviderRows(overrideRoute, providerRows)) {
+      return {
+        agentId,
+        agentName,
+        surface,
+        name,
+        model: overrideRoute!.model,
+        position: 'primary',
+      };
     }
 
-    const specificityRows = await this.specificityRepo.find({ where: { agent_id: agentId } });
-    for (const row of specificityRows) {
-      if (this.routeBelongsToProviderRows(row.override_route, providerRows)) {
-        references.push({
-          agentId,
-          agentName,
-          surface: 'specificity',
-          name: row.category,
-          model: row.override_route!.model,
-          position: 'primary',
-        });
-      }
-      for (const [i, fallback] of (row.fallback_routes ?? []).entries()) {
-        if (this.routeBelongsToProviderRows(fallback, providerRows)) {
-          references.push({
-            agentId,
-            agentName,
-            surface: 'specificity',
-            name: row.category,
-            model: fallback.model,
-            position: `fallback ${i + 1}`,
-          });
-        }
-      }
+    for (const [i, fallback] of (fallbackRoutes ?? []).entries()) {
+      if (!this.routeBelongsToProviderRows(fallback, providerRows)) continue;
+      return {
+        agentId,
+        agentName,
+        surface,
+        name,
+        model: fallback.model,
+        position: `fallback ${i + 1}`,
+      };
     }
-
-    const headerTiers = await this.headerTierRepo.find({ where: { agent_id: agentId } });
-    for (const tier of headerTiers) {
-      if (this.routeBelongsToProviderRows(tier.override_route, providerRows)) {
-        references.push({
-          agentId,
-          agentName,
-          surface: 'header',
-          name: tier.name,
-          model: tier.override_route!.model,
-          position: 'primary',
-        });
-      }
-      for (const [i, fallback] of (tier.fallback_routes ?? []).entries()) {
-        if (this.routeBelongsToProviderRows(fallback, providerRows)) {
-          references.push({
-            agentId,
-            agentName,
-            surface: 'header',
-            name: tier.name,
-            model: fallback.model,
-            position: `fallback ${i + 1}`,
-          });
-        }
-      }
-    }
-
-    return references;
+    return null;
   }
 
   private routeBelongsToProviderRows(route: ModelRoute | null, rows: TenantProvider[]): boolean {
@@ -906,6 +930,11 @@ export class ProviderService {
       if (routeLabel) return routeLabel === rowLabel;
       return row.priority === 0;
     }
+
+    if (route.authType && route.authType !== row.auth_type) return false;
+    const routeLabel = route.keyLabel?.toLowerCase();
+    if (routeLabel) return routeLabel === rowLabel;
+    if (row.priority !== 0) return false;
 
     const model = route.model.toLowerCase();
     if (model.startsWith(`${providerName}/`)) return true;
