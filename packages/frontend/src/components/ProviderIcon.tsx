@@ -9,6 +9,12 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
   const s = { width: `${size}px`, height: `${size}px` };
 
   switch (id) {
+    /* ── Manifest ────────────────────────────────── */
+    case 'manifest':
+      return (
+        <img src="/icons/manifest.svg" alt="Manifest" style={{ ...s, 'border-radius': '3px' }} />
+      );
+
     /* ── OpenAI ───────────────────────────────────── */
     case 'openai':
       return (
@@ -35,6 +41,24 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
           aria-hidden="true"
         >
           <path d="M13.827 3.52h3.603L24 20h-3.603l-6.57-16.48zm-7.258 0h3.767L16.906 20h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm4.132 9.959L8.453 7.687 6.205 13.48H10.7z" />
+        </svg>
+      );
+
+    /* ── AWS Bedrock ─────────────────────────────── */
+    case 'bedrock':
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <rect x="2" y="3" width="20" height="18" rx="3" fill="#232F3E" />
+          <path d="M6.2 9.1 12 5.8l5.8 3.3v6.8L12 19.2l-5.8-3.3V9.1Z" fill="#FF9900" />
+          <path d="M12 5.8v6.6l5.8-3.3L12 5.8Z" fill="#FFC46B" />
+          <path d="M6.2 9.1 12 12.4v6.8l-5.8-3.3V9.1Z" fill="#E07A00" />
+          <path d="M12 12.4v6.8l5.8-3.3V9.1L12 12.4Z" fill="#F28C00" />
         </svg>
       );
 

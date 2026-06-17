@@ -32,7 +32,7 @@ const ConnectProvider: Component = () => {
     if (baseUrl) qp.set('baseUrl', baseUrl);
     if (apiKey) qp.set('apiKey', apiKey);
     if (models) qp.set('models', models);
-    return `/agents/${encodeURIComponent(agentName)}/routing?${qp.toString()}`;
+    return `/harnesses/${encodeURIComponent(agentName)}/routing?${qp.toString()}`;
   };
 
   const autoCreate = async () => {
@@ -68,9 +68,9 @@ const ConnectProvider: Component = () => {
     <div class="container--sm" style="padding-top: 80px;">
       <Show when={!data.loading && (data()?.length ?? 0) > 1}>
         <div class="panel" style="max-width: 440px; margin: 0 auto; padding: 32px;">
-          <h2 style="margin: 0 0 8px;">Select an agent</h2>
+          <h2 style="margin: 0 0 8px;">Select a harness</h2>
           <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin: 0 0 24px;">
-            Which agent should this provider be added to?
+            Which harness should this provider be added to?
           </p>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <For each={data()}>

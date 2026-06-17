@@ -52,7 +52,11 @@ function createPendingStore() {
     create: jest.fn(async (provider: string, input: OAuthPendingFlowInput, ttlMs: number) => {
       cleanup();
       for (const [k, f] of flows) {
-        if (f.provider === provider && f.agentId === input.agentId && f.userId === input.userId) {
+        if (
+          f.provider === provider &&
+          f.agentId === input.agentId &&
+          f.tenantId === input.tenantId
+        ) {
           flows.delete(k);
         }
       }
@@ -60,16 +64,16 @@ function createPendingStore() {
       flows.set(key(provider, input.state), record);
       return record;
     }),
-    consume: jest.fn(async (provider: string, state: string, agentId: string, userId: string) => {
+    consume: jest.fn(async (provider: string, state: string, agentId: string, tenantId: string) => {
       const flow = flows.get(key(provider, state));
-      if (!flow || flow.agentId !== agentId || flow.userId !== userId) return null;
+      if (!flow || flow.agentId !== agentId || flow.tenantId !== tenantId) return null;
       flows.delete(key(provider, state));
       return flow;
     }),
-    findLatestForAgent: jest.fn(async (provider: string, agentId: string, userId: string) => {
+    findLatestForAgent: jest.fn(async (provider: string, agentId: string, tenantId: string) => {
       cleanup();
       for (const f of flows.values()) {
-        if (f.provider === provider && f.agentId === agentId && f.userId === userId) return f;
+        if (f.provider === provider && f.agentId === agentId && f.tenantId === tenantId) return f;
       }
       return null;
     }),
@@ -113,11 +117,11 @@ describe('AnthropicOauthService - security & edge cases', () => {
   });
 
   describe('exchangeCode tenant boundaries', () => {
-    it('rejects exchange when state belongs to a different user', async () => {
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+    it('rejects exchange when state belongs to a different tenant', async () => {
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
       await expect(
-        svc.exchangeCode(`code#${state}`, undefined, 'agent-1', 'user-2'),
+        svc.exchangeCode(`code#${state}`, undefined, 'agent-1', 'tenant-2'),
       ).rejects.toThrow('Invalid or expired OAuth state');
 
       // Boundary check is enforced by the store, not the service.
@@ -125,28 +129,28 @@ describe('AnthropicOauthService - security & edge cases', () => {
         'anthropic',
         state,
         'agent-1',
-        'user-2',
+        'tenant-2',
       );
       // Original owner's pending flow stays intact so user-1 can still finish.
-      await expect(svc.findPendingForAgent('agent-1', 'user-1')).resolves.toEqual({ state });
+      await expect(svc.findPendingForAgent('agent-1', 'tenant-1')).resolves.toEqual({ state });
       expect(fetchMock).not.toHaveBeenCalled();
       expect(providerService.upsertProvider).not.toHaveBeenCalled();
     });
 
     it('rejects exchange when state belongs to a different agent', async () => {
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
       await expect(
-        svc.exchangeCode(`code#${state}`, undefined, 'agent-2', 'user-1'),
+        svc.exchangeCode(`code#${state}`, undefined, 'agent-2', 'tenant-1'),
       ).rejects.toThrow('Invalid or expired OAuth state');
 
       expect(pendingStore.svc.consume).toHaveBeenCalledWith(
         'anthropic',
         state,
         'agent-2',
-        'user-1',
+        'tenant-1',
       );
-      await expect(svc.findPendingForAgent('agent-1', 'user-1')).resolves.toEqual({ state });
+      await expect(svc.findPendingForAgent('agent-1', 'tenant-1')).resolves.toEqual({ state });
       expect(fetchMock).not.toHaveBeenCalled();
       expect(providerService.upsertProvider).not.toHaveBeenCalled();
     });
@@ -155,15 +159,15 @@ describe('AnthropicOauthService - security & edge cases', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 }),
       );
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
-      await svc.exchangeCode(`first-code#${state}`, undefined, 'agent-1', 'user-1');
+      await svc.exchangeCode(`first-code#${state}`, undefined, 'agent-1', 'tenant-1');
       expect(providerService.upsertProvider).toHaveBeenCalledTimes(1);
       await expect(svc.getPendingCount()).resolves.toBe(0);
 
       // Replaying the same state with a different code must fail — one-time token.
       await expect(
-        svc.exchangeCode(`replayed-code#${state}`, undefined, 'agent-1', 'user-1'),
+        svc.exchangeCode(`replayed-code#${state}`, undefined, 'agent-1', 'tenant-1'),
       ).rejects.toThrow('Invalid or expired OAuth state');
       expect(providerService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -183,10 +187,10 @@ describe('AnthropicOauthService - security & edge cases', () => {
       fetchMock.mockResolvedValue(badResponse);
       const logger = { error: jest.fn(), log: jest.fn(), warn: jest.fn() };
       (svc as unknown as { logger: typeof logger }).logger = logger;
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
       await expect(
-        svc.exchangeCode(`c#${state}`, undefined, 'agent-1', 'user-1'),
+        svc.exchangeCode(`c#${state}`, undefined, 'agent-1', 'tenant-1'),
       ).rejects.toBeInstanceOf(SyntaxError);
 
       // State is consumed before JSON parsing — no rollback path today.
@@ -198,10 +202,10 @@ describe('AnthropicOauthService - security & edge cases', () => {
       fetchMock.mockResolvedValue(mockResponse(503, {}, 'Service Unavailable'));
       const logger = { error: jest.fn(), log: jest.fn(), warn: jest.fn() };
       (svc as unknown as { logger: typeof logger }).logger = logger;
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
       const err = await svc
-        .exchangeCode(`bad#${state}`, undefined, 'agent-1', 'user-1')
+        .exchangeCode(`bad#${state}`, undefined, 'agent-1', 'tenant-1')
         .catch((e: Error) => e);
       // Generic Token exchange failed — no internal status text leakage.
       expect(err).toBeInstanceOf(Error);
@@ -213,11 +217,11 @@ describe('AnthropicOauthService - security & edge cases', () => {
 
     it('propagates the network error when fetch() itself throws', async () => {
       fetchMock.mockRejectedValue(new Error('Network error'));
-      const { state } = await svc.generateAuthorizationUrl('agent-1', 'user-1');
+      const { state } = await svc.generateAuthorizationUrl('agent-1', 'tenant-1');
 
-      await expect(svc.exchangeCode(`c#${state}`, undefined, 'agent-1', 'user-1')).rejects.toThrow(
-        'Network error',
-      );
+      await expect(
+        svc.exchangeCode(`c#${state}`, undefined, 'agent-1', 'tenant-1'),
+      ).rejects.toThrow('Network error');
       expect(providerService.upsertProvider).not.toHaveBeenCalled();
     });
   });
@@ -226,7 +230,7 @@ describe('AnthropicOauthService - security & edge cases', () => {
     it('returns the cached access token at exactly 61s before expiry', async () => {
       // 61_000 > 60_000 → Date.now() < blob.e - 60_000 holds → return blob.t.
       const blob = JSON.stringify({ t: 'cached', r: 'rf', e: Date.now() + 61_000 });
-      expect(await svc.unwrapToken(blob, 'agent-1', 'user-1')).toBe('cached');
+      expect(await svc.unwrapToken(blob, 'agent-1', 'tenant-1')).toBe('cached');
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
@@ -236,7 +240,7 @@ describe('AnthropicOauthService - security & edge cases', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'new', refresh_token: 'rf2', expires_in: 3600 }),
       );
-      expect(await svc.unwrapToken(blob, 'agent-1', 'user-1')).toBe('new');
+      expect(await svc.unwrapToken(blob, 'agent-1', 'tenant-1')).toBe('new');
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
@@ -245,7 +249,7 @@ describe('AnthropicOauthService - security & edge cases', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'refreshed', refresh_token: 'rf2', expires_in: 3600 }),
       );
-      expect(await svc.unwrapToken(blob, 'agent-1', 'user-1')).toBe('refreshed');
+      expect(await svc.unwrapToken(blob, 'agent-1', 'tenant-1')).toBe('refreshed');
       expect(fetchMock).toHaveBeenCalledTimes(1);
       // New expiry is computed from Date.now() at the time of the refresh
       // response, not carried from the stale blob.
@@ -260,7 +264,7 @@ describe('AnthropicOauthService - security & edge cases', () => {
       fetchMock.mockResolvedValue(
         mockResponse(200, { access_token: 'fresh', refresh_token: 'rf2', expires_in: 1800 }),
       );
-      await svc.unwrapToken(blob, 'agent-1', 'user-1');
+      await svc.unwrapToken(blob, 'agent-1', 'tenant-1');
       const stored = providerService.upsertProvider.mock.calls[0][3] as string;
       const parsed = JSON.parse(stored) as { t: string; r: string; e: number };
       expect(parsed.e).toBe(Date.now() + 1800 * 1000);
@@ -273,7 +277,7 @@ describe('AnthropicOauthService - security & edge cases', () => {
       // e = Date.now() + 30s puts us inside the 60s refresh window. With r='',
       // the service must short-circuit and return blob.t — no fetch attempt.
       const blob = JSON.stringify({ t: 'access', r: '', e: Date.now() + 30_000 });
-      expect(await svc.unwrapToken(blob, 'agent-1', 'user-1')).toBe('access');
+      expect(await svc.unwrapToken(blob, 'agent-1', 'tenant-1')).toBe('access');
       expect(fetchMock).not.toHaveBeenCalled();
       expect(providerService.upsertProvider).not.toHaveBeenCalled();
     });
@@ -282,14 +286,14 @@ describe('AnthropicOauthService - security & edge cases', () => {
       // parseOAuthTokenBlob requires r: string, so r: null fails isOAuthTokenBlob
       // and the value is treated as a legacy paste token (returned as-is).
       const raw = JSON.stringify({ t: 'access', r: null, e: Date.now() + 30_000 });
-      expect(await svc.unwrapToken(raw, 'agent-1', 'user-1')).toBe(raw);
+      expect(await svc.unwrapToken(raw, 'agent-1', 'tenant-1')).toBe(raw);
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
     it('rejects a JSON blob whose r field is missing entirely', async () => {
       // Missing r → not an OAuth blob → legacy paste fallback.
       const raw = JSON.stringify({ t: 'access', e: Date.now() + 30_000 });
-      expect(await svc.unwrapToken(raw, 'agent-1', 'user-1')).toBe(raw);
+      expect(await svc.unwrapToken(raw, 'agent-1', 'tenant-1')).toBe(raw);
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });

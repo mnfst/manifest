@@ -52,7 +52,7 @@ const ProviderApiKeyTab: Component<Props> = (props) => {
 
   return (
     <>
-      <div class="provider-modal__tab-hint">Connect providers using your own API keys (BYOK).</div>
+      <div class="provider-modal__tab-hint">Connect a provider using your own API key.</div>
       <div class="provider-modal__list">
         <For each={mergedProviders()}>
           {(item) => {

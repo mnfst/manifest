@@ -1,6 +1,6 @@
 /**
  * Compact JSON shape used to persist OAuth credentials in
- * `user_providers.api_key`. Field names are single letters to keep the
+ * `tenant_providers.api_key`. Field names are single letters to keep the
  * encrypted payload small.
  */
 export interface OAuthTokenBlob {

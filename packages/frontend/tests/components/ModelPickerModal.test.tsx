@@ -21,6 +21,11 @@ vi.mock('../../src/services/providers.js', () => ({
       name: 'Anthropic',
       models: [{ value: 'claude-opus', label: 'Claude Opus' }],
     },
+    {
+      id: 'bedrock',
+      name: 'AWS Bedrock',
+      models: [],
+    },
   ],
   STAGES: [
     { id: 'simple', label: 'Simple' },
@@ -452,7 +457,7 @@ describe('ModelPickerModal', () => {
     expect(modelButtons[0].textContent).toContain('GPT-4o mini');
   });
 
-  it('renders the recommendation tag for the auto-assigned route', () => {
+  it('does not render a recommendation tag for a legacy auto-assigned route', () => {
     const { container } = render(() => (
       <ModelPickerModal
         tierId="simple"
@@ -464,7 +469,7 @@ describe('ModelPickerModal', () => {
       />
     ));
     const recommended = container.querySelector('.routing-modal__recommended');
-    expect(recommended?.textContent).toContain('recommended');
+    expect(recommended).toBeNull();
   });
 
   it("tags the primary model with 'Primary' when override_route matches", () => {
@@ -918,6 +923,43 @@ describe('ModelPickerModal', () => {
     // The icon falls back to a styled letter span ("G").
     const letter = container.querySelector('.provider-card__logo-letter');
     expect(letter?.textContent).toBe('G');
+  });
+
+  it('keeps Bedrock grouped by route provider while cleaning dotted model labels', () => {
+    const bedrockModels: AvailableModel[] = [
+      {
+        ...baseModels[0],
+        model_name: 'us.anthropic.claude-opus',
+        provider: 'bedrock',
+        display_name: 'us.anthropic.claude-opus',
+        input_price_per_token: null,
+        output_price_per_token: null,
+      },
+    ];
+    const bedrockConnected: RoutingProvider[] = [
+      {
+        id: 'p-bedrock',
+        provider: 'bedrock',
+        auth_type: 'api_key',
+        is_active: true,
+        has_api_key: true,
+        connected_at: '2025-01-01',
+      },
+    ];
+
+    const { container } = render(() => (
+      <ModelPickerModal
+        tierId="simple"
+        models={bedrockModels}
+        tiers={[]}
+        connectedProviders={bedrockConnected}
+        onSelect={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+
+    expect(container.querySelector('.routing-modal__group-name')?.textContent).toBe('AWS Bedrock');
+    expect(container.querySelector('.routing-modal__model-label')?.textContent).toBe('Claude Opus');
   });
 
   it('renders the no-search empty state when search is non-empty and matches nothing', () => {

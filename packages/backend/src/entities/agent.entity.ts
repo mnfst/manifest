@@ -33,8 +33,10 @@ export class Agent {
   @Column('boolean', { default: true })
   record_messages!: boolean;
 
-  @Column('varchar', { nullable: true })
-  savings_baseline_model!: string | null;
+  // Reserved Playground agent (the per-tenant "Playground" agent). Hidden
+  // from the agent list / switcher / counts and not user-creatable/renamable.
+  @Column('boolean', { default: false })
+  is_playground!: boolean;
 
   @ManyToOne(() => Tenant, (t) => t.agents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_id' })

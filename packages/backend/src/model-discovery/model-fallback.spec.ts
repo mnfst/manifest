@@ -174,6 +174,14 @@ describe('lookupWithVariants', () => {
     expect(result).toEqual({ input: 0.01, output: 0.02 });
   });
 
+  it('should try provider-prefixed model names', () => {
+    const cache = new Map([['deepseek/deepseek-v3.2', { input: 0.01, output: 0.02 }]]);
+
+    const result = lookupWithVariants(makePricingSync(cache), 'deepseek', 'v3.2');
+
+    expect(result).toEqual({ input: 0.01, output: 0.02 });
+  });
+
   it('should try dot variant', () => {
     const cache = new Map([['anthropic/claude-sonnet-4.6', { input: 0.01, output: 0.02 }]]);
 

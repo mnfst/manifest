@@ -1,8 +1,9 @@
 import { Injectable, Logger, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import type { AuthType } from 'manifest-shared';
-import { UserProvider } from '../entities/user-provider.entity';
+import { resolveProviderMetadataIdentity, type AuthType } from 'manifest-shared';
+import { TenantProvider } from '../entities/tenant-provider.entity';
+import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderModelFetcherService, filterNonChatModels } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
@@ -13,6 +14,11 @@ import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { parseOAuthTokenBlob } from '../routing/oauth/core';
 import { getQwenCompatibleBaseUrl, isQwenResolvedRegion } from '../routing/qwen-region';
+import {
+  getBedrockMantleBaseUrl,
+  isBedrockProvider,
+  isBedrockRegion,
+} from '../routing/bedrock-region';
 import { MINIMAX_BASE_URLS } from '../routing/oauth/minimax/minimax-oauth-helpers';
 import {
   getXiaomiTokenPlanBaseUrl,
@@ -63,8 +69,8 @@ export class ModelDiscoveryService {
   private readonly modelsCache = new Map<string, ModelsCacheEntry>();
 
   constructor(
-    @InjectRepository(UserProvider)
-    private readonly providerRepo: Repository<UserProvider>,
+    @InjectRepository(TenantProvider)
+    private readonly providerRepo: Repository<TenantProvider>,
     @InjectRepository(CustomProvider)
     private readonly customProviderRepo: Repository<CustomProvider>,
     private readonly fetcher: ProviderModelFetcherService,
@@ -80,9 +86,12 @@ export class ModelDiscoveryService {
     @Optional()
     @Inject(CopilotTokenService)
     private readonly copilotTokenService: CopilotTokenService | null,
+    @Optional()
+    @InjectRepository(AgentEnabledProvider)
+    private readonly enabledProviderRepo: Repository<AgentEnabledProvider> | null = null,
   ) {}
 
-  async discoverModels(provider: UserProvider): Promise<DiscoveredModel[]> {
+  async discoverModels(provider: TenantProvider): Promise<DiscoveredModel[]> {
     let apiKey = '';
     let endpointOverride: string | undefined;
     const lowerProvider = provider.provider.toLowerCase();
@@ -136,6 +145,9 @@ export class ModelDiscoveryService {
     }
     if (isQwenProvider(provider.provider) && isQwenResolvedRegion(provider.region)) {
       endpointOverride = getQwenCompatibleBaseUrl(provider.region);
+    }
+    if (isBedrockProvider(provider.provider) && isBedrockRegion(provider.region)) {
+      endpointOverride = getBedrockMantleBaseUrl(provider.region);
     }
     if (
       provider.provider.toLowerCase() === 'zai' &&
@@ -236,7 +248,9 @@ export class ModelDiscoveryService {
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
     const filtered = enriched.filter((model) => {
-      const mdEntry = this.modelsDevSync?.lookupModel(provider.provider, model.id);
+      const metadata = resolveProviderMetadataIdentity(provider.provider, model.id);
+      const metadataProvider = metadata.provider ?? provider.provider;
+      const mdEntry = this.modelsDevSync?.lookupModel(metadataProvider, metadata.model);
       if (mdEntry && mdEntry.toolCall === false) return false;
       return true;
     });
@@ -247,7 +261,7 @@ export class ModelDiscoveryService {
 
     if (filtered.length === 0 && previousCachedCount > 0) {
       this.logger.warn(
-        `Discovery returned 0 models for ${provider.provider} (agent ${provider.agent_id}); kept ${previousCachedCount} cached models`,
+        `Discovery returned 0 models for ${provider.provider} (tenant ${provider.tenant_id}); kept ${previousCachedCount} cached models`,
       );
       return provider.cached_models ?? [];
     }
@@ -255,19 +269,17 @@ export class ModelDiscoveryService {
     provider.cached_models = filtered;
     provider.models_fetched_at = new Date().toISOString();
     await this.providerRepo.save(provider);
-    // The agent's effective model list just changed on disk — drop the cache
-    // so getModelsForAgent() reassembles it on the next read.
-    this.invalidate(provider.agent_id);
+    await this.invalidateProviderAccess(provider);
 
     this.logger.log(
-      `Discovered ${filtered.length} models for provider ${provider.provider} (agent ${provider.agent_id})`,
+      `Discovered ${filtered.length} models for provider ${provider.provider} (tenant ${provider.tenant_id})`,
     );
     return filtered;
   }
 
-  async discoverAllForAgent(agentId: string): Promise<void> {
+  async discoverAllForAgent(tenantId: string): Promise<void> {
     const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+      where: { tenant_id: tenantId, is_active: true },
     });
     await Promise.all(
       providers
@@ -281,7 +293,7 @@ export class ModelDiscoveryService {
   }
 
   async refreshProvider(
-    agentId: string,
+    tenantId: string,
     providerId: string,
     authType?: AuthType,
   ): Promise<{
@@ -290,8 +302,8 @@ export class ModelDiscoveryService {
     last_fetched_at: string | null;
     error: string | null;
   }> {
-    const where: { agent_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
-      agent_id: agentId,
+    const where: { tenant_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
+      tenant_id: tenantId,
       provider: providerId,
       is_active: true,
     };
@@ -326,7 +338,7 @@ export class ModelDiscoveryService {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.warn(
-        `Per-provider refresh failed for ${provider.provider} (agent ${agentId}): ${message}`,
+        `Per-provider refresh failed for ${provider.provider} (tenant ${tenantId}): ${message}`,
       );
       return {
         ok: false,
@@ -342,14 +354,16 @@ export class ModelDiscoveryService {
    * cached list when warm, otherwise runs the full DB-backed assembly and
    * caches the result. Invalidated on any provider mutation (see invalidate()).
    */
-  async getModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
+  async getModelsForAgent(tenantId: string, agentId?: string): Promise<DiscoveredModel[]> {
+    if (!agentId) return this.fetchModelsForAgent(tenantId);
+
     const cached = this.modelsCache.get(agentId);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.data;
     }
     if (cached) this.modelsCache.delete(agentId);
 
-    const models = await this.fetchModelsForAgent(agentId);
+    const models = await this.fetchModelsForAgent(tenantId, agentId);
     const now = Date.now();
     // Sweep expired entries on populate so the cache can't grow unbounded as
     // agents come and go (entries are otherwise only dropped on miss/invalidate).
@@ -368,10 +382,26 @@ export class ModelDiscoveryService {
     this.modelsCache.delete(agentId);
   }
 
-  private async fetchModelsForAgent(agentId: string): Promise<DiscoveredModel[]> {
-    const providers = await this.providerRepo.find({
-      where: { agent_id: agentId, is_active: true },
+  private async invalidateProviderAccess(provider: TenantProvider): Promise<void> {
+    if (provider.agent_id) this.invalidate(provider.agent_id);
+    if (!this.enabledProviderRepo) return;
+
+    const rows = await this.enabledProviderRepo.find({
+      where: { tenant_provider_id: provider.id },
     });
+    for (const row of rows) {
+      this.invalidate(row.agent_id);
+    }
+  }
+
+  private async fetchModelsForAgent(
+    tenantId: string,
+    agentId?: string,
+  ): Promise<DiscoveredModel[]> {
+    const allProviders = await this.providerRepo.find({
+      where: { tenant_id: tenantId, is_active: true },
+    });
+    const providers = await this.filterProvidersForAgent(allProviders, agentId);
 
     const models: DiscoveredModel[] = [];
     const seen = new Map<string, number>();
@@ -400,7 +430,7 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Build auth_type lookup for custom providers from their user_providers rows
+    // Build auth_type lookup for custom providers from their tenant_providers rows
     const customAuthTypes = new Map<string, AuthType>();
     for (const p of providers) {
       if (p.provider.startsWith('custom:')) {
@@ -408,13 +438,16 @@ export class ModelDiscoveryService {
       }
     }
 
-    // Merge custom provider models
-    const customProviders = await this.customProviderRepo.find({
-      where: { agent_id: agentId },
+    // With an agent context, only custom providers attached through their
+    // backing tenant_provider row are visible. Tenant-wide lookups keep all custom
+    // providers for global provider pages and background refreshes.
+    const customProviders: CustomProvider[] = await this.customProviderRepo.find({
+      where: { tenant_id: tenantId },
     });
     for (const cp of customProviders) {
       if (!Array.isArray(cp.models)) continue;
       const cpKey = customProviderKey(cp.id);
+      if (agentId && !customAuthTypes.has(cpKey)) continue;
       for (const m of cp.models) {
         const modelKey = customModelKey(cp.id, m.model_name);
         if (seen.has(modelKey)) continue;
@@ -445,8 +478,23 @@ export class ModelDiscoveryService {
     return models;
   }
 
-  async getModelForAgent(agentId: string, modelName: string): Promise<DiscoveredModel | undefined> {
-    const all = await this.getModelsForAgent(agentId);
+  private async filterProvidersForAgent(
+    providers: TenantProvider[],
+    agentId?: string,
+  ): Promise<TenantProvider[]> {
+    if (!agentId || !this.enabledProviderRepo) return providers;
+    const rows = await this.enabledProviderRepo.find({ where: { agent_id: agentId } });
+    if (rows.length === 0) return [];
+    const enabledIds = new Set(rows.map((r) => r.tenant_provider_id));
+    return providers.filter((p) => enabledIds.has(p.id));
+  }
+
+  async getModelForAgent(
+    tenantId: string,
+    modelName: string,
+    agentId?: string,
+  ): Promise<DiscoveredModel | undefined> {
+    const all = await this.getModelsForAgent(tenantId, agentId);
     const matches = all.filter((m) => m.id === modelName);
     // Provider-less lookups are legacy fallbacks. Once multiple providers can
     // expose the same model ID, only a single matching route is safe to infer.
@@ -477,12 +525,23 @@ export class ModelDiscoveryService {
     // capability flags (reasoning / tool-call) — those drive tier auto-
     // assignment quality scoring and shouldn't be lost just because we
     // overrode the price. Mirrors the price-already-set branch above.
-    const known = lookupKnownPrice(model.id);
+    const metadata = resolveProviderMetadataIdentity(providerId, model.id);
+    const metadataProvider = metadata.provider ?? providerId;
+    const metadataModel = metadata.model;
+    const isBedrock = providerId.toLowerCase() === 'bedrock';
+    const metadataEntry = this.modelsDevSync?.lookupModel(metadataProvider, metadataModel) ?? null;
+    const modelWithMetadataName =
+      metadataEntry?.name && metadataEntry.name !== model.id
+        ? { ...model, displayName: metadataEntry.name }
+        : model;
+    const pricingProvider = isBedrock ? providerId : metadataProvider;
+    const pricingModel = isBedrock ? model.id : metadataModel;
+    const known = lookupKnownPrice(pricingModel) ?? lookupKnownPrice(model.id);
     if (known) {
       return this.computeScore(
         this.applyCapabilities(
           {
-            ...model,
+            ...modelWithMetadataName,
             inputPricePerToken: known.input,
             outputPricePerToken: known.output,
           },
@@ -491,63 +550,76 @@ export class ModelDiscoveryService {
       );
     }
 
-    // Priority 2: models.dev — uses native provider IDs, no normalization needed
+    // Priority 2: models.dev — uses native provider IDs. Bedrock pricing must
+    // come from a Bedrock/AWS entry keyed by the AWS model ID; underlying
+    // vendor metadata may still provide the display name/capabilities.
     if (this.modelsDevSync) {
-      const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
+      const mdEntry =
+        pricingProvider === metadataProvider && pricingModel === metadataModel
+          ? metadataEntry
+          : this.modelsDevSync.lookupModel(pricingProvider, pricingModel);
       if (mdEntry && mdEntry.inputPricePerToken !== null) {
+        const capabilityEntry = metadataEntry ?? mdEntry;
         return this.computeScore({
-          ...model,
+          ...modelWithMetadataName,
           inputPricePerToken: mdEntry.inputPricePerToken,
           outputPricePerToken: mdEntry.outputPricePerToken,
-          contextWindow: mdEntry.contextWindow ?? model.contextWindow,
-          displayName: mdEntry.name || model.displayName,
-          capabilityReasoning: mdEntry.reasoning ?? model.capabilityReasoning,
-          capabilityCode: mdEntry.toolCall ?? model.capabilityCode,
-          ...(mdEntry.inputModalities ? { inputModalities: mdEntry.inputModalities } : {}),
-          ...(mdEntry.outputModalities ? { outputModalities: mdEntry.outputModalities } : {}),
+          contextWindow:
+            mdEntry.contextWindow ?? capabilityEntry.contextWindow ?? model.contextWindow,
+          displayName: capabilityEntry.name || mdEntry.name || modelWithMetadataName.displayName,
+          capabilityReasoning: capabilityEntry.reasoning ?? model.capabilityReasoning,
+          capabilityCode: capabilityEntry.toolCall ?? model.capabilityCode,
+          ...(capabilityEntry.inputModalities
+            ? { inputModalities: capabilityEntry.inputModalities }
+            : {}),
+          ...(capabilityEntry.outputModalities
+            ? { outputModalities: capabilityEntry.outputModalities }
+            : {}),
           capabilities: mergeModelCapabilities(
             model.capabilities,
-            mdEntry.capabilities,
-            modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+            capabilityEntry.capabilities,
+            modelSupportsStreaming(metadataProvider, metadataModel) ? ['stream'] : undefined,
           ),
         });
       }
     }
 
     // Priority 3: OpenRouter cache — broader coverage, needs prefix + variant matching
-    if (this.pricingSync) {
-      const orPrefix = findOpenRouterPrefix(providerId);
+    if (this.pricingSync && !isBedrock) {
+      const orPrefix = findOpenRouterPrefix(metadataProvider);
       if (orPrefix) {
-        const orPricing = lookupWithVariants(this.pricingSync, orPrefix, model.id);
+        const orPricing = lookupWithVariants(this.pricingSync, orPrefix, metadataModel);
         if (orPricing) {
           return this.computeScore({
-            ...model,
+            ...modelWithMetadataName,
             inputPricePerToken: orPricing.input,
             outputPricePerToken: orPricing.output,
-            contextWindow: orPricing.contextWindow ?? model.contextWindow,
-            displayName: orPricing.displayName || model.displayName,
+            contextWindow: orPricing.contextWindow ?? modelWithMetadataName.contextWindow,
+            displayName: orPricing.displayName || modelWithMetadataName.displayName,
           });
         }
       }
       const exactPricing = this.pricingSync.lookupPricing(model.id);
       if (exactPricing) {
         return this.computeScore({
-          ...model,
+          ...modelWithMetadataName,
           inputPricePerToken: exactPricing.input,
           outputPricePerToken: exactPricing.output,
-          contextWindow: exactPricing.contextWindow ?? model.contextWindow,
-          displayName: exactPricing.displayName || model.displayName,
+          contextWindow: exactPricing.contextWindow ?? modelWithMetadataName.contextWindow,
+          displayName: exactPricing.displayName || modelWithMetadataName.displayName,
         });
       }
     }
 
-    return this.computeScore(model);
+    return this.computeScore(modelWithMetadataName);
   }
 
   /** Merge capability flags from models.dev without touching pricing or display name. */
   private applyCapabilities(model: DiscoveredModel, providerId: string): DiscoveredModel {
     if (!this.modelsDevSync) return model;
-    const mdEntry = this.modelsDevSync.lookupModel(providerId, model.id);
+    const metadata = resolveProviderMetadataIdentity(providerId, model.id);
+    const metadataProvider = metadata.provider ?? providerId;
+    const mdEntry = this.modelsDevSync.lookupModel(metadataProvider, metadata.model);
     if (!mdEntry) return model;
     return {
       ...model,
@@ -558,7 +630,7 @@ export class ModelDiscoveryService {
       capabilities: mergeModelCapabilities(
         model.capabilities,
         mdEntry.capabilities,
-        modelSupportsStreaming(providerId, model.id) ? ['stream'] : undefined,
+        modelSupportsStreaming(metadataProvider, metadata.model) ? ['stream'] : undefined,
       ),
     };
   }

@@ -304,14 +304,14 @@ User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst
                                     └──→ agent_messages (telemetry data)
 ```
 
-- **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.name` = `user.id`.
+- **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.owner_user_id` = `user.id` is the ONLY user→tenant link (resolved through `TenantCacheService`); `tenant.name` mirrors it for display until repurposed as a slug.
 - **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
 - **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
 - **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key in one transaction.
 
 ### Data Isolation
 
-All analytics queries filter by user via `addTenantFilter(qb, userId)` from `query-helpers.ts`. The `userId` comes from the `@CurrentUser()` decorator.
+Every resource belongs to a tenant; users only authenticate and (optionally) appear as `created_by_user_id` audit metadata. Guards (SessionGuard/ApiKeyGuard) resolve the tenant once per request and attach a `TenantContext` (`{ tenantId, userId }`), injected in controllers via `@TenantCtx()`. All analytics queries filter by tenant via `addTenantFilter(qb, tenantId)` from `query-helpers.ts`. Never scope, key, cache, or authorize by user id.
 
 ## API Endpoints
 
@@ -505,13 +505,13 @@ User connects provider (POST /routing/:agent/providers)
   → ModelDiscoveryService.enrichModel()
     → looks up pricing from OpenRouter cache (PricingSyncService)
     → computes quality score
-  → saves to user_providers.cached_models (JSONB column)
+  → saves to tenant_providers.cached_models (JSONB column)
   → recalculates tier assignments
 ```
 
 - `ProviderModelFetcherService` — config-driven fetcher with parsers for each provider API format (OpenAI-compatible, Anthropic, Gemini, OpenRouter, Ollama)
 - `ModelDiscoveryService` — orchestrator that decrypts keys, fetches, enriches with pricing, caches results. Falls back to OpenRouter cache when native API is unavailable.
-- `cached_models` — per-provider, per-agent JSONB column on `user_providers` table
+- `cached_models` — per-provider JSONB column on `tenant_providers` table
 - Discovery runs synchronously on provider connect (user sees models immediately)
 - "Refresh models" button triggers `POST /routing/:agent/refresh-models`
 

@@ -1,10 +1,17 @@
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
-import { createTestApp, TEST_OTLP_KEY, TEST_API_KEY, TEST_AGENT_ID } from './helpers';
+import {
+  createTestApp,
+  TEST_OTLP_KEY,
+  TEST_API_KEY,
+  TEST_AGENT_ID,
+  TEST_TENANT_ID,
+} from './helpers';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
-import { TierAutoAssignService } from '../src/routing/routing-core/tier-auto-assign.service';
+import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
+import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
 
 let app: INestApplication;
 
@@ -48,13 +55,31 @@ beforeAll(async () => {
     },
   ]);
   await ds.query(
-    `UPDATE user_providers SET cached_models = $1 WHERE agent_id = $2 AND provider = $3`,
-    [models, TEST_AGENT_ID, 'openai'],
+    `UPDATE tenant_providers SET cached_models = $1 WHERE tenant_id = $2 AND provider = $3`,
+    [models, TEST_TENANT_ID, 'openai'],
   );
 
-  // Recalculate tier assignments with the seeded models
-  const autoAssign = app.get(TierAutoAssignService);
-  await autoAssign.recalculate(TEST_AGENT_ID);
+  // Model routing is user-controlled now (auto-assign was removed). Drop the
+  // discovery cache so the just-seeded cached_models is visible, then pin
+  // gpt-4o-mini on every scoring tier so the proxy always has a route, and
+  // finally flush the routing caches.
+  app.get(ModelDiscoveryService).invalidate(TEST_AGENT_ID);
+  for (const tier of ['simple', 'standard', 'complex', 'reasoning', 'default']) {
+    await ds.query(
+      `INSERT INTO tier_assignments (id, agent_id, tier, override_route, updated_at)
+       VALUES ($1,$2,$3,$4::jsonb, now())
+       ON CONFLICT (agent_id, tier) DO UPDATE SET override_route = EXCLUDED.override_route`,
+      [
+        `tier-${tier}-proxy`,
+        TEST_AGENT_ID,
+        tier,
+        JSON.stringify({ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }),
+      ],
+    );
+  }
+  const routingCache = app.get(RoutingCacheService);
+  routingCache.invalidateAgent(TEST_AGENT_ID);
+  routingCache.invalidateTenant(TEST_TENANT_ID);
 }, 30000);
 
 afterAll(async () => {

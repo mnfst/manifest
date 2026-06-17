@@ -232,5 +232,50 @@ describe('CodeAssistClientService', () => {
         expect(metadata.pluginVersion).toBe('0.1.0');
       }
     });
+
+    it('throws when the onboard operation has no name to poll', async () => {
+      fetchMock
+        .mockResolvedValueOnce(
+          mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
+        )
+        .mockResolvedValueOnce(mockOkResponse({ done: false }));
+
+      await expect(svc.onboard('access-token')).rejects.toThrow(
+        'CodeAssist onboardUser operation returned no operation name.',
+      );
+    });
+
+    it('throws when the operation never completes within the poll budget', async () => {
+      jest.useFakeTimers();
+      fetchMock
+        .mockResolvedValueOnce(
+          mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
+        )
+        .mockResolvedValue(mockOkResponse({ name: 'operations/op-1' }));
+
+      const resultPromise = svc.onboard('access-token');
+      const assertion = expect(resultPromise).rejects.toThrow(
+        'CodeAssist onboardUser operation did not complete.',
+      );
+      await jest.advanceTimersByTimeAsync(5_000 * 13);
+      await assertion;
+    });
+
+    it('throws when polling an operation returns non-OK', async () => {
+      jest.useFakeTimers();
+      fetchMock
+        .mockResolvedValueOnce(
+          mockOkResponse({ allowedTiers: [{ id: 'free-tier', isDefault: true }] }),
+        )
+        .mockResolvedValueOnce(mockOkResponse({ name: 'operations/op-err' }))
+        .mockResolvedValueOnce(mockErrorResponse(403, 'Forbidden'));
+
+      const resultPromise = svc.onboard('access-token');
+      const assertion = expect(resultPromise).rejects.toThrow(
+        'CodeAssist operation operations/op-err failed (403)',
+      );
+      await jest.advanceTimersByTimeAsync(5_000);
+      await assertion;
+    });
   });
 });

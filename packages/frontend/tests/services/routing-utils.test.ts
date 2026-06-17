@@ -267,7 +267,7 @@ describe("usedKeyLabelsForModelInTier", () => {
 
   it("falls back to defaultKeyLabel when primary has no explicit pin", () => {
     const tier = baseTier({
-      auto_assigned_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
+      override_route: { provider: "openai", authType: "api_key", model: "gpt-4o" },
     });
     expect(usedKeyLabelsForModelInTier(tier, "gpt-4o", undefined, "Default")).toEqual(
       new Set(["default"]),

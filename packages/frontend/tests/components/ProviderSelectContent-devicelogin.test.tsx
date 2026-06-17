@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
+import { render, waitFor } from "@solidjs/testing-library";
 
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
@@ -67,7 +67,7 @@ vi.mock("../../src/components/CopilotDeviceLogin.js", () => ({
 
 import ProviderSelectContent from "../../src/components/ProviderSelectContent";
 
-describe("ProviderSelectContent - deviceLogin toggle guard", () => {
+describe("ProviderSelectContent - deviceLogin detail view", () => {
   let onUpdate: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -77,26 +77,25 @@ describe("ProviderSelectContent - deviceLogin toggle guard", () => {
     mockDisconnectProvider.mockResolvedValue({ notifications: [] });
   });
 
-  it("should open detail view via handleSubscriptionToggle when deviceLogin provider is not connected", async () => {
+  it("opens the device-login view (not a connect call) for a deviceLogin provider deep link", async () => {
+    // The provider list/tile view was removed; a deviceLogin provider is now
+    // reached via a deep link. Because the provider has deviceLogin: true,
+    // ProviderSelectContent renders the CopilotDeviceLogin view rather than
+    // eagerly calling connectProvider.
     const { container } = render(() => (
       <ProviderSelectContent
         agentName="test-agent"
         providers={[]}
+        providerDeepLink={{ providerId: "dev-login", authType: "subscription" }}
         onUpdate={onUpdate}
       />
     ));
 
-    // The subscription tab shows DevLoginProvider.
-    // Because it has no subscriptionKeyPlaceholder/subscriptionCommand/subscriptionAuthMode,
-    // hasDetailView() returns false, so clicking calls onToggle (handleSubscriptionToggle).
-    fireEvent.click(screen.getByText("DevLoginProvider"));
-
-    // handleSubscriptionToggle checks deviceLogin && !isSubscriptionConnected -> opens detail
     await waitFor(() => {
       expect(container.querySelector('[data-testid="copilot-device-login"]')).not.toBeNull();
     });
 
-    // connectProvider should NOT be called (device login guard triggered)
+    // Opening the device-login view must NOT auto-connect the provider.
     expect(mockConnectProvider).not.toHaveBeenCalled();
   });
 });

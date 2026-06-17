@@ -4,7 +4,8 @@ describe('EmailProviderConfig entity', () => {
   it('creates an instance with all fields', () => {
     const config = new EmailProviderConfig();
     config.id = 'epc-1';
-    config.user_id = 'user-1';
+    config.tenant_id = 'tenant-1';
+    config.created_by_user_id = 'user-1';
     config.provider = 'mailgun';
     config.api_key_encrypted = 'enc-abc123';
     config.domain = 'mg.example.com';
@@ -14,7 +15,8 @@ describe('EmailProviderConfig entity', () => {
     config.updated_at = '2025-01-02T00:00:00Z';
 
     expect(config.id).toBe('epc-1');
-    expect(config.user_id).toBe('user-1');
+    expect(config.tenant_id).toBe('tenant-1');
+    expect(config.created_by_user_id).toBe('user-1');
     expect(config.provider).toBe('mailgun');
     expect(config.api_key_encrypted).toBe('enc-abc123');
     expect(config.domain).toBe('mg.example.com');
@@ -27,7 +29,8 @@ describe('EmailProviderConfig entity', () => {
   it('allows nullable fields to be null', () => {
     const config = new EmailProviderConfig();
     config.id = 'epc-2';
-    config.user_id = 'user-2';
+    config.tenant_id = 'tenant-2';
+    config.created_by_user_id = 'user-2';
     config.provider = 'resend';
     config.api_key_encrypted = 'enc-xyz';
     config.domain = null;

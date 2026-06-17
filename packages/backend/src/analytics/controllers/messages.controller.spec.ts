@@ -9,6 +9,7 @@ import { SpecificityFeedbackService } from '../services/specificity-feedback.ser
 describe('MessagesController', () => {
   let controller: MessagesController;
   let mockGetMessages: jest.Mock;
+  let mockGetMessageFilterOptions: jest.Mock;
   let mockGetDetails: jest.Mock;
   let mockSetFeedback: jest.Mock;
   let mockClearFeedback: jest.Mock;
@@ -23,6 +24,7 @@ describe('MessagesController', () => {
       total_count: 0,
       providers: [],
     });
+    mockGetMessageFilterOptions = jest.fn().mockResolvedValue({ providers: [] });
 
     mockGetDetails = jest.fn().mockResolvedValue({
       message: { id: 'msg-1', status: 'ok' },
@@ -42,7 +44,10 @@ describe('MessagesController', () => {
       providers: [
         {
           provide: MessagesQueryService,
-          useValue: { getMessages: mockGetMessages },
+          useValue: {
+            getMessages: mockGetMessages,
+            getMessageFilterOptions: mockGetMessageFilterOptions,
+          },
         },
         {
           provide: MessageDetailsService,
@@ -69,13 +74,14 @@ describe('MessagesController', () => {
     controller = module.get<MessagesController>(MessagesController);
   });
 
+  const ctx = { tenantId: 'tenant-1', userId: 'u1' };
+
   it('delegates to messages query service with default values', async () => {
-    const user = { id: 'u1' };
-    await controller.getMessages({} as never, user as never);
+    await controller.getMessages({} as never, ctx as never);
 
     expect(mockGetMessages).toHaveBeenCalledWith({
       range: undefined,
-      userId: 'u1',
+      tenantId: 'tenant-1',
       provider: undefined,
       service_type: undefined,
       cost_min: undefined,
@@ -88,17 +94,17 @@ describe('MessagesController', () => {
       routing_tier: undefined,
       specificity_category: undefined,
       header_tier_id: undefined,
+      include_total: undefined,
+      include_filter_options: undefined,
     });
   });
 
   it('delegates recording deletion to MessageRecordingService', async () => {
-    const user = { id: 'u1' };
-    await controller.deleteRecording('msg-1', user as never);
-    expect(mockDeleteRecording).toHaveBeenCalledWith('msg-1', 'u1');
+    await controller.deleteRecording('msg-1', ctx as never);
+    expect(mockDeleteRecording).toHaveBeenCalledWith('msg-1', 'tenant-1');
   });
 
   it('passes all filter parameters', async () => {
-    const user = { id: 'u1' };
     const query = {
       range: '7d',
       provider: 'openai',
@@ -111,12 +117,14 @@ describe('MessagesController', () => {
       routing_tier: 'simple',
       specificity_category: 'coding',
       header_tier_id: 'ht-premium',
+      include_total: false,
+      include_filter_options: false,
     };
-    await controller.getMessages(query as never, user as never);
+    await controller.getMessages(query as never, ctx as never);
 
     expect(mockGetMessages).toHaveBeenCalledWith({
       range: '7d',
-      userId: 'u1',
+      tenantId: 'tenant-1',
       provider: 'openai',
       service_type: 'agent',
       cost_min: 0.01,
@@ -129,12 +137,26 @@ describe('MessagesController', () => {
       routing_tier: 'simple',
       specificity_category: 'coding',
       header_tier_id: 'ht-premium',
+      include_total: false,
+      include_filter_options: false,
+    });
+  });
+
+  it('delegates message filter options lookup', async () => {
+    await controller.getMessageFilterOptions(
+      { range: '30d', agent_name: 'bot-1' } as never,
+      ctx as never,
+    );
+
+    expect(mockGetMessageFilterOptions).toHaveBeenCalledWith({
+      range: '30d',
+      tenantId: 'tenant-1',
+      agent_name: 'bot-1',
     });
   });
 
   it('caps limit at 200', async () => {
-    const user = { id: 'u1' };
-    await controller.getMessages({ limit: 500 } as never, user as never);
+    await controller.getMessages({ limit: 500 } as never, ctx as never);
 
     const call = mockGetMessages.mock.calls[0][0];
     expect(call.limit).toBe(200);
@@ -149,17 +171,15 @@ describe('MessagesController', () => {
     };
     mockGetMessages.mockResolvedValue(expected);
 
-    const user = { id: 'u1' };
-    const result = await controller.getMessages({} as never, user as never);
+    const result = await controller.getMessages({} as never, ctx as never);
 
     expect(result).toEqual(expected);
   });
 
   it('delegates getMessageDetails to message details service', async () => {
-    const user = { id: 'u1' };
-    await controller.getMessageDetails('msg-123', user as never);
+    await controller.getMessageDetails('msg-123', ctx as never);
 
-    expect(mockGetDetails).toHaveBeenCalledWith('msg-123', 'u1');
+    expect(mockGetDetails).toHaveBeenCalledWith('msg-123', 'tenant-1');
   });
 
   it('returns message details result', async () => {
@@ -171,20 +191,18 @@ describe('MessagesController', () => {
     };
     mockGetDetails.mockResolvedValue(expected);
 
-    const user = { id: 'u1' };
-    const result = await controller.getMessageDetails('msg-1', user as never);
+    const result = await controller.getMessageDetails('msg-1', ctx as never);
 
     expect(result).toEqual(expected);
   });
 
   it('delegates setFeedback to feedback service', async () => {
-    const user = { id: 'u1' };
     const body = { rating: 'dislike' as const, tags: ['Slow or buggy'], details: 'test' };
-    await controller.setFeedback('msg-1', body, user as never);
+    await controller.setFeedback('msg-1', body, ctx as never);
 
     expect(mockSetFeedback).toHaveBeenCalledWith(
       'msg-1',
-      'u1',
+      'tenant-1',
       'dislike',
       ['Slow or buggy'],
       'test',
@@ -192,31 +210,27 @@ describe('MessagesController', () => {
   });
 
   it('delegates setFeedback with rating only', async () => {
-    const user = { id: 'u1' };
     const body = { rating: 'like' as const };
-    await controller.setFeedback('msg-1', body, user as never);
+    await controller.setFeedback('msg-1', body, ctx as never);
 
-    expect(mockSetFeedback).toHaveBeenCalledWith('msg-1', 'u1', 'like', undefined, undefined);
+    expect(mockSetFeedback).toHaveBeenCalledWith('msg-1', 'tenant-1', 'like', undefined, undefined);
   });
 
   it('delegates clearFeedback to feedback service', async () => {
-    const user = { id: 'u1' };
-    await controller.clearFeedback('msg-1', user as never);
+    await controller.clearFeedback('msg-1', ctx as never);
 
-    expect(mockClearFeedback).toHaveBeenCalledWith('msg-1', 'u1');
+    expect(mockClearFeedback).toHaveBeenCalledWith('msg-1', 'tenant-1');
   });
 
   it('delegates flagMiscategorized to specificity feedback service', async () => {
-    const user = { id: 'u1' };
-    await controller.flagMiscategorized('msg-1', user as never);
+    await controller.flagMiscategorized('msg-1', ctx as never);
 
-    expect(mockFlagMiscategorized).toHaveBeenCalledWith('msg-1', 'u1');
+    expect(mockFlagMiscategorized).toHaveBeenCalledWith('msg-1', 'tenant-1');
   });
 
   it('delegates clearMiscategorized to specificity feedback service', async () => {
-    const user = { id: 'u1' };
-    await controller.clearMiscategorized('msg-1', user as never);
+    await controller.clearMiscategorized('msg-1', ctx as never);
 
-    expect(mockClearMiscategorized).toHaveBeenCalledWith('msg-1', 'u1');
+    expect(mockClearMiscategorized).toHaveBeenCalledWith('msg-1', 'tenant-1');
   });
 });

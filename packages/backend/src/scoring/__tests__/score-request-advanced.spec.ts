@@ -1,5 +1,25 @@
 import { scoreRequest } from '../index';
 
+describe('scoreRequest — tool floor', () => {
+  it('floors a low-scoring tool-call request up to standard', () => {
+    const result = scoreRequest(
+      {
+        messages: [
+          {
+            role: 'user',
+            content: 'just saying a friendly little hello and checking in with you today',
+          },
+        ],
+        tools: [{ type: 'function', function: { name: 'get_time', parameters: {} } }],
+        tool_choice: 'auto',
+      } as never,
+      { boundaries: { simpleMax: 100, standardMax: 200, complexMax: 300 } },
+    );
+    expect(result.tier).toBe('standard');
+    expect(result.reason).toBe('tool_detected');
+  });
+});
+
 describe('scoreRequest — configOverride', () => {
   it('uses custom boundaries when configOverride is provided', () => {
     const result = scoreRequest(

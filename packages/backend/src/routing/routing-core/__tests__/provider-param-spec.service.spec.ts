@@ -228,6 +228,60 @@ describe('ProviderParamSpecService', () => {
     expect(specs.map((spec) => spec.path)).toEqual(['reasoning.effort']);
   });
 
+  it('resolves Bedrock Claude model ids through the underlying Anthropic provider for params', async () => {
+    mockProviderlessParams({
+      'claude-opus-4-8': [reasoningEffortParam],
+    });
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('bedrock', 'api_key', 'us.anthropic.claude-opus-4.8');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://modelparams.dev/api/v1/params/claude-opus-4-8.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchSpy).not.toHaveBeenCalledWith(
+      'https://modelparams.dev/api/v1/params/us.anthropic.claude-opus-4.8.json',
+      expect.anything(),
+    );
+    expect(specs).toEqual([
+      expect.objectContaining({
+        provider: 'bedrock',
+        authType: 'api_key',
+        model: 'us.anthropic.claude-opus-4.8',
+        path: 'reasoning.effort',
+      }),
+    ]);
+  });
+
+  it('strips dated Bedrock model ids for providerless params while preserving the route identity', async () => {
+    mockProviderlessParams({
+      'gpt-5.4': [reasoningEffortParam],
+    });
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('bedrock', 'api_key', 'openai.gpt-5.4-2026-03-05');
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://modelparams.dev/api/v1/params/gpt-5.4-2026-03-05.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://modelparams.dev/api/v1/params/gpt-5.4.json',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(specs).toEqual([
+      expect.objectContaining({
+        provider: 'bedrock',
+        authType: 'api_key',
+        model: 'openai.gpt-5.4-2026-03-05',
+        path: 'reasoning.effort',
+      }),
+    ]);
+  });
+
   it('falls back to the providerless API-key slug for subscription routes', async () => {
     mockProviderlessParams({
       'gpt-4o-mini': [temperatureParam],
@@ -303,6 +357,12 @@ describe('ProviderParamSpecService', () => {
       expect.objectContaining({ path: 'reasoning.effort' }),
     ]);
     expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('treats a providerless fetch network error as no specs', async () => {
+    fetchSpy.mockRejectedValue(new Error('network down'));
+    const service = new ProviderParamSpecService();
+    await expect(service.getSpecs('openai', 'api_key', 'gpt-throw')).resolves.toEqual([]);
   });
 
   it('bounds providerless cache entries', async () => {

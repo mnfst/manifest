@@ -2,7 +2,11 @@ import { ConfigService } from '@nestjs/config';
 import { KiroOauthService } from './kiro-oauth.service';
 import { ProviderService } from '../../routing-core/provider.service';
 import { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
-import { parseKiroOAuthTokenBlob, serializeKiroOAuthTokenBlob } from './kiro-oidc';
+import {
+  KiroAuthorizationOptionsError,
+  parseKiroOAuthTokenBlob,
+  serializeKiroOAuthTokenBlob,
+} from './kiro-oidc';
 
 const originalFetch = global.fetch;
 
@@ -31,17 +35,20 @@ function createConfig(overrides: Record<string, string> = {}): ConfigService {
 function createProviderService() {
   const upsertProvider = jest.fn().mockResolvedValue({ provider: { id: 'p1' } });
   const recalculateTiers = jest.fn().mockResolvedValue(undefined);
+  const recalculateTiersForUser = jest.fn().mockResolvedValue(undefined);
   const nextOAuthLabel = jest.fn().mockResolvedValue('Kiro 1');
   const getFreshSubscriptionCredential = jest.fn().mockResolvedValue(null);
   return {
     svc: {
       upsertProvider,
       recalculateTiers,
+      recalculateTiersForUser,
       nextOAuthLabel,
       getFreshSubscriptionCredential,
     } as unknown as ProviderService,
     upsertProvider,
     recalculateTiers,
+    recalculateTiersForUser,
     nextOAuthLabel,
     getFreshSubscriptionCredential,
   };
@@ -134,6 +141,62 @@ describe('KiroOauthService', () => {
       expect(result.expiresAt).toBe(Date.now() + 600 * 1000);
       expect(result.pollIntervalMs).toBe(5000);
       expect(service.getPendingCount()).toBe(1);
+    });
+
+    it('uses per-flow IAM Identity Center start URL and region options', async () => {
+      const service = makeService();
+      fetchMock
+        .mockResolvedValueOnce(REGISTER_OK)
+        .mockResolvedValueOnce(DEVICE_OK)
+        .mockResolvedValueOnce(
+          jsonResponse(200, {
+            accessToken: 'aoa-token',
+            refreshToken: 'aor-token',
+            expiresIn: 3600,
+          }),
+        );
+
+      const { flowId } = await service.startAuthorization('agent-1', 'user-1', null, {
+        startUrl: ' https://org.awsapps.com/start ',
+        region: 'EU-WEST-1',
+      });
+      await service.pollAuthorization(flowId, 'user-1');
+
+      const [registerUrl] = fetchMock.mock.calls[0];
+      expect(registerUrl).toBe('https://oidc.eu-west-1.amazonaws.com/client/register');
+      const [, deviceInit] = fetchMock.mock.calls[1];
+      expect(JSON.parse((deviceInit as RequestInit).body as string).startUrl).toBe(
+        'https://org.awsapps.com/start',
+      );
+      const [tokenUrl] = fetchMock.mock.calls[2];
+      expect(tokenUrl).toBe('https://oidc.eu-west-1.amazonaws.com/token');
+      const saved = parseKiroOAuthTokenBlob(provider.upsertProvider.mock.calls[0][3] as string);
+      expect(saved?.region).toBe('eu-west-1');
+    });
+
+    it('rejects invalid IAM Identity Center options before registering a client', async () => {
+      const service = makeService();
+
+      await expect(
+        service.startAuthorization('agent-1', 'user-1', null, {
+          startUrl: 'http://org.awsapps.com/start',
+          region: 'eu-west-1',
+        }),
+      ).rejects.toThrow('must use HTTPS');
+      await expect(
+        service.startAuthorization('agent-1', 'user-1', null, {
+          startUrl: 'https://org.awsapps.com/start',
+          region: 'eu-west-1.example',
+        }),
+      ).rejects.toThrow('region is invalid');
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('names IAM Identity Center option errors for diagnostics', () => {
+      const error = new KiroAuthorizationOptionsError('bad option');
+
+      expect(error.name).toBe('KiroAuthorizationOptionsError');
+      expect(error.message).toBe('bad option');
     });
 
     it('sweeps expired pending flows when a new flow starts', async () => {
@@ -297,7 +360,7 @@ describe('KiroOauthService', () => {
       const result = await service.pollAuthorization(flowId, 'user-1');
 
       expect(result).toEqual({ status: 'success' });
-      expect(provider.nextOAuthLabel).toHaveBeenCalledWith('agent-1', 'kiro');
+      expect(provider.nextOAuthLabel).toHaveBeenCalledWith('user-1', 'kiro');
       const [, , prov, serialized, authType, , label] = provider.upsertProvider.mock.calls[0];
       expect(prov).toBe('kiro');
       expect(authType).toBe('subscription');
@@ -312,7 +375,23 @@ describe('KiroOauthService', () => {
         region: 'us-east-1',
       });
       expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
-      expect(provider.recalculateTiers).toHaveBeenCalledWith('agent-1');
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
+    });
+
+    it('does not route agents after discovery when the provider row is new', async () => {
+      provider.upsertProvider.mockResolvedValueOnce({ provider: { id: 'p1' }, isNew: true });
+      const service = makeService();
+      const flowId = await startAndGetFlowId(service);
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse(200, { accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }),
+      );
+
+      await service.pollAuthorization(flowId, 'user-1');
+
+      expect(discovery.discoverModels).toHaveBeenCalledWith({ id: 'p1' });
+      expect(provider.recalculateTiersForUser).not.toHaveBeenCalled();
+      expect(provider.recalculateTiers).not.toHaveBeenCalled();
     });
 
     it('still succeeds when post-connect discovery throws', async () => {

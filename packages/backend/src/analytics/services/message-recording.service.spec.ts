@@ -5,7 +5,6 @@ import { DataSource } from 'typeorm';
 import { MessageRecordingService } from './message-recording.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { MessageRecording } from '../../entities/message-recording.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 function makeMsgQb(message: unknown) {
   return {
@@ -29,7 +28,6 @@ describe('MessageRecordingService', () => {
     orUpdate: jest.Mock;
     execute: jest.Mock;
   };
-  let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
     mockManagerDelete = jest.fn().mockResolvedValue(undefined);
@@ -40,7 +38,6 @@ describe('MessageRecordingService', () => {
         cb({ delete: mockManagerDelete, update: mockManagerUpdate }),
       );
     mockCreateQueryBuilder = jest.fn();
-    mockTenantResolve = jest.fn();
 
     recordingInsert = {
       createQueryBuilder: jest.fn().mockReturnThis(),
@@ -63,10 +60,6 @@ describe('MessageRecordingService', () => {
           useValue: recordingInsert,
         },
         {
-          provide: TenantCacheService,
-          useValue: { resolve: mockTenantResolve },
-        },
-        {
           provide: DataSource,
           useValue: { transaction: mockTransaction },
         },
@@ -78,11 +71,12 @@ describe('MessageRecordingService', () => {
 
   describe('delete', () => {
     it('deletes the recording and flips the flag within a transaction, scoped by tenant', async () => {
-      mockTenantResolve.mockResolvedValue('tenant-1');
-      mockCreateQueryBuilder.mockReturnValue(makeMsgQb({ id: 'msg-1' }));
+      const qb = makeMsgQb({ id: 'msg-1' });
+      mockCreateQueryBuilder.mockReturnValue(qb);
 
-      await service.delete('msg-1', 'user-1');
+      await service.delete('msg-1', 'tenant-1');
 
+      expect(qb.andWhere).toHaveBeenCalledWith('m.tenant_id = :tenantId', { tenantId: 'tenant-1' });
       expect(mockTransaction).toHaveBeenCalledTimes(1);
       expect(mockManagerDelete).toHaveBeenCalledWith(MessageRecording, { message_id: 'msg-1' });
       expect(mockManagerUpdate).toHaveBeenCalledWith(
@@ -92,21 +86,16 @@ describe('MessageRecordingService', () => {
       );
     });
 
-    it('falls back to user_id filter when tenant cannot be resolved', async () => {
-      mockTenantResolve.mockResolvedValue(null);
-      const qb = makeMsgQb({ id: 'msg-2' });
-      mockCreateQueryBuilder.mockReturnValue(qb);
-
-      await service.delete('msg-2', 'user-2');
-
-      expect(qb.andWhere).toHaveBeenCalledWith('m.user_id = :userId', { userId: 'user-2' });
+    it('throws NotFoundException when tenant is null (no tenant scope)', async () => {
+      await expect(service.delete('msg-2', null)).rejects.toThrow(NotFoundException);
+      expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+      expect(mockTransaction).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when the message is not found', async () => {
-      mockTenantResolve.mockResolvedValue('tenant-1');
       mockCreateQueryBuilder.mockReturnValue(makeMsgQb(null));
 
-      await expect(service.delete('missing', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.delete('missing', 'tenant-1')).rejects.toThrow(NotFoundException);
       expect(mockTransaction).not.toHaveBeenCalled();
     });
   });

@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { MessageFeedbackService } from './message-feedback.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
 
 function mockQb(result: unknown = null) {
   const qb: Record<string, jest.Mock> = {
@@ -16,18 +15,15 @@ function mockQb(result: unknown = null) {
 
 describe('MessageFeedbackService', () => {
   let service: MessageFeedbackService;
-  let mockTenantResolve: jest.Mock;
   let mockUpdate: jest.Mock;
   let msgQb: ReturnType<typeof mockQb>;
 
   const baseMessage = {
     id: 'msg-1',
-    tenant_id: 't1',
-    user_id: 'u1',
+    tenant_id: 'tenant-123',
   };
 
   beforeEach(async () => {
-    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
     mockUpdate = jest.fn().mockResolvedValue({ affected: 1 });
     msgQb = mockQb(baseMessage);
 
@@ -41,10 +37,6 @@ describe('MessageFeedbackService', () => {
             update: mockUpdate,
           },
         },
-        {
-          provide: TenantCacheService,
-          useValue: { resolve: mockTenantResolve },
-        },
       ],
     }).compile();
 
@@ -53,7 +45,7 @@ describe('MessageFeedbackService', () => {
 
   describe('setFeedback', () => {
     it('updates feedback columns with rating only', async () => {
-      await service.setFeedback('msg-1', 'u1', 'like');
+      await service.setFeedback('msg-1', 'tenant-123', 'like');
 
       expect(mockUpdate).toHaveBeenCalledWith('msg-1', {
         feedback_rating: 'like',
@@ -63,7 +55,13 @@ describe('MessageFeedbackService', () => {
     });
 
     it('updates feedback with tags and details', async () => {
-      await service.setFeedback('msg-1', 'u1', 'dislike', ['Too slow', 'Buggy'], 'Very slow');
+      await service.setFeedback(
+        'msg-1',
+        'tenant-123',
+        'dislike',
+        ['Too slow', 'Buggy'],
+        'Very slow',
+      );
 
       expect(mockUpdate).toHaveBeenCalledWith('msg-1', {
         feedback_rating: 'dislike',
@@ -73,7 +71,7 @@ describe('MessageFeedbackService', () => {
     });
 
     it('stores null tags when empty array provided', async () => {
-      await service.setFeedback('msg-1', 'u1', 'dislike', [], 'No tags');
+      await service.setFeedback('msg-1', 'tenant-123', 'dislike', [], 'No tags');
 
       expect(mockUpdate).toHaveBeenCalledWith('msg-1', {
         feedback_rating: 'dislike',
@@ -83,25 +81,22 @@ describe('MessageFeedbackService', () => {
     });
 
     it('filters by tenantId when tenant exists', async () => {
-      await service.setFeedback('msg-1', 'u1', 'like');
+      await service.setFeedback('msg-1', 'tenant-123', 'like');
 
       expect(msgQb.andWhere).toHaveBeenCalledWith('m.tenant_id = :tenantId', {
         tenantId: 'tenant-123',
       });
     });
 
-    it('filters by userId when tenant does not exist', async () => {
-      mockTenantResolve.mockResolvedValue(null);
-
-      await service.setFeedback('msg-1', 'u1', 'like');
-
-      expect(msgQb.andWhere).toHaveBeenCalledWith('m.user_id = :userId', { userId: 'u1' });
+    it('throws NotFoundException when tenant is null (no tenant scope)', async () => {
+      await expect(service.setFeedback('msg-1', null, 'like')).rejects.toThrow(NotFoundException);
+      expect(msgQb.andWhere).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when message not found', async () => {
       msgQb.getOne.mockResolvedValue(null);
 
-      await expect(service.setFeedback('not-found', 'u1', 'like')).rejects.toThrow(
+      await expect(service.setFeedback('not-found', 'tenant-123', 'like')).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -109,7 +104,7 @@ describe('MessageFeedbackService', () => {
 
   describe('clearFeedback', () => {
     it('sets all feedback columns to null', async () => {
-      await service.clearFeedback('msg-1', 'u1');
+      await service.clearFeedback('msg-1', 'tenant-123');
 
       expect(mockUpdate).toHaveBeenCalledWith('msg-1', {
         feedback_rating: null,
@@ -121,11 +116,13 @@ describe('MessageFeedbackService', () => {
     it('throws NotFoundException when message not found', async () => {
       msgQb.getOne.mockResolvedValue(null);
 
-      await expect(service.clearFeedback('not-found', 'u1')).rejects.toThrow(NotFoundException);
+      await expect(service.clearFeedback('not-found', 'tenant-123')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('verifies ownership before clearing', async () => {
-      await service.clearFeedback('msg-1', 'u1');
+      await service.clearFeedback('msg-1', 'tenant-123');
 
       expect(msgQb.where).toHaveBeenCalledWith('m.id = :id', { id: 'msg-1' });
       expect(msgQb.andWhere).toHaveBeenCalled();

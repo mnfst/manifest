@@ -46,6 +46,7 @@ export const KIRO_REGISTER_GRANT_TYPES: readonly string[] = Object.freeze([
 ]);
 
 export const KIRO_DEFAULT_POLL_INTERVAL_MS = 5000;
+const KIRO_REGION_PATTERN = /^[a-z]{2}(?:-[a-z0-9]+)+-\d$/;
 
 export function getKiroOidcBaseUrl(region: string = KIRO_OIDC_DEFAULT_REGION): string {
   return `https://oidc.${region}.amazonaws.com`;
@@ -61,6 +62,40 @@ export function buildKiroDeviceAuthorizationUrl(baseUrl: string): string {
 
 export function buildKiroTokenUrl(baseUrl: string): string {
   return `${baseUrl}/token`;
+}
+
+export interface KiroAuthorizationOptions {
+  startUrl?: string;
+  region?: string;
+}
+
+export class KiroAuthorizationOptionsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'KiroAuthorizationOptionsError';
+  }
+}
+
+export function normalizeKiroRegion(region: string): string {
+  const normalized = region.trim().toLowerCase();
+  if (!KIRO_REGION_PATTERN.test(normalized)) {
+    throw new KiroAuthorizationOptionsError('Kiro IAM Identity Center region is invalid.');
+  }
+  return normalized;
+}
+
+export function normalizeKiroStartUrl(startUrl: string): string {
+  const trimmed = startUrl.trim();
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new KiroAuthorizationOptionsError('Kiro IAM Identity Center start URL is invalid.');
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new KiroAuthorizationOptionsError('Kiro IAM Identity Center start URL must use HTTPS.');
+  }
+  return parsed.toString();
 }
 
 export { toAbsoluteExpiryTimestamp } from '../core/device-flow';

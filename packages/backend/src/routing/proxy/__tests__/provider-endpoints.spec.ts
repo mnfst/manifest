@@ -66,6 +66,7 @@ describe('resolveEndpointKey', () => {
   it('resolves known providers directly', () => {
     expect(resolveEndpointKey('openai')).toBe('openai');
     expect(resolveEndpointKey('anthropic')).toBe('anthropic');
+    expect(resolveEndpointKey('bedrock')).toBe('bedrock');
     expect(resolveEndpointKey('google')).toBe('google');
     expect(resolveEndpointKey('byteplus')).toBe('byteplus');
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
@@ -114,6 +115,11 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('Xiaomi MiMo')).toBe('xiaomi');
   });
 
+  it('resolves AWS Bedrock aliases to bedrock', () => {
+    expect(resolveEndpointKey('aws-bedrock')).toBe('bedrock');
+    expect(resolveEndpointKey('amazon-bedrock')).toBe('bedrock');
+  });
+
   it('resolves qwen and alibaba to qwen', () => {
     expect(resolveEndpointKey('qwen')).toBe('qwen');
     expect(resolveEndpointKey('alibaba')).toBe('qwen');
@@ -133,6 +139,7 @@ describe('resolveEndpointKey', () => {
     const known = Object.keys(PROVIDER_ENDPOINTS);
     expect(known).toContain('openai');
     expect(known).toContain('anthropic');
+    expect(known).toContain('bedrock');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
@@ -210,6 +217,17 @@ describe('PROVIDER_ENDPOINTS', () => {
 
   it('zai uses openai format', () => {
     expect(PROVIDER_ENDPOINTS['zai'].format).toBe('openai');
+  });
+
+  it('bedrock uses the OpenAI-compatible Bedrock Mantle endpoint', () => {
+    const ep = PROVIDER_ENDPOINTS['bedrock'];
+    expect(ep.baseUrl).toBe('https://bedrock-mantle.us-east-1.api.aws');
+    expect(ep.format).toBe('openai');
+    expect(ep.buildPath('mistral.ministral-3-8b-instruct')).toBe('/v1/chat/completions');
+    expect(ep.buildHeaders('bedrock-api-key-test')).toEqual({
+      Authorization: 'Bearer bedrock-api-key-test',
+      'Content-Type': 'application/json',
+    });
   });
 
   it('groq uses OpenAI-compatible format at api.groq.com/openai', () => {
@@ -318,6 +336,8 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBe('Bearer skst-token');
     expect(headers['anthropic-beta']).toContain('claude-code-20250219');
     expect(headers['anthropic-beta']).toContain('oauth-2025-04-20');
+    expect(headers['anthropic-beta']).toContain('context-management-2025-06-27');
+    expect(headers['anthropic-beta']).toContain('effort-2025-11-24');
     expect(headers['anthropic-dangerous-direct-browser-access']).toBe('true');
     expect(headers['user-agent']).toContain('claude-cli/');
     expect(headers['x-app']).toBe('cli');
@@ -620,6 +640,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'xiaomi',
       'moonshot',
       'nvidia',
+      'bedrock',
       'qwen',
       'qwen-subscription',
       'xiaomi-subscription',

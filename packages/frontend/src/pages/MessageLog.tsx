@@ -1,5 +1,5 @@
 import { Meta, Title } from '@solidjs/meta';
-import { useNavigate, useParams } from '@solidjs/router';
+import { A, useNavigate, useParams, useSearchParams } from '@solidjs/router';
 import {
   createEffect,
   createMemo,
@@ -23,22 +23,25 @@ import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-t
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
-  getCustomProviders,
+  getAgents,
   getSpecificityAssignments,
   getMessages,
+  getMessageFilterOptions,
   getRoutingStatus,
   listHeaderTiers,
   setMessageFeedback,
   clearMessageFeedback,
-  type CustomProviderData,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
+import { providerIcon } from '../components/ProviderIcon.jsx';
+import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
+import '../styles/routing.css';
 // The recorded-message drawer/modal styles. Only the Messages log mounts
 // RecordedMessageModal, so this CSS stays out of the global theme bundle.
 import '../styles/recording.css';
@@ -50,7 +53,20 @@ interface MessagesData {
   items: MessageRow[];
   next_cursor: string | null;
   total_count: number;
+  total_count_exact?: boolean;
   providers: string[];
+  provider_labels?: Record<string, string>;
+}
+
+interface MessageFilterOptionsData {
+  providers: string[];
+  provider_labels?: Record<string, string>;
+}
+
+interface AgentFilterOption {
+  agent_name: string;
+  agent_platform?: string | null;
+  agent_category?: string | null;
 }
 
 const SPECIFICITY_FILTER_PREFIX = 'specificity:';
@@ -58,6 +74,7 @@ const HEADER_TIER_FILTER_PREFIX = 'header:';
 
 const MessageLog: Component = () => {
   const params = useParams<{ agentName: string }>();
+  const [searchParams] = useSearchParams<{ agent?: string }>();
   const navigate = useNavigate();
 
   preloadModelDisplayNames();
@@ -65,8 +82,67 @@ const MessageLog: Component = () => {
   onMount(() => {
     checkIsSelfHosted().then(setIsSelfHosted);
   });
-  const columns = () =>
-    isSelfHosted() ? DETAILED_COLUMNS.filter((c) => c !== 'feedback') : DETAILED_COLUMNS;
+  const columns = () => {
+    const base = isSelfHosted()
+      ? DETAILED_COLUMNS.filter((c) => c !== 'feedback')
+      : DETAILED_COLUMNS;
+    if (params.agentName) return base;
+    // Global Messages spans every harness, so show which harness each row belongs to.
+    const at = base.indexOf('model');
+    return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
+  };
+  // Seed from ?agent= (set by AgentMessagesRedirect) so "View more" on a
+  // harness overview lands pre-filtered; only meaningful in global mode —
+  // when the route itself carries an agent, that param scopes the query.
+  const [agentFilter, setAgentFilter] = createSignal(
+    !params.agentName && typeof searchParams.agent === 'string' ? searchParams.agent : '',
+  );
+  createEffect(
+    on(
+      () => searchParams.agent,
+      (agent) => setAgentFilter(typeof agent === 'string' ? agent : ''),
+      { defer: true },
+    ),
+  );
+  const [agentListRaw] = createResource(
+    () => !params.agentName,
+    async (isGlobal) => {
+      if (!isGlobal) return [] as AgentFilterOption[];
+      // includePlayground=true so the reserved Playground agent appears in the
+      // filter and the log can be narrowed to Playground runs.
+      const data = (await getAgents(true)) as
+        | { agents?: AgentFilterOption[] }
+        | AgentFilterOption[];
+      return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
+    },
+  );
+  const agentList = createMemo(() => (agentListRaw() ?? []).map((a) => a.agent_name).sort());
+  const agentPlatformMap = createMemo(() => {
+    const map = new Map<string, { platform: string | null; category: string | null }>();
+    for (const a of agentListRaw() ?? []) {
+      map.set(a.agent_name, {
+        platform: a.agent_platform ?? null,
+        category: a.agent_category ?? null,
+      });
+    }
+    return map;
+  });
+  const agentFilterOptions = createMemo(() => [
+    { label: 'All harnesses', value: '' },
+    ...(agentList() ?? []).map((a) => {
+      const info = agentPlatformMap().get(a);
+      const iconPath = info?.platform ? platformIcon(info.platform, info.category) : null;
+      return {
+        label: a,
+        value: a,
+        icon: iconPath ? (
+          <img src={iconPath} alt="" width="14" height="14" style="border-radius: 3px;" />
+        ) : (
+          <span style="display: inline-block; width: 14px; height: 14px;" />
+        ),
+      };
+    }),
+  ]);
   const [providerFilter, setProviderFilter] = createSignal('');
   const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
@@ -127,11 +203,6 @@ const MessageLog: Component = () => {
     setFeedbackModalOpen(false);
   };
 
-  const [customProviders] = createResource(
-    () => params.agentName,
-    (name) => getCustomProviders(decodeURIComponent(name)),
-  );
-
   const [routingStatus] = createResource(
     () => params.agentName,
     (name) => getRoutingStatus(decodeURIComponent(name)),
@@ -148,14 +219,6 @@ const MessageLog: Component = () => {
   );
 
   const hasProviders = () => routingStatus()?.enabled === true;
-
-  /** Map custom:<uuid> → provider display name */
-  const customProviderName = (model: string): string | undefined => {
-    const match = model.match(/^custom:([^/]+)\//);
-    if (!match) return undefined;
-    const id = match[1];
-    return customProviders()?.find((cp: CustomProviderData) => cp.id === id)?.name;
-  };
 
   const pager = createCursorPagination(50);
 
@@ -175,7 +238,7 @@ const MessageLog: Component = () => {
   };
 
   createEffect(
-    on([providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
+    on([agentFilter, providerFilter, tierFilter, costMin, costMax], () => pager.resetPage(), {
       defer: true,
     }),
   );
@@ -186,7 +249,7 @@ const MessageLog: Component = () => {
       tier: tierFilter(),
       costMin: costMin(),
       costMax: costMax(),
-      agentName: params.agentName,
+      agentName: agentFilter() || params.agentName,
       _ping: messagePing(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
@@ -208,7 +271,18 @@ const MessageLog: Component = () => {
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
+      q.include_total = 'false';
+      q.include_filter_options = 'false';
       return getMessages(q) as Promise<MessagesData>;
+    },
+  );
+
+  const [messageFilterOptions] = createResource(
+    () => ({ agentName: agentFilter() || params.agentName, _ping: messagePing() }),
+    (p) => {
+      const q: Record<string, string> = {};
+      if (p.agentName) q.agent_name = p.agentName;
+      return getMessageFilterOptions(q) as Promise<MessageFilterOptionsData>;
     },
   );
 
@@ -231,11 +305,22 @@ const MessageLog: Component = () => {
   );
 
   const hasActiveFilters = () =>
-    providerFilter() !== '' || tierFilter() !== '' || costMin() !== '' || costMax() !== '';
+    agentFilter() !== '' ||
+    providerFilter() !== '' ||
+    tierFilter() !== '' ||
+    costMin() !== '' ||
+    costMax() !== '';
 
   const hasNoData = () => {
     const d = data();
     return d && d.total_count === 0;
+  };
+
+  const totalForPager = () => {
+    const d = data();
+    if (!d) return 0;
+    if (d.total_count_exact !== false) return d.total_count;
+    return (pager.currentPage() - 1) * pager.pageSize + d.total_count;
   };
 
   const showEmptyState = () => hasNoData() && !hasActiveFilters() && !hasProviders();
@@ -243,6 +328,7 @@ const MessageLog: Component = () => {
   const showMessages = () => !hasNoData() || (hasProviders() && !hasActiveFilters());
 
   const clearFilters = () => {
+    setAgentFilter('');
     setProviderFilter('');
     setTierFilter('');
     setCostMin('');
@@ -275,14 +361,19 @@ const MessageLog: Component = () => {
 
   /** Resolve provider ID to display name */
   const providerDisplayName = (id: string): string => {
+    if (id === 'manifest') return 'Manifest';
     const prov = PROVIDERS.find((p) => p.id === id);
-    return prov?.name ?? id;
+    if (prov) return prov.name;
+    // Custom providers arrive as `custom:<uuid>` — the backend ships a label
+    // map alongside the provider list so the dropdown can show their names.
+    return messageFilterOptions()?.provider_labels?.[id] ?? id;
   };
 
   const providerOptions = createMemo(() => [
     { label: 'All providers', value: '' },
-    ...(data()?.providers ?? []).map((id) => ({
+    ...(messageFilterOptions()?.providers ?? []).map((id) => ({
       label: providerDisplayName(id),
+      icon: providerIcon(id, 14) ?? undefined,
       value: id,
     })),
   ]);
@@ -302,11 +393,17 @@ const MessageLog: Component = () => {
   return (
     <div class="container--full">
       <Title>
-        {agentDisplayName() ?? decodeURIComponent(params.agentName)} Messages - Manifest
+        {params.agentName
+          ? `${agentDisplayName() ?? decodeURIComponent(params.agentName)} Messages - Manifest`
+          : 'Messages - Manifest'}
       </Title>
       <Meta
         name="description"
-        content={`Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`}
+        content={
+          params.agentName
+            ? `Browse all messages sent and received by ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider or cost.`
+            : 'Browse all messages across all harnesses. Filter by provider or cost.'
+        }
       />
       <div class="page-header">
         <div>
@@ -315,6 +412,13 @@ const MessageLog: Component = () => {
         </div>
         <div class="header-controls">
           <Show when={!showEmptyState()}>
+            <Show when={!params.agentName}>
+              <Select
+                value={agentFilter()}
+                onChange={setAgentFilter}
+                options={agentFilterOptions()}
+              />
+            </Show>
             <Select
               value={providerFilter()}
               onChange={setProviderFilter}
@@ -345,9 +449,9 @@ const MessageLog: Component = () => {
               />
             </div>
           </Show>
-          <Show when={showEmptyState() && !setupCompleted()}>
+          <Show when={showEmptyState() && !!params.agentName && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-              Set up agent
+              Set up harness
             </button>
           </Show>
         </div>
@@ -423,18 +527,34 @@ const MessageLog: Component = () => {
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
           <Show when={showEmptyState()}>
             <Show
-              when={setupCompleted()}
+              when={params.agentName && setupCompleted()}
               fallback={
                 <div class="empty-state">
                   <div class="empty-state__title">No messages yet</div>
-                  <p>Set up your agent and send a message. Every LLM call shows up here.</p>
-                  <button
-                    class="btn btn--primary btn--sm"
-                    style="margin-top: var(--gap-md);"
-                    onClick={() => setSetupOpen(true)}
+                  <Show
+                    when={params.agentName}
+                    fallback={
+                      <>
+                        <p>Create a harness and send a message. Every LLM call shows up here.</p>
+                        <A
+                          href="/harnesses"
+                          class="btn btn--primary btn--sm"
+                          style="margin-top: var(--gap-md);"
+                        >
+                          Go to Harnesses
+                        </A>
+                      </>
+                    }
                   >
-                    Set up agent
-                  </button>
+                    <p>Set up your harness and send a message. Every LLM call shows up here.</p>
+                    <button
+                      class="btn btn--primary btn--sm"
+                      style="margin-top: var(--gap-md);"
+                      onClick={() => setSetupOpen(true)}
+                    >
+                      Set up harness
+                    </button>
+                  </Show>
                   <div class="empty-state__img-wrapper">
                     <img
                       src="/example-messages.svg"
@@ -453,7 +573,7 @@ const MessageLog: Component = () => {
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() =>
-                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
+                    navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
                       state: { openProviders: true },
                     })
                   }
@@ -505,7 +625,7 @@ const MessageLog: Component = () => {
                   Messages
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  {data()?.total_count ?? 0} total
+                  {totalForPager()} total
                 </span>
               </div>
               <div class="data-table-scroll">
@@ -513,7 +633,8 @@ const MessageLog: Component = () => {
                   items={displayedItems()}
                   columns={columns()}
                   agentName={params.agentName}
-                  customProviderName={customProviderName}
+                  customProviderName={() => undefined}
+                  agentPlatformLookup={(name) => agentPlatformMap().get(name)}
                   onFallbackErrorClick={scrollToFallbackSuccess}
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
@@ -526,7 +647,7 @@ const MessageLog: Component = () => {
               </div>
               <Pagination
                 currentPage={pager.currentPage}
-                totalItems={() => data()?.total_count ?? 0}
+                totalItems={totalForPager}
                 pageSize={pager.pageSize}
                 hasNextPage={pager.hasNextPage}
                 isLoading={() => data.loading}
@@ -538,13 +659,15 @@ const MessageLog: Component = () => {
         </Show>
       </Show>
 
-      <SetupModal
-        open={setupOpen()}
-        agentName={decodeURIComponent(params.agentName)}
-        agentPlatform={agentPlatform()}
-        agentCategory={agentCategory()}
-        onClose={() => setSetupOpen(false)}
-      />
+      <Show when={!!params.agentName}>
+        <SetupModal
+          open={setupOpen()}
+          agentName={decodeURIComponent(params.agentName)}
+          agentPlatform={agentPlatform()}
+          agentCategory={agentCategory()}
+          onClose={() => setSetupOpen(false)}
+        />
+      </Show>
 
       <Show when={!isSelfHosted()}>
         <FeedbackModal

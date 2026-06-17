@@ -43,6 +43,8 @@ describe('messages API client', () => {
       agent_name: 'demo',
       cost_min: '0.01',
       cost_max: '1.00',
+      include_total: 'false',
+      include_filter_options: 'false',
     });
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('range=7d');
@@ -53,10 +55,26 @@ describe('messages API client', () => {
     expect(url).toContain('agent_name=demo');
     expect(url).toContain('cost_min=0.01');
     expect(url).toContain('cost_max=1.00');
+    expect(url).toContain('include_total=false');
+    expect(url).toContain('include_filter_options=false');
+  });
+
+  it('getMessageFilterOptions GETs filter metadata with agent scope', async () => {
+    const fetchMock = setupFetch({ providers: [] });
+    await messages.getMessageFilterOptions({ range: '30d', agent_name: 'demo' });
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain('/api/v1/messages/filter-options');
+    expect(url).toContain('range=30d');
+    expect(url).toContain('agent_name=demo');
   });
 
   it('getMessageDetails GETs the details endpoint with encoded id', async () => {
-    const fetchMock = setupFetch({ message: {}, llm_calls: [], tool_executions: [], agent_logs: [] });
+    const fetchMock = setupFetch({
+      message: {},
+      llm_calls: [],
+      tool_executions: [],
+      agent_logs: [],
+    });
     await messages.getMessageDetails('msg/1');
     const url = fetchMock.mock.calls[0][0] as string;
     expect(url).toContain('/api/v1/messages/msg%2F1/details');

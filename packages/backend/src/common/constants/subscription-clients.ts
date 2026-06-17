@@ -20,9 +20,14 @@ export const CODEX_CLI_USER_AGENT = 'codex_cli_rs/0.0.0 (Unknown 0; unknown) unk
 export const CLAUDE_CODE_USER_AGENT = 'claude-cli/2.1.92 (external, sdk-cli)';
 export const CLAUDE_CODE_STAINLESS_PACKAGE_VERSION = '0.80.0';
 export const CLAUDE_CODE_STAINLESS_RUNTIME_VERSION = 'v24.14.0';
-export const CLAUDE_CODE_BETA_FLAGS = ['claude-code-20250219', 'oauth-2025-04-20'].join(',');
+export const CLAUDE_CODE_BETA_FLAGS = [
+  'claude-code-20250219',
+  'oauth-2025-04-20',
+  'context-management-2025-06-27',
+  'effort-2025-11-24',
+].join(',');
 
-function claudeCodeStainlessArch(arch = process.arch): string {
+export function claudeCodeStainlessArch(arch = process.arch): string {
   switch (arch) {
     case 'arm64':
       return 'arm64';
@@ -33,7 +38,7 @@ function claudeCodeStainlessArch(arch = process.arch): string {
   }
 }
 
-function claudeCodeStainlessOs(platform = process.platform): string {
+export function claudeCodeStainlessOs(platform = process.platform): string {
   switch (platform) {
     case 'darwin':
       return 'MacOS';

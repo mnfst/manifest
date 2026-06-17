@@ -44,9 +44,10 @@ describe('TokensController', () => {
     controller = module.get<TokensController>(TokensController);
   });
 
+  const ctx = { tenantId: 'tenant-1', userId: 'u1' };
+
   it('returns token summary derived from hourly data with trend', async () => {
-    const user = { id: 'u1' };
-    const result = await controller.getTokens({ range: '24h' }, user as never);
+    const result = await controller.getTokens({ range: '24h' }, ctx as never);
 
     expect(result.summary.total_tokens.value).toBe(5000);
     expect(result.summary.total_tokens.trend_pct).toBe(25);
@@ -58,25 +59,22 @@ describe('TokensController', () => {
   });
 
   it('defaults range to 24h', async () => {
-    const user = { id: 'u1' };
-    await controller.getTokens({}, user as never);
+    await controller.getTokens({}, ctx as never);
 
-    expect(mockGetPreviousTokenTotal).toHaveBeenCalledWith('24h', 'u1', undefined);
+    expect(mockGetPreviousTokenTotal).toHaveBeenCalledWith('24h', 'tenant-1', undefined);
   });
 
   it('passes agent_name to service calls', async () => {
-    const user = { id: 'u1' };
-    await controller.getTokens({ range: '7d', agent_name: 'bot' }, user as never);
+    await controller.getTokens({ range: '7d', agent_name: 'bot' }, ctx as never);
 
-    expect(mockGetPreviousTokenTotal).toHaveBeenCalledWith('7d', 'u1', 'bot');
-    expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'u1', true, undefined, 'bot');
-    expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'u1', false, undefined, 'bot');
+    expect(mockGetPreviousTokenTotal).toHaveBeenCalledWith('7d', 'tenant-1', 'bot');
+    expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'tenant-1', true, 'bot');
+    expect(mockGetTimeseries).toHaveBeenCalledWith('7d', 'tenant-1', false, 'bot');
   });
 
   it('returns zero trend when previous tokens is zero', async () => {
     mockGetPreviousTokenTotal.mockResolvedValue(0);
-    const user = { id: 'u1' };
-    const result = await controller.getTokens({ range: '24h' }, user as never);
+    const result = await controller.getTokens({ range: '24h' }, ctx as never);
 
     expect(result.summary.total_tokens.trend_pct).toBe(0);
   });
@@ -95,8 +93,7 @@ describe('TokensController', () => {
       }
       return Promise.resolve({ tokenUsage: [], costUsage: [], messageUsage: [] });
     });
-    const user = { id: 'u1' };
-    const result = await controller.getTokens({ range: '24h' }, user as never);
+    const result = await controller.getTokens({ range: '24h' }, ctx as never);
 
     expect(result.summary.total_tokens.value).toBe(450);
     expect(result.summary.input_tokens).toBe(300);

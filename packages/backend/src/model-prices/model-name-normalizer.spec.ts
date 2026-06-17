@@ -7,6 +7,13 @@ import {
   stripGoogleVariant,
 } from './model-name-normalizer';
 
+describe('resolveModelName — dot-normalized, date-stripped fallback', () => {
+  it('resolves a dotted, dated name via its dot-normalized no-date alias', () => {
+    const aliasMap = new Map([['foo-bar', 'CANONICAL']]);
+    expect(resolveModelName('foo.bar-2024-01-01', aliasMap)).toBe('CANONICAL');
+  });
+});
+
 describe('model-name-normalizer', () => {
   describe('stripProviderPrefix', () => {
     it('strips anthropic/ prefix', () => {

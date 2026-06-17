@@ -15,7 +15,10 @@ export {
 export interface PendingOAuth {
   verifier: string;
   agentId: string;
-  userId: string;
+  /** Tenant that owns the agent — the scope the stored credential belongs to. */
+  tenantId: string;
+  /** Acting user, audit only (tenant_providers.created_by_user_id). */
+  createdByUserId: string | null;
   backendUrl: string;
   expiresAt: number;
 }

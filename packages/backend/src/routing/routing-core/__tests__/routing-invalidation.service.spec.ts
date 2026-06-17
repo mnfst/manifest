@@ -2,8 +2,6 @@ import type { Repository } from 'typeorm';
 import type { ModelRoute } from 'manifest-shared';
 import { RoutingInvalidationService } from '../routing-invalidation.service';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
-import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
-import type { TierAutoAssignService } from '../tier-auto-assign.service';
 import type { RoutingCacheService } from '../routing-cache.service';
 
 const route = (provider: string, model: string): ModelRoute => ({
@@ -19,21 +17,15 @@ const makeRepo = () => ({
 
 describe('RoutingInvalidationService', () => {
   let tierRepo: ReturnType<typeof makeRepo>;
-  let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
-  let autoAssign: jest.Mocked<Pick<TierAutoAssignService, 'recalculate'>>;
   let routingCache: { invalidateAgent: jest.Mock };
   let svc: RoutingInvalidationService;
 
   beforeEach(() => {
     tierRepo = makeRepo();
-    pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
-    autoAssign = { recalculate: jest.fn().mockResolvedValue(undefined) };
     routingCache = { invalidateAgent: jest.fn() };
 
     svc = new RoutingInvalidationService(
       tierRepo as unknown as Repository<TierAssignment>,
-      pricingCache as unknown as ModelPricingCacheService,
-      autoAssign as unknown as TierAutoAssignService,
       routingCache as unknown as RoutingCacheService,
     );
   });
@@ -41,7 +33,7 @@ describe('RoutingInvalidationService', () => {
   it('no-ops when removedModels is empty', async () => {
     await svc.invalidateOverridesForRemovedModels([]);
     expect(tierRepo.find).not.toHaveBeenCalled();
-    expect(autoAssign.recalculate).not.toHaveBeenCalled();
+    expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
   });
 
   it('clears override_route when its model is in the removed set', async () => {
@@ -59,7 +51,6 @@ describe('RoutingInvalidationService', () => {
     const saved = tierRepo.save.mock.calls[0][0];
     expect(saved[0].override_route).toBeNull();
     expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
-    expect(autoAssign.recalculate).toHaveBeenCalledWith('agent-1');
   });
 
   it('filters fallback_routes when some entries are removed', async () => {
@@ -120,11 +111,10 @@ describe('RoutingInvalidationService', () => {
 
     await svc.invalidateOverridesForRemovedModels(['something-else']);
     expect(tierRepo.save).not.toHaveBeenCalled();
-    expect(autoAssign.recalculate).not.toHaveBeenCalled();
     expect(routingCache.invalidateAgent).not.toHaveBeenCalled();
   });
 
-  it('aggregates per-agent recalculations across multiple impacted tiers', async () => {
+  it('aggregates cache invalidation across multiple impacted tiers', async () => {
     tierRepo.find.mockResolvedValue([
       {
         agent_id: 'agent-1',
@@ -147,9 +137,8 @@ describe('RoutingInvalidationService', () => {
     ]);
 
     await svc.invalidateOverridesForRemovedModels(['m-1', 'm-2']);
-    expect(autoAssign.recalculate).toHaveBeenCalledTimes(2);
     expect(routingCache.invalidateAgent).toHaveBeenCalledTimes(2);
-    const calls = autoAssign.recalculate.mock.calls.map((c) => c[0]).sort();
+    const calls = routingCache.invalidateAgent.mock.calls.map(([agentId]) => agentId).sort();
     expect(calls).toEqual(['agent-1', 'agent-2']);
   });
 });

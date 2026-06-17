@@ -35,7 +35,6 @@ export class SpecificityService {
 
   async toggleCategory(
     agentId: string,
-    userId: string,
     category: string,
     active: boolean,
   ): Promise<SpecificityAssignment> {
@@ -51,7 +50,6 @@ export class SpecificityService {
 
     const record = Object.assign(new SpecificityAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       category,
       is_active: active,
@@ -64,9 +62,15 @@ export class SpecificityService {
 
     try {
       await this.repo.insert(record);
-    } catch {
+    } catch (err) {
+      // A concurrent request may have inserted the same (agent_id, category)
+      // first, hitting the unique index. Re-read and adopt its row if present;
+      // otherwise the failure is something else (FK violation, connection
+      // error, …) and we rethrow rather than reporting a phantom success for a
+      // row that was never persisted.
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry) return this.toggleCategory(agentId, userId, category, active);
+      if (retry) return this.toggleCategory(agentId, category, active);
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -74,7 +78,7 @@ export class SpecificityService {
 
   async setOverride(
     agentId: string,
-    userId: string,
+    tenantId: string,
     category: string,
     model: string,
     provider?: string,
@@ -86,7 +90,7 @@ export class SpecificityService {
       explicit ??
       unambiguousRoute(
         model,
-        await this.discoveryService.getModelsForAgent(agentId),
+        await this.discoveryService.getModelsForAgent(tenantId, agentId),
         providerKeyLabel,
       );
     if (!route) {
@@ -114,7 +118,6 @@ export class SpecificityService {
 
     const record = Object.assign(new SpecificityAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       category,
       is_active: true,
@@ -127,18 +130,25 @@ export class SpecificityService {
 
     try {
       await this.repo.insert(record);
-    } catch {
+    } catch (err) {
+      // A concurrent request may have inserted the same (agent_id, category)
+      // first, hitting the unique index. Re-read and adopt its row if present;
+      // otherwise the failure is something else (FK violation, connection
+      // error, …) and we rethrow rather than reporting a phantom success for a
+      // row that was never persisted.
       const retry = await this.repo.findOne({ where: { agent_id: agentId, category } });
-      if (retry)
+      if (retry) {
         return this.setOverride(
           agentId,
-          userId,
+          tenantId,
           category,
           model,
           provider,
           authType,
           providerKeyLabel,
         );
+      }
+      throw err;
     }
     this.routingCache.invalidateAgent(agentId);
     return record;
@@ -146,7 +156,6 @@ export class SpecificityService {
 
   async setResponseMode(
     agentId: string,
-    userId: string,
     category: string,
     responseMode: ResponseMode,
   ): Promise<SpecificityAssignment> {
@@ -155,7 +164,7 @@ export class SpecificityService {
       assertStreamableResponseMode(
         responseMode,
         `task-specific tier "${category}"`,
-        existing.override_route ?? existing.auto_assigned_route,
+        existing.override_route,
         existing.fallback_routes,
       );
       existing.response_mode = responseMode;
@@ -167,7 +176,6 @@ export class SpecificityService {
 
     const record = Object.assign(new SpecificityAssignment(), {
       id: randomUUID(),
-      user_id: userId,
       agent_id: agentId,
       category,
       is_active: false,
@@ -192,7 +200,7 @@ export class SpecificityService {
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
-      existing.auto_assigned_route,
+      null,
       null,
     );
     existing.updated_at = new Date().toISOString();
@@ -202,17 +210,18 @@ export class SpecificityService {
 
   async setFallbacks(
     agentId: string,
+    tenantId: string,
     category: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[]> {
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
     if (!existing) return [];
-    const fallbackRoutes = await this.buildFallbackRoutes(agentId, models, routes);
+    const fallbackRoutes = await this.buildFallbackRoutes(agentId, tenantId, models, routes);
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       fallbackRoutes,
     );
     existing.fallback_routes = fallbackRoutes;
@@ -228,7 +237,7 @@ export class SpecificityService {
     assertStreamableResponseMode(
       existing.response_mode,
       `task-specific tier "${category}"`,
-      existing.override_route ?? existing.auto_assigned_route,
+      existing.override_route,
       null,
     );
     existing.fallback_routes = null;
@@ -256,11 +265,12 @@ export class SpecificityService {
    */
   private async buildFallbackRoutes(
     agentId: string,
+    tenantId: string,
     models: string[],
     routes?: ModelRoute[],
   ): Promise<ModelRoute[] | null> {
     if (models.length === 0) return null;
-    const available = await this.discoveryService.getModelsForAgent(agentId);
+    const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     if (routes && routes.length === models.length) {
       const aligned = routes.every((r, i) => r.model === models[i]);
       const validated =

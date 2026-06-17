@@ -11,14 +11,11 @@ export class HeaderTier {
   @PrimaryColumn('varchar')
   id!: string;
 
-  @Column('varchar', { nullable: true })
-  tenant_id!: string | null;
+  @Column('varchar')
+  tenant_id!: string;
 
   @Column('varchar')
   agent_id!: string;
-
-  @Column('varchar', { nullable: true })
-  user_id!: string | null;
 
   @Column('varchar')
   name!: string;

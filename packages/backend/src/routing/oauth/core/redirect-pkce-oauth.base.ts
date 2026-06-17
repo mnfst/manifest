@@ -19,15 +19,11 @@ import { scrubSecrets } from '../../../common/utils/secret-scrub';
 import { generatePkce, generateState } from './pkce';
 import { oauthDoneHtml } from './callback-page';
 import { PendingStore } from './pending-store';
-import {
-  parseOAuthTokenBlob,
-  serializeOAuthTokenBlob,
-  type OAuthTokenBlob,
-} from './oauth-blob';
+import { parseOAuthTokenBlob, serializeOAuthTokenBlob, type OAuthTokenBlob } from './oauth-blob';
 import { coordinateOAuthRefresh, oauthRefreshKey } from './oauth-refresh-coordinator';
 
 export interface RedirectPkceOauthConfig {
-  /** Provider id stored on `user_providers.provider_id`. */
+  /** Provider id stored on `tenant_providers.provider_id`. */
   readonly providerId: string;
   /** Logger label used by the subclass. */
   readonly serviceName: string;
@@ -85,7 +81,10 @@ interface OAuthTokenResponse {
 interface RedirectPkcePendingOAuth {
   verifier: string;
   agentId: string;
-  userId: string;
+  /** Tenant that owns the agent — the scope the stored credential belongs to. */
+  tenantId: string;
+  /** Acting user, audit only (tenant_providers.created_by_user_id). */
+  createdByUserId: string | null;
   backendUrl: string;
   expiresAt: number;
 }
@@ -132,8 +131,9 @@ export abstract class RedirectPkceOauthBaseService {
 
   async generateAuthorizationUrl(
     agentId: string,
-    userId: string,
+    tenantId: string,
     backendUrl?: string,
+    createdByUserId?: string | null,
   ): Promise<string> {
     const state = generateState();
     const { verifier, challenge } = generatePkce();
@@ -144,7 +144,8 @@ export abstract class RedirectPkceOauthBaseService {
     this.pending.set(state, {
       verifier,
       agentId,
-      userId,
+      tenantId,
+      createdByUserId: createdByUserId ?? null,
       backendUrl: safeBackendUrl,
     });
     if (this.useCallbackServer) {
@@ -204,21 +205,21 @@ export abstract class RedirectPkceOauthBaseService {
     // `blob.u` and is preserved across refreshes by `unwrapToken`.
     const blob = await this.enrichBlob(baseBlob);
     const label = await this.providerService.nextOAuthLabel(
-      pending.agentId,
+      pending.tenantId,
       this.oauthConfig.providerId,
     );
     const { provider: savedProvider } = await this.providerService.upsertProvider(
       pending.agentId,
-      pending.userId,
+      pending.tenantId,
       this.oauthConfig.providerId,
       serializeOAuthTokenBlob(blob),
       'subscription',
       undefined,
       label,
+      pending.createdByUserId,
     );
     try {
       await this.discoveryService.discoverModels(savedProvider);
-      await this.providerService.recalculateTiers(pending.agentId);
     } catch (err) {
       this.logger.warn(`Model discovery after OAuth failed: ${err}`);
     }
@@ -262,7 +263,7 @@ export abstract class RedirectPkceOauthBaseService {
   async unwrapToken(
     rawValue: string,
     agentId: string,
-    userId: string,
+    tenantId: string,
     keyLabel?: string,
   ): Promise<string | null> {
     const blob = parseOAuthTokenBlob(rawValue);
@@ -273,30 +274,30 @@ export abstract class RedirectPkceOauthBaseService {
     // still produce a usable short-lived access token.
     if (Date.now() < blob.e - 60_000) return blob.t;
     if (!blob.r) return null;
-    return this.refreshAndPersistToken(blob, agentId, userId, keyLabel);
+    return this.refreshAndPersistToken(blob, agentId, tenantId, keyLabel);
   }
 
   private async refreshAndPersistToken(
     blob: OAuthTokenBlob,
     agentId: string,
-    userId: string,
+    tenantId: string,
     keyLabel?: string,
   ): Promise<string | null> {
     const providerId = this.oauthConfig.providerId;
     try {
       const resolved = await coordinateOAuthRefresh<OAuthTokenBlob>({
-        key: oauthRefreshKey(providerId, userId, agentId, keyLabel),
+        key: oauthRefreshKey(providerId, tenantId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
         readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(agentId, providerId, keyLabel),
+          this.providerService.getFreshSubscriptionCredential(tenantId, providerId, keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
         persist: (refreshed) =>
           this.providerService
             .upsertProvider(
               agentId,
-              userId,
+              tenantId,
               providerId,
               serializeOAuthTokenBlob(refreshed),
               'subscription',

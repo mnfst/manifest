@@ -125,7 +125,7 @@ describe('ProviderModelRegistryService', () => {
   });
 
   describe('onApplicationBootstrap', () => {
-    it('should load models from cached user_providers data', async () => {
+    it('should load models from cached tenant_providers data', async () => {
       const providers = [
         {
           provider: 'openai',
@@ -148,7 +148,7 @@ describe('ProviderModelRegistryService', () => {
       expect(service.isModelConfirmed('anthropic', 'claude-opus-4-6')).toBe(true);
     });
 
-    it('should load supported endpoint metadata from cached user_providers data', async () => {
+    it('should load supported endpoint metadata from cached tenant_providers data', async () => {
       const providers = [
         {
           provider: 'copilot',

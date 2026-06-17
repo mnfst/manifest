@@ -641,6 +641,48 @@ describe('Anthropic Messages adapter', () => {
       });
     });
 
+    it('surfaces upstream error chunks as a terminal Anthropic error event (issue #2212)', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"error":{"message":"Too many requests","type":"upstream_error","status":429,"code":"rate_limit_exceeded"}}\n\ndata: [DONE]\n\n',
+      ]);
+
+      expect(sse).toBe(
+        'event: error\ndata: {"type":"error","error":{"type":"rate_limit_error","message":"Too many requests"}}\n\n',
+      );
+      // No fabricated message_start / message_delta / message_stop around the error.
+      expect(sse).not.toContain('message_start');
+      expect(sse).not.toContain('message_stop');
+    });
+
+    it('ignores later stream payloads after a terminal error event', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"error":{"message":"Too many requests","status":429}}\n\ndata: {"choices":[{"delta":{"content":"same chunk"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"later chunk"}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+      ]);
+
+      expect(sse).toBe(
+        'event: error\ndata: {"type":"error","error":{"type":"rate_limit_error","message":"Too many requests"}}\n\n',
+      );
+    });
+
+    it('emits an error event mid-stream and suppresses the fabricated end_turn close', () => {
+      const t = createMessagesStreamTransformer('gpt-5');
+      const sse = flushChunks(t, [
+        'data: {"choices":[{"delta":{"content":"Hel"}}]}\n\n',
+        'data: {"error":{}}\n\ndata: [DONE]\n\n',
+      ]);
+
+      expect(sse).toContain('event: message_start');
+      expect(sse).toContain(
+        'event: error\ndata: {"type":"error","error":{"type":"api_error","message":"Upstream provider stream failed"}}',
+      );
+      expect(sse).not.toContain('"stop_reason":"end_turn"');
+      expect(sse).not.toContain('message_stop');
+    });
+
     it('emits tool_use content_block_start and input_json_delta for tool calls', () => {
       const t = createMessagesStreamTransformer('claude-sonnet-4');
       const sse = flushChunks(t, [

@@ -1,7 +1,7 @@
 {
   "moduleFileExtensions": ["js", "json", "ts", "tsx"],
-  "rootDir": ".",
-  "coverageDirectory": "../coverage",
+  "rootDir": "..",
+  "coverageDirectory": "coverage/e2e",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
@@ -12,6 +12,16 @@
     "node_modules/(?!(better-auth|better-call|@better-auth)/)"
   ],
   "moduleNameMapper": {
-    "^src/(.*)$": "<rootDir>/../src/$1"
-  }
+    "^src/(.*)$": "<rootDir>/src/$1"
+  },
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.spec.ts",
+    "!src/main.ts",
+    "!src/**/database/migrations/**",
+    "!src/**/database/datasource.ts",
+    "!src/**/*.module.ts",
+    "!src/**/otlp/interfaces/index.ts",
+    "!src/**/otlp/proto/**"
+  ]
 }

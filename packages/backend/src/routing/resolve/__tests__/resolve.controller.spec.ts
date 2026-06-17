@@ -78,6 +78,7 @@ describe('ResolveController', () => {
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-1',
+        'tenant-1',
         body.messages,
         body.tools,
         body.tool_choice,
@@ -96,6 +97,7 @@ describe('ResolveController', () => {
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-1',
+        'tenant-1',
         body.messages,
         undefined,
         undefined,
@@ -118,6 +120,7 @@ describe('ResolveController', () => {
 
       expect(resolveService.resolve).toHaveBeenCalledWith(
         'agent-from-context',
+        'tenant-1',
         body.messages,
         undefined,
         undefined,
@@ -161,10 +164,13 @@ describe('ResolveController', () => {
       expect(providerService.upsertProvider).toHaveBeenCalledTimes(1);
       expect(providerService.upsertProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'minimax',
         'sk-token-123',
         'subscription',
+        undefined,
+        undefined,
+        'user-1',
       );
       expect(providerService.registerSubscriptionProvider).not.toHaveBeenCalled();
       expect(result).toEqual({ registered: 1 });
@@ -181,8 +187,9 @@ describe('ResolveController', () => {
       expect(providerService.registerSubscriptionProvider).toHaveBeenCalledTimes(1);
       expect(providerService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'anthropic',
+        'user-1',
       );
       expect(providerService.upsertProvider).not.toHaveBeenCalled();
       expect(result).toEqual({ registered: 1 });
@@ -222,8 +229,9 @@ describe('ResolveController', () => {
       expect(providerService.upsertProvider).not.toHaveBeenCalled();
       expect(providerService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'agent-1',
-        'user-1',
+        'tenant-1',
         'anthropic',
+        'user-1',
       );
       expect(result).toEqual({ registered: 1 });
     });
@@ -243,8 +251,9 @@ describe('ResolveController', () => {
 
       expect(providerService.registerSubscriptionProvider).toHaveBeenCalledWith(
         'agent-X',
-        'user-Y',
+        'tenant-1',
         'anthropic',
+        'user-Y',
       );
     });
 

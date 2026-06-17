@@ -3,7 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Brackets } from 'typeorm';
 import { MessagesQueryService } from './messages-query.service';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { CustomProvider } from '../../entities/custom-provider.entity';
 
 /**
  * Cost-filter edge cases for MessagesQueryService.
@@ -22,12 +22,10 @@ describe('MessagesQueryService — cost filter edge cases', () => {
   let service: MessagesQueryService;
   let mockGetRawOne: jest.Mock;
   let mockGetRawMany: jest.Mock;
-  let mockTenantResolve: jest.Mock;
 
   beforeEach(async () => {
     mockGetRawOne = jest.fn().mockResolvedValue({ total: 0 });
     mockGetRawMany = jest.fn().mockResolvedValue([]);
-    mockTenantResolve = jest.fn().mockResolvedValue('tenant-123');
 
     const mockQb: Record<string, jest.Mock> = {
       select: jest.fn(),
@@ -78,8 +76,8 @@ describe('MessagesQueryService — cost filter edge cases', () => {
           useValue: { createQueryBuilder: jest.fn().mockReturnValue(mockQb) },
         },
         {
-          provide: TenantCacheService,
-          useValue: { resolve: mockTenantResolve },
+          provide: getRepositoryToken(CustomProvider),
+          useValue: { find: jest.fn().mockResolvedValue([]) },
         },
       ],
     }).compile();
@@ -107,7 +105,7 @@ describe('MessagesQueryService — cost filter edge cases', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_min: -1,
     });
@@ -136,7 +134,7 @@ describe('MessagesQueryService — cost filter edge cases', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_min: 0,
     });
@@ -162,7 +160,7 @@ describe('MessagesQueryService — cost filter edge cases', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_max: -0.1,
     });
@@ -188,7 +186,7 @@ describe('MessagesQueryService — cost filter edge cases', () => {
 
     await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_min: -1,
       cost_max: -0.1,
@@ -216,7 +214,7 @@ describe('MessagesQueryService — cost filter edge cases', () => {
 
     await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_min: 1,
     });
@@ -228,7 +226,7 @@ describe('MessagesQueryService — cost filter edge cases', () => {
 
     const result = await service.getMessages({
       range: '24h',
-      userId: 'test-user',
+      tenantId: 'test-user',
       limit: 20,
       cost_min: -1,
       cursor: '2026-02-16 10:00:00|msg-pos',

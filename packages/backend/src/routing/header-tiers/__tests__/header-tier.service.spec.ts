@@ -31,7 +31,7 @@ const discovered = (
     authType,
   }) as DiscoveredModel;
 
-const validInput = (overrides: Partial<Parameters<HeaderTierService['create']>[3]> = {}) => ({
+const validInput = (overrides: Partial<Parameters<HeaderTierService['create']>[2]> = {}) => ({
   name: 'Premium',
   header_key: 'x-tier',
   header_value: 'premium',
@@ -97,7 +97,7 @@ describe('HeaderTierService', () => {
   describe('create', () => {
     it('creates a header tier with sort_order 0 when no siblings exist', async () => {
       repo.find.mockResolvedValue([]);
-      const result = await svc.create('agent-1', 'user-1', 'tenant-1', validInput());
+      const result = await svc.create('agent-1', 'tenant-1', validInput());
       expect(repo.insert).toHaveBeenCalledTimes(1);
       expect(result.sort_order).toBe(0);
       expect(result.name).toBe('Premium');
@@ -113,38 +113,38 @@ describe('HeaderTierService', () => {
         { id: 'a', sort_order: 0, name: 'A', header_key: 'x', header_value: 'a' } as HeaderTier,
         { id: 'b', sort_order: 4, name: 'B', header_key: 'x', header_value: 'b' } as HeaderTier,
       ]);
-      const result = await svc.create('agent-1', 'user-1', null, validInput());
+      const result = await svc.create('agent-1', 'tenant-1', validInput());
       expect(result.sort_order).toBe(5);
     });
 
     it('rejects empty names', async () => {
-      await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ name: '   ' })),
-      ).rejects.toThrow(BadRequestException);
+      await expect(svc.create('agent-1', 'tenant-1', validInput({ name: '   ' }))).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('rejects oversized names', async () => {
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ name: 'a'.repeat(33) })),
+        svc.create('agent-1', 'tenant-1', validInput({ name: 'a'.repeat(33) })),
       ).rejects.toThrow(/32 characters/);
     });
 
     it('rejects header keys with disallowed characters', async () => {
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_key: 'X-Bad_Key' })),
+        svc.create('agent-1', 'tenant-1', validInput({ header_key: 'X-Bad_Key' })),
       ).rejects.toThrow(/lowercase letters/);
     });
 
     it('rejects empty header keys', async () => {
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_key: '' })),
+        svc.create('agent-1', 'tenant-1', validInput({ header_key: '' })),
       ).rejects.toThrow(/Header key is required/);
     });
 
     it('rejects all reserved header keys', async () => {
       for (const key of RESERVED_HEADER_KEYS) {
         await expect(
-          svc.create('agent-1', 'user-1', null, validInput({ header_key: key })),
+          svc.create('agent-1', 'tenant-1', validInput({ header_key: key })),
         ).rejects.toThrow(/stripped for security/);
       }
     });
@@ -153,26 +153,26 @@ describe('HeaderTierService', () => {
       for (const key of RESERVED_HEADER_KEYS) {
         const mutated = `  ${key.toUpperCase()}  `;
         await expect(
-          svc.create('agent-1', 'user-1', null, validInput({ header_key: mutated })),
+          svc.create('agent-1', 'tenant-1', validInput({ header_key: mutated })),
         ).rejects.toThrow(/stripped for security/);
       }
     });
 
     it('rejects empty header values', async () => {
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_value: '' })),
+        svc.create('agent-1', 'tenant-1', validInput({ header_value: '' })),
       ).rejects.toThrow(/Header value is required/);
     });
 
     it('rejects oversized header values', async () => {
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ header_value: 'x'.repeat(129) })),
+        svc.create('agent-1', 'tenant-1', validInput({ header_value: 'x'.repeat(129) })),
       ).rejects.toThrow(/128 characters/);
     });
 
     it('rejects invalid colors', async () => {
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ badge_color: 'rainbow' as TierColor })),
+        svc.create('agent-1', 'tenant-1', validInput({ badge_color: 'rainbow' as TierColor })),
       ).rejects.toThrow(/badge color/);
     });
 
@@ -187,7 +187,7 @@ describe('HeaderTierService', () => {
         } as HeaderTier,
       ]);
       await expect(
-        svc.create('agent-1', 'user-1', null, validInput({ name: 'premium' })),
+        svc.create('agent-1', 'tenant-1', validInput({ name: 'premium' })),
       ).rejects.toThrow(/already exists/);
     });
 
@@ -201,7 +201,7 @@ describe('HeaderTierService', () => {
           sort_order: 0,
         } as HeaderTier,
       ]);
-      await expect(svc.create('agent-1', 'user-1', null, validInput())).rejects.toThrow(
+      await expect(svc.create('agent-1', 'tenant-1', validInput())).rejects.toThrow(
         /already matches/,
       );
     });
@@ -385,7 +385,14 @@ describe('HeaderTierService', () => {
       const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
       repo.findOne.mockResolvedValue(row);
 
-      const result = await svc.setOverride('agent-1', 'h1', 'gpt-4o', 'openai', 'api_key');
+      const result = await svc.setOverride(
+        'agent-1',
+        'tenant-1',
+        'h1',
+        'gpt-4o',
+        'openai',
+        'api_key',
+      );
       expect(discoveryService.getModelsForAgent).not.toHaveBeenCalled();
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
       expect(repo.save).toHaveBeenCalledWith(row);
@@ -398,6 +405,7 @@ describe('HeaderTierService', () => {
 
       const result = await svc.setOverride(
         'agent-1',
+        'tenant-1',
         'h1',
         'gpt-4o',
         'openai',
@@ -420,7 +428,7 @@ describe('HeaderTierService', () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),
       ]);
-      const result = await svc.setOverride('agent-1', 'h1', 'gpt-4o');
+      const result = await svc.setOverride('agent-1', 'tenant-1', 'h1', 'gpt-4o');
       expect(result.override_route).toEqual(route('openai', 'api_key', 'gpt-4o'));
     });
 
@@ -428,13 +436,15 @@ describe('HeaderTierService', () => {
       const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
       repo.findOne.mockResolvedValue(row);
       discoveryService.getModelsForAgent.mockResolvedValue([]);
-      const result = await svc.setOverride('agent-1', 'h1', 'gpt-4o');
+      const result = await svc.setOverride('agent-1', 'tenant-1', 'h1', 'gpt-4o');
       expect(result.override_route).toBeNull();
     });
 
     it('throws NotFound when row missing', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(svc.setOverride('agent-1', 'h1', 'gpt-4o')).rejects.toThrow(NotFoundException);
+      await expect(svc.setOverride('agent-1', 'tenant-1', 'h1', 'gpt-4o')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -468,14 +478,14 @@ describe('HeaderTierService', () => {
       ]);
 
       const provided = [route('openai', 'api_key', 'gpt-4o')];
-      const result = await svc.setFallbacks('agent-1', 'h1', ['gpt-4o'], provided);
+      const result = await svc.setFallbacks('agent-1', 'tenant-1', 'h1', ['gpt-4o'], provided);
       expect(result).toEqual(provided);
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
     it('returns [] when models is empty', async () => {
       repo.findOne.mockResolvedValue({ id: 'h1', agent_id: 'agent-1' } as HeaderTier);
-      const result = await svc.setFallbacks('agent-1', 'h1', []);
+      const result = await svc.setFallbacks('agent-1', 'tenant-1', 'h1', []);
       expect(result).toEqual([]);
     });
 
@@ -485,7 +495,7 @@ describe('HeaderTierService', () => {
         discovered('gpt-4o', 'openai', 'api_key'),
         discovered('gpt-4o', 'openai', 'subscription'),
       ]);
-      await expect(svc.setFallbacks('agent-1', 'h1', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'tenant-1', 'h1', ['gpt-4o'])).rejects.toThrow(
         /Cannot resolve fallback model "gpt-4o"/,
       );
       expect(repo.save).not.toHaveBeenCalled();
@@ -510,6 +520,7 @@ describe('HeaderTierService', () => {
       await expect(
         svc.setFallbacks(
           'agent-1',
+          'tenant-1',
           'h1',
           ['gpt-4o', 'claude-3-5-sonnet', 'minmax-27'],
           [...existing, route('minimax', 'api_key', 'minmax-27')],
@@ -529,6 +540,7 @@ describe('HeaderTierService', () => {
       ]);
       const result = await svc.setFallbacks(
         'agent-1',
+        'tenant-1',
         'h1',
         ['gpt-4o'],
         [route('different', 'api_key', 'gpt-4o')],
@@ -538,7 +550,7 @@ describe('HeaderTierService', () => {
 
     it('throws NotFound when row missing', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(svc.setFallbacks('agent-1', 'h1', ['gpt-4o'])).rejects.toThrow(
+      await expect(svc.setFallbacks('agent-1', 'tenant-1', 'h1', ['gpt-4o'])).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -623,7 +635,7 @@ describe('HeaderTierService', () => {
       } as HeaderTier);
 
       await expect(
-        svc.setOverride('agent-1', 'h1', 'local-model', 'custom:local', 'api_key'),
+        svc.setOverride('agent-1', 'tenant-1', 'h1', 'local-model', 'custom:local', 'api_key'),
       ).rejects.toThrow(/add at least one stream-capable model/);
       expect(repo.save).not.toHaveBeenCalled();
     });

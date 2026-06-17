@@ -207,8 +207,8 @@ describe('GET /api/v1/costs - numeric edge cases', () => {
 
     // Cross-tenant row — must NEVER appear in the test user's results.
     await ds.query(
-      `INSERT INTO tenants (id, name, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,true,$4,$5)`,
-      ['other-tenant-001', 'other-user-001', 'Other Org', now, now],
+      `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6)`,
+      ['other-tenant-001', 'other-user-001', 'other-user-001', 'Other Org', now, now],
     );
     await ds.query(
       `INSERT INTO agent_messages (id, timestamp, description, service_type, status, model, input_tokens, output_tokens, cost_usd, user_id, tenant_id, agent_name)

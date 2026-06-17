@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { CurrentUser } from '../../auth/current-user.decorator';
-import { AuthUser } from '../../auth/auth.instance';
+import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { CustomProviderService } from './custom-provider.service';
 import { ProviderService } from '../routing-core/provider.service';
 import { ResolveAgentService } from '../routing-core/resolve-agent.service';
@@ -20,17 +19,23 @@ export class CustomProviderController {
   ) {}
 
   @Get(':agentName/custom-providers')
-  async list(@CurrentUser() user: AuthUser, @Param() params: AgentNameParamDto) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const [providers, userProviders] = await Promise.all([
-      this.customProviderService.list(agent.id),
-      this.providerService.getProviders(agent.id),
+  async list(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
+    // Resolve for authz — the tenant must own the agent. Custom providers are
+    // tenant-global, so the listing itself is scoped to the tenant, not the agent.
+    // allowPlayground: true — the Playground page reads custom providers for the
+    // reserved Playground agent; all mutation endpoints remain blocked.
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
+      allowPlayground: true,
+    });
+    const [providers, tenantProviders] = await Promise.all([
+      this.customProviderService.list(agent.tenant_id),
+      this.providerService.getProviders(agent.tenant_id),
     ]);
     if (providers.length === 0) return [];
 
     return providers.map((cp) => {
       const provKey = CustomProviderService.providerKey(cp.id);
-      const up = userProviders.find((u) => u.provider === provKey);
+      const up = tenantProviders.find((u) => u.provider === provKey);
       return {
         id: cp.id,
         name: cp.name,
@@ -45,13 +50,13 @@ export class CustomProviderController {
 
   @Post(':agentName/custom-providers/probe')
   async probe(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Body() body: ProbeCustomProviderDto,
   ) {
-    // Resolve for authz — user must own the agent before the server probes
-    // anything on their behalf.
-    await this.resolveAgentService.resolve(user.id, agentName);
+    // Resolve for authz — the tenant must own the agent before the server
+    // probes anything on its behalf.
+    await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     const models = await this.customProviderService.probeModels(
       body.base_url,
       body.apiKey,
@@ -63,14 +68,18 @@ export class CustomProviderController {
 
   @Post(':agentName/custom-providers')
   async create(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param() params: AgentNameParamDto,
     @Body() body: CreateCustomProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, params.agentName);
-    const cp = await this.customProviderService.create(agent.id, user.id, body);
+    // allowPlayground: true — creating a custom provider from the Playground page is
+    // additive (tenant-global resource); the playground agent is a valid owner context.
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName, {
+      allowPlayground: true,
+    });
+    const cp = await this.customProviderService.create(agent.tenant_id, body, ctx.userId);
     const provKey = CustomProviderService.providerKey(cp.id);
-    const up = (await this.providerService.getProviders(agent.id)).find(
+    const up = (await this.providerService.getProviders(agent.tenant_id)).find(
       (u) => u.provider === provKey,
     );
 
@@ -87,15 +96,15 @@ export class CustomProviderController {
 
   @Put(':agentName/custom-providers/:id')
   async update(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('id') id: string,
     @Body() body: UpdateCustomProviderDto,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    const cp = await this.customProviderService.update(agent.id, id, user.id, body);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    const cp = await this.customProviderService.update(id, agent.tenant_id, body, ctx.userId);
     const provKey = CustomProviderService.providerKey(cp.id);
-    const up = (await this.providerService.getProviders(agent.id)).find(
+    const up = (await this.providerService.getProviders(agent.tenant_id)).find(
       (u) => u.provider === provKey,
     );
 
@@ -112,12 +121,12 @@ export class CustomProviderController {
 
   @Delete(':agentName/custom-providers/:id')
   async remove(
-    @CurrentUser() user: AuthUser,
+    @TenantCtx() ctx: TenantContext,
     @Param('agentName') agentName: string,
     @Param('id') id: string,
   ) {
-    const agent = await this.resolveAgentService.resolve(user.id, agentName);
-    await this.customProviderService.remove(agent.id, id);
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    await this.customProviderService.remove(agent.tenant_id, id, ctx.userId);
     return { ok: true };
   }
 }

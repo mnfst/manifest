@@ -9,6 +9,7 @@ interface Props {
   customProviders?: CustomProviderData[];
   customProviderPrefill?: CustomProviderPrefill | null;
   providerDeepLink?: ProviderDeepLink | null;
+  initialTab?: 'subscription' | 'api_key' | 'local';
   onClose: () => void;
   onUpdate: () => void | Promise<void>;
   onPollProviders?: () => void | Promise<void>;
@@ -38,6 +39,7 @@ const ProviderSelectModal: Component<Props> = (props) => {
           customProviders={props.customProviders}
           customProviderPrefill={props.customProviderPrefill}
           providerDeepLink={props.providerDeepLink}
+          initialTab={props.initialTab}
           onUpdate={props.onUpdate}
           onPollProviders={props.onPollProviders}
           onClose={props.onClose}

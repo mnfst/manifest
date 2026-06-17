@@ -35,12 +35,24 @@ interface Props {
 }
 
 /** Resolve a display label for a model name, handling vendor-prefixed IDs. */
-function labelForModel(name: string, labels: Map<string, string>): string {
+function labelForModel(
+  name: string,
+  labels: Map<string, string>,
+  providerIds: Set<string>,
+): string {
   const direct = labels.get(name);
   if (direct) return direct;
   const slash = name.indexOf('/');
   if (slash !== -1) {
     const bare = name.substring(slash + 1);
+    const found = labels.get(bare);
+    if (found) return found;
+    return bare;
+  }
+  const parts = name.split('.');
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    if (!providerIds.has(parts[i]!.toLowerCase())) continue;
+    const bare = parts.slice(i + 1).join('.');
     const found = labels.get(bare);
     if (found) return found;
     return bare;
@@ -141,6 +153,8 @@ const ModelPickerModal: Component<Props> = (props) => {
     return map;
   };
 
+  const providerIdSet = (): Set<string> => new Set(PROVIDERS.map((p) => p.id.toLowerCase()));
+
   const customProviderNameMap = (): Map<string, string> => {
     const map = new Map<string, string>();
     for (const cp of props.customProviders ?? []) {
@@ -165,6 +179,7 @@ const ModelPickerModal: Component<Props> = (props) => {
   const groupedModels = () => {
     const q = search().toLowerCase().trim();
     const labels = providerLabelMap();
+    const providerIds = providerIdSet();
     const cpNames = customProviderNameMap();
     const tab = activeTab();
     const hasConnectedProviders = (props.connectedProviders ?? []).length > 0;
@@ -219,8 +234,15 @@ const ModelPickerModal: Component<Props> = (props) => {
           : (provDef?.name ?? m.provider);
         groupMap.set(provId, { provId, name, models: [] });
       }
-      const label = m.display_name || labelForModel(m.model_name, labels);
-      groupMap.get(provId)!.models.push({ value: m.model_name, label, pricing: m });
+      const label =
+        m.display_name && m.display_name !== m.model_name
+          ? m.display_name
+          : labelForModel(m.model_name, labels, providerIds);
+      groupMap.get(provId)!.models.push({
+        value: m.model_name,
+        label,
+        pricing: m,
+      });
     }
 
     const groups: { provId: string; name: string; models: ModalModel[] }[] = [];
@@ -246,21 +268,6 @@ const ModelPickerModal: Component<Props> = (props) => {
     return groups;
   };
 
-  const isRecommended = (modelName: string, providerId?: string, authType?: AuthType): boolean => {
-    const t = props.tiers.find((r) => r.tier === props.tierId);
-    if (!t) return false;
-    const route = t.auto_assigned_route;
-    if (!route) return false;
-    if (providerId && authType) {
-      return (
-        route.model === modelName &&
-        route.provider.toLowerCase() === providerId.toLowerCase() &&
-        route.authType === authType
-      );
-    }
-    return route.model === modelName;
-  };
-
   /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
   const modelRole = (
     modelName: string,
@@ -269,7 +276,7 @@ const ModelPickerModal: Component<Props> = (props) => {
   ): string | null => {
     const t = props.tiers.find((r) => r.tier === props.tierId);
     if (!t) return null;
-    const primaryRoute = t.override_route ?? t.auto_assigned_route ?? null;
+    const primaryRoute = t.override_route ?? null;
     if (primaryRoute) {
       const matches =
         providerId && authType
@@ -618,9 +625,6 @@ const ModelPickerModal: Component<Props> = (props) => {
                         <span class="routing-modal__model-left">
                           <span class="routing-modal__model-label">
                             {model.label}
-                            <Show when={isRecommended(model.value, group.provId, activeTab())}>
-                              <span class="routing-modal__recommended"> (recommended)</span>
-                            </Show>
                             <Show when={modelRole(model.value, group.provId, activeTab())}>
                               {(role) => <span class="routing-modal__role-tag">{role()}</span>}
                             </Show>
@@ -709,7 +713,7 @@ const ModelPickerModal: Component<Props> = (props) => {
                   style="margin-top: 12px;"
                   onClick={() => props.onConnectProviders?.()}
                 >
-                  Connect providers
+                  Connect provider
                 </button>
               </Show>
             </div>

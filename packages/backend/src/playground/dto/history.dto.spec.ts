@@ -1,27 +1,9 @@
 import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { ListHistoryQueryDto, RunIdParamDto, SetBestColumnDto } from './history.dto';
+import { RunIdParamDto, SetBestColumnDto } from './history.dto';
 
 const UUID = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa';
-
-describe('ListHistoryQueryDto', () => {
-  it('accepts a well-formed agent name', async () => {
-    const dto = plainToInstance(ListHistoryQueryDto, { agentName: 'demo-agent_1' });
-    expect(await validate(dto)).toHaveLength(0);
-  });
-
-  it('rejects an empty agent name', async () => {
-    const dto = plainToInstance(ListHistoryQueryDto, { agentName: '' });
-    expect(await validate(dto)).not.toHaveLength(0);
-  });
-
-  it('rejects an agent name with disallowed characters', async () => {
-    const dto = plainToInstance(ListHistoryQueryDto, { agentName: 'bad name!' });
-    const errors = await validate(dto);
-    expect(errors[0]?.constraints?.matches).toBe('Invalid agent name');
-  });
-});
 
 describe('RunIdParamDto', () => {
   it('accepts a valid uuid', async () => {

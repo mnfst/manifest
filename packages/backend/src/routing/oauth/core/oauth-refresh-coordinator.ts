@@ -23,7 +23,7 @@
  * deployment shape) without a distributed lock:
  *
  *   - Concurrent refreshes for the SAME credential coalesce onto one in-flight
- *     promise, keyed by provider+user+agent+label. Different credentials never
+ *     promise, keyed by provider+tenant+label. Different credentials never
  *     block each other.
  *   - Before refreshing, it re-reads the freshest persisted blob straight from
  *     the DB (bypassing the routing cache). If another request already
@@ -56,7 +56,7 @@ export const REFRESH_EXPIRY_SKEW_MS = 60_000;
 export const PERSIST_MAX_ATTEMPTS = 3;
 
 export interface CoordinatedRefreshParams<T extends RefreshableBlob> {
-  /** Identity key for single-flight: `${provider}:${userId}:${agentId}:${label}`. */
+  /** Identity key for single-flight: `${provider}:${tenantId}:${label}`. */
   readonly key: string;
   readonly logger: Logger;
   /**
@@ -79,15 +79,10 @@ export interface CoordinatedRefreshParams<T extends RefreshableBlob> {
  * Build the single-flight key for one credential. Namespaced by provider so two
  * providers never share an entry, and by label so an agent's multiple keys for
  * the same provider refresh independently. `undefined`/`'Default'` labels map to
- * the same key, matching how the row is persisted.
+ * the same key, matching how the row is persisted (tenant-scoped).
  */
-export function oauthRefreshKey(
-  providerId: string,
-  userId: string,
-  agentId: string,
-  label?: string,
-): string {
-  return `${providerId}:${userId}:${agentId}:${label ?? 'Default'}`;
+export function oauthRefreshKey(providerId: string, tenantId: string, label?: string): string {
+  return `${providerId}:${tenantId}:${label ?? 'Default'}`;
 }
 
 // Shared across every OAuth service. Each value is the in-flight refresh for

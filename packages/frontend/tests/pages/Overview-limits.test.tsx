@@ -1,80 +1,99 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render } from "@solidjs/testing-library";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render } from '@solidjs/testing-library';
 
-let mockAgentName = "test-agent";
-vi.mock("@solidjs/router", () => ({
+let mockAgentName = 'test-agent';
+vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: mockAgentName }),
-  useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: null }),
+  useLocation: () => ({ pathname: `/harnesses/${mockAgentName}`, state: null }),
   useNavigate: () => vi.fn(),
-  A: (props: any) => <a href={props.href} class={props.class}>{props.children}</a>,
+  A: (props: any) => (
+    <a href={props.href} class={props.class}>
+      {props.children}
+    </a>
+  ),
 }));
 
-vi.mock("@solidjs/meta", () => ({
+vi.mock('@solidjs/meta', () => ({
   Title: (props: any) => <title>{props.children}</title>,
   Meta: () => null,
 }));
 
 const mockGetOverview = vi.fn();
-vi.mock("../../src/services/api.js", () => ({
+vi.mock('../../src/services/api.js', () => ({
   getOverview: (...args: unknown[]) => mockGetOverview(...args),
   getCustomProviders: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("../../src/services/api/analytics.js", () => ({
-  getSavings: vi.fn(() => Promise.resolve({ total_saved: 0, savings_pct: 0, actual_cost: 0, baseline_cost: 0, baseline_model: null, baseline_override_stale: false, request_count: 0, trend_pct: 0, is_auto: true, savings_by_auth_type: { api_key: 0, subscription: 0, local: 0 } })),
-  getBaselineCandidates: vi.fn(() => Promise.resolve([])),
-  getSavingsTimeseries: vi.fn(() => Promise.resolve([])),
-}));
-
-vi.mock("../../src/services/toast-store.js", () => ({
+vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn() },
 }));
 
-vi.mock("../../src/services/sse.js", () => ({
+vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
 }));
 
-vi.mock("../../src/services/formatters.js", () => ({
+vi.mock('../../src/services/formatters.js', () => ({
   formatCost: (v: number) => `$${v.toFixed(2)}`,
   formatNumber: (v: number) => String(v),
   formatStatus: (s: string) => s,
   formatTime: (t: string) => t,
 }));
 
-vi.mock("../../src/services/routing-utils.js", () => ({
+vi.mock('../../src/services/routing-utils.js', () => ({
   inferProviderFromModel: () => null,
-  inferProviderName: () => "",
+  inferProviderName: () => '',
   stripCustomPrefix: (m: string) => m,
 }));
 
-vi.mock("../../src/components/ProviderIcon.jsx", () => ({
-  providerIcon: () => null, customProviderLogo: () => null,
+vi.mock('../../src/components/ProviderIcon.jsx', () => ({
+  providerIcon: () => null,
+  customProviderLogo: () => null,
 }));
 
-vi.mock("../../src/components/CostChart.jsx", () => ({ default: () => <div data-testid="cost-chart" /> }));
-vi.mock("../../src/components/TokenChart.jsx", () => ({ default: () => <div data-testid="token-chart" /> }));
-vi.mock("../../src/components/SingleTokenChart.jsx", () => ({ default: () => <div data-testid="single-token-chart" /> }));
-vi.mock("../../src/components/SavingsChart.jsx", () => ({ default: () => <div data-testid="savings-chart" /> }));
-vi.mock("../../src/components/SetupModal.jsx", () => ({
-  default: (props: any) => <div data-testid="setup-modal" data-open={props.open ? "true" : "false"} />,
+// The per-agent Overview now renders ProviderChartCard → MultiAgentTokenChart
+// (uPlot) and fetches per-provider timeseries; stub both so jsdom doesn't load
+// the real chart (which calls matchMedia).
+vi.mock('../../src/services/api/analytics.js', () => ({
+  getPerProviderTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
+  getPerProviderMessageTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
+  getPerProviderCostTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
 }));
-vi.mock("../../src/components/InfoTooltip.jsx", () => ({ default: () => <span data-testid="info-tooltip" /> }));
-vi.mock("../../src/components/Select.jsx", () => ({
+vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
+  AGENT_COLORS: ['#111111', '#222222'],
+  default: () => <div data-testid="multi-agent-chart" />,
+}));
+vi.mock('../../src/components/SetupModal.jsx', () => ({
   default: (props: any) => (
-    <select data-testid="select" value={props.value} onChange={(e: any) => props.onChange(e.target.value)}>
-      {props.options?.map((o: any) => <option value={o.value}>{o.label}</option>)}
+    <div data-testid="setup-modal" data-open={props.open ? 'true' : 'false'} />
+  ),
+}));
+vi.mock('../../src/components/InfoTooltip.jsx', () => ({
+  default: () => <span data-testid="info-tooltip" />,
+}));
+vi.mock('../../src/components/Select.jsx', () => ({
+  default: (props: any) => (
+    <select
+      data-testid="select"
+      value={props.value}
+      onChange={(e: any) => props.onChange(e.target.value)}
+    >
+      {props.options?.map((o: any) => (
+        <option value={o.value}>{o.label}</option>
+      ))}
     </select>
   ),
 }));
 
-vi.mock("../../src/services/recent-agents.js", () => ({
+vi.mock('../../src/services/recent-agents.js', () => ({
   isRecentlyCreated: () => false,
+  isSetupPending: () => false,
+  clearSetupPending: vi.fn(),
 }));
 
-import Overview from "../../src/pages/Overview";
+import Overview from '../../src/pages/Overview';
 
 const overviewData = {
   summary: {
@@ -83,24 +102,34 @@ const overviewData = {
     messages: { value: 42, trend_pct: 8 },
     services_hit: { total: 3, healthy: 3, issues: 0 },
   },
-  token_usage: [{ hour: "2026-02-18 10:00:00", input_tokens: 1000, output_tokens: 500 }],
-  cost_usage: [{ hour: "2026-02-18 10:00:00", cost: 0.5 }],
-  message_usage: [{ hour: "2026-02-18 10:00:00", count: 5 }],
+  token_usage: [{ hour: '2026-02-18 10:00:00', input_tokens: 1000, output_tokens: 500 }],
+  cost_usage: [{ hour: '2026-02-18 10:00:00', cost: 0.5 }],
+  message_usage: [{ hour: '2026-02-18 10:00:00', count: 5 }],
   cost_by_model: [],
   recent_activity: [
-    { id: "msg-12345678", timestamp: "2026-02-18T10:00:00Z", agent_name: "test-agent", model: "gpt-4o", input_tokens: 100, output_tokens: 50, total_tokens: 150, cost: 0.01, status: "ok" },
+    {
+      id: 'msg-12345678',
+      timestamp: '2026-02-18T10:00:00Z',
+      agent_name: 'test-agent',
+      model: 'gpt-4o',
+      input_tokens: 100,
+      output_tokens: 50,
+      total_tokens: 150,
+      cost: 0.01,
+      status: 'ok',
+    },
   ],
   has_data: true,
 };
 
-describe("Overview - trend badges and status display", () => {
+describe('Overview - trend badges and status display', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    mockAgentName = "test-agent";
+    mockAgentName = 'test-agent';
   });
 
-  it("does not render trend badge when trend_pct is 0", async () => {
+  it('does not render trend badge when trend_pct is 0', async () => {
     const zeroTrendData = {
       ...overviewData,
       summary: {
@@ -113,79 +142,83 @@ describe("Overview - trend badges and status display", () => {
     mockGetOverview.mockResolvedValue(zeroTrendData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("$3.50");
+      expect(container.textContent).toContain('$3.50');
     });
-    const trendBadges = container.querySelectorAll(".trend");
+    const trendBadges = container.querySelectorAll('.trend');
     expect(trendBadges.length).toBe(0);
   });
 
-  it("renders rate_limited status as a link to the limits page", async () => {
+  it('renders rate_limited status as a link to the limits page', async () => {
     const rateLimitedData = {
       ...overviewData,
-      recent_activity: [{
-        id: "msg-ratelimit1",
-        timestamp: "2026-02-18T10:00:00Z",
-        agent_name: "test-agent",
-        model: null,
-        input_tokens: 0,
-        output_tokens: 0,
-        total_tokens: null,
-        cost: null,
-        status: "rate_limited",
-      }],
+      recent_activity: [
+        {
+          id: 'msg-ratelimit1',
+          timestamp: '2026-02-18T10:00:00Z',
+          agent_name: 'test-agent',
+          model: null,
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: null,
+          cost: null,
+          status: 'rate_limited',
+        },
+      ],
     };
     mockGetOverview.mockResolvedValue(rateLimitedData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain("rate_limited");
+      expect(container.textContent).toContain('rate_limited');
     });
     const link = container.querySelector('.status-badge--rate_limited a');
     expect(link).not.toBeNull();
-    expect(link?.getAttribute("href")).toContain("/limits");
+    expect(link?.getAttribute('href')).toContain('/limits');
   });
 
-  it("renders routing tier badge when routing_tier is set", async () => {
+  it('renders routing tier badge when routing_tier is set', async () => {
     const routedData = {
       ...overviewData,
-      recent_activity: [{
-        ...overviewData.recent_activity[0],
-        routing_tier: "complex",
-      }],
+      recent_activity: [
+        {
+          ...overviewData.recent_activity[0],
+          routing_tier: 'complex',
+        },
+      ],
     };
     mockGetOverview.mockResolvedValue(routedData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const tierBadge = container.querySelector(".tier-badge--complex");
+      const tierBadge = container.querySelector('.tier-badge--complex');
       expect(tierBadge).not.toBeNull();
-      expect(tierBadge?.textContent).toBe("complex");
+      expect(tierBadge?.textContent).toBe('complex');
     });
   });
 
-  it("renders negative cost trend with down-good class (inverted)", async () => {
+  it('renders the negative cost trend badge on the chart card', async () => {
+    // ProviderChartCard renders neutral trend badges (no inverted up-bad /
+    // down-good styling).
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const downTrend = container.querySelector(".trend--down-good");
-      expect(downTrend).not.toBeNull();
-      expect(downTrend?.textContent).toContain("-5%");
+      const badges = Array.from(container.querySelectorAll('.trend--neutral'));
+      expect(badges.some((b) => b.textContent?.includes('-5%'))).toBe(true);
     });
   });
 
-  it("renders positive token trend with up-bad class (inverted)", async () => {
+  it('renders the positive token trend badge on the chart card', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      const upTrend = container.querySelector(".trend--up-bad");
-      expect(upTrend).not.toBeNull();
-      expect(upTrend?.textContent).toContain("+12%");
+      const badges = Array.from(container.querySelectorAll('.trend--neutral'));
+      expect(badges.some((b) => b.textContent?.includes('+12%'))).toBe(true);
     });
   });
 
-  it("renders status-specific class on status badge", async () => {
+  it('renders status-specific class on status badge', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.querySelector(".status-badge--ok")).not.toBeNull();
+      expect(container.querySelector('.status-badge--ok')).not.toBeNull();
     });
   });
 });

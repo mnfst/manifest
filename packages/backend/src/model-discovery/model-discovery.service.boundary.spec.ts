@@ -1,7 +1,7 @@
 import { ModelDiscoveryService } from './model-discovery.service';
 import { ProviderModelFetcherService } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
-import { UserProvider } from '../entities/user-provider.entity';
+import { TenantProvider } from '../entities/tenant-provider.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { DiscoveredModel } from './model-fetcher';
 
@@ -12,10 +12,6 @@ jest.mock('../common/utils/crypto.util', () => ({
 
 jest.mock('../database/quality-score.util', () => ({
   computeQualityScore: jest.fn().mockReturnValue(3),
-}));
-
-jest.mock('./anthropic-subscription-probe', () => ({
-  filterBySubscriptionAccess: jest.fn().mockImplementation((models: unknown[]) => models),
 }));
 
 import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
@@ -40,10 +36,11 @@ function makeModel(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
   };
 }
 
-function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
+function makeProvider(overrides: Partial<TenantProvider> = {}): TenantProvider {
   return {
     id: 'prov-1',
-    user_id: 'user-1',
+    tenant_id: 'tenant-1',
+    created_by_user_id: 'user-1',
     agent_id: 'agent-1',
     provider: 'openai',
     api_key_encrypted: 'encrypted-key',
@@ -55,14 +52,15 @@ function makeProvider(overrides: Partial<UserProvider> = {}): UserProvider {
     cached_models: null,
     models_fetched_at: null,
     ...overrides,
-  } as UserProvider;
+  } as TenantProvider;
 }
 
 function makeCustomProvider(overrides: Partial<CustomProvider> = {}): CustomProvider {
   return {
     id: 'cp-1',
     agent_id: 'agent-1',
-    user_id: 'user-1',
+    tenant_id: 'tenant-1',
+    created_by_user_id: 'user-1',
     name: 'My Custom',
     base_url: 'http://localhost:8000',
     models: [{ model_name: 'custom-llm' }],
@@ -196,7 +194,6 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-a',
-          agent_id: 'agent-a',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -205,7 +202,6 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       customProviderRepo.find.mockResolvedValueOnce([
         makeCustomProvider({
           id: 'cp-agent-b',
-          agent_id: 'agent-b',
           models: [{ model_name: 'shared' }],
         }),
       ]);
@@ -218,27 +214,30 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       expect(resultA[0].id).not.toBe(resultB[0].id);
     });
 
-    it('scopes the custom provider repository query by agent_id', async () => {
+    it('scopes the custom provider repository query by tenant_id', async () => {
       providerRepo.find.mockResolvedValue([]);
       customProviderRepo.find.mockResolvedValue([]);
 
-      await service.getModelsForAgent('agent-isolated');
+      await service.getModelsForAgent('tenant-isolated');
 
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-isolated' },
+        where: { tenant_id: 'tenant-isolated' },
       });
     });
   });
 
   describe('getModelForAgent — custom provider tenant isolation', () => {
-    it('returns undefined for a custom model id that belongs to a different agent', async () => {
+    it('returns undefined for a custom model id that belongs to a different tenant', async () => {
       providerRepo.find.mockResolvedValue([]);
       customProviderRepo.find.mockResolvedValue([]);
 
-      const result = await service.getModelForAgent('agent-b', 'custom:cp-agent-a/exclusive-model');
+      const result = await service.getModelForAgent(
+        'tenant-b',
+        'custom:cp-tenant-a/exclusive-model',
+      );
       expect(result).toBeUndefined();
       expect(customProviderRepo.find).toHaveBeenCalledWith({
-        where: { agent_id: 'agent-b' },
+        where: { tenant_id: 'tenant-b' },
       });
     });
   });

@@ -186,7 +186,7 @@ export class ProviderClient {
       }
     }
 
-    const result = await this.executeFetch(url, finalHeaders, requestBody, signal, {
+    const result = await this.executeFetch(url, finalHeaders, requestBody, signal, stream, {
       isGoogle,
       isAnthropic,
       isChatGpt,
@@ -399,6 +399,7 @@ export class ProviderClient {
           ? applyAnthropicMessagesMutations(body, {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
+              targetModel: bareModel,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectSubscriptionIdentity,
@@ -487,6 +488,7 @@ export class ProviderClient {
     headers: Record<string, string>,
     requestBody: Record<string, unknown>,
     signal: AbortSignal | undefined,
+    stream: boolean,
     formatFlags: {
       isGoogle: boolean;
       isAnthropic: boolean;
@@ -495,8 +497,19 @@ export class ProviderClient {
       isCodeAssist?: boolean;
     },
   ): Promise<ForwardResult> {
-    const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-    const fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+    let fetchSignal: AbortSignal;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let timeoutController: AbortController | undefined;
+    if (stream) {
+      timeoutController = new AbortController();
+      timeout = setTimeout(() => timeoutController?.abort(), PROVIDER_TIMEOUT_MS);
+      fetchSignal = signal
+        ? AbortSignal.any([timeoutController.signal, signal])
+        : timeoutController.signal;
+    } else {
+      const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
+      fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+    }
 
     let response: Response;
     try {
@@ -512,6 +525,8 @@ export class ProviderClient {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
 
     return { response, ...formatFlags };

@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@solidjs/testing-library";
 
+// NOTE (post-#2207 realignment):
+// ProviderSelectModal no longer renders a provider list/tabs; it opens straight
+// into a provider's detail view via `providerDeepLink` (exactly how
+// ProviderConnectionsPage drives it in production). These tests previously
+// reached the command-only provider's detail view by clicking it in the
+// subscription list; they now pass the deep link instead. With a deep link
+// open, the detail view's "Done"/back button closes the modal (there is no
+// list to return to), so the final assertion checks `onClose` rather than the
+// removed list view.
+
 const mockConnectProvider = vi.fn();
 const mockDisconnectProvider = vi.fn();
 const mockGetOpenaiOAuthUrl = vi.fn();
@@ -14,6 +24,7 @@ const mockRenameProviderKey = vi.fn();
 vi.mock("../../src/services/api.js", () => ({
   connectProvider: (...args: unknown[]) => mockConnectProvider(...args),
   disconnectProvider: (...args: unknown[]) => mockDisconnectProvider(...args),
+  refreshProviderModels: () => Promise.resolve({ ok: true, model_count: 0 }),
   getOpenaiOAuthUrl: (...args: unknown[]) => mockGetOpenaiOAuthUrl(...args),
   getXaiOAuthUrl: (...args: unknown[]) => mockGetXaiOAuthUrl(...args),
   submitOpenaiOAuthCallback: (...args: unknown[]) => mockSubmitOpenaiOAuthCallback(...args),
@@ -34,7 +45,8 @@ vi.mock("../../src/components/ProviderIcon.js", () => ({
 }));
 
 // Mock providers to include a "command-only" subscription provider:
-// has subscriptionCommand but NO subscriptionKeyPlaceholder and NO popup_oauth mode
+// has subscriptionCommand but NO subscriptionKeyPlaceholder and NO auth mode,
+// which makes the detail view render the command-only login flow.
 vi.mock("../../src/services/providers.js", () => {
   const commandOnlyProvider = {
     id: "cmd-sub",
@@ -50,7 +62,7 @@ vi.mock("../../src/services/providers.js", () => {
     subscriptionLabel: "CmdSub Plan",
     subscriptionCommand: "cmdprov login",
     // No subscriptionKeyPlaceholder
-    // No subscriptionAuthMode: 'popup_oauth'
+    // No subscriptionAuthMode
   };
   return {
     PROVIDERS: [commandOnlyProvider],
@@ -58,6 +70,11 @@ vi.mock("../../src/services/providers.js", () => {
     validateSubscriptionKey: () => ({ valid: true }),
   };
 });
+
+vi.mock("../../src/services/provider-utils.js", () => ({
+  validateApiKey: () => ({ valid: true }),
+  validateSubscriptionKey: () => ({ valid: true }),
+}));
 
 import ProviderSelectModal from "../../src/components/ProviderSelectModal";
 import type { RoutingProvider } from "../../src/services/api.js";
@@ -88,10 +105,9 @@ describe("ProviderSelectModal -- command-only subscription detail view", () => {
         onClose={onClose}
         onUpdate={onUpdate}
         agentName="test-agent"
+        providerDeepLink={{ providerId: "cmd-sub", authType: "subscription" }}
       />
     ));
-    // Click the command-only provider to open detail view
-    fireEvent.click(screen.getByText("CmdProvider"));
 
     // Command-only hint
     expect(
@@ -120,9 +136,9 @@ describe("ProviderSelectModal -- command-only subscription detail view", () => {
         onClose={onClose}
         onUpdate={onUpdate}
         agentName="test-agent"
+        providerDeepLink={{ providerId: "cmd-sub", authType: "subscription" }}
       />
     ));
-    fireEvent.click(screen.getByText("CmdProvider"));
 
     // Should show Disconnect button
     expect(screen.getByText("Disconnect")).toBeDefined();
@@ -147,17 +163,16 @@ describe("ProviderSelectModal -- command-only subscription detail view", () => {
         onClose={onClose}
         onUpdate={onUpdate}
         agentName="test-agent"
+        providerDeepLink={{ providerId: "cmd-sub", authType: "subscription" }}
       />
     ));
-    fireEvent.click(screen.getByText("CmdProvider"));
 
     const doneBtn = screen.getByText("Done");
     expect(doneBtn).toBeDefined();
 
-    // Clicking Done navigates back
+    // Clicking Done closes the modal (deep-link opens straight into the detail
+    // view, so there is no list to return to — goBack() calls onClose()).
     fireEvent.click(doneBtn);
-
-    // Should be back on the list view (provider name visible in list)
-    expect(screen.getByText("CmdProvider")).toBeDefined();
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

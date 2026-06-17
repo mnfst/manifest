@@ -4,6 +4,7 @@ import {
   readAutoAssignedRoute,
   readFallbackRoutes,
   readOverrideRoute,
+  routeMatches,
   unambiguousRoute,
 } from '../route-helpers';
 import type { ModelRoute } from 'manifest-shared';
@@ -77,7 +78,7 @@ describe('route-helpers', () => {
         effectiveRoute({ override_route: o, auto_assigned_route: a, fallback_routes: null }),
       ).toEqual(o);
     });
-    it('falls through to auto when override is null', () => {
+    it('falls back to the auto-assigned route when override is null', () => {
       const a = route('gemini', 'api_key', 'gemini-2.5-pro');
       expect(
         effectiveRoute({ override_route: null, auto_assigned_route: a, fallback_routes: null }),
@@ -122,6 +123,18 @@ describe('route-helpers', () => {
     it('returns null when matched model has no authType', () => {
       const list = [discovered('gpt-4o', 'openai', undefined as never)];
       expect(unambiguousRoute('gpt-4o', list)).toBeNull();
+    });
+  });
+
+  describe('routeMatches', () => {
+    it('compares key labels case-insensitively after trimming', () => {
+      const base = route('openai', 'api_key', 'gpt-4o');
+      expect(routeMatches({ ...base, keyLabel: ' Work ' }, { ...base, keyLabel: 'work' })).toBe(
+        true,
+      );
+      expect(routeMatches({ ...base, keyLabel: 'Work' }, { ...base, keyLabel: 'Home' })).toBe(
+        false,
+      );
     });
   });
 });

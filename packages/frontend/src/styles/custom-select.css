@@ -59,6 +59,17 @@
   animation: fadeInUp 100ms ease-out;
 }
 
+.custom-select__dropdown--portal {
+  position: fixed;
+  top: auto;
+  left: auto;
+  min-width: 140px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 200;
+}
+
 .custom-select__option {
   display: block;
   width: 100%;

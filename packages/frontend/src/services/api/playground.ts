@@ -131,17 +131,16 @@ export async function setPlaygroundRunBest(
   return data.bestColumnId;
 }
 
-export function listPlaygroundRuns(agentName: string): Promise<PlaygroundHistoryRunSummary[]> {
-  return fetchJson<PlaygroundHistoryRunSummary[]>('/playground/runs', { agentName });
+export function getPlaygroundAgent(): Promise<{ name: string }> {
+  return fetchJson<{ name: string }>('/playground/agent');
 }
 
-export function getPlaygroundRun(
-  runId: string,
-  agentName: string,
-): Promise<PlaygroundHistoryRunDetail> {
-  return fetchJson<PlaygroundHistoryRunDetail>(`/playground/runs/${encodeURIComponent(runId)}`, {
-    agentName,
-  });
+export function listPlaygroundRuns(): Promise<PlaygroundHistoryRunSummary[]> {
+  return fetchJson<PlaygroundHistoryRunSummary[]>('/playground/runs');
+}
+
+export function getPlaygroundRun(runId: string): Promise<PlaygroundHistoryRunDetail> {
+  return fetchJson<PlaygroundHistoryRunDetail>(`/playground/runs/${encodeURIComponent(runId)}`);
 }
 
 export async function togglePlaygroundRunStar(runId: string): Promise<boolean> {

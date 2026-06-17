@@ -86,6 +86,7 @@ export default defineConfig(({ command }) => ({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./tests/setup.ts'],
     transformMode: { web: [/\.[jt]sx?$/] },
     deps: {
       optimizer: { web: { include: ['solid-js'] } },
@@ -98,7 +99,6 @@ export default defineConfig(({ command }) => ({
         'src/components/CostChart.tsx',
         'src/components/TokenChart.tsx',
         'src/components/SingleTokenChart.tsx',
-        'src/components/SavingsChart.tsx',
         'src/components/Sparkline.tsx',
       ],
     },
