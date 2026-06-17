@@ -26,6 +26,7 @@ import {
   getAgents,
   getSpecificityAssignments,
   getMessages,
+  getMessageFilterOptions,
   getRoutingStatus,
   listHeaderTiers,
   setMessageFeedback,
@@ -52,6 +53,12 @@ interface MessagesData {
   items: MessageRow[];
   next_cursor: string | null;
   total_count: number;
+  total_count_exact?: boolean;
+  providers: string[];
+  provider_labels?: Record<string, string>;
+}
+
+interface MessageFilterOptionsData {
   providers: string[];
   provider_labels?: Record<string, string>;
 }
@@ -264,6 +271,8 @@ const MessageLog: Component = () => {
       if (p.agentName) q.agent_name = p.agentName;
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
+      q.include_total = 'false';
+      q.include_filter_options = 'false';
       return getMessages(q) as Promise<MessagesData>;
     },
   );
@@ -275,6 +284,15 @@ const MessageLog: Component = () => {
     if (!data.loading && data() !== undefined) setLoadedAgent(params.agentName ?? '');
   });
   const isStale = () => data.loading && loadedAgent() !== (params.agentName ?? '');
+
+  const [messageFilterOptions] = createResource(
+    () => ({ agentName: agentFilter() || params.agentName, _ping: messagePing() }),
+    (p) => {
+      const q: Record<string, string> = {};
+      if (p.agentName) q.agent_name = p.agentName;
+      return getMessageFilterOptions(q) as Promise<MessageFilterOptionsData>;
+    },
+  );
 
   const displayedItems = createMemo<MessageRow[]>(() => {
     const items = data()?.items ?? [];
@@ -304,6 +322,13 @@ const MessageLog: Component = () => {
   const hasNoData = () => {
     const d = data();
     return d && d.total_count === 0;
+  };
+
+  const totalForPager = () => {
+    const d = data();
+    if (!d) return 0;
+    if (d.total_count_exact !== false) return d.total_count;
+    return (pager.currentPage() - 1) * pager.pageSize + d.total_count;
   };
 
   const showEmptyState = () => hasNoData() && !hasActiveFilters() && !hasProviders();
@@ -349,12 +374,12 @@ const MessageLog: Component = () => {
     if (prov) return prov.name;
     // Custom providers arrive as `custom:<uuid>` — the backend ships a label
     // map alongside the provider list so the dropdown can show their names.
-    return data()?.provider_labels?.[id] ?? id;
+    return messageFilterOptions()?.provider_labels?.[id] ?? id;
   };
 
   const providerOptions = createMemo(() => [
     { label: 'All providers', value: '' },
-    ...(data()?.providers ?? []).map((id) => ({
+    ...(messageFilterOptions()?.providers ?? []).map((id) => ({
       label: providerDisplayName(id),
       icon: providerIcon(id, 14) ?? undefined,
       value: id,
@@ -608,7 +633,7 @@ const MessageLog: Component = () => {
                   Messages
                 </div>
                 <span style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                  {data()?.total_count ?? 0} total
+                  {totalForPager()} total
                 </span>
               </div>
               <div class="data-table-scroll">
@@ -630,7 +655,7 @@ const MessageLog: Component = () => {
               </div>
               <Pagination
                 currentPage={pager.currentPage}
-                totalItems={() => data()?.total_count ?? 0}
+                totalItems={totalForPager}
                 pageSize={pager.pageSize}
                 hasNextPage={pager.hasNextPage}
                 isLoading={() => data.loading}

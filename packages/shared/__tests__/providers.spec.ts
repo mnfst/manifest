@@ -178,7 +178,8 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(xiaomi!.displayName).toBe('Xiaomi MiMo');
     expect(xiaomi!.openRouterPrefixes).toEqual(['xiaomi']);
     expect(xiaomi!.keyPrefix).toBe('sk-');
-    expect(xiaomi!.minKeyLength).toBe(10);
+    expect(xiaomi!.minKeyLength).toBe(50);
+    expect(xiaomi!.keyPlaceholder).toBe('sk-xxxxx');
   });
 });
 

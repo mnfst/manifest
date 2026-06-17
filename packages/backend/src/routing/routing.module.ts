@@ -12,7 +12,7 @@ import { HeaderTiersModule } from './header-tiers/header-tiers.module';
 import { ProviderController } from './provider.controller';
 import { TierController } from './tier.controller';
 import { ModelController } from './model.controller';
-import { CopilotController } from './copilot.controller';
+import { CopilotController } from './oauth/copilot/copilot.controller';
 import { SpecificityController } from './specificity.controller';
 import { ModelParamsController } from './model-params.controller';
 import { TenantProvidersController } from './tenant-providers.controller';

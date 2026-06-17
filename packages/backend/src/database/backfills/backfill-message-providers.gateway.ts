@@ -84,6 +84,14 @@ export const PASS_3_SQL = stampingPass(`
 export class TypeOrmBackfillGateway implements BackfillGateway {
   constructor(private readonly dataSource: DataSource) {}
 
+  async analyze(): Promise<void> {
+    // Refresh stats for the stamping passes: agent_messages (its
+    // tenant_provider_id column was just added and is ~100% NULL) and the
+    // tenant_providers join target.
+    await this.dataSource.query('ANALYZE "agent_messages"');
+    await this.dataSource.query('ANALYZE "tenant_providers"');
+  }
+
   async nextWindowEnd(afterId: string, batchSize: number): Promise<string | null> {
     const rows = (await this.dataSource.query(WINDOW_END_SQL, [afterId, batchSize])) as {
       end_id: string | null;

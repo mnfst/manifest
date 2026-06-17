@@ -12,19 +12,20 @@ import {
   type Component,
 } from 'solid-js';
 import AddAgentModal from '../components/AddAgentModal.jsx';
-import { getAgents, getGlobalProviders } from '../services/api.js';
+import {
+  getAgents,
+  getGlobalProviders,
+  getGlobalProviderUsage,
+  mergeUsage,
+} from '../services/api.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { customProviderColor } from '../services/formatters.js';
 import { customProviderLogo } from '../components/ProviderIcon.jsx';
 import { stripCustomPrefix } from '../services/routing-utils.js';
 import {
   getOverview,
-  getGlobalPerAgentTimeseries,
-  getGlobalPerAgentMessageTimeseries,
-  getGlobalPerProviderTimeseries,
-  getGlobalPerProviderMessageTimeseries,
-  getGlobalPerAgentCostTimeseries,
-  getGlobalPerProviderCostTimeseries,
+  getOverviewAgentUsage,
+  getOverviewProviderUsage,
 } from '../services/api/analytics.js';
 import { formatNumber, formatCost, formatTimeAgo } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -38,7 +39,7 @@ import Select from '../components/Select.jsx';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
-import { agentPing, messagePing } from '../services/sse.js';
+import { agentPing, messagePing, routingPing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
@@ -175,63 +176,75 @@ const GlobalOverview: Component = () => {
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
-    () => chartRange(),
-    (range) => getOverview(range) as Promise<OverviewResponse>,
+    () => ({ range: chartRange(), _ping: messagePing() }),
+    (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
   const [agents] = createResource(
-    () => agentPing(),
+    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
     async () => {
       try {
-        const data = await getAgents();
-        return ((data as any)?.agents ?? data ?? []) as AgentRow[];
+        const data = (await getAgents()) as { agents?: AgentRow[] } | AgentRow[] | null;
+        return Array.isArray(data) ? data : (data?.agents ?? []);
       } catch {
         return [] as AgentRow[];
       }
     },
   );
 
-  const [providers] = createResource(
-    () => messagePing(),
+  // CONFIG resource — paints the provider table immediately (cheap endpoint).
+  // Provider rows/status are routing-domain state: a connect/disconnect/rename
+  // emits a `routing` SSE event (→ routingPing), so the config list must key on
+  // routingPing to stay fresh. agentPing is kept because a new/removed agent can
+  // also change which providers appear in the global view.
+  const [providerConfig] = createResource(
+    () => ({ a: agentPing(), r: routingPing() }),
     async () => {
       try {
-        const res = await getGlobalProviders();
-        return (res?.providers ?? []) as unknown as ProviderGroup[];
+        return (await getGlobalProviders()).providers;
       } catch {
-        return [] as ProviderGroup[];
+        return [];
       }
     },
   );
 
+  // USAGE resource — the expensive 30d aggregation, fetched independently. Its
+  // source carries the SSE ping signals (a new ingested message → messagePing,
+  // a provider connect/disconnect/rename → routingPing) so stats refresh live.
+  const [providerUsage] = createResource(
+    () => ({ m: messagePing(), r: routingPing() }),
+    async () => {
+      try {
+        return (await getGlobalProviderUsage()).providers;
+      } catch {
+        return [];
+      }
+    },
+  );
+
+  // Shimmer the usage cells until the first usage load resolves; SSE refetches
+  // keep the prior numbers on screen so the table doesn't flicker.
+  const providerUsageLoading = () => providerUsage.loading && providerUsage() === undefined;
+
+  // Merged groups (config + usage by provider+auth_type) drive the table.
+  // `providers()` stays `undefined` until config resolves so the existing
+  // `providers() !== undefined` "has loaded" checks keep working.
+  const providers = () => {
+    const config = providerConfig();
+    if (config === undefined) return undefined;
+    return mergeUsage(config, providerUsage()) as unknown as ProviderGroup[];
+  };
+
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
-  const tokenFetcher = (range: string, group: string): Promise<TSResult> => {
-    if (group === 'provider') return getGlobalPerProviderTimeseries(range) as Promise<TSResult>;
-    return getGlobalPerAgentTimeseries(range) as Promise<TSResult>;
-  };
-  const msgFetcher = (range: string, group: string): Promise<TSResult> => {
-    if (group === 'provider')
-      return getGlobalPerProviderMessageTimeseries(range) as Promise<TSResult>;
-    return getGlobalPerAgentMessageTimeseries(range) as Promise<TSResult>;
+  type UsageTSResult = { tokenUsage: TSResult; messageUsage: TSResult; costUsage: TSResult };
+  const usageFetcher = (range: string, group: string): Promise<UsageTSResult> => {
+    if (group === 'provider') return getOverviewProviderUsage(range) as Promise<UsageTSResult>;
+    return getOverviewAgentUsage(range) as Promise<UsageTSResult>;
   };
 
-  const [agentTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy() }),
-    (p) => tokenFetcher(p.range, p.group),
-  );
-
-  const [agentMessageTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy() }),
-    (p) => msgFetcher(p.range, p.group),
-  );
-
-  const costFetcher = (range: string, group: string): Promise<TSResult> => {
-    if (group === 'provider') return getGlobalPerProviderCostTimeseries(range) as Promise<TSResult>;
-    return getGlobalPerAgentCostTimeseries(range) as Promise<TSResult>;
-  };
-
-  const [agentCostTimeseries] = createResource(
-    () => ({ range: chartRange(), group: groupBy() }),
-    (p) => costFetcher(p.range, p.group),
+  const [usageTimeseries] = createResource(
+    () => ({ range: chartRange(), group: groupBy(), _ping: messagePing() }),
+    (p) => usageFetcher(p.range, p.group),
   );
 
   // Provider-grouped series key custom providers as 'custom:<uuid>'. Remap
@@ -255,9 +268,9 @@ const GlobalOverview: Component = () => {
       ),
     };
   };
-  const tokenSeries = createMemo(() => remapCustomSeries(agentTimeseries()));
-  const messageSeries = createMemo(() => remapCustomSeries(agentMessageTimeseries()));
-  const costSeries = createMemo(() => remapCustomSeries(agentCostTimeseries()));
+  const tokenSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.tokenUsage));
+  const messageSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.messageUsage));
+  const costSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.costUsage));
 
   // ── Harness filter state (sessionStorage) ────────────────────────────
   // Scope the persisted selection by groupBy(): the provider grouping and the
@@ -290,7 +303,8 @@ const GlobalOverview: Component = () => {
   const allAgents = createMemo(() => {
     const tokenAgents = tokenSeries()?.agents ?? [];
     const msgAgents = messageSeries()?.agents ?? [];
-    const set = new Set([...tokenAgents, ...msgAgents]);
+    const costAgents = costSeries()?.agents ?? [];
+    const set = new Set([...tokenAgents, ...msgAgents, ...costAgents]);
     return [...set].sort();
   });
 
@@ -1116,16 +1130,33 @@ const GlobalOverview: Component = () => {
                           </span>
                         </td>
                         <td>
-                          <div style="display: flex; align-items: center; gap: 8px;">
-                            <Show when={group.sparkline_7d.length > 0}>
-                              <span style="flex-shrink: 0;">
-                                <Sparkline data={group.sparkline_7d} width={60} height={24} />
+                          <Show
+                            when={!providerUsageLoading()}
+                            fallback={
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  display: 'inline-block',
+                                  width: '96px',
+                                  height: '12px',
+                                  'border-radius': 'var(--radius-sm)',
+                                  background: 'hsl(var(--muted) / 0.6)',
+                                  animation: 'skeleton-pulse 1.2s ease-in-out infinite',
+                                }}
+                              />
+                            }
+                          >
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              <Show when={group.sparkline_7d.length > 0}>
+                                <span style="flex-shrink: 0;">
+                                  <Sparkline data={group.sparkline_7d} width={60} height={24} />
+                                </span>
+                              </Show>
+                              <span style="font-variant-numeric: tabular-nums;">
+                                {formatNumber(group.consumption_tokens)} tokens
                               </span>
-                            </Show>
-                            <span style="font-variant-numeric: tabular-nums;">
-                              {formatNumber(group.consumption_tokens)} tokens
-                            </span>
-                          </div>
+                            </div>
+                          </Show>
                         </td>
                         <td>
                           <Show

@@ -3,11 +3,11 @@ import { ProxyFallbackService, normalizeProviderModel } from '../proxy-fallback.
 import { resolveApiKey } from '../oauth-credentials';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
-import { OpenaiOauthService } from '../../oauth/openai-oauth.service';
-import { MinimaxOauthService } from '../../oauth/minimax-oauth.service';
+import { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
+import { MinimaxOauthService } from '../../oauth/minimax/minimax-oauth.service';
 import { AnthropicOauthService } from '../../oauth/anthropic/anthropic-oauth.service';
-import { GeminiOauthService } from '../../oauth/gemini-oauth.service';
-import { KiroOauthService } from '../../oauth/kiro-oauth.service';
+import { GeminiOauthService } from '../../oauth/gemini/gemini-oauth.service';
+import { KiroOauthService } from '../../oauth/kiro/kiro-oauth.service';
 import { XaiOauthService } from '../../oauth/xai/xai-oauth.service';
 import { ProviderClient } from '../provider-client';
 import { CopilotTokenService } from '../copilot-token.service';

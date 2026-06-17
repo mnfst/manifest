@@ -78,6 +78,11 @@ export interface BackfillResult {
  */
 export interface BackfillGateway {
   /**
+   * Refresh planner statistics on the tables the stamping passes read. Called
+   * once before the first window (see runMessageProviderBackfill).
+   */
+  analyze(): Promise<void>;
+  /**
    * Upper bound (inclusive) of the next keyset window of size `batchSize`
    * containing ids strictly greater than `afterId`, or null when no rows remain.
    */
@@ -142,6 +147,14 @@ export async function runMessageProviderBackfill(
   const maxRetries = options.maxRetries ?? DEFAULT_BACKFILL_OPTIONS.maxRetries;
   const retryBackoffMs = options.retryBackoffMs ?? DEFAULT_BACKFILL_OPTIONS.retryBackoffMs;
   const log = (message: string): void => options.logger?.log(message);
+
+  // Refresh planner statistics before the first window. The migration just
+  // added tenant_provider_id (≈100% NULL) and autovacuum's analyze has not run
+  // yet, so the planner mis-estimates `tenant_provider_id IS NULL` as highly
+  // selective and builds a full-table bitmap on it every window — turning a
+  // sub-second keyset window into a statement_timeout. ANALYZE lets it cost the
+  // NULL filter correctly and drive each window off the PK id-range instead.
+  await gateway.analyze();
 
   let afterId = '';
   let windows = 0;

@@ -112,12 +112,13 @@ describe('analytics API client', () => {
   });
 
   it('per-agent timeseries endpoints forward connection_id when provided', async () => {
-    const fns: Array<[(a: string, p: string, r?: string, l?: string, c?: string) => unknown, string]> =
-      [
-        [analytics.getPerAgentTimeseries, 'per-agent-timeseries'],
-        [analytics.getPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
-        [analytics.getPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
-      ];
+    const fns: Array<
+      [(a: string, p: string, r?: string, l?: string, c?: string) => unknown, string]
+    > = [
+      [analytics.getPerAgentTimeseries, 'per-agent-timeseries'],
+      [analytics.getPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
+      [analytics.getPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
+    ];
     for (const [fn, path] of fns) {
       const fetchMock = setupFetch({ agents: [], timeseries: [] });
       await fn('subscription', 'openai', '30d', 'Work', 'conn-7');
@@ -140,9 +141,11 @@ describe('analytics API client', () => {
       [analytics.getGlobalPerAgentTimeseries, 'per-agent-timeseries'],
       [analytics.getGlobalPerAgentMessageTimeseries, 'per-agent-message-timeseries'],
       [analytics.getGlobalPerAgentCostTimeseries, 'per-agent-cost-timeseries'],
+      [analytics.getOverviewAgentUsage, 'agents/usage'],
       [analytics.getGlobalPerProviderTimeseries, 'per-provider-timeseries'],
       [analytics.getGlobalPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
       [analytics.getGlobalPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
+      [analytics.getOverviewProviderUsage, 'providers/usage'],
       [analytics.getGlobalPerModelTimeseries, 'per-model-timeseries'],
       [analytics.getGlobalPerModelMessageTimeseries, 'per-model-message-timeseries'],
       [analytics.getGlobalPerModelCostTimeseries, 'per-model-cost-timeseries'],

@@ -29,11 +29,14 @@ export function getModelParamSpecs(
   authType: AuthType,
   model: string,
 ) {
-  return fetchJson<ProviderParamSpec[]>(routingPath(agentName, 'model-param-specs/by-model'), {
-    provider,
-    authType,
-    model,
-  });
+  // Opt out of the shared SWR cache: this is fetched on-demand when the user opens
+  // a model's param dialog and the client contract is explicitly "don't cache
+  // model specs in the frontend" — a stale spec would mis-render the dialog.
+  return fetchJson<ProviderParamSpec[]>(
+    routingPath(agentName, 'model-param-specs/by-model'),
+    { provider, authType, model },
+    { cache: false },
+  );
 }
 
 /** Route identity of a model that has configurable params (no param metadata). */

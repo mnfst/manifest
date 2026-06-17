@@ -9,6 +9,7 @@ import {
 function gatewayWith(ends: (string | null)[], stampPerWindow = 5): jest.Mocked<BackfillGateway> {
   let call = 0;
   return {
+    analyze: jest.fn(async () => undefined),
     nextWindowEnd: jest.fn(async (_afterId: string, _batchSize: number) => ends[call++] ?? null),
     stampWindow: jest.fn(
       async (_afterId: string, _endId: string, _timeouts: BackfillTimeouts) => stampPerWindow,
@@ -17,6 +18,23 @@ function gatewayWith(ends: (string | null)[], stampPerWindow = 5): jest.Mocked<B
 }
 
 describe('runMessageProviderBackfill', () => {
+  it('refreshes planner statistics once, before stamping the first window', async () => {
+    const gateway = gatewayWith(['id-10', null]);
+    const order: string[] = [];
+    gateway.analyze.mockImplementation(async () => {
+      order.push('analyze');
+    });
+    gateway.stampWindow.mockImplementation(async () => {
+      order.push('stamp');
+      return 1;
+    });
+
+    await runMessageProviderBackfill(gateway, { throttleMs: 0 });
+
+    expect(gateway.analyze).toHaveBeenCalledTimes(1);
+    expect(order).toEqual(['analyze', 'stamp']); // ANALYZE precedes any stamping
+  });
+
   it('walks keyset windows until nextWindowEnd returns null, summing stamped counts', async () => {
     const gateway = gatewayWith(['id-10', 'id-20', null]);
     const sleep = jest.fn(async () => undefined);

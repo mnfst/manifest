@@ -9,6 +9,7 @@ import { SpecificityFeedbackService } from '../services/specificity-feedback.ser
 describe('MessagesController', () => {
   let controller: MessagesController;
   let mockGetMessages: jest.Mock;
+  let mockGetMessageFilterOptions: jest.Mock;
   let mockGetDetails: jest.Mock;
   let mockSetFeedback: jest.Mock;
   let mockClearFeedback: jest.Mock;
@@ -23,6 +24,7 @@ describe('MessagesController', () => {
       total_count: 0,
       providers: [],
     });
+    mockGetMessageFilterOptions = jest.fn().mockResolvedValue({ providers: [] });
 
     mockGetDetails = jest.fn().mockResolvedValue({
       message: { id: 'msg-1', status: 'ok' },
@@ -42,7 +44,10 @@ describe('MessagesController', () => {
       providers: [
         {
           provide: MessagesQueryService,
-          useValue: { getMessages: mockGetMessages },
+          useValue: {
+            getMessages: mockGetMessages,
+            getMessageFilterOptions: mockGetMessageFilterOptions,
+          },
         },
         {
           provide: MessageDetailsService,
@@ -89,6 +94,8 @@ describe('MessagesController', () => {
       routing_tier: undefined,
       specificity_category: undefined,
       header_tier_id: undefined,
+      include_total: undefined,
+      include_filter_options: undefined,
     });
   });
 
@@ -110,6 +117,8 @@ describe('MessagesController', () => {
       routing_tier: 'simple',
       specificity_category: 'coding',
       header_tier_id: 'ht-premium',
+      include_total: false,
+      include_filter_options: false,
     };
     await controller.getMessages(query as never, ctx as never);
 
@@ -128,6 +137,21 @@ describe('MessagesController', () => {
       routing_tier: 'simple',
       specificity_category: 'coding',
       header_tier_id: 'ht-premium',
+      include_total: false,
+      include_filter_options: false,
+    });
+  });
+
+  it('delegates message filter options lookup', async () => {
+    await controller.getMessageFilterOptions(
+      { range: '30d', agent_name: 'bot-1' } as never,
+      ctx as never,
+    );
+
+    expect(mockGetMessageFilterOptions).toHaveBeenCalledWith({
+      range: '30d',
+      tenantId: 'tenant-1',
+      agent_name: 'bot-1',
     });
   });
 
