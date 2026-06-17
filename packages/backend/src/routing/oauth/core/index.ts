@@ -21,3 +21,8 @@ export {
   type RefreshableBlob,
   type CoordinatedRefreshParams,
 } from './oauth-refresh-coordinator';
+export {
+  ABSOLUTE_TIME_THRESHOLD_MS,
+  toAbsoluteExpiryTimestamp,
+  toPollIntervalMs,
+} from './device-flow';

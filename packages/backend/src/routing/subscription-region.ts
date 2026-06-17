@@ -1,5 +1,5 @@
 import type { AuthType } from 'manifest-shared';
-import { isMinimaxRegion } from './oauth/minimax-oauth-helpers';
+import { isMinimaxRegion } from './oauth/minimax/minimax-oauth-helpers';
 import { isXiaomiProviderId, isXiaomiTokenPlanRegion } from './xiaomi-region';
 import { isZaiCodingPlanRegion, isZaiProviderId } from './zai-region';
 
