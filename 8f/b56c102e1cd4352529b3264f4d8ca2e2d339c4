@@ -1,0 +1,24 @@
+.changeset/provider-disconnect-speed.md
+  s_e4357f73b92457::t_9dd29a68e6e13d 1-5
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_e4357f73b92457::t_c50e2288564cd1 203,247-274
+  s_e4357f73b92457::t_bb38c418d9b888 111,140,170,200,227,277-400,415,572,684,698-740,775,782,812,897,904
+packages/backend/src/routing/routing-core/__tests__/provider.service.coverage.spec.ts
+  s_e4357f73b92457::t_7e2ad1279d1b64 208-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "8fb56c102e1cd4352529b3264f4d8ca2e2d339c4",
+  "prompts": {},
+  "sessions": {
+    "s_e4357f73b92457": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ed56e-2956-73b2-b3b1-493741f7a20b",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
