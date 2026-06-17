@@ -1,7 +1,7 @@
 /**
- * Backwards-compat facade. The shared OAuth types now live in `./core`;
+ * Backwards-compat facade. The shared OAuth types now live in `../core`;
  * existing callers (model-discovery, MiniMax helpers, the controller) keep
- * importing from here. New code should import from `./core` directly.
+ * importing from here. New code should import from `../core` directly.
  */
 export {
   isOAuthTokenBlob,
