@@ -61,14 +61,17 @@ vi.mock('../../src/services/setup-status.js', () => ({
   checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
-// The per-agent Overview renders ProviderChartCard → MultiAgentTokenChart and
-// fetches three per-provider timeseries. Stub the chart to a marker exposing
-// its series, and the API to a controllable resolver.
+// The per-agent Overview renders ProviderChartCard → MultiAgentTokenChart.
+// Stub the chart to a marker exposing its series, and the per-view provider
+// timeseries endpoints to a controllable resolver.
 const mockPerProvider = vi.fn(() => Promise.resolve({ agents: [], timeseries: [] }));
+const mockPerProviderTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
+const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 vi.mock('../../src/services/api/analytics.js', () => ({
-  getPerProviderTimeseries: (...a: unknown[]) => mockPerProvider(...a),
-  getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProvider(...a),
-  getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProvider(...a),
+  getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
+  getPerProviderMessageTimeseries: (...a: unknown[]) => mockPerProviderMessages(...a),
+  getPerProviderCostTimeseries: (...a: unknown[]) => mockPerProviderCosts(...a),
 }));
 
 vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
@@ -391,6 +394,44 @@ describe('Overview', () => {
     render(() => <Overview />);
     await vi.waitFor(() => {
       expect(mockGetOverview).toHaveBeenCalled();
+    });
+  });
+
+  it('only fetches the visible provider chart series on mount', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['openai'],
+      timeseries: [{ hour: '1', openai: 5 }],
+    });
+    render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledWith('test-agent', '30d');
+    });
+    expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    expect(mockPerProviderTokens).not.toHaveBeenCalled();
+    expect(mockPerProviderCosts).not.toHaveBeenCalled();
+  });
+
+  it('fetches token and cost provider series when those chart views are opened', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    mockPerProvider.mockResolvedValue({
+      agents: ['openai'],
+      timeseries: [{ hour: '1', openai: 5 }],
+    });
+    const { container } = render(() => <Overview />);
+
+    await vi.waitFor(() => {
+      expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+    });
+    const stats = container.querySelectorAll('.chart-card__stat--clickable');
+    fireEvent.click(stats[2]); // tokens
+    await vi.waitFor(() => {
+      expect(mockPerProviderTokens).toHaveBeenCalledWith('test-agent', '30d');
+    });
+    fireEvent.click(stats[0]); // cost
+    await vi.waitFor(() => {
+      expect(mockPerProviderCosts).toHaveBeenCalledWith('test-agent', '30d');
     });
   });
 

@@ -87,6 +87,9 @@ type PivotedTimeseries = {
   timeseries: Array<Record<string, number | string>>;
 };
 
+type ProviderView = 'cost' | 'tokens' | 'messages';
+type TimeseriesKey = { range: string; agent: string; _ping: number };
+
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newApiKey?: string }>();
@@ -101,7 +104,14 @@ const Overview: Component = () => {
   const { range, setRange, handleRangeChange } = useOverviewRange({
     markUserSelected: () => setUserSelectedRange(true),
   });
-  const [activeView, setActiveView] = createSignal<'cost' | 'tokens' | 'messages'>('messages');
+  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('messages');
+  const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
+  const [costChartRequested, setCostChartRequested] = createSignal(false);
+  const setActiveView = (view: ProviderView) => {
+    if (view === 'tokens') setTokenChartRequested(true);
+    if (view === 'cost') setCostChartRequested(true);
+    setActiveViewRaw(view);
+  };
   // Open gate keys off a persistent "setup pending" flag (localStorage) so the
   // modal reliably reopens after a page refresh until the user dismisses or
   // completes it; `isRecentlyCreated` is an in-session OR that need not survive
@@ -232,9 +242,13 @@ const Overview: Component = () => {
   };
   const [selectedProviders, setSelectedProviders] = createSignal<Set<string>>(loadSavedProviders());
 
-  const tsKey = () => ({ range: range(), agent: params.agentName, _ping: messagePing() });
+  const tsKey = (): TimeseriesKey => ({
+    range: range(),
+    agent: params.agentName,
+    _ping: messagePing(),
+  });
   const [providerTokenTs] = createResource(
-    tsKey,
+    () => (tokenChartRequested() ? tsKey() : false),
     (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerMessageTs] = createResource(
@@ -242,7 +256,7 @@ const Overview: Component = () => {
     (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerCostTs] = createResource(
-    tsKey,
+    () => (costChartRequested() ? tsKey() : false),
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
