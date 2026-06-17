@@ -40,10 +40,16 @@ const DEFAULT_LABEL = 'Default';
 
 interface ProviderRouteReference {
   agentId: string;
+  agentName: string;
   surface: 'tier' | 'specificity' | 'header';
   name: string;
   model: string;
   position: string;
+}
+
+interface OwnedAgentRouteTarget {
+  id: string;
+  name: string;
 }
 
 @Injectable()
@@ -752,13 +758,24 @@ export class ProviderService {
 
   /** Resolve the ids of every non-deleted agent the tenant owns. */
   async listOwnedAgentIds(tenantId: string): Promise<string[]> {
+    return (await this.listOwnedAgentRouteTargets(tenantId)).map((agent) => agent.id);
+  }
+
+  private async listOwnedAgentRouteTargets(tenantId: string): Promise<OwnedAgentRouteTarget[]> {
     const agents = await this.agentRepo
       .createQueryBuilder('a')
       .where('a.tenant_id = :tenantId', { tenantId })
       .andWhere('a.deleted_at IS NULL')
-      .select('a.id', 'id')
-      .getRawMany<{ id: string }>();
-    return agents.map((a) => a.id);
+      .select(['a.id AS id', 'a.name AS name', 'a.display_name AS display_name'])
+      .getRawMany<{ id: string; name: string | null; display_name: string | null }>();
+    return agents.map((agent) => {
+      const displayName = agent.display_name?.trim();
+      const name = agent.name?.trim();
+      return {
+        id: agent.id,
+        name: displayName || name || agent.id,
+      };
+    });
   }
 
   private async assertProviderRoutesNotUsed(
@@ -768,20 +785,24 @@ export class ProviderService {
     if (providerRows.length === 0) return;
 
     const references: ProviderRouteReference[] = [];
-    for (const agentId of await this.listOwnedAgentIds(tenantId)) {
-      references.push(...(await this.findProviderRouteReferences(agentId, providerRows)));
+    for (const agent of await this.listOwnedAgentRouteTargets(tenantId)) {
+      references.push(
+        ...(await this.findProviderRouteReferences(agent.id, agent.name, providerRows)),
+      );
     }
     if (references.length === 0) return;
 
     const first = references[0];
     throw new ConflictException(
       `Cannot disconnect provider while its models are assigned to routing. ` +
-        `Update routing first (${first.surface} ${first.name}, ${first.position}: ${first.model}).`,
+        `Update routing first (agent "${first.agentName}", ${first.surface} ${first.name}, ` +
+        `${first.position}: ${first.model}).`,
     );
   }
 
   private async findProviderRouteReferences(
     agentId: string,
+    agentName: string,
     providerRows: TenantProvider[],
   ): Promise<ProviderRouteReference[]> {
     const references: ProviderRouteReference[] = [];
@@ -791,6 +812,7 @@ export class ProviderService {
       if (this.routeBelongsToProviderRows(tier.override_route, providerRows)) {
         references.push({
           agentId,
+          agentName,
           surface: 'tier',
           name: tier.tier,
           model: tier.override_route!.model,
@@ -801,6 +823,7 @@ export class ProviderService {
         if (this.routeBelongsToProviderRows(fallback, providerRows)) {
           references.push({
             agentId,
+            agentName,
             surface: 'tier',
             name: tier.tier,
             model: fallback.model,
@@ -815,6 +838,7 @@ export class ProviderService {
       if (this.routeBelongsToProviderRows(row.override_route, providerRows)) {
         references.push({
           agentId,
+          agentName,
           surface: 'specificity',
           name: row.category,
           model: row.override_route!.model,
@@ -825,6 +849,7 @@ export class ProviderService {
         if (this.routeBelongsToProviderRows(fallback, providerRows)) {
           references.push({
             agentId,
+            agentName,
             surface: 'specificity',
             name: row.category,
             model: fallback.model,
@@ -839,6 +864,7 @@ export class ProviderService {
       if (this.routeBelongsToProviderRows(tier.override_route, providerRows)) {
         references.push({
           agentId,
+          agentName,
           surface: 'header',
           name: tier.name,
           model: tier.override_route!.model,
@@ -849,6 +875,7 @@ export class ProviderService {
         if (this.routeBelongsToProviderRows(fallback, providerRows)) {
           references.push({
             agentId,
+            agentName,
             surface: 'header',
             name: tier.name,
             model: fallback.model,

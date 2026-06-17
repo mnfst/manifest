@@ -22,15 +22,28 @@ const route = (
   model,
 });
 
-const makeQueryBuilder = (agentIds: string[] = ['agent-1']) => ({
+type AgentRow = string | { id: string; name?: string | null; display_name?: string | null };
+
+const makeQueryBuilder = (agents: AgentRow[] = ['agent-1']) => ({
   leftJoin: jest.fn().mockReturnThis(),
   where: jest.fn().mockReturnThis(),
   andWhere: jest.fn().mockReturnThis(),
   select: jest.fn().mockReturnThis(),
-  getRawMany: jest.fn().mockResolvedValue(agentIds.map((id) => ({ id }))),
+  addSelect: jest.fn().mockReturnThis(),
+  getRawMany: jest.fn().mockResolvedValue(
+    agents.map((agent) =>
+      typeof agent === 'string'
+        ? { id: agent, name: agent, display_name: null }
+        : {
+            id: agent.id,
+            name: agent.name ?? agent.id,
+            display_name: agent.display_name ?? null,
+          },
+    ),
+  ),
 });
 
-const makeRepo = (agentIds: string[] = ['agent-1']) => ({
+const makeRepo = (agents: AgentRow[] = ['agent-1']) => ({
   find: jest.fn().mockResolvedValue([]),
   findOne: jest.fn().mockResolvedValue(null),
   insert: jest.fn().mockResolvedValue(undefined),
@@ -39,7 +52,7 @@ const makeRepo = (agentIds: string[] = ['agent-1']) => ({
   remove: jest.fn().mockResolvedValue(undefined),
   update: jest.fn().mockResolvedValue(undefined),
   manager: { transaction: jest.fn() },
-  createQueryBuilder: jest.fn().mockReturnValue(makeQueryBuilder(agentIds)),
+  createQueryBuilder: jest.fn().mockReturnValue(makeQueryBuilder(agents)),
 });
 
 describe('ProviderService — route-only cleanup paths', () => {
@@ -483,6 +496,18 @@ describe('ProviderService — route-only cleanup paths', () => {
     });
 
     it('blocks bulk disable when a route references an active provider', async () => {
+      const agentRepo = makeRepo([
+        { id: 'agent-1', name: 'support-bot', display_name: 'Support Bot' },
+      ]);
+      const localSvc = new ProviderService(
+        providerRepo as unknown as Repository<TenantProvider>,
+        tierRepo as unknown as Repository<TierAssignment>,
+        specRepo as unknown as Repository<SpecificityAssignment>,
+        agentRepo as unknown as Repository<Agent>,
+        headerTierRepo as unknown as Repository<HeaderTier>,
+        pricingCache as unknown as ModelPricingCacheService,
+        routingCache as unknown as RoutingCacheService,
+      );
       providerRepo.find.mockResolvedValueOnce([
         {
           id: 'p1',
@@ -503,8 +528,8 @@ describe('ProviderService — route-only cleanup paths', () => {
       specRepo.find.mockResolvedValue([]);
       headerTierRepo.find.mockResolvedValue([]);
 
-      await expect(svc.deactivateAllProviders('agent-1', 'tenant-1')).rejects.toThrow(
-        /Cannot disconnect provider/,
+      await expect(localSvc.deactivateAllProviders('agent-1', 'tenant-1')).rejects.toThrow(
+        'Update routing first (agent "Support Bot", tier standard, primary: gpt-4o).',
       );
       expect(providerRepo.update).not.toHaveBeenCalled();
     });
