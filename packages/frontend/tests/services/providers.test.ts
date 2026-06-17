@@ -145,6 +145,7 @@ describe('validateApiKey', () => {
 
   it('validates Xiaomi MiMo API key prefix and length', () => {
     const xiaomi = getProvider('xiaomi')!;
+    expect(xiaomi.keyPlaceholder).toBe('sk-xxxxx');
     expect(validateApiKey(xiaomi, '')).toEqual({
       valid: false,
       error: 'API key is required',
@@ -155,9 +156,9 @@ describe('validateApiKey', () => {
     });
     expect(validateApiKey(xiaomi, 'sk-short')).toEqual({
       valid: false,
-      error: 'Key is too short (minimum 10 characters)',
+      error: 'Key is too short (minimum 50 characters)',
     });
-    expect(validateApiKey(xiaomi, 'sk-mimo-valid')).toEqual({ valid: true });
+    expect(validateApiKey(xiaomi, `sk-${'a'.repeat(47)}`)).toEqual({ valid: true });
   });
 
   it('validates NVIDIA NIM key length without enforcing an undocumented prefix', () => {
@@ -600,7 +601,9 @@ describe('PROVIDERS', () => {
   });
 
   it('provides API-key and subscription-key URLs for Xiaomi MiMo', () => {
-    expect(getRoutingProviderApiKeyUrl('xiaomi')).toBe('https://platform.xiaomimimo.com/console');
+    expect(getRoutingProviderApiKeyUrl('xiaomi')).toBe(
+      'https://platform.xiaomimimo.com/console/api-keys',
+    );
     expect(getSubscriptionProviderKeyUrl('xiaomi')).toBe(
       'https://platform.xiaomimimo.com/token-plan',
     );
