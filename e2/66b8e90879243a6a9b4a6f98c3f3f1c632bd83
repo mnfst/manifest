@@ -1,0 +1,19 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_620fcdbfffa802::t_d55d15a3e76de6 378-379
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "e266b8e90879243a6a9b4a6f98c3f3f1c632bd83",
+  "prompts": {},
+  "sessions": {
+    "s_620fcdbfffa802": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ed5b9-78b1-7573-ab9a-a21bcff4542b",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
