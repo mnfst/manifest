@@ -509,7 +509,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         </Show>
       </div>
 
-      <Show when={!data.loading} fallback={<ProviderConnectionsSkeleton />}>
+      <Show when={!config.loading} fallback={<ProviderConnectionsSkeleton />}>
         <Show when={showMetricCard()}>
           <div class="chart-card" style="margin-bottom: 24px; padding: 20px 24px;">
             <span class="chart-card__label" style="display: flex; align-items: center; gap: 0;">
