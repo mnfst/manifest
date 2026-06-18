@@ -96,6 +96,24 @@ describe('body parser limits', () => {
     expect(thirdNext).toHaveBeenCalledTimes(1);
   });
 
+  it('skips body budgets for requests without proxy bodies', () => {
+    const middleware = createProxyBodyBudgetMiddleware();
+    const next = jest.fn();
+
+    middleware({ method: 'GET', headers: {} } as express.Request, createMockResponse(), next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows proxy request bodies without Content-Length when they are not chunked', () => {
+    const middleware = createProxyBodyBudgetMiddleware();
+    const next = jest.fn();
+
+    middleware({ method: 'POST', headers: {} } as express.Request, createMockResponse(), next);
+
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects chunked proxy request bodies without a Content-Length budget', () => {
     const middleware = createProxyBodyBudgetMiddleware();
     const res = createMockResponse();
@@ -117,5 +135,75 @@ describe('body parser limits', () => {
       error: 'Length Required',
       statusCode: 411,
     });
+  });
+
+  it('rejects invalid proxy Content-Length headers', () => {
+    const middleware = createProxyBodyBudgetMiddleware();
+    const res = createMockResponse();
+    const next = jest.fn();
+
+    middleware(
+      {
+        method: 'POST',
+        headers: { 'content-length': '-1' },
+      } as express.Request,
+      res,
+      next,
+    );
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Invalid Content-Length header',
+      error: 'Bad Request',
+      statusCode: 400,
+    });
+  });
+
+  it('rejects proxy request bodies above the proxy limit before parsing', () => {
+    const middleware = createProxyBodyBudgetMiddleware();
+    const res = createMockResponse();
+    const next = jest.fn();
+
+    middleware(
+      {
+        method: 'POST',
+        headers: { 'content-length': String(PROXY_BODY_LIMIT_BYTES + 1) },
+      } as express.Request,
+      res,
+      next,
+    );
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(413);
+    expect(res.json).toHaveBeenCalledWith({
+      message: `Request body exceeds ${PROXY_BODY_LIMIT}`,
+      error: 'Payload Too Large',
+      statusCode: 413,
+    });
+  });
+
+  it('passes through non-body-parser errors', () => {
+    const res = createMockResponse();
+    const next = jest.fn();
+    const err = new Error('boom');
+
+    bodyParserErrorHandler(err, {} as express.Request, res, next);
+
+    expect(next).toHaveBeenCalledWith(err);
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('passes through unsupported body-parser errors', () => {
+    const res = createMockResponse();
+    const next = jest.fn();
+    const err = Object.assign(new Error('unsupported parser error'), {
+      type: 'entity.verify.failed',
+    });
+
+    bodyParserErrorHandler(err, {} as express.Request, res, next);
+
+    expect(next).toHaveBeenCalledWith(err);
+    expect(res.status).not.toHaveBeenCalled();
   });
 });

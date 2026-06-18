@@ -95,6 +95,21 @@ describe('redactInlineImageDataUrls', () => {
     });
   });
 
+  it('redacts image data URLs without base64 padding', () => {
+    const result = redactInlineImageDataUrls({
+      image_url: 'data:image/webp;base64,QUJD',
+    });
+
+    expect(result).toEqual({
+      image_url: '[inline image: image/webp, 3 bytes, 4 base64 chars]',
+    });
+  });
+
+  it('returns primitive values unchanged', () => {
+    expect(redactInlineImageDataUrls(null)).toBeNull();
+    expect(redactInlineImageDataUrls(42)).toBe(42);
+  });
+
   it('reuses the original object when no inline image data is present', () => {
     const body = {
       messages: [{ role: 'user', content: 'plain text only' }],

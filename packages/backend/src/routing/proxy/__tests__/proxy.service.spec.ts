@@ -380,6 +380,38 @@ describe('ProxyService — orchestration', () => {
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toBe(body);
     });
 
+    it('reuses converted Responses bodies for routing when no separate routing body is provided', async () => {
+      const body = {
+        input: 'Describe this image',
+        stream: false,
+      };
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const validateSpy = jest.spyOn(
+        svc as unknown as { validatePayload: (body: Record<string, unknown>) => void },
+        'validatePayload',
+      );
+
+      await svc.proxyRequest(baseOpts({ body, apiMode: 'responses' } as never));
+
+      const forwardedBody = fallbackService.tryForwardToProvider.mock.calls[0][0].chatBody;
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+      expect(forwardedBody).toBeDefined();
+      expect(forwardedBody?.messages).toEqual([{ role: 'user', content: 'Describe this image' }]);
+    });
+
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',

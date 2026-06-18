@@ -172,13 +172,16 @@ export class ProxyService {
           ? messagesToChatCompletionsRequest(body)
           : undefined;
     const forwardingBody = chatBody ?? body;
-    const routingChatBody =
-      apiMode === 'responses'
-        ? toChatCompletionsRequest(routingSource)
-        : apiMode === 'messages'
-          ? messagesToChatCompletionsRequest(routingSource)
-          : undefined;
-    const routingBody = routingChatBody ?? routingSource;
+    let routingBody = forwardingBody;
+    if (routingSource !== body) {
+      const routingChatBody =
+        apiMode === 'responses'
+          ? toChatCompletionsRequest(routingSource)
+          : apiMode === 'messages'
+            ? messagesToChatCompletionsRequest(routingSource)
+            : undefined;
+      routingBody = routingChatBody ?? routingSource;
+    }
     this.validatePayload(forwardingBody);
     if (routingBody !== forwardingBody) this.validatePayload(routingBody);
 
