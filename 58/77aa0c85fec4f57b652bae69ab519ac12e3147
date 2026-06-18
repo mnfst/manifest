@@ -1,0 +1,28 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_33dd2d73919168::t_c7578bdbc0d3b6 411-412
+  s_33dd2d73919168::t_cf720dc8be151a 402-405,410
+  s_33dd2d73919168::t_05ac9fd50e9ec6 383-401,406-408,413-414
+  s_33dd2d73919168::t_40dabeacc1939c 409
+packages/backend/src/common/middleware/body-parser-limits.spec.ts
+  s_33dd2d73919168::t_05ac9fd50e9ec6 99-116,139-207
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_33dd2d73919168::t_05ac9fd50e9ec6 175-184
+packages/backend/src/routing/proxy/__tests__/inline-image-redaction.spec.ts
+  s_33dd2d73919168::t_05ac9fd50e9ec6 98-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.8",
+  "base_commit_sha": "5877aa0c85fec4f57b652bae69ab519ac12e3147",
+  "prompts": {},
+  "sessions": {
+    "s_33dd2d73919168": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019edc2c-b971-7ea3-aab0-4b80eaf3ff43",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
