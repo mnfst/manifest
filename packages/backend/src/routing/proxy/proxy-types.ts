@@ -77,6 +77,8 @@ export interface ProxyRequestOptions {
    */
   userId: string | null;
   body: Record<string, unknown>;
+  /** Body used for Manifest-owned routing/scoring/recording; large inline media may be redacted. */
+  routingBody?: Record<string, unknown>;
   apiMode?: ProxyApiMode;
   sessionKey: string;
   agentName?: string;
