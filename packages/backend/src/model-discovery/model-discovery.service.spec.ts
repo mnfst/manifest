@@ -2402,11 +2402,16 @@ describe('ModelDiscoveryService', () => {
 
       const result = buildSubscriptionFallbackModels(mockPricingSync as never, 'openai');
 
-      expect(result.length).toBe(4);
+      expect(result.length).toBe(9);
       expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-image-2');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-nano');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
+      expect(result.map((m) => m.id)).toContain('gpt-5.2-chat');
+      expect(result.map((m) => m.id)).toContain('gpt-5.2-pro');
+      expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-mini');
       expect(result.map((m) => m.id)).not.toContain('gpt-5.3-codex');
       expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
       expect(result.map((m) => m.id)).not.toContain('gpt-5.1-codex-max');
@@ -2605,13 +2610,18 @@ describe('ModelDiscoveryService', () => {
 
       const result = supplementWithKnownModels(raw, 'openai');
 
-      // 1 discovered + 4 ChatGPT-account supported knownModels
-      expect(result.length).toBe(5);
+      // 1 discovered + 9 ChatGPT-account supported knownModels
+      expect(result.length).toBe(10);
       expect(result[0].id).toBe('gpt-oss-120b');
       expect(result.map((m) => m.id)).toContain('gpt-5.5');
       expect(result.map((m) => m.id)).toContain('gpt-5.4');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-image-2');
       expect(result.map((m) => m.id)).toContain('gpt-5.4-mini');
+      expect(result.map((m) => m.id)).toContain('gpt-5.4-nano');
       expect(result.map((m) => m.id)).toContain('gpt-5.3-codex-spark');
+      expect(result.map((m) => m.id)).toContain('gpt-5.2-chat');
+      expect(result.map((m) => m.id)).toContain('gpt-5.2-pro');
+      expect(result.map((m) => m.id)).toContain('gpt-5.1-codex-mini');
       expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
     });
 
