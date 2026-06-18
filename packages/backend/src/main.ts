@@ -186,9 +186,14 @@ export async function bootstrap() {
   const { toNodeHandler } = await import('better-auth/node');
   expressApp.all('/api/auth/*splat', toNodeHandler(auth));
 
-  // Re-add body parsing for NestJS routes
-  expressApp.use(express.json({ limit: '1mb' }));
-  expressApp.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // Re-add body parsing for NestJS routes. The 1mb default matches the
+  // body-parser default and is enough for normal chat completions. Self-hosted
+  // operators routing to long-context models (e.g. 1M-token windows) can lift
+  // this cap with BODY_PARSER_LIMIT (any value accepted by the bytes module:
+  // '5mb', '20mb', '100kb', etc.).
+  const bodyLimit = process.env['BODY_PARSER_LIMIT'] ?? '1mb';
+  expressApp.use(express.json({ limit: bodyLimit }));
+  expressApp.use(express.urlencoded({ extended: true, limit: bodyLimit }));
 
   const port = Number(process.env['PORT'] ?? 3001);
   const host = process.env['BIND_ADDRESS'] ?? '127.0.0.1';
