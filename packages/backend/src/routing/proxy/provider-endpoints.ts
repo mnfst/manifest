@@ -66,6 +66,15 @@ const openaiHeaders = (apiKey: string) => ({
 
 const openaiPath = () => '/v1/chat/completions';
 
+// Shared headers for OpenAI-compatible routers (OpenRouter, Requesty) that
+// accept the optional HTTP-Referer / X-Title attribution headers.
+const routerHeaders = (apiKey: string) => ({
+  Authorization: `Bearer ${apiKey}`,
+  'Content-Type': 'application/json',
+  'HTTP-Referer': 'https://manifest.build',
+  'X-Title': 'Manifest',
+});
+
 const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
   if (authType === 'subscription') {
     return buildClaudeCodeSubscriptionHeaders(apiKey);
@@ -370,12 +379,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   openrouter: {
     baseUrl: 'https://openrouter.ai',
-    buildHeaders: (apiKey: string) => ({
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://manifest.build',
-      'X-Title': 'Manifest',
-    }),
+    buildHeaders: routerHeaders,
     buildPath: () => '/api/v1/chat/completions',
     format: 'openai',
     ...openaiStreamUsage,
@@ -385,12 +389,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   // router host, and models are listed at /v1/models.
   requesty: {
     baseUrl: 'https://router.requesty.ai',
-    buildHeaders: (apiKey: string) => ({
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://manifest.build',
-      'X-Title': 'Manifest',
-    }),
+    buildHeaders: routerHeaders,
     buildPath: () => '/v1/chat/completions',
     format: 'openai',
     ...openaiStreamUsage,
