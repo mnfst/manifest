@@ -380,6 +380,21 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  // Requesty is an OpenAI-compatible router (provider/model naming, like
+  // OpenRouter). The chat endpoint lives at /v1/chat/completions under the
+  // router host, and models are listed at /v1/models.
+  requesty: {
+    baseUrl: 'https://router.requesty.ai',
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://manifest.build',
+      'X-Title': 'Manifest',
+    }),
+    buildPath: () => '/v1/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
   ollama: {
     baseUrl: OLLAMA_HOST,
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),
