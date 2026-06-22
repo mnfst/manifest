@@ -138,7 +138,7 @@ vi.mock('../../src/components/RoutingTabs.js', () => ({
     const _read = [
       props.specificityEnabled,
       props.customEnabled,
-      props.showSpecificity,
+      (props.showSpecificity as () => unknown)?.(),
       (props.pipelineHelp as () => unknown)?.(),
     ];
     void _read;
@@ -332,7 +332,7 @@ vi.mock('../../src/pages/RoutingDefaultTierSection.js', () => ({
       props.getTier,
       props.complexityEnabled,
       props.togglingComplexity,
-      props.showComplexityToggle,
+      (props.showComplexityToggle as () => unknown)?.(),
       props.responseMode,
       props.changingResponseMode,
       props.onResponseModeChange,

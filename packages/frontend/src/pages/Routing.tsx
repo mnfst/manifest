@@ -116,19 +116,25 @@ const Routing: Component = () => {
   // fully visible for agents that already invested in them (the "legacy"
   // cohort). The gate keys off config-presence — not signup date — so long-time
   // users who never touched these features also get the simplified surface.
-  // Visibility is sticky within a session: once shown it stays shown, so
-  // toggling complexity off mid-session doesn't yank the control away.
-  const [legacyComplexityVisible, setLegacyComplexityVisible] = createSignal(false);
-  const [legacySpecificityVisible, setLegacySpecificityVisible] = createSignal(false);
+  // Stickiness is scoped per agent: once an agent reveals a deprecated surface
+  // we remember it for that agent (so toggling complexity off mid-session
+  // doesn't yank the control away), but the gate compares the remembered agent
+  // against the current one, so switching agents re-evaluates from the new
+  // agent's own config and never carries a legacy reveal onto a clean agent.
+  const [legacyComplexityAgent, setLegacyComplexityAgent] = createSignal<string | null>(null);
+  const [legacySpecificityAgent, setLegacySpecificityAgent] = createSignal<string | null>(null);
   createEffect(() => {
+    const agent = agentName();
     const hasComplexityConfig =
       (complexityStatus()?.enabled ?? false) ||
       (tiers()?.some((t) => t.tier !== 'default' && t.override_route !== null) ?? false);
-    if (hasComplexityConfig && !legacyComplexityVisible()) setLegacyComplexityVisible(true);
+    if (hasComplexityConfig) setLegacyComplexityAgent(agent);
     const hasSpecificityConfig =
       specificityAssignments()?.some((a) => a.is_active || a.override_route !== null) ?? false;
-    if (hasSpecificityConfig && !legacySpecificityVisible()) setLegacySpecificityVisible(true);
+    if (hasSpecificityConfig) setLegacySpecificityAgent(agent);
   });
+  const legacyComplexityVisible = () => legacyComplexityAgent() === agentName();
+  const legacySpecificityVisible = () => legacySpecificityAgent() === agentName();
 
   // Per-route model params, fetched once and threaded down. Scope separates
   // default/complexity tiers, task-specific tiers, and custom header tiers so
