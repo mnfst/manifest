@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-06-15
+Last updated: 2026-06-22
 
 ## What Manifest Is
 
@@ -77,17 +77,19 @@ packages/
 │   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
-│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, security events)
+│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, messages)
 │   │   │   ├── datasource.ts               # CLI DataSource for migration commands
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
+│   │   │   ├── models-dev-sync.service.ts   # Dev-mode model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
-│   │   │   └── seed-messages.ts             # Demo agent message seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   │   ├── seed-messages.ts             # Demo agent message seed data
+│   │   │   └── backfills/                   # One-off data backfill scripts
+│   │   ├── entities/                        # TypeORM entities (24 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
-│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, user-provider, tier-assignment, header-tier, specificity-assignment, message-recording, playground-run/column, reasoning-content-cache-entry, etc.
+│   │   │   └── ...                          # agent-message, agent-log, llm-call, tool-execution, tenant-provider, api-key, tier-assignment, header-tier, specificity-assignment, message-recording, playground-run/column, reasoning-content-cache-entry, agent-enabled-provider, backfill-state, etc.
 │   │   ├── common/
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
@@ -99,8 +101,8 @@ packages/
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
-│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents
-│   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers
+│   │   │   ├── controllers/                 # overview, tokens, costs, messages, agents, provider-analytics, provider-usage
+│   │   │   └── services/                    # aggregation + timeseries-queries + query-helpers + provider-usage + message-details/feedback/recording + agent-lifecycle/duplication
 │   │   ├── otlp/                            # Agent key auth + onboarding
 │   │   │   ├── guards/agent-key-auth.guard.ts # Bearer token auth (agent API keys)
 │   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
@@ -110,10 +112,11 @@ packages/
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
 │   │   │   ├── custom-provider/             # Custom provider CRUD
 │   │   │   ├── header-tiers/               # Header-based tier overrides
-│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax, xAI, Anthropic, Copilot)
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
-│   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
+│   │   │   ├── keywords.ts                 # Index: re-exports from keywords/ subdir
+│   │   │   ├── keywords/                   # Per-category keyword lists (complexity.ts + one file per specificity category)
 │   │   │   ├── specificity-detector.ts     # Task-type detection (coding, trading, etc.)
 │   │   │   └── scan-messages.ts            # Message scanner for specificity detection
 │   │   ├── model-prices/                    # Model pricing management + sync
@@ -208,9 +211,8 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 
 - **Admin user**: `admin@manifest.build` / `manifest` (email verification email is skipped if Mailgun is not configured — user is created but unverified)
 - **Tenant**: `seed-tenant-001` linked to the admin user
-- **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
+- **Agent**: `demo-agent` with OTLP key `mnfst_dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
-- **Security events**: 12 sample events for the security dashboard
 - **Agent messages**: Sample telemetry messages for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
@@ -334,18 +336,20 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET | `/api/v1/agents/:agentName/key` | Session/API Key | Get agent API key |
 | POST | `/api/v1/agents/:agentName/rotate-key` | Session/API Key | Rotate API key |
 | PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
+| GET/PUT/DELETE | `/api/v1/agents/:agentName/enabled-providers*` | Session/API Key | Per-agent provider enable/disable |
 | GET | `/api/v1/messages` | Session/API Key | Paginated message log |
 | GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Message details, feedback, miscategorized flag, recording |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
 | GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
 | GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
-| GET | `/api/v1/savings/*` | Session/API Key | Savings analytics (summary, timeseries, baseline candidates) |
-| GET | `/api/v1/agent/:agentName/usage` | Session/API Key | Per-agent token usage |
-| GET | `/api/v1/agent/:agentName/costs` | Session/API Key | Per-agent cost data |
+| GET | `/api/v1/providers` | Session/API Key | Tenant provider list |
+| GET | `/api/v1/providers/usage` | Session/API Key | Provider usage stats |
+| GET | `/api/v1/provider-analytics/*` | Session/API Key | Provider analytics (timeseries, per-agent, connection detail) |
+| GET | `/api/v1/agent/usage` | Bearer (mnfst_*) | Per-agent token usage (identity from Bearer token) |
+| GET | `/api/v1/agent/costs` | Bearer (mnfst_*) | Per-agent cost data (identity from Bearer token) |
 | GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, etc.) |
 | POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
-| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax) |
+| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Kiro, MiniMax, xAI, Anthropic, Copilot) |
 | POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
 | POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
 | GET | `/api/v1/setup/status` | Public | First-run setup status |
@@ -636,5 +640,3 @@ This applies to:
 ### E2E Test Entities
 
 When adding new TypeORM entities to `database.module.ts`, also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
-
-**Known gap (code bug):** `ReasoningContentCacheEntry` is registered in `database.module.ts` but is absent from the `entities` array in `packages/backend/test/helpers.ts`. Add it there to avoid E2E failures in services that touch that entity.
