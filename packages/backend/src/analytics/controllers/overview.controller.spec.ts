@@ -10,15 +10,9 @@ import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.enti
 
 function mockAggregation(): Record<string, jest.Mock> {
   return {
-    getSummaryMetrics: jest.fn().mockResolvedValue({
-      tokens: {
-        tokens_today: { value: 1000, trend_pct: 10, sub_values: { input: 600, output: 400 } },
-        input_tokens: 600,
-        output_tokens: 400,
-      },
-      cost: { value: 5.0, trend_pct: 20 },
-      messages: { value: 50, trend_pct: 5 },
-    }),
+    // Previous-window totals power the trend arrows; the current-window summary
+    // is derived from the timeseries buckets below.
+    getPreviousWindowMetrics: jest.fn().mockResolvedValue({ tokens: 900, cost: 4.0, messages: 45 }),
     hasAnyData: jest.fn().mockResolvedValue(true),
   };
 }
@@ -26,9 +20,9 @@ function mockAggregation(): Record<string, jest.Mock> {
 function mockTimeseries(): Record<string, jest.Mock> {
   return {
     getTimeseries: jest.fn().mockResolvedValue({
-      tokenUsage: [],
-      costUsage: [],
-      messageUsage: [],
+      tokenUsage: [{ input_tokens: 600, output_tokens: 400 }],
+      costUsage: [{ cost: 5.0 }],
+      messageUsage: [{ count: 50 }],
     }),
     getCostByModel: jest.fn().mockResolvedValue([]),
     getRecentActivity: jest.fn().mockResolvedValue([]),
@@ -106,6 +100,20 @@ describe('OverviewController', () => {
     );
   });
 
+  it('derives the current-window summary by summing the timeseries buckets', async () => {
+    const result = await controller.getOverview({ range: '24h' }, ctx as never);
+
+    // 600 + 400 input/output tokens, $5 cost, 50 messages from the buckets.
+    expect(result.summary.tokens_today.value).toBe(1000);
+    expect(result.summary.tokens_today.sub_values).toEqual({ input: 600, output: 400 });
+    expect(result.summary.cost_today.value).toBe(5.0);
+    expect(result.summary.messages.value).toBe(50);
+    // Trends are computed against the previous-window totals.
+    expect(result.summary.tokens_today.trend_pct).toBe(11); // (1000-900)/900
+    expect(result.summary.cost_today.trend_pct).toBe(25); // (5-4)/4
+    expect(result.summary.messages.trend_pct).toBe(11); // (50-45)/45
+  });
+
   it('returns overview with daily timeseries for 7d range', async () => {
     const result = await controller.getOverview({ range: '7d' }, ctx as never);
 
@@ -134,27 +142,13 @@ describe('OverviewController', () => {
   it('defaults range to 24h when not specified', async () => {
     await controller.getOverview({}, ctx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith(
-      '24h',
-      'tenant-123',
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', 'tenant-123', undefined, true);
   });
 
   it('passes agent_name and tenantId to all calls, excluding Playground everywhere', async () => {
     await controller.getOverview({ range: '24h', agent_name: 'bot-1' }, ctx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith(
-      '24h',
-      'tenant-123',
-      'bot-1',
-      undefined,
-      undefined,
-      true,
-    );
+    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
     expect(ts.getTimeseries).toHaveBeenCalledWith(
       '24h',
       'tenant-123',
@@ -193,14 +187,7 @@ describe('OverviewController', () => {
     const nullCtx = { tenantId: null, userId: 'u1' };
     await controller.getOverview({ range: '24h' }, nullCtx as never);
 
-    expect(agg.getSummaryMetrics).toHaveBeenCalledWith(
-      '24h',
-      null,
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', null, undefined, true);
   });
 
   it('returns has_providers true when agent has active providers', async () => {

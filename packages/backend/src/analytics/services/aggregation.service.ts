@@ -133,6 +133,74 @@ export class AggregationService {
     };
   }
 
+  /**
+   * Raw totals for the window *before* the current one, used only to compute the
+   * trend arrows on the Overview summary cards. The Overview derives its
+   * current-window totals by summing the timeseries buckets it already fetches
+   * (see AggregationService.buildSummary), so it no longer needs the full
+   * current+previous double-scan that getSummaryMetrics runs for the per-agent /
+   * per-connection widgets.
+   */
+  async getPreviousWindowMetrics(
+    range: string,
+    tenantId: string | null,
+    agentName?: string,
+    excludePlayground = false,
+  ): Promise<{ tokens: number; cost: number; messages: number }> {
+    const { cutoff, prevCutoff } = this.computeWindow(range);
+    const safeCost = sqlSanitizeCost('at.cost_usd');
+    const prev = await this.buildPreviousWindowQuery(
+      tenantId,
+      agentName,
+      cutoff,
+      prevCutoff,
+      undefined,
+      undefined,
+      excludePlayground,
+    )
+      .select('COUNT(*)', 'msg_count')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
+      .getRawOne();
+    return {
+      tokens: Number(prev?.tokens ?? 0),
+      cost: Number(prev?.cost ?? 0),
+      messages: Number(prev?.msg_count ?? 0),
+    };
+  }
+
+  /**
+   * Assemble the Overview summary cards (value + trend vs the previous window)
+   * from already-computed current totals and previous-window totals. Pure (no
+   * DB) so the current totals can be sourced from the timeseries buckets.
+   */
+  static buildSummary(
+    current: { input: number; output: number; cost: number; messages: number },
+    previous: { tokens: number; cost: number; messages: number },
+  ): {
+    tokens: { tokens_today: MetricWithTrend; input_tokens: number; output_tokens: number };
+    cost: MetricWithTrend;
+    messages: MetricWithTrend;
+  } {
+    const curTokens = current.input + current.output;
+    return {
+      tokens: {
+        tokens_today: {
+          value: curTokens,
+          trend_pct: computeTrend(curTokens, previous.tokens),
+          sub_values: { input: current.input, output: current.output },
+        },
+        input_tokens: current.input,
+        output_tokens: current.output,
+      },
+      cost: { value: current.cost, trend_pct: computeTrend(current.cost, previous.cost) },
+      messages: {
+        value: current.messages,
+        trend_pct: computeTrend(current.messages, previous.messages),
+      },
+    };
+  }
+
   private computeWindow(range: string): RangeWindow {
     return {
       cutoff: computeCutoff(rangeToInterval(range)),

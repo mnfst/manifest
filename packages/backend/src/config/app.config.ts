@@ -31,7 +31,11 @@ export const appConfig = registerAs('app', () => ({
   mailgunApiKey: process.env['MAILGUN_API_KEY'] ?? '',
   mailgunDomain: process.env['MAILGUN_DOMAIN'] ?? '',
   notificationFromEmail: process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build',
-  dbPoolMax: Number(process.env['DB_POOL_MAX'] ?? 20),
+  dbPoolMax: Number(process.env['DB_POOL_MAX'] ?? 30),
+  // Apply PgBouncer-safe planner defaults (jit off, larger work_mem, SSD-tuned
+  // random_page_cost) as role-level defaults at boot. Set DB_TUNE_SESSION=false
+  // to skip (e.g. a managed Postgres where the role lacks ALTER ROLE on itself).
+  dbTuneSession: process.env['DB_TUNE_SESSION'] !== 'false',
   // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
   // Off by default — only Manifest Cloud's marketing homepage should enable it.
   publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',
