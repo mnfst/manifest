@@ -3,6 +3,11 @@ buildCommand = "npx turbo build --filter=manifest-backend --filter=manifest-fron
 
 [deploy]
 startCommand = "npm start"
+# Run migrations once, before any replica starts, over the direct (non-PgBouncer)
+# connection. Railway runs preDeploy in a single one-off container per deployment,
+# so replicas never migrate concurrently on boot. migrate.js also holds an advisory
+# lock, so overlapping deployments serialize instead of deadlocking on agent_messages.
+preDeployCommand = "npm run migration:run:prod --workspace=packages/backend"
 healthcheckPath = "/api/v1/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"

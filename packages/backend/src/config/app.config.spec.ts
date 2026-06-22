@@ -85,6 +85,18 @@ describe('appConfig', () => {
     expect(config.dbTuneSession).toBe(false);
   });
 
+  it('defaults runMigrationsOnBoot to true when RUN_MIGRATIONS_ON_BOOT is unset', async () => {
+    delete process.env['RUN_MIGRATIONS_ON_BOOT'];
+    const config = await loadConfig();
+    expect(config.runMigrationsOnBoot).toBe(true);
+  });
+
+  it('disables runMigrationsOnBoot when RUN_MIGRATIONS_ON_BOOT is "false"', async () => {
+    process.env['RUN_MIGRATIONS_ON_BOOT'] = 'false';
+    const config = await loadConfig();
+    expect(config.runMigrationsOnBoot).toBe(false);
+  });
+
   it('throws when DATABASE_URL is missing in production', async () => {
     delete process.env['DATABASE_URL'];
     process.env['NODE_ENV'] = 'production';
