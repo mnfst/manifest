@@ -101,8 +101,8 @@ export class PublicStatsService {
     const cutoff14d = computeCutoff('14 days');
     const cutoff30d = computeCutoff('30 days');
 
-    const [countRow, topRows, tokenRows, tokenRowsPrev7d, tokenRows30d] = await Promise.all([
-      this.messageRepo.createQueryBuilder('at').select('COUNT(*)', 'total').getRawOne(),
+    const [totalMessages, topRows, tokenRows, tokenRowsPrev7d, tokenRows30d] = await Promise.all([
+      this.estimateTotalMessages(),
       this.messageRepo
         .createQueryBuilder('at')
         .select('at.model', 'model')
@@ -185,10 +185,23 @@ export class PublicStatsService {
     topModels.forEach((m, i) => (m.usage_rank = i + 1));
 
     return {
-      total_messages: Number(countRow?.total ?? 0),
+      total_messages: totalMessages,
       top_models: topModels,
       token_map: tokenMap,
     };
+  }
+
+  /**
+   * Approximate agent_messages row count from the planner's statistics. This is
+   * a public marketing aggregate, so an estimate is plenty — and it avoids a
+   * full-table COUNT(*) over millions of rows on every (24h-cached) refresh.
+   * Returns 0 on a freshly-loaded table that hasn't been analyzed yet.
+   */
+  private async estimateTotalMessages(): Promise<number> {
+    const rows: { estimate: string | number | null }[] = await this.messageRepo.query(
+      `SELECT GREATEST(reltuples, 0)::bigint AS estimate FROM pg_class WHERE relname = 'agent_messages' AND relkind = 'r'`,
+    );
+    return Number(rows?.[0]?.estimate ?? 0);
   }
 
   async getProviderDailyTokens(): Promise<ProviderDailyTokens[]> {

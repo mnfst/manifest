@@ -27,6 +27,7 @@ import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
 import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity';
 import { DatabaseSeederService } from './database-seeder.service';
+import { DbTuningService } from './db-tuning.service';
 import { ModelPricesModule } from '../model-prices/model-prices.module';
 import { shouldRetryDbConnection } from '../common/utils/db-retry';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
@@ -127,6 +128,9 @@ import { TenantProviders1792500000000 } from './migrations/1792500000000-TenantP
 import { TenantScopedConfigs1792600000000 } from './migrations/1792600000000-TenantScopedConfigs';
 import { DropUserScopeFromRouting1792700000000 } from './migrations/1792700000000-DropUserScopeFromRouting';
 import { AddBackfillStateTable1792800000000 } from './migrations/1792800000000-AddBackfillStateTable';
+import { TuneAgentMessagesAutovacuum1792900000000 } from './migrations/1792900000000-TuneAgentMessagesAutovacuum';
+import { AddTenantProviderValueIndex1793000000000 } from './migrations/1793000000000-AddTenantProviderValueIndex';
+import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/1793100000000-DropRedundantTenantAgentNameIndex';
 
 const entities = [
   AgentMessage,
@@ -254,6 +258,9 @@ const migrations = [
   TenantScopedConfigs1792600000000,
   DropUserScopeFromRouting1792700000000,
   AddBackfillStateTable1792800000000,
+  TuneAgentMessagesAutovacuum1792900000000,
+  AddTenantProviderValueIndex1793000000000,
+  DropRedundantTenantAgentNameIndex1793100000000,
 ];
 
 @Module({
@@ -315,7 +322,7 @@ const migrations = [
     ]),
     ModelPricesModule,
   ],
-  providers: [DatabaseSeederService],
+  providers: [DatabaseSeederService, DbTuningService],
   exports: [DatabaseSeederService],
 })
 export class DatabaseModule {}

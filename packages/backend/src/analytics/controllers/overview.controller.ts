@@ -13,6 +13,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 
+/** Sum the timeseries buckets into current-window totals for the summary cards. */
+function sumTimeseries(tsData: {
+  tokenUsage: { input_tokens: number; output_tokens: number }[];
+  costUsage: { cost: number }[];
+  messageUsage: { count: number }[];
+}): { input: number; output: number; cost: number; messages: number } {
+  let input = 0;
+  let output = 0;
+  for (const b of tsData.tokenUsage) {
+    input += b.input_tokens;
+    output += b.output_tokens;
+  }
+  const cost = tsData.costUsage.reduce((sum, b) => sum + b.cost, 0);
+  const messages = tsData.messageUsage.reduce((sum, b) => sum + b.count, 0);
+  return { input, output, cost, messages };
+}
+
 @Controller('api/v1')
 @UseInterceptors(UserCacheInterceptor)
 @CacheTTL(DASHBOARD_CACHE_TTL_MS)
@@ -33,7 +50,7 @@ export class OverviewController {
     const hourly = isHourlyRange(range);
     const tenantId = ctx.tenantId;
 
-    const [summary, tsData, costByModel, recentActivity, activeSkills, hasData, hasProviders] =
+    const [prevMetrics, tsData, costByModel, recentActivity, activeSkills, hasData, hasProviders] =
       await Promise.all([
         // The overview excludes the reserved Playground (is_playground) agent's
         // traffic EVERYWHERE: the per-agent/per-provider charts on the same page
@@ -42,7 +59,12 @@ export class OverviewController {
         // below passes excludePlayground=true so has_data and the visible widgets
         // never disagree (a Playground-only tenant reads as empty, not a populated
         // state painted over blank charts).
-        this.aggregation.getSummaryMetrics(range, tenantId, agentName, undefined, undefined, true),
+        //
+        // The current-window summary is derived from the timeseries buckets
+        // below (which scan the same Playground-excluded rows), so we only query
+        // the previous window here for the trend arrows instead of repeating the
+        // full current+previous double-scan.
+        this.aggregation.getPreviousWindowMetrics(range, tenantId, agentName, true),
         this.timeseries.getTimeseries(
           range,
           tenantId,
@@ -58,6 +80,8 @@ export class OverviewController {
         this.aggregation.hasAnyData(tenantId, agentName, true),
         this.hasActiveProviders(tenantId, agentName),
       ]);
+
+    const summary = AggregationService.buildSummary(sumTimeseries(tsData), prevMetrics);
 
     return {
       summary: {

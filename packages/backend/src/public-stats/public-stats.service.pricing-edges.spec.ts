@@ -44,11 +44,14 @@ function makePricingEntry(overrides: Partial<PricingEntry> = {}): PricingEntry {
 
 describe('PublicStatsService — pricing edge cases', () => {
   let service: PublicStatsService;
-  let mockRepo: { createQueryBuilder: jest.Mock };
+  let mockRepo: { createQueryBuilder: jest.Mock; query: jest.Mock };
   let mockPricingCache: { getAll: jest.Mock; getByModel: jest.Mock };
 
   beforeEach(() => {
-    mockRepo = { createQueryBuilder: jest.fn() };
+    mockRepo = {
+      createQueryBuilder: jest.fn(),
+      query: jest.fn().mockResolvedValue([{ estimate: '0' }]),
+    };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
       getByModel: jest.fn().mockReturnValue(null),
@@ -66,8 +69,13 @@ describe('PublicStatsService — pricing edge cases', () => {
     tokensPrev7d: unknown = [],
     tokens30d: unknown = [],
   ) {
+    // total_messages is now an estimate read via repo.query (pg_class.reltuples).
+    const totalProp =
+      count && typeof count === 'object' && 'total' in count
+        ? (count as { total: unknown }).total
+        : undefined;
+    mockRepo.query = jest.fn().mockResolvedValue(count === null ? [] : [{ estimate: totalProp }]);
     mockRepo.createQueryBuilder
-      .mockReturnValueOnce(mockQueryBuilder(count))
       .mockReturnValueOnce(mockQueryBuilder(top))
       .mockReturnValueOnce(mockQueryBuilder(tokens7d))
       .mockReturnValueOnce(mockQueryBuilder(tokensPrev7d))
