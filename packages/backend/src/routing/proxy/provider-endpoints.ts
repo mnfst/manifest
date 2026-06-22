@@ -148,6 +148,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/v1/messages',
     format: 'anthropic',
   },
+  atlascloud: {
+    baseUrl: 'https://api.atlascloud.ai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
   bedrock: {
     baseUrl: getBedrockMantleBaseUrl(),
     buildHeaders: openaiHeaders,

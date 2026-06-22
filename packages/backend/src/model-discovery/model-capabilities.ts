@@ -14,6 +14,7 @@ const MODALITY_CAPABILITIES: ReadonlyMap<string, ModelModality> = new Map([
 
 const STREAMING_ENDPOINT_PROVIDERS = new Set([
   'anthropic',
+  'atlascloud',
   'byteplus',
   'commandcode',
   'copilot',
