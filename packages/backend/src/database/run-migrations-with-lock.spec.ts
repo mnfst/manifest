@@ -37,7 +37,7 @@ describe('runMigrationsWithAdvisoryLock', () => {
     expect(m.query).toHaveBeenNthCalledWith(1, 'SELECT pg_advisory_lock($1::bigint)', [
       MIGRATION_ADVISORY_LOCK_KEY,
     ]);
-    expect(m.runMigrations).toHaveBeenCalledWith({ transaction: 'all' });
+    expect(m.runMigrations).toHaveBeenCalledWith({ transaction: 'each' });
     expect(m.query).toHaveBeenNthCalledWith(2, 'SELECT pg_advisory_unlock($1::bigint)', [
       MIGRATION_ADVISORY_LOCK_KEY,
     ]);

@@ -18,25 +18,32 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *      Adding `model` makes that aggregation index-only too.
  *
  * DROP-then-CREATE so any pre-existing out-of-band copy is replaced with the
- * model-inclusive definition. On a large install this rebuilds a multi-hundred-MB
- * index once at boot (a brief write stall on agent_messages), the same one-time
- * cost noted for the other index migrations in this batch.
+ * model-inclusive definition. Both run CONCURRENTLY (so `transaction = false`):
+ * the blocking form rebuilds a multi-hundred-MB index under ACCESS EXCLUSIVE and
+ * deadlocked against live agent_messages writes during the deploy. CONCURRENTLY
+ * builds it in the background under SHARE UPDATE EXCLUSIVE, which does not
+ * conflict with writes — no stall, no deadlock.
  */
 export class AddDashboardCoveringIndex1793200000000 implements MigrationInterface {
   name = 'AddDashboardCoveringIndex1793200000000';
+  transaction = false;
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_messages_provider_usage"`);
     await queryRunner.query(
-      `CREATE INDEX IF NOT EXISTS "IDX_agent_messages_provider_usage" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("model", "provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_provider_usage"`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_provider_usage" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("model", "provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Restore the prior (model-less) covering definition.
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_messages_provider_usage"`);
     await queryRunner.query(
-      `CREATE INDEX IF NOT EXISTS "IDX_agent_messages_provider_usage" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_provider_usage"`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_provider_usage" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
     );
   }
 }

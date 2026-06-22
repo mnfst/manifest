@@ -44,7 +44,7 @@ describe('agent-message attribution backfill after provider lift (e2e)', () => {
       logging: false,
     });
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
 
     // Clean slate (FK-safe order), then rewind to the pre-lift schema by
     // reverting the relevant migrations in reverse chronological order. The

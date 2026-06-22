@@ -48,7 +48,7 @@ describe('AddCustomProviderFkToUserProviders schema (e2e)', () => {
   beforeAll(async () => {
     ds = makeDataSource();
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
     await revertTenantCanonicalScoping(ds);
   }, 60000);
 
@@ -99,7 +99,7 @@ describe('AddCustomProviderFkToUserProviders data preservation (e2e)', () => {
   beforeAll(async () => {
     ds = makeDataSource();
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
     // Undo the later user_providers → tenant_providers rename so this migration
     // can be exercised against the user_providers schema it was authored for.
     await revertTenantCanonicalScoping(ds);
