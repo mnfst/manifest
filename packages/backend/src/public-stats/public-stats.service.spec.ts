@@ -31,14 +31,11 @@ function makePricingEntry(overrides: Partial<PricingEntry> = {}): PricingEntry {
 
 describe('PublicStatsService', () => {
   let service: PublicStatsService;
-  let mockRepo: { createQueryBuilder: jest.Mock; query: jest.Mock };
+  let mockRepo: { createQueryBuilder: jest.Mock };
   let mockPricingCache: { getAll: jest.Mock; getByModel: jest.Mock };
 
   beforeEach(() => {
-    mockRepo = {
-      createQueryBuilder: jest.fn(),
-      query: jest.fn().mockResolvedValue([{ estimate: '0' }]),
-    };
+    mockRepo = { createQueryBuilder: jest.fn() };
     mockPricingCache = {
       getAll: jest.fn().mockReturnValue([]),
       getByModel: jest.fn().mockReturnValue(null),
@@ -56,18 +53,8 @@ describe('PublicStatsService', () => {
     tokensPrev7d: unknown = [],
     tokens30d: unknown = [],
   ) {
-    // The total is now an estimate read via repo.query (pg_class.reltuples),
-    // not a COUNT(*) query builder. Translate the legacy `{ total }` fixture
-    // into the estimate row shape so existing call sites keep working:
-    //   null            -> no rows         -> 0
-    //   {}              -> { estimate: undefined } -> 0
-    //   { total: '42' } -> { estimate: '42' }      -> 42
-    const totalProp =
-      count && typeof count === 'object' && 'total' in count
-        ? (count as { total: unknown }).total
-        : undefined;
-    mockRepo.query = jest.fn().mockResolvedValue(count === null ? [] : [{ estimate: totalProp }]);
     mockRepo.createQueryBuilder
+      .mockReturnValueOnce(mockQueryBuilder(count))
       .mockReturnValueOnce(mockQueryBuilder(top))
       .mockReturnValueOnce(mockQueryBuilder(tokens7d))
       .mockReturnValueOnce(mockQueryBuilder(tokensPrev7d))
@@ -192,6 +179,7 @@ describe('PublicStatsService', () => {
       const prev7dQb = mockQueryBuilder([]);
       const thirtyDayQb = mockQueryBuilder([]);
       mockRepo.createQueryBuilder
+        .mockReturnValueOnce(mockQueryBuilder({ total: '0' }))
         .mockReturnValueOnce(mockQueryBuilder([]))
         .mockReturnValueOnce(tokenQb)
         .mockReturnValueOnce(prev7dQb)
@@ -208,6 +196,7 @@ describe('PublicStatsService', () => {
     it('applies correct cutoffs to previous-7d query', async () => {
       const prev7dQb = mockQueryBuilder([]);
       mockRepo.createQueryBuilder
+        .mockReturnValueOnce(mockQueryBuilder({ total: '0' }))
         .mockReturnValueOnce(mockQueryBuilder([]))
         .mockReturnValueOnce(mockQueryBuilder([]))
         .mockReturnValueOnce(prev7dQb)
@@ -228,6 +217,7 @@ describe('PublicStatsService', () => {
     it('applies correct cutoff to 30d query', async () => {
       const thirtyDayQb = mockQueryBuilder([]);
       mockRepo.createQueryBuilder
+        .mockReturnValueOnce(mockQueryBuilder({ total: '0' }))
         .mockReturnValueOnce(mockQueryBuilder([]))
         .mockReturnValueOnce(mockQueryBuilder([]))
         .mockReturnValueOnce(mockQueryBuilder([]))

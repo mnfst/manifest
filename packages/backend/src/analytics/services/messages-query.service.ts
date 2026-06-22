@@ -109,12 +109,11 @@ export class MessagesQueryService {
 
     this.applyCursor(dataQb, params.cursor);
 
-    // Read the count cache on every page, including the first (no cursor). The
-    // unbounded COUNT(*) over a heavy tenant's whole history is one of the
-    // slowest dashboard queries; a 30s-TTL cache keyed on the filter set keeps
-    // repeated first-page loads off it, at the cost of a count badge that can lag
-    // new inserts by up to the TTL.
-    const cachedCount = includeTotal ? this.countCache.get(countCacheKey) : undefined;
+    // Only reuse a cached count on paginated (cursor) requests; the first page
+    // always runs a fresh count so the total stays current for clients that poll
+    // it (a stale first-page total would lag newly recorded messages by the TTL).
+    const cachedCount =
+      includeTotal && params.cursor ? this.countCache.get(countCacheKey) : undefined;
     const countHit = cachedCount !== undefined;
     const [countResult, rows, filterOptions] = await Promise.all([
       includeTotal ? (countHit ? null : countQb.getRawOne()) : null,

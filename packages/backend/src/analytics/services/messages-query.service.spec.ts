@@ -603,7 +603,7 @@ describe('MessagesQueryService', () => {
     expect(mockGetRawOne).toHaveBeenCalledTimes(1);
   });
 
-  it('first page reuses the cached count within the TTL', async () => {
+  it('first page always runs a fresh count even when one is cached', async () => {
     // First call — populates the count cache.
     mockGetRawOne.mockResolvedValueOnce({ total: 42 });
     mockGetRawMany.mockResolvedValueOnce([
@@ -612,18 +612,18 @@ describe('MessagesQueryService', () => {
     skipScan(['gpt-4o']);
 
     await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
-    expect(mockGetRawOne).toHaveBeenCalledTimes(1);
 
-    // Second first-page call within the TTL — the unbounded COUNT(*) is skipped
-    // and the cached total is reused.
+    // Second first-page call — the count must stay fresh (not served from cache)
+    // so clients that poll total_count always see the current value.
+    mockGetRawOne.mockResolvedValueOnce({ total: 45 });
     mockGetRawMany.mockResolvedValueOnce([
       { id: 'msg-2', timestamp: '2026-02-16 11:00:00', model: 'gpt-4o' },
     ]);
     skipScan(['gpt-4o']);
 
     const result = await service.getMessages({ range: '24h', tenantId: 'test-user', limit: 20 });
-    expect(result.total_count).toBe(42);
-    expect(mockGetRawOne).toHaveBeenCalledTimes(1);
+    expect(result.total_count).toBe(45);
+    expect(mockGetRawOne).toHaveBeenCalledTimes(2);
   });
 
   it('count cache expires after 30s', async () => {
