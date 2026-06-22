@@ -131,6 +131,7 @@ import { AddBackfillStateTable1792800000000 } from './migrations/1792800000000-A
 import { TuneAgentMessagesAutovacuum1792900000000 } from './migrations/1792900000000-TuneAgentMessagesAutovacuum';
 import { AddTenantProviderValueIndex1793000000000 } from './migrations/1793000000000-AddTenantProviderValueIndex';
 import { DropRedundantTenantAgentNameIndex1793100000000 } from './migrations/1793100000000-DropRedundantTenantAgentNameIndex';
+import { AddDashboardCoveringIndex1793200000000 } from './migrations/1793200000000-AddDashboardCoveringIndex';
 
 const entities = [
   AgentMessage,
@@ -261,6 +262,7 @@ const migrations = [
   TuneAgentMessagesAutovacuum1792900000000,
   AddTenantProviderValueIndex1793000000000,
   DropRedundantTenantAgentNameIndex1793100000000,
+  AddDashboardCoveringIndex1793200000000,
 ];
 
 @Module({
