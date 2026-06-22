@@ -3,8 +3,14 @@ import { DataSource } from 'typeorm';
 import { entities, migrations } from './data-source-definitions';
 
 function createDataSource(): DataSource {
+  // Prefer a direct (non-pooled) connection for migrations: the advisory lock in
+  // migrate.ts is session-scoped and won't hold over PgBouncer, so overlapping
+  // deploys could still deadlock if migrations ran through the pool. Fall back to
+  // DATABASE_URL only for local/self-hosted, where it's already a direct
+  // connection (no PgBouncer in front).
   const databaseUrl =
     process.env['MIGRATION_DATABASE_URL'] ??
+    process.env['DATABASE_UNPOOLED_URL'] ??
     process.env['DATABASE_URL'] ??
     'postgresql://myuser:mypassword@localhost:5432/mydatabase';
 
