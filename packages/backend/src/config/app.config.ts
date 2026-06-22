@@ -36,6 +36,11 @@ export const appConfig = registerAs('app', () => ({
   // random_page_cost) as role-level defaults at boot. Set DB_TUNE_SESSION=false
   // to skip (e.g. a managed Postgres where the role lacks ALTER ROLE on itself).
   dbTuneSession: process.env['DB_TUNE_SESSION'] !== 'false',
+  // Run pending migrations on app boot. Default on (safe for single-instance dev
+  // and self-hosted). Set RUN_MIGRATIONS_ON_BOOT=false on multi-replica deploys
+  // (Railway) where a pre-deploy step migrates once over a direct connection, so
+  // replicas never migrate concurrently over PgBouncer.
+  runMigrationsOnBoot: process.env['RUN_MIGRATIONS_ON_BOOT'] !== 'false',
   // When true, /api/v1/public/* endpoints expose aggregate stats without auth.
   // Off by default — only Manifest Cloud's marketing homepage should enable it.
   publicStatsEnabled: process.env['MANIFEST_PUBLIC_STATS'] === 'true',

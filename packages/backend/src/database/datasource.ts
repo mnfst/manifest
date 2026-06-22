@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
+import { entities, migrations } from './data-source-definitions';
 
 function createDataSource(): DataSource {
   const databaseUrl =
@@ -10,8 +11,12 @@ function createDataSource(): DataSource {
   return new DataSource({
     type: 'postgres',
     url: databaseUrl,
-    entities: ['src/entities/!(*.spec).ts'],
-    migrations: ['src/database/migrations/!(*.spec).ts'],
+    // Explicit arrays (not globs): the pre-deploy `node dist/database/migrate.js`
+    // must run exactly the committed migration set. A dist glob would also pick up
+    // stale compiled .js from deleted migrations (deleteOutDir is off), so this
+    // stays in lockstep with the boot path in database.module.
+    entities,
+    migrations,
   });
 }
 
