@@ -26,7 +26,7 @@ describe('LiftCustomProvidersToUserLevel under migration-built schema (e2e)', ()
       logging: false,
     });
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
   }, 60000);
 
   afterAll(async () => {
@@ -91,7 +91,7 @@ describe('LiftCustomProvidersToUserLevel data transformation (e2e)', () => {
       logging: false,
     });
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
 
     // Revert the later tenant re-scoping + table renames first (newest first)
     // so this historical migration can be replayed against the schema naming

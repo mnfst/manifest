@@ -17,26 +17,49 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *   2. The hosted copy was missing `model`, so cost-by-model still hit the heap.
  *      Adding `model` makes that aggregation index-only too.
  *
- * DROP-then-CREATE so any pre-existing out-of-band copy is replaced with the
- * model-inclusive definition. On a large install this rebuilds a multi-hundred-MB
- * index once at boot (a brief write stall on agent_messages), the same one-time
- * cost noted for the other index migrations in this batch.
+ * Build-new-then-swap so a usable covering index always exists: the new
+ * definition is built CONCURRENTLY under a temp name, then the old copy is
+ * dropped and the new one renamed into place. Everything runs CONCURRENTLY (so
+ * `transaction = false`) under SHARE UPDATE EXCLUSIVE, which does not conflict
+ * with writes — the blocking form took ACCESS EXCLUSIVE and deadlocked against
+ * live agent_messages writes during the deploy. If the build fails, the existing
+ * index is untouched (no window without a covering index); ALTER INDEX RENAME
+ * does not block writes either.
  */
 export class AddDashboardCoveringIndex1793200000000 implements MigrationInterface {
   name = 'AddDashboardCoveringIndex1793200000000';
+  transaction = false;
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_messages_provider_usage"`);
+    // Drop any invalid leftover, build the model-inclusive index under a temp
+    // name, then swap. The old index stays usable until the new one is ready.
     await queryRunner.query(
-      `CREATE INDEX IF NOT EXISTS "IDX_agent_messages_provider_usage" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("model", "provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_provider_usage_v2"`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_provider_usage_v2" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("model", "provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
+    );
+    await queryRunner.query(
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_provider_usage"`,
+    );
+    await queryRunner.query(
+      `ALTER INDEX IF EXISTS "IDX_agent_messages_provider_usage_v2" RENAME TO "IDX_agent_messages_provider_usage"`,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // Restore the prior (model-less) covering definition.
-    await queryRunner.query(`DROP INDEX IF EXISTS "IDX_agent_messages_provider_usage"`);
+    // Restore the prior (model-less) covering definition with the same swap.
     await queryRunner.query(
-      `CREATE INDEX IF NOT EXISTS "IDX_agent_messages_provider_usage" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_provider_usage_v2"`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_agent_messages_provider_usage_v2" ON "agent_messages" ("tenant_id", "timestamp") INCLUDE ("provider", "auth_type", "input_tokens", "output_tokens", "cost_usd")`,
+    );
+    await queryRunner.query(
+      `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_provider_usage"`,
+    );
+    await queryRunner.query(
+      `ALTER INDEX IF EXISTS "IDX_agent_messages_provider_usage_v2" RENAME TO "IDX_agent_messages_provider_usage"`,
     );
   }
 }

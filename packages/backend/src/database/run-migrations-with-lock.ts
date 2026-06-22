@@ -27,7 +27,10 @@ export async function runMigrationsWithAdvisoryLock(dataSource: DataSource): Pro
   try {
     await lockRunner.query('SELECT pg_advisory_lock($1::bigint)', [MIGRATION_ADVISORY_LOCK_KEY]);
     locked = true;
-    await dataSource.runMigrations({ transaction: 'all' });
+    // 'each' (per-migration transaction), not 'all': the index migrations run
+    // CONCURRENTLY and must execute outside a transaction (transaction = false),
+    // which TypeORM forbids under 'all'.
+    await dataSource.runMigrations({ transaction: 'each' });
   } finally {
     if (locked) {
       try {

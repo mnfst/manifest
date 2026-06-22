@@ -43,7 +43,11 @@ import { shouldRetryDbConnection } from '../common/utils/db-retry';
         // direct connection instead. Previously this was hardcoded true, which
         // deadlocked when several replicas migrated at once on the same deploy.
         migrationsRun: config.get<boolean>('app.runMigrationsOnBoot'),
-        migrationsTransactionMode: 'all' as const,
+        // 'each' (per-migration transaction), not 'all': the agent_messages index
+        // migrations run CONCURRENTLY and declare `transaction = false`, which
+        // TypeORM forbids under 'all'. CONCURRENTLY avoids the ACCESS EXCLUSIVE
+        // lock that deadlocks against live writes during a deploy.
+        migrationsTransactionMode: 'each' as const,
         migrations,
         // A failed migration must not go through the connection-retry loop:
         // @nestjs/typeorm checks toRetry before logging, so returning false

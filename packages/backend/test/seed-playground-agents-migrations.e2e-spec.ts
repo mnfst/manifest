@@ -31,7 +31,7 @@ describe('SeedPlaygroundAgents data transformation (e2e)', () => {
       logging: false,
     });
     await ds.initialize();
-    await ds.runMigrations();
+    await ds.runMigrations({ transaction: 'each' });
 
     // Revert the later tenant re-scope first (newest first) so this historical
     // migration can be replayed against the schema naming it expects
