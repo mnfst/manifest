@@ -83,7 +83,6 @@ function makeRecorder(repo: { insert: jest.Mock; findOne: jest.Mock; find: jest.
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     } as never,
-    { save: jest.fn() } as never,
   );
 }
 
@@ -131,7 +130,6 @@ describe('ProxyController streaming abort', () => {
       new ThoughtSignatureCache(),
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
-      { isRecording: jest.fn().mockResolvedValue(false), invalidate: jest.fn() } as never,
     );
   });
 

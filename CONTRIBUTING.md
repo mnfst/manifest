@@ -145,7 +145,7 @@ The backend runs standalone and OpenClaw talks to it as a regular OpenAI-compati
 **When to use this:**
 
 - Testing routing, tier assignment, or model resolution
-- Debugging the proxy or message recording
+- Debugging the proxy or message ingestion
 - Working on the dashboard UI with live data
 
 ## Wingman — gateway tester (dev only)

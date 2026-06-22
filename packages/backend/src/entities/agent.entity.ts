@@ -30,9 +30,6 @@ export class Agent {
   @Column('boolean', { default: false })
   complexity_routing_enabled!: boolean;
 
-  @Column('boolean', { default: true })
-  record_messages!: boolean;
-
   @Column('varchar', { nullable: true })
   savings_baseline_model!: string | null;
 

@@ -1,5 +1,5 @@
-import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import {
   ALL_TIERS,
   SPECIFICITY_CATEGORIES,
@@ -62,11 +62,6 @@ export class MessagesQueryDto {
     message: `status must be one of: ${MESSAGE_STATUS_FILTER_VALUES.join(', ')}`,
   })
   status?: MessageStatusFilter;
-
-  @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) => value === true || value === 'true' || value === '1')
-  recorded?: boolean;
 
   @IsOptional()
   @IsIn(ALL_TIERS, {

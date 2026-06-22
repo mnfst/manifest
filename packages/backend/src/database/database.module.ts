@@ -3,9 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { AgentMessage } from '../entities/agent-message.entity';
-import { LlmCall } from '../entities/llm-call.entity';
-import { ToolExecution } from '../entities/tool-execution.entity';
-import { AgentLog } from '../entities/agent-log.entity';
 import { ApiKey } from '../entities/api-key.entity';
 import { Tenant } from '../entities/tenant.entity';
 import { Agent } from '../entities/agent.entity';
@@ -19,7 +16,6 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
-import { MessageRecording } from '../entities/message-recording.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
@@ -109,12 +105,10 @@ import { EnableRecordMessagesForAll1789300000000 } from './migrations/1789300000
 import { AddRoutingOutputControls1789300000000 } from './migrations/1789300000000-AddRoutingOutputControls';
 import { AddAgentApiKeyPrefixActiveIndex1790000000000 } from './migrations/1790000000000-AddAgentApiKeyPrefixActiveIndex';
 import { AddReasoningContentCache1790100000000 } from './migrations/1790100000000-AddReasoningContentCache';
+import { RemoveMessageRecording1795000000000 } from './migrations/1795000000000-RemoveMessageRecording';
 
 const entities = [
   AgentMessage,
-  LlmCall,
-  ToolExecution,
-  AgentLog,
   ApiKey,
   Tenant,
   Agent,
@@ -128,7 +122,6 @@ const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
-  MessageRecording,
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
@@ -219,6 +212,7 @@ const migrations = [
   AddRoutingOutputControls1789300000000,
   AddAgentApiKeyPrefixActiveIndex1790000000000,
   AddReasoningContentCache1790100000000,
+  RemoveMessageRecording1795000000000,
 ];
 
 @Module({
@@ -264,7 +258,6 @@ const migrations = [
       CustomProvider,
       SpecificityAssignment,
       HeaderTier,
-      MessageRecording,
       AgentModelParams,
       ReasoningContentCacheEntry,
     ]),

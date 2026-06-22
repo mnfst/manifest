@@ -16,7 +16,6 @@ import ErrorState from '../components/ErrorState.jsx';
 import FeedbackModal from '../components/FeedbackModal.jsx';
 import MessageTable from '../components/MessageTable.jsx';
 import Pagination from '../components/Pagination.jsx';
-import RecordedMessageModal from '../components/RecordedMessageModal.jsx';
 import Select from '../components/Select.jsx';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -39,9 +38,6 @@ import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { messagePing } from '../services/sse.js';
 import '../styles/overview.css';
-// The recorded-message drawer/modal styles. Only the Messages log mounts
-// RecordedMessageModal, so this CSS stays out of the global theme bundle.
-import '../styles/recording.css';
 
 interface MessagesData {
   items: MessageRow[];
@@ -68,10 +64,6 @@ const MessageLog: Component = () => {
   const [tierFilter, setTierFilter] = createSignal('');
   const [costMin, setCostMin] = createSignal('');
   const [costMax, setCostMax] = createSignal('');
-  const [recordingModalId, setRecordingModalId] = createSignal<string | null>(null);
-  const closeDr = () => setRecordingModalId(null);
-  onMount(() => window.addEventListener('sidebar-navigate', closeDr));
-  onCleanup(() => window.removeEventListener('sidebar-navigate', closeDr));
   const [setupOpen, setSetupOpen] = createSignal(false);
   const [setupCompleted] = createSignal(
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
@@ -515,7 +507,6 @@ const MessageLog: Component = () => {
                   onFeedbackLike={isSelfHosted() ? undefined : handleFeedbackLike}
                   onFeedbackDislike={isSelfHosted() ? undefined : handleFeedbackDislike}
                   onFeedbackClear={isSelfHosted() ? undefined : handleFeedbackClear}
-                  onOpenRecording={(id) => setRecordingModalId(id)}
                   rowIdPrefix="msg-"
                   showHeaderTooltips
                   expandable
@@ -550,13 +541,6 @@ const MessageLog: Component = () => {
           onSubmit={handleFeedbackSubmit}
         />
       </Show>
-
-      <RecordedMessageModal
-        open={recordingModalId() !== null}
-        messageId={recordingModalId()}
-        onClose={() => setRecordingModalId(null)}
-        onDeleted={() => refetch()}
-      />
     </div>
   );
 };

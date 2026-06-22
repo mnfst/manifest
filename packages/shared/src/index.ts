@@ -111,17 +111,6 @@ export {
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
-export {
-  coerceContentToText,
-  detectRequestBodyFormat,
-  extractAssistantReply,
-  extractRecordedConversationMessages,
-  extractRequestMessages,
-  extractResponseMessages,
-  extractRequestTools,
-  normalizeRole,
-} from './chat-message';
-export type { ChatMessage, ChatTool, RequestBodyFormat, Role, ToolCall } from './chat-message';
 export type {
   PlaygroundMetrics,
   PlaygroundRunResult,
