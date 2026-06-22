@@ -62,4 +62,17 @@ describe('DbTuningService', () => {
     query.mockRejectedValueOnce('boom');
     await expect(service.apply()).resolves.toBeUndefined();
   });
+
+  it('does not log success when every ALTER ROLE fails', async () => {
+    configValue = true;
+    await build();
+    query.mockRejectedValue(new Error('permission denied'));
+    const logSpy = jest.spyOn((service as unknown as { logger: { log: jest.Mock } }).logger, 'log');
+
+    await expect(service.apply()).resolves.toBeUndefined();
+
+    expect(query).toHaveBeenCalledTimes(DbTuningService.SETTINGS.length);
+    // The unconditional success log must not fire when nothing was applied.
+    expect(logSpy).not.toHaveBeenCalled();
+  });
 });

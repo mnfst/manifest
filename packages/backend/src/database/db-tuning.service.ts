@@ -49,9 +49,11 @@ export class DbTuningService implements OnApplicationBootstrap {
 
   /** Run each ALTER ROLE independently so one failure doesn't block the rest. */
   async apply(): Promise<void> {
+    let applied = 0;
     for (const { param, value } of DbTuningService.SETTINGS) {
       try {
         await this.dataSource.query(`ALTER ROLE CURRENT_USER SET ${param} = ${value}`);
+        applied++;
       } catch (err) {
         this.logger.warn(
           `Could not set role default ${param}=${value} (continuing): ${
@@ -60,6 +62,17 @@ export class DbTuningService implements OnApplicationBootstrap {
         );
       }
     }
-    this.logger.log('Applied session planner defaults (jit/work_mem/random_page_cost)');
+    const total = DbTuningService.SETTINGS.length;
+    // Report what actually took effect — an unconditional success log would
+    // mislead operators when some (or all) ALTER ROLE statements failed.
+    if (applied === total) {
+      this.logger.log('Applied session planner defaults (jit/work_mem/random_page_cost)');
+    } else if (applied > 0) {
+      this.logger.warn(
+        `Applied ${applied}/${total} session planner defaults; the rest failed (see warnings above)`,
+      );
+    } else {
+      this.logger.warn('Could not apply any session planner defaults (see warnings above)');
+    }
   }
 }
