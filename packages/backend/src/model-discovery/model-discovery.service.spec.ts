@@ -2404,14 +2404,14 @@ describe('ModelDiscoveryService', () => {
 
       expect(result.map((m) => m.id)).toEqual([
         'gpt-5.5',
-        'gpt-5.4',
         'gpt-5.4-image-2',
-        'gpt-5.4-mini',
         'gpt-5.4-nano',
-        'gpt-5.3-codex-spark',
+        'gpt-5.4',
+        'gpt-5.4-mini',
         'gpt-5.2-chat',
         'gpt-5.2-pro',
         'gpt-5.1-codex-mini',
+        'gpt-5.3-codex-spark',
       ]);
       expect(result.map((m) => m.id)).not.toContain('gpt-5.3-codex');
       expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
@@ -2617,14 +2617,14 @@ describe('ModelDiscoveryService', () => {
       expect(result.map((m) => m.id)).toEqual([
         'gpt-oss-120b',
         'gpt-5.5',
-        'gpt-5.4',
         'gpt-5.4-image-2',
-        'gpt-5.4-mini',
         'gpt-5.4-nano',
-        'gpt-5.3-codex-spark',
+        'gpt-5.4',
+        'gpt-5.4-mini',
         'gpt-5.2-chat',
         'gpt-5.2-pro',
         'gpt-5.1-codex-mini',
+        'gpt-5.3-codex-spark',
       ]);
       expect(result.map((m) => m.id)).not.toContain('gpt-5.2-codex');
     });
